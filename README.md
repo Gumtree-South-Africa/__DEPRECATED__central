@@ -15,7 +15,7 @@ In the next step we clone the project itself as well as all the submodules (filt
 ```
 git clone git@github.corp.ebay.com:ecg-comaas/replyts2.git
 cd replyts2
-git sm update --init
+git submodule update --init
 git submodule foreach git checkout master
 git submodule foreach git pull origin master
 ```
