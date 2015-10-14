@@ -25,3 +25,5 @@ Lastly the path to the config and log directories need to be set as VM options
 -DconfDir=<conf-dir>
 -DlogDir=<log-dir>
 ```
+
+The main method of the project is in: com.ecg.replyts2.ECGReplyTS2
