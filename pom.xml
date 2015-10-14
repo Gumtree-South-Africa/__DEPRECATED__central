@@ -11,11 +11,12 @@
     <modules>
         <module>replyts2-wrapper</module>
         <module>replyts2-message-center</module>
+        <module>replyts2-event-publisher</module>
     </modules>
 
     <properties>
         <replyts.version>2.16.7</replyts.version>
-        <message-center.version>TRUNK-SNAPSHOT</message-center.version>
+        <plugin.version>TRUNK-SNAPSHOT</plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -33,7 +34,12 @@
             <dependency>
                 <groupId>com.ecg.replyts</groupId>
                 <artifactId>message-center</artifactId>
-                <version>${message-center.version}</version>
+                <version>${plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ecg.replyts</groupId>
+                <artifactId>event-publisher</artifactId>
+                <version>${plugin.version}</version>
             </dependency>
 
 
