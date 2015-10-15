@@ -4,7 +4,9 @@
 
 As a first step setup vagrant as described here: https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/ReplyTS-Environment-Setup 
 
-Currently this project depends on ReplyTS2 Core to be available via maven, which means that we need to get ReplyTS2 Core in the correct version (see pom) and then install that
+**Skip this step when you are using mpnexus**.
+
+ Currently this project depends on ReplyTS2 Core to be available via maven, which means that we need to get ReplyTS2 Core in the correct version (see pom) and then install that
 ```
 git clone git@github.corp.ebay.com:ReplyTS/replyts2-core.git
 git checkout tags/<version>
@@ -20,10 +22,11 @@ git submodule foreach git checkout master
 git submodule foreach git pull origin master
 ```
 
-Lastly the path to the config and log directories need to be set as VM options
-```
--DconfDir=<conf-dir>
--DlogDir=<log-dir>
-```
+To run RTS2 create the following run configuration:
 
-The main method of the project is in: com.ecg.replyts2.ECGReplyTS2
+* Type: application
+* Main class: `com.ecg.replyts2.ECGReplyTS2`
+* VM arguments: `-DconfDir=replyts2-wrapper/conf -DlogDir=.`
+* Module: `replyts2-wrapper`
+* Working directory: the project directory (which is the default)
+
