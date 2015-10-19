@@ -15,7 +15,7 @@
     </modules>
 
     <properties>
-        <replyts.version>2.16.7</replyts.version>
+        <replyts.version>2.19.0-SNAPSHOT</replyts.version>
         <plugin.version>TRUNK-SNAPSHOT</plugin.version>
     </properties>
 
