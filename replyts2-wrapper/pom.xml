@@ -29,11 +29,83 @@
             <groupId>com.ecg.replyts</groupId>
             <artifactId>event-publisher</artifactId>
         </dependency>
-
         <dependency>
-            <groupId>com.ecg.replyts</groupId>
-            <artifactId>integration-test</artifactId>
-            <scope>test</scope>
+            <groupId>nl.marktplaats</groupId>
+            <artifactId>replyts2-filter-bankaccount</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>nl.marktplaats</groupId>
+            <artifactId>replyts2-filter-knowngood</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>nl.marktplaats</groupId>
+            <artifactId>replyts2-postprocessor-anonymizebody</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <finalName>${project.groupId}.${project.artifactId}_${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <configuration>
+                    <programs>
+                        <program>
+                            <mainClass>com.ecg.replyts2.ECGReplyTS2</mainClass>
+                            <name>mp-replyts</name>
+                            <platforms>
+                                <platform>unix</platform>
+                            </platforms>
+                        </program>
+                    </programs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.1.15</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.5.5</version>
+                <configuration>
+                    <finalName>${project.build.finalName}-${git.commit.id}-${maven.build.timestamp}</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <tarLongFileMode>posix</tarLongFileMode>
+                    <descriptors>
+                        <descriptor>assembly/assembly.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+            </plugin>
+        </plugins>
+
+    </build>
 </project>
