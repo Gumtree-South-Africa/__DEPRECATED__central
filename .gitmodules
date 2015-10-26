@@ -7,3 +7,7 @@
 [submodule "replyts2-plugins"]
 	path = replyts2-plugins
 	url = git@github.corp.ebay.com:ecg-marktplaats/replyts2-plugins.git
+[submodule "replyts2-core"]
+	path = replyts2-core
+	url = git@github.corp.ebay.com:ReplyTS/replyts2-core.git
+	branch = cassandra

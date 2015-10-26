@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.ecg</groupId>
+    <groupId>nl.marktplaats</groupId>
     <artifactId>replyts2</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
@@ -12,6 +12,8 @@
         <module>replyts2-wrapper</module>
         <module>replyts2-message-center</module>
         <module>replyts2-event-publisher</module>
+        <module>replyts2-plugins</module>
+        <module>replyts2-core</module>
     </modules>
 
     <properties>
@@ -60,8 +62,8 @@
             <dependency>
                 <groupId>com.ecg.replyts</groupId>
                 <artifactId>integration-test</artifactId>
-                <scope>test</scope>
                 <version>${replyts.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

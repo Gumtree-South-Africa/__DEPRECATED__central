@@ -19,7 +19,7 @@
 
     <files>
         <file>
-            <source>${project.build.directory}/appassembler/bin/mp-replyts</source>
+            <source>${project.build.directory}/appassembler/bin/replyts</source>
             <outputDirectory>bin/</outputDirectory>
             <fileMode>755</fileMode>
         </file>

@@ -3,14 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
+        <groupId>nl.marktplaats</groupId>
         <artifactId>replyts2</artifactId>
-        <groupId>com.ecg</groupId>
         <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>replyts2-wrapper</artifactId>
-
 
     <dependencies>
         <dependency>
@@ -44,7 +43,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.groupId}.${project.artifactId}_${project.version}</finalName>
+        <finalName>${project.groupId}.mp-replyts-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -52,8 +51,8 @@
                 <configuration>
                     <programs>
                         <program>
-                            <mainClass>com.ecg.replyts2.ECGReplyTS2</mainClass>
-                            <name>mp-replyts</name>
+                            <mainClass>nl.marktplaats.replyts2.MarktplaatsReplyTS2Main</mainClass>
+                            <name>replyts</name>
                             <platforms>
                                 <platform>unix</platform>
                             </platforms>
