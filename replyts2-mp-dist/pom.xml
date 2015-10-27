@@ -48,14 +48,20 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
+                <version>1.10</version>
                 <configuration>
+                    <!-- Set the target configuration directory to be used in the bin scripts -->
+                    <configurationDirectory>conf</configurationDirectory>
+                    <!-- Include the target configuration directory in the beginning of
+                          the classpath declaration in the bin scripts -->
+                    <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
+                    <platforms>
+                        <platform>unix</platform>
+                    </platforms>
                     <programs>
                         <program>
                             <mainClass>nl.marktplaats.replyts2.MarktplaatsReplyTS2Main</mainClass>
                             <name>replyts</name>
-                            <platforms>
-                                <platform>unix</platform>
-                            </platforms>
                         </program>
                     </programs>
                 </configuration>
@@ -100,9 +106,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
         </plugins>
 
