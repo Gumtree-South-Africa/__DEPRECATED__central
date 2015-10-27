@@ -7,6 +7,13 @@ Before you start, setup vagrant as described here: https://github.corp.ebay.com/
 Clone this repository, and finally clone all the submodules:
 ```
 git submodule update --init
+pushd replyts2-core && git checkout cassandra && git pull origin cassandra && popd
+pushd replyts2-event-publisher && git checkout master && git pull origin master && popd
+pushd replyts2-message-center && git checkout master && git pull origin master && popd
+```
+
+TODO: change last three lines for the following two when rts core is on master branch again.
+```
 #git submodule foreach git checkout master
 #git submodule foreach git pull origin master
 ```
