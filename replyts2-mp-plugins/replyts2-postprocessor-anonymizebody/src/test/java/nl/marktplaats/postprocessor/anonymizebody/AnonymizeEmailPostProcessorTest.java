@@ -1,0 +1,808 @@
+package nl.marktplaats.postprocessor.anonymizebody;
+
+import com.ecg.replyts.app.Mails;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.model.mail.MutableMail;
+import com.ecg.replyts.core.api.model.mail.TypedContent;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.runtime.persistence.PersistenceException;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.CharStreams;
+import com.google.common.net.MediaType;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.*;
+
+/**
+ * Created by reweber on 21/10/15
+ */
+public class AnonymizeEmailPostProcessorTest {
+    private String unanonymisedSender = "unanonymised@hotmail.com";
+    private String anonymisedSender = "anonymised@gumtree.com";
+
+    private Message message = mock(Message.class);
+    private Conversation conversation = mock(Conversation.class);
+    private TypedContent<String> messageContent = mock(TypedContent.class);
+
+    private AnonymiseEmailPostProcessorConfig anonymiseEmailPostProcessorConfig;
+    private AnonymizeEmailPostProcessor postProcessor;
+
+    @Before
+    public void setup() throws PersistenceException, IOException {
+        Properties props = new Properties();
+        props.load(AnonymizeEmailPostProcessorTest.class.getClassLoader().getResourceAsStream("anonymiseemail.properties"));
+        List<String> patterns = props.values().stream().map(Object::toString).collect(Collectors.toList());
+
+        anonymiseEmailPostProcessorConfig = new AnonymiseEmailPostProcessorConfig(patterns);
+        postProcessor = new AnonymizeEmailPostProcessor(new String[]{"mail.marktplaats.nl"}, anonymiseEmailPostProcessorConfig);
+
+        // create mock conversation and repository
+        when(conversation.getUserId(Matchers.<ConversationRole>any())).thenReturn(unanonymisedSender);
+
+        // create mock message
+        when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
+    }
+    
+    private MessageProcessingContext prepareContext(Conversation conversation, Message message, MutableMail mail) {
+        MessageProcessingContext messageProcessingContext = mock(MessageProcessingContext.class);
+        when(messageProcessingContext.getConversation()).thenReturn(conversation);
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(messageProcessingContext.getOutgoingMail()).thenReturn(mail);
+        return messageProcessingContext;
+    }
+
+    @Test
+    public void testReplaceNone() {
+        String text = "This message was sent from " + anonymisedSender + ".";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were not adjusted
+        verify(messageContent, never()).overrideContent(anyString());
+    }
+
+    @Test
+    public void testReplaceOne() {
+        String text = "This message was sent from: " + unanonymisedSender + ".";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("This message was sent from: " + anonymisedSender + "."));
+    }
+
+    @Test
+    public void testReplaceAll() {
+        String text = "This message was sent from: " + unanonymisedSender + " (" + unanonymisedSender + ").";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("This message was sent from: " + anonymisedSender + " (" + anonymisedSender + ")."));
+    }
+
+    @Test
+    public void testReplaceBodyOnly() {
+        String text = "This is my email address " + unanonymisedSender
+                + " thanks. To: " + unanonymisedSender + ". From:  " + unanonymisedSender + ".";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test a
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(
+                "This is my email address "+ unanonymisedSender
+                        + " thanks. To: " + anonymisedSender + ". From:  " + anonymisedSender + "."));
+    }
+
+    @Test
+    public void testToRegex() {
+        String text = "To: " + unanonymisedSender;
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test   abc
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("To: " + anonymisedSender));
+    }
+
+    @Test
+    public void testToRegexWithNewline() {
+        String text = "To: \n" + unanonymisedSender;
+        Charset charset = Charset.forName("ISO-8859-1");
+
+        MutableMail mail = prepareMailWithHtml(text, charset);
+
+        // call method under test   abc
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);         
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("To: \n" + anonymisedSender));
+    }
+
+    @Test
+    public void testDeliberateLeakWithAnchorTags() {
+        String text = "<a class=\"moz-txt-link-abbreviated\" " +
+                "href=\"mailto:" + unanonymisedSender + "\">" + unanonymisedSender + "</a>";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test   abc
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were not adjusted
+        verify(messageContent, never()).overrideContent(anyString());
+    }
+
+    @Test
+    public void testWithAnchorTagsWithTo() {
+        String text = "To: <a class=\"moz-txt-link-abbreviated\" " +
+                "href=\"mailto:" + unanonymisedSender + "\">" + unanonymisedSender + "</a>";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test   abc
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("To: <a class=\"moz-txt-link-abbreviated\" " +
+                "href=\"mailto:" + anonymisedSender + "\">" + anonymisedSender + "</a>"));
+    }
+
+    @Test
+    public void testWithAnchorTagsWithBoldTo() {
+        String text = "<b>To:</b> <a class=\"moz-txt-link-abbreviated\" " +
+                "href=\"mailto:" + unanonymisedSender + "\">" + unanonymisedSender + "</a>";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test   abc
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("<b>To:</b> <a class=\"moz-txt-link-abbreviated\" " +
+                "href=\"mailto:" + anonymisedSender + "\">" + anonymisedSender + "</a>"));
+    }
+
+    @Test
+    public void testWithAnchorTagsWithSpannedTo() {
+        String text = "<span>To:</span> <a class=\"moz-txt-link-abbreviated\" " +
+                "href=\"mailto:" + unanonymisedSender + "\">" + unanonymisedSender + "</a>";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test   abc
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("<span>To:</span> <a class=\"moz-txt-link-abbreviated\" " +
+                "href=\"mailto:" + anonymisedSender + "\">" + anonymisedSender + "</a>"));
+    }
+
+    @Test
+    public void testWithAnchorTagsWithBoldAndSpannedTo() {
+        String text = "<b><span>To:</span></b> <a class=\"moz-txt-link-abbreviated\" " +
+                "href=\"mailto:" + unanonymisedSender + "\">" + unanonymisedSender + "</a>";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test   abc
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("<b><span>To:</span></b> <a class=\"moz-txt-link-abbreviated\" " +
+                "href=\"mailto:" + anonymisedSender + "\">" + anonymisedSender + "</a>"));
+    }
+
+    @Test
+    public void testWithAnchorTagsWithSpanAndBoldTo() {
+        String text = "<span><b>To:</b></span> <a class=\"moz-txt-link-abbreviated\" " +
+                "href=\"mailto:" + unanonymisedSender + "\">" + unanonymisedSender + "</a>";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test   abc
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("<span><b>To:</b></span> <a class=\"moz-txt-link-abbreviated\" " +
+                "href=\"mailto:" + anonymisedSender + "\">" + anonymisedSender + "</a>"));
+    }
+
+    @Test
+    public void testWithLtGtBrackets() {
+        String text = "To: <" + unanonymisedSender + ">";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("To: <" + anonymisedSender + ">"));
+    }
+
+    @Test
+    public void testWithLtGtEscBrackets() {
+        String text = "To: &lt;" + unanonymisedSender + "&gt;";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("To: &lt;" + anonymisedSender + "&gt;"));
+    }
+
+    @Test
+    public void testWithNameAndLtGtBrackets() {
+        String text = "To: Andy Summers <" + unanonymisedSender + ">";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("To: Andy Summers <" + anonymisedSender + ">"));
+    }
+
+    @Test
+    public void testWithNameAndLtGtEscBrackets() {
+        String text = "To: Andy Summers &lt;" + unanonymisedSender + "&gt;";
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("To: Andy Summers &lt;" + anonymisedSender + "&gt;"));
+    }
+
+    @Test
+    public void testDeliberateMailLeakAfterNameAndLtGtEscBrackets() {
+        String text = "To: Andy Summers &lt;" + unanonymisedSender + "&gt;\n" +
+                "Hi my email address is " + unanonymisedSender;
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify some contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("To: Andy Summers &lt;" + anonymisedSender + "&gt;\n" +
+                "Hi my email address is " + unanonymisedSender));
+    }
+
+    @Test
+    public void testDeliberateEmailLeakAfterToWithNameOnly() {
+        String text = "To: Sunny Ajax \n" +
+                "Hi my email address is <" + unanonymisedSender + ">";
+
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were not adjusted
+        verify(messageContent, never()).overrideContent(anyString());
+    }
+
+    @Test
+    public void testWithLongNameAndBracketed() {
+        String text = "To: Andy dos santos Summers <" + unanonymisedSender + ">\n" +
+                "Hi my email address is <" + unanonymisedSender + ">";
+
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("To: Andy dos santos Summers <" + anonymisedSender + ">\n" +
+                "Hi my email address is <" + unanonymisedSender + ">"));
+    }
+
+    @Test
+    public void testThirdPartyMailAddressesAreStripped() {
+        String text ="> Aan: Another Guy <third.party@hotmail.com>\n" +
+                "Hi my email address is third.party@hotmail.com.";
+
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("> \n" +
+                "Hi my email address is third.party@hotmail.com."));
+    }
+
+    @Test
+    public void testRegressionSuite() {
+        String text = "To:AgeBobCyrilAgnesMargeWalker&lt;s.31231211.BC1@mail.gumtree.com&gt;\n" +
+                "To:AgeBobCyrilAgnesMargeWalker <" + unanonymisedSender + ">\n" +
+                "From:Walker BobCyrilAgnesMargeAdrianne&lt;b.31231211.BC1@mail.gumtree.com&gt;\n" +
+                "From:Walker BobCyrilAgnesMargeAdrianne <" + unanonymisedSender + ">";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("\n" +
+                "To:AgeBobCyrilAgnesMargeWalker <" + anonymisedSender + ">\n" +
+                "\n" +
+                "From:Walker BobCyrilAgnesMargeAdrianne <" + anonymisedSender + ">"));
+    }
+
+    @Test
+    public void testRegressionSuite2() {
+        String text = "To: agewalker&lt;s.31231211.BC1@mail.gumtree.com&gt;\n" +
+                "To: Walker Adrianne<" + unanonymisedSender + ">\n" +
+                "From: adwalker&lt;b.31231211.BC1@mail.gumtree.com&gt;\n" +
+                "From: Walker Adrianne<" + unanonymisedSender + ">";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("\n" +
+                "To: Walker Adrianne<" + anonymisedSender + ">\n" +
+                "\n" +
+                "From: Walker Adrianne<" + anonymisedSender + ">"));
+    }
+
+    @Test
+    public void testRegressionSuite3() {
+        String text = "To&#58; unanonymised&#64;hotmail.com";
+        Charset charset = Charset.forName("ISO-8859-1");
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithHtml(text, charset);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("To: " + anonymisedSender));
+    }
+
+    @Test
+    public void testRegressionSuite4_largeTextPart() throws Exception {
+        String text = CharStreams.toString(new InputStreamReader(AnonymizeEmailPostProcessor.class.getClassLoader().getResourceAsStream("plain-part.txt"), "US-ASCII"));
+        String expected = CharStreams.toString(new InputStreamReader(AnonymizeEmailPostProcessor.class.getClassLoader().getResourceAsStream("plain-part-replaced.txt"), "US-ASCII"));
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(expected));
+    }
+
+    @Test
+    public void testRegressionSuite5_largeHtmlPart() throws Exception {
+        String text = CharStreams.toString(new InputStreamReader(AnonymizeEmailPostProcessor.class.getClassLoader().getResourceAsStream("html-part.html"), "ISO-8859-1"));
+        String expected = CharStreams.toString(new InputStreamReader(AnonymizeEmailPostProcessor.class.getClassLoader().getResourceAsStream("html-part-replaced.html"), "US-ASCII"));
+
+        // create mock mail and content
+        Charset charset = Charset.forName("ISO-8859-1");
+        MutableMail mail = prepareMailWithHtml(text, charset);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(expected));
+    }
+
+    @Test
+    public void testRegressionSuite6_spaceBeforeColon() {
+        String text = "Aan : " + unanonymisedSender;
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("Aan : " + anonymisedSender));
+    }
+
+    @Test
+    public void testWithRegularExpressionSyntax() {
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText("From: some name [mailto:" + unanonymisedSender + "]");
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo("From: some name [mailto:" + anonymisedSender + "]"));
+    }
+
+    @Test
+    public void testRegressionSuiteMailFromMicrosoftOfficeOutlook11() {
+        String html = "<b><span style='font-weight:bold'>Aan:</span></b> " +
+                "<st1:PersonName w:st=\"on\">%s</st1:PersonName><br>\n";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithHtml(String.format(html, unanonymisedSender), Charset.forName("UTF8"));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(String.format(html, anonymisedSender)));
+    }
+
+    @Test
+    public void testRegressionSuiteMailFromMicrosoftOutlookCom() {
+        String html = "<br><b>To:</b>&nbsp;<a href=\"mailto:%s\" target=\"_parent\">Mr. Mailer</a></font></div></div><div><br>";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithHtml(String.format(html, unanonymisedSender), Charset.forName("UTF8"));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(String.format(html, anonymisedSender)));
+    }
+
+    @Test
+    public void testRegressionSuite_newLinesOnRawContent() throws Exception {
+        InputStream eml = AnonymizeEmailPostProcessor.class.getClassLoader().getResourceAsStream("new-lines-in-encoded-form.eml");
+        InputStream expectedEml = AnonymizeEmailPostProcessor.class.getClassLoader().getResourceAsStream("new-lines-in-encoded-form-replaced.eml");
+
+        Mails parser = new Mails();
+        MutableMail mail = parser.readMail(ByteStreams.toByteArray(eml)).makeMutableCopy();
+
+        Mail expectedMail = parser.readMail(ByteStreams.toByteArray(expectedEml));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        String[] actualContentParts = extractContentParts(mail);
+        String[] expectedContentParts = extractContentParts(expectedMail);
+
+        assertThat("text parts should match", actualContentParts[0], equalTo(expectedContentParts[0]));
+        assertThat("html parts should match", actualContentParts[1], equalTo(expectedContentParts[1]));
+    }
+
+    @Test
+    public void testRegressionSuite_multilineHtml() {
+        String html = "<DIV style=\"font-color: black\"><B>From:</B> <A  \r\n" +
+                "title=a.12fhasfjdadg@mail.marktplaats.nl  \r\n" +
+                "href=\"mailto:a.12fhasfjdadg@mail.marktplaats.nl\">Rutger via Marktplaats</A>  \r\n" +
+                "</DIV> \r\n" +
+                "<DIV><B>Sent:</B> Wednesday, June 25, 2014 12:01 PM</DIV> \r\n" +
+                "<DIV>To: {{{sender}}}</DIV> \r\n" +
+                "<DIV><B>To:</B> <A title={{{sender}}}  \r\n" +
+                "href=\"mailto:{{{sender}}}\">{{{sender}}}</A> </DIV> \r\n" +
+                "<DIV><B>To:</B> <A href=\"mailto:{{{sender}}}\">  \r\n" +
+                "{{{sender}}}</A> </DIV> \r\n" +
+                "<<DIV><B>To:</B> <A title=\"{{{sender}}}\"  \r\n" +
+                "href=\"mailto:{{{sender}}}\">{{{sender}}}</A> </DIV> \r\n" +
+                "<DIV><B>To:</B> <A title={{{sender}}}  \r\n" +
+                "href=\"mailto:{{{sender}}}\">{{{sender}}}</A> </DIV> \r\n" +
+                "<DIV><B>Subject:</B> Re: Reactie: Oranje poppetjes C1000 en  \r\n" +
+                "Xenos.</DIV></DIV></DIV> \r\n" +
+                "<DIV>&nbsp;</DIV></DIV> \r\n";
+
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithHtml(html.replace("{{{sender}}}", unanonymisedSender), Charset.forName("UTF8"));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(html.replace("{{{sender}}}", anonymisedSender)));
+    }
+
+    @Test
+    public void testRegressionSuite_aur287_multilineHtml_3() {
+        String html = "<div>Great</div>\n" +
+                "<div>Check now my email</div>\n" +
+                "<div><br>\n" +
+                "</div>\n" +
+                "<span id=\"OLK_SRC_BODY_SECTION\">\n" +
+                "<div style=\"font-family:Calibri; font-size:11pt; text-align:left; color:black; BORDER-BOTTOM: medium none; BORDER-LEFT: medium none; PADDING-BOTTOM: 0in; PADDING-LEFT: 0in; PADDING-RIGHT: 0in; BORDER-TOP: #b5c4df 1pt solid; BORDER-RIGHT: medium none; PADDING-TOP: 3pt\">\n" +
+                "<span style=\"font-weight:bold\">From: </span>Ik via Marktplaats &lt;<a href=\"mailto:a.bucrbf2y3rkd9@mail.marktplaats.nl\">a.bucrbf2y3rkd9@mail.marktplaats.nl</a>&gt;<br>\n" +
+                "<span style=\"font-weight:bold\">Date: </span>Friday 2 October 2015 16:23<br>\n" +
+                "<span style=\"font-weight:bold\">To: </span>&quot;Rossi, Mario &quot; &lt;<a href=\"mailto:{{{sender}}}\">{{{sender}}}</a>&gt;<br>\n" +
+                "<span style=\"font-weight:bold\">Subject: </span>Ik heb interesse in 'just test' - Ik<br>\n" +
+                "</div>\n" +
+                "<div><br>\n" +
+                "</div>";
+
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithHtml(html.replace("{{{sender}}}", unanonymisedSender), Charset.forName("UTF8"));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(html.replace("{{{sender}}}", anonymisedSender)));
+    }
+
+    @Test
+    public void testRegressionSuite_mig8953_newPatternHtml() {
+        String html = "Op 4 mrt. 2015 23:03 schreef &quot;Jaap Sterren&quot; &lt;" +
+                "<a href=\"mailto:{{{sender}}}\">{{{sender}}}</a>&gt;:<br>\n";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithHtml(html.replace("{{{sender}}}", unanonymisedSender), Charset.forName("UTF8"));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(html.replace("{{{sender}}}", anonymisedSender)));
+    }
+
+    @Test
+    public void testRegressionSuite_mig8953_newPatternPlainText() {
+        String text = "Op 4 mrt. 2015 23:03 schreef \"Jaap Sterren\" <{{{sender}}}>:\n";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text.replace("{{{sender}}}", unanonymisedSender));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(text.replace("{{{sender}}}", anonymisedSender)));
+    }
+
+    @Test
+    public void testRegressionSuite_mig8953_multilineText() {
+        String text = "Hallo juul met neel gaat het niet meer door ik hoor graag nog wat van je\n" +
+                "grtjes van neel\n" +
+                "Op 4 mrt. 2015 23:03 schreef \"Jaap Sterren\" <\n" +
+                "{{{sender}}}>:\n" +
+                ">\n" +
+                "> Oke juul ik ga ze los verkopen  voor 35 mag je  ze over nemen ze zien er\n" +
+                "nog heel goed uit + 1,28 voor het verzenden of wil je track en trak? Ik\n" +
+                "weet niet zo goed hoe het heet  via het post kantoor of aan getekend voor\n" +
+                "6,75 of kom je ze halen grtjes van neel hoor ik nog wat van je?) oja ik had\n" +
+                "nog een foto gemaakt heb je het nog gezien niet zo duidelijk het merkje\n" +
+                "staat er ook nog goed op  welterusten\n";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text.replace("{{{sender}}}", unanonymisedSender));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(text.replace("{{{sender}}}", anonymisedSender)));
+    }
+
+    @Test
+    public void testRegressionSuite_aur287_multilineText_2() {
+        String text = "From: Ik via Marktplaats <a.bucrbf2y3rkd9@mail.marktplaats.nl<mailto:a.bucrbf2y3rkd9@mail.marktplaats.nl>>\n" +
+                "Date: Friday 2 October 2015 16:23\n" +
+                "To: \"Rossi, Mario\" <{{{sender}}}<mailto:{{{sender}}}>>\n" +
+                "Subject: Ik heb interesse in 'just test' - Ik";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text.replace("{{{sender}}}", unanonymisedSender));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(text.replace("{{{sender}}}", anonymisedSender)));
+    }
+
+
+    @Test
+    public void testRegressionSuite_multilineHtml_2() {
+        String html = "<div dir=\"ltr\">\n" +
+                "<hr>\n" +
+                "<span style=\"font-family: Calibri,sans-serif; font-size: 11pt; font-weight: bold;\">Van:\n" +
+                "</span><span style=\"font-family: Calibri,sans-serif; font-size: 11pt;\"><a href=\"mailto:a.23rj0hbfsopsg@mail.marktplaats.nl\">Bram via Marktplaats</a></span><br>\n" +
+                "<span style=\"font-family: Calibri,sans-serif; font-size: 11pt; font-weight: bold;\">Verzonden:\n" +
+                "</span><span style=\"font-family: Calibri,sans-serif; font-size: 11pt;\">\u200E7-\u200E3-\u200E2015 08:18</span><br>\n" +
+                "<span style=\"font-family: Calibri,sans-serif; font-size: 11pt; font-weight: bold;\">Aan:\n" +
+                "</span><span style=\"font-family: Calibri,sans-serif; font-size: 11pt;\"><a href=\"mailto:{{{sender}}}\">{{{sender}}}</a></span><br>\n" +
+                "<span style=\"font-family: Calibri,sans-serif; font-size: 11pt; font-weight: bold;\">Onderwerp:\n" +
+                "</span><span style=\"font-family: Calibri,sans-serif; font-size: 11pt;\">Re: Reactie Bod: Mooie Trek Racefiets, maat 56</span><br>\n" +
+                "<br>\n" +
+                "</div>\n";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithHtml(html.replace("{{{sender}}}", unanonymisedSender), Charset.forName("UTF8"));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(html.replace("{{{sender}}}", anonymisedSender)));
+    }
+
+    private String[] extractContentParts(Mail mail) {
+        String htmlPartContent = null;
+        String textPartContent = null;
+        for (TypedContent<String> textPart : mail.getTextParts(false)) {
+            if (!MediaTypeHelper.isHtmlCompatibleType(textPart.getMediaType())) {
+                textPartContent = textPart.getContent();
+            }
+            if (MediaTypeHelper.isHtmlCompatibleType(textPart.getMediaType())) {
+                htmlPartContent = textPart.getContent();
+            }
+        }
+        return new String[] {textPartContent, htmlPartContent};
+    }
+
+    private MutableMail prepareMailWithPainText(String text) {
+        MutableMail mail = mock(MutableMail.class);
+        when(mail.getFrom()).thenReturn(anonymisedSender);
+        List<TypedContent<String>> textParts = createTextParts(text);
+        when(mail.getTextParts(false)).thenReturn(textParts);
+        return mail;
+    }
+
+    private MutableMail prepareMailWithHtml(String text, Charset charset) {
+        MutableMail mail = mock(MutableMail.class);
+        when(mail.getFrom()).thenReturn(anonymisedSender);
+        List<TypedContent<String>> textParts = createTextPartsHtml(text, charset);
+        when(mail.getTextParts(false)).thenReturn(textParts);
+        return mail;
+    }
+
+    private List<TypedContent<String>> createTextParts(String textPart) {
+        when(messageContent.isMutable()).thenReturn(true);
+        when(messageContent.getContent()).thenReturn(textPart);
+        when(messageContent.getMediaType()).thenReturn(MediaType.create("text", "plain"));
+        List<TypedContent<String>> textParts = new ArrayList<>();
+        textParts.add(messageContent);
+        return textParts;
+    }
+
+    private List<TypedContent<String>> createTextPartsHtml(String textPart, Charset charset) {
+        when(messageContent.isMutable()).thenReturn(true);
+        when(messageContent.getContent()).thenReturn(textPart);
+        when(messageContent.getMediaType()).thenReturn(MediaType.create("text", "html").withCharset(charset));
+        List<TypedContent<String>> textParts = new ArrayList<>();
+        textParts.add(messageContent);
+        return textParts;
+    }
+}

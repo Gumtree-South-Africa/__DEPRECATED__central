@@ -5,15 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>nl.marktplaats</groupId>
-    <artifactId>replyts2</artifactId>
+    <artifactId>mp-replyts2</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
     <modules>
-        <module>replyts2-wrapper</module>
         <module>replyts2-message-center</module>
         <module>replyts2-event-publisher</module>
-        <module>replyts2-plugins</module>
+        <module>replyts2-mp-plugins</module>
         <module>replyts2-core</module>
+        <module>replyts2-mp-dist</module>
     </modules>
 
     <properties>
