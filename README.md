@@ -21,7 +21,17 @@ TODO: change last three lines for the following two when rts core is on master b
 To run RTS2 create the following run configuration:
 
 * Type: application
-* Main class: `com.ecg.replyts2.ECGReplyTS2`
-* VM arguments: `-DconfDir=replyts2-wrapper/conf -DlogDir=.`
-* Module: `replyts2-wrapper`
+* Main class: `nl.marktplaats.replyts2.MarktplaatsReplyTS2Main`
+* VM arguments:
+  ```
+  -DconfDir=replyts2-core/core-runtime/src/main/resources/vagrant-conf
+  -DlogDir=/tmp
+  -Dmail.mime.parameters.strict=false
+  -Dmail.mime.address.strict=false
+  -Dmail.mime.ignoreunknownencoding=true
+  -Dmail.mime.uudecode.ignoreerrors=true
+  -Dmail.mime.uudecode.ignoremissingbeginend=true
+  -Dmail.mime.multipart.allowempty=true
+  ```
+* Module: `replyts2-mp-dist`
 * Working directory: the project directory (which is the default)
