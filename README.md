@@ -24,7 +24,7 @@ To run RTS2 create the following run configuration:
 * Main class: `nl.marktplaats.replyts2.MarktplaatsReplyTS2Main`
 * VM arguments:
   ```
-  -DconfDir=replyts2-core/core-runtime/src/main/resources/vagrant-conf
+  -DconfDir=replyts2-core/core-runtime/src/main/resources/vagrant-conf-cassandra
   -DlogDir=/tmp
   -Dmail.mime.parameters.strict=false
   -Dmail.mime.address.strict=false
