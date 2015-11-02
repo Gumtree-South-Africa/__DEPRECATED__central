@@ -14,12 +14,15 @@
             <directory>conf</directory>
             <outputDirectory>replyts/conf</outputDirectory>
         </fileSet>
+        <fileSet>
+            <directory>target/appassembler/bin</directory>
+            <outputDirectory>replyts/bin</outputDirectory>
+        </fileSet>
     </fileSets>
 
     <dependencySets>
         <dependencySet>
             <outputDirectory>replyts/lib</outputDirectory>
-            <unpack>false</unpack>
         </dependencySet>
     </dependencySets>
 </assembly>

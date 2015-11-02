@@ -8,8 +8,11 @@
         <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>replyts2-mp-dist</artifactId>
+
+    <properties>
+        <mainClass>nl.marktplaats.replyts2.MarktplaatsReplyTS2Main</mainClass>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -52,7 +55,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>nl.marktplaats.replyts2.MarktplaatsReplyTS2Main</mainClass>
+                            <mainClass>${mainClass}</mainClass>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
                         </manifest>
@@ -76,6 +79,34 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <version>1.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <repositoryLayout>flat</repositoryLayout>
+                    <useWildcardClassPath>true</useWildcardClassPath>
+                    <repositoryName>lib</repositoryName>
+                    <extraJvmArguments>-DconfDir=@BASEDIR@/conf -Xmx2G -XX:-HeapDumpOnOutOfMemoryError</extraJvmArguments>
+                    <programs>
+                        <program>
+                            <mainClass>${mainClass}</mainClass>
+                            <name>${project.parent.artifactId}</name>
+                            <platforms>
+                                <platform>unix</platform>
+                            </platforms>
+                        </program>
+                    </programs>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.5.5</version>
                 <configuration>
@@ -83,7 +114,7 @@
                     <appendAssemblyId>false</appendAssemblyId>
                     <tarLongFileMode>posix</tarLongFileMode>
                     <descriptors>
-                        <descriptor>assembly/assembly.xml</descriptor>
+                        <descriptor>assembly/distribution.xml</descriptor>
                     </descriptors>
                 </configuration>
                 <executions>
