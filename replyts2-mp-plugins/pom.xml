@@ -2,111 +2,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>mp-replyts2</artifactId>
+        <groupId>nl.marktplaats</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>nl.marktplaats</groupId>
     <artifactId>replyts2-mp-plugins</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+
     <modules>
         <module>replyts2-filter-knowngood</module>
         <module>replyts2-filter-bankaccount</module>
         <module>replyts2-postprocessor-safetymessage</module>
         <module>replyts2-postprocessor-anonymizebody</module>
-        <module>replyts2-integration-tests</module>
     </modules>
-
-    <properties> <!-- TODO This should be retrieved from parent (first we need to setup the parent, though) -->
-        <mockito.version>1.10.19</mockito.version>
-        <replyts.version>2.16.7</replyts.version>
-        <spring.version>4.0.2.RELEASE</spring.version>
-        <junit.version>4.12</junit.version>
-        <assertj.version>3.2.0</assertj.version>
-        <jericho.version>3.3</jericho.version>
-        <testng.version>6.1.1</testng.version>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>net.htmlparser.jericho</groupId>
-                <artifactId>jericho-html</artifactId>
-                <version>${jericho.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.ecg.replyts</groupId>
-                <artifactId>core-api</artifactId>
-                <version>${replyts.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.ecg.replyts</groupId>
-                <artifactId>core-runtime</artifactId>
-                <version>${replyts.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.ecg.replyts</groupId>
-                <artifactId>integration-test</artifactId>
-                <version>${replyts.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>2.6</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context-support</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-core</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.testng</groupId>
-                <artifactId>testng</artifactId>
-                <version>${testng.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.assertj</groupId>
-                <artifactId>assertj-core</artifactId>
-                <version>${assertj.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-all</artifactId>
-                <version>${mockito.version}</version>
-                <scope>test</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

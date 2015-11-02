@@ -5,7 +5,7 @@
     <parent>
         <groupId>nl.marktplaats</groupId>
         <artifactId>mp-replyts2</artifactId>
-        <version>1.0</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>replyts2-mp-dist</artifactId>

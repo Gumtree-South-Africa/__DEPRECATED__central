@@ -7,18 +7,27 @@
     <groupId>nl.marktplaats</groupId>
     <artifactId>mp-replyts2</artifactId>
     <packaging>pom</packaging>
-    <version>1.0</version>
+    <version>1.0-SNAPSHOT</version>
     <modules>
         <module>replyts2-message-center</module>
         <module>replyts2-event-publisher</module>
         <module>replyts2-mp-plugins</module>
         <module>replyts2-core</module>
         <module>replyts2-mp-dist</module>
+        <module>replyts2-mp-integration-tests</module>
     </modules>
 
     <properties>
         <replyts.version>2.19.0-SNAPSHOT</replyts.version>
         <plugin.version>TRUNK-SNAPSHOT</plugin.version>
+
+        <spring.version>4.0.2.RELEASE</spring.version>
+
+        <java-lang.source>1.8</java-lang.source>
+        <java-lang.target>1.8</java-lang.target>
+        <java-lang.encoding>UTF-8</java-lang.encoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
 
     <dependencyManagement>
@@ -58,6 +67,11 @@
                 <artifactId>replyts2-postprocessor-anonymizebody</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>2.6</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.ecg.replyts</groupId>
@@ -65,7 +79,90 @@
                 <version>${replyts.version}</version>
                 <scope>test</scope>
             </dependency>
+
+            <dependency>
+                <groupId>net.htmlparser.jericho</groupId>
+                <artifactId>jericho-html</artifactId>
+                <version>3.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ecg.replyts</groupId>
+                <artifactId>core-api</artifactId>
+                <version>${replyts.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ecg.replyts</groupId>
+                <artifactId>core-runtime</artifactId>
+                <version>${replyts.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ecg.replyts</groupId>
+                <artifactId>integration-test</artifactId>
+                <version>${replyts.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>2.6</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context-support</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>6.1.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>3.2.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-all</artifactId>
+                <version>1.10.19</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>${java-lang.source}</source>
+                    <target>${java-lang.target}</target>
+                    <encoding>${java-lang.encoding}</encoding>
+                    <compilerArgs>
+                        <arg>-J-Djava.awt.headless=true</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
