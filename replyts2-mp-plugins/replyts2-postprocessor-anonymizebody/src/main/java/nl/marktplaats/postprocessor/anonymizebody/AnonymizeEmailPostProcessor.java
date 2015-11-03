@@ -4,7 +4,6 @@ import com.ecg.replyts.app.postprocessorchain.PostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.persistence.PersistenceException;
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,9 +19,6 @@ import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by reweber on 19/10/15
- */
 public class AnonymizeEmailPostProcessor implements PostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(AnonymizeEmailPostProcessor.class);
@@ -32,11 +27,14 @@ public class AnonymizeEmailPostProcessor implements PostProcessor {
     private List<Pattern> patterns;
 
     @Autowired
-    public AnonymizeEmailPostProcessor(String[] platformDomains,
-                                       AnonymiseEmailPostProcessorConfig anonymiseEmailPostProcessorConfig) {
+    public AnonymizeEmailPostProcessor(@Value("${mailcloaking.domains}") String[] platformDomains,
+                                       AnonymizeEmailPostProcessorConfig anonymizeEmailPostProcessorConfig) {
+        if (platformDomains.length != 1)
+            throw new IllegalArgumentException("AnonymizeEmailPostProcessor currently does not accept multiple domains");
+
         this.platformDomains = platformDomains;
 
-        List<String> stringPatterns = anonymiseEmailPostProcessorConfig.getPatterns();
+        List<String> stringPatterns = anonymizeEmailPostProcessorConfig.getPatterns();
         patterns = new ArrayList<>(stringPatterns.size());
 
         // The patterns are enhanced to do better whitespace detection. Any whitespace (including newlines)
@@ -241,6 +239,7 @@ public class AnonymizeEmailPostProcessor implements PostProcessor {
 
     @Override
     public int getOrder() {
-        return 0;
+        // WARNING: order value needs to be higher then that of Anonymizer.getOrder().
+        return 300;
     }
 }
