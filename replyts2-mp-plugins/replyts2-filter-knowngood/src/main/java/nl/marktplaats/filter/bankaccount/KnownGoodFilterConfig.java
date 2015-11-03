@@ -1,8 +1,5 @@
 package nl.marktplaats.filter.bankaccount;
 
-/**
- * Created by reweber on 16/10/15
- */
 class KnownGoodFilterConfig {
 
     private static final String RESPONDER_GOOD_HEADER = "respondergood";

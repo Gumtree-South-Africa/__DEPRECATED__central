@@ -6,34 +6,28 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.junit.Before;
 import org.junit.Test;
+
+import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
+import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.*;
 
-
-/**
- * Created by reweber on 16/10/15
- */
 public class KnownGoodFilterTest {
 
     private KnownGoodFilter userFilter;
 
     @Before
     public void setup() {
-
         userFilter = new KnownGoodFilter("someFilterName", new KnownGoodFilterConfig());
     }
 
-
     @Test
     public void testKnownGoodBuyerFirstMessage() {
-
-        Mail mail = mockMail();
-        Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
-        MutableConversation conversation = mockConversation("initiatorgood", "KNOWN_USER");
-        MessageProcessingContext messageProcessingContext = mockMessageProcessingContext(mail, message, conversation);
+        MessageProcessingContext messageProcessingContext =
+                prepareMockContextWithHeader(BUYER_TO_SELLER, "initiatorgood");
 
         List<FilterFeedback> reasons = userFilter.filter(messageProcessingContext);
 
@@ -41,79 +35,71 @@ public class KnownGoodFilterTest {
         FilterFeedback reason = reasons.get(0);
         assertThat(reason.getResultState()).isEqualTo(FilterResultState.ACCEPT_AND_TERMINATE);
         assertThat(reason.getDescription()).isEqualTo("Sender is known good: KNOWN_USER");
-
     }
 
     @Test
     public void testKnownGoodBuyerFirstReply() {
-
-        Mail mail = mockMail();
-        Message message = mockMessage(MessageDirection.SELLER_TO_BUYER);
-        MutableConversation conversation = mockConversation("initiatorgood", "KNOWN_USER");
-        MessageProcessingContext messageProcessingContext = mockMessageProcessingContext(mail, message, conversation);
+        MessageProcessingContext messageProcessingContext =
+                prepareMockContextWithHeader(SELLER_TO_BUYER, "initiatorgood");
 
         List<FilterFeedback> reasons = userFilter.filter(messageProcessingContext);
 
         assertThat(reasons.size()).isEqualTo(0);
-
     }
 
     @Test
     public void testKnownGoodSellerFirstReply() {
-
-        Mail mail = mockMail();
-        Message message = mockMessage(MessageDirection.SELLER_TO_BUYER);
-        MutableConversation conversation = mockConversation("respondergood", "KNOWN_USER");
-        MessageProcessingContext messageProcessingContext = mockMessageProcessingContext(mail, message, conversation);
+        MessageProcessingContext messageProcessingContext =
+                prepareMockContextWithHeader(SELLER_TO_BUYER, "respondergood");
 
         List<FilterFeedback> reasons = userFilter.filter(messageProcessingContext);
 
         assertThat(reasons.size()).isEqualTo(1);
         FilterFeedback reason = reasons.get(0);
         assertThat(reason.getDescription()).isEqualTo("Sender is known good: KNOWN_USER");
-
     }
 
     @Test
     public void testKnownGoodSellerFirstMessage() {
-
-        Mail mail = mockMail();
-        Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
-        MutableConversation conversation = mockConversation("sellergood", "KNOWN_USER");
-        MessageProcessingContext messageProcessingContext = mockMessageProcessingContext(mail, message, conversation);
+        MessageProcessingContext messageProcessingContext =
+                prepareMockContextWithHeader(BUYER_TO_SELLER, "sellergood");
 
         List<FilterFeedback> reasons = userFilter.filter(messageProcessingContext);
 
         assertThat(reasons.size()).isEqualTo(0);
-
     }
 
     @Test
     public void testUnknownBuyerFirstReply() {
-
-        Mail mail = mockMail();
-        Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
-        MutableConversation conversation = mockConversation("", "");
-        MessageProcessingContext messageProcessingContext = mockMessageProcessingContext(mail, message, conversation);
+        MessageProcessingContext messageProcessingContext = prepareMockContext(BUYER_TO_SELLER);
 
         List<FilterFeedback> reasons = userFilter.filter(messageProcessingContext);
 
         assertThat(reasons.size()).isEqualTo(0);
-
     }
 
     @Test
     public void testUnknownSellerFirstMessage() {
-
-        Mail mail = mockMail();
-        Message message = mockMessage(MessageDirection.SELLER_TO_BUYER);
-        MutableConversation conversation = mockConversation("", "");
-        MessageProcessingContext messageProcessingContext = mockMessageProcessingContext(mail, message, conversation);
+        MessageProcessingContext messageProcessingContext = prepareMockContext(SELLER_TO_BUYER);
 
         List<FilterFeedback> reasons = userFilter.filter(messageProcessingContext);
 
         assertThat(reasons.size()).isEqualTo(0);
+    }
 
+    private MessageProcessingContext prepareMockContext(MessageDirection messageDirection) {
+        return prepareMockContextWithHeaders(messageDirection, Collections.emptyMap());
+    }
+
+    private MessageProcessingContext prepareMockContextWithHeader(MessageDirection messageDirection, String headerName) {
+        return prepareMockContextWithHeaders(messageDirection, Collections.singletonMap(headerName, "KNOWN_USER"));
+    }
+
+    private MessageProcessingContext prepareMockContextWithHeaders(MessageDirection messageDirection, Map<String, String> headers) {
+        Mail mail = mockMail();
+        Message message = mockMessage(messageDirection);
+        MutableConversation conversation = mockConversation(headers);
+        return mockMessageProcessingContext(mail, message, conversation);
     }
 
     private Message mockMessage(MessageDirection direction) {
@@ -128,10 +114,8 @@ public class KnownGoodFilterTest {
         return mail;
     }
 
-    private MutableConversation mockConversation(String key, String value) {
+    private MutableConversation mockConversation(Map<String, String> headers) {
         MutableConversation conversation = mock(MutableConversation.class);
-        Map<String, String> headers = new HashMap<>();
-        headers.put(key, value);
         when(conversation.getCustomValues()).thenReturn(headers);
         return conversation;
     }

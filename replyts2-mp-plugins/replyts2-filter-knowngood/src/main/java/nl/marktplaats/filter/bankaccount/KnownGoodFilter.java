@@ -13,9 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-/**
- * Created by reweber on 16/10/15
- */
 public class KnownGoodFilter implements Filter {
 
     private static final Logger log = LoggerFactory.getLogger(KnownGoodFilter.class);
