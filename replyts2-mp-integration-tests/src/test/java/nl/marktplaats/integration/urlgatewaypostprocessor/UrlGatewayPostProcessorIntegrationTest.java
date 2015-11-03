@@ -4,6 +4,7 @@ import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
+import nl.marktplaats.integration.support.ReceiverTestsSetup;
 import org.subethamail.wiser.WiserMessage;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -16,20 +17,16 @@ import java.io.InputStreamReader;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-/**
- * Created by reweber on 22/10/15
- */
-public class UrlGatewayPostProcessorIntegrationTest {
+public class UrlGatewayPostProcessorIntegrationTest extends ReceiverTestsSetup {
 
     @BeforeMethod(groups = { "receiverTests" })
     public void makeSureRtsIsRunningAndClearRtsSentMails() {
-        IntegrationTestRunner.getReplytsRunner();
-        IntegrationTestRunner.clearMessages();
         ReplyTsConfigClient replyTsConfigClient = new ReplyTsConfigClient(IntegrationTestRunner.getReplytsRunner().getReplytsHttpPort());
         //TODO replyTsConfigClient.putConfiguration(new Configuration());
     }
 
-    @Test(groups = { "receiverTests" })
+    // DISABLED, url gateway post processor was not ported to RTS2 yet.
+    @Test(groups = { "receiverTests" }, enabled = false)
     public void rtsRewritesUrlsInMessageBodyForAsq() throws Exception {
         deliverMailToRts("linking-asq.eml");
         WiserMessage message = IntegrationTestRunner.waitForMessageArrival(1, 5000L);
@@ -103,7 +100,7 @@ public class UrlGatewayPostProcessorIntegrationTest {
     }
 
     private void deliverMailToRts(String emlName) throws Exception {
-        byte[] emlData = ByteStreams.toByteArray(getClass().getClassLoader().getResourceAsStream("urlgatewaypostprocessor/" + emlName));
+        byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
         IntegrationTestRunner.getMailSender().sendMail(emlData);
     }
 
@@ -111,7 +108,7 @@ public class UrlGatewayPostProcessorIntegrationTest {
         WiserMessage asqMessage = IntegrationTestRunner.getLastRtsSentMail();
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
-        String replyData = CharStreams.toString(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("urlgatewaypostprocessor/" + emlName)));
+        String replyData = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName)));
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
         IntegrationTestRunner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
     }

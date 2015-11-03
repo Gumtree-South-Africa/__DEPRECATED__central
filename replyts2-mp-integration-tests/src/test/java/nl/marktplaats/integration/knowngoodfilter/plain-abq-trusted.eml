@@ -8,16 +8,17 @@ Received: from localhost (localhost [127.0.0.1])
 	by marktplaats.nl (Postfix) with SMTP id 4F601F4055
 	for <obeuga@foon.nl>; Wed,  4 Jul 2012 00:00:03 +0200 (CEST)
 MIME-Version: 1.0
-From: Seller66 via Marktplaats <automatisch@marktplaats.nl>
-Reply-To: "Seller66" <seller_66@hotmail.com>
+From: Trusted via Marktplaats <automatisch@marktplaats.nl>
+Reply-To: "Trusted" <{{{{initiatorEmailAddress}}}}>
 To: "O. Beuga" <obeuga@foon.nl>
 Subject: Reactie op uw advertentie: Twee matrassen, hoef je niet te draaien en wasbare hoezen
 X-Priority: 3 (Normal)
-X-ADID: urn:marktplaats.nl:ad:655641467
+X-ADID: m655641467
 X-CUST-L1-CATEGORYID: 504
 X-CUST-L2-CATEGORYID: 506
-X-CUST-FROM: Seller66
+X-CUST-FROM: Trusted
 X-CUST-TO: O. Beuga
+X-CUST-INITIATORGOOD: YES
 Content-Type: multipart/alternative; boundary="_----------=_ecc3aae24ee82ea4d4ff8676db0699d9"
 Content-Transfer-Encoding: 8bit
 Message-Id: <20120703220003.4F601F4055@marktplaats.nl>

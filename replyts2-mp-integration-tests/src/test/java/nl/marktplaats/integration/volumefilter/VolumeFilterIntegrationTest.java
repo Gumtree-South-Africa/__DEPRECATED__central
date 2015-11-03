@@ -3,27 +3,23 @@ package nl.marktplaats.integration.volumefilter;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.CharStreams;
+import nl.marktplaats.integration.support.ReceiverTestsSetup;
 import org.subethamail.wiser.WiserMessage;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.InputStreamReader;
-import java.util.concurrent.TimeUnit;
 
-/**
- * Created by reweber on 22/10/15
- */
-public class VolumeFilterIntegrationTest {
+public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
 
     @BeforeMethod(groups = { "receiverTests" })
     public void makeSureRtsIsRunningAndClearRtsSentMails() {
-        IntegrationTestRunner.getReplytsRunner();
-        IntegrationTestRunner.clearMessages();
         ReplyTsConfigClient replyTsConfigClient = new ReplyTsConfigClient(IntegrationTestRunner.getReplytsRunner().getReplytsHttpPort());
         //TODO replyTsConfigClient.putConfiguration(new Configuration());
     }
 
-    @Test(groups = { "receiverTests" })
+    // DISABLED because filter is still WIP
+    @Test(groups = { "receiverTests" }, enabled = false)
     public void rtsBlocksMessagesAfterReachingVolumeThreshold() throws Exception {
         // Volume filter allows up to 10 mails per 10 minutes.
         // The 11th will exceed the threshold.
@@ -35,7 +31,8 @@ public class VolumeFilterIntegrationTest {
         IntegrationTestRunner.assertMessageDoesNotArrive(11, 1000L);
     }
 
-    @Test(groups = { "receiverTests" })
+    // DISABLED because filter is still WIP
+    @Test(groups = { "receiverTests" }, enabled = false)
     public void rtsDoesNotBlockMessagesAfterTimeoutHasPassed() throws Exception {
         String senderEmailAddress = "persistent-volume-seller-123@hotmail.com";
 
@@ -65,8 +62,8 @@ public class VolumeFilterIntegrationTest {
         IntegrationTestRunner.assertMessageDoesNotArrive(11, 1000L);
     }
 
-
-    @Test(groups = { "receiverTests" })
+    // DISABLED because filter is still WIP
+    @Test(groups = { "receiverTests" }, enabled = false)
     public void rtsDoesNotBlocksReplies() throws Exception {
         deliverMailToRts("plain-asq.eml", "volume-seller-88@gmail.com");
         IntegrationTestRunner.waitForMessageArrival(1, 1000L);

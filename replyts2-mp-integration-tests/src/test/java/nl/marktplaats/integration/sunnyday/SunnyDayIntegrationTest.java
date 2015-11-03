@@ -1,15 +1,14 @@
 package nl.marktplaats.integration.sunnyday;
 
-import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
+import nl.marktplaats.integration.support.ReceiverTestsSetup;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.subethamail.wiser.WiserMessage;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.mail.Address;
@@ -26,16 +25,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 
-/**
- * Created by reweber on 22/10/15
- */
-public class SunnyDayIntegrationTest {
-
-    @BeforeMethod(groups = { "receiverTests" })
-    public void makeSureRtsIsRunningAndClearRtsSentMails() {
-        IntegrationTestRunner.getReplytsRunner();
-        IntegrationTestRunner.clearMessages();
-    }
+public class SunnyDayIntegrationTest extends ReceiverTestsSetup {
 
     @Test(groups = { "receiverTests" })
     public void rtsProcessedAnAsqMailAndAReply() throws Exception {
@@ -78,7 +68,7 @@ public class SunnyDayIntegrationTest {
         return new TypeSafeMatcher<String>() {
             @Override
             protected boolean matchesSafely(String address) {
-                return address.endsWith("@test-platform.com");
+                return address.endsWith("@mail.marktplaats.nl");
             }
 
             public void describeTo(Description description) {
@@ -92,7 +82,7 @@ public class SunnyDayIntegrationTest {
             @Override
             protected boolean matchesSafely(Address address) {
                 return address instanceof InternetAddress &&
-                        ((InternetAddress) address).getAddress().endsWith("@test-platform.com");
+                        ((InternetAddress) address).getAddress().endsWith("@mail.marktplaats.nl");
             }
 
             public void describeTo(Description description) {
@@ -115,7 +105,7 @@ public class SunnyDayIntegrationTest {
     }
 
     private void deliverMailToRts(String emlName) throws Exception {
-        byte[] emlData = ByteStreams.toByteArray(getClass().getClassLoader().getResourceAsStream("sunnyday/" + emlName));
+        byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
         IntegrationTestRunner.getMailSender().sendMail(emlData);
     }
 
@@ -123,7 +113,7 @@ public class SunnyDayIntegrationTest {
         WiserMessage asqMessage = IntegrationTestRunner.getLastRtsSentMail();
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
-        String replyData = CharStreams.toString(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("sunnyday/" + emlName)));
+        String replyData = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName)));
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
         IntegrationTestRunner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
     }
