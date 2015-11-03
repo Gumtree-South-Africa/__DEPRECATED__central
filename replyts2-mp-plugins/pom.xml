@@ -17,7 +17,6 @@
     <modules>
         <module>replyts2-filter-knowngood</module>
         <module>replyts2-filter-bankaccount</module>
-        <module>replyts2-postprocessor-safetymessage</module>
         <module>replyts2-postprocessor-anonymizebody</module>
     </modules>
 </project>
