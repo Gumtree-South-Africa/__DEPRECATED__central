@@ -207,6 +207,6 @@ public class BankAccountFinderTest {
     @Test
     public void findLiteralBankAccountSame_veryLowScoreForBankAccountSameAsPhpAdId() {
         String text = "Maak aub geld over aan rekening 123456.";
-        assertThat(finder.findBankAccountNumberMatches(asList(text), "urn:marktplaats.nl:ad:123456"), hasItems(new BankAccountMatch("123456", "123456", 20)));
+        assertThat(finder.findBankAccountNumberMatches(asList(text), "m123456"), hasItems(new BankAccountMatch("123456", "123456", 20)));
     }
 }
