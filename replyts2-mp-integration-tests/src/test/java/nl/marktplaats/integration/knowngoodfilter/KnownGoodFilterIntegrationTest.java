@@ -1,23 +1,15 @@
 package nl.marktplaats.integration.knowngoodfilter;
 
-import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.CharStreams;
 import nl.marktplaats.integration.support.ReceiverTestsSetup;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.InputStreamReader;
 
 public class KnownGoodFilterIntegrationTest extends ReceiverTestsSetup {
 
-    @BeforeMethod(groups = { "receiverTests" })
-    public void makeSureRtsIsRunningAndClearRtsSentMails() {
-        ReplyTsConfigClient replyTsConfigClient = new ReplyTsConfigClient(IntegrationTestRunner.getReplytsRunner().getReplytsHttpPort());
-        //TODO replyTsConfigClient.putConfiguration(new Configuration());
-    }
-
-    // DISABLED because filter is still WIP
+    // DISABLED because volume filter is still WIP, TODO: enable after volume filter is available
     @Test(groups = { "receiverTests" }, enabled = false)
     public void rtsBlocksMessagesAfterReachingVolumeThresholdForRegularUser() throws Exception {
         // Volume filter allows up to 10 mails per 10 minutes.
@@ -30,8 +22,7 @@ public class KnownGoodFilterIntegrationTest extends ReceiverTestsSetup {
         IntegrationTestRunner.assertMessageDoesNotArrive(11, 1000L);
     }
 
-    // DISABLED because filter is still WIP
-    @Test(groups = { "receiverTests" }, enabled = false)
+    @Test(groups = { "receiverTests" })
     public void rtsAllowsMessagesAfterReachingVolumeThresholdForKnownGoodUser() throws Exception {
         // Volume filter allows up to 10 mails per 10 minutes.
         // The 11th and beyond will exceed the threshold, but as user is trusted it will arrive

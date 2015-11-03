@@ -1,6 +1,13 @@
 package nl.marktplaats.integration.support;
 
+import com.ecg.replyts.client.configclient.Configuration;
+import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
+import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import nl.marktplaats.filter.knowngood.KnownGoodFilterFactory;
+import org.junit.After;
+import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.BeforeMethod;
 
@@ -10,9 +17,20 @@ public class ReceiverTestsSetup {
 
     @BeforeGroups(groups = { "receiverTests" })
     public void startEmbeddedRts() throws IOException {
+        // TODO: fix confDir hack on next line, it should be picked up by IntegrationTestRunner.setConfigResourceDirectory
         System.setProperty("confDir", "/Users/evanoosten/dev/mp/replyts2/mp-replyts2/replyts2-mp-integration-tests/src/test/resources/mp-integration-test-conf");
         IntegrationTestRunner.setConfigResourceDirectory("/mp-integration-test-conf");
         IntegrationTestRunner.getReplytsRunner();
+
+        ReplyTsConfigClient replyTsConfigClient = new ReplyTsConfigClient(IntegrationTestRunner.getReplytsRunner().getReplytsHttpPort());
+
+        // Configure known good filter
+        replyTsConfigClient.putConfiguration(
+                new Configuration(
+                        new Configuration.ConfigurationId(KnownGoodFilterFactory.class.getName(), "instance-0"),
+                        PluginState.ENABLED,
+                        1,
+                        new ObjectMapper().createObjectNode()));
 
 //        String patternsAsJson = new ObjectMapper().writeValueAsString(patterns);
 //        JsonNode jsonNode = new ObjectMapper().readValue("{\"anonymizeMailPatterns\":" + patternsAsJson + "}", JsonNode.class);
@@ -26,4 +44,9 @@ public class ReceiverTestsSetup {
         IntegrationTestRunner.clearMessages();
     }
 
+
+    @AfterGroups(groups = { "receiverTests" })
+    public void stopEmbeddedRts() throws IOException {
+        IntegrationTestRunner.stop();
+    }
 }
