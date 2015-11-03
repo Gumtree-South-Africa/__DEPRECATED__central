@@ -4,6 +4,7 @@ import com.ecg.replyts.app.postprocessorchain.PostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.persistence.PersistenceException;
