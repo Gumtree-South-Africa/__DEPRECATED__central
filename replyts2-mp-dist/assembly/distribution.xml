@@ -18,6 +18,10 @@
             <directory>target/appassembler/bin</directory>
             <outputDirectory>replyts/bin</outputDirectory>
         </fileSet>
+        <fileSet>
+            <directory>target/appassembler/log</directory>
+            <outputDirectory>replyts/log</outputDirectory>
+        </fileSet>
     </fileSets>
 
     <dependencySets>
