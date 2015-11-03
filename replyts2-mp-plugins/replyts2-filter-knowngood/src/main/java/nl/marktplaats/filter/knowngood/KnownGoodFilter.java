@@ -1,4 +1,4 @@
-package nl.marktplaats.filter.bankaccount;
+package nl.marktplaats.filter.knowngood;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
