@@ -1,5 +1,9 @@
 # ReplyTS2 for Comaas
 
+## Links
+
+* [Reply T&S at Marktplaats - integration](https://ecgwiki.corp.ebay.com/confluence/pages/viewpage.action?pageId=69271634) Describes headers expected from Aurora.
+
 ## Dev Setup
 
 Before you start, setup vagrant as described here: https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/ReplyTS-Environment-Setup
