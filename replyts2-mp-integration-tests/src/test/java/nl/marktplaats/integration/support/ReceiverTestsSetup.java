@@ -3,15 +3,19 @@ package nl.marktplaats.integration.support;
 import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
+import com.ecg.replyts.core.api.pluginconfiguration.resultinspector.ResultInspectorFactory;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nl.marktplaats.filter.bankaccount.BankAccountFilterFactory;
 import nl.marktplaats.filter.knowngood.KnownGoodFilterFactory;
-import org.junit.After;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ReceiverTestsSetup {
 
@@ -24,6 +28,14 @@ public class ReceiverTestsSetup {
 
         ReplyTsConfigClient replyTsConfigClient = new ReplyTsConfigClient(IntegrationTestRunner.getReplytsRunner().getReplytsHttpPort());
 
+        // Configure result inspector
+        replyTsConfigClient.putConfiguration(
+                new Configuration(
+                        new Configuration.ConfigurationId(ResultInspectorFactory.class.getName(), "instance-0"),
+                        PluginState.ENABLED,
+                        1,
+                        new ObjectMapper().createObjectNode()));
+
         // Configure known good filter
         replyTsConfigClient.putConfiguration(
                 new Configuration(
@@ -31,6 +43,22 @@ public class ReceiverTestsSetup {
                         PluginState.ENABLED,
                         1,
                         new ObjectMapper().createObjectNode()));
+
+        // Configure bank account filter
+        List<String> fraudulentBankAccounts = new ArrayList<>(); // TODO: use Arrays.asList
+        fraudulentBankAccounts.add("123456");
+        fraudulentBankAccounts.add("987654321");
+        fraudulentBankAccounts.add("87238935");
+
+        String asJson = new ObjectMapper().writeValueAsString(fraudulentBankAccounts);
+        JsonNode jsonNode = new ObjectMapper().readValue("{\"fraudulentBankAccounts\":" + asJson + "}", JsonNode.class);
+
+        replyTsConfigClient.putConfiguration(
+                new Configuration(
+                        new Configuration.ConfigurationId(BankAccountFilterFactory.class.getName(), "instance-0"),
+                        PluginState.ENABLED,
+                        1,
+                        jsonNode));
 
 //        String patternsAsJson = new ObjectMapper().writeValueAsString(patterns);
 //        JsonNode jsonNode = new ObjectMapper().readValue("{\"anonymizeMailPatterns\":" + patternsAsJson + "}", JsonNode.class);

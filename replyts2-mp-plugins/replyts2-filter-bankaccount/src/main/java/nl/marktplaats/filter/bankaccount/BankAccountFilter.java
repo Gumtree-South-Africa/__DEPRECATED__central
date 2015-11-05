@@ -223,7 +223,7 @@ public class BankAccountFilter implements Filter {
                 source.setLogger(null);
                 texts.add(source.getRenderer().toString());
                 // System.out.println("Jericho render took " + (System.currentTimeMillis() - startRender));
-
+// TODO: reinstate check for plain text part
             } else {
                 // Plain text, copy as is.
                 String plainTextContent = part.getContent();
