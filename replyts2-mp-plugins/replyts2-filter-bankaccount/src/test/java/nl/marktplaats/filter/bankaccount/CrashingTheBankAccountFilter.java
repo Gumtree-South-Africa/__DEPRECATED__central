@@ -9,8 +9,6 @@ import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
-import com.ecg.replyts.core.runtime.mailparser.StructuredMail;
-import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.google.common.io.ByteStreams;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +16,6 @@ import org.mockito.Mock;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -28,19 +25,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-/**
- * Created by reweber on 21/10/15
- */
 public class CrashingTheBankAccountFilter {
-
-    private static final String SERVICE_INSTANE_ID = "test_service_instance_id";
-
-    private BankAccountFilterConfiguration config;
-    private BankAccountFinder bankAccountFinder;
-    private BankAccountFilter filter;
 
     @Mock private MailCloakingService mailCloakingService;
     @Mock private MailRepository mailRepository;
+
     private Mails mails = new Mails();
 
     @Mock private Conversation conversation;
@@ -75,11 +64,11 @@ public class CrashingTheBankAccountFilter {
     private void testMail(String mailResource, int bankAccountNumberMatchCount) throws ParsingException, IOException {
         double maxDurationMillisPerAccount = bankAccountNumberMatchCount == 0 ? 0.15 : 3.0;
 
-        config = new BankAccountFilterConfiguration(BANK_ACCOUNTS);
-        bankAccountFinder = new BankAccountFinder(config);
-        filter = new BankAccountFilter(bankAccountFinder, mailCloakingService, mailRepository, mails);
+        BankAccountFilterConfiguration config = new BankAccountFilterConfiguration(BANK_ACCOUNTS);
+        BankAccountFinder bankAccountFinder = new BankAccountFinder(config);
+        BankAccountFilter filter = new BankAccountFilter(bankAccountFinder, mailCloakingService, mailRepository, mails);
 
-        Mail mail = mails.readMail(ByteStreams.toByteArray(CrashingTheBankAccountFilter.class.getClassLoader().getResourceAsStream(mailResource)));
+        Mail mail = mails.readMail(ByteStreams.toByteArray(CrashingTheBankAccountFilter.class.getResourceAsStream(mailResource)));
         when(conversation.getAdId()).thenReturn("whatever");
 
         MessageProcessingContext messageProcessingContext = mock(MessageProcessingContext.class);
@@ -89,12 +78,12 @@ public class CrashingTheBankAccountFilter {
 
         long warmUpCount = 10;
         for (int i = 0; i < warmUpCount; i++) {
-            List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
+            List<FilterFeedback> filterFeedbacks = filter.filter(messageProcessingContext);
             assertThat(filterFeedbacks.size(), is(bankAccountNumberMatchCount));
         }
 
         long start = System.currentTimeMillis();
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
+        List<FilterFeedback> filterFeedbacks = filter.filter(messageProcessingContext);
         assertThat(filterFeedbacks.size(), is(bankAccountNumberMatchCount));
         long duration = System.currentTimeMillis() - start;
         // HTML Rendering takes 100ms on average for these emails. Subtract that before doing avg calculations:

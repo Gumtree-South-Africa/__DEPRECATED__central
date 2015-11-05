@@ -10,9 +10,6 @@ import java.util.regex.Pattern;
 import static java.lang.Character.toLowerCase;
 import static java.lang.Character.toUpperCase;
 
-/**
- * Created by reweber on 19/10/15
- */
 public class BankAccountFinder {
     private static final String LATIN1_SUPPLEMENT_2ndHALF = "\u00C0-\u00FF";
     private static final String LATIN_EXTENDED_A = "\u0100-\u017F";

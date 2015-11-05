@@ -2,9 +2,6 @@ package nl.marktplaats.filter.bankaccount;
 
 import org.springframework.util.Assert;
 
-/**
- * Created by reweber on 19/10/15
- */
 public class BankAccountMatch {
     private String bankAccount;
     private String matchedText;

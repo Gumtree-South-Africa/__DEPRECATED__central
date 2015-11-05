@@ -2,16 +2,13 @@ package nl.marktplaats.filter.bankaccount;
 
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by reweber on 21/10/15
- */
 public class RealWorldBankAccountFinderTest {
 
     private static final String account1 = "716651333";
@@ -128,13 +125,10 @@ public class RealWorldBankAccountFinderTest {
                     "\n" +
                     "gr. debbie\n";
 
-    private BankAccountFilterConfiguration config;
-    private BankAccountFinder finder;
-
     private void assertFinds(String text, String bankAccountToDetect) {
-        config = new BankAccountFilterConfiguration(Arrays.asList(bankAccountToDetect));
-        finder = new BankAccountFinder(config);
-        List<BankAccountMatch> matches = finder.findBankAccountNumberMatches(Arrays.asList(text), null);
+        BankAccountFilterConfiguration config = new BankAccountFilterConfiguration(singletonList(bankAccountToDetect));
+        BankAccountFinder finder = new BankAccountFinder(config);
+        List<BankAccountMatch> matches = finder.findBankAccountNumberMatches(singletonList(text), null);
         assertEquals(1, matches.size());
         assertThat(matches.get(0).getBankAccount(), is(bankAccountToDetect));
         assertThat(matches.get(0).getScore(), is(100));

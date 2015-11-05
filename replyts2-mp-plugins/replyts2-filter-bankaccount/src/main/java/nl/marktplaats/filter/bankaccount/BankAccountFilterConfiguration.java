@@ -1,13 +1,9 @@
 package nl.marktplaats.filter.bankaccount;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
-import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by reweber on 19/10/15
- */
 class BankAccountFilterConfiguration {
 
     /**
@@ -16,26 +12,38 @@ class BankAccountFilterConfiguration {
      * - 6 or 7 digits (2930139)
      * - 9 or 10 digits (757706428)
      */
-    private List<String> fraudulentBankAccounts = new ArrayList<>();
+    private final List<String> fraudulentBankAccounts;
 
     /**
      * Score that will be used for a high certainty bank account match.
      */
-    private int highCertaintyMatchScore = 100;
+    private final int highCertaintyMatchScore;
 
     /**
      * Score that will be used for bank account match of any other certainty.
      */
-    private int lowCertaintyMatchScore = 50;
+    private final int lowCertaintyMatchScore;
 
     /**
      * Score that will be used when the bank account match also matches the ad id of the mail.
      */
-    private int adIdMatchScore = 20;
+    private final int adIdMatchScore;
 
-    @Autowired
     public BankAccountFilterConfiguration(List<String> fraudulentBankAccounts) {
+        this(fraudulentBankAccounts, 100, 50, 20);
+    }
+
+    public BankAccountFilterConfiguration(List<String> fraudulentBankAccounts, int highCertaintyMatchScore, int lowCertaintyMatchScore, int adIdMatchScore) {
+        Assert.notNull(fraudulentBankAccounts);
+        Assert.isTrue(
+                highCertaintyMatchScore >= lowCertaintyMatchScore
+                && lowCertaintyMatchScore >= adIdMatchScore
+                && adIdMatchScore >= 0
+        );
         this.fraudulentBankAccounts = fraudulentBankAccounts;
+        this.highCertaintyMatchScore = highCertaintyMatchScore;
+        this.lowCertaintyMatchScore = lowCertaintyMatchScore;
+        this.adIdMatchScore = adIdMatchScore;
     }
 
     public List<String> getFraudulentBankAccounts() {
@@ -46,7 +54,6 @@ class BankAccountFilterConfiguration {
         return highCertaintyMatchScore;
     }
 
-
     public int getLowCertaintyMatchScore() {
         return lowCertaintyMatchScore;
     }
@@ -55,15 +62,4 @@ class BankAccountFilterConfiguration {
         return adIdMatchScore;
     }
 
-    public void setHighCertaintyMatchScore(int highCertaintyMatchScore) {
-        this.highCertaintyMatchScore = highCertaintyMatchScore;
-    }
-
-    public void setLowCertaintyMatchScore(int lowCertaintyMatchScore) {
-        this.lowCertaintyMatchScore = lowCertaintyMatchScore;
-    }
-
-    public void setAdIdMatchScore(int adIdMatchScore) {
-        this.adIdMatchScore = adIdMatchScore;
-    }
 }

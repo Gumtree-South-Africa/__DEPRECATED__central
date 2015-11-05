@@ -5,9 +5,6 @@ import com.google.common.net.MediaType;
 
 import java.util.List;
 
-/**
- * Created by reweber on 08/10/15
- */
 public final class MediaTypeHelper {
 
     private MediaTypeHelper() {}

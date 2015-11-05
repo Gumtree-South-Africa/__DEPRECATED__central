@@ -9,7 +9,6 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
-import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
@@ -19,18 +18,13 @@ import net.htmlparser.jericho.Source;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.apache.commons.lang.StringUtils.trimToEmpty;
 import static org.apache.commons.lang.StringUtils.trimToNull;
 
-/**
- * Created by reweber on 19/10/15
- */
 public class BankAccountFilter implements Filter {
 
     private static final int FILTER_REASON_DESCRIPTION_MAX_LENGTH = 255;
@@ -134,7 +128,6 @@ public class BankAccountFilter implements Filter {
     private MailAndMessageInConversation findFirstWithBan(String ban, Mail currentMail, Message currentMessage, Conversation conv, List<Message> precedingMessages) throws Exception {
         // Iterate through all preceding messages (thus skipping last/current message),
         // find the first to contain the bank account number of the match
-
         for (int i = 0; i < precedingMessages.size(); i++) {
             Message precedingMessage = precedingMessages.get(i);
             Mail precedingMail = loadMail(precedingMessage);
@@ -245,7 +238,6 @@ public class BankAccountFilter implements Filter {
     private Mail loadMail(Message msg) throws ParsingException {
         byte[] mailAsBytes = mailRepository.readInboundMail(msg.getId());
         return mails.readMail(mailAsBytes);
-
     }
 
     private List<String> condenseWhitespaces(List<String> texts) {

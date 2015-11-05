@@ -18,11 +18,8 @@ import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -34,9 +31,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-/**
- * Created by reweber on 21/10/15
- */
 public class BankAccountFilterTest {
     private static final String PLAIN_TEXT_CONTENT_FRAUDULENT =
             "Message with a fraudulent bank account: 123456. Good luck!";
@@ -44,6 +38,9 @@ public class BankAccountFilterTest {
             "Message with a fraudulent bank account: <b>123456</b>. Good luck!";
     private static final String HTML_CONTENT_FRAUDULENT_SPANS =
             "Message with a fraudulent bank account: <b>12<span></span>34<span></span>56</b>. Good luck!";
+
+    private static final List<String> FRAUDULENT_BANK_ACCOUNTS = Arrays.asList(
+            "2593139", "757706428", "123456", "NL84INGB0002930139", "NO1225673786578");
 
     private BankAccountFilter filter;
     private BankAccountFilterConfiguration config;
@@ -69,8 +66,7 @@ public class BankAccountFilterTest {
         when(mutableHtmlContent.getMediaType()).thenReturn(MediaType.create("text", "html"));
         when(mutableHtmlContent.isMutable()).thenReturn(true);
 
-        config = new BankAccountFilterConfiguration(Arrays.asList(
-                "2593139", "757706428", "123456", "NL84INGB0002930139", "NO1225673786578"));
+        config = new BankAccountFilterConfiguration(FRAUDULENT_BANK_ACCOUNTS);
 
         bankAccountFinder = new BankAccountFinder(config);
         filter = new BankAccountFilter(bankAccountFinder, mailCloakingService, mailRepository, mailsParser);
@@ -286,7 +282,7 @@ public class BankAccountFilterTest {
 
     @Test
     public void usesConfiguredHighScore() {
-        config.setHighCertaintyMatchScore(80);
+        config = new BankAccountFilterConfiguration(FRAUDULENT_BANK_ACCOUNTS, 80, 0, 0);
 
         prepareSimpleSingleMailWithTexts("m369147", "subject", "123456", "NL84INGB0002930139");
 
@@ -298,7 +294,7 @@ public class BankAccountFilterTest {
 
     @Test
     public void usesConfiguredLowScore() {
-        config.setLowCertaintyMatchScore(30);
+        config = new BankAccountFilterConfiguration(FRAUDULENT_BANK_ACCOUNTS, 100, 30, 0);
 
         prepareSimpleSingleMailWithTexts("m369147", "subject", "1234568675", "");
 
@@ -570,8 +566,7 @@ public class BankAccountFilterTest {
 
         @Override
         public boolean matchesSafely(FilterFeedback item) {
-            return item instanceof FilterFeedback &&
-                    item.getDescription().contains("|" + expectedBankAccountNumber + "|") &&
+            return item.getDescription().contains("|" + expectedBankAccountNumber + "|") &&
                     item.getUiHint().equals(expectedHint) &&
                     (item.getScore() == expectedScore) &&
                     (item.getResultState() == expectedResultState);
@@ -585,20 +580,5 @@ public class BankAccountFilterTest {
 
     private BankAccountFilterMatcher matchesAccount(String expectedBankAccountNumber, String expectedHint, int expectedScore, FilterResultState expectedResultState) {
         return new BankAccountFilterMatcher(expectedBankAccountNumber, expectedHint, expectedScore, expectedResultState);
-    }
-
-    private static class NamedInputStream extends InputStream {
-        private String name;
-
-        private NamedInputStream(String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public int read() throws IOException { return -1; }
     }
 }
