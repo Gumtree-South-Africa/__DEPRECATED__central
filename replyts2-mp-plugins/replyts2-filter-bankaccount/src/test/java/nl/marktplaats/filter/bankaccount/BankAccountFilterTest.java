@@ -67,7 +67,6 @@ public class BankAccountFilterTest {
         when(mutableHtmlContent.isMutable()).thenReturn(true);
 
         config = new BankAccountFilterConfiguration(FRAUDULENT_BANK_ACCOUNTS);
-
         bankAccountFinder = new BankAccountFinder(config);
         filter = new BankAccountFilter(bankAccountFinder, mailCloakingService, mailRepository, mailsParser);
     }
@@ -283,6 +282,8 @@ public class BankAccountFilterTest {
     @Test
     public void usesConfiguredHighScore() {
         config = new BankAccountFilterConfiguration(FRAUDULENT_BANK_ACCOUNTS, 80, 0, 0);
+        bankAccountFinder = new BankAccountFinder(config);
+        filter = new BankAccountFilter(bankAccountFinder, mailCloakingService, mailRepository, mailsParser);
 
         prepareSimpleSingleMailWithTexts("m369147", "subject", "123456", "NL84INGB0002930139");
 
@@ -295,6 +296,8 @@ public class BankAccountFilterTest {
     @Test
     public void usesConfiguredLowScore() {
         config = new BankAccountFilterConfiguration(FRAUDULENT_BANK_ACCOUNTS, 100, 30, 0);
+        bankAccountFinder = new BankAccountFinder(config);
+        filter = new BankAccountFilter(bankAccountFinder, mailCloakingService, mailRepository, mailsParser);
 
         prepareSimpleSingleMailWithTexts("m369147", "subject", "1234568675", "");
 

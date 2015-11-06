@@ -8,3 +8,6 @@
 	path = replyts2-core
 	url = git@github.corp.ebay.com:ReplyTS/replyts2-core.git
 	branch = cassandra
+[submodule "replyts2-threshold-resultinspector-plugin"]
+	path = replyts2-threshold-resultinspector-plugin
+	url = git@github.corp.ebay.com:ReplyTS/replyts2-threshold-resultinspector-plugin.git

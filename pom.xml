@@ -15,6 +15,7 @@
         <module>replyts2-core</module>
         <module>replyts2-mp-dist</module>
         <module>replyts2-mp-integration-tests</module>
+        <module>replyts2-threshold-resultinspector-plugin</module>
     </modules>
 
     <properties>
@@ -66,6 +67,11 @@
                 <groupId>nl.marktplaats</groupId>
                 <artifactId>replyts2-postprocessor-anonymizebody</artifactId>
                 <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ecg.de.kleinanzeigen.replyts</groupId>
+                <artifactId>threshold-resultinspector</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>commons-lang</groupId>

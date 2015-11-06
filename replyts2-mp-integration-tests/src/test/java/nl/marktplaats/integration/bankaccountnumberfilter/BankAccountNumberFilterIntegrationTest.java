@@ -11,18 +11,16 @@ import java.io.InputStreamReader;
 
 public class BankAccountNumberFilterIntegrationTest extends ReceiverTestsSetup {
 
-    // DISABLED BECAUSE OF MISSING FILTER RESULT INSPECTOR (AUR-383)
-    // TODO: enable after completion og AUR-383
-    @Test(groups = { "receiverTests" }, enabled = false)
+    @Test(groups = { "receiverTests" })
     public void rtsBlocksMailWithFraudulentBankAccount() throws Exception {
         deliverMailToRts("buyer-asq.eml");
-        IntegrationTestRunner.waitForMessageArrival(1, 500000000L);
+        IntegrationTestRunner.waitForMessageArrival(1, 5000L);
 
         deliverReplyMailToRts(1, "seller-reply-bank-account-123456.eml");
-        IntegrationTestRunner.assertMessageDoesNotArrive(2, 100000000L);
+        IntegrationTestRunner.assertMessageDoesNotArrive(2, 1000L);
 
         deliverReplyMailToRts(1, "seller-reply-bank-account-654321.eml");
-        IntegrationTestRunner.waitForMessageArrival(2, 50000000L);
+        IntegrationTestRunner.waitForMessageArrival(2, 5000L);
     }
 
     private void deliverMailToRts(String emlName) throws Exception {

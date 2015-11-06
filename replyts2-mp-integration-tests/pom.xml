@@ -43,7 +43,10 @@
             <artifactId>replyts2-postprocessor-anonymizebody</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.ecg.de.kleinanzeigen.replyts</groupId>
+            <artifactId>threshold-resultinspector</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>

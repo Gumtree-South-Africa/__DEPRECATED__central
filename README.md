@@ -14,6 +14,7 @@ git submodule update --init
 pushd replyts2-core && git checkout cassandra && git pull origin cassandra && popd
 pushd replyts2-event-publisher && git checkout master && git pull origin master && popd
 pushd replyts2-message-center && git checkout master && git pull origin master && popd
+pushd replyts2-threshold-resultinspector-plugin && git checkout marktplaats && git pull origin marktplaats && popd
 ```
 
 TODO: change last three lines for the following two when rts core is on master branch again.
