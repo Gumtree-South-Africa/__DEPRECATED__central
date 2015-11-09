@@ -14,7 +14,6 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
-import com.google.common.net.MediaType;
 import net.htmlparser.jericho.Source;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -117,7 +116,7 @@ public class BankAccountFilter implements Filter {
                     StringUtils.substring(banMatch.getMatchedText(), 0, FILTER_REASON_HINT_MAX_LENGTH),
                     StringUtils.substring(description, 0, FILTER_REASON_DESCRIPTION_MAX_LENGTH),
                     banMatch.getScore(),
-                    FilterResultState.OK)); //TODO check if result state should be like that
+                    FilterResultState.OK));
         }
         return result;
     }
@@ -224,7 +223,7 @@ public class BankAccountFilter implements Filter {
                 source.setLogger(null);
                 texts.add(source.getRenderer().toString());
                 // System.out.println("Jericho render took " + (System.currentTimeMillis() - startRender));
-            } else if (part.getMediaType().is(MediaType.ANY_TEXT_TYPE)) {
+            } else if (MediaTypeHelper.isPlainTextCompatible(part.getMediaType())) {
                 // Plain text, copy as is.
                 String plainTextContent = part.getContent();
                 if (plainTextContent != null) texts.add(plainTextContent);

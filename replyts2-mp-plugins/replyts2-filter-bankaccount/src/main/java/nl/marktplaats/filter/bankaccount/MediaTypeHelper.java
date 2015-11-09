@@ -22,4 +22,8 @@ public final class MediaTypeHelper {
     private static boolean areMediaTypesEqual(MediaType mediaType, MediaType otherMediaType) {
         return mediaType.type().equals(otherMediaType.type()) && mediaType.subtype().equals(otherMediaType.subtype());
     }
+
+    public static boolean isPlainTextCompatible(MediaType mediaType) {
+        return mediaType.is(MediaType.ANY_TEXT_TYPE);
+    }
 }
