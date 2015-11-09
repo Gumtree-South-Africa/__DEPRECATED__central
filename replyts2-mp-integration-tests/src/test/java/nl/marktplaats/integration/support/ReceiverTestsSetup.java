@@ -5,6 +5,7 @@ import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.util.JsonObjects;
+import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.marktplaats.filter.bankaccount.BankAccountFilterFactory;
@@ -15,15 +16,14 @@ import org.testng.annotations.BeforeMethod;
 
 import java.io.IOException;
 
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-
 public class ReceiverTestsSetup {
+
+    private static EmbeddedCassandra embeddedCassandra = new EmbeddedCassandra();
 
     @BeforeGroups(groups = { "receiverTests" })
     public void startEmbeddedRts() throws Exception {
 
-        // Start Cassandra
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+        embeddedCassandra.start();
 
         // TODO: fix confDir hack on next line, it should be picked up by IntegrationTestRunner.setConfigResourceDirectory
         System.setProperty("confDir", "/Users/evanoosten/dev/mp/replyts2/mp-replyts2/replyts2-mp-integration-tests/src/test/resources/mp-integration-test-conf");
@@ -72,6 +72,6 @@ public class ReceiverTestsSetup {
     @AfterGroups(groups = { "receiverTests" })
     public void stopEmbeddedRts() throws IOException {
         IntegrationTestRunner.stop();
-        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
+        embeddedCassandra.cleanEmbeddedCassandra();
     }
 }
