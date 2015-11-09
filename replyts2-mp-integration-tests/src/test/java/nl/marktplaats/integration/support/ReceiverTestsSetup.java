@@ -15,10 +15,16 @@ import org.testng.annotations.BeforeMethod;
 
 import java.io.IOException;
 
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+
 public class ReceiverTestsSetup {
 
     @BeforeGroups(groups = { "receiverTests" })
-    public void startEmbeddedRts() throws IOException {
+    public void startEmbeddedRts() throws Exception {
+
+        // Start Cassandra
+        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+
         // TODO: fix confDir hack on next line, it should be picked up by IntegrationTestRunner.setConfigResourceDirectory
         System.setProperty("confDir", "/Users/evanoosten/dev/mp/replyts2/mp-replyts2/replyts2-mp-integration-tests/src/test/resources/mp-integration-test-conf");
         IntegrationTestRunner.setConfigResourceDirectory("/mp-integration-test-conf");
@@ -63,9 +69,9 @@ public class ReceiverTestsSetup {
         IntegrationTestRunner.clearMessages();
     }
 
-
     @AfterGroups(groups = { "receiverTests" })
     public void stopEmbeddedRts() throws IOException {
         IntegrationTestRunner.stop();
+        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
     }
 }
