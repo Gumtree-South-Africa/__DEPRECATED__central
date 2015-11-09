@@ -12,12 +12,6 @@ import java.io.InputStreamReader;
 
 public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
 
-    @BeforeMethod(groups = { "receiverTests" })
-    public void makeSureRtsIsRunningAndClearRtsSentMails() {
-        ReplyTsConfigClient replyTsConfigClient = new ReplyTsConfigClient(IntegrationTestRunner.getReplytsRunner().getReplytsHttpPort());
-        //TODO replyTsConfigClient.putConfiguration(new Configuration());
-    }
-
     // DISABLED because filter is still WIP
     @Test(groups = { "receiverTests" }, enabled = false)
     public void rtsBlocksMessagesAfterReachingVolumeThreshold() throws Exception {

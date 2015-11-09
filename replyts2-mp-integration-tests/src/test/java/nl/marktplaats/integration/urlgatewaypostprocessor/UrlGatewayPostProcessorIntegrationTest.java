@@ -19,12 +19,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class UrlGatewayPostProcessorIntegrationTest extends ReceiverTestsSetup {
 
-    @BeforeMethod(groups = { "receiverTests" })
-    public void makeSureRtsIsRunningAndClearRtsSentMails() {
-        ReplyTsConfigClient replyTsConfigClient = new ReplyTsConfigClient(IntegrationTestRunner.getReplytsRunner().getReplytsHttpPort());
-        //TODO replyTsConfigClient.putConfiguration(new Configuration());
-    }
-
     // DISABLED, url gateway post processor was not ported to RTS2 yet.
     @Test(groups = { "receiverTests" }, enabled = false)
     public void rtsRewritesUrlsInMessageBodyForAsq() throws Exception {
