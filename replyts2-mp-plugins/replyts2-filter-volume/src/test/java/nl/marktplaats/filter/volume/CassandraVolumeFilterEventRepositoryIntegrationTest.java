@@ -39,13 +39,15 @@ public class CassandraVolumeFilterEventRepositoryIntegrationTest {
 
     @After
     public void cleanup() {
-        DateTimeUtils.setCurrentMillisFixed(System.currentTimeMillis());
+        DateTimeUtils.setCurrentMillisSystem();
     }
 
     @Test
     public void shouldStoreEvents() {
         volumeFilterEventRepository.record("u1@mail.com", TTL);
+        volumeFilterEventRepository.record("u99@mail.com", TTL);
         volumeFilterEventRepository.record("u1@mail.com", TTL);
+        volumeFilterEventRepository.record("u99@mail.com", TTL);
         long count = session.execute("SELECT count(*) from volume_events where user_id = 'u1@mail.com'").one().getLong(0);
         assertThat(count, is(2L));
     }

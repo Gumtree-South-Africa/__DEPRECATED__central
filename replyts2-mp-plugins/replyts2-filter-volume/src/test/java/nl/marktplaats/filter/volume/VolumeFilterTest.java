@@ -4,6 +4,7 @@ import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import nl.marktplaats.filter.volume.VolumeFilterConfiguration.VolumeRule;
 import nl.marktplaats.filter.volume.persistence.VolumeFilterEventRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,12 +23,9 @@ import static org.mockito.Mockito.*;
 public class VolumeFilterTest {
 
     private static final String BUYER_ID = "buyer@mail.com";
-    private static final VolumeFilterConfiguration.VolumeRule VOLUME_RULE_1_DAY =
-            new VolumeFilterConfiguration.VolumeRule(1L, TimeUnit.DAYS, 200L, 100);
-    private static final VolumeFilterConfiguration.VolumeRule VOLUME_RULE_1_HOUR =
-            new VolumeFilterConfiguration.VolumeRule(1L, TimeUnit.HOURS, 100L, 200);
-    private static final List<VolumeFilterConfiguration.VolumeRule> VOLUME_RULES =
-            asList(VOLUME_RULE_1_DAY, VOLUME_RULE_1_HOUR);
+    private static final VolumeRule VOLUME_RULE_1_HOUR = new VolumeRule(1L, TimeUnit.HOURS, 100L, 200);
+    private static final VolumeRule VOLUME_RULE_2_DAY = new VolumeRule(1L, TimeUnit.DAYS, 200L, 100);
+    private static final List<VolumeRule> VOLUME_RULES = asList(VOLUME_RULE_2_DAY, VOLUME_RULE_1_HOUR);
 
     private VolumeFilter volumeFilter;
     private MessageProcessingContext messageProcessingContext;
@@ -50,21 +48,21 @@ public class VolumeFilterTest {
     }
 
     @Test
-    public void doCheckRecordsFirstMailInConversation() throws Exception {
+    public void filterRecordsFirstMailInConversation() throws Exception {
         setUpFirstMailInConversation();
         volumeFilter.filter(messageProcessingContext);
         verify(vts).record(BUYER_ID, TTL);
     }
 
     @Test
-    public void doCheckDoesNotRecordReplies() throws Exception {
+    public void filterDoesNotRecordReplies() throws Exception {
         when(mail.containsHeader(Mail.ADID_HEADER)).thenReturn(false);
         volumeFilter.filter(messageProcessingContext);
         verify(vts, never()).record(BUYER_ID, TTL);
     }
 
     @Test
-    public void doCheckReturnsEmptyListIfNoRuleIsViolated() throws Exception {
+    public void filterReturnsEmptyListIfNoRuleIsViolated() throws Exception {
         setUpFirstMailInConversation();
         List<FilterFeedback> filterFeedbacks = volumeFilter.filter(messageProcessingContext);
         assertThat(filterFeedbacks.size(), is(0));
@@ -74,7 +72,7 @@ public class VolumeFilterTest {
     }
 
     @Test
-    public void doCheckUsesFirstViolatedRule() throws Exception {
+    public void filterUsesFirstViolatedRule() throws Exception {
         setUpFirstMailInConversation();
         when(vts.count(BUYER_ID, SECONDS_FOR_RULE1)).thenReturn(201);
         List<FilterFeedback> filterFeedbacks = volumeFilter.filter(messageProcessingContext);
@@ -89,7 +87,7 @@ public class VolumeFilterTest {
     }
 
     @Test
-    public void doCheckDoesNotRecordBids() throws Exception {
+    public void filterDoesNotRecordBids() throws Exception {
         setUpFirstMailInConversation();
         Map<String, String> customValues = Collections.singletonMap("flowtype", "PLACED_BID");
         when(conversation.getCustomValues()).thenReturn(customValues);
