@@ -1,7 +1,6 @@
 package nl.marktplaats.filter.volume;
 
 import nl.marktplaats.filter.volume.VolumeFilterConfiguration.VolumeRule;
-import nl.marktplaats.filter.volume.measure.RuleSorter;
 import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
@@ -20,7 +19,7 @@ public class VolumeRuleSortingTest {
         c.setConfig(rules);
 
         List<VolumeRule> sortedRules = new RuleSorter().orderRules(c);
-        assertEquals(80, sortedRules.get(0).getScore().intValue());
-        assertEquals(30, sortedRules.get(2).getScore().intValue());
+        assertEquals(80, sortedRules.get(0).getScore());
+        assertEquals(30, sortedRules.get(2).getScore());
     }
 }

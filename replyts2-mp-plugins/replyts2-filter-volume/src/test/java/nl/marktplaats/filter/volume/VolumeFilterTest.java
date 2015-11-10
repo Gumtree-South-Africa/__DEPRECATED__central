@@ -4,7 +4,9 @@ import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import nl.marktplaats.filter.volume.measure.VolumeTrackingService;
+import nl.marktplaats.filter.volume.persistence.VolumeFilterEventRepository;
+import org.joda.time.DateTimeUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -32,10 +34,17 @@ public class VolumeFilterTest {
     private VolumeFilter volumeFilter;
     private MessageProcessingContext messageProcessingContext;
 
+    private final int TTL = 24 * 60 * 60;
+
+    private final int SECONDS_FOR_RULE1 = 60 * 60;
+    private final int SECONDS_FOR_RULE2 = 24 * 60 * 60;
+
+    private final long FIXED_TIME = 1447151106817L;
+
     private final Message message = mock(Message.class);
     private final MutableConversation conversation = mock(MutableConversation.class);
     private final Mail mail = mock(Mail.class);
-    private final VolumeTrackingService vts = mock(VolumeTrackingService.class);
+    private final VolumeFilterEventRepository vts = mock(VolumeFilterEventRepository.class);
 
     @Before
     public void setUp() throws Exception {
@@ -43,20 +52,26 @@ public class VolumeFilterTest {
         configuration.setConfig(VOLUME_RULES);
         volumeFilter = new VolumeFilter(configuration, vts);
         messageProcessingContext = mockMessageProcessingContext(mail, message, conversation);
+        DateTimeUtils.setCurrentMillisFixed(FIXED_TIME);
+    }
+
+    @After
+    public void cleanUp() {
+        DateTimeUtils.setCurrentMillisFixed(System.currentTimeMillis());
     }
 
     @Test
     public void doCheckRecordsFirstMailInConversation() throws Exception {
         setUpFirstMailInConversation();
         volumeFilter.filter(messageProcessingContext);
-        verify(vts).record(BUYER_ID);
+        verify(vts).record(BUYER_ID, TTL);
     }
 
     @Test
     public void doCheckDoesNotRecordReplies() throws Exception {
         when(mail.containsHeader(Mail.ADID_HEADER)).thenReturn(false);
         volumeFilter.filter(messageProcessingContext);
-        verify(vts, never()).record(BUYER_ID);
+        verify(vts, never()).record(BUYER_ID, TTL);
     }
 
     @Test
@@ -65,14 +80,14 @@ public class VolumeFilterTest {
         List<FilterFeedback> filterFeedbacks = volumeFilter.filter(messageProcessingContext);
         assertThat(filterFeedbacks.size(), is(0));
         InOrder inOrder = inOrder(vts);
-        inOrder.verify(vts).violates(BUYER_ID, VOLUME_RULE_1_HOUR);
-        inOrder.verify(vts).violates(BUYER_ID, VOLUME_RULE_1_DAY);
+        inOrder.verify(vts).count(BUYER_ID, SECONDS_FOR_RULE1);
+        inOrder.verify(vts).count(BUYER_ID, SECONDS_FOR_RULE2);
     }
 
     @Test
     public void doCheckUsesFirstViolatedRule() throws Exception {
         setUpFirstMailInConversation();
-        when(vts.violates(BUYER_ID, VOLUME_RULE_1_HOUR)).thenReturn(true);
+        when(vts.count(BUYER_ID, SECONDS_FOR_RULE1)).thenReturn(201);
         List<FilterFeedback> filterFeedbacks = volumeFilter.filter(messageProcessingContext);
         FilterFeedback filterFeedback = filterFeedbacks.get(0);
         assertThat(filterFeedback.getUiHint(), is("bla@bla.com>100 mails/1 HOURS +200"));
@@ -80,8 +95,8 @@ public class VolumeFilterTest {
         assertThat(filterFeedback.getScore(), is(200));
         assertThat(filterFeedback.getResultState(), is(FilterResultState.OK));
 
-        verify(vts).violates(BUYER_ID, VOLUME_RULE_1_HOUR);
-        verify(vts, never()).violates(BUYER_ID, VOLUME_RULE_1_DAY);
+        verify(vts).count(BUYER_ID, SECONDS_FOR_RULE1);
+        verify(vts, never()).count(BUYER_ID, SECONDS_FOR_RULE2);
     }
 
     @Test
@@ -90,7 +105,7 @@ public class VolumeFilterTest {
         Map<String, String> customValues = Collections.singletonMap("flowtype", "PLACED_BID");
         when(conversation.getCustomValues()).thenReturn(customValues);
         volumeFilter.filter(messageProcessingContext);
-        verify(vts, never()).record(BUYER_ID);
+        verify(vts, never()).record(BUYER_ID, TTL);
     }
 
     private void setUpFirstMailInConversation() {

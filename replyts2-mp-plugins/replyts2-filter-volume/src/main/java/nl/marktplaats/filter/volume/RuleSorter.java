@@ -1,7 +1,6 @@
-package nl.marktplaats.filter.volume.measure;
+package nl.marktplaats.filter.volume;
 
 
-import nl.marktplaats.filter.volume.VolumeFilterConfiguration;
 import nl.marktplaats.filter.volume.VolumeFilterConfiguration.VolumeRule;
 
 import java.util.ArrayList;

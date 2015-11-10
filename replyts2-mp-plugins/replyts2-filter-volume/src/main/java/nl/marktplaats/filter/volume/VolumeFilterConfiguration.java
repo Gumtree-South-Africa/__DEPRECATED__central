@@ -13,9 +13,6 @@ public class VolumeFilterConfiguration {
 
     private List<VolumeRule> config;
 
-    private String cleanupCrontab;
-
-
     /**
      * Represents a Volume Configuration Rule. Each rule defines a {@link #score}, that
      * is added to a message, when the sender has sent more than {@link #maxCount} mails in the last {@link #timeSpan} {@link #timeUnit}. <p>
@@ -35,17 +32,10 @@ public class VolumeFilterConfiguration {
      */
     public static class VolumeRule {
 
-        private Long timeSpan;
+        private long timeSpan;
         private TimeUnit timeUnit;
-        private Long maxCount;
-        private Integer score;
-
-        /**
-         * Default constructor required to instantiate volume rules by reflections and properties binding
-         */
-        public VolumeRule() {
-
-        }
+        private long maxCount;
+        private int score;
 
 
         /**
@@ -56,7 +46,7 @@ public class VolumeFilterConfiguration {
          * @param maxCount
          * @param score
          */
-        public VolumeRule(Long timeSpan, TimeUnit timeUnit, Long maxCount, Integer score) {
+        public VolumeRule(long timeSpan, TimeUnit timeUnit, long maxCount, int score) {
             this.timeSpan = timeSpan;
             this.timeUnit = timeUnit;
             this.maxCount = maxCount;
@@ -67,28 +57,28 @@ public class VolumeFilterConfiguration {
         /**
          * @return the time span of this particular rule
          */
-        public Long getTimeSpan() {
+        public long getTimeSpan() {
             return timeSpan;
         }
 
         /**
          * @param timeSpan timespan of this particular rule.
          */
-        public void setTimeSpan(Long timeSpan) {
+        public void setTimeSpan(long timeSpan) {
             this.timeSpan = timeSpan;
         }
 
         /**
          * @param maxCount max number of messages that is allowed in this time frame
          */
-        public void setMaxCount(Long maxCount) {
+        public void setMaxCount(long maxCount) {
             this.maxCount = maxCount;
         }
 
         /**
          * @return max number of messages that is allowed in this time frame
          */
-        public Long getMaxCount() {
+        public long getMaxCount() {
             return maxCount;
         }
 
@@ -110,14 +100,14 @@ public class VolumeFilterConfiguration {
         /**
          * @return score mails will get added if they exceed the allowed limit
          */
-        public Integer getScore() {
+        public int getScore() {
             return score;
         }
 
         /**
          * @param score score mails will get added if they exceed the allowed limit
          */
-        public void setScore(Integer score) {
+        public void setScore(int score) {
             this.score = score;
         }
 
@@ -141,19 +131,5 @@ public class VolumeFilterConfiguration {
      */
     public List<VolumeRule> getConfig() {
         return config;
-    }
-
-    /**
-     * @param cleanupCrontab the crontab which defines how often old volume information shall be deleted
-     */
-    public void setCleanupCrontab(String cleanupCrontab) {
-        this.cleanupCrontab = cleanupCrontab;
-    }
-
-    /**
-     * @return crontab which deifnes how ofteh old volume information should be deleted
-     */
-    public String getCleanupCrontab() {
-        return cleanupCrontab;
     }
 }

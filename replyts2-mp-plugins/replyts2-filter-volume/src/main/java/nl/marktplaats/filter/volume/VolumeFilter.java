@@ -9,8 +9,8 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import nl.marktplaats.filter.volume.VolumeFilterConfiguration.VolumeRule;
-import nl.marktplaats.filter.volume.measure.RuleSorter;
-import nl.marktplaats.filter.volume.measure.VolumeTrackingService;
+import nl.marktplaats.filter.volume.persistence.VolumeFilterEventRepository;
+import org.joda.time.DateTime;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +19,7 @@ public class VolumeFilter implements Filter {
 
     private static final String BID_FLOW_TYPE = "PLACED_BID";
 
-    private VolumeTrackingService volumeTrackingService;
+    private VolumeFilterEventRepository volumeFilterEventRepository;
 
     /**
      * List of rules sorted by their descending scores. All rules need to be checked (due to moving timeframes), but
@@ -28,9 +28,9 @@ public class VolumeFilter implements Filter {
      */
     private List<VolumeRule> sortedRules;
 
-    public VolumeFilter(VolumeFilterConfiguration volumeFilterConfiguration, VolumeTrackingService volumeTrackingService) {
+    public VolumeFilter(VolumeFilterConfiguration volumeFilterConfiguration, VolumeFilterEventRepository volumeFilterEventRepository) {
         this.sortedRules = new RuleSorter().orderRules(volumeFilterConfiguration);
-        this.volumeTrackingService = volumeTrackingService;
+        this.volumeFilterEventRepository = volumeFilterEventRepository;
     }
 
     public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
@@ -41,9 +41,10 @@ public class VolumeFilter implements Filter {
         if (isFirstMailInConversation(mail) && !isBid(conv)) {
             recordMessage(message, conv);
 
-            String from = extractFrom(message, conv);
+            String userId = extractFrom(message, conv);
             for (VolumeRule rule : sortedRules) {
-                if (volumeTrackingService.violates(from, rule)) {
+                int sentActually = volumeFilterEventRepository.count(userId, (int) rule.getTimeUnit().toSeconds(rule.getTimeSpan()));
+                if (rule.getMaxCount() < sentActually) {
                     String uiHint = toUiHint(rule, mail.getFrom());
                     String description = toDescription(rule, mail.getFrom());
                     return Collections.singletonList(new FilterFeedback(uiHint, description, rule.getScore(), FilterResultState.OK));
@@ -71,9 +72,15 @@ public class VolumeFilter implements Filter {
         return mail.containsHeader(Mail.ADID_HEADER);
     }
 
-    private void recordMessage(Message message, Conversation conv) {
-        String userId = extractFrom(message, conv);
-        volumeTrackingService.record(userId);
+    private void recordMessage(Message message, Conversation conversation) {
+        String userId = extractFrom(message, conversation);
+        Long longestTimeSpan =
+                sortedRules
+                .stream()
+                .map(rule -> rule.getTimeUnit().toSeconds(rule.getTimeSpan()))
+                .max(Long::compare)
+                .get();
+        volumeFilterEventRepository.record(userId, longestTimeSpan.intValue());
     }
 
     private String extractFrom(Message message, Conversation conv) {
