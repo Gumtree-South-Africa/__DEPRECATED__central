@@ -1,11 +1,9 @@
 package nl.marktplaats.integration.volumefilter;
 
-import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.CharStreams;
 import nl.marktplaats.integration.support.ReceiverTestsSetup;
 import org.subethamail.wiser.WiserMessage;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.InputStreamReader;

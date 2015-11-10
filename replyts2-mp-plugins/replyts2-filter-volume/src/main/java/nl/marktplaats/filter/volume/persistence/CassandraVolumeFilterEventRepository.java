@@ -18,7 +18,6 @@ import java.util.Map;
  */
 public class CassandraVolumeFilterEventRepository implements VolumeFilterEventRepository {
 
-
     private final Session session;
     private final Map<Statements, PreparedStatement> preparedStatements;
     private final ConsistencyLevel readConsistency;

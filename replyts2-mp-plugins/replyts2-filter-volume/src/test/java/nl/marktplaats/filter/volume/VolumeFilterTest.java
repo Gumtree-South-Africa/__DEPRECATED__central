@@ -5,8 +5,6 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import nl.marktplaats.filter.volume.persistence.VolumeFilterEventRepository;
-import org.joda.time.DateTimeUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -46,8 +44,7 @@ public class VolumeFilterTest {
 
     @Before
     public void setUp() throws Exception {
-        VolumeFilterConfiguration configuration = new VolumeFilterConfiguration();
-        configuration.setConfig(VOLUME_RULES);
+        VolumeFilterConfiguration configuration = new VolumeFilterConfiguration(VOLUME_RULES);
         volumeFilter = new VolumeFilter(configuration, vts);
         messageProcessingContext = mockMessageProcessingContext(mail, message, conversation);
     }

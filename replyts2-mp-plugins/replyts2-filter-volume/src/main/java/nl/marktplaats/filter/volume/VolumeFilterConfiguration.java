@@ -13,6 +13,10 @@ public class VolumeFilterConfiguration {
 
     private List<VolumeRule> config;
 
+    public VolumeFilterConfiguration(List<VolumeRule> config) {
+        this.config = config;
+    }
+
     /**
      * Represents a Volume Configuration Rule. Each rule defines a {@link #score}, that
      * is added to a message, when the sender has sent more than {@link #maxCount} mails in the last {@link #timeSpan} {@link #timeUnit}. <p>
@@ -115,15 +119,6 @@ public class VolumeFilterConfiguration {
         public String toString() {
             return String.format("[if >= %s mails per %s %s. Score+=%s]", maxCount, timeSpan, timeUnit, score);
         }
-    }
-
-    /**
-     * Sets all Volume Configuration Rules
-     *
-     * @param config
-     */
-    public void setConfig(List<VolumeRule> config) {
-        this.config = config;
     }
 
     /**

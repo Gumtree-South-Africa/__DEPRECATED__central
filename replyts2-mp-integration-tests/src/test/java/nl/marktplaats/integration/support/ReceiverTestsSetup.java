@@ -10,6 +10,7 @@ import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.marktplaats.filter.bankaccount.BankAccountFilterFactory;
 import nl.marktplaats.filter.knowngood.KnownGoodFilterFactory;
+import nl.marktplaats.filter.volume.VolumeFilterFactory;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.BeforeMethod;
@@ -55,6 +56,23 @@ public class ReceiverTestsSetup {
                         PluginState.ENABLED,
                         1,
                         JsonObjects.parse("{'fraudulentBankAccounts': ['123456', '987654321', '87238935']}")));
+
+
+//        String volumeFilterConfig = "[" +
+//                "{" +
+//                "\"timeSpan\":10," +
+//                "\"timeUnit\":\"MINTUES\"," +
+//                "\"maxCount\":10," +
+//                "\"score\":50" +
+//                "}" +
+//                "]";
+//
+//        replyTsConfigClient.putConfiguration(
+//                new Configuration(
+//                        new Configuration.ConfigurationId(VolumeFilterFactory.class.getName(), "instance-0"),
+//                        PluginState.ENABLED,
+//                        1,
+//                        JsonObjects.parse(volumeFilterConfig)));
 
 
 //        String patternsAsJson = new ObjectMapper().writeValueAsString(patterns);
