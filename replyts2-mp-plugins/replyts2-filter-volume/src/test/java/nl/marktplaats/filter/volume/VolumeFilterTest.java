@@ -39,8 +39,6 @@ public class VolumeFilterTest {
     private final int SECONDS_FOR_RULE1 = 60 * 60;
     private final int SECONDS_FOR_RULE2 = 24 * 60 * 60;
 
-    private final long FIXED_TIME = 1447151106817L;
-
     private final Message message = mock(Message.class);
     private final MutableConversation conversation = mock(MutableConversation.class);
     private final Mail mail = mock(Mail.class);
@@ -52,12 +50,6 @@ public class VolumeFilterTest {
         configuration.setConfig(VOLUME_RULES);
         volumeFilter = new VolumeFilter(configuration, vts);
         messageProcessingContext = mockMessageProcessingContext(mail, message, conversation);
-        DateTimeUtils.setCurrentMillisFixed(FIXED_TIME);
-    }
-
-    @After
-    public void cleanUp() {
-        DateTimeUtils.setCurrentMillisFixed(System.currentTimeMillis());
     }
 
     @Test

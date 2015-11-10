@@ -4,16 +4,16 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
-import nl.marktplaats.filter.volume.VolumeFilterConfiguration.VolumeRule;
 import org.joda.time.DateTime;
 
+import java.util.Date;
 import java.util.EnumMap;
 import java.util.Map;
 
 /**
  * +----------------+----------+
- * | userId         | text     |  (partitionkey)
- * | receivedTime   | timestamp|  (clustering key)
+ * | user_id        | text     |  (partitionkey)
+ * | received_time  | timeuuid |  (clustering key)
  * +----------------+----------+
  */
 public class CassandraVolumeFilterEventRepository implements VolumeFilterEventRepository {
@@ -38,7 +38,7 @@ public class CassandraVolumeFilterEventRepository implements VolumeFilterEventRe
     }
 
     public int count(String userId, int maxAgeInSeconds) {
-        long after = new DateTime().minusSeconds(maxAgeInSeconds).getMillis();
+        Date after = new DateTime().minusSeconds(maxAgeInSeconds).toDate();
         return (int) session.execute(Statements.COUNT.bind(this, userId, after)).one().getLong(0);
     }
 

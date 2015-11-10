@@ -7,6 +7,9 @@ import nl.marktplaats.filter.volume.persistence.CassandraVolumeFilterEventReposi
 import org.cassandraunit.spring.CassandraDataSet;
 import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
 import org.cassandraunit.spring.EmbeddedCassandra;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,11 +25,11 @@ import static org.junit.Assert.assertThat;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class CassandraVolumeFilterEventRepositoryIntegrationTest {
 
-
     public static final String KEYSPACE = "volume_filter_test";
 
     private static Session session;
     private static CassandraVolumeFilterEventRepository volumeFilterEventRepository;
+    private static final int TTL = 100;
 
     @BeforeClass
     public static void init() {
@@ -34,25 +37,32 @@ public class CassandraVolumeFilterEventRepositoryIntegrationTest {
         volumeFilterEventRepository = new CassandraVolumeFilterEventRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
     }
 
+    @After
+    public void cleanup() {
+        DateTimeUtils.setCurrentMillisFixed(System.currentTimeMillis());
+    }
+
     @Test
     public void shouldStoreEvents() {
-        volumeFilterEventRepository.record("u1@mail.com", 10);
-        volumeFilterEventRepository.record("u1@mail.com", 10);
+        volumeFilterEventRepository.record("u1@mail.com", TTL);
+        volumeFilterEventRepository.record("u1@mail.com", TTL);
         long count = session.execute("SELECT count(*) from volume_events where user_id = 'u1@mail.com'").one().getLong(0);
         assertThat(count, is(2L));
     }
 
     @Test
     public void shouldCountEvents() {
-//        volumeFilterEventRepository.record("u1@mail.com", 10);
-//        assertThat(volumeFilterEventRepository.count("u1@mail.com", 1), is(0));
+        volumeFilterEventRepository.record("u3@mail.com", TTL);
+        assertThat(volumeFilterEventRepository.count("u3@mail.com", 5), is(1));
+        DateTimeUtils.setCurrentMillisFixed(new DateTime().plusSeconds(6).getMillis()); //set current time to a time in the future
+        assertThat(volumeFilterEventRepository.count("u3@mail.com", 1), is(0));
     }
 
     @Test
     public void shouldExpireVolumeEventWithTTL() throws InterruptedException {
-        volumeFilterEventRepository.record("u1@mail.com", 1);
+        volumeFilterEventRepository.record("u2@mail.com", 1);
         Thread.sleep(2000);
-        long count = session.execute("SELECT count(*) from volume_events where user_id = 'u1@mail.com'").one().getLong(0);
+        long count = session.execute("SELECT count(*) from volume_events where user_id = 'u2@mail.com'").one().getLong(0);
         assertThat(count, is(0L));
     }
 
