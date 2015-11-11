@@ -19,6 +19,7 @@
         <module>replyts2-filter-bankaccount</module>
         <module>replyts2-postprocessor-anonymizebody</module>
         <module>replyts2-postprocessor-sendername</module>
+        <module>replyts2-postprocessor-urlgateway</module>
         <module>replyts2-filter-volume</module>
     </modules>
 
