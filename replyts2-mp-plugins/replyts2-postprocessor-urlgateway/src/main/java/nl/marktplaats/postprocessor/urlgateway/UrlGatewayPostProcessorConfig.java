@@ -1,9 +1,15 @@
 package nl.marktplaats.postprocessor.urlgateway;
 
-import java.util.ArrayList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.List;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 public class UrlGatewayPostProcessorConfig {
+
     /**
      * The gateway URL.
      * <p>
@@ -14,7 +20,7 @@ public class UrlGatewayPostProcessorConfig {
      * <p>
      * Required, must be a valid {@literal http://} or {@literal https://} url.
      */
-    private String gatewayUrl;
+    private final String gatewayUrl;
 
     /**
      * List of domains to skip, an entry starting with *. will ignore sub-domains, the domain
@@ -24,22 +30,32 @@ public class UrlGatewayPostProcessorConfig {
      * <p>
      * Optional, defaults to empty list.
      */
-    private List<String> skipDomains = new ArrayList<String>();
+    private final List<String> skipDomains;
+
+    public UrlGatewayPostProcessorConfig(String gatewayUrl,
+                                         List<String> skipDomains) {
+        this.gatewayUrl = gatewayUrl;
+        this.skipDomains = skipDomains;
+
+    }
+
+    @Autowired
+    public UrlGatewayPostProcessorConfig(@Value("urlgateway.gatewayUrl") String gatewayUrl,
+                                         @Qualifier("replyts-properties") Properties properties) {
+        this(gatewayUrl, properties
+                .stringPropertyNames()
+                .stream()
+                .filter(key -> key.startsWith("urlgateway.skipdomains."))
+                .map(key -> properties.getProperty(key))
+                .collect(Collectors.toList()));
+    }
 
     public String getGatewayUrl() {
         return gatewayUrl;
     }
 
-    public void setGatewayUrl(String gatewayUrl) {
-        this.gatewayUrl = gatewayUrl;
-    }
-
     public List<String> getSkipDomains() {
         return skipDomains;
-    }
-
-    public void setSkipDomains(List<String> skipDomains) {
-        this.skipDomains = skipDomains;
     }
 
 }

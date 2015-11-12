@@ -1,13 +1,18 @@
 package nl.marktplaats.postprocessor.urlgateway;
 
+import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.mail.MutableMail;
+import com.ecg.replyts.core.api.model.mail.TypedContent;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.google.common.net.MediaType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,50 +35,54 @@ public class UrlGatewayPostProcessorTest {
     private UrlGatewayPostProcessor processor;
 
     @Mock
-    private Message message;
-//    @Mock
-//    private Platform platform;
-//    @Mock
-//    private Mail mail;
-//    @Mock
-//    private TypedContent<String> mutablePlainContent;
-//    @Mock
-//    private TypedContent<String> mutableHtmlContent;
-//
-//    // Circumvents problems with generics in arrays
-//    @SuppressWarnings({"unchecked"})
-//    private List<TypedContent<String>> asTypedContentList(TypedContent<String> c1, TypedContent<String> c2) {
-//        return Arrays.asList(c1, c2);
-//    }
-//
-//    @Before
-//    public void setup() throws IOException, PersistenceException {
-//        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig();
-//        config.setGatewayUrl("http://gateway.marktplaats.nl/?url=");
-//
-//        initMocks(this);
-//
-//        processor = new UrlGatewayPostProcessor();
-//        processor.setConfig("-1", config);
-//        processor.processConfig();
-//
-//        when(mail.getFrom()).thenReturn(DUMMY_FROM_ADDRESS);
-//        when(mail.getTextParts(false)).thenReturn(asTypedContentList(mutablePlainContent, mutableHtmlContent));
-//        when(mutablePlainContent.getMediaType()).thenReturn(new MediaType("text", "plain"));
-//        when(mutablePlainContent.isMutable()).thenReturn(true);
-//        when(mutablePlainContent.getContent()).thenReturn(PLAIN_TEXT_CONTENT);
-//        when(mutableHtmlContent.getMediaType()).thenReturn(new MediaType("text", "html"));
-//        when(mutableHtmlContent.isMutable()).thenReturn(true);
-//        when(mutableHtmlContent.getContent()).thenReturn(HTML_CONTENT);
-//    }
-//
-//    @Test
-//    public void testReplacements() {
-//        processor.postProcess(message, platform, mail);
-//
-//        verify(mutablePlainContent).overrideContent(PROCESSED_PLAIN_TEXT_CONTENT);
-//        verify(mutableHtmlContent).overrideContent(PROCESSED_HTML_CONTENT);
-//    }
+    private Message messageMock;
+    @Mock
+    private Conversation conversationMock;
+    @Mock
+    private MutableMail mailMock;
+    @Mock
+    private MessageProcessingContext messageProcessingContextMock;
+
+    @Mock
+    private TypedContent<String> mutablePlainContent;
+    @Mock
+    private TypedContent<String> mutableHtmlContent;
+
+    @Before
+    public void setup() throws Exception {
+        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig("http://gateway.marktplaats.nl/?url=", new Properties());
+
+        initMocks(this);
+
+        processor = new UrlGatewayPostProcessor(new String[0], config);
+
+
+        when(messageProcessingContextMock.getConversation()).thenReturn(conversationMock);
+        when(messageProcessingContextMock.getMessage()).thenReturn(messageMock);
+        when(messageProcessingContextMock.getOutgoingMail()).thenReturn(mailMock);
+
+        when(mailMock.getTextParts(false)).thenReturn(asTypedContentList(mutablePlainContent, mutableHtmlContent));
+        when(mutablePlainContent.getMediaType()).thenReturn(MediaType.PLAIN_TEXT_UTF_8);
+        when(mutablePlainContent.isMutable()).thenReturn(true);
+        when(mutablePlainContent.getContent()).thenReturn(PLAIN_TEXT_CONTENT);
+        when(mutableHtmlContent.getMediaType()).thenReturn(MediaType.HTML_UTF_8);
+        when(mutableHtmlContent.isMutable()).thenReturn(true);
+        when(mutableHtmlContent.getContent()).thenReturn(HTML_CONTENT);
+    }
+
+    @Test
+    public void testPostProcessGivenPlainAndHtmlContentTypesWhenProcessedThenEachContentIsOverridenByItsContentType() {
+        processor.postProcess(messageProcessingContextMock);
+
+        verify(mutablePlainContent).overrideContent(PROCESSED_PLAIN_TEXT_CONTENT);
+        verify(mutableHtmlContent).overrideContent(PROCESSED_HTML_CONTENT);
+    }
+
+    // Circumvents problems with generics in arrays
+    @SuppressWarnings({"unchecked"})
+    private List<TypedContent<String>> asTypedContentList(TypedContent<String> c1, TypedContent<String> c2) {
+        return Arrays.asList(c1, c2);
+    }
 
 
 }

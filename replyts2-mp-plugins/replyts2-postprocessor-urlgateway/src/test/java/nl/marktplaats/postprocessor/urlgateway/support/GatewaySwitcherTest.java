@@ -3,6 +3,9 @@ package nl.marktplaats.postprocessor.urlgateway.support;
 import nl.marktplaats.postprocessor.urlgateway.UrlGatewayPostProcessorConfig;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Properties;
+
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.*;
 
@@ -11,11 +14,10 @@ import static junit.framework.Assert.*;
  */
 public class GatewaySwitcherTest {
 
+
     @Test
     public void testRedirectUrlToGateway() throws Exception {
-        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig();
-        config.setGatewayUrl("http://gateway.marktplaats.nl?url=[url]");
-        config.setSkipDomains(asList("*.marktplaats.nl"));
+        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig("http://gateway.marktplaats.nl?url=[url]", asList("*.marktplaats.nl"));
         GatewaySwitcher gatewaySwitcher = new GatewaySwitcher(config);
 
         assertTrue(gatewaySwitcher.redirectUrlToGateway("http://www.google.nl"));
@@ -41,8 +43,7 @@ public class GatewaySwitcherTest {
 
     @Test
     public void testUrlInMiddle() throws Exception {
-        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig();
-        config.setGatewayUrl("http://abc.com/def[url]ghi");
+        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig("http://abc.com/def[url]ghi", new ArrayList<>());
         GatewaySwitcher gatewaySwitcher = new GatewaySwitcher(config);
 
         assertEquals("http://abc.com/defhttp%3A%2F%2Fhello.com%2Fghi", gatewaySwitcher.rewrite("http://hello.com/"));
@@ -50,8 +51,7 @@ public class GatewaySwitcherTest {
 
     @Test
     public void testUrlNotIncluded() throws Exception {
-        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig();
-        config.setGatewayUrl("http://abc.com/");
+        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig("http://abc.com/", new ArrayList<>());
         GatewaySwitcher gatewaySwitcher = new GatewaySwitcher(config);
 
         assertEquals("http://abc.com/http%3A%2F%2Fhello.com%2F", gatewaySwitcher.rewrite("http://hello.com/"));

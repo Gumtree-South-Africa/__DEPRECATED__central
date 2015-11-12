@@ -20,22 +20,9 @@ public class BugHtmlMailtoLinkReplaced {
     private GatewaySwitcher gatewaySwitcher;
     private HtmlMailPartUrlGatewayRewriter underTest;
 
-    private String readUtf8Resource(String resource) throws IOException {
-        InputStream io = getClass().getResourceAsStream(resource);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        byte[] buffer = new byte[20480];
-        int bytes;
-        while ((bytes = io.read(buffer)) != -1) {
-            byteArrayOutputStream.write(buffer, 0, bytes);
-        }
-        return new String(byteArrayOutputStream.toByteArray(), "UTF-8");
-    }
-
     @Before
     public void setUp() throws Exception {
-        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig();
-        config.setGatewayUrl("http://gateway.marktplaats.nl/?url=[url]");
-        config.setSkipDomains(asList(
+        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig("http://gateway.marktplaats.nl/?url=[url]", asList(
                 "*.marktplaats.nl", "marktplaats.custhelp.com",
                 "images.emessaging.nl", "*.marktplaats.com",
                 "www.websitevanhetjaar.nl", "www.marktplaatsmanieren.nl"
@@ -52,6 +39,17 @@ public class BugHtmlMailtoLinkReplaced {
         assertNotNull(mailContentExpected, "Could not read resource");
 
         assertEquals(mailContentExpected, underTest.rewriteUrls(mailContentIn, gatewaySwitcher));
+    }
+
+    private String readUtf8Resource(String resource) throws IOException {
+        InputStream io = getClass().getResourceAsStream(resource);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[20480];
+        int bytes;
+        while ((bytes = io.read(buffer)) != -1) {
+            byteArrayOutputStream.write(buffer, 0, bytes);
+        }
+        return new String(byteArrayOutputStream.toByteArray(), "UTF-8");
     }
 
 }

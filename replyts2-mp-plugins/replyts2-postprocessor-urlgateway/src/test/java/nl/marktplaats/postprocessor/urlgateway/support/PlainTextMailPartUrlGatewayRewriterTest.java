@@ -17,9 +17,7 @@ public class PlainTextMailPartUrlGatewayRewriterTest {
 
     @Before
     public void setUp() throws Exception {
-        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig();
-        config.setGatewayUrl("http://gateway.marktplaats.nl/?url=[url]");
-        config.setSkipDomains(asList("*.marktplaats.nl", "test.ebay.com"));
+        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig("http://gateway.marktplaats.nl/?url=[url]", asList("*.marktplaats.nl", "test.ebay.com"));
         gatewaySwitcher = new GatewaySwitcher(config);
         underTest = new PlainTextMailPartUrlGatewayRewriter();
     }

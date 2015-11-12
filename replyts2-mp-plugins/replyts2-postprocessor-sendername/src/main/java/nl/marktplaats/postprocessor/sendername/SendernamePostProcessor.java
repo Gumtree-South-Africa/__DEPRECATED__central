@@ -6,18 +6,18 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeUtility;
 import java.io.UnsupportedEncodingException;
 
 public class SendernamePostProcessor implements PostProcessor {
 
-    public static final String FROM = "From";
+    public static final String FROM = "from";
     private static final Logger LOG = LoggerFactory.getLogger(SendernamePostProcessor.class);
     private final String[] platformDomains;
     private final SendernamePostProcessorConfig sendernamePostProcessorConfig;
@@ -32,14 +32,43 @@ public class SendernamePostProcessor implements PostProcessor {
         this.sendernamePostProcessorConfig = sendernamePostProcessorConfig;
     }
 
-    private String getHeaderName(MessageDirection messageDirection) {
-        switch (messageDirection) {
+    private boolean canHandle(Message m) {
+        return getPattern(m.getMessageDirection()) != null;
+    }
+
+    private String decodeRfc2047(String headerValue, String messageId) {
+        if (headerValue == null) {
+            return null;
+        }
+
+        try {
+            // Decode the name when RFC2047 encoding is used.
+            return MimeUtility.decodeText(headerValue);
+
+        } catch (UnsupportedEncodingException uee) {
+            // Use as is, no conversion.
+            LOG.debug(String.format(
+                    "Header '%s' for message %d has unsupported character encoding, using it raw (%s)",
+                    headerValue, messageId, uee.getMessage()));
+            return headerValue;
+        }
+    }
+
+    private String formatName(MessageDirection md, String name) {
+        String pattern = getPattern(md);
+        return pattern == null ? name : String.format(pattern, name);
+    }
+
+    private String getHeaderName(MessageDirection md) {
+        switch (md) {
             case BUYER_TO_SELLER:
-                return sendernamePostProcessorConfig.getBuyerConversationHeader();
+                // This mail is from buyer, e.g. initiator of conversation
+                return FROM;
             case SELLER_TO_BUYER:
-                return sendernamePostProcessorConfig.getSellerConversationHeader();
+                // This mail is from seller, e.g. respondent of conversation
+                return "to";
             default:
-                throw new IllegalStateException("Cannot Handle Message Direction " + messageDirection);
+                throw new IllegalStateException("Unknown message direction " + md);
         }
     }
 
@@ -72,17 +101,14 @@ public class SendernamePostProcessor implements PostProcessor {
                 return;
             }
 
-            String currentName = message.getHeaders().get(getHeaderName(message.getMessageDirection()));
+            MutableMail outboundMail = messageProcessingContext.getOutgoingMail();
 
-            if (StringUtils.isBlank(currentName)) {
-                currentName = (sendernamePostProcessorConfig.isFallbackToConversationId()) ? String.valueOf(conversation.getId()) : "";
-            }
+            String currentName = trimToNull(outboundMail.getUniqueHeader(getHeaderName(message.getMessageDirection())));
+            String decodedCurrentName = trimToNull(decodeRfc2047(currentName, message.getId()));
 
-            String formattedName = String.format(pattern, currentName);
+            String formattedName = String.format(pattern, decodedCurrentName);
 
             try {
-                MutableMail outboundMail = messageProcessingContext.getOutgoingMail();
-
                 String originalFrom = outboundMail.getFrom();
                 String newFrom = (new InternetAddress(originalFrom, formattedName)).toString();
                 outboundMail.removeHeader(FROM);
@@ -99,4 +125,10 @@ public class SendernamePostProcessor implements PostProcessor {
             LOG.debug("no patten defined for direction {}", messageDirection);
         }
     }
+
+    private String trimToNull(String s) {
+        return (s == null || s.trim().isEmpty()) ? null : s.trim();
+    }
+
+
 }

@@ -57,7 +57,7 @@ public class UrlGatewayPostProcessor implements PostProcessor {
         // Find mutable parts and change the URLs
         for (TypedContent<String> typedContent : typedContents) {
             if (typedContent.isMutable()) {
-                MediaType mediaType = outboundMail.getMainContentType();
+                MediaType mediaType = typedContent.getMediaType();
 
                 UrlGatewayRewriter urlGatewayRewriter = MediaTypeHelper.isHtmlCompatibleType(mediaType)
                         ? new HtmlMailPartUrlGatewayRewriter()
