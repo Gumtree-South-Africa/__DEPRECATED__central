@@ -46,12 +46,27 @@ public class BankAccountFilter implements Filter {
         this.mails = mails;
     }
 
-    private List<String> condenseWhitespaces(List<String> texts) {
-        List<String> result = new ArrayList<String>(texts.size());
-        for (String text : texts) {
-            result.add(SIMPLE_WHITE_SPACE_PATTERN.matcher(text).replaceAll(" "));
+    @Override
+    public List<FilterFeedback> filter(MessageProcessingContext context) {
+        Mail mail = context.getMail();
+        Message message = context.getMessage();
+        Conversation conv = context.getConversation();
+
+        try {
+            List<String> texts = extractMailTexts(mail);
+            List<String> condensedTexts = condenseWhitespaces(texts);
+            List<BankAccountMatch> allMatches = finder.findBankAccountNumberMatches(condensedTexts, conv.getAdId());
+            makeSureOnly1HighestMatchGivesAScore(allMatches);
+            return convertToMatches(allMatches, message, conv, mail);
+
+        } catch (Exception e) {
+            LOG.error("Was unable to detect bank account number in msg " + message.getId(), e);
+            return Collections.emptyList();
+
+        } catch (Throwable e) {
+            LOG.error("Could not process message with id " + message.getId(), e);
+            return Collections.emptyList();
         }
-        return result;
     }
 
     private List<FilterFeedback> convertToMatches(
@@ -107,53 +122,8 @@ public class BankAccountFilter implements Filter {
         return result;
     }
 
-    private List<String> extractMailTexts(Mail mail) {
-        List<String> texts = new ArrayList<String>(3);
-
-        String subject = mail.getSubject();
-        if (subject != null) texts.add(subject);
-
-        List<TypedContent<String>> textParts = mail.getTextParts(false);
-        for (TypedContent<String> part : textParts) {
-            if (MediaTypeHelper.isHtmlCompatibleType(part.getMediaType())) {
-                // Render the HTML
-                // long startRender = System.currentTimeMillis();
-                Source source = new Source(part.getContent());
-                source.setLogger(null);
-                texts.add(source.getRenderer().toString());
-                // System.out.println("Jericho render took " + (System.currentTimeMillis() - startRender));
-            } else if (MediaTypeHelper.isPlainTextCompatible(part.getMediaType())) {
-                // Plain text, copy as is.
-                String plainTextContent = part.getContent();
-                if (plainTextContent != null) texts.add(plainTextContent);
-
-            }
-            // else: skip unknown parts
-        }
-        return texts;
-    }
-
-    @Override
-    public List<FilterFeedback> filter(MessageProcessingContext context) {
-        Mail mail = context.getMail();
-        Message message = context.getMessage();
-        Conversation conv = context.getConversation();
-
-        try {
-            List<String> texts = extractMailTexts(mail);
-            List<String> condensedTexts = condenseWhitespaces(texts);
-            List<BankAccountMatch> allMatches = finder.findBankAccountNumberMatches(condensedTexts, conv.getAdId());
-            makeSureOnly1HighestMatchGivesAScore(allMatches);
-            return convertToMatches(allMatches, message, conv, mail);
-
-        } catch (Exception e) {
-            LOG.error("Was unable to detect bank account number in msg " + message.getId(), e);
-            return Collections.emptyList();
-
-        } catch (Throwable e) {
-            LOG.error("Could not process message with id " + message.getId(), e);
-            return Collections.emptyList();
-        }
+    private boolean isFirstMailInConversation(Mail mail) {
+        return mail.containsHeader(Mail.ADID_HEADER);
     }
 
     private MailAndMessageInConversation findFirstWithBan(String ban, Mail currentMail, Message currentMessage, Conversation conv, List<Message> precedingMessages) throws Exception {
@@ -169,57 +139,6 @@ public class BankAccountFilter implements Filter {
         }
         // Not found, then the match must be in the current message.
         return new MailAndMessageInConversation(currentMail, currentMessage, precedingMessages.size());
-    }
-
-    private String getAnonSender(Message message, Conversation conv) {
-        try {
-            MailAddress fromUsr = mailCloakingService.createdCloakedMailAddress(
-                    message.getMessageDirection().getFromRole(), conv);
-            return fromUsr.getAddress();
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    private String getIpFromMail(Mail mail) {
-        String ip = BankAccountFilterUtil.coalesce(
-                trimToNull(mail.getCustomHeaders().get("FROM-IP")),
-                trimToNull(mail.getUniqueHeader("X-Originating-IP")),
-                trimToNull(mail.getUniqueHeader("X-SourceIP")),
-                trimToNull(mail.getUniqueHeader("X-AOL-IP")));
-        return StringUtils.strip(ip, "[]");
-    }
-
-    private String getReceiverFromConversation(Message message, Conversation conv) {
-        return (message.getMessageDirection() == MessageDirection.BUYER_TO_SELLER) ? conv.getSellerId() : conv.getBuyerId();
-    }
-
-    private String getSenderFromConversation(Message message, Conversation conv) {
-        return (message.getMessageDirection() == MessageDirection.BUYER_TO_SELLER) ? conv.getBuyerId() : conv.getSellerId();
-    }
-
-    private boolean isFirstMailInConversation(Mail mail) {
-        return mail.containsHeader(Mail.ADID_HEADER);
-    }
-
-    private Mail loadMail(Message msg) throws ParsingException {
-        byte[] mailAsBytes = mailRepository.readInboundMail(msg.getId());
-        return mails.readMail(mailAsBytes);
-    }
-
-    private void makeSureOnly1HighestMatchGivesAScore(List<BankAccountMatch> matches) {
-        int highestScore = 0;
-        for (BankAccountMatch match : matches) {
-            highestScore = Math.max(highestScore, match.getScore());
-        }
-        boolean highestScoreSeen = false;
-        for (int i = 0, matchesSize = matches.size(); i < matchesSize; i++) {
-            BankAccountMatch match = matches.get(i);
-            if (match.getScore() < highestScore || highestScoreSeen) {
-                matches.set(i, match.withZeroScore());
-            }
-            highestScoreSeen = highestScoreSeen || (match.getScore() == highestScore);
-        }
     }
 
     private String toDescription(Conversation conv, BankAccountMatch match, Mail firstMailWithAccount, Message firstMessageWithAccount, int mailMatchCount) {
@@ -246,6 +165,87 @@ public class BankAccountFilter implements Filter {
                 String.valueOf(conversationId),
                 String.valueOf(mailMatchCount)
         ), "|");
+    }
+
+    private String getAnonSender(Message message, Conversation conv) {
+        try {
+            MailAddress fromUsr = mailCloakingService.createdCloakedMailAddress(
+                    message.getMessageDirection().getFromRole(), conv);
+            return fromUsr.getAddress();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private String getSenderFromConversation(Message message, Conversation conv) {
+        return (message.getMessageDirection() == MessageDirection.BUYER_TO_SELLER) ? conv.getBuyerId() : conv.getSellerId();
+    }
+
+    private String getReceiverFromConversation(Message message, Conversation conv) {
+        return (message.getMessageDirection() == MessageDirection.BUYER_TO_SELLER) ? conv.getSellerId() : conv.getBuyerId();
+    }
+
+    private String getIpFromMail(Mail mail) {
+        String ip = BankAccountFilterUtil.coalesce(
+                trimToNull(mail.getCustomHeaders().get("FROM-IP")),
+                trimToNull(mail.getUniqueHeader("X-Originating-IP")),
+                trimToNull(mail.getUniqueHeader("X-SourceIP")),
+                trimToNull(mail.getUniqueHeader("X-AOL-IP")));
+        return StringUtils.strip(ip, "[]");
+    }
+
+    private void makeSureOnly1HighestMatchGivesAScore(List<BankAccountMatch> matches) {
+        int highestScore = 0;
+        for (BankAccountMatch match : matches) {
+            highestScore = Math.max(highestScore, match.getScore());
+        }
+        boolean highestScoreSeen = false;
+        for (int i = 0, matchesSize = matches.size(); i < matchesSize; i++) {
+            BankAccountMatch match = matches.get(i);
+            if (match.getScore() < highestScore || highestScoreSeen) {
+                matches.set(i, match.withZeroScore());
+            }
+            highestScoreSeen = highestScoreSeen || (match.getScore() == highestScore);
+        }
+    }
+
+    private List<String> extractMailTexts(Mail mail) {
+        List<String> texts = new ArrayList<String>(3);
+
+        String subject = mail.getSubject();
+        if (subject != null) texts.add(subject);
+
+        List<TypedContent<String>> textParts = mail.getTextParts(false);
+        for (TypedContent<String> part : textParts) {
+            if (MediaTypeHelper.isHtmlCompatibleType(part.getMediaType())) {
+                // Render the HTML
+                // long startRender = System.currentTimeMillis();
+                Source source = new Source(part.getContent());
+                source.setLogger(null);
+                texts.add(source.getRenderer().toString());
+                // System.out.println("Jericho render took " + (System.currentTimeMillis() - startRender));
+            } else if (MediaTypeHelper.isPlainTextCompatible(part.getMediaType())) {
+                // Plain text, copy as is.
+                String plainTextContent = part.getContent();
+                if (plainTextContent != null) texts.add(plainTextContent);
+
+            }
+            // else: skip unknown parts
+        }
+        return texts;
+    }
+
+    private Mail loadMail(Message msg) throws ParsingException {
+        byte[] mailAsBytes = mailRepository.readInboundMail(msg.getId());
+        return mails.readMail(mailAsBytes);
+    }
+
+    private List<String> condenseWhitespaces(List<String> texts) {
+        List<String> result = new ArrayList<String>(texts.size());
+        for (String text : texts) {
+            result.add(SIMPLE_WHITE_SPACE_PATTERN.matcher(text).replaceAll(" "));
+        }
+        return result;
     }
 
     private static class MailAndMessageInConversation {
