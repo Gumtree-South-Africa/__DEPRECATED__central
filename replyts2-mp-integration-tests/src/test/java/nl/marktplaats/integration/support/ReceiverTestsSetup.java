@@ -1,5 +1,6 @@
 package nl.marktplaats.integration.support;
 
+import com.datastax.driver.core.Session;
 import com.ecg.de.kleinanzeigen.replyts.thresholdresultinspector.ThresholdResultInspectorFactory;
 import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
@@ -99,5 +100,9 @@ public class ReceiverTestsSetup {
     public void stopEmbeddedRts() throws IOException {
         IntegrationTestRunner.stop();
         embeddedCassandra.cleanEmbeddedCassandra();
+    }
+
+    public Session getSession() {
+        return embeddedCassandra.getSession();
     }
 }
