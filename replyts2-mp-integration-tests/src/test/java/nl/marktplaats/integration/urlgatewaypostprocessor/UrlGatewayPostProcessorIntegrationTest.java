@@ -19,8 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class UrlGatewayPostProcessorIntegrationTest extends ReceiverTestsSetup {
 
-    // DISABLED, url gateway post processor was not ported to RTS2 yet.
-    @Test(groups = { "receiverTests" }, enabled = false)
+    @Test(groups = { "receiverTests" })
     public void rtsRewritesUrlsInMessageBodyForAsq() throws Exception {
         deliverMailToRts("linking-asq.eml");
         WiserMessage message = IntegrationTestRunner.waitForMessageArrival(1, 5000L);

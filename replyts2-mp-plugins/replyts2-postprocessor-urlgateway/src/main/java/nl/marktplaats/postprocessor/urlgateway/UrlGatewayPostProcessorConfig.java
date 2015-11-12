@@ -40,7 +40,7 @@ public class UrlGatewayPostProcessorConfig {
     }
 
     @Autowired
-    public UrlGatewayPostProcessorConfig(@Value("urlgateway.gatewayUrl") String gatewayUrl,
+    public UrlGatewayPostProcessorConfig(@Value("${urlgateway.gatewayurl}") String gatewayUrl,
                                          @Qualifier("replyts-properties") Properties properties) {
         this(gatewayUrl, properties
                 .stringPropertyNames()

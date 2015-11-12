@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.marktplaats.filter.bankaccount.BankAccountFilterFactory;
 import nl.marktplaats.filter.knowngood.KnownGoodFilterFactory;
 import nl.marktplaats.filter.volume.VolumeFilterFactory;
+import nl.marktplaats.postprocessor.urlgateway.UrlGatewayPostProcessor;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.BeforeMethod;
