@@ -11,6 +11,7 @@ import nl.marktplaats.postprocessor.urlgateway.support.GatewaySwitcher;
 import nl.marktplaats.postprocessor.urlgateway.support.HtmlMailPartUrlGatewayRewriter;
 import nl.marktplaats.postprocessor.urlgateway.support.PlainTextMailPartUrlGatewayRewriter;
 import nl.marktplaats.postprocessor.urlgateway.support.UrlGatewayRewriter;
+import nl.marktplaats.replyts2.util.MediaTypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,15 +31,9 @@ public class UrlGatewayPostProcessor implements PostProcessor {
     @Autowired
     public UrlGatewayPostProcessor(@Value("${mailcloaking.domains}") String[] platformDomains,
                                    UrlGatewayPostProcessorConfig urlGatewayPostProcessorConfig) {
-
         this.platformDomains = platformDomains;
-
-
         gatewaySwitcher = new GatewaySwitcher(urlGatewayPostProcessorConfig);
-
-
     }
-
 
     @Override
     public int getOrder() {

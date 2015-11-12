@@ -52,10 +52,5 @@
             <artifactId>mockito-all</artifactId>
             <scope>test</scope>
         </dependency>
-
-
-        <!--<dependency>-->
-        <!--<groupId>com.ecg.ebayka</groupId><artifactId>replyts-sendingpreperator-sendername</artifactId><version>1.0.1.BUILD</version>-->
-        <!--</dependency>-->
     </dependencies>
 </project>
