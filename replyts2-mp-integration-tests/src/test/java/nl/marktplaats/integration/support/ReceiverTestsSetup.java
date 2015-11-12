@@ -1,5 +1,6 @@
 package nl.marktplaats.integration.support;
 
+import com.datastax.driver.core.Session;
 import com.ecg.de.kleinanzeigen.replyts.thresholdresultinspector.ThresholdResultInspectorFactory;
 import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
@@ -11,7 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.marktplaats.filter.bankaccount.BankAccountFilterFactory;
 import nl.marktplaats.filter.knowngood.KnownGoodFilterFactory;
 import nl.marktplaats.filter.volume.VolumeFilterFactory;
-import nl.marktplaats.postprocessor.urlgateway.UrlGatewayPostProcessor;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.BeforeMethod;
@@ -93,5 +93,9 @@ public class ReceiverTestsSetup {
     public void stopEmbeddedRts() throws IOException {
         IntegrationTestRunner.stop();
         embeddedCassandra.cleanEmbeddedCassandra();
+    }
+
+    public Session getSession() {
+        return embeddedCassandra.getSession();
     }
 }

@@ -10,8 +10,7 @@ import java.io.InputStreamReader;
 
 public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
 
-    // DISABLED because filter is still WIP
-    @Test(groups = { "receiverTests" }, enabled = false)
+    @Test(groups = { "receiverTests" })
     public void rtsBlocksMessagesAfterReachingVolumeThreshold() throws Exception {
         // Volume filter allows up to 10 mails per 10 minutes.
         // The 11th will exceed the threshold.
@@ -72,7 +71,7 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
     }
 
     private void deliverMailToRts(String emlName, String senderEmailAddress) throws Exception {
-        String emlDataStr = CharStreams.toString(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("volumefilter/" + emlName), "US-ASCII"));
+        String emlDataStr = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName), "US-ASCII"));
         emlDataStr = emlDataStr.replace("{{{{senderEmailAddress}}}}", senderEmailAddress);
         byte[] emlData = emlDataStr.getBytes("US-ASCII");
         IntegrationTestRunner.getMailSender().sendMail(emlData);
@@ -82,7 +81,7 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
         WiserMessage asqMessage = IntegrationTestRunner.getLastRtsSentMail();
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
-        String replyData = CharStreams.toString(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("volumefilter/" + emlName)));
+        String replyData = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName)));
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
         IntegrationTestRunner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
     }
