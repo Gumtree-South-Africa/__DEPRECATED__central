@@ -7,26 +7,24 @@
         <format>tar.gz</format>
     </formats>
 
-    <includeBaseDirectory>false</includeBaseDirectory>
-
     <fileSets>
         <fileSet>
             <directory>conf</directory>
-            <outputDirectory>replyts/conf</outputDirectory>
+            <outputDirectory>conf</outputDirectory>
         </fileSet>
         <fileSet>
             <directory>target/appassembler/bin</directory>
-            <outputDirectory>replyts/bin</outputDirectory>
+            <outputDirectory>bin</outputDirectory>
         </fileSet>
         <fileSet>
             <directory>target/appassembler/log</directory>
-            <outputDirectory>replyts/log</outputDirectory>
+            <outputDirectory>log</outputDirectory>
         </fileSet>
     </fileSets>
 
     <dependencySets>
         <dependencySet>
-            <outputDirectory>replyts/lib</outputDirectory>
+            <outputDirectory>lib</outputDirectory>
         </dependencySet>
     </dependencySets>
 </assembly>

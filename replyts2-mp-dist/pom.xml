@@ -46,7 +46,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.groupId}.${project.parent.artifactId}-${project.parent.version}</finalName>
+        <finalName>${project.groupId}.${project.parent.artifactId}_${project.parent.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
