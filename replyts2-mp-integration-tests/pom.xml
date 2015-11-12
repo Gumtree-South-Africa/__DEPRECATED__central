@@ -29,6 +29,10 @@
             <artifactId>integration-test</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.ecg.replyts</groupId>
+            <artifactId>distribution</artifactId>
+        </dependency>
+        <dependency>
             <groupId>nl.marktplaats</groupId>
             <artifactId>replyts2-filter-bankaccount</artifactId>
             <version>1.0-SNAPSHOT</version>

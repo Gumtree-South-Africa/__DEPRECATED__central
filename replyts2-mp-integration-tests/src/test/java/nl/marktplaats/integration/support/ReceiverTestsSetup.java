@@ -19,12 +19,13 @@ import java.io.IOException;
 
 public class ReceiverTestsSetup {
 
-    private static EmbeddedCassandra embeddedCassandra = new EmbeddedCassandra();
+    //TODO: get key space from properties
+    private static EmbeddedCassandra embeddedCassandra = new EmbeddedCassandra("replyts_integration_test");
 
     @BeforeGroups(groups = { "receiverTests" })
     public void startEmbeddedRts() throws Exception {
 
-        embeddedCassandra.start();
+        embeddedCassandra.start("/cassandra_schema.cql", "/cassandra_volume_filter_schema.cql");
 
         // TODO: fix confDir hack on next line, it should be picked up by IntegrationTestRunner.setConfigResourceDirectory
         System.setProperty("confDir", "/Users/evanoosten/dev/mp/replyts2/mp-replyts2/replyts2-mp-integration-tests/src/test/resources/mp-integration-test-conf");
@@ -58,21 +59,21 @@ public class ReceiverTestsSetup {
                         JsonObjects.parse("{'fraudulentBankAccounts': ['123456', '987654321', '87238935']}")));
 
 
-//        String volumeFilterConfig = "[" +
-//                "{" +
-//                "\"timeSpan\":10," +
-//                "\"timeUnit\":\"MINTUES\"," +
-//                "\"maxCount\":10," +
-//                "\"score\":50" +
-//                "}" +
-//                "]";
-//
-//        replyTsConfigClient.putConfiguration(
-//                new Configuration(
-//                        new Configuration.ConfigurationId(VolumeFilterFactory.class.getName(), "instance-0"),
-//                        PluginState.ENABLED,
-//                        1,
-//                        JsonObjects.parse(volumeFilterConfig)));
+        String volumeFilterConfig = "[" +
+                "{" +
+                "\"timeSpan\":10," +
+                "\"timeUnit\":\"MINUTES\"," +
+                "\"maxCount\":10," +
+                "\"score\":50" +
+                "}" +
+                "]";
+
+        replyTsConfigClient.putConfiguration(
+                new Configuration(
+                        new Configuration.ConfigurationId(VolumeFilterFactory.class.getName(), "instance-0"),
+                        PluginState.ENABLED,
+                        1,
+                        JsonObjects.parse(volumeFilterConfig)));
 
 
 //        String patternsAsJson = new ObjectMapper().writeValueAsString(patterns);

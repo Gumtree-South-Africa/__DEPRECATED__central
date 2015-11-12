@@ -87,6 +87,13 @@
             </dependency>
 
             <dependency>
+                <groupId>com.ecg.replyts</groupId>
+                <artifactId>distribution</artifactId>
+                <version>${replyts.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>net.htmlparser.jericho</groupId>
                 <artifactId>jericho-html</artifactId>
                 <version>3.3</version>
