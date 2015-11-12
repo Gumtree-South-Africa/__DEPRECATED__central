@@ -15,7 +15,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import net.htmlparser.jericho.Source;
-import nl.marktplaats.replyts2.util.MediaTypeHelper;
+import com.ecg.replyts.core.api.model.mail.MediaTypeHelper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

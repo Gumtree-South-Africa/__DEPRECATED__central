@@ -11,7 +11,7 @@ import nl.marktplaats.postprocessor.urlgateway.support.GatewaySwitcher;
 import nl.marktplaats.postprocessor.urlgateway.support.HtmlMailPartUrlGatewayRewriter;
 import nl.marktplaats.postprocessor.urlgateway.support.PlainTextMailPartUrlGatewayRewriter;
 import nl.marktplaats.postprocessor.urlgateway.support.UrlGatewayRewriter;
-import nl.marktplaats.replyts2.util.MediaTypeHelper;
+import com.ecg.replyts.core.api.model.mail.MediaTypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
