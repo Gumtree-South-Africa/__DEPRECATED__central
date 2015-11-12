@@ -2,7 +2,7 @@ package nl.marktplaats.postprocessor.urlgateway;
 
 import com.ecg.replyts.app.postprocessorchain.PostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.mail.MediaTypeHelper;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -11,39 +11,26 @@ import nl.marktplaats.postprocessor.urlgateway.support.GatewaySwitcher;
 import nl.marktplaats.postprocessor.urlgateway.support.HtmlMailPartUrlGatewayRewriter;
 import nl.marktplaats.postprocessor.urlgateway.support.PlainTextMailPartUrlGatewayRewriter;
 import nl.marktplaats.postprocessor.urlgateway.support.UrlGatewayRewriter;
-import com.ecg.replyts.core.api.model.mail.MediaTypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
 public class UrlGatewayPostProcessor implements PostProcessor {
 
-    public static final String FROM = "From";
     private static final Logger LOG = LoggerFactory.getLogger(UrlGatewayPostProcessor.class);
-    private final String[] platformDomains;
 
     private GatewaySwitcher gatewaySwitcher;
 
-
     @Autowired
-    public UrlGatewayPostProcessor(@Value("${mailcloaking.domains}") String[] platformDomains,
-                                   UrlGatewayPostProcessorConfig urlGatewayPostProcessorConfig) {
-        this.platformDomains = platformDomains;
+    public UrlGatewayPostProcessor(UrlGatewayPostProcessorConfig urlGatewayPostProcessorConfig) {
         gatewaySwitcher = new GatewaySwitcher(urlGatewayPostProcessorConfig);
-    }
-
-    @Override
-    public int getOrder() {
-        return 300;
     }
 
     @Override
     public void postProcess(MessageProcessingContext messageProcessingContext) {
         Message message = messageProcessingContext.getMessage();
-        MessageDirection messageDirection = message.getMessageDirection();
 
         MutableMail outboundMail = messageProcessingContext.getOutgoingMail();
 
@@ -70,5 +57,10 @@ public class UrlGatewayPostProcessor implements PostProcessor {
                 typedContent.overrideContent(newContent);
             }
         }
+    }
+
+    @Override
+    public int getOrder() {
+        return 300;
     }
 }

@@ -4,7 +4,6 @@ import nl.marktplaats.postprocessor.urlgateway.UrlGatewayPostProcessorConfig;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Properties;
 
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.*;
@@ -13,7 +12,6 @@ import static junit.framework.Assert.*;
  * @author Erik van Oosten
  */
 public class GatewaySwitcherTest {
-
 
     @Test
     public void testRedirectUrlToGateway() throws Exception {

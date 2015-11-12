@@ -20,8 +20,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class UrlGatewayPostProcessorTest {
 
-    private static final String DUMMY_FROM_ADDRESS = "b.anon@mail.gumtree.com";
-
     private static final String PLAIN_TEXT_CONTENT =
             "Message with a link to http://www.google.nl";
     private static final String PROCESSED_PLAIN_TEXT_CONTENT =
@@ -54,8 +52,7 @@ public class UrlGatewayPostProcessorTest {
 
         initMocks(this);
 
-        processor = new UrlGatewayPostProcessor(new String[0], config);
-
+        processor = new UrlGatewayPostProcessor(config);
 
         when(messageProcessingContextMock.getConversation()).thenReturn(conversationMock);
         when(messageProcessingContextMock.getMessage()).thenReturn(messageMock);

@@ -35,17 +35,17 @@ public class GatewaySwitcher {
     /**
      * URL to the gateway.
      */
-    private String gatewayUrl;
+    private final String gatewayUrl;
 
     /**
      * List of domains that should be skipped (in lowercase).
      */
-    private List<String> skipDomains;
+    private final List<String> skipDomains;
 
     /**
      * List of parent domains, of which sub-domains should be skipped (in lowercase).
      */
-    private List<String> skipParentDomains;
+    private final List<String> skipParentDomains;
 
     /**
      * Builds optimized configuration from config pojo.
@@ -57,8 +57,8 @@ public class GatewaySwitcher {
         String configUrl = config.getGatewayUrl();
         gatewayUrl = configUrl.contains("[url]") ? configUrl : configUrl + "[url]";
 
-        skipDomains = new ArrayList<String>();
-        skipParentDomains = new ArrayList<String>();
+        skipDomains = new ArrayList<>();
+        skipParentDomains = new ArrayList<>();
 
         // Add the configured skip domains.
         List<String> configSkipDomains = config.getSkipDomains();
@@ -80,20 +80,51 @@ public class GatewaySwitcher {
                         "   * gateway URL: {}\n" +
                         "   * skipDomains: {}\n" +
                         "   * skipParentDomains: {}",
-                new Object[]{gatewayUrl, skipDomains, skipParentDomains}
-        );
+                gatewayUrl, skipDomains, skipParentDomains);
     }
 
     /**
-     * @param url a URL (not null, must be valid as defined by {@link URL})
-     * @return the domain, converted to lowercase
+     * Rewrite a URL to the gateway (when appropriate).
+     *
+     * @param url a valid URL (not null)
+     * @return the rewritten URL, or <code>url</code> when the no rewrite was needed,
+     * or null when the URL should not be included at all
      * @throws IllegalArgumentException when the URL is not valid
      */
-    private static String extractDomain(String url) {
-        try {
-            return new URL(url).getHost().toLowerCase();
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Not a valid URL " + url);
+    public String rewrite(String url) {
+        String urlLower = url.toLowerCase();
+
+        if (urlLower.startsWith("mailto:") || urlLower.startsWith("tel:") || urlLower.startsWith("wlmailhtml:") || urlLower.startsWith("skype:")) {
+            return url;
+        }
+        if (urlLower.startsWith("javascript:") || urlLower.startsWith("about:")) {
+            return null;
+        }
+
+        return rewrite(url, extractDomain(normalizeUrlSchema(url)));
+    }
+
+    /**
+     * Rewrite a URL to the gateway (when appropriate).
+     *
+     * @param url    a valid URL (not null)
+     * @param domain the domain of the given url in lowercase (not null)
+     * @return the rewritten URL, or <code>url</code> when the no rewrite was needed for the given domain
+     */
+    public String rewrite(String url, String domain) {
+        if (url.toLowerCase().startsWith("mailto:")) {
+            return url;
+        }
+
+        if (redirectDomainToGateway(domain)) {
+            try {
+                url = normalizeUrlSchema(url);
+                return gatewayUrl.replace("[url]", URLEncoder.encode(url, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                throw new IllegalStateException("UTF-8 not supported on this JVM");
+            }
+        } else {
+            return url;
         }
     }
 
@@ -115,6 +146,20 @@ public class GatewaySwitcher {
         } else {
             return "http://" + url;
         }
+    }
+
+    /**
+     * Should the URL be redirected?
+     *
+     * @param url a valid URL
+     * @return true when the given URL contains a domain that should be redirected, false otherwise
+     * @throws IllegalArgumentException when the URL is not valid
+     */
+    public boolean redirectUrlToGateway(String url) {
+        // Skip exact matches
+        String domain = extractDomain(url);
+
+        return redirectDomainToGateway(domain);
     }
 
     /**
@@ -145,62 +190,16 @@ public class GatewaySwitcher {
     }
 
     /**
-     * Should the URL be redirected?
-     *
-     * @param url a valid URL
-     * @return true when the given URL contains a domain that should be redirected, false otherwise
+     * @param url a URL (not null, must be valid as defined by {@link URL})
+     * @return the domain, converted to lowercase
      * @throws IllegalArgumentException when the URL is not valid
      */
-    public boolean redirectUrlToGateway(String url) {
-        // Skip exact matches
-        String domain = extractDomain(url);
-
-        return redirectDomainToGateway(domain);
-    }
-
-    /**
-     * Rewrite a URL to the gateway (when appropriate).
-     *
-     * @param url    a valid URL (not null)
-     * @param domain the domain of the given url in lowercase (not null)
-     * @return the rewritten URL, or <code>url</code> when the no rewrite was needed for the given domain
-     */
-    public String rewrite(String url, String domain) {
-        if (url.toLowerCase().startsWith("mailto:")) {
-            return url;
+    private static String extractDomain(String url) {
+        try {
+            return new URL(url).getHost().toLowerCase();
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Not a valid URL " + url);
         }
-
-        if (redirectDomainToGateway(domain)) {
-            try {
-                url = normalizeUrlSchema(url);
-                return gatewayUrl.replace("[url]", URLEncoder.encode(url, "UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                throw new IllegalStateException("UTF-8 not supported on this JVM");
-            }
-        } else {
-            return url;
-        }
-    }
-
-    /**
-     * Rewrite a URL to the gateway (when appropriate).
-     *
-     * @param url a valid URL (not null)
-     * @return the rewritten URL, or <code>url</code> when the no rewrite was needed,
-     * or null when the URL should not included at all
-     * @throws IllegalArgumentException when the URL is not valid
-     */
-    public String rewrite(String url) {
-        String urlLower = url.toLowerCase();
-
-        if (urlLower.startsWith("mailto:") || urlLower.startsWith("tel:") || urlLower.startsWith("wlmailhtml:") || urlLower.startsWith("skype:")) {
-            return url;
-        }
-        if (urlLower.startsWith("javascript:") || urlLower.startsWith("about:")) {
-            return null;
-        }
-
-        return rewrite(url, extractDomain(normalizeUrlSchema(url)));
     }
 
 }

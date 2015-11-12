@@ -46,7 +46,7 @@ public class UrlGatewayPostProcessorConfig {
                 .stringPropertyNames()
                 .stream()
                 .filter(key -> key.startsWith("urlgateway.skipdomains."))
-                .map(key -> properties.getProperty(key))
+                .map(properties::getProperty)
                 .collect(Collectors.toList()));
     }
 

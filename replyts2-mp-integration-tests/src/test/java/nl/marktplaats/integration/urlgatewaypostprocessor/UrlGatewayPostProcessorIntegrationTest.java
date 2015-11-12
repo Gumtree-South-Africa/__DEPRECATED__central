@@ -1,18 +1,13 @@
 package nl.marktplaats.integration.urlgatewaypostprocessor;
 
-import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.CharStreams;
 import nl.marktplaats.integration.support.ReceiverTestsSetup;
 import org.subethamail.wiser.WiserMessage;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.mail.Multipart;
 import javax.mail.internet.MimeBodyPart;
-
-import java.io.InputStreamReader;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -95,14 +90,5 @@ public class UrlGatewayPostProcessorIntegrationTest extends ReceiverTestsSetup {
     private void deliverMailToRts(String emlName) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
         IntegrationTestRunner.getMailSender().sendMail(emlData);
-    }
-
-    private void deliverReplyMailToRts(String emlName) throws Exception {
-        WiserMessage asqMessage = IntegrationTestRunner.getLastRtsSentMail();
-        String anonymousAsqSender = asqMessage.getEnvelopeSender();
-
-        String replyData = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName)));
-        replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
-        IntegrationTestRunner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
     }
 }

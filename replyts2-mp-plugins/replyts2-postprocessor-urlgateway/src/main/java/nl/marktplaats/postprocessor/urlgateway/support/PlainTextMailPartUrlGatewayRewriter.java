@@ -86,6 +86,28 @@ public class PlainTextMailPartUrlGatewayRewriter implements UrlGatewayRewriter {
                     URL_PATH_AND_QUERY_STRING,
             Pattern.CASE_INSENSITIVE);
 
+    /** {@inheritDoc} */
+    @Override
+    public String rewriteUrls(String content, GatewaySwitcher gatewaySwitcher) {
+        if (content == null || content.isEmpty()) {
+            return content;
+        }
+
+        return replaceUrls(content, URL_PATTERN, gatewaySwitcher, false);
+    }
+
+    /**
+     * Behaves like {@link #rewriteUrls(String, GatewaySwitcher)}, however all links are embedded in a HTML
+     * a element.
+     */
+    public String rewriteUrlsForHtml(String content, GatewaySwitcher gatewaySwitcher) {
+        if (content == null || content.isEmpty()) {
+            return content;
+        }
+
+        return replaceUrls(content, URL_PATTERN, gatewaySwitcher, true);
+    }
+
     private String replaceUrls(String content, Pattern pattern, GatewaySwitcher gatewaySwitcher, boolean wrapInHtmlA) {
         Matcher matcher = pattern.matcher(content);
         StringBuffer out = new StringBuffer(content.length() + 256);
@@ -106,30 +128,6 @@ public class PlainTextMailPartUrlGatewayRewriter implements UrlGatewayRewriter {
         }
         matcher.appendTail(out);
         return out.toString();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String rewriteUrls(String content, GatewaySwitcher gatewaySwitcher) {
-        if (content == null || content.isEmpty()) {
-            return content;
-        }
-
-        return replaceUrls(content, URL_PATTERN, gatewaySwitcher, false);
-    }
-
-    /**
-     * Behaves like {@link #rewriteUrls(String, GatewaySwitcher)}, however all links are embedded in a HTML
-     * a element.
-     */
-    public String rewriteUrlsForHtml(String content, GatewaySwitcher gatewaySwitcher) {
-        if (content == null || content.isEmpty()) {
-            return content;
-        }
-
-        return replaceUrls(content, URL_PATTERN, gatewaySwitcher, true);
     }
 
 }

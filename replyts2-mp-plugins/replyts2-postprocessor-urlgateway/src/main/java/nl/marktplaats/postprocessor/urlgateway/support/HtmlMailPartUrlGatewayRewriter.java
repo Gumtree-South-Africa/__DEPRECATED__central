@@ -17,30 +17,7 @@ public class HtmlMailPartUrlGatewayRewriter implements UrlGatewayRewriter {
 
     private static final Logger LOG = LoggerFactory.getLogger(HtmlMailPartUrlGatewayRewriter.class);
 
-    private Map<String, String> asMap(Attributes anchorAttributes) {
-        return anchorAttributes.populateMap(
-                new LinkedHashMap<String, String>(anchorAttributes.getCount() * 2, 1.0F), true);
-    }
-
-    private String convertToHtml(String textToInsert) {
-        return textToInsert.replace("\n", "<br>");
-    }
-
-    private void processText(
-            Source source,
-            OutputDocument target,
-            PlainTextMailPartUrlGatewayRewriter rewriter,
-            GatewaySwitcher gatewaySwitcher,
-            int begin, int end
-    ) {
-        String text = source.subSequence(begin, end).toString();
-        String processed = rewriter.rewriteUrlsForHtml(text, gatewaySwitcher);
-        target.replace(begin, end, processed);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String rewriteUrls(String content, GatewaySwitcher gatewaySwitcher) {
         LOG.debug("Inserting safety text in html part.");
@@ -109,6 +86,23 @@ public class HtmlMailPartUrlGatewayRewriter implements UrlGatewayRewriter {
         }
 
         return target.toString();
+    }
+
+    private void processText(
+            Source source,
+            OutputDocument target,
+            PlainTextMailPartUrlGatewayRewriter rewriter,
+            GatewaySwitcher gatewaySwitcher,
+            int begin, int end
+    ) {
+        String text = source.subSequence(begin, end).toString();
+        String processed = rewriter.rewriteUrlsForHtml(text, gatewaySwitcher);
+        target.replace(begin, end, processed);
+    }
+
+    private Map<String, String> asMap(Attributes anchorAttributes) {
+        return anchorAttributes.populateMap(
+                new LinkedHashMap<>(anchorAttributes.getCount() * 2, 1.0F), true);
     }
 
 }
