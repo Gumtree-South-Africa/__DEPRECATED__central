@@ -11,25 +11,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.marktplaats.filter.bankaccount.BankAccountFilterFactory;
 import nl.marktplaats.filter.knowngood.KnownGoodFilterFactory;
 import nl.marktplaats.filter.volume.VolumeFilterFactory;
-import nl.marktplaats.postprocessor.urlgateway.UrlGatewayPostProcessor;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.BeforeMethod;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class ReceiverTestsSetup {
 
-    //TODO: get key space from properties
-    private static EmbeddedCassandra embeddedCassandra = new EmbeddedCassandra("replyts_integration_test");
+    private static EmbeddedCassandra embeddedCassandra;
 
     @BeforeGroups(groups = { "receiverTests" })
     public void startEmbeddedRts() throws Exception {
 
+        // WARNING!
+        // This MUST happen first!
+        // Do not put anything that creates a Logger before this line.
+        // Don't you even dear to initialize fields with their definition!
+        System.setProperty("confDir", configurationDirectory());
+
+        //TODO: get key space from properties
+        embeddedCassandra = new EmbeddedCassandra("replyts_integration_test");
         embeddedCassandra.start("/cassandra_schema.cql", "/cassandra_volume_filter_schema.cql");
 
-        // TODO: fix confDir hack on next line, it should be picked up by IntegrationTestRunner.setConfigResourceDirectory
-        System.setProperty("confDir", "/Users/evanoosten/dev/mp/replyts2/mp-replyts2/replyts2-mp-integration-tests/src/test/resources/mp-integration-test-conf");
         IntegrationTestRunner.setConfigResourceDirectory("/mp-integration-test-conf");
         IntegrationTestRunner.getReplytsRunner();
 
@@ -59,29 +66,28 @@ public class ReceiverTestsSetup {
                         1,
                         JsonObjects.parse("{'fraudulentBankAccounts': ['123456', '987654321', '87238935']}")));
 
-
-        String volumeFilterConfig = "[" +
-                "{" +
-                "\"timeSpan\":10," +
-                "\"timeUnit\":\"MINUTES\"," +
-                "\"maxCount\":10," +
-                "\"score\":50" +
-                "}" +
-                "]";
-
+        // Configure volume filter
         replyTsConfigClient.putConfiguration(
                 new Configuration(
                         new Configuration.ConfigurationId(VolumeFilterFactory.class.getName(), "instance-0"),
                         PluginState.ENABLED,
                         1,
-                        JsonObjects.parse(volumeFilterConfig)));
+                        JsonObjects.parse("[{'timeSpan': 10,'timeUnit': 'MINUTES','maxCount': 10,'score': 50}]")));
+    }
 
-
-//        String patternsAsJson = new ObjectMapper().writeValueAsString(patterns);
-//        JsonNode jsonNode = new ObjectMapper().readValue("{\"anonymizeMailPatterns\":" + patternsAsJson + "}", JsonNode.class);
-//
-//        ReplyTsConfigClient replyTsConfigClient = new ReplyTsConfigClient(IntegrationTestRunner.getReplytsRunner().getReplytsHttpPort());
-//        replyTsConfigClient.putConfiguration(new Configuration(new Configuration.ConfigurationId(AnonymizeEmailPostProcessorFactory.class.getName(), "instance-0"), PluginState.ENABLED, 1, jsonNode));
+    private String configurationDirectory() {
+        // Current working directory is either the project root, or the replyts2-mp-integration-tests module root.
+        // Find the configuration directory from both roots.
+        List<String> configurationDirectoryAsModulePaths = Arrays.asList(
+                "src/test/resources/mp-integration-test-conf",
+                "replyts2-mp-integration-tests/src/test/resources/mp-integration-test-conf"
+        );
+        
+        return configurationDirectoryAsModulePaths
+                .stream()
+                .filter(d -> new File(d).isDirectory())
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Was not able to find configuration directory"));
     }
 
     @BeforeMethod(groups = { "receiverTests" })
