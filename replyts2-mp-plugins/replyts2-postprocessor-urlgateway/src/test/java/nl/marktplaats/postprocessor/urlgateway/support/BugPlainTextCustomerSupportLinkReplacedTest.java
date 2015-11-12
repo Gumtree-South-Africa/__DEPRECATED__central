@@ -10,7 +10,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Erik van Oosten
  */
-public class BugPlainTextCustomerSupportLinkReplaced {
+public class BugPlainTextCustomerSupportLinkReplacedTest {
 
     private static final String MAIL_CONTENT =
             "\t\t\t\t\tU heeft een reactie van Piet Koper Marktplaats \n" +

@@ -15,7 +15,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Erik van Oosten
  */
-public class BugHtmlMailtoLinkReplaced {
+public class BugHtmlMailtoLinkReplacedTest {
 
     private GatewaySwitcher gatewaySwitcher;
     private HtmlMailPartUrlGatewayRewriter underTest;
