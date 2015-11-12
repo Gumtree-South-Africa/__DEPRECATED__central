@@ -3,10 +3,13 @@ package nl.marktplaats.integration.volumefilter;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.CharStreams;
 import nl.marktplaats.integration.support.ReceiverTestsSetup;
+import org.joda.time.DateTime;
 import org.subethamail.wiser.WiserMessage;
 import org.testng.annotations.Test;
 
 import java.io.InputStreamReader;
+import java.util.Date;
+
 
 public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
 
@@ -22,29 +25,15 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
         IntegrationTestRunner.assertMessageDoesNotArrive(11, 1000L);
     }
 
-    // DISABLED because filter is still WIP
-    @Test(groups = { "receiverTests" }, enabled = false)
+    @Test(groups = { "receiverTests" })
     public void rtsDoesNotBlockMessagesAfterTimeoutHasPassed() throws Exception {
         String senderEmailAddress = "persistent-volume-seller-123@hotmail.com";
 
-        // Volume filter allows up to 10 mails per 10 minutes.
-        // The 11th will exceed the threshold.
         for (int i = 0; i < 11; i++) {
-            deliverMailToRts("plain-asq.eml", senderEmailAddress);
+            Date date = new DateTime().minusMinutes(11).minusSeconds(i).toDate();
+            getSession().execute("INSERT INTO volume_events(user_id, received_time) VALUES('persistent-volume-seller-123@hotmail.com', maxTimeuuid(?))", date);
         }
 
-        IntegrationTestRunner.waitForMessageArrival(10, 30000L);
-        IntegrationTestRunner.assertMessageDoesNotArrive(11, 1000L);
-        IntegrationTestRunner.clearMessages();
-
-        // Instead of waiting for 10 minutes, the volume recordings are given a different date.
-        // TODO how to set value correctly here (probably just override config?)
-        //VolumeRepository volumeRepository = new VolumeRepository();
-        //volumeRepository.redateVolumeRecordings(
-        //        senderEmailAddress, -TimeUnit.MINUTES.toMillis(15));
-
-        // Volume filter AGAIN allows up to 10 mails per 10 minutes.
-        // The 11th will exceed the threshold.
         for (int i = 0; i < 11; i++) {
             deliverMailToRts("plain-asq.eml", senderEmailAddress);
         }
@@ -53,8 +42,7 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
         IntegrationTestRunner.assertMessageDoesNotArrive(11, 1000L);
     }
 
-    // DISABLED because filter is still WIP
-    @Test(groups = { "receiverTests" }, enabled = false)
+    @Test(groups = { "receiverTests" })
     public void rtsDoesNotBlocksReplies() throws Exception {
         deliverMailToRts("plain-asq.eml", "volume-seller-88@gmail.com");
         IntegrationTestRunner.waitForMessageArrival(1, 1000L);
