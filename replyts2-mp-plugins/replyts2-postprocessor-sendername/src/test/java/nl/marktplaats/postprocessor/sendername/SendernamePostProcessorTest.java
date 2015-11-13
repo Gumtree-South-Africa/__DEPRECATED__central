@@ -3,6 +3,7 @@ package nl.marktplaats.postprocessor.sendername;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.junit.Before;
@@ -11,6 +12,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.mail.internet.InternetAddress;
+
+import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 
 import static org.mockito.Mockito.*;
 
@@ -27,17 +31,15 @@ public class SendernamePostProcessorTest {
 
     private SendernamePostProcessorConfig sendernamePostProcessorConfig;
     private SendernamePostProcessor sendernamePostProcessor;
-    private String[] domains = new String[0];
 
     private String mailOriginalFrom = "test@email.com";
     private String name = "someName";
     private String conversationId = "someConversationId";
 
-
-    private String dummyBuyerNamePrefix = "dummyBuyerNamePrefix";
-    private String dummySellerNamePrefix = "dummySellerNamePrefix";
-    private String dummyBuyerNamePattern = dummyBuyerNamePrefix + "%s";
-    private String dummySellerNamePattern = dummySellerNamePrefix + "%s";
+    private String simpleBuyerNamePrefix = "simpleBuyerNamePrefix";
+    private String simpleSellerNamePrefix = "simpleSellerNamePrefix";
+    private String simpleBuyerNamePattern = simpleBuyerNamePrefix + "%s";
+    private String simpleSellerNamePattern = simpleSellerNamePrefix + "%s";
 
     @Before
     public void setUp() {
@@ -51,39 +53,25 @@ public class SendernamePostProcessorTest {
     }
 
     @Test
-    public void testPostProcessGivenMessageBuyerToSellerAndPatternAndHeaderWhenThenFormatsNameAccordingToBuyerPatternAndSetIntoOutboundEmailFromHeader() throws Exception {
+    public void testPostProcessGivenMessageBuyerToSellerAndPatternAndCustomValueThenFormatsNameAccordingToBuyerPatternAndSetIntoOutboundEmailFromHeader() throws Exception {
         setUpCompleteSendernamePostProcessorConfig();
-        when(mailMock.getUniqueHeader("from")).thenReturn(name);
-
-
         when(messageMock.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
+        when(conversationMock.getCustomValues()).thenReturn(Collections.singletonMap("from", name));
 
         sendernamePostProcessor.postProcess(messageProcessingContextMock);
 
-        verify(mailMock, times(1)).removeHeader(SendernamePostProcessor.FROM);
-        verify(mailMock, times(1)).addHeader(SendernamePostProcessor.FROM, new InternetAddress(mailOriginalFrom, dummyBuyerNamePrefix + name).toString());
+        verifyFromReplacedWith(new InternetAddress(mailOriginalFrom, simpleBuyerNamePrefix + name).toString());
     }
 
     @Test
-    public void testPostProcessGivenMessageBuyerToSellerAndPatternWhenNoConversationThenNoChangesOnEmail() {
+    public void testPostProcessGivenMessageBuyerToSellerAndPatternAndNoCustomValueThenNoChangesOnEmail() throws Exception {
         setUpCompleteSendernamePostProcessorConfig();
-
         when(messageMock.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(messageProcessingContextMock.getConversation()).thenReturn(null);
+        when(conversationMock.getCustomValues()).thenReturn(Collections.emptyMap());
 
         sendernamePostProcessor.postProcess(messageProcessingContextMock);
 
-        verifyNoMoreInteractions(mailMock);
-    }
-
-    @Test
-    public void testPostProcessGivenMessageBuyerToSellerWhenNoPatternDefinedThenNoChangesOnEmail() {
-        setUpPatternlessSendernamePostProcessorConfig();
-        when(messageMock.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-
-        sendernamePostProcessor.postProcess(messageProcessingContextMock);
-
-        verifyNoMoreInteractions(mailMock);
+        verifyFromReplacedWith(new InternetAddress(mailOriginalFrom, simpleBuyerNamePrefix).toString());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -96,49 +84,35 @@ public class SendernamePostProcessorTest {
     }
 
     @Test
-    public void testPostProcessGivenMessageSellerToBuyerAndPatternAndHeaderWhenThenFormatsNameAccordingToSellerPatternAndSetIntoOutboundEmailFromHeader() throws Exception {
+    public void testPostProcessGivenMessageSellerToBuyerAndPatternAndCustomValueThenFormatsNameAccordingToSellerPatternAndSetIntoOutboundEmailFromHeader() throws Exception {
         setUpCompleteSendernamePostProcessorConfig();
-        when(mailMock.getUniqueHeader("to")).thenReturn(name);
-
-
         when(messageMock.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
+        when(conversationMock.getCustomValues()).thenReturn(Collections.singletonMap("to", name));
 
         sendernamePostProcessor.postProcess(messageProcessingContextMock);
 
-        verify(mailMock, times(1)).removeHeader(SendernamePostProcessor.FROM);
-        verify(mailMock, times(1)).addHeader(SendernamePostProcessor.FROM, new InternetAddress(mailOriginalFrom, dummySellerNamePrefix + name).toString());
+        verifyFromReplacedWith(new InternetAddress(mailOriginalFrom, simpleSellerNamePrefix + name).toString());
     }
 
     @Test
-    public void testPostProcessGivenMessageSellerToBuyerAndPatternWhenNoConversationThenNoChangesOnEmail() {
+    public void testPostProcessGivenMessageSellerToBuyerAndPatternAndNoCustomValueThenNoChangesOnEmail() throws Exception {
         setUpCompleteSendernamePostProcessorConfig();
-
         when(messageMock.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
-        when(messageProcessingContextMock.getConversation()).thenReturn(null);
+        when(conversationMock.getCustomValues()).thenReturn(Collections.emptyMap());
 
         sendernamePostProcessor.postProcess(messageProcessingContextMock);
 
-        verifyNoMoreInteractions(mailMock);
+        verifyFromReplacedWith(new InternetAddress(mailOriginalFrom, simpleSellerNamePrefix).toString());
     }
 
-    @Test
-    public void testPostProcessGivenMessageSellerToBuyerWhenNoPatternDefinedThenNoChangesOnEmail() {
-        setUpPatternlessSendernamePostProcessorConfig();
-        when(messageMock.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
-
-        sendernamePostProcessor.postProcess(messageProcessingContextMock);
-
-        verifyNoMoreInteractions(mailMock);
+    private void verifyFromReplacedWith(String value) throws UnsupportedEncodingException {
+        verify(mailMock, times(1)).removeHeader(Mail.FROM);
+        verify(mailMock, times(1)).addHeader(Mail.FROM, value);
     }
 
     private void setUpCompleteSendernamePostProcessorConfig() {
-        sendernamePostProcessorConfig = new SendernamePostProcessorConfig(dummyBuyerNamePattern, dummySellerNamePattern);
-        sendernamePostProcessor = new SendernamePostProcessor(domains, sendernamePostProcessorConfig);
-    }
-
-    private void setUpPatternlessSendernamePostProcessorConfig() {
-        sendernamePostProcessorConfig = new SendernamePostProcessorConfig(null, null);
-        sendernamePostProcessor = new SendernamePostProcessor(domains, sendernamePostProcessorConfig);
+        sendernamePostProcessorConfig = new SendernamePostProcessorConfig(simpleBuyerNamePattern, simpleSellerNamePattern);
+        sendernamePostProcessor = new SendernamePostProcessor(sendernamePostProcessorConfig);
     }
 
 }
