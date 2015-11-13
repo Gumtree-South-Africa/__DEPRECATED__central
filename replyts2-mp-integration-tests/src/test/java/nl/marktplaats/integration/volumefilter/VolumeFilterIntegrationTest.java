@@ -27,11 +27,27 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
 
     @Test(groups = { "receiverTests" })
     public void rtsDoesNotBlockMessagesAfterTimeoutHasPassed() throws Exception {
-        String senderEmailAddress = "persistent-volume-seller-123@hotmail.com";
+        //
+        // First step: verify we can fake events
+        //
+        String controlSenderEmailAddress = "persistent-volume-seller-123@hotmail.com";
+        for (int i = 0; i < 11; i++) {
+            getSession().execute("INSERT INTO volume_events(user_id, received_time) VALUES(?, NOW())", controlSenderEmailAddress);
+        }
+        deliverMailToRts("plain-asq.eml", controlSenderEmailAddress);
 
+        // If the following assertion does not hold, something went wrong with the above events, probably because
+        // the volume filter plugin uses a different schema.
+        IntegrationTestRunner.assertMessageDoesNotArrive(1, 2000L);
+        IntegrationTestRunner.clearMessages();
+
+        //
+        // Second step: verify timeout is effective
+        //
+        String senderEmailAddress = "persistent-volume-seller-456@hotmail.com";
         for (int i = 0; i < 11; i++) {
             Date date = new DateTime().minusMinutes(11).minusSeconds(i).toDate();
-            getSession().execute("INSERT INTO volume_events(user_id, received_time) VALUES('persistent-volume-seller-123@hotmail.com', maxTimeuuid(?))", date);
+            getSession().execute("INSERT INTO volume_events(user_id, received_time) VALUES(?, maxTimeuuid(?))", senderEmailAddress, date);
         }
 
         for (int i = 0; i < 11; i++) {
