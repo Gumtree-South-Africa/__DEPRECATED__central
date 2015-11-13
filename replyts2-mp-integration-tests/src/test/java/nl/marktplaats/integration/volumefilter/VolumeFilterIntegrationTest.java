@@ -45,13 +45,11 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
     @Test(groups = { "receiverTests" })
     public void rtsDoesNotBlocksReplies() throws Exception {
         deliverMailToRts("plain-asq.eml", "volume-seller-88@gmail.com");
-        IntegrationTestRunner.waitForMessageArrival(1, 1000L);
+        IntegrationTestRunner.waitForMessageArrival(1, 5000L);
 
         // Volume filter allows up to 10 mails per 10 minutes.
         // The 11th and 12th should not exceed the threshold.
         for (int i = 0; i < 12; i++) {
-            // The volume filter's timestamp has an accuracy of 1 milli second
-            Thread.sleep(20);
             deliverReplyMailToRts("plain-asq-reply.eml");
         }
 
