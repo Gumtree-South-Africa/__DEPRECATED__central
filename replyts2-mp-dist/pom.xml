@@ -38,10 +38,10 @@
             <groupId>com.ecg.replyts</groupId>
             <artifactId>message-center</artifactId>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.ecg.replyts</groupId>-->
-            <!--<artifactId>event-publisher</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.ecg.replyts</groupId>
+            <artifactId>event-publisher</artifactId>
+        </dependency>
         <dependency>
             <groupId>nl.marktplaats</groupId>
             <artifactId>replyts2-filter-bankaccount</artifactId>
