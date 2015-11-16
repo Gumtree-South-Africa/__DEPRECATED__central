@@ -1,9 +1,6 @@
 [submodule "replyts2-message-center"]
 	path = replyts2-message-center
 	url = git@github.corp.ebay.com:ecg-comaas/replyts2-message-center.git
-[submodule "replyts2-event-publisher"]
-	path = replyts2-event-publisher
-	url = git@github.corp.ebay.com:ecg-comaas/replyts2-event-publisher.git
 [submodule "replyts2-core"]
 	path = replyts2-core
 	url = git@github.corp.ebay.com:ReplyTS/replyts2-core.git

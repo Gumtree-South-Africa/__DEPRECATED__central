@@ -12,7 +12,6 @@ Clone this repository, and finally clone all the submodules:
 ```
 git submodule update --init
 pushd replyts2-core && git checkout cassandra && git pull origin cassandra && popd
-pushd replyts2-event-publisher && git checkout master && git pull origin master && popd
 pushd replyts2-message-center && git checkout master && git pull origin master && popd
 pushd replyts2-threshold-resultinspector-plugin && git checkout marktplaats && git pull origin marktplaats && popd
 ```
