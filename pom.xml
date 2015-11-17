@@ -91,26 +91,6 @@
                 <version>3.3</version>
             </dependency>
             <dependency>
-                <groupId>com.ecg.replyts</groupId>
-                <artifactId>core-api</artifactId>
-                <version>${replyts.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.ecg.replyts</groupId>
-                <artifactId>core-runtime</artifactId>
-                <version>${replyts.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.ecg.replyts</groupId>
-                <artifactId>integration-test</artifactId>
-                <version>${replyts.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>2.6</version>
-            </dependency>
-            <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context</artifactId>
                 <version>${spring.version}</version>
