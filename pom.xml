@@ -11,7 +11,6 @@
     <modules>
         <module>replyts2-core</module>
         <module>replyts2-message-center</module>
-        <module>replyts2-event-publisher</module>
         <module>replyts2-threshold-resultinspector-plugin</module>
         <module>replyts2-mp-plugins</module>
         <module>replyts2-mp-integration-tests</module>
