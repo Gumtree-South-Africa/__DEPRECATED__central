@@ -31,7 +31,7 @@ public class ReceiverTestsSetup {
         // WARNING!
         // This MUST happen first!
         // Do not put anything that creates a Logger before this line.
-        // Don't you even dear to initialize fields with their definition!
+        // Don't you even dare to initialize fields with their definition!
         System.setProperty("confDir", configurationDirectory());
 
         //TODO: get key space from properties
