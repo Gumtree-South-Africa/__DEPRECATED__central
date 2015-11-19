@@ -73,7 +73,7 @@ public class ReceiverTestsSetup {
                         new Configuration.ConfigurationId(VolumeFilterFactory.class.getName(), "instance-0"),
                         PluginState.ENABLED,
                         1,
-                        JsonObjects.parse("[{'timeSpan': 10,'timeUnit': 'MINUTES','maxCount': 10,'score': 50}]")));
+                        JsonObjects.parse("[{'timeSpan': 10,'timeUnit': 'MINUTES','maxCount': 10,'score': 100}]")));
     }
 
     private String configurationDirectory() {
