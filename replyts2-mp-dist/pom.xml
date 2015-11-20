@@ -109,8 +109,8 @@
                     <extraJvmArguments>-DlogDir=@BASEDIR@/log -DconfDir=@BASEDIR@/conf -Xmx2G -XX:-HeapDumpOnOutOfMemoryError -Djava.awt.headless=true</extraJvmArguments>
                     <programs>
                         <program>
+                            <id>${project.parent.artifactId}</id>
                             <mainClass>${mainClass}</mainClass>
-                            <name>${project.parent.artifactId}</name>
                             <platforms>
                                 <platform>unix</platform>
                             </platforms>
