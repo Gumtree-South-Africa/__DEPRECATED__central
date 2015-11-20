@@ -54,6 +54,10 @@
             <groupId>nl.marktplaats</groupId>
             <artifactId>replyts2-postprocessor-anonymizebody</artifactId>
         </dependency>
+        <dependency>
+            <groupId>nl.marktplaats</groupId>
+            <artifactId>replyts2-filter-volume</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
