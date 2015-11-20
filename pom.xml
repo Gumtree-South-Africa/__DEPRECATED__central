@@ -9,7 +9,6 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>replyts2-core</module>
         <module>replyts2-message-center</module>
         <module>replyts2-threshold-resultinspector-plugin</module>
         <module>replyts2-mp-plugins</module>
@@ -18,7 +17,7 @@
     </modules>
 
     <properties>
-        <replyts.version>2.19.0-SNAPSHOT</replyts.version>
+        <replyts.version>2.19.0</replyts.version>
         <plugin.version>TRUNK-SNAPSHOT</plugin.version>
 
         <spring.version>4.0.2.RELEASE</spring.version>
