@@ -64,7 +64,7 @@ public class SendernamePostProcessor implements PostProcessor {
 
     @Override
     public int getOrder() {
-        return 200;
+        return 600;
     }
 
     private String getCustomValueName(MessageDirection md) {
