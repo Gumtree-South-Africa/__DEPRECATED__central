@@ -1,9 +1,11 @@
 package nl.marktplaats.filter.volume.persistence;
 
+import com.codahale.metrics.Timer;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.ecg.replyts.core.runtime.TimingReports;
 import org.joda.time.DateTime;
 
 import java.util.Date;
@@ -23,6 +25,10 @@ public class CassandraVolumeFilterEventRepository implements VolumeFilterEventRe
     private final ConsistencyLevel readConsistency;
     private final ConsistencyLevel writeConsistency;
 
+    private final Timer recordTimer = TimingReports.newTimer("cassandra.volumeFilterRepo.record");
+    private final Timer countTimer = TimingReports.newTimer("cassandra.volumeFilterRepo.count");
+
+
     public CassandraVolumeFilterEventRepository(Session session,
                                                 ConsistencyLevel readConsistency,
                                                 ConsistencyLevel writeConsistency) {
@@ -33,12 +39,16 @@ public class CassandraVolumeFilterEventRepository implements VolumeFilterEventRe
     }
 
     public void record(String userId, int ttlInSeconds) {
-        session.execute(Statements.INSERT.bind(this, userId, ttlInSeconds));
+        try (Timer.Context ignored = recordTimer.time()) {
+            session.execute(Statements.INSERT.bind(this, userId, ttlInSeconds));
+        }
     }
 
     public int count(String userId, int maxAgeInSeconds) {
-        Date after = new DateTime().minusSeconds(maxAgeInSeconds).toDate();
-        return (int) session.execute(Statements.COUNT.bind(this, userId, after)).one().getLong(0);
+        try (Timer.Context ignored = countTimer.time()) {
+            Date after = new DateTime().minusSeconds(maxAgeInSeconds).toDate();
+            return (int) session.execute(Statements.COUNT.bind(this, userId, after)).one().getLong(0);
+        }
     }
 
     public ConsistencyLevel getReadConsistency() {
