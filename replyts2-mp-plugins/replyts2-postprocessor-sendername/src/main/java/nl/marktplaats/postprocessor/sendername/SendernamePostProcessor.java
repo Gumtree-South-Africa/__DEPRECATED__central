@@ -64,8 +64,7 @@ public class SendernamePostProcessor implements PostProcessor {
 
     @Override
     public int getOrder() {
-        // WARNING: order value needs to be higher then that of AnonymizeEmailPostProcessor
-        return 400;
+        return 200;
     }
 
     private String getCustomValueName(MessageDirection md) {
