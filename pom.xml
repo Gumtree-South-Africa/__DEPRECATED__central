@@ -17,7 +17,7 @@
     </modules>
 
     <properties>
-        <replyts.version>2.19.1</replyts.version>
+        <replyts.version>2.19.2</replyts.version>
         <plugin.version>TRUNK-SNAPSHOT</plugin.version>
 
         <spring.version>4.0.2.RELEASE</spring.version>
