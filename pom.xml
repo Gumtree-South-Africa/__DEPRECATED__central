@@ -48,8 +48,8 @@
             </dependency>
             <dependency>
                 <groupId>com.ecg.replyts</groupId>
-                <artifactId>event-publisher</artifactId>
-                <version>${plugin.version}</version>
+                <artifactId>replyts2-kafka-publisher</artifactId>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>nl.marktplaats</groupId>
