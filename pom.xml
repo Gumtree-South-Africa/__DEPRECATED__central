@@ -49,7 +49,7 @@
             <dependency>
                 <groupId>com.ecg.replyts</groupId>
                 <artifactId>replyts2-kafka-publisher</artifactId>
-                <version>1.0.0</version>
+                <version>1.0.1</version>
             </dependency>
             <dependency>
                 <groupId>nl.marktplaats</groupId>
