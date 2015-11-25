@@ -56,6 +56,10 @@ public class BankAccountFilterTest {
     @Mock private MailRepository mailRepository;
     @Mock private Mails mailsParser;
 
+
+    private String fromUserId = "123";
+    private String toUserId = "456";
+
     @Before
     public void setup() throws IOException, PersistenceException {
         initMocks(this);
@@ -324,6 +328,11 @@ public class BankAccountFilterTest {
     public void descriptionContainsAllReportHeaders() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
+        Map<String, String> customValues = new HashMap<>();
+        customValues.put("from-userid", fromUserId);
+        customValues.put("to-userid", toUserId);
+        when(conversation.getCustomValues()).thenReturn(customValues);
+
         when(conversation.getBuyerId()).thenReturn("fraudster@mail.com");
         when(conversation.getSellerId()).thenReturn("victim@mail.com");
         when(conversation.getId()).thenReturn("987654");
@@ -352,7 +361,7 @@ public class BankAccountFilterTest {
                         "10.1.2.3|" +
                         "victim@mail.com|" +
                         "987654|" +
-                        "1"));
+                        "1|"+fromUserId+"|"+toUserId));
     }
 
     @Test
@@ -385,6 +394,11 @@ public class BankAccountFilterTest {
     public void descriptionSkipsAlternativeFraudsterMailWhenItIsSameAsPrimaryMail() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
+        Map<String, String> customValues = new HashMap<>();
+        customValues.put("from-userid", fromUserId);
+        customValues.put("to-userid", toUserId);
+        when(conversation.getCustomValues()).thenReturn(customValues);
+
         when(conversation.getBuyerId()).thenReturn("fraudster@mail.com");
         when(conversation.getSellerId()).thenReturn("victim@mail.com");
         when(conversation.getId()).thenReturn("987654");
@@ -412,7 +426,7 @@ public class BankAccountFilterTest {
                         "|" +
                         "victim@mail.com|" +
                         "987654|" +
-                        "1"));
+                        "1|"+fromUserId+"|"+toUserId));
     }
 
     @Test
@@ -434,6 +448,12 @@ public class BankAccountFilterTest {
         messages.add(crateMockMessage(3, MessageDirection.SELLER_TO_BUYER));
         messages.add(crateMockMessage(4, MessageDirection.BUYER_TO_SELLER));
         messages.add(crateMockMessage(5, MessageDirection.SELLER_TO_BUYER));
+
+
+        Map<String, String> customValues = new HashMap<>();
+        customValues.put("from-userid", fromUserId);
+        customValues.put("to-userid", toUserId);
+        when(conversation.getCustomValues()).thenReturn(customValues);
 
         when(conversation.getBuyerId()).thenReturn("fraudster@mail.com");
         when(conversation.getSellerId()).thenReturn("victim@mail.com");
@@ -469,7 +489,7 @@ public class BankAccountFilterTest {
                         "|" +
                         "victim@mail.com|" +
                         "987654|" +
-                        "4"));
+                        "4|"+fromUserId+"|"+toUserId));
     }
 
     @Test
@@ -537,7 +557,7 @@ public class BankAccountFilterTest {
 
     private void mockDfsAndParser(final List<Mail> mails) throws ParsingException {
         when(mailRepository.readInboundMail(anyString())).thenAnswer(invocation ->
-                ((String)invocation.getArguments()[0]).getBytes()
+                        ((String) invocation.getArguments()[0]).getBytes()
         );
 
         when(mailsParser.readMail(any(byte[].class))).thenAnswer(invocation -> {
