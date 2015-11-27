@@ -141,18 +141,44 @@ public class BankAccountFilter implements Filter {
         return new MailAndMessageInConversation(currentMail, currentMessage, precedingMessages.size());
     }
 
-    private String toDescription(Conversation conv, BankAccountMatch match, Mail firstMailWithAccount, Message firstMessageWithAccount, int mailMatchCount) {
-        String fraudsterEmail = getSenderFromConversation(firstMessageWithAccount, conv);
+    private String toDescription(Conversation conv, BankAccountMatch match, Mail firstMailWithBankAccount, Message firstMessageWithBankAccount, int mailMatchCount) {
+        String fraudsterEmail = getSenderFromConversation(firstMessageWithBankAccount, conv);
         int score = match.getScore();
         String bankAccountNumber = match.getBankAccount();
-        String fraudsterEmailAnon = getAnonSender(firstMessageWithAccount, conv);
-        String fraudsterActualEmail = trimToEmpty(firstMailWithAccount.getFrom());
+        String fraudsterEmailAnon = getAnonSender(firstMessageWithBankAccount, conv);
+        String fraudsterActualEmail = trimToEmpty(firstMailWithBankAccount.getFrom());
         if (fraudsterActualEmail.equals(fraudsterEmail)) {
             fraudsterActualEmail = "";
         }
-        String ip = trimToEmpty(getIpFromMail(firstMailWithAccount));
-        String victimEmail = getReceiverFromConversation(firstMessageWithAccount, conv);
+        String ip = trimToEmpty(getIpFromMail(firstMailWithBankAccount));
+        String victimEmail = getReceiverFromConversation(firstMessageWithBankAccount, conv);
         String conversationId = conv.getId();
+
+
+
+        Message firstConversationMessage = conv.getMessages().size()> 0 ? conv.getMessages().get(0) : firstMessageWithBankAccount;
+        String buyerUserId = "";
+        String sellerUserId = "";
+        if (firstConversationMessage.getMessageDirection()  == MessageDirection.BUYER_TO_SELLER){
+            buyerUserId = conv.getCustomValues().get("from-userid");
+            sellerUserId = conv.getCustomValues().get("to-userid");
+        }
+        else {
+            sellerUserId = conv.getCustomValues().get("from-userid");
+            buyerUserId = conv.getCustomValues().get("to-userid");
+        }
+
+        String fraudsterUserId;
+        String victimUserId;
+        boolean fraudsterBuyer = firstMessageWithBankAccount.getMessageDirection() == MessageDirection.BUYER_TO_SELLER;
+        if (fraudsterBuyer){
+            fraudsterUserId= buyerUserId;
+            victimUserId= sellerUserId;
+        }
+        else {
+            victimUserId = sellerUserId;
+            fraudsterUserId = buyerUserId;
+        }
 
         return StringUtils.join(Arrays.asList(
                 fraudsterEmail,
@@ -164,6 +190,7 @@ public class BankAccountFilter implements Filter {
                 victimEmail,
                 String.valueOf(conversationId),
                 String.valueOf(mailMatchCount)
+                ,fraudsterUserId, victimUserId
         ), "|");
     }
 

@@ -59,6 +59,14 @@
             <artifactId>replyts2-filter-volume</artifactId>
         </dependency>
         <dependency>
+            <groupId>nl.marktplaats</groupId>
+            <artifactId>replyts2-postprocessor-urlgateway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>nl.marktplaats</groupId>
+            <artifactId>replyts2-postprocessor-sendername</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.ecg.de.kleinanzeigen.replyts</groupId>
             <artifactId>threshold-resultinspector</artifactId>
         </dependency>

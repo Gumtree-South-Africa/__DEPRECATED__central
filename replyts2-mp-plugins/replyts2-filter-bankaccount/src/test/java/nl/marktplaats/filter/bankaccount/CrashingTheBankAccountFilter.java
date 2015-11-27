@@ -16,7 +16,9 @@ import org.mockito.Mock;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -72,7 +74,14 @@ public class CrashingTheBankAccountFilter {
         when(conversation.getAdId()).thenReturn("whatever");
 
         MessageProcessingContext messageProcessingContext = mock(MessageProcessingContext.class);
-        when(messageProcessingContext.getConversation()).thenReturn(conversation);
+
+//            Map<String, String> customValues = new HashMap<>();
+//            customValues.put("from-userid", "1");
+//            customValues.put("to-userid", "2");
+//            when(conversation.getCustomValues()).thenReturn(customValues);
+
+
+            when(messageProcessingContext.getConversation()).thenReturn(conversation);
         when(messageProcessingContext.getMessage()).thenReturn(message);
         when(messageProcessingContext.getMail()).thenReturn(mail);
 
