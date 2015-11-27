@@ -78,6 +78,9 @@ public class BankAccountFilter implements Filter {
         // However, when the current message is the first in a conversation we can skip this.
         // As 60% of all messages are actually the first in a conversation, doing the skip is an important
         // performance optimization.
+        //
+        // TODO: simplify this code again, performance is no longer an issue for ReplyT&S 2.
+        //
         List<Message> allConversationMessages;
         List<Message> precedingMessages;
         if (isFirstMailInConversation(mail)) {
@@ -154,28 +157,25 @@ public class BankAccountFilter implements Filter {
         String victimEmail = getReceiverFromConversation(firstMessageWithBankAccount, conv);
         String conversationId = conv.getId();
 
-
-
-        Message firstConversationMessage = conv.getMessages().size()> 0 ? conv.getMessages().get(0) : firstMessageWithBankAccount;
-        String buyerUserId = "";
-        String sellerUserId = "";
-        if (firstConversationMessage.getMessageDirection()  == MessageDirection.BUYER_TO_SELLER){
-            buyerUserId = conv.getCustomValues().get("from-userid");
-            sellerUserId = conv.getCustomValues().get("to-userid");
-        }
-        else {
-            sellerUserId = conv.getCustomValues().get("from-userid");
-            buyerUserId = conv.getCustomValues().get("to-userid");
+        // TODO: refactor the following two blocks of code, they seem to complicated...
+        Message firstConversationMessage = conv.getMessages().size() > 0 ? conv.getMessages().get(0) : firstMessageWithBankAccount;
+        String buyerUserId;
+        String sellerUserId;
+        if (firstConversationMessage.getMessageDirection() == MessageDirection.BUYER_TO_SELLER) {
+            buyerUserId = trimToEmpty(conv.getCustomValues().get("from-userid"));
+            sellerUserId = trimToEmpty(conv.getCustomValues().get("to-userid"));
+        } else {
+            sellerUserId = trimToEmpty(conv.getCustomValues().get("from-userid"));
+            buyerUserId = trimToEmpty(conv.getCustomValues().get("to-userid"));
         }
 
         String fraudsterUserId;
         String victimUserId;
         boolean fraudsterBuyer = firstMessageWithBankAccount.getMessageDirection() == MessageDirection.BUYER_TO_SELLER;
-        if (fraudsterBuyer){
-            fraudsterUserId= buyerUserId;
-            victimUserId= sellerUserId;
-        }
-        else {
+        if (fraudsterBuyer) {
+            fraudsterUserId = buyerUserId;
+            victimUserId = sellerUserId;
+        } else {
             victimUserId = sellerUserId;
             fraudsterUserId = buyerUserId;
         }
@@ -189,8 +189,9 @@ public class BankAccountFilter implements Filter {
                 ip,
                 victimEmail,
                 String.valueOf(conversationId),
-                String.valueOf(mailMatchCount)
-                ,fraudsterUserId, victimUserId
+                String.valueOf(mailMatchCount),
+                fraudsterUserId,
+                victimUserId
         ), "|");
     }
 
