@@ -126,7 +126,7 @@
                     <useWildcardClassPath>true</useWildcardClassPath>
                     <repositoryName>lib</repositoryName>
                     <logsDirectory>log</logsDirectory>
-                    <extraJvmArguments>-DlogDir=@BASEDIR@/log -DconfDir=@BASEDIR@/conf -Xmx2G -XX:-HeapDumpOnOutOfMemoryError -Djava.awt.headless=true</extraJvmArguments>
+                    <extraJvmArguments>-DlogDir=@BASEDIR@/log -DconfDir=@BASEDIR@/conf -Xmx2G -XX:-HeapDumpOnOutOfMemoryError -Djava.awt.headless=true -javaagent:/usr/lib/jolokia/jolokia-jvm.jar=port=8089,host=127.0.0.1</extraJvmArguments>
                     <programs>
                         <program>
                             <id>${project.parent.artifactId}</id>
