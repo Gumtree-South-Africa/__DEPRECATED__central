@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class BankAccountFilterTest {
+
     private static final String PLAIN_TEXT_CONTENT_FRAUDULENT =
             "Message with a fraudulent bank account: 123456. Good luck!";
     private static final String HTML_CONTENT_FRAUDULENT =
@@ -55,7 +56,6 @@ public class BankAccountFilterTest {
     @Mock private MailCloakingService mailCloakingService;
     @Mock private MailRepository mailRepository;
     @Mock private Mails mailsParser;
-
 
     private String fromUserId = "123";
     private String toUserId = "456";
