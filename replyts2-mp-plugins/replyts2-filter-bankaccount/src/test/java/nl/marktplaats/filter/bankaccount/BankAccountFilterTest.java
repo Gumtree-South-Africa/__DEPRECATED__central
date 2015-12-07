@@ -337,7 +337,7 @@ public class BankAccountFilterTest {
         when(conversation.getSellerId()).thenReturn("victim@mail.com");
         when(conversation.getId()).thenReturn("987654");
 
-        when(mail.getFrom()).thenReturn("f.r.audster@mail.com");
+        when(mail.getReplyTo()).thenReturn("f.r.audster@mail.com");
         when(mail.getUniqueHeader("X-Originating-IP")).thenReturn("10.1.2.3");
 
         MailAddress anonymousFraudsterAddress = new MailAddress("fraudster-anon@mail.marktplaats.nl");
