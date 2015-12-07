@@ -149,7 +149,7 @@ public class BankAccountFilter implements Filter {
         int score = match.getScore();
         String bankAccountNumber = match.getBankAccount();
         String fraudsterEmailAnon = getAnonSender(firstMessageWithBankAccount, conv);
-        String fraudsterActualEmail = trimToEmpty(firstMailWithBankAccount.getFrom());
+        String fraudsterActualEmail = trimToEmpty(firstMailWithBankAccount.getReplyTo());
         if (fraudsterActualEmail.equals(fraudsterEmail)) {
             fraudsterActualEmail = "";
         }

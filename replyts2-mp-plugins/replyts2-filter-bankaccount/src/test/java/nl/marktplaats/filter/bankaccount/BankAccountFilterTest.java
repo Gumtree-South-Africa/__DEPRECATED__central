@@ -525,10 +525,10 @@ public class BankAccountFilterTest {
         assertThat(filterFeedbacks.get(1), matchesAccount("757706428", "757706428", 0, FilterResultState.OK));
     }
 
-    private Mail createMockMail(int index, String from, String plain) {
+    private Mail createMockMail(int index, String replyTo, String plain) {
         Mail mail = mock(Mail.class, "mail_" + index);
         when(mail.getSubject()).thenReturn("mail " + index);
-        when(mail.getFrom()).thenReturn(from);
+        when(mail.getReplyTo()).thenReturn(replyTo);
         when(mail.getCustomHeaders()).thenReturn(Collections.<String, String>emptyMap());
 
         // plain part
