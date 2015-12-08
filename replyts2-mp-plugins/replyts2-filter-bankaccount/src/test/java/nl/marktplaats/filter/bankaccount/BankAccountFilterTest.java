@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class BankAccountFilterTest {
+
     private static final String PLAIN_TEXT_CONTENT_FRAUDULENT =
             "Message with a fraudulent bank account: 123456. Good luck!";
     private static final String HTML_CONTENT_FRAUDULENT =
@@ -55,7 +56,6 @@ public class BankAccountFilterTest {
     @Mock private MailCloakingService mailCloakingService;
     @Mock private MailRepository mailRepository;
     @Mock private Mails mailsParser;
-
 
     private String fromUserId = "123";
     private String toUserId = "456";
@@ -337,7 +337,7 @@ public class BankAccountFilterTest {
         when(conversation.getSellerId()).thenReturn("victim@mail.com");
         when(conversation.getId()).thenReturn("987654");
 
-        when(mail.getFrom()).thenReturn("f.r.audster@mail.com");
+        when(mail.getReplyTo()).thenReturn("f.r.audster@mail.com");
         when(mail.getUniqueHeader("X-Originating-IP")).thenReturn("10.1.2.3");
 
         MailAddress anonymousFraudsterAddress = new MailAddress("fraudster-anon@mail.marktplaats.nl");
@@ -525,10 +525,10 @@ public class BankAccountFilterTest {
         assertThat(filterFeedbacks.get(1), matchesAccount("757706428", "757706428", 0, FilterResultState.OK));
     }
 
-    private Mail createMockMail(int index, String from, String plain) {
+    private Mail createMockMail(int index, String replyTo, String plain) {
         Mail mail = mock(Mail.class, "mail_" + index);
         when(mail.getSubject()).thenReturn("mail " + index);
-        when(mail.getFrom()).thenReturn(from);
+        when(mail.getReplyTo()).thenReturn(replyTo);
         when(mail.getCustomHeaders()).thenReturn(Collections.<String, String>emptyMap());
 
         // plain part

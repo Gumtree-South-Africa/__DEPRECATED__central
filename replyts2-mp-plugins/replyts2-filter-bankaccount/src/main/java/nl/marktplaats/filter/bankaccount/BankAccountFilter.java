@@ -145,14 +145,11 @@ public class BankAccountFilter implements Filter {
     }
 
     private String toDescription(Conversation conv, BankAccountMatch match, Mail firstMailWithBankAccount, Message firstMessageWithBankAccount, int mailMatchCount) {
-        String fraudsterEmail = getSenderFromConversation(firstMessageWithBankAccount, conv);
+        String fraudsterUserConversationEmail = getSenderFromConversation(firstMessageWithBankAccount, conv);
         int score = match.getScore();
         String bankAccountNumber = match.getBankAccount();
         String fraudsterEmailAnon = getAnonSender(firstMessageWithBankAccount, conv);
-        String fraudsterActualEmail = trimToEmpty(firstMailWithBankAccount.getFrom());
-        if (fraudsterActualEmail.equals(fraudsterEmail)) {
-            fraudsterActualEmail = "";
-        }
+        String fraudsterActualEmail = trimToEmpty(firstMailWithBankAccount.getReplyTo());
         String ip = trimToEmpty(getIpFromMail(firstMailWithBankAccount));
         String victimEmail = getReceiverFromConversation(firstMessageWithBankAccount, conv);
         String conversationId = conv.getId();
@@ -181,7 +178,7 @@ public class BankAccountFilter implements Filter {
         }
 
         return StringUtils.join(Arrays.asList(
-                fraudsterEmail,
+                fraudsterUserConversationEmail,
                 String.valueOf(score),
                 bankAccountNumber,
                 fraudsterEmailAnon,
