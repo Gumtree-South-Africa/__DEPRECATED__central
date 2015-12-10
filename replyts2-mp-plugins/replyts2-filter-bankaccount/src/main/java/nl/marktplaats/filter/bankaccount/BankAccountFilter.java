@@ -82,7 +82,7 @@ public class BankAccountFilter implements Filter {
         //
         List<Message> allConversationMessages;
         List<Message> precedingMessages;
-        if (isFirstMailInConversation(mail)) {
+        if (isFirstMailInConversation(conv, message)) {
             allConversationMessages = Collections.singletonList(message);
             precedingMessages = Collections.emptyList();
 
@@ -98,8 +98,7 @@ public class BankAccountFilter implements Filter {
         }
 
         // Convert each ban to a MailAndMessageInConversation
-        Map<String, MailAndMessageInConversation> matchesToFirstMail =
-                new HashMap<String, MailAndMessageInConversation>(matches.size());
+        Map<String, MailAndMessageInConversation> matchesToFirstMail = new HashMap<>(matches.size());
         for (String ban : matchedBankAccountNumbers) {
             matchesToFirstMail.put(ban, findFirstWithBan(ban, mail, message, conv, precedingMessages));
         }
@@ -124,8 +123,8 @@ public class BankAccountFilter implements Filter {
         return result;
     }
 
-    private boolean isFirstMailInConversation(Mail mail) {
-        return mail.containsHeader(Mail.ADID_HEADER);
+    private boolean isFirstMailInConversation(Conversation conversation, Message message) {
+        return conversation.getMessages().get(0).getId().equals(message.getId());
     }
 
     private MailAndMessageInConversation findFirstWithBan(String ban, Mail currentMail, Message currentMessage, Conversation conv, List<Message> precedingMessages) throws Exception {
@@ -148,7 +147,7 @@ public class BankAccountFilter implements Filter {
         int score = match.getScore();
         String bankAccountNumber = match.getBankAccount();
         String fraudsterEmailAnon = getAnonSender(firstMessageWithBankAccount, conv);
-        String fraudsterActualEmail = trimToEmpty(firstMailWithBankAccount.getFrom());
+        String fraudsterActualEmail = trimToEmpty(getActualSenderFromMail(isFirstMailInConversation(conv, firstMessageWithBankAccount), firstMailWithBankAccount));
         String ip = trimToEmpty(getIpFromMail(firstMailWithBankAccount));
         String victimEmail = getReceiverFromConversation(firstMessageWithBankAccount, conv);
         String conversationId = conv.getId();
@@ -178,6 +177,10 @@ public class BankAccountFilter implements Filter {
                 fraudsterUserId,
                 victimUserId
         ), "|");
+    }
+
+    private String getActualSenderFromMail(boolean isFirstMessageInConversation, Mail mail) {
+        return isFirstMessageInConversation ? mail.getReplyTo() : mail.getFrom();
     }
 
     private String getAnonSender(Message message, Conversation conv) {

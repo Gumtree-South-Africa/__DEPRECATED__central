@@ -70,6 +70,7 @@ public class BankAccountFilterTest {
         when(mutableHtmlContent.getMediaType()).thenReturn(MediaType.create("text", "html"));
         when(mutableHtmlContent.isMutable()).thenReturn(true);
 
+        when(message.getId()).thenReturn("msg98123");
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
         when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).thenReturn(new MailAddress("anonymous-buyer@mail.com"));
 
@@ -342,7 +343,8 @@ public class BankAccountFilterTest {
         when(conversation.getSellerId()).thenReturn("victim@mail.com");
         when(conversation.getId()).thenReturn("987654");
 
-        when(mail.getFrom()).thenReturn("f.r.audster@mail.com");
+        // First e-mail in conversation, sender is in the ReplyTo header.
+        when(mail.getReplyTo()).thenReturn("f.r.audster@mail.com");
         when(mail.getUniqueHeader("X-Originating-IP")).thenReturn("10.1.2.3");
 
         MailAddress anonymousFraudsterAddress = new MailAddress("fraudster-anon@mail.marktplaats.nl");
@@ -399,12 +401,12 @@ public class BankAccountFilterTest {
     public void descriptionInFilterReasonContainsDataForOlderMessageWithFoundBankAccountNumber() throws Exception {
         // Create the mails
         final List<Mail> mails = new ArrayList<>(6);
-        mails.add(createMockMail(0, "f.r.audster@mail.com", "innocent"));
-        mails.add(createMockMail(1, "thevictim@mail.com", "innocent"));
-        mails.add(createMockMail(2, "f.r.audster@mail.com", "give me money! 123.456"));
-        mails.add(createMockMail(3, "thevictim@mail.com", "it is transferred to 123456\n> give me money! 123456"));
-        mails.add(createMockMail(4, "f.r.audster@mail.com", "give me more money!"));
-        mails.add(createMockMail(5, "thevictim@mail.com", "where is my product?\n> give me more money! 123 456"));
+        mails.add(createMockMail(0, "automatisch@marktplaats.nl", "f.r.audster@mail.com", "innocent"));
+        mails.add(createMockMail(1, "thevictim@mail.com", null, "innocent"));
+        mails.add(createMockMail(2, "f.r.audster@mail.com", null, "give me money! 123.456"));
+        mails.add(createMockMail(3, "thevictim@mail.com", null, "it is transferred to 123456\n> give me money! 123456"));
+        mails.add(createMockMail(4, "f.r.audster@mail.com", null, "give me more money!"));
+        mails.add(createMockMail(5, "thevictim@mail.com", null, "where is my product?\n> give me more money! 123 456"));
 
         // Create the messages
         List<Message> messages = new ArrayList<>(6);
@@ -458,8 +460,8 @@ public class BankAccountFilterTest {
     public void descriptionInFilterReasonIsCorrectWhenSellerIsFraudster() throws Exception {
         // Create the mails
         final List<Mail> mails = new ArrayList<>(2);
-        mails.add(createMockMail(0, "buyer@mail.com", "innocent"));
-        mails.add(createMockMail(1, "seller@mail.com", "give me money! 123.456"));
+        mails.add(createMockMail(0, "automatisch@marktplaats.nl", "buyer@mail.com", "innocent"));
+        mails.add(createMockMail(1, "seller@mail.com", null, "give me money! 123.456"));
 
         // Create the messages
         List<Message> messages = new ArrayList<>(2);
@@ -505,6 +507,54 @@ public class BankAccountFilterTest {
     }
 
     @Test
+    public void descriptionInFilterReasonIsCorrectWhenBuyerIsFraudster() throws Exception {
+        // Create the mails
+        final List<Mail> mails = new ArrayList<>(1);
+        mails.add(createMockMail(0, "automatisch@marktplaats.nl", "buyer@mail.com", "123456"));
+
+        // Create the messages
+        List<Message> messages = new ArrayList<>(2);
+        messages.add(crateMockMessage(0, MessageDirection.BUYER_TO_SELLER));
+
+        Map<String, String> customValues = new HashMap<>();
+        customValues.put("from-userid", fromUserId);
+        customValues.put("to-userid", toUserId);
+        when(conversation.getCustomValues()).thenReturn(customValues);
+        when(conversation.getBuyerId()).thenReturn("buyer@mail.com");
+        when(conversation.getSellerId()).thenReturn("seller@mail.com");
+        when(conversation.getId()).thenReturn("987654");
+
+        when(conversation.getMessages()).thenReturn(messages);
+
+        MailAddress anonymousBuyerAddress = new MailAddress("anonymous-buyer@mail.marktplaats.nl");
+        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).thenReturn(anonymousBuyerAddress);
+
+        MailAddress anonymousSellerAddress = new MailAddress("anonymous-seller@mail.marktplaats.nl");
+        when(mailCloakingService.createdCloakedMailAddress(Seller, conversation)).thenReturn(anonymousSellerAddress);
+
+        mockDfsAndParser(mails);
+
+        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, messages.get(0), mails.get(0));
+        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
+
+        assertNotNull(filterFeedbacks);
+        assertThat(filterFeedbacks.size(), is(1));
+        FilterFeedback filterFeedback = filterFeedbacks.get(0);
+        assertThat(filterFeedback.getDescription(), is(
+                "buyer@mail.com|" +
+                        "100|" +
+                        "123456|" +
+                        "anonymous-buyer@mail.marktplaats.nl|" +
+                        "buyer@mail.com|" +
+                        "|" +
+                        "seller@mail.com|" +
+                        "987654|" +
+                        "1|" +
+                        "123|" +
+                        "456"));
+    }
+
+    @Test
     public void doNotFailOnNullAdId() {
         prepareSimpleSingleMailWithTexts(null, null, "", "123456");
 
@@ -537,10 +587,11 @@ public class BankAccountFilterTest {
         assertThat(filterFeedbacks.get(1), matchesAccount("757706428", "757706428", 0, FilterResultState.OK));
     }
 
-    private Mail createMockMail(int index, String from, String plain) {
+    private Mail createMockMail(int index, String from, String replyTo, String plain) {
         Mail mail = mock(Mail.class, "mail_" + index);
         when(mail.getSubject()).thenReturn("mail " + index);
         when(mail.getFrom()).thenReturn(from);
+        when(mail.getReplyTo()).thenReturn(replyTo);
         when(mail.getCustomHeaders()).thenReturn(Collections.<String, String>emptyMap());
 
         // plain part
