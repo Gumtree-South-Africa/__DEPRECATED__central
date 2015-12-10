@@ -7,7 +7,6 @@ import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
@@ -149,32 +148,21 @@ public class BankAccountFilter implements Filter {
         int score = match.getScore();
         String bankAccountNumber = match.getBankAccount();
         String fraudsterEmailAnon = getAnonSender(firstMessageWithBankAccount, conv);
-        String fraudsterActualEmail = trimToEmpty(firstMailWithBankAccount.getReplyTo());
+        String fraudsterActualEmail = trimToEmpty(firstMailWithBankAccount.getFrom());
         String ip = trimToEmpty(getIpFromMail(firstMailWithBankAccount));
         String victimEmail = getReceiverFromConversation(firstMessageWithBankAccount, conv);
         String conversationId = conv.getId();
-
-        // TODO: refactor the following two blocks of code, they seem to complicated...
-        Message firstConversationMessage = conv.getMessages().size() > 0 ? conv.getMessages().get(0) : firstMessageWithBankAccount;
-        String buyerUserId;
-        String sellerUserId;
-        if (firstConversationMessage.getMessageDirection() == MessageDirection.BUYER_TO_SELLER) {
-            buyerUserId = trimToEmpty(conv.getCustomValues().get("from-userid"));
-            sellerUserId = trimToEmpty(conv.getCustomValues().get("to-userid"));
-        } else {
-            sellerUserId = trimToEmpty(conv.getCustomValues().get("from-userid"));
-            buyerUserId = trimToEmpty(conv.getCustomValues().get("to-userid"));
-        }
+        String buyerUserId = trimToEmpty(conv.getCustomValues().get("from-userid"));
+        String sellerUserId = trimToEmpty(conv.getCustomValues().get("to-userid"));
 
         String fraudsterUserId;
         String victimUserId;
-        boolean fraudsterBuyer = firstMessageWithBankAccount.getMessageDirection() == MessageDirection.BUYER_TO_SELLER;
-        if (fraudsterBuyer) {
+        if (firstMessageWithBankAccount.getMessageDirection() == MessageDirection.BUYER_TO_SELLER) {
             fraudsterUserId = buyerUserId;
             victimUserId = sellerUserId;
         } else {
-            victimUserId = sellerUserId;
-            fraudsterUserId = buyerUserId;
+            fraudsterUserId = sellerUserId;
+            victimUserId = buyerUserId;
         }
 
         return StringUtils.join(Arrays.asList(
@@ -193,13 +181,7 @@ public class BankAccountFilter implements Filter {
     }
 
     private String getAnonSender(Message message, Conversation conv) {
-        try {
-            MailAddress fromUsr = mailCloakingService.createdCloakedMailAddress(
-                    message.getMessageDirection().getFromRole(), conv);
-            return fromUsr.getAddress();
-        } catch (Exception e) {
-            return "";
-        }
+        return mailCloakingService.createdCloakedMailAddress(message.getMessageDirection().getFromRole(), conv).getAddress();
     }
 
     private String getSenderFromConversation(Message message, Conversation conv) {

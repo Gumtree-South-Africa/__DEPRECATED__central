@@ -11,7 +11,6 @@ import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
-import com.ecg.replyts.core.runtime.persistence.PersistenceException;
 import com.google.common.net.MediaType;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -19,9 +18,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.io.IOException;
 import java.util.*;
 
+import static com.ecg.replyts.core.api.model.conversation.ConversationRole.Buyer;
+import static com.ecg.replyts.core.api.model.conversation.ConversationRole.Seller;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -61,7 +61,7 @@ public class BankAccountFilterTest {
     private String toUserId = "456";
 
     @Before
-    public void setup() throws IOException, PersistenceException {
+    public void setup() throws Exception {
         initMocks(this);
 
         when(mail.getTextParts(false)).thenReturn(asTypedContentList(mutablePlainContent, mutableHtmlContent));
@@ -69,6 +69,11 @@ public class BankAccountFilterTest {
         when(mutablePlainContent.isMutable()).thenReturn(true);
         when(mutableHtmlContent.getMediaType()).thenReturn(MediaType.create("text", "html"));
         when(mutableHtmlContent.isMutable()).thenReturn(true);
+
+        when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
+        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).thenReturn(new MailAddress("anonymous-buyer@mail.com"));
+
+        when(mailsParser.readMail(any(byte[].class))).thenReturn(mail);
 
         config = new BankAccountFilterConfiguration(FRAUDULENT_BANK_ACCOUNTS);
         bankAccountFinder = new BankAccountFinder(config);
@@ -337,11 +342,11 @@ public class BankAccountFilterTest {
         when(conversation.getSellerId()).thenReturn("victim@mail.com");
         when(conversation.getId()).thenReturn("987654");
 
-        when(mail.getReplyTo()).thenReturn("f.r.audster@mail.com");
+        when(mail.getFrom()).thenReturn("f.r.audster@mail.com");
         when(mail.getUniqueHeader("X-Originating-IP")).thenReturn("10.1.2.3");
 
         MailAddress anonymousFraudsterAddress = new MailAddress("fraudster-anon@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation)).
+        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).
                 thenReturn(anonymousFraudsterAddress);
 
         prepareSimpleSingleMailWithTexts("m369147", "123456", "", "");
@@ -376,7 +381,7 @@ public class BankAccountFilterTest {
         when(mail.getUniqueHeader("X-Originating-IP")).thenReturn("[10.1.2.3]");
 
         MailAddress anonymousFraudsterAddress = new MailAddress("fraudster-anon@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation)).
+        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).
                 thenReturn(anonymousFraudsterAddress);
 
         prepareSimpleSingleMailWithTexts("m369147", "123456", "", "");
@@ -388,45 +393,6 @@ public class BankAccountFilterTest {
         assertThat(filterFeedbacks.size(), is(1));
         FilterFeedback filterFeedback = filterFeedbacks.get(0);
         assertThat(filterFeedback.getDescription(), containsString("|10.1.2.3|"));
-    }
-
-    @Test
-    public void descriptionSkipsAlternativeFraudsterMailWhenItIsSameAsPrimaryMail() {
-        when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-
-        Map<String, String> customValues = new HashMap<>();
-        customValues.put("from-userid", fromUserId);
-        customValues.put("to-userid", toUserId);
-        when(conversation.getCustomValues()).thenReturn(customValues);
-
-        when(conversation.getBuyerId()).thenReturn("fraudster@mail.com");
-        when(conversation.getSellerId()).thenReturn("victim@mail.com");
-        when(conversation.getId()).thenReturn("987654");
-
-        when(mail.getFrom()).thenReturn("fraudster@mail.com");
-
-        MailAddress anonymousFraudsterAddress = new MailAddress("fraudster-anon@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation)).
-                thenReturn(anonymousFraudsterAddress);
-
-        prepareSimpleSingleMailWithTexts("m369147", "123456", "", "");
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
-
-        assertNotNull(filterFeedbacks);
-        assertThat(filterFeedbacks.size(), is(1));
-        FilterFeedback filterFeedback = filterFeedbacks.get(0);
-        assertThat(filterFeedback.getDescription(), is(
-                "fraudster@mail.com|" +
-                        "100|" +
-                        "123456|" +
-                        "fraudster-anon@mail.marktplaats.nl|" +
-                        "|" +
-                        "|" +
-                        "victim@mail.com|" +
-                        "987654|" +
-                        "1|"+fromUserId+"|"+toUserId));
     }
 
     @Test
@@ -449,7 +415,6 @@ public class BankAccountFilterTest {
         messages.add(crateMockMessage(4, MessageDirection.BUYER_TO_SELLER));
         messages.add(crateMockMessage(5, MessageDirection.SELLER_TO_BUYER));
 
-
         Map<String, String> customValues = new HashMap<>();
         customValues.put("from-userid", fromUserId);
         customValues.put("to-userid", toUserId);
@@ -458,18 +423,15 @@ public class BankAccountFilterTest {
         when(conversation.getBuyerId()).thenReturn("fraudster@mail.com");
         when(conversation.getSellerId()).thenReturn("victim@mail.com");
         when(conversation.getId()).thenReturn("987654");
-        when(conversation.getBuyerId()).thenReturn("fraudster@mail.com");
-        when(conversation.getSellerId()).thenReturn("victim@mail.com");
-        when(conversation.getId()).thenReturn("987654");
 
         when(conversation.getMessages()).thenReturn(messages);
 
         MailAddress anonymousFraudsterAddress = new MailAddress("fraudster-anon@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation)).
+        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).
                 thenReturn(anonymousFraudsterAddress);
 
         MailAddress anonymousVictimAddress = new MailAddress("victim-anon@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conversation)).
+        when(mailCloakingService.createdCloakedMailAddress(Seller, conversation)).
                 thenReturn(anonymousVictimAddress);
 
         mockDfsAndParser(mails);
@@ -490,6 +452,56 @@ public class BankAccountFilterTest {
                         "victim@mail.com|" +
                         "987654|" +
                         "4|"+fromUserId+"|"+toUserId));
+    }
+
+    @Test
+    public void descriptionInFilterReasonIsCorrectWhenSellerIsFraudster() throws Exception {
+        // Create the mails
+        final List<Mail> mails = new ArrayList<>(2);
+        mails.add(createMockMail(0, "buyer@mail.com", "innocent"));
+        mails.add(createMockMail(1, "seller@mail.com", "give me money! 123.456"));
+
+        // Create the messages
+        List<Message> messages = new ArrayList<>(2);
+        messages.add(crateMockMessage(0, MessageDirection.BUYER_TO_SELLER));
+        messages.add(crateMockMessage(1, MessageDirection.SELLER_TO_BUYER));
+
+        Map<String, String> customValues = new HashMap<>();
+        customValues.put("from-userid", fromUserId);
+        customValues.put("to-userid", toUserId);
+        when(conversation.getCustomValues()).thenReturn(customValues);
+        when(conversation.getBuyerId()).thenReturn("buyer@mail.com");
+        when(conversation.getSellerId()).thenReturn("seller@mail.com");
+        when(conversation.getId()).thenReturn("987654");
+
+        when(conversation.getMessages()).thenReturn(messages);
+
+        MailAddress anonymousBuyerAddress = new MailAddress("anonymous-buyer@mail.marktplaats.nl");
+        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).thenReturn(anonymousBuyerAddress);
+
+        MailAddress anonymousSellerAddress = new MailAddress("anonymous-seller@mail.marktplaats.nl");
+        when(mailCloakingService.createdCloakedMailAddress(Seller, conversation)).thenReturn(anonymousSellerAddress);
+
+        mockDfsAndParser(mails);
+
+        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, messages.get(1), mails.get(1));
+        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
+
+        assertNotNull(filterFeedbacks);
+        assertThat(filterFeedbacks.size(), is(1));
+        FilterFeedback filterFeedback = filterFeedbacks.get(0);
+        assertThat(filterFeedback.getDescription(), is(
+                "seller@mail.com|" +
+                        "100|" +
+                        "123456|" +
+                        "anonymous-seller@mail.marktplaats.nl|" +
+                        "seller@mail.com|" +
+                        "|" +
+                        "buyer@mail.com|" +
+                        "987654|" +
+                        "1|" +
+                        "456|" +
+                        "123"));
     }
 
     @Test
@@ -525,10 +537,10 @@ public class BankAccountFilterTest {
         assertThat(filterFeedbacks.get(1), matchesAccount("757706428", "757706428", 0, FilterResultState.OK));
     }
 
-    private Mail createMockMail(int index, String replyTo, String plain) {
+    private Mail createMockMail(int index, String from, String plain) {
         Mail mail = mock(Mail.class, "mail_" + index);
         when(mail.getSubject()).thenReturn("mail " + index);
-        when(mail.getReplyTo()).thenReturn(replyTo);
+        when(mail.getFrom()).thenReturn(from);
         when(mail.getCustomHeaders()).thenReturn(Collections.<String, String>emptyMap());
 
         // plain part
