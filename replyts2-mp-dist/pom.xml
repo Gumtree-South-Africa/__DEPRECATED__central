@@ -36,7 +36,7 @@
         </dependency>
         <dependency>
             <groupId>com.ecg.replyts</groupId>
-            <artifactId>message-center</artifactId>
+            <artifactId>replyts2-message-box</artifactId>
         </dependency>
         <dependency>
             <groupId>com.ecg.replyts</groupId>

@@ -13,7 +13,6 @@ Before you start, setup vagrant as described here: https://github.corp.ebay.com/
 Clone this repository, and finally clone all the submodules:
 ```
 git submodule update --init
-pushd replyts2-message-center && git checkout master && git pull origin master && popd
 pushd replyts2-threshold-resultinspector-plugin && git checkout marktplaats && git pull origin marktplaats && popd
 ```
 
