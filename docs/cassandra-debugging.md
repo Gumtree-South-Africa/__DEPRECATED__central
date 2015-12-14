@@ -20,3 +20,4 @@ Create a tunnel to access Cassandra:
 Create new connection in the `Connections` view. Add a single hostname (`localhost`) and fill in
 the 'native port' from above (`9043`, `9044` or `9045`). Set compression to 'none'.
 
+Create a script (you will be prompted). Make sure to select the correct connection, and then the `replyts2` keyspace.

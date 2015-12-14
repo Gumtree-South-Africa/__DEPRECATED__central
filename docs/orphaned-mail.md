@@ -3,13 +3,18 @@ ORPHANED emails
 
 To investigate cause of ORPHANED emails, do the following:
 
-Build tunnel to ES machine. For L&P this is: `ssh -L 9205:localhost:9200 mp-rtsesmaster001.replytslp.ams01`
+Build tunnel to ES machine and then open Sense.
 
-Then use [Sense](http://localhost:9205/_plugin/marvel/sense/index.html), or connect to `localhost:9205` in the
-Sense Chrome plugin and execute following query:
+* Demo: `ssh -L 9204:localhost:9200 esmaster001.dro.comaas.demo.mp.ecg.so`, [Sense](localhost:9204)
+* L&P: `ssh -L 9205:localhost:9200 mp-rtsesmaster001.replytslp.ams01`, [Sense](localhost:9205)
+* PROD: `ssh -L 9206:localhost:9200 esmaster001.esh.ops.prod.comaas`, [Sense](localhost:9206)
+
+If you use the Sense Chrome plugin, connect to `localhost:9204`, `localhost:9205` or `localhost:9206`.
+
+In Sense execute following query:
 
 ```
-GET replyts_mail.gemaaktvoorelkaar.nl/_search
+GET replyts_*/_search
 {
   "sort" : [
         { "conversationStartDate" : {"order" : "desc"}}
