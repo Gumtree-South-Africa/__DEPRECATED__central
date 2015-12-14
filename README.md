@@ -1,10 +1,38 @@
 # ReplyTS2 for Comaas
 
+## Contents
+
+* Links
+* Dev Setup
+
 ## Links
 
 * [Reply T&S at Marktplaats - integration](https://ecgwiki.corp.ebay.com/confluence/pages/viewpage.action?pageId=69271634) Describes headers expected from Aurora.
 * [Cassandra debuggin with DevCenter](docs/cassandra-debugging.md)
 * [Orphaned email](docs/orphaned-mail.md)
+
+### RTS2 and plugins repositories
+
+* [RTS2 core](https://github.corp.ebay.com/ReplyTS/replyts2-core/)
+* [RTS2 message-box](https://github.corp.ebay.com/ReplyTS/replyts2-message-box)
+* [replyts2-threshold-resultinspector-plugin](https://github.corp.ebay.com/ReplyTS/replyts2-threshold-resultinspector-plugin)
+* [replyts2-event-publisher](https://github.corp.ebay.com/ReplyTS/replyts2-event-publisher)
+* [replyts2-graphite-plugin](https://github.corp.ebay.com/ReplyTS/replyts2-graphite-plugin)
+
+### CsBizapp services repositories
+
+* [Mail-guard](https://github.corp.ebay.com/ecg-marktplaats/sunrise-mail-guard)
+* [sunrise-replyts-events](https://github.corp.ebay.com/ecg-marktplaats/sunrise-replyts-events)
+
+### Aurora services repositories
+
+* [aurora-messaging-frontend](https://github.corp.ebay.com/ecg-marktplaats/aurora-messaging-frontend)
+* [aurora-messaging-api](https://github.corp.ebay.com/ecg-marktplaats/aurora-messaging-api)
+
+### Other repositories
+
+* [Flume conversation event converter](https://github.corp.ebay.com/ReplyTS/conversation-event-converter)
+* [Marktplaats' RTS 1 plugins](https://github.corp.ebay.com/ecg-marktplaats/csba-replyts-plugins)
 
 ## Dev Setup
 
@@ -14,12 +42,6 @@ Clone this repository, and finally clone all the submodules:
 ```
 git submodule update --init
 pushd replyts2-threshold-resultinspector-plugin && git checkout marktplaats && git pull origin marktplaats && popd
-```
-
-TODO: change last three lines for the following two when rts core is on master branch again.
-```
-#git submodule foreach git checkout master
-#git submodule foreach git pull origin master
 ```
 
 To run RTS2 create the following run configuration:
