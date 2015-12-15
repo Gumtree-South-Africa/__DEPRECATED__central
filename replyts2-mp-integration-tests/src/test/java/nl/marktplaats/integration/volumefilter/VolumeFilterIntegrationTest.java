@@ -17,8 +17,9 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
     public void rtsBlocksMessagesAfterReachingVolumeThreshold() throws Exception {
         // Volume filter allows up to 10 mails per 10 minutes.
         // The 11th will exceed the threshold.
+        // Note: we need a different ad id for each mail, otherwise all mails will join the same conversation.
         for (int i = 0; i < 11; i++) {
-            deliverMailToRts("plain-asq.eml", "volume-seller-11@hotmail.com");
+            deliverMailToRts("plain-asq.eml", "volume-seller-11@hotmail.com", "m" + i);
         }
 
         IntegrationTestRunner.waitForMessageArrival(10, 30000L);
@@ -34,7 +35,7 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
         for (int i = 0; i < 11; i++) {
             getSession().execute("INSERT INTO volume_events(user_id, received_time) VALUES(?, NOW())", controlSenderEmailAddress);
         }
-        deliverMailToRts("plain-asq.eml", controlSenderEmailAddress);
+        deliverMailToRts("plain-asq.eml", controlSenderEmailAddress, "m1");
 
         // If the following assertion does not hold, something went wrong with the above events, probably because
         // the volume filter plugin uses a different schema.
@@ -51,7 +52,7 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
         }
 
         for (int i = 0; i < 11; i++) {
-            deliverMailToRts("plain-asq.eml", senderEmailAddress);
+            deliverMailToRts("plain-asq.eml", senderEmailAddress, "m" + i);
         }
 
         IntegrationTestRunner.waitForMessageArrival(10, 30000L);
@@ -60,7 +61,7 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
 
     @Test(groups = { "receiverTests" })
     public void rtsDoesNotBlocksReplies() throws Exception {
-        deliverMailToRts("plain-asq.eml", "volume-seller-88@gmail.com");
+        deliverMailToRts("plain-asq.eml", "volume-seller-88@gmail.com", "m1");
         IntegrationTestRunner.waitForMessageArrival(1, 5000L);
 
         // Volume filter allows up to 10 mails per 10 minutes.
@@ -72,9 +73,10 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
         IntegrationTestRunner.waitForMessageArrival(13, 30000L);
     }
 
-    private void deliverMailToRts(String emlName, String senderEmailAddress) throws Exception {
+    private void deliverMailToRts(String emlName, String senderEmailAddress, String adId) throws Exception {
         String emlDataStr = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName), "US-ASCII"));
         emlDataStr = emlDataStr.replace("{{{{senderEmailAddress}}}}", senderEmailAddress);
+        emlDataStr = emlDataStr.replace("{{{{adId}}}}", adId);
         byte[] emlData = emlDataStr.getBytes("US-ASCII");
         IntegrationTestRunner.getMailSender().sendMail(emlData);
     }
