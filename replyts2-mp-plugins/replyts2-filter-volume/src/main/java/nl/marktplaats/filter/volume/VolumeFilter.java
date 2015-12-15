@@ -38,7 +38,7 @@ public class VolumeFilter implements Filter {
         Mail mail = context.getMail();
         Message message = context.getMessage();
 
-        if (isFirstMailInConversation(mail) && !isBid(conv)) {
+        if (isFirstMailInConversation(conv, message) && !isBid(conv)) {
             recordMessage(message, conv);
 
             String userId = extractFrom(message, conv);
@@ -68,8 +68,8 @@ public class VolumeFilter implements Filter {
         return BID_FLOW_TYPE.equals(conv.getCustomValues().get("flowtype"));
     }
 
-    private boolean isFirstMailInConversation(Mail mail) {
-        return mail.containsHeader(Mail.ADID_HEADER);
+    private boolean isFirstMailInConversation(Conversation conversation, Message message) {
+        return conversation.getMessages().get(0).getId().equals(message.getId());
     }
 
     private void recordMessage(Message message, Conversation conversation) {

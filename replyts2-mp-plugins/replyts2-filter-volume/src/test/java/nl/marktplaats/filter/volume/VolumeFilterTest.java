@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
@@ -36,6 +37,7 @@ public class VolumeFilterTest {
     private final int SECONDS_FOR_RULE2 = 24 * 60 * 60;
 
     private final Message message = mock(Message.class);
+    private final Message firstMessage = mock(Message.class);
     private final MutableConversation conversation = mock(MutableConversation.class);
     private final Mail mail = mock(Mail.class);
     private final VolumeFilterEventRepository vts = mock(VolumeFilterEventRepository.class);
@@ -56,7 +58,7 @@ public class VolumeFilterTest {
 
     @Test
     public void filterDoesNotRecordReplies() throws Exception {
-        when(mail.containsHeader(Mail.ADID_HEADER)).thenReturn(false);
+        setUpTwoMailsInConversation();
         volumeFilter.filter(messageProcessingContext);
         verify(vts, never()).record(BUYER_ID, TTL);
     }
@@ -96,10 +98,20 @@ public class VolumeFilterTest {
     }
 
     private void setUpFirstMailInConversation() {
-        when(mail.containsHeader(Mail.ADID_HEADER)).thenReturn(true);
-        when(mail.getFrom()).thenReturn("bla@bla.com");
+        when(message.getId()).thenReturn("message-1");
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
+        when(conversation.getMessages()).thenReturn(singletonList(message));
         when(conversation.getUserId(ConversationRole.Buyer)).thenReturn(BUYER_ID);
+        when(mail.getFrom()).thenReturn("bla@bla.com");
+    }
+
+    private void setUpTwoMailsInConversation() {
+        when(firstMessage.getId()).thenReturn("message-1");
+        when(message.getId()).thenReturn("message-2");
+        when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
+        when(conversation.getMessages()).thenReturn(asList(firstMessage, message));
+        when(conversation.getUserId(ConversationRole.Buyer)).thenReturn(BUYER_ID);
+        when(mail.getFrom()).thenReturn("bla@bla.com");
     }
 
     private MessageProcessingContext mockMessageProcessingContext(Mail mail, Message message, MutableConversation conversation) {
