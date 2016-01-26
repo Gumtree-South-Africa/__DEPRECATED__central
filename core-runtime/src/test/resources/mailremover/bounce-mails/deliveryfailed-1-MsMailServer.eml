@@ -1,0 +1,49 @@
+Received: from mail-gw-01.neofonie.de (91.213.91.142) by post.neofonie.de
+ (172.27.21.10) with Microsoft SMTP Server (TLS) id 14.1.218.12; Wed, 27 Oct
+ 2010 16:45:48 +0200
+Delivered-To: foo@asdf.com
+Received: from mail by mail-gw-01.neofonie.de with local (Exim 4.63)	id
+ 1PB7IF-0002UN-4N	for huttar@neofonie.de; Wed, 27 Oct 2010 16:47:59 +0200
+X-Failed-Recipients: asdfuasfasjhfasjfhkasjfasfdassafasdfdasf@mac.com
+Auto-Submitted: auto-replied
+From: Mail Delivery System <Mailer-Daemon@neofonie.de>
+To: <huttar@neofonie.de>
+Subject: Mail delivery failed: returning message to sender
+Message-ID: <E1PB7IF-0002UN-4N@mail-gw-01.neofonie.de>
+Date: Wed, 27 Oct 2010 16:47:59 +0200
+Content-Type: text/plain
+Return-Path: <>
+X-MS-Exchange-Organization-AuthSource: esx01cas.exchange.neofonie.de
+X-MS-Exchange-Organization-AuthAs: Anonymous
+MIME-Version: 1.0
+
+This message was created automatically by mail delivery software.
+
+A message that you sent could not be delivered to one or more of its
+recipients. This is a permanent error. The following address(es) failed:
+
+  asdfuasfasjhfasjfhkasjfasfdassafasdfdasf@mac.com
+    SMTP error from remote mail server after RCPT TO:<asdfuasfasjhfasjfhkasjfasfdassafasdfdasf@mac.com>:
+    host nk11b01-smtp-mx005.mac.com [17.148.17.45]:
+    550 5.1.1 unknown or illegal alias: asdfuasfasjhfasjfhkasjfasfdassafasdfdasf@mac.com
+
+------ This is a copy of the message, including all the headers. ------
+
+Return-path: <huttar@neofonie.de>
+Received: from [172.27.39.154]
+	by mail-gw-01.neofonie.de with esmtps (TLSv1:CAMELLIA256-SHA:256)
+	(Exim 4.63)
+	(envelope-from <huttar@neofonie.de>)
+	id 1PB7IB-0002UJ-Tp
+	for asdfuasfasjhfasjfhkasjfasfdassafasdfdasf@mac.com; Wed, 27 Oct 2010 16:47:55 +0200
+Message-ID: <4CC83C22.6060801@neofonie.de>
+Date: Wed, 27 Oct 2010 16:50:10 +0200
+From: Matthias Huttar <huttar@neofonie.de>
+User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; de; rv:1.9.1.5) Gecko/20091130 SUSE/3.0.0-1.1.1 Thunderbird/3.0
+MIME-Version: 1.0
+To: asdfuasfasjhfasjfhkasjfasfdassafasdfdasf@mac.com
+Subject: give me your DSN thanks!
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+
+fasdf

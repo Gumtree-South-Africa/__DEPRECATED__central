@@ -1,0 +1,65 @@
+Received: from esx01ex2003.exchange.neofonie.de (172.27.21.13) by
+ esx02cas.exchange.neofonie.de (172.27.21.6) with Microsoft SMTP Server id
+ 14.1.218.12; Mon, 25 Oct 2010 15:00:34 +0200
+Received: from dannenberg ([172.27.39.177]) by
+ esx01ex2003.exchange.neofonie.de with Microsoft SMTPSVC(6.0.3790.4675);	 Mon,
+ 25 Oct 2010 15:00:34 +0200
+From: <qm-l@neofonie.de>
+To: <entwickler-l@neofonie.de>, <releases-l@neofonie.de>
+Delivered-To: asdf@asdf.com
+Message-ID: <DEF@abc.com>
+References: <oahs8ashusapouhjsaffasa4@test-domain.com> <1hnpdz5665i3azbt3brzd05ea2x@test-domain.com>
+Subject: neofonie qm / [RELEASE] eclipse property manager 2.2.0 (4400)
+ Cascade.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_0_1032432821.1288011714133"
+Return-Path: qm-l@neofonie.de
+X-OriginalArrivalTime: 25 Oct 2010 13:00:34.0435 (UTC) FILETIME=[9C9D6530:01CB7444]
+Date: Mon, 25 Oct 2010 15:00:34 +0200
+X-Auto-Response-Suppress: OOF, AutoReply
+X-MS-Exchange-Organization-AuthSource: esx02cas.exchange.neofonie.de
+X-MS-Exchange-Organization-AuthAs: Anonymous
+MIME-Version: 1.0
+
+------=_Part_0_1032432821.1288011714133
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns=3D"http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8"><!=
+-- </meta> --><meta content=3D"Suchtechnologie, Full Service IT Dienstleist=
+ungen" name=3D"keywords"><!-- </meta> --><meta content=3D"Suchtechnologie-A=
+nbieter und IT Dienstleister f=EF=BF=BDr innovative Suchtechnologien, Webap=
+plikationen und Portalen. Neofonie steht f=EF=BF=BDr agilen und bedarfsgena=
+uen Entwurf, Entwicklung und Projektmanagement von hochverf=EF=BF=BDgbaren =
+Informationsarchitekturen, Web-Auftritten und Online-Systemen" name=3D"desc=
+ription"><!-- </meta> --><title>Release Mail eclipse property manager 2.2.0=
+</title></head><body><link rel=3D"shortcut icon" type=3D"image/x-icon" href=
+=3D"http://update.neofonie.de/releasemail/favicon.png"><!-- </link> --><lin=
+k rel=3D"stylesheet" type=3D"text/css" href=3D"http://update.neofonie.de/re=
+leasemail/neofonie.css" media=3D"all"><!-- </link> --><link rel=3D"styleshe=
+et" type=3D"text/css" media=3D"all" href=3D"http://update.neofonie.de/relea=
+semail/toolbar.css"><!-- </link> --><style type=3D"text/css">.pdf, #wrapper=
+ a.pdf:hover {padding:1px 28px 1px 0;}</style><div id=3D"wrapper"><div id=
+=3D"container" class=3D"clear-block"><div id=3D"header"><div id=3D"logo"><a=
+ href=3D"/"><img alt=3D"Neofonie GmbH" src=3D"http://update.neofonie.de/rel=
+easemail/logo.png"><!-- </img> --></a></div><div><h1>  Release</h1></div></=
+div><div id=3D"content" class=3D"teaserpage"><div class=3D"teaser white"><d=
+iv><table class=3D"teaser1" border=3D"0"><tr><td>Hello,<br><br>this mail is=
+ announcing the release of the &quot;eclipse property manager (2.2.0) Casca=
+de.0&quot; .<br><br></td></tr><tr><td><h2>Introduction</h2><hr><br>This is =
+a summary of new features, bugfixes and changes<br>for the given release of=
+ the eclipse property manager.<br><br><br>Updates can be found at the follo=
+wing locations:<br><br><ul><li><a href=3D"http://update.neofonie.de/Propert=
+yManager">eclipse update site</a></li></ul></td></tr><tr><td><h2>First offi=
+cial release</h2><hr>This is the first official release of the eclipse prop=
+erty editor.<br>This editor provides a simple GUI (an eclipse project edito=
+r) for the management of build properties files in multi-module Neofonie-st=
+yle maven projects.</td></tr><tr><td><h2>Release History</h2><hr>25.10.2010=
+ 14:00 2.2.0<br></td></tr></table></div></div><div id=3D"footer">contact:qm=
+-l@neofonie.de<br>Copyright (c) Neofonie GmbH</div></div></div></div></body=
+></html>
+<!-- This mail was automatically created by the neofonie maven build plugin=
+ version 3.2.1 -->=
+
+------=_Part_0_1032432821.1288011714133--

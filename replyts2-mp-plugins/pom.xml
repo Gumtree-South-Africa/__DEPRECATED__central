@@ -3,13 +3,12 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>mp-replyts2</artifactId>
-        <groupId>nl.marktplaats</groupId>
+        <groupId>ecg.icas.comaas</groupId>
+        <artifactId>comaas</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.marktplaats</groupId>
     <artifactId>replyts2-mp-plugins</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>

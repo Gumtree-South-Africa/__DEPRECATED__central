@@ -1,0 +1,103 @@
+From MAILER-DAEMON Thu Oct 28 06:58:19 2010
+Return-path: <MAILER-DAEMON>
+X-Original-To: postmaster@mydomain.com
+Delivered-To: me@mydomain.com
+Received: by mx-01.knallhart.de (Postfix) id B1AF23FD45A; Thu, 28 Oct 2010
+ 08:58:19 +0200 (CEST)
+Date: Thu, 28 Oct 2010 08:58:19 +0200
+From: "Mail Delivery System" <MAILER-DAEMON>
+Subject: Rueckgabe nicht zustellbarer Nachricht an Absender
+To: postmaster@mydomain.com
+Auto-Submitted: auto-replied
+MIME-Version: 1.0
+Content-Type: multipart/report; report-type=delivery-status;
+ boundary="02BE13FD39E.1288249099/mx-01.knallhart.de"
+Content-Transfer-Encoding: 8bit
+Message-ID: <20101028065819.B1AF23FD45A@mx-01.knallhart.de>
+
+This is a MIME-encapsulated message.
+
+--02BE13FD39E.1288249099/mx-01.knallhart.de
+Content-Description: Notification
+Content-Type: text/plain; charset=utf-8
+
+Dies ist eine automatisch generierte Nachricht des Postfix E-Mail-Dienstes.
+Dieser Dienst wird auf dem Server mx-01.knallhart.de betrieben und teilt Ihnen
+folgendes mit:
+
+
+    Ihre Nachricht konnte an einen oder mehrere Empfaenger nicht zugestellt
+    werden. Ein Problem-Bericht, sowie Ihre uspruengliche Nachricht wurden an
+    das Ende dieser Nachricht angehaengt.
+
+
+Fuer weitere Hilfe kontaktieren Sie bitte den fuer Sie zustaendigen
+<postmaster>.
+
+Senden Sie dazu den an diese E-Mail angefuegten Problem-Bericht mit.
+Den Inhalt Ihrer urspruenglichen Nachricht koennen Sie - zum Schutz Ihrer
+Privatsphaere - entfernen; er ist fuer eine Fehler-Diagnose nicht zwingend
+notwendig.
+
+                   Der Postfix E-Mail-Dienst
+
+                        INTERNATIONAL VERSION
+
+This is the Postfix program at host mx-01.knallhart.de.
+
+I'm sorry to have to inform you that your message could not
+be delivered to one or more recipients. It's attached below.
+
+For further assistance, please send mail to <postmaster>
+
+If you do so, please include this problem report. You can
+delete your own text from the attached returned message.
+
+
+<xxx@hotmail.de>: host mx3.hotmail.com[65.55.37.104] said: 550
+    Requested action not taken: mailbox unavailable (in reply to RCPT TO
+    command)
+
+--02BE13FD39E.1288249099/mx-01.knallhart.de
+Content-Description: Delivery report
+Content-Type: message/delivery-status
+
+Reporting-MTA: dns; mx-01.knallhart.de
+X-Postfix-Queue-ID: 02BE13FD39E
+X-Postfix-Sender: rfc822; postmaster@mydomain.com
+Arrival-Date: Thu, 28 Oct 2010 08:58:18 +0200 (CEST)
+
+Final-Recipient: rfc822; xxx@hotmail.de
+Original-Recipient: rfc822;xxx@hotmail.de
+Action: failed
+Status: 5.0.0
+Remote-MTA: dns; mx3.hotmail.com
+Diagnostic-Code: smtp; 550 Requested action not taken: mailbox unavailable
+
+--02BE13FD39E.1288249099/mx-01.knallhart.de
+Content-Description: Undelivered Message
+Content-Type: message/rfc822
+Content-Transfer-Encoding: 8bit
+
+Return-Path: <postmaster@mydomain.com>
+Received: from web02.localdomain (unknown [192.168.1.20])
+	by mx-01.knallhart.de (Postfix) with ESMTP id 02BE13FD39E
+	for <xxx@hotmail.de>; Thu, 28 Oct 2010 08:58:18 +0200 (CEST)
+Received: by web02.localdomain (Postfix, from userid 8115)
+	id F3D4C3BF4D0; Thu, 28 Oct 2010 08:58:17 +0200 (CEST)
+To: xxx@hotmail.de
+Subject: =?UTF-8?B?TmV1ZSBBbnR3b3J0IHp1IFdpZXNiYWRlbiAtIFdpZSwgd2Fubiwgd28gdW5kIHM=?=  =?UTF-8?B?cGllbGVuIGRpZSDDvGJlcmhhdXB0Pw==?=
+From: "Ein Forum" <>
+Reply-To: 
+Message-ID: <88337bd46969d817538ebe16ecdf2236@www.mydomain.com>
+Content-Transfer-Encoding: 8bit
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: MyBB
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Date: Thu, 28 Oct 2010 08:58:17 +0200 (CEST)
+
+Originalinhalt der Mail ...
+
+--02BE13FD39E.1288249099/mx-01.knallhart.de--

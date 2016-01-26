@@ -1,0 +1,48 @@
+From Mailer-Daemon@mydomain.de Sun Oct 17 09:13:50 2010
+Received: from mail-gw-01.mydomain.de (91.213.91.142) by post.mydomain.de
+ (172.27.21.10) with Microsoft SMTP Server (TLS) id 14.1.218.12; Sun, 17 Oct
+ 2010 11:13:50 +0200
+Delivered-To: foo@asdf.com
+Received: from mail by mail-gw-01.mydomain.de with local (Exim 4.63)	id
+ 1P7PJO-0000gF-59	for me@mydomain.com; Sun, 17 Oct 2010 11:13:50 +0200
+X-Failed-Recipients: recipient@mydomain.com
+Auto-Submitted: auto-replied
+From: "Mail Delivery System" <Mailer-Daemon@mydomain.de>
+To: me@mydomain.com
+Subject: Mail delivery failed: returning message to sender
+Message-ID: <E1P7PJO-0000gF-59@mail-gw-01.mydomain.de>
+Date: Sun, 17 Oct 2010 11:13:50 +0200
+Content-Type: text/plain
+Return-path: <>
+X-MS-Exchange-Organization-AuthSource: esx01cas.exchange.mydomain.de
+X-MS-Exchange-Organization-AuthAs: Anonymous
+MIME-Version: 1.0
+
+This message was created automatically by mail delivery software.
+
+A message that you sent could not be delivered to one or more of its
+recipients. This is a permanent error. The following address(es) failed:
+
+  recipient@mydomain.com
+    retry timeout exceeded
+
+------ This is a copy of the message, including all the headers. ------
+
+Return-path: <me@mydomain.com>
+Received: from [172.27.40.46] (helo=emmen)
+	by mail-gw-01.mydomain.de with esmtp (Exim 4.63)
+	(envelope-from <me@mydomain.com>)
+	id 1P5x2O-0003cF-HX; Wed, 13 Oct 2010 10:50:16 +0200
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Walter Tietze" <recipient@mydomain.com>
+Subject: Hier steht der Betreff
+References: <20101012105616.9DA3A1E940680@schwabing.mydomain.priv>
+Date: Wed, 13 Oct 2010 10:50:16 +0200
+MIME-Version: 1.0
+Content-Transfer-Encoding: Quoted-Printable
+From: =?utf-8?Q?Mein Name?= <me@mydomain.com>
+Message-ID: <op.vkiat2b11hywyd@emmen>
+In-Reply-To: <20101012105616.9DA3A1E940680@schwabing.mydomain.priv>
+User-Agent: Opera Mail/10.62 (Linux)
+
+Und hier der Inhalt der Mail

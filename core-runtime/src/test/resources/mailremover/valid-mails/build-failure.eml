@@ -1,0 +1,274 @@
+Received: from mail-gw-01.neofonie.de (91.213.91.142) by post.neofonie.de
+ (172.27.21.10) with Microsoft SMTP Server (TLS) id 14.1.218.12; Sun, 10 Oct
+ 2010 01:02:02 +0200
+Received: from [91.213.91.94] (helo=hudson01)	by mail-gw-01.neofonie.de with
+ esmtp (Exim 4.63)	(envelope-from <continuum@neofonie.de>)	id 1P4iQU-0002Aw-Fi
+	for netzeitung-dev-l@neofonie.de; Sun, 10 Oct 2010 01:02:02 +0200
+Delivered-To: foo@asdf.com
+Date: Sun, 10 Oct 2010 01:02:02 +0200
+From: <continuum@neofonie.de>
+To: <netzeitung-dev-l@neofonie.de>
+Message-ID: <221473348.1661286665322476.JavaMail.continuum@hudson01>
+Subject: Hudson-Build fehlgeschlagen: ntz #34
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-Path: continuum@neofonie.de
+X-MS-Exchange-Organization-AuthSource: esx01cas.exchange.neofonie.de
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-Auto-Response-Suppress: DR, OOF, AutoReply
+MIME-Version: 1.0
+
+Siehe <https://hudson01.neofonie.de/job/ntz/34/>
+
+------------------------------------------
+[...truncated 295 lines...]
+AU        ntz-webapp/web-app/images/wetterkontor.png
+AU        ntz-webapp/web-app/images/ico_web.png
+AU        ntz-webapp/web-app/images/ico_sort_down.png
+AU        ntz-webapp/web-app/images/slider_bgr.png
+AU        ntz-webapp/web-app/images/ico_plus.png
+AU        ntz-webapp/web-app/images/powered_by_nachrichtende.png
+AU        ntz-webapp/web-app/images/6_netzeitung_archiv_tagcloud.gif
+AU        ntz-webapp/web-app/images/header_ueberuns.gif
+AU        ntz-webapp/web-app/images/ico_hilfe.png
+AU        ntz-webapp/web-app/images/img_ueber_uns.png
+AU        ntz-webapp/web-app/images/suchebutton.gif
+AU        ntz-webapp/web-app/images/navi02_bg.gif
+AU        ntz-webapp/web-app/images/ico_lupe.png
+AU        ntz-webapp/web-app/images/ico_close.png
+AU        ntz-webapp/web-app/images/icon_mrwong.gif
+AU        ntz-webapp/web-app/images/1_startseite.jpg
+AU        ntz-webapp/web-app/images/nz_logo_gruen.jpg
+AU        ntz-webapp/web-app/images/slider_grip.png
+AU        ntz-webapp/web-app/images/header_news.gif
+AU        ntz-webapp/web-app/images/netzeitung_12_ueber_uns.png
+AU        ntz-webapp/web-app/images/netzeitung_13_hilfe.png
+AU        ntz-webapp/web-app/images/teaser_back_83px.gif
+AU        ntz-webapp/web-app/images/inputfield_suche_long.png
+AU        ntz-webapp/web-app/images/selectbox_grip.png
+AU        ntz-webapp/web-app/images/4_aktuelle_themen.gif
+AU        ntz-webapp/web-app/images/muw_head_back01.png
+AU        ntz-webapp/web-app/images/pixel.png
+AU        ntz-webapp/web-app/images/muw_back.png
+AU        ntz-webapp/web-app/images/inputfield_suche.png
+AU        ntz-webapp/web-app/images/7_standardsuche.gif
+AU        ntz-webapp/web-app/images/form_search_bg.png
+AU        ntz-webapp/web-app/images/opt_plus.png
+AU        ntz-webapp/web-app/images/paging_links.png
+AU        ntz-webapp/web-app/images/ico_wefind.png
+AU        ntz-webapp/web-app/images/ico_news.png
+AU        ntz-webapp/web-app/images/button_b_gal_re.gif
+AU        ntz-webapp/web-app/images/schatten_50px.gif
+AU        ntz-webapp/web-app/images/teaser_back_15x125_01.gif
+AU        ntz-webapp/web-app/images/igoogle_nopicture.png
+AU        ntz-webapp/web-app/images/opt_minus.png
+AU        ntz-webapp/web-app/images/btn_finden_bg.png
+AU        ntz-webapp/web-app/images/igoogle_screenshot.jpg
+AU        ntz-webapp/web-app/images/arrow-down.gif
+AU        ntz-webapp/web-app/images/2_ressort_cluster_und_nachrichten.gif
+A         ntz-webapp/web-app/images/skin
+AU        ntz-webapp/web-app/images/skin/database_add.png
+AU        ntz-webapp/web-app/images/skin/sorted_desc.gif
+AU        ntz-webapp/web-app/images/skin/shadow.jpg
+AU        ntz-webapp/web-app/images/skin/database_save.png
+AU        ntz-webapp/web-app/images/skin/house.png
+AU        ntz-webapp/web-app/images/skin/exclamation.png
+AU        ntz-webapp/web-app/images/skin/information.png
+AU        ntz-webapp/web-app/images/skin/database_delete.png
+AU        ntz-webapp/web-app/images/skin/sorted_asc.gif
+AU        ntz-webapp/web-app/images/skin/database_edit.png
+AU        ntz-webapp/web-app/images/skin/database_table.png
+AU        ntz-webapp/web-app/images/jobworld.png
+AU        ntz-webapp/web-app/images/8_erweiterte_suche_nachrichten.gif
+AU        ntz-webapp/web-app/images/10_metanavi.gif
+AU        ntz-webapp/web-app/images/back_bookm.png
+AU        ntz-webapp/web-app/images/maske_kreis.png
+AU        ntz-webapp/web-app/images/nz_igoogle_btn.png
+AU        ntz-webapp/web-app/images/igoogle_ntz.gif
+AU        ntz-webapp/web-app/images/experteer.png
+AU        ntz-webapp/web-app/images/karriere.png
+AU        ntz-webapp/web-app/images/auslage_nachrichten_untere.jpg
+AU        ntz-webapp/web-app/images/btn_finden_b.png
+AU        ntz-webapp/web-app/images/nz_logo.png
+AU        ntz-webapp/web-app/images/9_herausgeber_waehlen.gif
+AU        ntz-webapp/web-app/images/11_personen.gif
+AU        ntz-webapp/web-app/images/paging_rechts.png
+AU        ntz-webapp/web-app/images/lightbox.png
+AU        ntz-webapp/web-app/images/g_gadget.gif
+AU        ntz-webapp/web-app/images/igoogle.png
+AU        ntz-webapp/web-app/images/navi_bg.gif
+AU        ntz-webapp/web-app/images/icon_yigg.gif
+AU        ntz-webapp/web-app/images/navi07_bg.gif
+AU        ntz-webapp/web-app/images/inputfield_suche_bg.png
+AU        ntz-webapp/web-app/images/icon_webnews.gif
+AU        ntz-webapp/web-app/images/button_b_gal_li.gif
+AU        ntz-webapp/web-app/images/auslage_bg_bildschau02.jpg
+AU        ntz-webapp/web-app/images/btn_finden.png
+AU        ntz-webapp/web-app/images/3_dpa.gif
+AU        ntz-webapp/web-app/images/auslage_bg_bildschau04.jpg
+AU        ntz-webapp/web-app/images/header_podcast.gif
+AU        ntz-webapp/web-app/images/powered_by_wefind.png
+A         ntz-webapp/web-app/noserver.html
+A         ntz-webapp/web-app/robots.txt
+A         ntz-webapp/web-app/WEB-INF
+A         ntz-webapp/web-app/WEB-INF/sitemesh.xml
+A         ntz-webapp/web-app/WEB-INF/tld
+A         ntz-webapp/web-app/WEB-INF/tld/grails.tld
+A         ntz-webapp/web-app/WEB-INF/tld/c.tld
+A         ntz-webapp/web-app/WEB-INF/tld/spring.tld
+A         ntz-webapp/web-app/WEB-INF/tld/fmt.tld
+A         ntz-webapp/web-app/WEB-INF/applicationContext.xml
+A         ntz-webapp/web-app/css
+A         ntz-webapp/web-app/css/nz_re_li_008.css
+A         ntz-webapp/web-app/css/iefix_005.css
+A         ntz-webapp/web-app/css/nz_re_li_009.css
+A         ntz-webapp/web-app/css/iefix_006.css
+A         ntz-webapp/web-app/css/ie6fix.css
+A         ntz-webapp/web-app/css/iefix_007.css
+A         ntz-webapp/web-app/css/iefix_008.css
+A         ntz-webapp/web-app/css/iepngfix.htc
+A         ntz-webapp/web-app/css/tmp_nz_re09.css
+A         ntz-webapp/web-app/css/tree
+A         ntz-webapp/web-app/css/tree/default
+A         ntz-webapp/web-app/css/tree/default/tree.css
+A         ntz-webapp/web-app/css/tree/menu
+A         ntz-webapp/web-app/css/tree/menu/tree.css
+A         ntz-webapp/web-app/css/tree/check
+A         ntz-webapp/web-app/css/tree/check/tree.css
+A         ntz-webapp/web-app/css/tree/folders
+A         ntz-webapp/web-app/css/tree/folders/tree.css
+A         ntz-webapp/web-app/css/jquery.autocomplete.css
+A         ntz-webapp/web-app/css/nz_re_li_010.css
+A         ntz-webapp/web-app/css/nz_re_li_001.css
+A         ntz-webapp/web-app/css/nz_re_li_002.css
+A         ntz-webapp/web-app/css/nz_re_li_003.css
+A         ntz-webapp/web-app/css/nz_re_li_004.css
+A         ntz-webapp/web-app/css/main.css
+A         ntz-webapp/web-app/css/nz_re_li_005.css
+A         ntz-webapp/web-app/css/nz_re08.css
+A         ntz-webapp/web-app/css/nz_re09.css
+A         ntz-webapp/web-app/css/nz_re_li_006.css
+A         ntz-webapp/web-app/css/iefix_004.css
+A         ntz-webapp/web-app/css/nz_re_li_007.css
+A         ntz-webapp/web-app/js
+A         ntz-webapp/web-app/js/jquery.editable-select.js
+A         ntz-webapp/web-app/js/jquery.styledSelect.min.js
+A         ntz-webapp/web-app/js/ak.jquery.imageSlider.custom.js
+A         ntz-webapp/web-app/js/ak.jquery.extendedSearch.custom.js
+A         ntz-webapp/web-app/js/ui.datepicker-de.js
+A         ntz-webapp/web-app/js/lightbox_old.js
+A         ntz-webapp/web-app/js/jquery.autocomplete.js
+A         ntz-webapp/web-app/js/searchMask.js
+A         ntz-webapp/web-app/js/jquery-ui-1.7.2.custom.min.js
+A         ntz-webapp/web-app/js/prototype
+A         ntz-webapp/web-app/js/prototype/prototype.js
+A         ntz-webapp/web-app/js/prototype/builder.js
+A         ntz-webapp/web-app/js/prototype/sound.js
+A         ntz-webapp/web-app/js/prototype/rico.js
+A         ntz-webapp/web-app/js/prototype/animation.js
+A         ntz-webapp/web-app/js/prototype/effects.js
+A         ntz-webapp/web-app/js/prototype/unittest.js
+A         ntz-webapp/web-app/js/prototype/scriptaculous.js
+A         ntz-webapp/web-app/js/prototype/dragdrop.js
+A         ntz-webapp/web-app/js/prototype/slider.js
+A         ntz-webapp/web-app/js/prototype/controls.js
+A         ntz-webapp/web-app/js/ak.jquery.datepickerSlider.custom.js
+A         ntz-webapp/web-app/js/jquery-1.3.2.min.js
+A         ntz-webapp/web-app/js/jquery.scrollTo-1.4.2-min.js
+A         ntz-webapp/web-app/js/navi_ie6.js
+A         ntz-webapp/web-app/js/ak.jquery.lightbox.custom.js
+A         ntz-webapp/web-app/js/application.js
+A         ntz-webapp/application.properties
+A         src
+A         src/main
+A         src/main/resources
+A         src/site
+A         src/site/site.xml
+A         src/changes
+A         src/changes/ReleaseMailTemplate.html
+A         src/changes/changes.xml
+A         src/changes/ReleaseNotesTemplate.html
+A         deploy-rpm
+A         deploy-rpm/apache
+A         deploy-rpm/apache/src
+A         deploy-rpm/apache/src/main
+A         deploy-rpm/apache/src/main/resources
+A         deploy-rpm/apache/src/main/resources/etc
+A         deploy-rpm/apache/src/main/resources/etc/cronjobs
+A         deploy-rpm/apache/src/main/resources/etc/cronjobs/miniadsdownload.sh
+A         deploy-rpm/apache/src/main/resources/etc/httpd
+A         deploy-rpm/apache/src/main/resources/etc/httpd/conf.d
+A         deploy-rpm/apache/src/main/resources/etc/httpd/conf.d/application-httpd.conf.in
+A         deploy-rpm/build.local.properties
+A         deploy-rpm/project-default.properties
+A         deploy-rpm/src
+A         deploy-rpm/src/main
+A         deploy-rpm/src/main/html
+A         deploy-rpm/src/main/html/version.shtml.in
+A         deploy-rpm/src/main/resources
+A         deploy-rpm/src/main/resources/log4j.properties.in
+A         deploy-rpm/src/main/resources/postinstall.sh
+A         deploy-rpm/src/main/resources/preinstall.sh
+AU        deploy-rpm/src/main/resources/Changelog_ntz-webapp-distribution.txt
+AU        deploy-rpm/src/main/resources/ReleaseNotes_ntz-webapp-distribution.txt
+A         deploy-rpm/src/main/etc
+A         deploy-rpm/src/main/etc/cronjobs
+A         deploy-rpm/src/main/etc/cronjobs/readme.cronjobs
+A         deploy-rpm/src/changes
+A         deploy-rpm/src/changes/changes.xml
+A         deploy-rpm/pom.xml
+A         deploy-rpm/project-ntz-default.properties
+A         pom.xml
+A         ntz-dummy-daten
+A         ntz-dummy-daten/hide-pictures.txt
+A         ntz-dummy-daten/miniads.xml
+A         ntz-dummy-daten/articles
+A         ntz-dummy-daten/articles/10
+A         ntz-dummy-daten/articles/10/1000097.xml
+A         ntz-dummy-daten/articles/10/1000017.xml
+A         ntz-dummy-daten/articles/10/1000057.xml
+A         ntz-dummy-daten/articles/10/1000077.xml
+A         ntz-dummy-daten/dpa_cache
+A         ntz-dummy-daten/dpa_cache/TOUCH
+A         ntz-dummy-daten/dpa_cache/files
+A         ntz-dummy-daten/dpa_cache/index.xml
+A         ntz-dummy-daten/ntz-config.properties
+ U        .
+At revision 1119
+no change for svn+ssh://svn.neofonie.de/svnroot/projects/ntz/trunk since the previous build
+[ntz] $ /bin/sh -xe /tmp/hudson629840238062043039.sh
++ mvn --version
+Apache Maven 2.1.0 (r755702; 2009-03-18 20:10:27+0100)
+Java version: 1.6.0_20
+Java home: /websoft_neofonie/java/jdk/jdk1.6.0_20_x86_64/jre
+Default locale: en_US, platform encoding: UTF-8
+OS name: "linux" version: "2.6.27.45-0.1-xen" arch: "amd64" Family: "unix"
+[trunk] $ /webdata_continuum/hudson/tools/Maven_2.1.0/bin/mvn clean install --batch-mode
+[INFO] Scanning for projects...
+[INFO] Reactor build order: 
+[INFO]   ntz
+[INFO]   ntz-webapp
+WAGON_VERSION: 1.0-beta-2
+Downloading: https://repo.neofonie.de/m2repo/org/grails/grails-maven-plugin/1.1-patched-0.1.2/grails-maven-plugin-1.1-patched-0.1.2.pom
+12K downloaded  (grails-maven-plugin-1.1-patched-0.1.2.pom)
+Downloading: https://repo.neofonie.de/m2repo/org/grails/grails-maven-plugin/1.1-patched-0.1.2/grails-maven-plugin-1.1-patched-0.1.2.jar
+66K downloaded  (grails-maven-plugin-1.1-patched-0.1.2.jar)
+[INFO] ------------------------------------------------------------------------
+[INFO] Building ntz
+[INFO]    task-segment: [clean, install]
+[INFO] ------------------------------------------------------------------------
+[INFO] artifact org.codehaus.mojo:buildnumber-maven-plugin: checking for updates from neofonie
+[WARNING] repository metadata for: 'artifact org.codehaus.mojo:buildnumber-maven-plugin' could not be retrieved from repository: neofonie due to an error: Authorization failed: Private key '/home/continuum/.ssh/id_dsa' not found
+[INFO] Repository 'neofonie' will be blacklisted
+[INFO] ------------------------------------------------------------------------
+[ERROR] BUILD ERROR
+[INFO] ------------------------------------------------------------------------
+[INFO] The plugin 'org.codehaus.mojo:buildnumber-maven-plugin' does not exist or no valid version could be found
+[INFO] ------------------------------------------------------------------------
+[INFO] For more information, run Maven with the -e switch
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 4 seconds
+[INFO] Finished at: Sun Oct 10 01:02:02 CEST 2010
+[INFO] Final Memory: 21M/989M
+[INFO] ------------------------------------------------------------------------
+

@@ -1,0 +1,98 @@
+{
+    "message": {
+        "_source": {
+            "enabled": false
+        },
+        "properties": {
+            "toEmail": {
+                "type": "string",
+                "index": "not_analyzed"
+            },
+            "toEmailAnonymous": {
+                "type": "string",
+                "index": "not_analyzed"
+            },
+            "messageText": {
+                "type": "string"
+            },
+            "humanResultState": {
+                "type": "string",
+                "index": "not_analyzed"
+            },
+            "receivedDate": {
+                "format": "dateOptionalTime",
+                "type": "date"
+            },
+            "feedback": {
+                "dynamic": "true",
+                "properties": {
+                    "filterName": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "filterInstance": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    }
+                }
+            },
+            "conversationStartDate": {
+                "format": "dateOptionalTime",
+                "type": "date"
+            },
+            "adId": {
+                "type": "string",
+                "index": "not_analyzed"
+            },
+            "customHeaders": {
+                "dynamic": "true",
+                "properties": {
+                    "to": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "l2-categoryid": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "l1-categoryid": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "from": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "customheader": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    }
+                }
+            },
+            "fromEmail": {
+                "type": "string",
+                "index": "not_analyzed"
+            },
+            "fromEmailAnonymous": {
+                "type": "string",
+                "index": "not_analyzed"
+            },
+            "messageDirection": {
+                "type": "string",
+                "index": "not_analyzed"
+            },
+            "lastEditor": {
+                "type": "string",
+                "index": "not_analyzed"
+            },
+            "messageState": {
+                "type": "string",
+                "index": "not_analyzed"
+            },
+            "attachments": {
+                "type": "string",
+                "index": "not_analyzed"
+            }
+        }
+    }
+}

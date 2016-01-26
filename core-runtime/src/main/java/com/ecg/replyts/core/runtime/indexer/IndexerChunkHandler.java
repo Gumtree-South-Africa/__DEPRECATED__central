@@ -1,0 +1,71 @@
+package com.ecg.replyts.core.runtime.indexer;
+
+import com.codahale.metrics.Timer;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.persistence.ConversationRepository;
+import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
+import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.util.ArrayList;
+import java.util.List;
+
+class IndexerChunkHandler {
+
+    private static final Timer OVERALL_TIMER = TimingReports.newTimer("index-chunk");
+
+    private final ConversationRepository conversationRepository;
+    private final SearchIndexer indexer;
+    private final int maxChunkSize;
+
+    private static final Logger LOG = LoggerFactory.getLogger(IndexerChunkHandler.class);
+
+    @Autowired
+    IndexerChunkHandler(
+            ConversationRepository conversationRepository,
+            SearchIndexer indexer,
+            @Value("${batch.bulkoperations.maxChunkSize:5000}") int maxChunkSize) {
+        this.conversationRepository = conversationRepository;
+        this.indexer = indexer;
+        this.maxChunkSize = maxChunkSize;
+    }
+
+    public void indexChunk(List<String> conversationIds) {
+        if(conversationIds.size() > maxChunkSize) {
+            LOG.info("Partitioning conversation list with {} elements into chunks of size {}", conversationIds.size(), maxChunkSize);
+        }
+        List<List<String>> partitions = Lists.partition(conversationIds, maxChunkSize);
+
+        for(List<String> partition : partitions) {
+            indexChunkPartiton(partition);
+        }
+    }
+
+    private void indexChunkPartiton(List<String> conversationIds) {
+        if (conversationIds.isEmpty()) {
+            return;
+        }
+
+        try (Timer.Context timer = OVERALL_TIMER.time()) {
+            List<Conversation> conversations = new ArrayList<>();
+            for (String convId : conversationIds) {
+                try {
+                    MutableConversation conversation = conversationRepository.getById(convId);
+                    // might be null for very old conversation that have been removed by the cleanup job while the indexer
+                    // was running.
+                    if (conversation != null) {
+                        conversations.add(conversation);
+                    }
+                } catch (Exception e) {
+                    LOG.error("Indexer could not load conversation '" + convId + "' from repository - skipping it", e);
+                }
+            }
+            indexer.updateSearchSync(conversations);
+        }
+    }
+}

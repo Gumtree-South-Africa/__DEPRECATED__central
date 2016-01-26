@@ -1,0 +1,52 @@
+<!--
+
+LOOKS LIKE A BROKEN CONFIG? It's not, this is just a fragment that will be included
+from logback.xml.
+
+-->
+<included>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %-35logger{35}: %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logDir}/replyts.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logDir}/archived/replyts.log.%d</fileNamePattern>
+            <maxHistory>5</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %-35logger{35}: %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
+
+    <logger name="com.ecg.replyts" level="DEBUG"/>
+    <logger name="com.ecg.de" level="DEBUG"/>
+    <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
+    <logger name="com.hazelcast.instance.Node" level="DEBUG" />
+
+    <logger name="migrations" level="INFO" additivity="false">
+        <appender name="MIGRATIONS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${logDir}/migrations.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${logDir}/archived/migrations.log.%d</fileNamePattern>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+
+            <encoder>
+                <pattern>%d{HH:mm:ss} %-5level [%thread]: %msg %n</pattern>
+            </encoder>
+        </appender>
+    </logger>
+
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</included>

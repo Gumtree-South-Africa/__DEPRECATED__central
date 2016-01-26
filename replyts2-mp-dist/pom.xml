@@ -3,9 +3,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>nl.marktplaats</groupId>
-        <artifactId>mp-replyts2</artifactId>
+        <groupId>ecg.icas.comaas</groupId>
+        <artifactId>comaas</artifactId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>replyts2-mp-dist</artifactId>
@@ -27,43 +28,59 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.ecg.replyts</groupId>
+            <groupId>ecg.icas.comaas</groupId>
             <artifactId>core-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ecg.replyts</groupId>
+            <groupId>ecg.icas.comaas</groupId>
             <artifactId>core-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>com.ecg.replyts</groupId>
             <artifactId>replyts2-message-box</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.codahale.metrics</groupId>
+                    <artifactId>metrics-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.ecg.replyts</groupId>
             <artifactId>replyts2-kafka-publisher</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.zookeeper</groupId>
+                    <artifactId>zookeeper</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats</groupId>
+            <groupId>ecg.icas.comaas</groupId>
             <artifactId>replyts2-filter-bankaccount</artifactId>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats</groupId>
+            <groupId>ecg.icas.comaas</groupId>
             <artifactId>replyts2-filter-knowngood</artifactId>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats</groupId>
+            <groupId>ecg.icas.comaas</groupId>
             <artifactId>replyts2-postprocessor-anonymizebody</artifactId>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats</groupId>
+            <groupId>ecg.icas.comaas</groupId>
             <artifactId>replyts2-filter-volume</artifactId>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats</groupId>
+            <groupId>ecg.icas.comaas</groupId>
             <artifactId>replyts2-postprocessor-urlgateway</artifactId>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats</groupId>
+            <groupId>ecg.icas.comaas</groupId>
             <artifactId>replyts2-postprocessor-sendername</artifactId>
         </dependency>
         <dependency>

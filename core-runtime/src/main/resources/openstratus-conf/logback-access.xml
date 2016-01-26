@@ -1,0 +1,13 @@
+<configuration>
+
+    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%header{X-mobile-source-IP} via %h - %u [%t] %D - "%r" "%header{Host}" "-" %s %b  %header{Referer} "%header{User-Agent}" -</pattern>
+        </encoder>
+    </appender>
+
+    <appender-ref ref="STDOUT"/>
+
+</configuration>

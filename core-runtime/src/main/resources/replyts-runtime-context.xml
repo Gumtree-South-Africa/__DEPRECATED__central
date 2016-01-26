@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+
+    <!-- replyts-properties are contributed by the root spring context hosting a factory making settings from various sources available. see ReplyTS class. -->
+    <context:property-placeholder system-properties-mode="OVERRIDE" properties-ref="replyts-properties"/>
+
+    <context:annotation-config/>
+
+    <bean class="com.ecg.replyts.core.runtime.ConfigAdminConfiguration" />
+    <bean class="com.ecg.replyts.core.runtime.configadmin.ClusterRefreshPublisher"/>
+    <bean class="com.ecg.replyts.core.runtime.configadmin.ClusterRefreshSubscriber"/>
+    <bean id="refreshManager" class="com.ecg.replyts.core.runtime.configadmin.RefresherManager"/>
+
+    <bean class="com.ecg.replyts.app.mailreceiver.MailDataProviderConfiguration" depends-on="refreshManager"/>
+
+    <bean class="com.ecg.replyts.core.runtime.workers.WorkerPoolConfiguration"/>
+
+    <bean class="com.ecg.replyts.core.runtime.configadmin.ConfigurationValidatorImp"/>
+
+
+    <bean class="com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService"/>
+    <bean class="com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter"/>
+
+    <context:component-scan base-package="com.ecg.replyts.app.preprocessorchain"/>
+
+    <bean class="com.ecg.replyts.app.filterchain.FilterChain"/>
+    <bean class="com.ecg.replyts.app.cronjobs.CleanupConfiguration"/>
+    <bean class="com.ecg.replyts.app.cronjobs.CleanupConversationCronJob"/>
+    <bean class="com.ecg.replyts.app.cronjobs.CleanupMailCronJob"/>
+    <bean class="com.ecg.replyts.app.cronjobs.CleanupSearchCronJob"/>
+
+    <bean id="currentClock" class="com.ecg.replyts.core.api.util.CurrentClock"/>
+    <bean id="timeoutHeldsCronJobTimeframe" class="com.ecg.replyts.app.cronjobs.Timeframe">
+        <constructor-arg index="0" value="${replyts2.sendHeld.csWorkingHoursStart:0}"/>
+        <constructor-arg index="1" value="${replyts2.sendHeld.csWorkingHoursEnd:24}"/>
+        <constructor-arg index="2" value="${replyts2.sendHeld.retentionTimeHours:12}"/>
+        <constructor-arg index="3" ref="currentClock"/>
+    </bean>
+    <bean class="com.ecg.replyts.app.cronjobs.TimeoutHeldsCronjob"/>
+    <bean class="com.ecg.replyts.app.cronjobs.MessageSender"/>
+
+    <bean class="com.ecg.replyts.core.runtime.indexer.conversation.IndexingConfiguration"/>
+
+    <bean class="com.ecg.replyts.core.runtime.indexer.AsyncOutdatedEntityReporter"/>
+
+    <context:component-scan base-package="com.ecg.replyts.app.postprocessorchain"/>
+    <!-- Explicitly declare this with an ID to allow overriding in plugins -->
+    <bean id="postProcessorChain" class="com.ecg.replyts.app.postprocessorchain.PostProcessorChain"/>
+
+    <bean class="com.ecg.replyts.app.ProcessingConfiguration"/>
+
+    <bean class="com.ecg.replyts.core.runtime.cluster.ClusterServicesConfiguration"/>
+    <bean class="com.ecg.replyts.core.runtime.cluster.monitor.ClusterMonitorConfiguration"/>
+
+    <bean class="com.ecg.replyts.core.runtime.maildelivery.smtp.SmtpDeliveryServiceConfiguration"/>
+
+    <bean class="com.ecg.replyts.core.runtime.cluster.RiakHostConfig"/>
+    <bean class="com.ecg.replyts.core.runtime.persistence.RiakClientConfiguration"/>
+    <bean class="com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer" />
+    <bean class="com.ecg.replyts.core.runtime.persistence.PersistenceConfiguration" id="persistenceConfiguration"/>
+    <bean class="com.ecg.replyts.core.runtime.persistence.MailsCleanupOnConversationDeletedListener"/>
+
+    <bean class="com.ecg.replyts.app.search.elasticsearch.ElasticSearchClientConfiguration"/>
+    <bean class="com.ecg.replyts.app.search.elasticsearch.ElasticSearchServiceConfiguration"
+          id="elasticSearchServiceConfiguration"/>
+
+    <bean class="com.ecg.replyts.core.runtime.indexer.ElasticSearchIndexer"/>
+
+    <bean class="com.ecg.replyts.core.runtime.indexer.IndexerActionConfiguration"/>
+
+    <bean class="com.ecg.replyts.core.runtime.indexer.SingleRunGuard"/>
+    <bean class="com.ecg.replyts.core.runtime.indexer.IndexingJournals"/>
+
+    <bean class="com.ecg.replyts.core.runtime.indexer.IndexerChunkHandler"/>
+
+    <bean class="com.ecg.replyts.core.runtime.indexer.IndexerHealthCheck"/>
+    <bean class="com.ecg.replyts.core.runtime.indexer.DeltaIndexingCronJob"/>
+
+    <bean class="com.ecg.replyts.core.runtime.sanitycheck.SanityCheckService"/>
+    <bean class="com.ecg.replyts.core.runtime.ModuleSystemConfiguration"/>
+
+    <bean class="com.ecg.replyts.core.runtime.listener.MessageStatsListener"/>
+
+    <bean class="com.ecg.replyts.core.webapi.DefaultApiConfiguration"/>
+
+    <bean class="com.ecg.replyts.migrations.MigrationConfiguration" />
+
+    <bean class="com.ecg.replyts.app.ConversationEventListeners" />
+</beans>

@@ -1,0 +1,34 @@
+From pragone@gmail.com<mailto:pragone@gmail.com>  Wed Oct 27 17:59:24 2010
+Delivered-To: foo@asdf.com
+X-Original-To: pragone@pragone.no-ip.org<mailto:pragone@pragone.no-ip.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=domainkey-signature:received:date:from:to:message-id:subject
+         :mime-version:content-type:content-transfer-encoding
+         :content-disposition:precedence:x-autoreply;
+        bh=zGs4foEjtghENpF6FPuXsZ6qR+gd5/OisSgzHw4jLL0=;
+        b=KSLXSq7bQXkVt9RGjxViO9ShJK4uwlqcvSm+sTSKkSZpT3O63BDzILf1VmFbo1SvdR
+         FLwdOkIiEAwe9ehms427jSKZ2DniE8eZuJHAjYxdwdKGDJgZab6T9Y7cRSHIxKnQqjAb
+         907ZPT9AeL2p9aeR3HXgKy9sU421V2jIGyvKo=
+DomainKey-Signature: a=rsa-sha1; c=nofws;
+        d=gmail.com; s=gamma;
+        h=date:from:to:message-id:subject:mime-version:content-type
+         :content-transfer-encoding:content-disposition:precedence
+         :x-autoreply;
+        b=Njkfy19qchO5yIsfaSghHyI2Wo9/UmcELHAFm+XyezhtMy5rJ077kIZIOjkcVbpQ/W
+         Cn+dmT0UNNBMkS6UoSwgRH+SSqItmTO2pUZ2T9rrwBRxdgyI1IVB+dl/WIK01UoOLnc1
+         I+Y1WwM5PxJ+HS+6ThpEEUAbXZuyy5WaLoQFI=
+Date: Wed, 27 Oct 2010 08:59:58 -0700
+From: "Paolo Ragone" <pragone@gmail.com>
+To: pragone@pragone.no-ip.org<pragone@pragone.no-ip.org>
+Subject: OOO Re: Test
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Precedence: bulk
+X-Autoreply: yes
+
+OOO Reply
+
+

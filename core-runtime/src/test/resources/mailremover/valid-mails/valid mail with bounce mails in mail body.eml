@@ -1,0 +1,183 @@
+Received: from mail-gw-01.neofonie.de (91.213.91.142) by post.neofonie.de
+ (172.27.21.10) with Microsoft SMTP Server (TLS) id 14.1.218.12; Thu, 28 Oct
+ 2010 11:20:17 +0200
+Delivered-To: foo@asdf.com
+Received: from dub-mipot-002.corp.ebay.com ([193.28.178.24])	by
+ mail-gw-01.neofonie.de with esmtps (TLSv1:RC4-SHA:128)	(Exim 4.63)
+	(envelope-from <pragone@ebay.com>)	id 1PBOgk-00054e-UC; Thu, 28 Oct 2010
+ 11:22:29 +0200
+DomainKey-Signature: s=corp; d=ebay.com; c=nofws; q=dns;
+  h=X-EBay-Corp:X-IronPort-AV:Received:Received:From:To:Date:
+   Subject:Thread-Topic:Thread-Index:Message-ID:
+   Accept-Language:Content-Language:X-MS-Has-Attach:
+   X-MS-TNEF-Correlator:acceptlanguage:x-ems-proccessed:
+   x-ems-stamp:Content-Type:MIME-Version:X-CFilter;
+  b=2MMJt1ngiNoMxwLLVZ/lVhueVzZtaIu1Njiq/7B7RnKdobmbwmWVcfc+
+   qhbZXVKsVcyklzPYhisIZeJ2U+/qA2CpJYG397Cqz3I1YA20hp9si7vx5
+   dclqwTx4X1h1u6f;
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=ebay.com; i=pragone@ebay.com; q=dns/txt; s=corp;
+  t=1288257746; x=1319793746;
+  h=from:to:date:subject:message-id:mime-version;
+  z=From:=20"Ragone,=20Paolo"=20<pragone@ebay.com>|To:=20Mat
+   thias=20Huttar=20<huttar@neofonie.de>,=20Timo=20Sellin=20
+   <sellin@neofonie.de>|Date:=20Thu,=2028=20Oct=202010=2010:
+   22:20=20+0100|Subject:=20Sample=20mails=20with=20no=20for
+   mating|Message-ID:=20<7B8386BC-2137-44D2-B0A4-9FEE832E1EF
+   1@ebay.com>|MIME-Version:=201.0;
+  bh=qqQJN8/i+tVDlmL7U3f6pIz0vl1jWK2yn8NkasjPTNQ=;
+  b=cNmKI+zbgRR2abmHVA8PHWZyHBTdV+KixT/KMLjNDD7JEwtjV3pyz7+q
+   7ia3qCy9gwG4YtPHUFlPTFYiNCVRxY7v4vfVjX/5fWC8oX2ruW1PZ1AYy
+   dIkaRfRVuyxtVc5;
+X-EBay-Corp: Yes
+X-IronPort-AV: E=Sophos;i="4.58,250,1286175600"; 
+   d="txt'?scan'208";a="2780575"
+Received: from dub-vtenf-002.corp.ebay.com (HELO dub-mexht-002.corp.ebay.com)
+ ([10.243.104.53])  by DUB-MIPOT-002.CORP.EBAY.COM with ESMTP; 28 Oct 2010
+ 02:22:15 -0700
+Received: from DUB-MEXMS-003.corp.ebay.com ([10.243.49.168]) by
+ dub-mexht-002.corp.ebay.com ([10.243.57.53]) with mapi; Thu, 28 Oct 2010
+ 10:22:15 +0100
+From: "Ragone, Paolo" <pragone@ebay.com>
+To: Matthias Huttar <huttar@neofonie.de>, Timo Sellin <sellin@neofonie.de>
+Date: Thu, 28 Oct 2010 10:22:20 +0100
+Subject: Sample mails with no formating
+Thread-Topic: Sample mails with no formating
+Thread-Index: Act2gZusS8Zld2nZS56xTavWUBWvhw==
+Message-ID: <7B8386BC-2137-44D2-B0A4-9FEE832E1EF1@ebay.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: yes
+X-MS-TNEF-Correlator:
+acceptlanguage: en-US
+x-ems-proccessed: 10SqDH0iR7ekR7SRpKqm5A==
+x-ems-stamp: 526cKxp9V83/8jIG0yPsmA==
+Content-Type: multipart/mixed;
+	boundary="_003_7B8386BC213744D2B0A49FEE832E1EF1ebaycom_"
+X-CFilter: Scanned
+X-Spam_score: 0.5
+X-Spam_score_int: 5
+X-Spam_bar: /
+X-Barracuda-Spam-Score: 0.5
+Return-Path: pragone@ebay.com
+X-MS-Exchange-Organization-AuthSource: esx01cas.exchange.neofonie.de
+X-MS-Exchange-Organization-AuthAs: Anonymous
+MIME-Version: 1.0
+
+--_003_7B8386BC213744D2B0A49FEE832E1EF1ebaycom_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+
+--_003_7B8386BC213744D2B0A49FEE832E1EF1ebaycom_
+Content-Type: text/plain; name="samplemails.txt"
+Content-Description: samplemails.txt
+Content-Disposition: attachment; filename="samplemails.txt"; size=4994;
+	creation-date="Thu, 28 Oct 2010 10:22:14 GMT";
+	modification-date="Thu, 28 Oct 2010 10:22:14 GMT"
+Content-Transfer-Encoding: base64
+
+4oCU4oCU4oCU4oCU4oCU4oCUIEV4YW1wbGUgMTogRW1haWwgc2VudCB0byBtYXR0MUBtYXRsdWMu
+ZGUgd2l0aCBhbiBhdXRvLXJlcGx5IOKAlOKAlOKAlOKAlOKAlCANCkZyb20gbWF0dDFAbWF0bHVj
+LmRlICBXZWQgT2N0IDI3IDE3OjU4OjMyIDIwMTANClgtT3JpZ2luYWwtVG86IHByYWdvbmVAcHJh
+Z29uZS5uby1pcC5vcmcNClRvOiBwcmFnb25lQHByYWdvbmUubm8taXAub3JnDQpTdWJqZWN0OiBS
+ZTogSGFsbw0KUmVmZXJlbmNlczogPDIwMTAxMDI3MTU1MDA3LkM0QzYxNUMwOERCQHByYWdvbmUu
+bm8taXAub3JnPg0KSW4tUmVwbHktVG86IDwyMDEwMTAyNzE1NTAwNy5DNEM2MTVDMDhEQkBwcmFn
+b25lLm5vLWlwLm9yZz4NCkNvbnRlbnQtdHlwZTogdGV4dC9wbGFpbjsgY2hhcnNldD1JU08tODg1
+OS0xNQ0KRnJvbTogbWF0dDFAbWF0bHVjLmRlDQpQcmVjZWRlbmNlOiBqdW5rDQpYLUxvb3A6IG1h
+dHQxQG1hdGx1Yy5kZQ0KWC1LYXNMb29wOiBtMDFjOGQxNA0KRGF0ZTogV2VkLCAyNyBPY3QgMjAx
+MCAxNzo1OTowNyArMDIwMCAoQ0VTVCkNCg0KVGhpcyBtYWlsIGFjY291bnQgaXMgbm90IGJlaW5n
+IHVzZWQgYW55bW9yZS4gc29ycnkgZm9yIHRoYXQuDQoNCuKAlOKAlCBFTkQg4oCU4oCUDQoNCuKA
+lOKAlOKAlOKAlCBFeGFtcGxlIDI6IEVtYWlsIHNlbnQgdG8gbXkgZ21haWwgYWRkcmVzcyB3aXRo
+IGFuIGF1dG8tcmVwbHkg4oCU4oCUIA0KRnJvbSBwcmFnb25lQGdtYWlsLmNvbSAgV2VkIE9jdCAy
+NyAxNzo1OToyNCAyMDEwDQpYLU9yaWdpbmFsLVRvOiBwcmFnb25lQHByYWdvbmUubm8taXAub3Jn
+DQpES0lNLVNpZ25hdHVyZTogdj0xOyBhPXJzYS1zaGEyNTY7IGM9cmVsYXhlZC9yZWxheGVkOw0K
+ICAgICAgICBkPWdtYWlsLmNvbTsgcz1nYW1tYTsNCiAgICAgICAgaD1kb21haW5rZXktc2lnbmF0
+dXJlOnJlY2VpdmVkOmRhdGU6ZnJvbTp0bzptZXNzYWdlLWlkOnN1YmplY3QNCiAgICAgICAgIDpt
+aW1lLXZlcnNpb246Y29udGVudC10eXBlOmNvbnRlbnQtdHJhbnNmZXItZW5jb2RpbmcNCiAgICAg
+ICAgIDpjb250ZW50LWRpc3Bvc2l0aW9uOnByZWNlZGVuY2U6eC1hdXRvcmVwbHk7DQogICAgICAg
+IGJoPXpHczRmb0VqdGdoRU5wRjZGUHVYc1o2cVIrZ2Q1L09pc1Nnekh3NGpMTDA9Ow0KICAgICAg
+ICBiPUtTTFhTcTdiUVhrVnQ5UkdqeFZpTzlTaEpLNHV3bHFjdlNtK3NUU0trU1pwVDNPNjNCRHpJ
+TGYxVm1GYm8xU3ZkUg0KICAgICAgICAgRkx3ZE9rSWlFQXdlOWVobXM0MjdqU0taMkRuaUU4ZVp1
+SkhBall4ZHdkS0dESmdaYWI2VDlZN2NSU0hJeEtuUXFqQWINCiAgICAgICAgIDkwN1pQVDlBZUwy
+cDlhZVIzSFhnS3k5c1U0MjFWMmpJR3l2S289DQpEb21haW5LZXktU2lnbmF0dXJlOiBhPXJzYS1z
+aGExOyBjPW5vZndzOw0KICAgICAgICBkPWdtYWlsLmNvbTsgcz1nYW1tYTsNCiAgICAgICAgaD1k
+YXRlOmZyb206dG86bWVzc2FnZS1pZDpzdWJqZWN0Om1pbWUtdmVyc2lvbjpjb250ZW50LXR5cGUN
+CiAgICAgICAgIDpjb250ZW50LXRyYW5zZmVyLWVuY29kaW5nOmNvbnRlbnQtZGlzcG9zaXRpb246
+cHJlY2VkZW5jZQ0KICAgICAgICAgOngtYXV0b3JlcGx5Ow0KICAgICAgICBiPU5qa2Z5MTlxY2hP
+NXlJc2ZhU2doSHlJMldvOS9VbWNFTEhBRm0rWHllemh0TXk1ckowNzdrSVpJT2prY1ZicFEvVw0K
+ICAgICAgICAgQ24rZG1UMFVOTkJNa1M2VW9Td2dSSCtTU3FJdG1UTzJwVVoyVDlycndCUnhkZ3lJ
+MUlWQitkbC9XSUswMVVvT0xuYzENCiAgICAgICAgIEkrWTFXd001UHhKK0hTKzZUaHBFRVVBYlha
+dXl5NVdhTG9RRkk9DQpEYXRlOiBXZWQsIDI3IE9jdCAyMDEwIDA4OjU5OjU4IC0wNzAwDQpGcm9t
+OiAiUGFvbG8gUmFnb25lIiA8cHJhZ29uZUBnbWFpbC5jb20+DQpUbzogcHJhZ29uZUBwcmFnb25l
+Lm5vLWlwLm9yZw0KU3ViamVjdDogT09PIFJlOiBUZXN0DQpNSU1FLVZlcnNpb246IDEuMA0KQ29u
+dGVudC1UeXBlOiB0ZXh0L3BsYWluOyBjaGFyc2V0PUlTTy04ODU5LTENCkNvbnRlbnQtVHJhbnNm
+ZXItRW5jb2Rpbmc6IDdiaXQNCkNvbnRlbnQtRGlzcG9zaXRpb246IGlubGluZQ0KUHJlY2VkZW5j
+ZTogYnVsaw0KWC1BdXRvcmVwbHk6IHllcw0KDQpPT08gUmVwbHkNCg0K4oCU4oCUIEVORCDigJTi
+gJQNCg0K4oCU4oCU4oCU4oCU4oCU4oCU4oCURXhhbXBsZSAzOiAgTWFpbCBzZW50IHRvIGFuIGlu
+ZXhpc3RlbnQgZW1haWwgQGdtYWlsLmNvbSDigJTigJTigJTigJTigJTigJTigJTigJQgDQpGcm9t
+IE1BSUxFUi1EQUVNT04gIFdlZCBPY3QgMjcgMTg6MTU6MDIgMjAxMA0KWC1PcmlnaW5hbC1Ubzog
+cHJhZ29uZUBwcmFnb25lLm5vLWlwLm9yZw0KRGF0ZTogV2VkLCAyNyBPY3QgMjAxMCAxODoxNTow
+MiArMDIwMCAoQ0VTVCkNCkZyb206IE1BSUxFUi1EQUVNT05AcHJhZ29uZS5uby1pcC5vcmcgKE1h
+aWwgRGVsaXZlcnkgU3lzdGVtKQ0KU3ViamVjdDogVW5kZWxpdmVyZWQgTWFpbCBSZXR1cm5lZCB0
+byBTZW5kZXINClRvOiBwcmFnb25lQHByYWdvbmUubm8taXAub3JnDQpBdXRvLVN1Ym1pdHRlZDog
+YXV0by1yZXBsaWVkDQpNSU1FLVZlcnNpb246IDEuMA0KQ29udGVudC1UeXBlOiBtdWx0aXBhcnQv
+cmVwb3J0OyByZXBvcnQtdHlwZT1kZWxpdmVyeS1zdGF0dXM7DQogICAgICAgIGJvdW5kYXJ5PSI1
+QjVBMjVDMDhEQi4xMjg4MTk2MTAyL3ByYWdvbmUubm8taXAub3JnIg0KDQpUaGlzIGlzIGEgTUlN
+RS1lbmNhcHN1bGF0ZWQgbWVzc2FnZS4NCg0KLS01QjVBMjVDMDhEQi4xMjg4MTk2MTAyL3ByYWdv
+bmUubm8taXAub3JnDQpDb250ZW50LURlc2NyaXB0aW9uOiBOb3RpZmljYXRpb24NCkNvbnRlbnQt
+VHlwZTogdGV4dC9wbGFpbjsgY2hhcnNldD11cy1hc2NpaQ0KDQpUaGlzIGlzIHRoZSBtYWlsIHN5
+c3RlbSBhdCBob3N0IHByYWdvbmUubm8taXAub3JnLg0KDQpJJ20gc29ycnkgdG8gaGF2ZSB0byBp
+bmZvcm0geW91IHRoYXQgeW91ciBtZXNzYWdlIGNvdWxkIG5vdA0KYmUgZGVsaXZlcmVkIHRvIG9u
+ZSBvciBtb3JlIHJlY2lwaWVudHMuIEl0J3MgYXR0YWNoZWQgYmVsb3cuDQoNCkZvciBmdXJ0aGVy
+IGFzc2lzdGFuY2UsIHBsZWFzZSBzZW5kIG1haWwgdG8gcG9zdG1hc3Rlci4NCg0KSWYgeW91IGRv
+IHNvLCBwbGVhc2UgaW5jbHVkZSB0aGlzIHByb2JsZW0gcmVwb3J0LiBZb3UgY2FuDQpkZWxldGUg
+eW91ciBvd24gdGV4dCBmcm9tIHRoZSBhdHRhY2hlZCByZXR1cm5lZCBtZXNzYWdlLg0KDQogICAg
+ICAgICAgICAgICAgICAgVGhlIG1haWwgc3lzdGVtDQoNCjxjdmJuMzRjNGMwOTdAZ21haWwuY29t
+PjogaG9zdCBnbWFpbC1zbXRwLWluLmwuZ29vZ2xlLmNvbVsyMDkuODUuMjI3LjI3XSBzYWlkOg0K
+ICAgIDU1MC01LjEuMSBUaGUgZW1haWwgYWNjb3VudCB0aGF0IHlvdSB0cmllZCB0byByZWFjaCBk
+b2VzIG5vdCBleGlzdC4gUGxlYXNlDQogICAgdHJ5IDU1MC01LjEuMSBkb3VibGUtY2hlY2tpbmcg
+dGhlIHJlY2lwaWVudCdzIGVtYWlsIGFkZHJlc3MgZm9yIHR5cG9zIG9yDQogICAgNTUwLTUuMS4x
+IHVubmVjZXNzYXJ5IHNwYWNlcy4gTGVhcm4gbW9yZSBhdA0KICAgIDU1MCA1LjEuMSBodHRwOi8v
+bWFpbC5nb29nbGUuY29tL3N1cHBvcnQvYmluL2Fuc3dlci5weT9hbnN3ZXI9NjU5Ng0KICAgIGVx
+NHNpMTU5MjIyMzN3YmIuNzkgKGluIHJlcGx5IHRvIFJDUFQgVE8gY29tbWFuZCkNCg0KLS01QjVB
+MjVDMDhEQi4xMjg4MTk2MTAyL3ByYWdvbmUubm8taXAub3JnDQpDb250ZW50LURlc2NyaXB0aW9u
+OiBEZWxpdmVyeSByZXBvcnQNCkNvbnRlbnQtVHlwZTogbWVzc2FnZS9kZWxpdmVyeS1zdGF0dXMN
+Cg0KUmVwb3J0aW5nLU1UQTogZG5zOyBwcmFnb25lLm5vLWlwLm9yZw0KWC1Qb3N0Zml4LVF1ZXVl
+LUlEOiA1QjVBMjVDMDhEQg0KWC1Qb3N0Zml4LVNlbmRlcjogcmZjODIyOyBwcmFnb25lQHByYWdv
+bmUubm8taXAub3JnDQpBcnJpdmFsLURhdGU6IFdlZCwgMjcgT2N0IDIwMTAgMTg6MTQ6NTggKzAy
+MDAgKENFU1QpDQoNCkZpbmFsLVJlY2lwaWVudDogcmZjODIyOyBjdmJuMzRjNGMwOTdAZ21haWwu
+Y29tDQpBY3Rpb246IGZhaWxlZA0KU3RhdHVzOiA1LjEuMQ0KUmVtb3RlLU1UQTogZG5zOyBnbWFp
+bC1zbXRwLWluLmwuZ29vZ2xlLmNvbQ0KRGlhZ25vc3RpYy1Db2RlOiBzbXRwOyA1NTAtNS4xLjEg
+VGhlIGVtYWlsIGFjY291bnQgdGhhdCB5b3UgdHJpZWQgdG8gcmVhY2ggZG9lcw0KICAgIG5vdCBl
+eGlzdC4gUGxlYXNlIHRyeSA1NTAtNS4xLjEgZG91YmxlLWNoZWNraW5nIHRoZSByZWNpcGllbnQn
+cyBlbWFpbA0KICAgIGFkZHJlc3MgZm9yIHR5cG9zIG9yIDU1MC01LjEuMSB1bm5lY2Vzc2FyeSBz
+cGFjZXMuIExlYXJuIG1vcmUgYXQNCiAgICA1NTAgNS4xLjEgaHR0cDovL21haWwuZ29vZ2xlLmNv
+bS9zdXBwb3J0L2Jpbi9hbnN3ZXIucHk/YW5zd2VyPTY1OTYNCiAgICBlcTRzaTE1OTIyMjMzd2Ji
+Ljc5DQoNCi0tNUI1QTI1QzA4REIuMTI4ODE5NjEwMi9wcmFnb25lLm5vLWlwLm9yZw0KQ29udGVu
+dC1EZXNjcmlwdGlvbjogVW5kZWxpdmVyZWQgTWVzc2FnZQ0KQ29udGVudC1UeXBlOiBtZXNzYWdl
+L3JmYzgyMg0KDQpSZXR1cm4tUGF0aDogPHByYWdvbmVAcHJhZ29uZS5uby1pcC5vcmc+DQpSZWNl
+aXZlZDogYnkgcHJhZ29uZS5uby1pcC5vcmcgKFBvc3RmaXgsIGZyb20gdXNlcmlkIDEwMDApDQog
+ICAgICAgIGlkIDVCNUEyNUMwOERCOyBXZWQsIDI3IE9jdCAyMDEwIDE4OjE0OjU4ICswMjAwIChD
+RVNUKQ0KVG86IGN2Ym4zNGM0YzA5N0BnbWFpbC5jb20NClN1YmplY3Q6IFRlc3QNCk1lc3NhZ2Ut
+SWQ6IDwyMDEwMTAyNzE2MTQ1OC41QjVBMjVDMDhEQkBwcmFnb25lLm5vLWlwLm9yZz4NCkRhdGU6
+IFdlZCwgMjcgT2N0IDIwMTAgMTg6MTQ6NTggKzAyMDAgKENFU1QpDQpGcm9tOiBwcmFnb25lQHBy
+YWdvbmUubm8taXAub3JnIChQYW9sbyBSYWdvbmUpDQoNCg0KdGVzdA0KDQotLTVCNUEyNUMwOERC
+LjEyODgxOTYxMDIvcHJhZ29uZS5uby1pcC5vcmctLQ0KDQrigJTigJTigJTigJTigJTigJTigJQg
+RU5EIOKAlOKAlOKAlOKAlOKAlOKAlOKAlOKAlOKAlOKAlCA=
+
+--_003_7B8386BC213744D2B0A49FEE832E1EF1ebaycom_
+Content-Type: text/plain; name="ATT00001..txt"
+Content-Description: ATT00001..txt
+Content-Disposition: attachment; filename="ATT00001..txt"; size=264;
+	creation-date="Thu, 28 Oct 2010 10:22:14 GMT";
+	modification-date="Thu, 28 Oct 2010 10:22:14 GMT"
+Content-Transfer-Encoding: base64
+
+DQoNClBhb2xvIFJhZ29uZSwNCkF2ZW5pZGEgZGUgRXVyb3BhIG66IDQsIDGqIFBsYW50YQ0KUGFy
+cXVlIEVtcHJlc2FyaWFsIExhIE1vcmFsZWphDQoyODEwOC1BbGNvYmVuZGFzIChNYWRyaWQpDQpF
+bWFpbDogcHJhZ29uZUBlYmF5LmNvbTxtYWlsdG86cHJhZ29uZUBlYmF5LmNvbT4NClBob25lOiAr
+MzQgOTEgNzkwIDEwIDYzIC8gRmF4OiArMzQgOTEgNzkwIDEwIDk1DQpNb2JpbGU6ICszNCA2Mzkg
+NTEgOTggMDINClNreXBlOiBwYW9sb3JhZ29uZQ0KDQoNCg0K
+
+--_003_7B8386BC213744D2B0A49FEE832E1EF1ebaycom_--
