@@ -1,3 +1,7 @@
+Getting comaas unto the cloud, using mp-replyts2 as a base. Let's see where we get...
+
+Unsupported major.minor version 52.0 --> set JAVA_HOME correctly
+
 # ReplyTS2 for Comaas
 
 ## Contents
