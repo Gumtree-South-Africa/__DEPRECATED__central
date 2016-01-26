@@ -6,9 +6,36 @@ Unsupported major.minor version 52.0 --> set JAVA_HOME correctly
 
 ## Contents
 
+* Dev setup
 * Links
-* Dev Setup
 * System overview
+
+## Dev setup
+Checkout https://github.corp.ebay.com/ecg-icas/ecg-comaas-vagrant and follow the steps in the Readme.
+
+Download Cassandra from http://archive.apache.org/dist/cassandra/2.1.11/ to your MacBook.
+
+Clone this repository.
+
+Run setup-cassandra.sh to run initial db migrations.
+
+To run RTS2 create the following run configuration:
+
+* Type: application
+* Main class: `nl.marktplaats.replyts2.MarktplaatsReplyTS2Main`
+* VM arguments:
+  ```
+  -DconfDir=replyts2-mp-dist/conf
+  -DlogDir=/tmp
+  -Dmail.mime.parameters.strict=false
+  -Dmail.mime.address.strict=false
+  -Dmail.mime.ignoreunknownencoding=true
+  -Dmail.mime.uudecode.ignoreerrors=true
+  -Dmail.mime.uudecode.ignoremissingbeginend=true
+  -Dmail.mime.multipart.allowempty=true
+  ```
+* Module: `replyts2-mp-dist`
+* Working directory: the project directory (which is the default)
 
 ## Links
 
@@ -38,34 +65,6 @@ Other repositories
 
 * [Flume conversation event converter](https://github.corp.ebay.com/ReplyTS/conversation-event-converter)
 * [Marktplaats' RTS 1 plugins](https://github.corp.ebay.com/ecg-marktplaats/csba-replyts-plugins)
-
-## Dev Setup
-
-Before you start, setup vagrant as described here: https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/ReplyTS-Environment-Setup
-
-Clone this repository, and finally clone all the submodules:
-```
-git submodule update --init
-pushd replyts2-threshold-resultinspector-plugin && git checkout marktplaats && git pull origin marktplaats && popd
-```
-
-To run RTS2 create the following run configuration:
-
-* Type: application
-* Main class: `nl.marktplaats.replyts2.MarktplaatsReplyTS2Main`
-* VM arguments:
-  ```
-  -DconfDir=replyts2-mp-dist/conf
-  -DlogDir=/tmp
-  -Dmail.mime.parameters.strict=false
-  -Dmail.mime.address.strict=false
-  -Dmail.mime.ignoreunknownencoding=true
-  -Dmail.mime.uudecode.ignoreerrors=true
-  -Dmail.mime.uudecode.ignoremissingbeginend=true
-  -Dmail.mime.multipart.allowempty=true
-  ```
-* Module: `replyts2-mp-dist`
-* Working directory: the project directory (which is the default)
 
 ## System overview
 
