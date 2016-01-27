@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>nl.marktplaats.mp-replyts2</groupId>
     <artifactId>replyts2-mp-integration-tests</artifactId>
 
     <dependencies>
@@ -29,17 +30,17 @@
             <artifactId>integration-test</artifactId>
         </dependency>
         <dependency>
-            <groupId>ecg.icas.comaas</groupId>
+            <groupId>nl.marktplaats.mp-replyts2</groupId>
             <artifactId>replyts2-filter-bankaccount</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>ecg.icas.comaas</groupId>
+            <groupId>nl.marktplaats.mp-replyts2</groupId>
             <artifactId>replyts2-filter-knowngood</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>ecg.icas.comaas</groupId>
+            <groupId>nl.marktplaats.mp-replyts2</groupId>
             <artifactId>replyts2-postprocessor-anonymizebody</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
@@ -48,18 +49,19 @@
             <artifactId>threshold-resultinspector</artifactId>
         </dependency>
         <dependency>
-            <groupId>ecg.icas.comaas</groupId>
+            <groupId>nl.marktplaats.mp-replyts2</groupId>
             <artifactId>replyts2-postprocessor-urlgateway</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>ecg.icas.comaas</groupId>
+            <groupId>nl.marktplaats.mp-replyts2</groupId>
             <artifactId>replyts2-postprocessor-sendername</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>ecg.icas.comaas</groupId>
+            <groupId>nl.marktplaats.mp-replyts2</groupId>
             <artifactId>replyts2-filter-volume</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>

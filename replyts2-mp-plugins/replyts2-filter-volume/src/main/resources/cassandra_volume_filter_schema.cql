@@ -1,3 +1,5 @@
+USE replyts2;
+
 CREATE TABLE volume_events (
     user_id text,
     received_time timeuuid,
