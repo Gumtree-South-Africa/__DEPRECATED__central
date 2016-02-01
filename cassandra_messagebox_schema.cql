@@ -1,5 +1,3 @@
-USE replyts2;
-
 CREATE TABLE mb_unread_counters (
     postbox_id text,
     conversation_id text,
