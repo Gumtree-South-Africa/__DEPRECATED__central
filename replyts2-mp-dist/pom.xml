@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>ecg.icas.comaas</groupId>
+        <groupId>ecg.comaas</groupId>
         <artifactId>comaas</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
@@ -28,11 +28,11 @@
 
     <dependencies>
         <dependency>
-            <groupId>ecg.icas.comaas</groupId>
+            <groupId>ecg.comaas</groupId>
             <artifactId>core-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>ecg.icas.comaas</groupId>
+            <groupId>ecg.comaas</groupId>
             <artifactId>core-runtime</artifactId>
         </dependency>
         <dependency>
@@ -60,27 +60,27 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats.mp-replyts2</groupId>
+            <groupId>nl.marktplaats.comaas</groupId>
             <artifactId>replyts2-filter-bankaccount</artifactId>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats.mp-replyts2</groupId>
+            <groupId>nl.marktplaats.comaas</groupId>
             <artifactId>replyts2-filter-knowngood</artifactId>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats.mp-replyts2</groupId>
+            <groupId>nl.marktplaats.comaas</groupId>
             <artifactId>replyts2-postprocessor-anonymizebody</artifactId>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats.mp-replyts2</groupId>
+            <groupId>nl.marktplaats.comaas</groupId>
             <artifactId>replyts2-filter-volume</artifactId>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats.mp-replyts2</groupId>
+            <groupId>nl.marktplaats.comaas</groupId>
             <artifactId>replyts2-postprocessor-urlgateway</artifactId>
         </dependency>
         <dependency>
-            <groupId>nl.marktplaats.mp-replyts2</groupId>
+            <groupId>nl.marktplaats.comaas</groupId>
             <artifactId>replyts2-postprocessor-sendername</artifactId>
         </dependency>
         <dependency>

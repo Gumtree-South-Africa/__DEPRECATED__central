@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>ecg.icas.comaas</groupId>
+    <groupId>ecg.comaas</groupId>
     <artifactId>comaas</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
@@ -92,32 +92,32 @@
                 <version>1.0.1</version>
             </dependency>
             <dependency>
-                <groupId>ecg.icas.comaas</groupId>
+                <groupId>ecg.comaas</groupId>
                 <artifactId>core-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>ecg.icas.comaas</groupId>
+                <groupId>ecg.comaas</groupId>
                 <artifactId>core-runtime</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>ecg.icas.comaas</groupId>
+                <groupId>ecg.comaas</groupId>
                 <artifactId>integration-test</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>nl.marktplaats.mp-replyts2</groupId>
+                <groupId>nl.marktplaats.comaas</groupId>
                 <artifactId>replyts2-filter-bankaccount</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>nl.marktplaats.mp-replyts2</groupId>
+                <groupId>nl.marktplaats.comaas</groupId>
                 <artifactId>replyts2-filter-knowngood</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>nl.marktplaats.mp-replyts2</groupId>
+                <groupId>nl.marktplaats.comaas</groupId>
                 <artifactId>replyts2-postprocessor-anonymizebody</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -133,19 +133,19 @@
             </dependency>
 
             <dependency>
-                <groupId>nl.marktplaats.mp-replyts2</groupId>
+                <groupId>nl.marktplaats.comaas</groupId>
                 <artifactId>replyts2-filter-volume</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
-                <groupId>nl.marktplaats.mp-replyts2</groupId>
+                <groupId>nl.marktplaats.comaas</groupId>
                 <artifactId>replyts2-postprocessor-urlgateway</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
-                <groupId>nl.marktplaats.mp-replyts2</groupId>
+                <groupId>nl.marktplaats.comaas</groupId>
                 <artifactId>replyts2-postprocessor-sendername</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
