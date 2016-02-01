@@ -122,9 +122,9 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ecg.de.kleinanzeigen.replyts</groupId>
+                <groupId>ecg.comaas</groupId>
                 <artifactId>threshold-resultinspector</artifactId>
-                <version>2.0.1-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.ecg.de.kleinanzeigen.replyts</groupId>

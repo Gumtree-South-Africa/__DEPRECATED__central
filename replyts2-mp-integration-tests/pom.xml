@@ -45,7 +45,7 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.ecg.de.kleinanzeigen.replyts</groupId>
+            <groupId>ecg.comaas</groupId>
             <artifactId>threshold-resultinspector</artifactId>
         </dependency>
         <dependency>
