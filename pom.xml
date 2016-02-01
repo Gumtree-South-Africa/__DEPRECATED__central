@@ -20,7 +20,7 @@
 
     <properties>
         <replyts.version>2.19.7</replyts.version>
-        <message-box.version>2.0.12</message-box.version>
+        <message-box.version>2.0.14</message-box.version>
         <spring.version>4.0.2.RELEASE</spring.version>
 
         <appassembler-maven-plugin-version>1.7</appassembler-maven-plugin-version>
