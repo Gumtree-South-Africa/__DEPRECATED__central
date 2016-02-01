@@ -84,7 +84,7 @@
             <artifactId>replyts2-postprocessor-sendername</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ecg.de.kleinanzeigen.replyts</groupId>
+            <groupId>ecg.comaas</groupId>
             <artifactId>threshold-resultinspector</artifactId>
         </dependency>
         <dependency>
