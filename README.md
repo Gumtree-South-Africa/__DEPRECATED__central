@@ -1,4 +1,4 @@
-Getting comaas unto the cloud, using mp-replyts2 as a base. Let's see where we get...
+Getting comaas unto the cloud, using mp-replyts2 as a base. 
 
 Unsupported major.minor version 52.0 --> set JAVA_HOME correctly
 
