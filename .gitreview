@@ -2,3 +2,5 @@
 host=gerrit.ecg.so
 port=29418
 project=ecg-comaas-central.git
+defaultremote=origin
+defaultbranch=master

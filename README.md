@@ -1,6 +1,6 @@
 Getting comaas unto the cloud, using mp-replyts2 as a base. 
 
-Unsupported major.minor version 52.0 --> set JAVA_HOME correctly
+Unsupported major.minor version 52.0 --> set JAVA_HOME correctly (MacBook: `export JAVA_HOME=$(/usr/libexec/java_home -v 1.8.0)`)
 
 # ReplyTS2 for Comaas
 
@@ -40,7 +40,7 @@ To run RTS2 create the following run configuration:
 ## Links
 
 * [Reply T&S at Marktplaats - integration](https://ecgwiki.corp.ebay.com/confluence/pages/viewpage.action?pageId=69271634) Describes headers expected from Aurora.
-* [Cassandra debuggin with DevCenter](docs/cassandra-debugging.md)
+* [Cassandra debugging with DevCenter](docs/cassandra-debugging.md)
 * [Orphaned email](docs/orphaned-mail.md)
 
 RTS2 and plugins repositories
