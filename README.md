@@ -11,11 +11,13 @@ Unsupported major.minor version 52.0 --> set JAVA_HOME correctly (MacBook: `expo
 * System overview
 
 ## Dev setup
+Clone this repository from gerrit.
+
+	git clone ssh://<your-username>@gerrit.ecg.so:29418/ecg-comaas-central
+
 Checkout https://github.corp.ebay.com/ecg-icas/ecg-comaas-vagrant and follow the steps in the Readme.
 
 Download Cassandra from http://archive.apache.org/dist/cassandra/2.1.11/ to your MacBook.
-
-Clone this repository.
 
 Run setup-cassandra.sh to run initial db migrations.
 
