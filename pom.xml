@@ -90,6 +90,12 @@
                 <groupId>com.ecg.replyts</groupId>
                 <artifactId>replyts2-kafka-publisher</artifactId>
                 <version>1.0.1</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.ecg.replyts</groupId>
+                        <artifactId>core-runtime</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>ecg.comaas</groupId>

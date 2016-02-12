@@ -4,6 +4,7 @@ import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
+import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.joda.time.DateTime;
@@ -22,7 +23,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.ecg.replyts.integration.elasticsearch.EmbeddedElasticSearchClientConfiguration.lastClient;
 import static com.ecg.replyts.integration.riak.EmbeddedRiakClientConfiguration.resetBrain;
-import static com.ecg.replyts.integration.test.IntegrationTestRunner.*;
+import static com.ecg.replyts.integration.test.IntegrationTestRunner.assertMessageDoesNotArrive;
+import static com.ecg.replyts.integration.test.IntegrationTestRunner.clearMessages;
+import static com.ecg.replyts.integration.test.IntegrationTestRunner.getReplytsRunner;
+import static com.ecg.replyts.integration.test.IntegrationTestRunner.setConfigResourceDirectory;
+import static com.ecg.replyts.integration.test.IntegrationTestRunner.waitForMessageArrival;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
@@ -59,9 +64,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     private Description description;
     private ReplyTsConfigClient client;
     private String replyTsConfigurationDir;
+    private EmbeddedCassandra embeddedCassandra;
 
     /**
-     * instantiate new rule, with a default delivery timeout of 2 seconds.
+     * instantiate new rule, with a default delivery timeout of 5 seconds.
      */
     public ReplyTsIntegrationTestRule() {
         this(5);
@@ -79,13 +85,18 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      *                               be processed.
      */
     public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds) {
-
         this.deliveryTimeoutSeconds = deliveryTimeoutSeconds;
+        this.embeddedCassandra = new EmbeddedCassandra("replyts_integration_test");
     }
 
     @Override
     public Statement apply(final Statement base, Description description) {
         this.description = description;
+        try {
+            embeddedCassandra.start("/cassandra_schema.cql");
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
 
         return new Statement() {
             @Override
@@ -103,6 +114,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
                     clearMessages();
                 } finally {
                     cleanConfigs();
+                    embeddedCassandra.cleanEmbeddedCassandra();
                 }
             }
         };
