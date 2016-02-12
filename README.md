@@ -2,7 +2,7 @@ Getting comaas unto the cloud, using mp-replyts2 as a base.
 
 Unsupported major.minor version 52.0 --> set JAVA_HOME correctly (MacBook: `export JAVA_HOME=$(/usr/libexec/java_home -v 1.8.0)`)
 
-# ReplyTS2 for Comaas
+# Comaas central
 
 ## Contents
 
