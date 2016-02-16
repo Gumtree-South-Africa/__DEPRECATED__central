@@ -31,9 +31,9 @@ function main() {
 	local start=$(date +"%s")
 
 	if [[ ${RUN_TESTS} == 1 ]]; then
-		mvn -s etc/settings.xml clean package
+		mvn -s etc/settings.xml -T1C clean package
 	else
-		mvn -s etc/settings.xml clean package -DskipTests=true
+		mvn -s etc/settings.xml -T1C clean package -DskipTests=true
 	fi
 
 	local end=$(date +"%s")
