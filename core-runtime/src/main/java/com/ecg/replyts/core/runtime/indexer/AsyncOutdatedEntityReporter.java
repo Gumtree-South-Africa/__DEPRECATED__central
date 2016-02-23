@@ -41,7 +41,7 @@ public class AsyncOutdatedEntityReporter implements OutdatedEntityReporter {
                 MutableConversation conversation = conversationRepository.getById(possiblyOutdatedConversation);
                 reloadedConversations.add(conversation);
             } catch (RuntimeException e) {
-                LOG.error("repot outdated skipped " + possiblyOutdatedConversation, e);
+                LOG.error("report outdated skipped " + possiblyOutdatedConversation, e);
             }
         }
 
