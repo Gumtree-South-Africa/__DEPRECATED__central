@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean class="com.ecg.messagecenter.listeners.PostBoxUpdateListener"/>
+
+    <bean class="com.ecg.messagecenter.persistence.CassandraPostBoxRepository">
+        <constructor-arg name="session" ref="cassandraSession"/>
+        <constructor-arg name="readConsistency" ref="cassandraReadConsistency"/>
+        <constructor-arg name="writeConsistency" ref="cassandraWriteConsistency"/>
+    </bean>
+
+    <bean class="com.ecg.messagecenter.persistence.CassandraPostboxService"/>
+
+    <bean class="com.ecg.messagecenter.webapi.MessageCenterApiConfiguration"/>
+
+    <bean class="com.ecg.messagecenter.cronjobs.PostBoxCleanupCronJob" />
+
+    <bean id="userIdentifierServiceFactory" class="com.ecg.messagecenter.identifier.UserIdentifierServiceFactory" />
+
+    <bean id="userIdentifierService"
+            factory-bean="userIdentifierServiceFactory" factory-method="createUserIdentifierService"/>
+
+</beans>

@@ -9,18 +9,18 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
+        <module>core-api</module>
+        <module>core-runtime</module>
+        <module>integration-test</module>
         <module>replyts2-threshold-resultinspector-plugin</module>
         <module>replyts2-mp-plugins</module>
         <module>replyts2-mp-integration-tests</module>
         <module>replyts2-mp-dist</module>
-        <module>core-api</module>
-        <module>core-runtime</module>
-        <module>integration-test</module>
+        <module>replyts2-message-box</module>
     </modules>
 
     <properties>
         <replyts.version>2.19.7</replyts.version>
-        <message-box.version>2.0.22</message-box.version>
         <spring.version>4.0.2.RELEASE</spring.version>
 
         <appassembler-maven-plugin-version>1.7</appassembler-maven-plugin-version>
@@ -82,9 +82,9 @@
             </dependency>
 
             <dependency>
-                <groupId>com.ecg.replyts</groupId>
+                <groupId>ecg.comaas</groupId>
                 <artifactId>replyts2-message-box</artifactId>
-                <version>${message-box.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.ecg.replyts</groupId>
