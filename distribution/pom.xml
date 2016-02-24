@@ -2,18 +2,96 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>ecg.comaas</groupId>
         <artifactId>comaas</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>replyts2-mp-dist</artifactId>
 
-    <properties>
-        <mainClass>nl.marktplaats.replyts2.MarktplaatsReplyTS2Main</mainClass>
-    </properties>
+    <artifactId>distribution</artifactId>
+
+    <profiles>
+        <profile>
+            <id>marktplaats</id>
+
+            <properties>
+                <mainClass>nl.marktplaats.replyts2.MarktplaatsReplyTS2Main</mainClass>
+                <project-classifier>marktplaats</project-classifier>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mp-messagecenter</artifactId>
+                    <version>${project.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>commons-logging</groupId>
+                            <artifactId>commons-logging</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>com.codahale.metrics</groupId>
+                            <artifactId>metrics-core</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <!-- dependency>
+                    <groupId>com.ecg.replyts</groupId>
+                    <artifactId>mp-publisher-kafka</artifactId>
+                    <version>${project.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.zookeeper</groupId>
+                            <artifactId>zookeeper</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency -->
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mp-filter-bankaccount</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mp-filter-knowngood</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mp-postprocessor-anonymizebody</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mp-filter-volume</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mp-postprocessor-urlgateway</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mp-postprocessor-sendername</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>resultinspector-threshold</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <!-- dependency>
+                    <groupId>com.ecg.de.kleinanzeigen.replyts</groupId>
+                    <artifactId>graphite</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                </dependency -->
+            </dependencies>
+        </profile>
+    </profiles>
 
     <distributionManagement>
         <repository>
@@ -35,66 +113,10 @@
             <groupId>ecg.comaas</groupId>
             <artifactId>core-runtime</artifactId>
         </dependency>
-        <dependency>
-            <groupId>ecg.comaas</groupId>
-            <artifactId>replyts2-message-box</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.codahale.metrics</groupId>
-                    <artifactId>metrics-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.ecg.replyts</groupId>
-            <artifactId>replyts2-kafka-publisher</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.zookeeper</groupId>
-                    <artifactId>zookeeper</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>nl.marktplaats.comaas</groupId>
-            <artifactId>replyts2-filter-bankaccount</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>nl.marktplaats.comaas</groupId>
-            <artifactId>replyts2-filter-knowngood</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>nl.marktplaats.comaas</groupId>
-            <artifactId>replyts2-postprocessor-anonymizebody</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>nl.marktplaats.comaas</groupId>
-            <artifactId>replyts2-filter-volume</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>nl.marktplaats.comaas</groupId>
-            <artifactId>replyts2-postprocessor-urlgateway</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>nl.marktplaats.comaas</groupId>
-            <artifactId>replyts2-postprocessor-sendername</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ecg.comaas</groupId>
-            <artifactId>threshold-resultinspector</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.ecg.de.kleinanzeigen.replyts</groupId>
-            <artifactId>graphite</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
-        <finalName>${project.groupId}.${project.parent.artifactId}_${project.parent.version}</finalName>
+        <finalName>${project.groupId}.${project.parent.artifactId}_${project.parent.version}-${profile-classifier}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

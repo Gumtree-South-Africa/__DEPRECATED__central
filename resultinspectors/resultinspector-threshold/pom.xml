@@ -5,11 +5,11 @@
         <groupId>ecg.comaas</groupId>
         <artifactId>comaas</artifactId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>threshold-resultinspector</artifactId>
+    <artifactId>resultinspector-threshold</artifactId>
     <packaging>jar</packaging>
-    <name>ReplyTS2 Threshold Result Inspector</name>
 
     <dependencies>
         <dependency>

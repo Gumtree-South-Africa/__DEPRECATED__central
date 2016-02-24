@@ -8,16 +8,52 @@
     <artifactId>comaas</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
-    <modules>
-        <module>core-api</module>
-        <module>core-runtime</module>
-        <module>integration-test</module>
-        <module>replyts2-threshold-resultinspector-plugin</module>
-        <module>replyts2-mp-plugins</module>
-        <module>replyts2-mp-integration-tests</module>
-        <module>replyts2-mp-dist</module>
-        <module>replyts2-message-box</module>
-    </modules>
+
+    <profiles>
+      <profile>
+        <id>marktplaats</id>
+
+        <modules>
+          <module>core-api</module>
+          <module>core-runtime</module>
+
+          <module>filters/mp-filter-bankaccount</module>
+          <module>filters/mp-filter-knowngood</module>
+          <module>filters/mp-filter-volume</module>
+
+          <module>postprocessors/mp-postprocessor-anonymizebody</module>
+          <module>postprocessors/mp-postprocessor-sendername</module>
+          <module>postprocessors/mp-postprocessor-urlgateway</module>
+
+          <module>resultinspectors/resultinspector-threshold</module>
+
+          <module>messagecenters/mp-messagecenter</module>
+
+          <module>integration-tests/integration-test</module>
+          <module>integration-tests/mp-integration-test</module>
+
+          <module>distribution</module>
+        </modules>
+      </profile>
+
+      <profile>
+        <id>ebayk</id>
+
+        <modules>
+          <module>core-api</module>
+          <module>core-runtime</module>
+
+          <module>resultinspectors/resultinspector-threshold</module>
+
+          <!-- module>messagecenters/ebayk-messagecenter</module -->
+
+          <module>integration-tests/integration-test</module>
+          <!-- module>integration-tests/ebayk-integration-test</module -->
+
+          <module>distribution</module>
+        </modules>
+      </profile>
+    </profiles>
 
     <properties>
         <replyts.version>2.19.7</replyts.version>

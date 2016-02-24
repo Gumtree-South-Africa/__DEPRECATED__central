@@ -3,10 +3,10 @@
         <groupId>ecg.comaas</groupId>
         <artifactId>comaas</artifactId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>ReplyTS2 Addon for Message Box</name>
-    <artifactId>replyts2-message-box</artifactId>
+    <artifactId>mp-messagecenter</artifactId>
     <packaging>jar</packaging>
 
     <properties>
