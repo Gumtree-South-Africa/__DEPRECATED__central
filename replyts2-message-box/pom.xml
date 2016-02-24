@@ -3,7 +3,6 @@
         <groupId>ecg.comaas</groupId>
         <artifactId>comaas</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>ReplyTS2 Addon for Message Box</name>
@@ -14,7 +13,6 @@
         <maven-compiler-plugin-version>3.1</maven-compiler-plugin-version>
         <java-languagelevel>1.8</java-languagelevel>
         <junit-version>4.11</junit-version>
-        <mockito-version>1.9.0</mockito-version>
         <json-lib-version>2.2.3</json-lib-version>
         <rest-assured-version>2.6.0</rest-assured-version>
         <assertj-version>1.6.1</assertj-version>
@@ -31,7 +29,6 @@
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-runtime</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -56,9 +53,15 @@
             <artifactId>json-lib</artifactId>
             <version>${json-lib-version}</version>
             <classifier>jdk15</classifier>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.codahale.metrics</groupId>
+            <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
             <version>${metrics.version}</version>
         </dependency>
@@ -74,14 +77,23 @@
             <artifactId>rest-assured</artifactId>
             <version>${rest-assured-version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpmime</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.4.1</version>
+            <version>${httpclient-version}</version>
         </dependency>
-
 
         <dependency>
             <groupId>org.cassandraunit</groupId>
@@ -108,6 +120,10 @@
             <scope>test</scope>
             <exclusions>
                 <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpcore</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>org.apache.thrift</groupId>
                     <artifactId>libthrift</artifactId>
                 </exclusion>
@@ -118,6 +134,10 @@
                 <exclusion>
                     <groupId>commons-codec</groupId>
                     <artifactId>commons-codec</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
