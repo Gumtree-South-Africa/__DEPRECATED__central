@@ -4,6 +4,7 @@ set -o nounset
 set -o errexit
 
 readonly ARGS="$@"
+readonly DIR=$(dirname $0)
 
 function log() {
 	echo "[$(date)]: $*"
@@ -16,10 +17,13 @@ function fatal() {
 
 function parseCmd() {
 	RUN_TESTS=0
+	TENANT=
 
-	while getopts ":t" OPTION; do
+	while getopts ":t:T:" OPTION; do
 		case ${OPTION} in
 			t) log "Building with tests"; RUN_TESTS=1
+				;;
+			T) log "Building for tenant $OPTARG"; TENANT="$OPTARG"
 				;;
 			\?) fatal "Invalid option: -${OPTARG}"
 				;;
@@ -30,11 +34,28 @@ function parseCmd() {
 function main() {
 	local start=$(date +"%s")
 
-	if [[ ${RUN_TESTS} == 1 ]]; then
-		mvn -s etc/settings.xml -T1C clean package
-	else
-		mvn -s etc/settings.xml -T1C clean package -DskipTests=true
+	MVN_ARGS="-s etc/settings.xml -T1C clean package"
+
+	if ! [[ ${RUN_TESTS} -eq 1 ]]; then
+		MVN_ARGS="$MVN_ARGS -DskipTests=true"
 	fi
+
+	if ! [[ -z "$TENANT" ]]; then
+		MVN_ARGS="$MVN_ARGS -P${TENANT}"
+	else
+		log "Building all tenant modules (skipping distribution)"
+
+		# Extract all tenant profile IDs from the POM, as build profile selection is limited (MNG-3328 etc.)
+
+		TENANT=`
+		  sed -n '/<profile>/{n;s/.*<id>\(.*\)<\/id>/\1/;p;}' $DIR/../pom.xml | \
+		  grep -v 'default\|distribution' | \
+		  tr $'\n' ','`
+
+		MVN_ARGS="$MVN_ARGS -P${TENANT}!distribution"
+	fi
+
+	mvn $MVN_ARGS
 
 	local end=$(date +"%s")
 	local diff=$(($end-$start))

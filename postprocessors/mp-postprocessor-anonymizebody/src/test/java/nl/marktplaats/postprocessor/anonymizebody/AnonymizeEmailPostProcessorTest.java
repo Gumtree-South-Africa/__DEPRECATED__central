@@ -45,7 +45,7 @@ public class AnonymizeEmailPostProcessorTest {
     @Before
     public void setup() throws PersistenceException, IOException {
         Properties props = new Properties();
-        props.load(AnonymizeEmailPostProcessorTest.class.getResourceAsStream("anonymizeemail.properties"));
+        props.load(getClass().getResourceAsStream("/anonymizeemail.properties"));
         List<String> patterns = props.values().stream().map(Object::toString).collect(Collectors.toList());
 
         anonymizeEmailPostProcessorConfig = new AnonymizeEmailPostProcessorConfig(patterns);
@@ -456,8 +456,8 @@ public class AnonymizeEmailPostProcessorTest {
 
     @Test
     public void testRegressionSuite4_largeTextPart() throws Exception {
-        String text = CharStreams.toString(new InputStreamReader(AnonymizeEmailPostProcessor.class.getResourceAsStream("plain-part.txt"), "US-ASCII"));
-        String expected = CharStreams.toString(new InputStreamReader(AnonymizeEmailPostProcessor.class.getResourceAsStream("plain-part-replaced.txt"), "US-ASCII"));
+        String text = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream("/plain-part.txt"), "US-ASCII"));
+        String expected = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream("/plain-part-replaced.txt"), "US-ASCII"));
 
         // create mock mail and content
         MutableMail mail = prepareMailWithPainText(text);
@@ -474,8 +474,8 @@ public class AnonymizeEmailPostProcessorTest {
 
     @Test
     public void testRegressionSuite5_largeHtmlPart() throws Exception {
-        String text = CharStreams.toString(new InputStreamReader(AnonymizeEmailPostProcessor.class.getResourceAsStream("html-part.html"), "ISO-8859-1"));
-        String expected = CharStreams.toString(new InputStreamReader(AnonymizeEmailPostProcessor.class.getResourceAsStream("html-part-replaced.html"), "US-ASCII"));
+        String text = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream("/html-part.html"), "ISO-8859-1"));
+        String expected = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream("/html-part-replaced.html"), "US-ASCII"));
 
         // create mock mail and content
         Charset charset = Charset.forName("ISO-8859-1");
@@ -561,8 +561,8 @@ public class AnonymizeEmailPostProcessorTest {
 
     @Test
     public void testRegressionSuite_newLinesOnRawContent() throws Exception {
-        InputStream eml = AnonymizeEmailPostProcessor.class.getClassLoader().getResourceAsStream("nl/marktplaats/postprocessor/anonymizebody/new-lines-in-encoded-form.eml");
-        InputStream expectedEml = AnonymizeEmailPostProcessor.class.getClassLoader().getResourceAsStream("nl/marktplaats/postprocessor/anonymizebody/new-lines-in-encoded-form-replaced.eml");
+        InputStream eml = getClass().getResourceAsStream("/new-lines-in-encoded-form.eml");
+        InputStream expectedEml = getClass().getResourceAsStream("/new-lines-in-encoded-form-replaced.eml");
 
         Mails parser = new Mails();
         MutableMail mail = parser.readMail(ByteStreams.toByteArray(eml)).makeMutableCopy();

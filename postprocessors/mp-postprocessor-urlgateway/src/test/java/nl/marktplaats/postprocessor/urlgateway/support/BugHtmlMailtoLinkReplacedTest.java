@@ -33,8 +33,8 @@ public class BugHtmlMailtoLinkReplacedTest {
 
     @Test
     public void testRewriteUrls_noRewrites() throws Exception {
-        String mailContentIn = readUtf8Resource("BugHtmlMailtoLinkReplaced_in.html");
-        String mailContentExpected = readUtf8Resource("BugHtmlMailtoLinkReplaced_expected.html");
+        String mailContentIn = readUtf8Resource("/BugHtmlMailtoLinkReplaced_in.html");
+        String mailContentExpected = readUtf8Resource("/BugHtmlMailtoLinkReplaced_expected.html");
         assertNotNull(mailContentIn, "Could not read resource");
         assertNotNull(mailContentExpected, "Could not read resource");
 

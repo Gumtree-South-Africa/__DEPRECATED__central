@@ -27,7 +27,8 @@
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
-            <artifactId>integration-test</artifactId>
+            <artifactId>core-integration-test</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
