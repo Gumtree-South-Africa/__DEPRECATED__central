@@ -19,7 +19,7 @@ function parseCmd() {
 	RUN_TESTS=0
 	TENANT=
 
-	while getopts ":t:T:" OPTION; do
+	while getopts ":tT:" OPTION; do
 		case ${OPTION} in
 			t) log "Building with tests"; RUN_TESTS=1
 				;;
@@ -37,6 +37,8 @@ function main() {
 	MVN_ARGS="-s etc/settings.xml -T1C clean package"
 
 	if ! [[ ${RUN_TESTS} -eq 1 ]]; then
+		log "Skipping the tests"
+
 		MVN_ARGS="$MVN_ARGS -DskipTests=true"
 	fi
 
