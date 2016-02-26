@@ -4,6 +4,7 @@ import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.ByteStreams;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.subethamail.wiser.WiserMessage;
@@ -29,6 +30,11 @@ public class SunnyDayAcceptanceTest {
     public void startReplytsAndClearMessages() throws Exception {
         IntegrationTestRunner.getReplytsRunner();
         IntegrationTestRunner.clearMessages();
+    }
+
+    @After
+    public void shutdown() {
+        IntegrationTestRunner.stop();
     }
 
     @Test

@@ -59,7 +59,7 @@
 
           <module>resultinspectors/resultinspector-threshold</module>
 
-          <!-- module>messagecenters/mp-messagecenter</module -->
+            <module>messagecenters/mp-messagecenter</module>
 
           <module>integration-tests/mp-integration-test</module>
         </modules>

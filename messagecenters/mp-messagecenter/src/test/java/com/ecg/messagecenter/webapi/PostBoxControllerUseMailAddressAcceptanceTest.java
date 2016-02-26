@@ -1,11 +1,8 @@
 package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.identifier.UserIdentifierType;
-import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
-import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,27 +14,16 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class PostBoxControllerUseMailAddressAcceptanceTest {
 
-    //TODO: get key space from properties
-    private static EmbeddedCassandra embeddedCassandra = new EmbeddedCassandra("messagebox_integration_test");
-
     @BeforeClass
     public static void setup() throws Exception {
-        embeddedCassandra.start("/cassandra_schema.cql", "/cassandra_messagebox_schema.cql");
-        IntegrationTestRunner.stop();
         System.setProperty("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_MAIL.toString());
     }
 
-    @AfterClass
-    public static void cleanup() {
-        embeddedCassandra.cleanEmbeddedCassandra();
-    }
-
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule("/mb-integration-test-conf");
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule("/mb-integration-test-conf", "/cassandra_schema.cql", "/cassandra_messagebox_schema.cql");
 
     @Test
     public void readConversation() {
-
         testRule.deliver(
                 aNewMail()
                         .from("buyer1@buyer.com")
@@ -77,7 +63,6 @@ public class PostBoxControllerUseMailAddressAcceptanceTest {
         testRule.deliver(aNewMail().from("seller1@seller.com").to(anonymizedBuyer).plainBody("reply by seller"));
         MimeMessage replyMail = testRule.waitForMail();
         String anonymizedSeller = replyMail.getFrom()[0].toString();
-
 
         String conversationId = testRule.deliver(aNewMail().from("buyer1@buyer.com").to(anonymizedSeller).plainBody("re-reply for buyer.")).getConversation().getId();
         testRule.waitForMail();

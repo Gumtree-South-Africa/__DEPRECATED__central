@@ -36,7 +36,9 @@ import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePay
 import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload.ResultOrdering.OLDEST_FIRST;
 import static com.ecg.replyts.integration.elasticsearch.EmbeddedElasticSearchClientConfiguration.lastClient;
 import static com.jayway.restassured.path.json.JsonPath.from;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**

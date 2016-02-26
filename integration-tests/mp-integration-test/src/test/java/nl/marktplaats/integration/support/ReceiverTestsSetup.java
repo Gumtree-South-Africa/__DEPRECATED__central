@@ -99,7 +99,7 @@ public class ReceiverTestsSetup {
     @AfterGroups(groups = { "receiverTests" })
     public void stopEmbeddedRts() throws IOException {
         IntegrationTestRunner.stop();
-        embeddedCassandra.cleanEmbeddedCassandra();
+        embeddedCassandra.clean();
     }
 
     public Session getSession() {

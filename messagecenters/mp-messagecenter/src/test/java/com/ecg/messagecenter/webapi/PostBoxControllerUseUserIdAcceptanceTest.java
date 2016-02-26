@@ -1,11 +1,8 @@
 package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.identifier.UserIdentifierType;
-import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
-import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,28 +14,17 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class PostBoxControllerUseUserIdAcceptanceTest {
 
-    //TODO: get key space from properties
-    private static EmbeddedCassandra embeddedCassandra = new EmbeddedCassandra("messagebox_integration_test");
-
     @BeforeClass
     public static void setup() throws Exception {
         System.setProperty("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_USER_ID.toString());
-        embeddedCassandra.start("/cassandra_schema.cql", "/cassandra_messagebox_schema.cql");
-        IntegrationTestRunner.stop();
         System.setProperty("userIdentifierService", UserIdentifierType.BY_USER_ID.toString());
     }
 
-    @AfterClass
-    public static void cleanup() {
-        embeddedCassandra.cleanEmbeddedCassandra();
-    }
-
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule("/mb-integration-test-conf");
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule("/mb-integration-test-conf", "/cassandra_schema.cql", "/cassandra_messagebox_schema.cql");
 
     @Test
     public void readConversation() {
-
         testRule.deliver(
                 aNewMail()
                         .from("buyer1@buyer.com")

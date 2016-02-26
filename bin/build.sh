@@ -34,7 +34,9 @@ function parseCmd() {
 function main() {
 	local start=$(date +"%s")
 
-	MVN_ARGS="-s etc/settings.xml -T1C clean package"
+  # we would use -T1C (one thread per core), but this breaks tests that start an embedded Cassandra instance
+  # so for now we run with 1 thread.
+	MVN_ARGS="-s etc/settings.xml -T1 clean package"
 
 	if ! [[ ${RUN_TESTS} -eq 1 ]]; then
 		log "Skipping the tests"

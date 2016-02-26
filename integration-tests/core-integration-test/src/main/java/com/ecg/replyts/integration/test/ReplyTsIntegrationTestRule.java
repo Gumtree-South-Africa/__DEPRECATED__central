@@ -6,7 +6,6 @@ import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.elasticsearch.client.Client;
 import org.elasticsearch.common.joda.time.DateTime;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -21,7 +20,6 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.ecg.replyts.integration.elasticsearch.EmbeddedElasticSearchClientConfiguration.lastClient;
 import static com.ecg.replyts.integration.riak.EmbeddedRiakClientConfiguration.resetBrain;
 import static com.ecg.replyts.integration.test.IntegrationTestRunner.assertMessageDoesNotArrive;
 import static com.ecg.replyts.integration.test.IntegrationTestRunner.clearMessages;
@@ -60,6 +58,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplyTsIntegrationTestRule.class);
     private final int deliveryTimeoutSeconds;
+    private final String[] cqlFilePaths;
 
     private Description description;
     private ReplyTsConfigClient client;
@@ -70,11 +69,11 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      * instantiate new rule, with a default delivery timeout of 5 seconds.
      */
     public ReplyTsIntegrationTestRule() {
-        this(5);
+        this(5, "/cassandra_schema.cql");
     }
 
-    public ReplyTsIntegrationTestRule(String replyTsConfigurationDir) {
-        this();
+    public ReplyTsIntegrationTestRule(String replyTsConfigurationDir, String... cqlFilePaths) {
+        this(5, cqlFilePaths);
         this.replyTsConfigurationDir = replyTsConfigurationDir;
     }
 
@@ -84,8 +83,9 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      * @param deliveryTimeoutSeconds maximum number of seconds {@link #deliver(MailBuilder)} should wait for a mail to
      *                               be processed.
      */
-    public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds) {
+    private ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, String... cqlFilePaths) {
         this.deliveryTimeoutSeconds = deliveryTimeoutSeconds;
+        this.cqlFilePaths = cqlFilePaths;
         this.embeddedCassandra = new EmbeddedCassandra("replyts_integration_test");
     }
 
@@ -93,7 +93,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     public Statement apply(final Statement base, Description description) {
         this.description = description;
         try {
-            embeddedCassandra.start("/cassandra_schema.cql");
+            embeddedCassandra.start(cqlFilePaths);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -114,14 +114,11 @@ public class ReplyTsIntegrationTestRule implements TestRule {
                     clearMessages();
                 } finally {
                     cleanConfigs();
-                    embeddedCassandra.cleanEmbeddedCassandra();
+                    IntegrationTestRunner.stop();
+                    embeddedCassandra.clean();
                 }
             }
         };
-    }
-
-    public Client elasticSearchClient() {
-        return lastClient();
     }
 
     /**

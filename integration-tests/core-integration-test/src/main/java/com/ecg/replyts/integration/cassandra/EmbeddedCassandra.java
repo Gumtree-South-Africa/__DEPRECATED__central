@@ -43,7 +43,7 @@ public class EmbeddedCassandra {
         return session;
     }
 
-    public void cleanEmbeddedCassandra() {
+    public void clean() {
         EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
     }
 

@@ -20,8 +20,6 @@ import static org.joda.time.DateTime.now;
  */
 public class PostBoxConverterTest {
 
-    private DateTime created = DateTime.now();
-
     private PostBoxConverter converter;
 
     @Before

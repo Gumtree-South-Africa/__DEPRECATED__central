@@ -10,16 +10,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.joda.time.DateTime.now;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public abstract class AbstractPostBoxRepositoryTest<T extends PostBoxRepository> {
 
     private T postBoxRepository;
 
-    protected abstract T createPostBoxRepository();
+    protected abstract T createPostBoxRepository() throws Exception;
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         this.postBoxRepository = createPostBoxRepository();
     }
 

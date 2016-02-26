@@ -17,8 +17,6 @@ public class ThresholdResultInspectorAutomationTest {
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
-
-
     @Before
     public void setUp() throws Exception {
         rule.registerConfig((Class)ThresholdResultInspectorFactory.class, (ObjectNode) JsonObjects.parse("{'held':50, 'blocked':100}"));
