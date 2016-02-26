@@ -1,6 +1,7 @@
 package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.basho.riak.client.IRiakClient;
+import com.basho.riak.client.IndexEntry;
 import com.basho.riak.client.RiakException;
 import com.basho.riak.client.RiakRetryFailedException;
 import com.basho.riak.client.bucket.Bucket;
@@ -16,7 +17,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static com.ecg.replyts.core.runtime.persistence.FetchIndexHelper.fetchResult;
 import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.timestampInMinutes;
+import static java.util.stream.Collectors.toList;
 
 class ConversationBucket {
 
@@ -106,11 +109,10 @@ class ConversationBucket {
 
     public List<String> modifiedBefore(DateTime before, int maxRows) {
         try {
-            return bucket.fetchIndex(
-                    IntIndex.named(SECONDARY_INDEX_MODIFIED_AT))
-                    .from(timestampInMinutes(before))
-                    .maxResults(maxRows)
-                    .execute();
+            List<IndexEntry> indexEntries = fetchResult(bucket.fetchIndex(IntIndex.named(SECONDARY_INDEX_MODIFIED_AT)), before, maxRows);
+            return indexEntries.stream()
+                    .map(IndexEntry::getObjectKey)
+                    .collect(toList());
         } catch (RiakException e) {
             throw new RuntimeException("ConversationBucket: modified before '" + before + "' max rows '" + maxRows + "' search failed", e);
         }

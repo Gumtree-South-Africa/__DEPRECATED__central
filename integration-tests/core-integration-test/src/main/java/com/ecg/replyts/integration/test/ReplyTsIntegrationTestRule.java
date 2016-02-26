@@ -115,7 +115,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
                 } finally {
                     cleanConfigs();
                     IntegrationTestRunner.stop();
-                    embeddedCassandra.clean();
+                    embeddedCassandra.cleanEmbeddedCassandra();
                 }
             }
         };

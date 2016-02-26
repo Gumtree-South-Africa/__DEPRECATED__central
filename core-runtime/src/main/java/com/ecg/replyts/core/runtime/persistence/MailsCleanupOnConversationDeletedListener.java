@@ -37,6 +37,12 @@ class MailsCleanupOnConversationDeletedListener implements ConversationEventList
         }
     }
 
+    @Override
+    public int getOrder() {
+        // A really low value; we should try to clean up the database as soon as possible.
+        return -200;
+    }
+
     private void cleanupMailsOfConversation(Conversation conversation) {
         try (Timer.Context ignored = CLEANUP_CONVERSATION_MAILS_TIMER.time()) {
             for (Message m : conversation.getMessages()) {

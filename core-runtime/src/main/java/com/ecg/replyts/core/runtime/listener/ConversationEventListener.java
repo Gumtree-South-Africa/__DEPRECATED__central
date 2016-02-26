@@ -16,4 +16,11 @@ public interface ConversationEventListener {
      */
     void eventsTriggered(Conversation conversation, List<ConversationEvent> conversationEvents);
 
+    /**
+     * @return order value, listeners with a lower values are called before listeners with higher values
+     *   {@value 200} is returned by default.
+     */
+    default int getOrder() {
+        return 200;
+    }
 }

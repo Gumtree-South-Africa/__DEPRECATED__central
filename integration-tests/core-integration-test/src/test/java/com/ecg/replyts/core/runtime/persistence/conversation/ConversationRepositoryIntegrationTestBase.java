@@ -1,30 +1,25 @@
 package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.ecg.replyts.app.ConversationEventListeners;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationState;
-import com.ecg.replyts.core.api.model.conversation.FilterResultState;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
-import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.command.*;
-import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationDeletedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
+import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewDeadConversationCommand;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.hasSize;
 import static org.joda.time.DateTime.now;
 import static org.junit.Assert.*;
 
@@ -59,7 +54,6 @@ abstract public class ConversationRepositoryIntegrationTestBase<R extends Mutabl
     protected abstract R createConversationRepository();
 
     // TODO: test ConversationRepository.listConversationsModifiedBetween.
-    // TODO: test ConversationRepository.listConversationsCreatedBefore.
     // TODO: test ConversationRepository.findExistingConversationFor.
 
     @Test
@@ -189,6 +183,16 @@ abstract public class ConversationRepositoryIntegrationTestBase<R extends Mutabl
 
         assertNull(conversationRepository.getById(conversationId1));
         assertEventOfTypeEmitted(ConversationDeletedEvent.class);
+    }
+
+    @Test
+    public void listsConversationsModifiedBefore() throws Exception {
+        givenABunchOfCommands();
+
+        List<String> conversationIDs = conversationRepository.listConversationsModifiedBefore(new DateTime(2012, 2, 10, 9, 22, 0), 1);
+
+        assertThat(conversationIDs, hasSize(1));
+        assertThat(conversationIDs.get(0), is(conversationId2));
     }
 
     private void assertEventOfTypeEmitted(Class<? extends ConversationEvent> conversationEventClass) {

@@ -73,7 +73,7 @@ public class StructuredMail implements Mail {
         } catch (RuntimeException e) {
             throw new ParsingException("Mail could not be parsed", e);
         }
-        // mime4j will analyze the contents lazily. enforce to do this now so that we can know when a mail is unparseable upfront
+        // mime4j will analyze the contents lazily. enfore to do this now so that we can now when a mail is unparseable upfront
     }
 
     private void ensureMailIsParseable() throws ParsingException {
@@ -81,7 +81,7 @@ public class StructuredMail implements Mail {
         TextBodyCharsetValidatingVisitor visitor = new TextBodyCharsetValidatingVisitor();
         try {
             // are the important mail addresses in this mail parseable?
-            Preconditions.checkNotNull(getFrom(), "From field is empty or unparseable");
+            Preconditions.checkNotNull(getFrom(), "From field is empty pr unparseable");
 
             mailBodyVisitingClient.visit(visitor);
 

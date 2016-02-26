@@ -11,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -23,10 +24,31 @@ public class CleanerTest {
     private ProcessingTimeGuard processingTimeGuard;
 
     @Test
-    public void unnecessaryHeadersAreRemoved() throws Exception {
+    public void unnecessaryHeadersAreRemovedOthersRetained() throws Exception {
         Mail mail = new Mails().readMail(ByteStreams.toByteArray(getClass().getResourceAsStream("CleanerTest-mail.eml")));
 
-        assertThat("original mail contains unnecessary header", containsHeader(mail, "X-Ms-Exchange-Organization-Authsource"), is(true));
+        List<String> headersToRemove = Arrays.asList(
+                "X-Ms-Exchange-Organization-Authsource",
+                "X-Originalarrivaltime"
+        );
+
+        List<String> headersToKeep = Arrays.asList(
+                "Subject",
+                "Date",
+                "Content-Type",
+                "Content-ID",
+                "Content-Disposition",
+                "Content-Transfer-Encoding",
+                "MIME-Version",
+                "Precedence",
+                "X-Precedence",
+                "X-Auto-Response-Suppress",
+                "Auto-Submitted"
+        );
+
+        // Verify incoming mail
+        headersToRemove.forEach(headerName -> assertContainsHeader("original mail", mail, headerName));
+        headersToKeep.forEach(headerName -> assertContainsHeader("original mail", mail, headerName));
 
         MessageProcessingContext context = new MessageProcessingContext(mail, "1", processingTimeGuard);
         Cleaner cleaner = new Cleaner();
@@ -34,11 +56,24 @@ public class CleanerTest {
 
         MutableMail outgoingMail = context.getOutgoingMail();
 
-        assertThat("outgoing mail does not contain unnecessary header", containsHeader(outgoingMail, "X-Ms-Exchange-Organization-Authsource"), is(false));
-
+        // Verify outgoing mail
+        headersToRemove.forEach(headerName -> assertDoesNotContainsHeader("outgoing mail", outgoingMail, headerName));
+        headersToKeep.forEach(headerName -> assertContainsHeader("outgoing mail", outgoingMail, headerName));
     }
 
-    public boolean containsHeader(Mail mail, String headerName) {
+    private void assertContainsHeader(String mailDescription, Mail mail, String headerName) {
+        assertHeader(mailDescription, mail, headerName, true);
+    }
+
+    private void assertDoesNotContainsHeader(String mailDescription, Mail mail, String headerName) {
+        assertHeader(mailDescription, mail, headerName, false);
+    }
+
+    private void assertHeader(String mailDescription, Mail mail, String headerName, boolean headerExpected) {
+        assertThat(mailDescription + " contains header " + headerName, containsHeader(mail, headerName), is(headerExpected));
+    }
+
+    private boolean containsHeader(Mail mail, String headerName) {
         List<String> decodedHeader = mail.getDecodedHeaders().get(headerName);
         return decodedHeader != null && !decodedHeader.isEmpty();
     }

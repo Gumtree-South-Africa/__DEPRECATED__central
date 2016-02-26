@@ -19,7 +19,9 @@ import java.util.Set;
 public class Cleaner implements PostProcessor {
     public static final Set<String> HEADERS_TO_KEEP = new HashSet<String>(Arrays.asList(
             "Subject", "Date", "Content-Type", "Content-ID",
-            "Content-Disposition", "Content-Transfer-Encoding", "MIME-Version"));
+            "Content-Disposition", "Content-Transfer-Encoding", "MIME-Version",
+            // The following headers are retained to prevent mail loops https://en.wikipedia.org/wiki/Email_loop
+            "Precedence", "X-Precedence", "X-Auto-Response-Suppress", "Auto-Submitted"));
 
     @Override
     public int getOrder() {

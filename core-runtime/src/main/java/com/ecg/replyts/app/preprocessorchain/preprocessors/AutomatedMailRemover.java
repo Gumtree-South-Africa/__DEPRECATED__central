@@ -48,9 +48,7 @@ public class AutomatedMailRemover implements PreProcessor {
     private static final String AUTO_SUBMITTED = "Auto-Submitted";
     private static final MediaType REPORT_MEDIATYPE = MediaType.parse("Multipart/report");
     private static final String MAILER_DAEMON = "MAILER-DAEMON@";
-
-    // TODO: detect vacation messages from Exchange with header line:
-    // X-Auto-Response-Suppress: All
+    private static final String X_AUTO_RESPONSE_SUPPRESS = "X-Auto-Response-Suppress";
 
     @Override
     public void preProcess(MessageProcessingContext context) {
@@ -63,7 +61,8 @@ public class AutomatedMailRemover implements PreProcessor {
                 checkXLoop(mail, context) &&
                 checkAutoReply(mail, context) &&
                 checkPrecedence(mail, context) &&
-                checkContentType(mail, context);
+                checkContentType(mail, context) &&
+                checkAutoResponse(mail, context);
         if (!isAcceptableMail) {
             LOG.debug("mail is automated reply");
         }
@@ -132,6 +131,16 @@ public class AutomatedMailRemover implements PreProcessor {
         final String precedence = mail.getUniqueHeader(precedenceHeader);
         if (precedence != null && IGNORABLE_PRECEDENCES.contains(precedence.toLowerCase())) {
             ctx.terminateProcessing(MessageState.IGNORED, this, "Is Bounce Mail (has " + precedenceHeader + ": " + precedence + ")");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkAutoResponse(Mail mail, MessageProcessingContext context) {
+        // https://msdn.microsoft.com/en-us/library/ee219609%28v=exchg.80%29.aspx
+        String h = mail.getUniqueHeader(X_AUTO_RESPONSE_SUPPRESS);
+        if (h != null) {
+            context.terminateProcessing(MessageState.IGNORED, this, "Is auto response (" + X_AUTO_RESPONSE_SUPPRESS + " has value '" + h + "')");
             return false;
         }
         return true;

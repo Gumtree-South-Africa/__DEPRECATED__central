@@ -1,10 +1,6 @@
 package com.ecg.replyts.core.runtime;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
+import com.codahale.metrics.*;
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -17,7 +13,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 
-public final class  TimingReports {
+public final class TimingReports {
 
     private static String hostName = "localhost";
 
@@ -26,7 +22,7 @@ public final class  TimingReports {
 
     static {
         try {
-            hostName = InetAddress.getLocalHost().getHostName().replaceAll("[^a-zA-Z0-9-]", "-");
+            hostName = InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[^a-zA-Z0-9-]", "_");
         } catch (UnknownHostException e) {
             LOG.error("can not get local host name ", e);
         }

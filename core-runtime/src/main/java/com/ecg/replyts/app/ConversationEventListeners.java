@@ -1,6 +1,5 @@
 package com.ecg.replyts.app;
 
-
 import com.codahale.metrics.Counter;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.listener.ConversationEventListener;
@@ -11,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ConversationEventListeners {
@@ -27,7 +28,9 @@ public class ConversationEventListeners {
     }
 
     public ConversationEventListeners(List<ConversationEventListener> listeners) {
-        this.listeners = listeners;
+        List<ConversationEventListener> copy = new ArrayList<>(listeners);
+        Collections.sort(copy, (l1, l2) -> l1.getOrder() - l2.getOrder());
+        this.listeners = copy;
     }
 
     public void processEventListeners(ImmutableConversation conversation, List<ConversationEvent> conversationEvents) {

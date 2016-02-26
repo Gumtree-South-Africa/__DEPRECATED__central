@@ -20,7 +20,7 @@ public class CassandraPostBoxRepositoryIntegrationTest extends AbstractPostBoxRe
 
     @After
     public void cleanCassandra() {
-        c.clean();
+        c.cleanEmbeddedCassandra();
     }
 
     @Override

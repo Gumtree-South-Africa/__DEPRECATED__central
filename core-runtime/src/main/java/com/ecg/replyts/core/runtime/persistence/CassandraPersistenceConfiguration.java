@@ -12,6 +12,7 @@ import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRep
 import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.CassandraMailRepository;
 import com.google.common.base.Splitter;
+import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 
@@ -47,9 +49,17 @@ public class CassandraPersistenceConfiguration {
     @Value("${persistence.cassandra.consistency.write:#{null}}")
     private ConsistencyLevel cassandraWriteConsistency;
 
+    @Value("${persistence.cassandra.idleTimeoutSeconds:#{null}}")
+    private Integer idleTimeoutSeconds;
+
+    @Value("${persistence.cassandra.jobs.idleTimeoutSeconds:#{null}}")
+    private Integer idleTimeoutSecondsForJobs;
+
     private Collection<InetSocketAddress> cassandraContactPoints;
     private Session cassandraSession;
     private Cluster cassandraCluster;
+    private Session cassandraSessionForJobs;
+    private Cluster cassandraClusterForJobs;
 
     @Value("${persistence.cassandra.endpoint:}")
     public void setCassandraEndpoint(String cassandraEndpoint) {
@@ -75,12 +85,29 @@ public class CassandraPersistenceConfiguration {
     }
 
     public IndexerClockRepository createCassandraIndexerClockRepository() {
-        return new CassandraIndexerClockRepository(cassandraDataCenter, cassandraSession());
+        return new CassandraIndexerClockRepository(cassandraDataCenter, cassandraSessionForJobs());
     }
 
     @Bean(name = "cassandraSession")
     @Conditional(CassandraEnabledConditional.class)
     public Session cassandraSession() {
+        Object[] clusterAndSession = buildClusterAndSession(idleTimeoutSeconds);
+        cassandraCluster = (Cluster) clusterAndSession[0];
+        cassandraSession = (Session) clusterAndSession[1];
+
+        return cassandraSession;
+    }
+
+    @Bean(name = "cassandraSessionForJobs")
+    @Conditional(CassandraEnabledConditional.class)
+    public Session cassandraSessionForJobs() {
+        Object[] clusterAndSession = buildClusterAndSession(idleTimeoutSecondsForJobs);
+        cassandraClusterForJobs = (Cluster) clusterAndSession[0];
+        cassandraSessionForJobs = (Session) clusterAndSession[1];
+        return cassandraSessionForJobs;
+    }
+
+    private Object[] buildClusterAndSession(Integer idleTimeoutSeconds) {
         LOG.info("Connecting to Cassandra dc {}, contactpoints {}, user '{}'", cassandraDataCenter, cassandraContactPoints, cassandraUsername);
         Cluster.Builder builder = Cluster.
                 builder().
@@ -96,22 +123,23 @@ public class CassandraPersistenceConfiguration {
         poolingOptions.setMaxConnectionsPerHost(HostDistance.REMOTE, 2);
         poolingOptions.setCoreConnectionsPerHost(HostDistance.LOCAL, 2);
         poolingOptions.setCoreConnectionsPerHost(HostDistance.REMOTE, 1);
+        if (idleTimeoutSeconds != null) poolingOptions.setIdleTimeoutSeconds(idleTimeoutSeconds);
         builder.withPoolingOptions(poolingOptions);
 
-        cassandraCluster = builder.build();
-        cassandraSession = cassandraCluster.connect(cassandraKeyspace);
+        Cluster cassandraCluster = builder.build();
+        Session cassandraSession = cassandraCluster.connect(cassandraKeyspace);
 
-        return cassandraSession;
+        return new Object[] { cassandraCluster, cassandraSession };
     }
 
     @PreDestroy
     public void closeCassandra() {
-        if (this.cassandraSession != null) {
-            this.cassandraSession.close();
-        }
-        if (this.cassandraCluster != null) {
-            this.cassandraCluster.close();
-        }
+        try {
+            Closeables.close(cassandraSession, true);
+            Closeables.close(cassandraCluster, true);
+            Closeables.close(cassandraSessionForJobs, true);
+            Closeables.close(cassandraClusterForJobs, true);
+        } catch (IOException ignored) {}
     }
 
     @Bean(name = "cassandraReadConsistency")
