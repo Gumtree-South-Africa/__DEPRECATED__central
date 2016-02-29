@@ -1,10 +1,10 @@
 -- Testing environments:
-CREATE KEYSPACE replyts2 WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': '1'} AND durable_writes = true;
+-- CREATE KEYSPACE replyts2 WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': '1'} AND durable_writes = true;
 
 -- L&P, Production environments:
 -- CREATE KEYSPACE replyts2 WITH replication = {'class': 'NetworkTopologyStrategy'} AND durable_writes = true;
 
-USE replyts2;
+-- USE replyts2;
 
 CREATE TABLE core_conversation_events (
     conversation_id text,

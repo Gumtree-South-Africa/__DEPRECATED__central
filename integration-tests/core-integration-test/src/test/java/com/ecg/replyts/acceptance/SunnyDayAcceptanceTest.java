@@ -1,12 +1,19 @@
 package com.ecg.replyts.acceptance;
 
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
+import com.ecg.replyts.util.CassandraTestUtil;
 import com.google.common.io.ByteStreams;
+import org.cassandraunit.spring.CassandraDataSet;
+import org.cassandraunit.spring.EmbeddedCassandra;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.context.TestExecutionListeners;
 import org.subethamail.wiser.WiserMessage;
 
 import javax.mail.Address;
@@ -20,14 +27,30 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.runner.RunWith;
 
 /**
  * All-is-well integration tests.
  */
+@EmbeddedCassandra(configuration = "cu-cassandra.yaml")
+@CassandraDataSet(keyspace = "replyts_integration_test", value = {"cassandra_schema.cql"})
+@TestExecutionListeners(CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 public class SunnyDayAcceptanceTest {
+    private static final String KEYSPACE = "replyts_integration_test";
+    private static Session session;
 
     @Before
     public void startReplytsAndClearMessages() throws Exception {
+        Cluster cluster = Cluster.builder()
+                .addContactPoints(EmbeddedCassandraServerHelper.getHost())
+                .withPort(EmbeddedCassandraServerHelper.getNativeTransportPort())
+                .build();
+        session = cluster.connect(KEYSPACE);
+
+        IntegrationTestRunner.setConfigResourceDirectory("/integrationtest-conf");
         IntegrationTestRunner.getReplytsRunner();
         IntegrationTestRunner.clearMessages();
     }
@@ -35,6 +58,7 @@ public class SunnyDayAcceptanceTest {
     @After
     public void shutdown() {
         IntegrationTestRunner.stop();
+        CassandraTestUtil.cleanTables(session, "replyts_integration_test");
     }
 
     @Test

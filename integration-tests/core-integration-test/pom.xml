@@ -171,63 +171,37 @@
         </dependency>
     </dependencies>
 
-
     <build>
+        <testResources>
+            <testResource>
+                <filtering>false</filtering>
+                <directory>src/test/resources</directory>
+                <includes>
+                    <include>**</include>
+                </includes>
+            </testResource>
+            <testResource>
+                <filtering>false</filtering>
+                <directory>src/test/java</directory>
+                <includes>
+                    <include>**</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </testResource>
+        </testResources>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <skipTests>true</skipTests>
-                    <argLine>-XX:MaxPermSize=512m</argLine>
+                    <parallel>classes</parallel>
+                    <threadCount>1</threadCount>
+                    <perCoreThreadCount>false</perCoreThreadCount>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>includeTest</id>
-            <activation>
-                <property>
-                    <name>integration.test</name>
-                </property>
-            </activation>
-            <build>
-                <testResources>
-                    <testResource>
-                        <filtering>false</filtering>
-                        <directory>src/test/resources</directory>
-                        <includes>
-                            <include>**</include>
-                        </includes>
-                    </testResource>
-                    <testResource>
-                        <filtering>false</filtering>
-                        <directory>src/test/java</directory>
-                        <includes>
-                            <include>**</include>
-                        </includes>
-                        <excludes>
-                            <exclude>**/*.java</exclude>
-                        </excludes>
-                    </testResource>
-                </testResources>
-
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <skipTests>false</skipTests>
-                            <parallel>classes</parallel>
-                            <threadCount>1</threadCount>
-                            <perCoreThreadCount>false</perCoreThreadCount>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
 </project>

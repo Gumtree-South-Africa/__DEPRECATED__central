@@ -10,6 +10,7 @@
 
     <logger name="com.ebay.ecg.sanitychecks" level="info"/>
 
+    <logger name="org.cassandraunit" level="debug"/>
 
     <root level="error">
         <appender-ref ref="STDOUT"/>
