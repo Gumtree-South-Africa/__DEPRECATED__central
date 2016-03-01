@@ -32,23 +32,8 @@
                             <groupId>commons-logging</groupId>
                             <artifactId>commons-logging</artifactId>
                         </exclusion>
-                        <exclusion>
-                            <groupId>com.codahale.metrics</groupId>
-                            <artifactId>metrics-core</artifactId>
-                        </exclusion>
                     </exclusions>
                 </dependency>
-                <!-- dependency>
-                    <groupId>com.ecg.replyts</groupId>
-                    <artifactId>mp-publisher-kafka</artifactId>
-                    <version>${project.version}</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>org.apache.zookeeper</groupId>
-                            <artifactId>zookeeper</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency -->
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>mp-filter-bankaccount</artifactId>
@@ -91,17 +76,30 @@
                     <version>1.0-SNAPSHOT</version>
                 </dependency -->
             </dependencies>
+
         </profile><profile>
             <id>ebayk</id>
+        <properties>
+            <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+            <project-classifier>ebayk</project-classifier>
+        </properties>
 
-            <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
-                <project-classifier>ebayk</project-classifier>
-            </properties>
+        <dependencies>
+            <dependency>
+                <groupId>ecg.comaas</groupId>
+                <artifactId>ebayk-messagecenter</artifactId>
+                <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+        </dependencies>
 
-            <dependencies>
-            </dependencies>
         </profile>
+
     </profiles>
 
     <distributionManagement>

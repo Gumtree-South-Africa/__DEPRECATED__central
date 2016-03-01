@@ -1,0 +1,39 @@
+{
+  "event": {
+    "type": "ConversationCreatedEvent",
+    "conversationId": "conv-5801",
+    "adId": "9876345",
+    "buyerId": "john@ymail.com",
+    "sellerId": "mary@gmail.com",
+    "buyerSecret": "ss983e9s0f7ds",
+    "sellerSecret": "x6cvm8dp9y3k9",
+    "createdAt": "2012-01-10T08:11:43.000Z",
+    "state": "ACTIVE",
+    "customValues": {
+      "Custom-Value1": "blabla123",
+      "Custom-Value2": "more text with newlines \n and šⓣŕáñǵÈ characters"
+    },
+    "eventId": "created-conv-5801-1326183103000",
+    "conversationModifiedAt": "2012-01-10T08:11:43.000Z",
+    "formatVer": 1
+  },
+  "conversation": {
+    "sellerAnonymousEmail": "ss983e9s0f7ds.seller.anon@platform.com",
+    "buyerAnonymousEmail": "x6cvm8dp9y3k9.buyer.anon@platform.com",
+    "conversationId": "conv-5801",
+    "adId": "9876345",
+    "buyerId": "john@ymail.com",
+    "sellerId": "mary@gmail.com",
+    "lastModifiedAt": "2012-01-10T08:11:43.000Z",
+    "createdAt": "2012-01-10T08:11:43.000Z",
+    "state": "ACTIVE",
+    "closed": false,
+    "closedByBuyer": false,
+    "closedBySeller": false,
+    "messageCount": 0,
+    "customValues": {
+      "Custom-Value1": "blabla123",
+      "Custom-Value2": "more text with newlines \n and šⓣŕáñǵÈ characters"
+    }
+  }
+}
