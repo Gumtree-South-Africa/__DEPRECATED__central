@@ -9,7 +9,7 @@
 
     <fileSets>
         <fileSet>
-            <directory>conf</directory>
+            <directory>conf/${profile-classifier}</directory>
             <outputDirectory>conf</outputDirectory>
         </fileSet>
         <fileSet>
