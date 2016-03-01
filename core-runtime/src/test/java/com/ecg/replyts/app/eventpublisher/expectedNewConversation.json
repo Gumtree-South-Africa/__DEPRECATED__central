@@ -35,5 +35,6 @@
       "Custom-Value1": "blabla123",
       "Custom-Value2": "more text with newlines \n and šⓣŕáñǵÈ characters"
     }
-  }
+  },
+  "formatVer": 1
 }

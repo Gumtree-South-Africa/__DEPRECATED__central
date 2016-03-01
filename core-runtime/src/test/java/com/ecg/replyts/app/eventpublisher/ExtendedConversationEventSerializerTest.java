@@ -52,8 +52,7 @@ public class ExtendedConversationEventSerializerTest {
 
     private ExtendedConversationEventSerializer serializer = new ExtendedConversationEventSerializer();
 
-    // FIXME
-    @Ignore
+    @Test
     public void testSerialize_newConversation() throws Exception {
         List<ConversationEvent> newConversationEvents = ImmutableConversation.apply(newConversationCommand);
         Assert.assertEquals(1, newConversationEvents.size());
@@ -71,8 +70,7 @@ public class ExtendedConversationEventSerializerTest {
         Assert.assertEquals(expected, actual);
     }
 
-    // FIXME
-    @Ignore
+    @Test
     public void testSerialize_addMessage() throws Exception {
         DefaultMutableConversation conversation = DefaultMutableConversation.create(newConversationCommand);
 
