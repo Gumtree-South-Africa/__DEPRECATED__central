@@ -83,7 +83,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      * @param deliveryTimeoutSeconds maximum number of seconds {@link #deliver(MailBuilder)} should wait for a mail to
      *                               be processed.
      */
-    private ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, String... cqlFilePaths) {
+    public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, String... cqlFilePaths) {
         this.deliveryTimeoutSeconds = deliveryTimeoutSeconds;
         this.cqlFilePaths = cqlFilePaths;
         this.embeddedCassandra = new EmbeddedCassandra("replyts_integration_test");

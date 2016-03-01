@@ -12,14 +12,15 @@
         <property name="hazelcast.version.check.enabled">false</property>
     </properties>
 
-    <!--  local development: absolutely no need to join a cluster (this will just make the startup slower due to lookup timeouts) -->
     <network>
+        <port auto-increment="false">5888</port>
         <join>
             <multicast enabled="false"/>
-            <tcp-ip enabled="false" />
-            <aws enabled="false"/>
+            <tcp-ip enabled="true">
+                <member>replyts-bundle-rts</member>
+            </tcp-ip>
         </join>
-
     </network>
+
 
 </hazelcast>

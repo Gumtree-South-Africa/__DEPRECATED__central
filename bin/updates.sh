@@ -15,7 +15,7 @@ function fatal() {
 }
 
 function main() {
-	for i in $DIR/core-{api,runtime}/README.md $DIR/{filters,postprocessors,messagecenters,integration-tests}/*/README.md ; do
+	for i in $DIR/core-{api,runtime,graphite}/README.md $DIR/{filters,postprocessors,messagecenters,integration-tests}/*/README.md ; do
 		IDIR=$(basename `dirname $i`)
 
 		MATCH=( `sed -n -e 's/.*\(https:\/\/github.*$\)/\1/p;s/.* hash: \(.*\))$/\1/p' $i` )

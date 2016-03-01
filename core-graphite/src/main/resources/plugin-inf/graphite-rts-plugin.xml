@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="graphiteExporter" class="com.ecg.de.kleinanzeigen.replyts.graphite.GraphiteExporter">
+        <constructor-arg index="0" value="${graphite.enabled:true}"/>
+        <constructor-arg index="1" value="${graphite.endpoint.hostname:}" />
+        <constructor-arg index="2" value="${graphite.endpoint.port:2003}" />
+        <constructor-arg index="3" value="${graphite.timeperiod.sec:10}" />
+        <constructor-arg index="4" value="${graphite.prefix:rts2}" />
+    </bean>
+
+</beans>
