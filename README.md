@@ -3,8 +3,9 @@
 ## Dev setup
 Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki#set-up-code-review) to 
 clone this repository.
+Also clone the [vagrant machine](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant) and start it (see [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant#get-started)). 
 
-Download Cassandra from http://archive.apache.org/dist/cassandra/2.1.11/ to your MacBook.
+Download Cassandra from http://archive.apache.org/dist/cassandra/2.1.11/ to your machine.
 
 Run `setup-cassandra.sh` to run initial db migrations.
 
