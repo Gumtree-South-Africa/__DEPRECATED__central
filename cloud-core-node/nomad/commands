@@ -1,0 +1,6 @@
+nomad node-status
+nomad run comaas.nomad
+nomad status comaas-core
+nomad alloc-status <ID>
+
+(look in /var/lib/nomad/alloc/<ID>/deploy/local for full output)
