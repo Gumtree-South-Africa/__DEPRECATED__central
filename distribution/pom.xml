@@ -244,6 +244,77 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>mde</id>
+
+            <properties>
+               <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+               <profile-classifier>mde</profile-classifier>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-graphite</artifactId>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-postprocessor-rememberlastselleraddress</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-postprocessor-mailalias</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-postprocessor-donotanonymize</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-filter-fsbofraud</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-postprocessor-addmetadata</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-postprocessor-uniqueid</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-filter-comaservice</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-postprocessor-demandreporting</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-postprocessor-sms</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-listener-dealerratinginvite</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
     <distributionManagement>
@@ -392,7 +463,7 @@
                         <configuration> 
                             <rules>
                                 <requireActiveProfile>
-                                    <profiles>mp,ebayk</profiles>
+                                    <profiles>mp,ebayk,mde</profiles>
                                     <all>false</all>
                                 </requireActiveProfile>
                             </rules>

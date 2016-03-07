@@ -25,11 +25,7 @@
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>
-        <dependency>
-            <groupId>ecg.comaas</groupId>
-            <artifactId>core-integration-test</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>mp-filter-bankaccount</artifactId>
@@ -64,6 +60,11 @@
             <groupId>ecg.comaas</groupId>
             <artifactId>mp-filter-volume</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>core-integration-test</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -121,4 +122,22 @@
 
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>skip-integration-tests</id>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>true</skipTests>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

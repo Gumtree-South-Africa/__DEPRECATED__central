@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.ecg.de.mobile.replyts.comafilterservice.FilterServiceFactory">
+        <constructor-arg ref="comaFilterService"></constructor-arg>
+        <constructor-arg ref="contactMessageAssembler"></constructor-arg>
+    </bean>
+    <bean id="comaFilterService" class="com.ecg.de.mobile.replyts.comafilterservice.filters.ComaFilterService">
+        <constructor-arg value="${replyts.mobile.comafilterservice.webserviceUrl}"></constructor-arg>
+        <constructor-arg value="${replyts.mobile.comafilterservice.active}"></constructor-arg>        
+    </bean>
+    
+    <bean id="contactMessageAssembler" class="com.ecg.de.mobile.replyts.comafilterservice.filters.ContactMessageAssembler"></bean>
+</beans>

@@ -113,9 +113,37 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>mde</id>
+
+            <modules>
+                <module>filters/mde-filter-comaservice</module>
+                <module>filters/mde-filter-fsbofraud</module>
+
+                <module>postprocessors/mde-postprocessor-addmetadata</module>
+                <module>postprocessors/mde-postprocessor-demandreporting</module>
+                <module>postprocessors/mde-postprocessor-rememberlastselleraddress</module>
+                <module>postprocessors/mde-postprocessor-sms</module>
+                <module>postprocessors/mde-postprocessor-uniqueid</module>
+                <module>postprocessors/mde-postprocessor-donotanonymize</module>
+                <module>postprocessors/mde-postprocessor-mailalias</module>
+
+                <module>listeners/mde-listener-dealerratinginvite</module>
+            </modules>
+
+            <repositories>
+                <repository>
+                    <id>mde</id>
+                    <url>https://nexus.corp.mobile.de/nexus/content/groups/mobile-releases/</url>
+                </repository>
+            </repositories>
+        </profile>
     </profiles>
 
     <properties>
+        <mongo-java-driver-version>2.13.0</mongo-java-driver-version>
+        <amqp-client-version>3.1.1</amqp-client-version>
         <logstash-logback-encoder-version>4.4</logstash-logback-encoder-version>
         <jolokia-version>1.1.1</jolokia-version>
         <antlr-version>3.5</antlr-version>
@@ -133,6 +161,7 @@
         <cassandra-unit-shaded.version>2.1.9.2</cassandra-unit-shaded.version>
         <cassandra-unit-spring.version>2.1.9.2</cassandra-unit-spring.version>
         <cassandra-client-version>2.1.8</cassandra-client-version>
+        <snakeyaml-version>1.11</snakeyaml-version>
         <cobertura-maven-version>2.5.2</cobertura-maven-version>
         <cglib-version>3.1</cglib-version>
         <elasticsearch-version>1.4.1</elasticsearch-version>
@@ -150,6 +179,8 @@
         <joda-time-version>2.3</joda-time-version>
         <jsr305-version>2.0.3</jsr305-version>
         <junit-version>4.12</junit-version>
+        <junit-hierarchicalcontextrunner-version>4.12.1</junit-hierarchicalcontextrunner-version>
+        <retrofit-version>1.7.1</retrofit-version>
         <jutf7-version>1.0.0</jutf7-version>
         <logback-version>1.1.3</logback-version>
         <maven-assembly-plugin-version>2.4</maven-assembly-plugin-version>
@@ -166,12 +197,13 @@
         <quartz-version>2.2.1</quartz-version>
         <restassured-version>2.6.0</restassured-version>
         <riak-client.version>1.4.4</riak-client.version>
-        <slf4j-version>1.7.7</slf4j-version>
+        <slf4j-version>1.7.10</slf4j-version>
         <spring-version>4.0.2.RELEASE</spring-version>
         <subethasmtp-version>3.1.7</subethasmtp-version>
         <tagsoup-version>1.2.1</tagsoup-version>
         <commons-lang.version>2.6</commons-lang.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
+        <commons-io.version>2.4</commons-io.version>
         <java-lang.source>1.8</java-lang.source>
         <java-lang.target>1.8</java-lang.target>
         <java-lang.encoding>UTF-8</java-lang.encoding>
@@ -182,10 +214,31 @@
         <ebay-services-version>0.7</ebay-services-version>
         <libphonenumber-version>7.0.10</libphonenumber-version>
         <esper-version>4.9.0</esper-version>
+        <gson-version>2.4</gson-version>
+
+        <!-- mde artifact versions -->
+
+        <mde-demand-reporting-client.version>1.17</mde-demand-reporting-client.version>
+        <mde-event-collector-domain.version>2.1</mde-event-collector-domain.version>
+
+        <mde-dealer-rating-domain.version>0.140</mde-dealer-rating-domain.version>
+        <mde-visitor-info-domain.version>3.0.1</mde-visitor-info-domain.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.rabbitmq</groupId>
+                <artifactId>amqp-client</artifactId>
+                <version>${amqp-client-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>mongo-java-driver</artifactId>
+                <version>${mongo-java-driver-version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.jolokia</groupId>
                 <artifactId>jolokia-jvm</artifactId>
@@ -201,6 +254,12 @@
                         <artifactId>jackson-databind</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson-version}</version>
             </dependency>
 
             <dependency>
@@ -269,6 +328,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
             </dependency>
 
             <dependency>
@@ -645,6 +709,11 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml-version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.subethamail</groupId>
                 <artifactId>subethasmtp</artifactId>
                 <version>${subethasmtp-version}</version>
@@ -672,6 +741,82 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit-version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>de.bechte.junit</groupId>
+                <artifactId>junit-hierarchicalcontextrunner</artifactId>
+                <version>${junit-hierarchicalcontextrunner-version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.cassandraunit</groupId>
+                <artifactId>cassandra-unit-spring</artifactId>
+                <version>${cassandra-unit-spring.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.cassandraunit</groupId>
+                        <artifactId>cassandra-unit</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.cassandraunit</groupId>
+                <artifactId>cassandra-unit-shaded</artifactId>
+                <version>${cassandra-unit-shaded.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.thrift</groupId>
+                        <artifactId>libthrift</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-codec</groupId>
+                        <artifactId>commons-codec</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-lang3</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.thrift</groupId>
+                <artifactId>libthrift</artifactId>
+                <version>${apache-libthrift.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpcore</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.retrofit</groupId>
+                <artifactId>retrofit</artifactId>
+                <version>${retrofit-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.retrofit</groupId>
+                <artifactId>retrofit-mock</artifactId>
+                <version>${retrofit-version}</version>
                 <scope>test</scope>
             </dependency>
 
@@ -719,6 +864,42 @@
                     </exclusion>
                 </exclusions>
                 <scope>test</scope>
+            </dependency>
+
+            <!-- mde artifacts -->
+
+            <dependency>
+                <groupId>de.mobile.reporting.demand</groupId>
+                <artifactId>demand-reporting-client</artifactId>
+                <version>${mde-demand-reporting-client.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.mongodb</groupId>
+                        <artifactId>mongo-java-driver</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>de.mobile.analytics</groupId>
+                <artifactId>event-collector-domain</artifactId>
+                <version>${mde-event-collector-domain.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.mobile.dealer.rating</groupId>
+                <artifactId>dealer-rating-domain</artifactId>
+                <version>${mde-dealer-rating-domain.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.mongodb</groupId>
+                        <artifactId>mongo-java-driver</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>de.mobile</groupId>
+                <artifactId>visitor-info-domain</artifactId>
+                <version>${mde-visitor-info-domain.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="emailInviteAssembler" class="com.ecg.de.mobile.replyts.rating.svc.EmailInviteAssembler"/>
+
+    <bean id="dealerRatingService" class="com.ecg.de.mobile.replyts.rating.svc.DealerRatingService">
+        <constructor-arg value="${replyts.mobile.dealerRatingService.webserviceUrl}"></constructor-arg>
+        <constructor-arg ref="emailInviteAssembler"></constructor-arg>
+        <constructor-arg value="${replyts.mobile.dealerRatingService.active}"></constructor-arg>
+    </bean>
+
+    <bean class="com.ecg.de.mobile.replyts.rating.listener.DealerRatingInviteListener">
+        <constructor-arg ref="dealerRatingService"></constructor-arg>
+    </bean>
+
+</beans>
