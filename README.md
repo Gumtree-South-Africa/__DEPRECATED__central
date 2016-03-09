@@ -29,3 +29,11 @@ To run RTS2 create the following run configuration:
 
 ## MP system overview
 ![Messaging system overview at Marktplaats](/docs/20151221-messaging-system-overview.jpg)
+
+## Notes on (future) tenants:
+
+eBay Annunci (Italy) is using a quite clean replyts2-core fork (with Riak storage) plus some custom plugin (mainly for monitoring purpose).   
+They forked the message box plugin from the GTAU one and customized it by adding some endpoints (e.g. direct conversation/message creation) and cleanup strategies.  
+
+core: https://github.corp.ebay.com/annunci/replyts2-core  
+message box plugin: https://github.corp.ebay.com/annunci/replyts2-ebayk-message-center
