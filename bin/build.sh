@@ -40,16 +40,16 @@ function parseCmd() {
 
 function main() {
     local start=$(date +"%s")
+    MVN_ARGS="$MVN_ARGS -s etc/settings.xml clean"
 
-    # we would use -T1C (one thread per core), but this breaks tests that start an embedded Cassandra instance
-    # so for now we run with 1 thread.
-
-    MVN_ARGS="$MVN_ARGS -s etc/settings.xml -T1 clean package"
-
+    # skip tests and set concurrency based on whether tests should be run
     if ! [[ ${RUN_TESTS} -eq 1 ]]; then
         log "Skipping the tests"
-
-        MVN_ARGS="$MVN_ARGS -DskipTests=true"
+        MVN_ARGS="$MVN_ARGS compile -T1C -DskipTests=true"
+    else
+        # we would use -T1C (one thread per core), but this breaks tests that start an embedded Cassandra instance
+        # so for now we run with 1 thread.
+        MVN_ARGS="$MVN_ARGS package -T1"
     fi
 
     PROFILES=""
@@ -59,12 +59,11 @@ function main() {
     fi
 
     if ! [[ -z "$TENANT" ]]; then
-        MVN_ARGS="$MVN_ARGS -P${PROFILES}${TENANT}"
+        MVN_ARGS="$MVN_ARGS package -P${PROFILES}${TENANT}"
     else
         log "Building all tenant modules (skipping distribution)"
 
         # Extract all tenant profile IDs from the POM, as build profile selection is limited (MNG-3328 etc.)
-
         TENANT=`
           sed -n '/<profile>/{n;s/.*<id>\(.*\)<\/id>/\1/;p;}' $DIR/../pom.xml | \
           grep -v 'default\|distribution' | \
@@ -73,6 +72,7 @@ function main() {
         MVN_ARGS="$MVN_ARGS -P${PROFILES}${TENANT}!distribution"
     fi
 
+    log "Executing: mvn $MVN_ARGS"
     mvn $MVN_ARGS
 
     local end=$(date +"%s")
