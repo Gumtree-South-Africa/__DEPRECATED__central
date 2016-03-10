@@ -65,7 +65,7 @@
         <dependency>
             <groupId>org.cassandraunit</groupId>
             <artifactId>cassandra-unit-spring</artifactId>
-            <version>${cassandra-unit-spring.version}</version>
+            <version>${cassandra-unit.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -84,7 +84,7 @@
         <dependency>
             <groupId>org.cassandraunit</groupId>
             <artifactId>cassandra-unit-shaded</artifactId>
-            <version>${cassandra-unit-shaded.version}</version>
+            <version>${cassandra-unit.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>

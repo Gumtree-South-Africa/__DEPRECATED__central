@@ -93,11 +93,15 @@
         </dependency>
 
         <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit-spring</artifactId>
-            <scope>test</scope>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.cassandraunit</groupId>
+            <artifactId>cassandra-unit-spring</artifactId>
+            <scope>compile</scope>
+        </dependency>
         <!-- Fixes for the enforcer plugn -->
 
         <dependency>
@@ -105,21 +109,20 @@
             <artifactId>cassandra-unit-shaded</artifactId>
             <scope>compile</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <scope>compile</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.thrift</groupId>
             <artifactId>libthrift</artifactId>
             <scope>compile</scope>
         </dependency>
 
-        <!-- end fixed -->
-
         <!-- Snakeyaml is needed by embedded cassandra server. -->
-
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
@@ -147,23 +150,11 @@
             </testResource>
         </testResources>
 
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <parallel>classes</parallel>
-                    <threadCount>1</threadCount>
-                    <perCoreThreadCount>false</perCoreThreadCount>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 
     <profiles>
         <profile>
             <id>skip-integration-tests</id>
-
             <build>
                 <plugins>
                     <plugin>

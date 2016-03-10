@@ -5,6 +5,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.integration.cassandra.CassandraRunner;
 import com.ecg.replyts.util.CassandraTestUtil;
 import org.cassandraunit.spring.CassandraDataSet;
 import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
@@ -24,7 +25,7 @@ import static org.joda.time.DateTime.now;
 
 @EmbeddedCassandra(configuration = "cu-cassandra-rndport.yaml")
 @CassandraDataSet(keyspace = "replyts2_conversation_test", value = {"cassandra_schema.cql"})
-@TestExecutionListeners(CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
+@TestExecutionListeners(CassandraRunner.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class CassandraConversationRepositoryIntegrationTest extends ConversationRepositoryIntegrationTestBase<CassandraConversationRepository> {
 
@@ -36,6 +37,7 @@ public class CassandraConversationRepositoryIntegrationTest extends Conversation
         Cluster cluster = Cluster.builder()
                 .addContactPoints(EmbeddedCassandraServerHelper.getHost())
                 .withPort(EmbeddedCassandraServerHelper.getNativeTransportPort())
+                .withQueryOptions(CassandraTestUtil.CLUSTER_OPTIONS)
                 .build();
         session = cluster.connect(KEYSPACE);
     }

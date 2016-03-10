@@ -7,11 +7,11 @@ import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
+import com.ecg.replyts.integration.cassandra.CassandraRunner;
 import com.ecg.replyts.util.CassandraTestUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.cassandraunit.spring.CassandraDataSet;
-import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
 import org.cassandraunit.spring.EmbeddedCassandra;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -29,7 +29,7 @@ import static org.junit.Assert.assertEquals;
         keyspace = "replyts2_configuration_test",
         value = {"cassandra_schema.cql"}
 )
-@TestExecutionListeners(CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
+@TestExecutionListeners(CassandraRunner.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class CassandraConfigurationRepositoryIntegrationTest {
 

@@ -2,6 +2,7 @@ package com.ecg.replyts.acceptance;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
+import com.ecg.replyts.integration.cassandra.CassandraRunner;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.ecg.replyts.util.CassandraTestUtil;
 import com.google.common.io.ByteStreams;
@@ -27,7 +28,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
-import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.runner.RunWith;
 
@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
  */
 @EmbeddedCassandra(configuration = "cu-cassandra.yaml")
 @CassandraDataSet(keyspace = "replyts_integration_test", value = {"cassandra_schema.cql"})
-@TestExecutionListeners(CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
+@TestExecutionListeners(CassandraRunner.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SunnyDayAcceptanceTest {
     private static final String KEYSPACE = "replyts_integration_test";
@@ -44,9 +44,11 @@ public class SunnyDayAcceptanceTest {
 
     @Before
     public void startReplytsAndClearMessages() throws Exception {
+       // TODO fetch a session
         Cluster cluster = Cluster.builder()
                 .addContactPoints(EmbeddedCassandraServerHelper.getHost())
                 .withPort(EmbeddedCassandraServerHelper.getNativeTransportPort())
+                .withQueryOptions(CassandraTestUtil.CLUSTER_OPTIONS)
                 .build();
         session = cluster.connect(KEYSPACE);
 

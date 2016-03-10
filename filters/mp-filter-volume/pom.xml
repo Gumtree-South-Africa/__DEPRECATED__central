@@ -76,7 +76,6 @@
         </dependency>
 
         <!-- Fixes for the enforcer plugn -->
-
         <dependency>
             <groupId>org.cassandraunit</groupId>
             <artifactId>cassandra-unit-shaded</artifactId>

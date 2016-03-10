@@ -4,9 +4,9 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.ecg.replyts.integration.cassandra.CassandraRunner;
 import com.ecg.replyts.util.CassandraTestUtil;
 import org.cassandraunit.spring.CassandraDataSet;
-import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
 import org.cassandraunit.spring.EmbeddedCassandra;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.joda.time.DateTime;
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 @EmbeddedCassandra(configuration = "cu-cassandra-rndport.yaml")
 @CassandraDataSet(keyspace = "replyts2_mail_test", value = {"cassandra_schema.cql"})
-@TestExecutionListeners(CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
+@TestExecutionListeners(CassandraRunner.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class CassandraMailRepositoryIntegrationTest {
 
@@ -38,6 +38,7 @@ public class CassandraMailRepositoryIntegrationTest {
         Cluster cluster = Cluster.builder()
                 .addContactPoints(EmbeddedCassandraServerHelper.getHost())
                 .withPort(EmbeddedCassandraServerHelper.getNativeTransportPort())
+                .withQueryOptions(CassandraTestUtil.CLUSTER_OPTIONS)
                 .build();
         session = cluster.connect(KEYSPACE);
         repository = new CassandraMailRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);

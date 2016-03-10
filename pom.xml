@@ -158,10 +158,9 @@
         <assertj-core.version>3.2.0</assertj-core.version>
         <bouncycastle-version>1.50</bouncycastle-version>
         <bouncycastle-jdk>jdk15on</bouncycastle-jdk>
-        <cassandra-unit-shaded.version>2.1.9.2</cassandra-unit-shaded.version>
-        <cassandra-unit-spring.version>2.1.9.2</cassandra-unit-spring.version>
+        <cassandra-unit.version>2.1.9.2</cassandra-unit.version>
         <cassandra-client-version>2.1.8</cassandra-client-version>
-        <snakeyaml-version>1.11</snakeyaml-version>
+        <snakeyaml-version>1.12</snakeyaml-version>
         <cobertura-maven-version>2.5.2</cobertura-maven-version>
         <cglib-version>3.1</cglib-version>
         <elasticsearch-version>1.4.1</elasticsearch-version>
@@ -753,9 +752,25 @@
             <dependency>
                 <groupId>org.cassandraunit</groupId>
                 <artifactId>cassandra-unit-spring</artifactId>
-                <version>${cassandra-unit-spring.version}</version>
+                <version>${cassandra-unit.version}</version>
                 <scope>test</scope>
                 <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.thrift</groupId>
+                        <artifactId>libthrift</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-codec</groupId>
+                        <artifactId>commons-codec</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-lang3</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>org.cassandraunit</groupId>
                         <artifactId>cassandra-unit</artifactId>
@@ -770,7 +785,7 @@
             <dependency>
                 <groupId>org.cassandraunit</groupId>
                 <artifactId>cassandra-unit-shaded</artifactId>
-                <version>${cassandra-unit-shaded.version}</version>
+                <version>${cassandra-unit.version}</version>
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>
@@ -784,6 +799,14 @@
                     <exclusion>
                         <groupId>commons-codec</groupId>
                         <artifactId>commons-codec</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.yaml</groupId>
+                        <artifactId>snakeyaml</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.junit</groupId>
+                        <artifactId>junit</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>org.apache.commons</groupId>

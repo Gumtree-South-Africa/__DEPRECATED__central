@@ -1,6 +1,7 @@
 package com.ecg.replyts.util;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -10,6 +11,8 @@ import org.slf4j.LoggerFactory;
 public class CassandraTestUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(CassandraTestUtil.class);
+
+    public final static QueryOptions CLUSTER_OPTIONS = new QueryOptions().setRefreshSchemaIntervalMillis(10);
 
     public static void cleanTables(Session session, String keyspace) {
         ResultSet tables = session.execute("select columnfamily_name from system.schema_columnfamilies where keyspace_name = '" + keyspace + "';");
@@ -22,7 +25,11 @@ public class CassandraTestUtil {
     public static Session newSession(String keyspace) {
         String host = EmbeddedCassandraServerHelper.getHost();
         int port = EmbeddedCassandraServerHelper.getNativeTransportPort();
-        Cluster cluster = Cluster.builder().addContactPoint(host).withPort(port).build();
+
+        Cluster cluster = Cluster.builder().addContactPoint(host).withPort(port)
+                .withMaxSchemaAgreementWaitSeconds(1)
+                .withQueryOptions(CLUSTER_OPTIONS)
+                .build();
         if (keyspace == null) {
             return cluster.newSession();
         } else {
