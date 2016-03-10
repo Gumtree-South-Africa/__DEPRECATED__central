@@ -9,6 +9,11 @@ from logback.xml.
 
 -->
 <included>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d %-5level [%thread] %-35logger{35}: %msg %n</pattern>
+        </encoder>
+    </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${logDir}/replyts.log</file>
@@ -45,7 +50,7 @@ from logback.xml.
                         }
                     </pattern>
                 </pattern>
-                <stackTrace class="com.ebay.belen.replyts.logging.BelenStackTraceJsonProvider"/>
+                <!--<stackTrace class="com.ebay.belen.replyts.logging.BelenStackTraceJsonProvider"/>-->
                 <mdc/>
             </providers>
         </encoder>
@@ -102,9 +107,13 @@ from logback.xml.
 
     <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
 
-    <root level="ERROR">
-        <appender-ref ref="FILE" />
-        <appender-ref ref="LOGSTASH" />
+    <logger name="com.ecg.replyts" level="INFO"/>
+    <logger name="com.ecg.de" level="INFO"/>
+
+    <root level="WARN">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="LOGSTASH"/>
+        <appender-ref ref="STDOUT"/>
     </root>
 
 </included>

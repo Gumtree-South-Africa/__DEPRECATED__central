@@ -5,6 +5,12 @@
 	be included from logback.xml. -->
 <included>
 
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d %-5level [%thread] %-35logger{35}: %msg %n</pattern>
+		</encoder>
+	</appender>
+
 	<appender name="FILE"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${logDir}/replyts.log</file>
@@ -25,6 +31,10 @@
 	<logger name="com.ecg" level="INFO" />
 	<logger name="com.ebay.ecg.sanitychecks" level="ERROR" />
 
+	<logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
+	<logger name="com.ecg.replyts" level="DEBUG"/>
+	<logger name="com.ecg.de" level="DEBUG"/>
+	<logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
 
 	<!-- hadoop logger -->
 	<logger name="hadoop_daily_report_v2" level="info" additivity="false">
@@ -71,8 +81,9 @@
 	</logger>
 
 
-	<root level="ERROR">
+	<root level="WARN">
 		<appender-ref ref="FILE" />
+		<appender-ref ref="STDOUT"/>
 		<!-- appender-ref ref="GELF" / -->
 	</root>
 

@@ -9,13 +9,21 @@ Download Cassandra from http://archive.apache.org/dist/cassandra/2.1.11/ to your
 
 Run `setup-cassandra.sh` to run initial db migrations.
 
-To run RTS2 create the following run configuration:
+To run COMaaS for a specific tenant from your IDE, use the following Run configuration:
 
-* Type: application
-* Main class: `nl.marktplaats.replyts2.MarktplaatsReplyTS2Main`
+* Type: Maven
+* Name: COMaaS for: <name of tenant, e.g. mp>
+
+* Working directory: <full path to the ecg-comaas-central folder>
+* Command line: verify -T1C -Dexec.mainClass=com.ecg.replyts.core.runtime.ReplyTS
+* Profiles: <name of tenant, e.g. mp>
+
+* Maven home directory: <make sure you select the latest version, usually not the IntelliJ built-in, e.g. 3.3.9>
+* User settings file: etc/settings.xml (select 'Override' to override)
+
 * VM arguments:
   ```
-  -DconfDir=replyts2-mp-dist/conf
+  -DconfDir=distribution/conf/<name of tenant, e.g. mp>
   -DlogDir=/tmp
   -Dmail.mime.parameters.strict=false
   -Dmail.mime.address.strict=false
@@ -23,9 +31,11 @@ To run RTS2 create the following run configuration:
   -Dmail.mime.uudecode.ignoreerrors=true
   -Dmail.mime.uudecode.ignoremissingbeginend=true
   -Dmail.mime.multipart.allowempty=true
+  -Dmaven.wagon.http.ssl.insecure=true
+  -Dmaven.wagon.http.ssl.allowall=true
+  -Dmaven.wagon.http.ssl.ignore.validity.dates=true
   ```
-* Module: `replyts2-mp-dist`
-* Working directory: the project directory (which is the default)
+* Skip tests: check this
 
 ## MP system overview
 ![Messaging system overview at Marktplaats](/docs/20151221-messaging-system-overview.jpg)
