@@ -23,6 +23,7 @@ To run COMaaS for a specific tenant from your IDE, use the following Run configu
 
 * VM arguments:
   ```
+  -Dmaven.exec.skip=false
   -DconfDir=distribution/conf/<name of tenant, e.g. mp>
   -DlogDir=/tmp
   -Dmail.mime.parameters.strict=false
@@ -36,6 +37,8 @@ To run COMaaS for a specific tenant from your IDE, use the following Run configu
   -Dmaven.wagon.http.ssl.ignore.validity.dates=true
   ```
 * Skip tests: check this
+
+This will call exec:java through the 'verify' phase in the distribution module. 'maven.exec.skip' is normally true, which prevents exec:java from being called prior to the normal 'deploy' phase.
 
 ## MP system overview
 ![Messaging system overview at Marktplaats](/docs/20151221-messaging-system-overview.jpg)

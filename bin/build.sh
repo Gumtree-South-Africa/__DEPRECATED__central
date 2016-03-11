@@ -23,8 +23,9 @@ function parseCmd() {
     RUN_TESTS=0
     RUN_INTEGRATION_TESTS=0
     TENANT=
+    UPLOAD=
 
-    while getopts ":tIT:" OPTION; do
+    while getopts ":tIT:U:" OPTION; do
         case ${OPTION} in
             t) log "Building with tests (but not integration tests)"; RUN_TESTS=1
                ;;
@@ -32,24 +33,33 @@ function parseCmd() {
                ;;
             T) log "Building for tenant $OPTARG"; TENANT="$OPTARG"
                ;;
+            U) log "Will upload to $OPTARG"; UPLOAD="$OPTARG"
+               ;;
             \?) fatal "Invalid option: -${OPTARG}"
                ;;
         esac
     done
+
+    if [[ ! -z $UPLOAD && -z $TENANT ]] ; then
+        fatal "Must specify a tenant if you are specifying an upload target environment"
+    fi
 }
 
 function main() {
     local start=$(date +"%s")
-    MVN_ARGS="$MVN_ARGS -s etc/settings.xml clean"
+
+    MVN_ARGS="$MVN_ARGS -s etc/settings.xml"
+    MVN_TASKS="clean compile"
 
     # skip tests and set concurrency based on whether tests should be run
     if ! [[ ${RUN_TESTS} -eq 1 ]]; then
         log "Skipping the tests"
-        MVN_ARGS="$MVN_ARGS compile -T1C -DskipTests=true"
+        MVN_ARGS="$MVN_ARGS -T1C -DskipTests=true"
     else
         # we would use -T1C (one thread per core), but this breaks tests that start an embedded Cassandra instance
         # so for now we run with 1 thread.
-        MVN_ARGS="$MVN_ARGS package -T1"
+        MVN_ARGS="$MVN_ARGS -T1"
+        MVN_TASKS="clean package"
     fi
 
     PROFILES=""
@@ -58,22 +68,27 @@ function main() {
         PROFILES="skip-integration-tests,"
     fi
 
-    if ! [[ -z "$TENANT" ]]; then
-        MVN_ARGS="$MVN_ARGS package -P${PROFILES}${TENANT}"
+    if ! [[ -z $TENANT ]] ; then
+        MVN_ARGS="$MVN_ARGS -P${PROFILES}${TENANT}"
+
+        if ! [[ -z $UPLOAD ]] ; then
+            MVN_ARGS="${MVN_ARGS},upload-${TENANT}-${UPLOAD}"
+	    MVN_TASKS="clean deploy"
+        fi
     else
         log "Building all tenant modules (skipping distribution)"
 
         # Extract all tenant profile IDs from the POM, as build profile selection is limited (MNG-3328 etc.)
         TENANT=`
           sed -n '/<profile>/{n;s/.*<id>\(.*\)<\/id>/\1/;p;}' $DIR/../pom.xml | \
-          grep -v 'default\|distribution' | \
+          grep -v 'default\|distribution\|deploy' | \
           tr $'\n' ','`
 
         MVN_ARGS="$MVN_ARGS -P${PROFILES}${TENANT}!distribution"
     fi
 
-    log "Executing: mvn $MVN_ARGS"
-    mvn $MVN_ARGS
+    log "Executing: mvn $MVN_ARGS $MVN_TASKS"
+    mvn $MVN_ARGS $MVN_TASKS
 
     local end=$(date +"%s")
     local diff=$(($end-$start))

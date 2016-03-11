@@ -15,4 +15,12 @@
             <name>MpNexus</name>
         </mirror>
     </mirrors>
+
+    <servers>
+        <server>
+            <id>mdenexus</id>
+            <username></username>
+            <password></password>
+        </server>
+    </servers>
 </settings>

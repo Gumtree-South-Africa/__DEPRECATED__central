@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>distribution</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <profiles>
         <profile>
@@ -225,24 +225,6 @@
                     <artifactId>logstash-logback-encoder</artifactId>
                 </dependency>
             </dependencies>
-
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.ebay.belen.maven.plugins</groupId>
-                        <artifactId>belen-release-info-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>relprops</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>generateReleaseInfoProperties</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
         <profile>
             <id>mde</id>
@@ -317,17 +299,6 @@
         </profile>
     </profiles>
 
-    <distributionManagement>
-        <repository>
-            <id>mp.releases</id>
-            <url>http://mpnexus.corp.ebay.com/content/repositories/libs-releases-local</url>
-        </repository>
-        <snapshotRepository>
-            <id>mp.snapshots</id>
-            <url>http://mpnexus.corp.ebay.com/content/repositories/libs-snapshots-local</url>
-        </snapshotRepository>
-    </distributionManagement>
-
     <dependencies>
         <dependency>
             <groupId>ecg.comaas</groupId>
@@ -340,7 +311,8 @@
     </dependencies>
 
     <build>
-        <finalName>${project.groupId}.${project.parent.artifactId}_${project.parent.version}-${profile-classifier}</finalName>
+        <finalName>${project.groupId}.${project.parent.artifactId}_${project.parent.version}-${profile-classifier}-${env-name}</finalName>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -353,7 +325,7 @@
                             <classpathPrefix>lib/</classpathPrefix>
                         </manifest>
                         <manifestEntries>
-                            <Class-Path>conf/${profile-classifier}/</Class-Path>
+                            <Class-Path>conf/${profile-classifier}/${env-name}/</Class-Path>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -370,6 +342,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
@@ -422,8 +395,20 @@
             </plugin>
 
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>${mainClass}</mainClass>
+                </configuration>
             </plugin>
 
             <plugin>

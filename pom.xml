@@ -67,6 +67,46 @@
                 <module>integration-tests/mp-integration-test</module>
             </modules>
         </profile>
+        <profile>
+            <id>upload-mp-production</id>
+
+            <properties>
+                <env-name>production</env-name>
+            </properties>
+
+            <distributionManagement>
+                <repository>
+                    <id>mp.releases</id>
+                    <url>http://mpnexus.corp.ebay.com/content/repositories/libs-releases-local</url>
+                </repository>
+                <snapshotRepository>
+                    <id>mp.snapshots</id>
+                    <url>http://mpnexus.corp.ebay.com/content/repositories/libs-snapshots-local</url>
+                </snapshotRepository>
+            </distributionManagement>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-deploy-plugin</artifactId>
+                            <configuration>
+                                <skip>true</skip>
+                            </configuration>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.sonatype.plugins</groupId>
+                            <artifactId>nexus-staging-maven-plugin</artifactId>
+                            <version>${nexus-staging-maven-plugin.version}</version>
+                            <configuration>
+                                <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
 
         <profile>
             <id>ebayk</id>
@@ -94,23 +134,53 @@
 
                 <module>messagecenters/ebayk-messagecenter</module>
             </modules>
+        </profile>
+        <profile>
+            <id>upload-ebayk-production</id>
+
+            <properties>
+                <env-name>production</env-name>
+            </properties>
+
+            <distributionManagement>
+                <repository>
+                    <id>auto-deploy-releases</id>
+                    <url>https://kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/</url>
+                </repository>
+                <snapshotRepository>
+                    <uniqueVersion>false</uniqueVersion>
+                    <id>auto-deploy-snapshots</id>
+                    <name>Auto Deploy Snapshot Repository</name>
+                    <url>https://kautodeploy.corp.mobile.de/storage/belen-productive-deployment-snapshots/</url>
+                    <layout>default</layout>
+                </snapshotRepository>
+            </distributionManagement>
 
             <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.ebay.belen.maven.plugins</groupId>
-                        <artifactId>belen-release-info-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>relprops</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>generateReleaseInfoProperties</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-deploy-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <phase>deploy</phase>
+                                    <goals>
+                                        <goal>deploy</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.sonatype.plugins</groupId>
+                            <artifactId>nexus-staging-maven-plugin</artifactId>
+                            <version>${nexus-staging-maven-plugin.version}</version>
+                            <configuration>
+                                <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
             </build>
         </profile>
 
@@ -131,17 +201,60 @@
 
                 <module>listeners/mde-listener-dealerratinginvite</module>
             </modules>
+        </profile>
+        <profile>
+            <id>upload-mde-integration</id>
 
-            <repositories>
+            <properties>
+                <env-name>integration</env-name>
+            </properties>
+
+            <distributionManagement>
                 <repository>
-                    <id>mde</id>
-                    <url>https://nexus.corp.mobile.de/nexus/content/groups/mobile-releases/</url>
+                    <id>mde.releases</id>
+                    <url>https://nexus.corp.mobile.de/nexus/content/repositories/hosted-ecg-releases/</url>
                 </repository>
-            </repositories>
+                <snapshotRepository>
+                    <id>mde.snapshots</id>
+                    <url>https://nexus.corp.mobile.de/nexus/content/repositories/hosted-ecg-snapshots/</url>
+                </snapshotRepository>
+            </distributionManagement>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-deploy-plugin</artifactId>
+                            <configuration>
+                                <skip>true</skip>
+                            </configuration>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.sonatype.plugins</groupId>
+                            <artifactId>nexus-staging-maven-plugin</artifactId>
+                            <version>${nexus-staging-maven-plugin.version}</version>
+                            <extensions>true</extensions>
+                            <configuration>
+                                <serverId>mdenexus</serverId>
+                                <nexusUrl>https://nexus.corp.mobile.de/nexus/</nexusUrl>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
         </profile>
     </profiles>
 
     <properties>
+        <!-- Overridden in upload-* profiles to build for a certain (tenant) environment (integration, production, etc.) -->
+
+        <env-name>local</env-name>
+
+        <!-- Make sure that the exec plugin by default does not run in the 'verify' phase, unless this variable is overridden (by for example, a task runner (see ../README)) -->
+
+        <maven.exec.skip>true</maven.exec.skip>
+
         <mongo-java-driver-version>2.13.0</mongo-java-driver-version>
         <amqp-client-version>3.1.1</amqp-client-version>
         <logstash-logback-encoder-version>4.4</logstash-logback-encoder-version>
@@ -187,12 +300,13 @@
         <maven-dependency-plugin-version>2.8</maven-dependency-plugin-version>
         <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
         <maven-jar-plugin.version>2.3</maven-jar-plugin.version>
+        <maven-jar-plugin.version>2.3</maven-jar-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.6</nexus-staging-maven-plugin.version>
         <git-commit-id-plugin.version>2.2.0</git-commit-id-plugin.version>
         <maven-release-plugin-version>2.4.2</maven-release-plugin-version>
         <maven-source-plugin-version>2.2.1</maven-source-plugin-version>
         <maven-surefire-version>2.19</maven-surefire-version>
         <junit-toolbox.version>2.2</junit-toolbox.version>
-        <belen-release-info-plugin.version>1.4.6</belen-release-info-plugin.version>
         <metrics.version>3.1.2</metrics.version>
         <mime4j-version>0.7.2</mime4j-version>
         <mockito-version>1.10.19</mockito-version>
@@ -951,6 +1065,13 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
                     <version>${exec-maven-plugin-version}</version>
+
+                    <!-- We keep this in pluginManagement to defer execution of exec:java to the 'verify' phase in the distribution
+                         module if maven.exec.skip = 'false' (for example, to start from a task runner (see ../README)) -->
+
+                    <configuration>
+                        <skip>${maven.exec.skip}</skip>
+                    </configuration>
                     <executions>
                         <execution>
                             <phase>verify</phase>
@@ -989,12 +1110,6 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>appassembler-maven-plugin</artifactId>
                     <version>${appassembler-maven-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>com.ebay.belen.maven.plugins</groupId>
-                    <artifactId>belen-release-info-plugin</artifactId>
-                    <version>${belen-release-info-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
