@@ -4,29 +4,28 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
-import com.ecg.replyts.util.CassandraTestUtil;
 import org.junit.After;
 import org.junit.BeforeClass;
 
 public class CassandraPostBoxRepositoryIntegrationTest extends AbstractPostBoxRepositoryTest<CassandraPostBoxRepository> {
 
     private static final String KEYSPACE = "messagebox_test";
-    private static EmbeddedCassandra c;
+    private static EmbeddedCassandra casdb;
+    private Session session;
 
     @BeforeClass
     public static void init() throws Exception {
-        c = new EmbeddedCassandra(KEYSPACE);
+        casdb = EmbeddedCassandra.getInstance();
     }
 
     @After
     public void cleanCassandra() {
-        c.cleanEmbeddedCassandra();
+        casdb.cleanTables(session, KEYSPACE);
     }
 
     @Override
     protected CassandraPostBoxRepository createPostBoxRepository() throws Exception {
-        c.start("/cassandra_messagebox_schema.cql");
-        Session session = CassandraTestUtil.newSession(KEYSPACE);
+        session = casdb.loadSchema(KEYSPACE, "cassandra_schema.cql", "cassandra_messagebox_schema.cql");
         CassandraPostBoxRepository r = new CassandraPostBoxRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
         r.setObjectMapperConfigurer(new JacksonAwareObjectMapperConfigurer());
         return r;

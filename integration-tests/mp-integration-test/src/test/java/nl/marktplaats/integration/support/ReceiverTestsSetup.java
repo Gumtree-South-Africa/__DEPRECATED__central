@@ -15,15 +15,20 @@ import nl.marktplaats.filter.volume.VolumeFilterFactory;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+@Test
 public class ReceiverTestsSetup {
 
     private static EmbeddedCassandra embeddedCassandra;
+    private static final String KEYSPACE = "replyts_integration_test";
+    private Session session;
+
 
     @BeforeGroups(groups = { "receiverTests" })
     public void startEmbeddedRts() throws Exception {
@@ -34,9 +39,8 @@ public class ReceiverTestsSetup {
         // Don't you even dare to initialize fields with their definition!
         System.setProperty("confDir", configurationDirectory());
 
-        //TODO: get key space from properties
-        embeddedCassandra = new EmbeddedCassandra("replyts_integration_test");
-        embeddedCassandra.start("/cassandra_schema.cql", "/cassandra_volume_filter_schema.cql");
+        embeddedCassandra = EmbeddedCassandra.getInstance();
+        session = embeddedCassandra.loadSchema(KEYSPACE, "cassandra_schema.cql", "cassandra_volume_filter_schema.cql");
 
         IntegrationTestRunner.setConfigResourceDirectory("/mp-integration-test-conf");
         IntegrationTestRunner.getReplytsRunner();
@@ -99,10 +103,10 @@ public class ReceiverTestsSetup {
     @AfterGroups(groups = { "receiverTests" })
     public void stopEmbeddedRts() throws IOException {
         IntegrationTestRunner.stop();
-        embeddedCassandra.cleanEmbeddedCassandra();
+        embeddedCassandra.cleanTables(session, KEYSPACE);
     }
 
     public Session getSession() {
-        return embeddedCassandra.getSession();
+        return session;
     }
 }

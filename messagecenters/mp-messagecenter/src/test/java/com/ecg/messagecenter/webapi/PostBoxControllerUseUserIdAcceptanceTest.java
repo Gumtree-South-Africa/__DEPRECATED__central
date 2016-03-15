@@ -21,7 +21,7 @@ public class PostBoxControllerUseUserIdAcceptanceTest {
     }
 
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule("/mb-integration-test-conf", "/cassandra_schema.cql", "/cassandra_messagebox_schema.cql");
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule("/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql");
 
     @Test
     public void readConversation() {

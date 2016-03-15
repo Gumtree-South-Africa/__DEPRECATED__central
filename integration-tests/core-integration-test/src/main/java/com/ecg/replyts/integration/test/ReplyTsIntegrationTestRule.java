@@ -1,5 +1,6 @@
 package com.ecg.replyts.integration.test;
 
+import com.datastax.driver.core.Session;
 import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
@@ -17,6 +18,7 @@ import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -63,13 +65,15 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     private Description description;
     private ReplyTsConfigClient client;
     private String replyTsConfigurationDir;
-    private EmbeddedCassandra embeddedCassandra;
+
+    private static final EmbeddedCassandra CASDB = EmbeddedCassandra.getInstance();
+    private static final String KEYSPACE = "replyts_integration_test";
 
     /**
      * instantiate new rule, with a default delivery timeout of 5 seconds.
      */
     public ReplyTsIntegrationTestRule() {
-        this(5, "/cassandra_schema.cql");
+        this(5, "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(String replyTsConfigurationDir, String... cqlFilePaths) {
@@ -86,14 +90,14 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, String... cqlFilePaths) {
         this.deliveryTimeoutSeconds = deliveryTimeoutSeconds;
         this.cqlFilePaths = cqlFilePaths;
-        this.embeddedCassandra = new EmbeddedCassandra("replyts_integration_test");
     }
 
     @Override
     public Statement apply(final Statement base, Description description) {
         this.description = description;
+        final Session session;
         try {
-            embeddedCassandra.start(cqlFilePaths);
+            session = CASDB.loadSchema(KEYSPACE, cqlFilePaths);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -115,7 +119,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
                 } finally {
                     cleanConfigs();
                     IntegrationTestRunner.stop();
-                    embeddedCassandra.cleanEmbeddedCassandra();
+                    CASDB.cleanTables(session, KEYSPACE);
                 }
             }
         };

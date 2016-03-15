@@ -1,45 +1,23 @@
 package com.ecg.replyts.core.runtime.persistence.conversation;
 
-import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
-import com.ecg.replyts.integration.cassandra.CassandraRunner;
-import com.ecg.replyts.util.CassandraTestUtil;
-import org.cassandraunit.spring.CassandraDataSet;
-import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
-import org.cassandraunit.spring.EmbeddedCassandra;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.runners.JUnit4;
 
-import java.util.ArrayList;
-
-import static org.joda.time.DateTime.now;
-
-@EmbeddedCassandra(configuration = "cu-cassandra-rndport.yaml")
-@CassandraDataSet(keyspace = "replyts2_conversation_test", value = {"cassandra_schema.cql"})
-@TestExecutionListeners(CassandraRunner.class)
-@RunWith(SpringJUnit4ClassRunner.class)
 public class CassandraConversationRepositoryIntegrationTest extends ConversationRepositoryIntegrationTestBase<CassandraConversationRepository> {
 
     private static final String KEYSPACE = "replyts2_conversation_test";
     private static Session session;
+    private static final EmbeddedCassandra casdb = EmbeddedCassandra.getInstance();
 
     @BeforeClass
     public static void init() {
-        Cluster cluster = Cluster.builder()
-                .addContactPoints(EmbeddedCassandraServerHelper.getHost())
-                .withPort(EmbeddedCassandraServerHelper.getNativeTransportPort())
-                .withQueryOptions(CassandraTestUtil.CLUSTER_OPTIONS)
-                .build();
-        session = cluster.connect(KEYSPACE);
+        session = casdb.initStdSchema(KEYSPACE);
     }
 
     @Override
@@ -51,6 +29,6 @@ public class CassandraConversationRepositoryIntegrationTest extends Conversation
 
     @After
     public void cleanupTables() {
-        CassandraTestUtil.cleanTables(session, KEYSPACE);
+        casdb.cleanTables(session,KEYSPACE);
     }
 }

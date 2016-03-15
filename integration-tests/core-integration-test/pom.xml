@@ -103,11 +103,15 @@
             <scope>compile</scope>
         </dependency>
         <!-- Fixes for the enforcer plugn -->
-
         <dependency>
             <groupId>org.cassandraunit</groupId>
             <artifactId>cassandra-unit-shaded</artifactId>
             <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.googlecode.junit-toolbox</groupId>
+            <artifactId>junit-toolbox</artifactId>
         </dependency>
 
         <dependency>
@@ -128,6 +132,24 @@
             <artifactId>snakeyaml</artifactId>
         </dependency>
     </dependencies>
+
+    <properties>
+        <serial.tests>**/SetCustomValueTest.class,
+            **/MessageFilteringAcceptanceTest.class,
+            **/SearchServiceTest.class,
+            **/MultiDomainAcceptanceTest.class,
+            **/SunnyDayAcceptanceTest.class,
+            **/MessageModerationAcceptanceTest.class,
+            **/AnonymizesOutgoingMailAcceptanceTest.class,
+            **/ConversationResumingTest.class,
+            **/RemoveLeakyMailQuotationsFromOutgoingMailAcceptanceTest.class,
+            **/PreprocessorRemoveIgnoreableMailsAcceptanceTest.class,
+            **/AttachmentSupportTest.class,
+            **/PreprocessorRemoveIgnorableMailsAcceptanceTest.class,
+            **/ConfigApiAcceptanceTest.class,
+            **/CloseConversationTest.class
+        </serial.tests>
+    </properties>
 
     <build>
         <testResources>
@@ -150,6 +172,44 @@
             </testResource>
         </testResources>
 
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!-- These tests are executed concurrently -->
+                        <id>default-test</id>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.class</include>
+                            </includes>
+                            <excludes>
+                                <exclude>${serial.tests}</exclude>
+                            </excludes>
+                            <!-- This configuration results in one thread per core -->
+                            <threadCount>1</threadCount>
+                            <perCoreThreadCount>true</perCoreThreadCount>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!-- These tests have to be run serially -->
+                        <id>serial-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>${serial.tests}</include>
+                            </includes>
+                            <threadCount>1</threadCount>
+                            <perCoreThreadCount>false</perCoreThreadCount>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 
     <profiles>

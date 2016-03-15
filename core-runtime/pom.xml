@@ -231,5 +231,18 @@
                 <filtering>true</filtering>
             </testResource>
         </testResources>
+        <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+                <threadCount>1</threadCount>
+                <parallel>classes</parallel>
+                <perCoreThreadCount>true</perCoreThreadCount>
+            </configuration>
+        </plugin>
+        </plugins>
     </build>
+
+
 </project>

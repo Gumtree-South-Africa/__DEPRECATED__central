@@ -7,46 +7,32 @@ import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
-import com.ecg.replyts.integration.cassandra.CassandraRunner;
-import com.ecg.replyts.util.CassandraTestUtil;
+import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import org.cassandraunit.spring.CassandraDataSet;
-import org.cassandraunit.spring.EmbeddedCassandra;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 
-@EmbeddedCassandra(configuration = "cu-cassandra-rndport.yaml")
-@CassandraDataSet(
-        keyspace = "replyts2_configuration_test",
-        value = {"cassandra_schema.cql"}
-)
-@TestExecutionListeners(CassandraRunner.class)
-@RunWith(SpringJUnit4ClassRunner.class)
 public class CassandraConfigurationRepositoryIntegrationTest {
 
     public static final String KEYSPACE = "replyts2_configuration_test";
-
     private static Session session;
     private static CassandraConfigurationRepository configurationRepository;
+    private static EmbeddedCassandra casdb;
 
     @BeforeClass
     public static void init() {
-        session = CassandraTestUtil.newSession(KEYSPACE);
+        casdb = EmbeddedCassandra.getInstance();
+        session = casdb.initStdSchema(KEYSPACE);
         configurationRepository = new CassandraConfigurationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
     }
 
     @After
-    public void cleanTable() {
-        CassandraTestUtil.cleanTables(session, KEYSPACE);
+    public void cleanTable()  {
+        casdb.cleanTables(session, KEYSPACE);
     }
 
     @Test
