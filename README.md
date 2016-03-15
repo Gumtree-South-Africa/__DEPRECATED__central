@@ -15,7 +15,7 @@ To run COMaaS for a specific tenant from your IDE, use the following Run configu
 * Name: COMaaS for: <name of tenant, e.g. mp>
 
 * Working directory: <full path to the ecg-comaas-central folder>
-* Command line: verify -T1C -Dexec.mainClass=com.ecg.replyts.core.runtime.ReplyTS
+* Command line: `verify -T1C -Dexec.mainClass=com.ecg.replyts.core.runtime.ReplyTS`
 * Profiles: <name of tenant, e.g. mp>
 
 * Maven home directory: <make sure you select the latest version, usually not the IntelliJ built-in, e.g. 3.3.9>
