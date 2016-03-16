@@ -15,7 +15,7 @@ import static org.junit.Assert.assertNull;
 
 public class MailDoNotAnonymizeIntegrationTest {
     @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(10, "/cassandra_schema.cql");
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule();
 
 
     @Test
