@@ -12,16 +12,17 @@ Run `setup-cassandra.sh` to run initial db migrations.
 To run COMaaS for a specific tenant from your IDE, use the following Run configuration:
 
 * Type: Maven
-* Name: COMaaS for: <name of tenant, e.g. mp>
+* Name: COMaaS for: [name of tenant, mp|mde|ebayk]
 
-* Working directory: <full path to the ecg-comaas-central folder>
-* Command line: verify -Dmaven.exec.skip=false
-* Profiles: <name of tenant, e.g. mp>
+* Parameters / Working directory: [full path to the ecg-comaas-central folder]
+* Parameters / Command line: verify -Dmaven.exec.skip=false
+* Parameters / Profiles: [name of tenant, e.g. mp]
 
-* Maven home directory: <make sure you select the latest version, usually not the IntelliJ built-in, e.g. 3.3.9>
-* User settings file: etc/settings.xml (select 'Override' to override)
+* General / Maven home directory: [make sure you select the latest version, usually not the IntelliJ built-in, e.g. 3.3.9]
+* General / User settings file: etc/settings.xml (select 'Override' to override)
+* General / Make sure "Execute goals recursively" is checked
 
-* VM arguments:
+* Runner / VM arguments:
   ```
   -DconfDir=distribution/conf/<name of tenant, e.g. mp>/local
   -DlogDir=/tmp
