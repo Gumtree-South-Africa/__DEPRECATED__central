@@ -65,7 +65,7 @@ public class ClusterModeManager {
                     "Both events put Riak into an inconsistent state and need Manual interaction.\n" +
                     "More infos can be found at: \n" +
                     "  - The Sanity Checks (which hosts and which datacenter is not available)\n" +
-                    "  - Documentation: https://github.scm.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two%20Datacenter%20Operations");
+                    "  - Documentation: https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two%20Datacenter%20Operations");
             LOG.error("Results: {}", monitor.report());
 
             blockedWarningWasLoggedInTheLastMinute.set(Boolean.TRUE);
