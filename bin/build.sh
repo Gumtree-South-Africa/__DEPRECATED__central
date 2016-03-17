@@ -24,8 +24,9 @@ function parseCmd() {
     RUN_INTEGRATION_TESTS=0
     TENANT=
     UPLOAD=
+    EXECUTE=
 
-    while getopts ":tIT:U:" OPTION; do
+    while getopts ":tIT:U:E" OPTION; do
         case ${OPTION} in
             t) log "Building with tests (but not integration tests)"; RUN_TESTS=1
                ;;
@@ -35,6 +36,8 @@ function parseCmd() {
                ;;
             U) log "Will upload to $OPTARG"; UPLOAD="$OPTARG"
                ;;
+            E) log "Build and Execute Comaas for specific tenant. Please start ecg-comaas-vagrant manually"; EXECUTE=true
+               ;;
             \?) fatal "Invalid option: -${OPTARG}"
                ;;
         esac
@@ -42,6 +45,9 @@ function parseCmd() {
 
     if [[ ! -z $UPLOAD && -z $TENANT ]] ; then
         fatal "Must specify a tenant if you are specifying an upload target environment"
+    fi
+    if [[ ! -z $EXECUTE && -z $TENANT ]] ; then
+        fatal "Must specify a tenant if you want to run Comaas"
     fi
 }
 
@@ -74,6 +80,15 @@ function main() {
         if ! [[ -z $UPLOAD ]] ; then
             MVN_ARGS="${MVN_ARGS},upload-${TENANT}-${UPLOAD}"
 	    MVN_TASKS="clean deploy"
+        fi
+
+        if ! [[ -z $EXECUTE ]] ; then
+            MVN_ARGS="${MVN_ARGS} -DconfDir=distribution/conf/${TENANT}/local -DlogDir=/tmp
+            -Dmail.mime.parameters.strict=false -Dmail.mime.address.strict=false
+            -Dmail.mime.ignoreunknownencoding=true
+            -Dmail.mime.uudecode.ignoreerrors=true -Dmail.mime.uudecode.ignoremissingbeginend=true
+            -Dmail.mime.multipart.allowempty=true -Dmaven.test.skip=true -Dmaven.exec.skip=false"
+	    MVN_TASKS="clean verify"
         fi
     else
         log "Building all tenant modules (skipping distribution)"

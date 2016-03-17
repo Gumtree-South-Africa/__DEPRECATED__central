@@ -75,7 +75,7 @@ public abstract class AbstractSmtpService implements CheckProvider, Check {
     @Override
     public Result execute() throws Exception {
         try {
-            smtpPing.ping(config.getHost(), config.getPort(), 1000);
+            smtpPing.ping(config.getHost(), config.getPort(), config.getConnectTimeoutInMs());
             return Result.createResult(Status.OK, Message.shortInfo("SMTP connection established successfully"));
         } catch (Exception ex) {
             return Result.createResult(Status.CRITICAL, Message.fromException(ex));
