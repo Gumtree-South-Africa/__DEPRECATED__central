@@ -40,6 +40,27 @@ To run COMaaS for a specific tenant from your IDE, use the following Run configu
 
 This will call exec:java through the 'verify' phase in the distribution module. 'maven.exec.skip' is normally true, which prevents exec:java from being called prior to the normal 'deploy' phase.
 
+### Running replyTS on comaas-vagrant
+* If you see elasticsearch/cassadra/kafka error messages first try ```vagrant provision```, that should make sure that all services are up and running.
+ If that does not help check if these services are running in Vagrant machine
+  ```
+  vagrant ssh
+  sudo /etc/init.d/elasticsearch status 
+  sudo /etc/init.d/kafka status
+  sudo /etc/init.d/cassandra status
+  ```
+ and manually start them if necessary
+ 
+### ebayk tenant on comaas-vagrant
+*  Set search.es.clustername=replytscluster in distribution/conf/ebayk/replyts.properties
+*  After starting ReplyTS launch jconsole and invoke ReplayTS.ClusterModeControl.Operations.switchToFailoverMode so email processing works. 
+For more information on this see https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two%20Datacenter%20Operations
+
+### mde tenant on comaas-vagrant
+*  Set search.es.clustername=replytscluster in distribution/conf/mde/replyts.properties
+*  After starting ReplyTS launch jconsole and invoke ReplayTS.ClusterModeControl.Operations.switchToFailoverMode so email processing works. 
+For more information on this see https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two%20Datacenter%20Operations
+
 ## MP system overview
 ![Messaging system overview at Marktplaats](/docs/20151221-messaging-system-overview.jpg)
 
