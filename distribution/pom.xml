@@ -333,10 +333,12 @@
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
+                <configuration>
+                    <skipPoms>false</skipPoms>
+                </configuration>
                 <executions>
                     <execution>
-                        <phase>generate-resources</phase>
-                        <goals>
+                         <goals>
                             <goal>revision</goal>
                         </goals>
                     </execution>
