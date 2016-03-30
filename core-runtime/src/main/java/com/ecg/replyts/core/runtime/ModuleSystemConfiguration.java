@@ -8,9 +8,11 @@ import com.hazelcast.core.HazelcastInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import javax.annotation.PreDestroy;
 import java.util.Collections;
@@ -28,34 +30,22 @@ import java.util.List;
  * @author mhuttar
  */
 @Configuration
+@Import(CronJobService.class)
 class ModuleSystemConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(ModuleSystemConfiguration.class);
 
-
-    @Autowired(required = true)
-    private List<CronJobExecutor> executors = Collections.emptyList();
-
-    @Autowired(required = true)
+    @Autowired
     private HazelcastInstance hazelcast;
 
-    @Value("${node.passive:false}")
-    private boolean disableCronjobs;
-
-
-
-    @Bean(name = "cronJobService")
-    public CronJobService buildCronJobService(DistributedExecutionStatusMonitor distributedExecutionStatusMonitor) {
-        return new CronJobService(executors, distributedExecutionStatusMonitor, hazelcast, disableCronjobs);
-    }
-
     @Bean
-    public DistributedExecutionStatusMonitor executionStatusMonitor(HazelcastInstance hazelcast) {
+    public DistributedExecutionStatusMonitor executionStatusMonitor() {
         return new DistributedExecutionStatusMonitor(hazelcast);
     }
 
     @PreDestroy
     void shutdown() {
-        LOG.info("Stopping Hazelcast Cluster");
-        Hazelcast.shutdownAll();
+        LOG.info("Stopping Hazelcast instance");
+
+        hazelcast.shutdown();
     }
 }

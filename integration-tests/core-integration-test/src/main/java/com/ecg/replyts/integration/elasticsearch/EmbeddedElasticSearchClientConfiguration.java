@@ -9,10 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 
-import javax.annotation.PreDestroy;
-
 @Profile(ReplyTS.EMBEDDED_PROFILE)
 public class EmbeddedElasticSearchClientConfiguration {
+    private static final Logger LOG = LoggerFactory.getLogger(EmbeddedElasticSearchClientConfiguration.class);
 
     @Value("${search.es.endpoints}")
     private String endpoints;
@@ -21,29 +20,14 @@ public class EmbeddedElasticSearchClientConfiguration {
 
     private Node node;
 
-    private static volatile Client lastClient;
-
-    private static final Logger LOG = LoggerFactory.getLogger(EmbeddedElasticSearchClientConfiguration.class);
-
     @Bean
     public Client esClient() {
         EnvironmentBasedNodeConfigurator nodeConfigurator = new EnvironmentBasedNodeConfigurator(clusterName, endpoints);
+
         node = nodeConfigurator.forEmbeddedEnvironments();
-        if (lastClient != null) {
-            LOG.warn("WARNING!!! Multiple ES clients were instanciated!");
-        }
-        lastClient = node.client();
-        return lastClient;
+
+        return node.client();
     }
 
-    public static Client lastClient() {
-        return lastClient;
-    }
-
-    @PreDestroy
-    void stopEsNode() {
-        node.stop();
-        node.close();
-    }
-
+    // We never destroy the clients as this incurs concurrency issues with ElasticSearch 1.x
 }

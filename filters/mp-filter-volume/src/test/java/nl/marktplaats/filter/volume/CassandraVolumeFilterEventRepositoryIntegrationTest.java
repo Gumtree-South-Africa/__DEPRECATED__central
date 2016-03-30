@@ -7,31 +7,32 @@ import nl.marktplaats.filter.volume.persistence.CassandraVolumeFilterEventReposi
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.junit.After;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
+
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
-
 public class CassandraVolumeFilterEventRepositoryIntegrationTest {
+    private EmbeddedCassandra casdb = EmbeddedCassandra.getInstance();
 
-    public static final String KEYSPACE = "volume_filter_test";
+    private Session session;
 
-    private static EmbeddedCassandra casdb;
-    private static Session session;
-    private static CassandraVolumeFilterEventRepository volumeFilterEventRepository;
+    private CassandraVolumeFilterEventRepository volumeFilterEventRepository;
+
+    private String keyspaceName = EmbeddedCassandra.createUniqueKeyspaceName("v_");
+
     private static final int TTL = 100;
 
-    @BeforeClass
-    public static void init() {
-        casdb = EmbeddedCassandra.getInstance();
-        session = casdb.loadSchema(KEYSPACE, "cassandra_schema.cql", "cassandra_volume_filter_schema.cql");
+    @Before
+    public void init() {
+        session = casdb.loadSchema(keyspaceName, "cassandra_schema.cql", "cassandra_volume_filter_schema.cql");
         volumeFilterEventRepository = new CassandraVolumeFilterEventRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
     }
 
     @After
     public void cleanup() {
-        casdb.cleanTables(session, KEYSPACE);
+        casdb.cleanTables(session, keyspaceName);
         DateTimeUtils.setCurrentMillisSystem();
     }
 
@@ -60,5 +61,4 @@ public class CassandraVolumeFilterEventRepositoryIntegrationTest {
         long count = session.execute("SELECT count(*) from volume_events where user_id = 'u2@mail.com'").one().getLong(0);
         assertThat(count, is(0L));
     }
-
 }

@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Properties;
+import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -34,21 +36,21 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class FilterServiceIntegrationTest {
-
     @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
+        Properties properties = new Properties();
+
+        properties.put("replyts.mobile.comafilterservice.webserviceUrl","http://localhost:8181");
+        properties.put("replyts.mobile.comafilterservice.active","true");
+
+        return properties;
+    }).get());
 
     private Date testStartTime;
 
     @BeforeClass
     public static void setup() throws Exception {
-        System.setProperty("replyts.mobile.comafilterservice.webserviceUrl","http://localhost:8181");
-        System.setProperty("replyts.mobile.comafilterservice.active","true");
-        
         createServer(MockServlet.class);
-        
-        
-        
     }
     
     @Before

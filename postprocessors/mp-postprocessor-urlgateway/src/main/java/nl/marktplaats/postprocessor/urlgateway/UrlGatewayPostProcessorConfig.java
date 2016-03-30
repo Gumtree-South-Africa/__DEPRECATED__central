@@ -1,8 +1,11 @@
 package nl.marktplaats.postprocessor.urlgateway;
 
+import com.ecg.replyts.core.runtime.EnvironmentSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.Environment;
 
 import java.util.List;
 import java.util.Properties;
@@ -41,12 +44,12 @@ public class UrlGatewayPostProcessorConfig {
 
     @Autowired
     public UrlGatewayPostProcessorConfig(@Value("${urlgateway.gatewayurl}") String gatewayUrl,
-                                         @Qualifier("replyts-properties") Properties properties) {
-        this(gatewayUrl, properties
-                .stringPropertyNames()
+                                         AbstractEnvironment environment) {
+        this(gatewayUrl,
+                EnvironmentSupport.propertyNames(environment)
                 .stream()
                 .filter(key -> key.startsWith("urlgateway.skipdomains."))
-                .map(properties::getProperty)
+                .map(environment::getProperty)
                 .collect(Collectors.toList()));
     }
 

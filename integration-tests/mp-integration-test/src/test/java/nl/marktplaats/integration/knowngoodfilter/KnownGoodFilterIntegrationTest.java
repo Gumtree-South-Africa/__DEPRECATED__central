@@ -1,6 +1,5 @@
 package nl.marktplaats.integration.knowngoodfilter;
 
-import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.CharStreams;
 import nl.marktplaats.integration.support.ReceiverTestsSetup;
 import org.testng.annotations.Test;
@@ -18,8 +17,8 @@ public class KnownGoodFilterIntegrationTest extends ReceiverTestsSetup {
             deliverMailToRts("plain-abq.eml", "untrusted-seller@hotmail.com");
         }
 
-        IntegrationTestRunner.waitForMessageArrival(10, 30000L);
-        IntegrationTestRunner.assertMessageDoesNotArrive(11, 1000L);
+        runner.waitForMessageArrival(10, 30000L);
+        runner.assertMessageDoesNotArrive(11, 1000L);
     }
 
     @Test(groups = { "receiverTests" })
@@ -30,13 +29,13 @@ public class KnownGoodFilterIntegrationTest extends ReceiverTestsSetup {
             deliverMailToRts("plain-abq-trusted.eml", "trusted-seller@hotmail.com");
         }
 
-        IntegrationTestRunner.waitForMessageArrival(15, 40000L);
+        runner.waitForMessageArrival(15, 40000L);
     }
 
     private void deliverMailToRts(String emlName, String senderEmailAddress) throws Exception {
         String emlDataStr = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName), "US-ASCII"));
         emlDataStr = emlDataStr.replace("{{{{initiatorEmailAddress}}}}", senderEmailAddress);
         byte[] emlData = emlDataStr.getBytes("US-ASCII");
-        IntegrationTestRunner.getMailSender().sendMail(emlData);
+        runner.getMailSender().sendMail(emlData);
     }
 }

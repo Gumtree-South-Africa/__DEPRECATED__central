@@ -2,6 +2,7 @@ package com.ecg.replyts.core.webapi.ssl;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import org.springframework.core.env.Environment;
 
 import java.util.Properties;
 
@@ -17,7 +18,7 @@ public final class SSLConfiguration {
     private final Optional<KeystoreBasedSSLConfiguration> keystoreBasedSSLConfiguration;
     private final Optional<PemBasedSSLConfiguration> pemBasedSSLConfiguration;
 
-    public static SSLConfiguration createSSLConfiguration(final Properties properties) {
+    public static SSLConfiguration createSSLConfiguration(Environment properties) {
         return new SSLConfiguration(
                 properties.getProperty("replyts.ssl.store.format", "keystore"),
                 properties.getProperty("replyts.pem.key.location"),

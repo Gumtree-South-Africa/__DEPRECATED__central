@@ -1,143 +1,81 @@
 package com.ecg.replyts.core.runtime;
 
+import com.ecg.replyts.core.webapi.DefaultApiConfiguration;
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
-import com.ecg.replyts.core.webapi.EmbeddedWebServerBuilder;
+import com.ecg.replyts.core.webapi.SpringContextProvider;
+import com.hazelcast.config.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.io.ClassPathResource;
 
-/**
- * Main Class for ReplyTS. Starts the full application.
- *
- * @author mhuttar
- */
-public final class ReplyTS {
+import java.io.IOException;
+import java.io.InputStream;
+
+@Configuration
+@Import({ StartupExperience.class, EmbeddedWebserver.class })
+public class ReplyTS {
+    private static final Logger LOG = LoggerFactory.getLogger(ReplyTS.class);
 
     /**
-     * name for the spring configuration profile for production systems
+     * Spring profile which instantiates externally dependent beans
      */
     public static final String PRODUCTIVE_PROFILE = "productive";
 
     /**
-     * name for the spring configuration profile for automation tests
+     * Spring profile which instantiates embedded/test beans.
      */
     public static final String EMBEDDED_PROFILE = "embedded";
 
-    private static final Logger LOG = LoggerFactory.getLogger(ReplyTS.class);
+    @Configuration
+    @Profile(PRODUCTIVE_PROFILE)
+    @PropertySource("file:${confDir}/replyts.properties")
+    static class ProductionProperties { }
 
-    private AbstractApplicationContext ctx;
+    @Bean
+    public Config hazelcastConfiguration(@Value("${confDir}/hazelcast.xml") String location) throws IOException {
+        if (location.startsWith("classpath")) {
+            InputStream inputStream = new ClassPathResource(location.substring(location.indexOf(":") + 1)).getInputStream();
 
-    private ClassPathXmlApplicationContext subCtx;
-
-    private EmbeddedWebserver embeddedWebserver;
-
-    /**
-     * Initialize ReplyTS and start it up. read environmental settings from a config directory in the file system, specified as <code>-DconfDir</code> parameter.
-     */
-    public ReplyTS() {
-        this(ConfigDirectoryEnvironmentSupport.fromEnvironmentSettings());
+            return new XmlConfigBuilder(inputStream).build();
+        } else
+            return new FileSystemXmlConfig(location);
     }
 
-    /**
-     * Initialize ReplyTS and start it up. References to the external system will be read from the passed
-     * {@link ConfigDirectoryEnvironmentSupport} object.
-     */
-    public ReplyTS(EnvironmentSupport environmentSupport) {
+    // Need to wait for all ContextProviders to register themselves - so make this a non-lazy @Bean
 
-        System.setProperty("spring.profiles.active", environmentSupport.getConfigurationProfile());
-        try {
-            StartupExperience startupExperience = new StartupExperience();
+    @Bean
+    @Lazy(false)
+    @DependsOn("defaultContextsInitialized")
+    public Boolean started(@Value("${replyts.control.context:control-context.xml}") String contextLocation, EmbeddedWebserver webserver, StartupExperience experience, ApplicationContext context) {
+        webserver.context(new SpringContextProvider("/", new String[] { "classpath:" + contextLocation }, context));
 
-            environmentSupport.logEnvironmentConfiguration();
+        webserver.start();
 
-            startup(environmentSupport);
-
-            startupExperience.running(environmentSupport.getApiHttpPort());
-            Runtime.getRuntime().addShutdownHook(new ApplicationShutdownHook(this));
-        } catch (Exception ex) {
-            LOG.error("ReplyTS failed to start up", ex);
-            shutdown();
-            throw new IllegalStateException("ReplyTS failed to start up", ex);
-        }
-    }
-
-    private void startup(EnvironmentSupport environment) {
-        LOG.info("Launching ReplyTS runtime");
-
-        ctx = buildPreconfiguredParentContext(environment);
-        subCtx = new ClassPathXmlApplicationContext(new String[]{
-                "classpath:replyts-runtime-context.xml",
-                "classpath*:/plugin-inf/*.xml",
-        }, ctx);
-
-
-        int httpPort = environment.getApiHttpPort();
-
-        EmbeddedWebServerBuilder webServerBuilder = new EmbeddedWebServerBuilder(environment)
-                .withContext(subCtx)
-                .withProperties(environment.getReplyTsProperties())
-                .withHttpPort(httpPort)
-                .withXmlConfig("classpath:replyts-control-context.xml");
-
-        embeddedWebserver = webServerBuilder.build();
-    }
-
-    private AbstractApplicationContext buildPreconfiguredParentContext(EnvironmentSupport es) {
-
-        // need to set this property to make hazelcast log via slf4j. needs to be invoked before hazelcast config is created.
-        System.setProperty("hazelcast.logging.type", "slf4j");
-
-        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-        beanFactory.registerSingleton("replyts-properties", es.getReplyTsProperties());
-        beanFactory.registerSingleton("hazelcast-config", es.getHazelcastConfig());
-        GenericApplicationContext genericApplicationContext = new GenericApplicationContext(beanFactory);
-
-        genericApplicationContext.refresh();
-        return genericApplicationContext;
-    }
-
-    /**
-     * shut down ReplyTS
-     */
-    public void shutdown() {
-        LOG.info("Stopping ReplyTS");
-
-        // first, stop incoming requests, prevent ugly exceptions on shutdown
-        shutdownWebserver();
-        // and then the rest
-        shutdownSpring();
-
-        LOG.info("Shutdown complete");
-    }
-
-    private void shutdownSpring() {
-        if (ctx != null) {
-            ctx.close();
-        }
-        if (subCtx != null) {
-            subCtx.close();
-        }
-    }
-
-    private void shutdownWebserver() {
-        if (embeddedWebserver != null) {
-            try {
-                embeddedWebserver.shutdown();
-            } catch (Exception e) {
-                LOG.warn("Could not stop webapi", e);
-            }
-        }
+        return experience.running(webserver.getPort());
     }
 
     public static void main(String[] args) throws Exception {
-
         try {
-            new ReplyTS();
+            AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[] {
+                "classpath:server-context.xml",
+                "classpath:runtime-context.xml",
+                "classpath*:/plugin-inf/*.xml",
+            }, false);
+
+            context.getEnvironment().setActiveProfiles(PRODUCTIVE_PROFILE);
+
+            context.registerShutdownHook();
+
+            context.refresh();
         } catch (Exception e) {
-            LOG.error("ReplyTS Abnormal Shutdown", e);
+            LOG.error("COMaaS Abnormal Shutdown", e);
+
             throw e;
         }
     }

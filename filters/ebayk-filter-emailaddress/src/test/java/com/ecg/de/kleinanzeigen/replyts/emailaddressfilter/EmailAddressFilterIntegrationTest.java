@@ -21,7 +21,7 @@ public class EmailAddressFilterIntegrationTest {
 
 
     @Rule
-    public ReplyTsIntegrationTestRule replyTS = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule replyTS = new ReplyTsIntegrationTestRule(10, "cassandra_schema.cql");
 
     @Before
     public void setup() {

@@ -1,6 +1,5 @@
 package nl.marktplaats.integration.volumefilter;
 
-import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.CharStreams;
 import nl.marktplaats.integration.support.ReceiverTestsSetup;
 import org.joda.time.DateTime;
@@ -22,8 +21,8 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
             deliverMailToRts("plain-asq.eml", "volume-seller-11@hotmail.com", "m" + i);
         }
 
-        IntegrationTestRunner.waitForMessageArrival(10, 30000L);
-        IntegrationTestRunner.assertMessageDoesNotArrive(11, 1000L);
+        runner.waitForMessageArrival(10, 30000L);
+        runner.assertMessageDoesNotArrive(11, 1000L);
     }
 
     @Test(groups = { "receiverTests" })
@@ -39,8 +38,8 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
 
         // If the following assertion does not hold, something went wrong with the above events, probably because
         // the volume filter plugin uses a different schema.
-        IntegrationTestRunner.assertMessageDoesNotArrive(1, 2000L);
-        IntegrationTestRunner.clearMessages();
+        runner.assertMessageDoesNotArrive(1, 2000L);
+        runner.clearMessages();
 
         //
         // Second step: verify timeout is effective
@@ -55,14 +54,14 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
             deliverMailToRts("plain-asq.eml", senderEmailAddress, "m" + i);
         }
 
-        IntegrationTestRunner.waitForMessageArrival(10, 30000L);
-        IntegrationTestRunner.assertMessageDoesNotArrive(11, 1000L);
+        runner.waitForMessageArrival(10, 30000L);
+        runner.assertMessageDoesNotArrive(11, 1000L);
     }
 
     @Test(groups = { "receiverTests" })
     public void rtsDoesNotBlocksReplies() throws Exception {
         deliverMailToRts("plain-asq.eml", "volume-seller-88@gmail.com", "m1");
-        IntegrationTestRunner.waitForMessageArrival(1, 5000L);
+        runner.waitForMessageArrival(1, 5000L);
 
         // Volume filter allows up to 10 mails per 10 minutes.
         // The 11th and 12th should not exceed the threshold.
@@ -70,7 +69,7 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
             deliverReplyMailToRts("plain-asq-reply.eml");
         }
 
-        IntegrationTestRunner.waitForMessageArrival(13, 30000L);
+        runner.waitForMessageArrival(13, 30000L);
     }
 
     private void deliverMailToRts(String emlName, String senderEmailAddress, String adId) throws Exception {
@@ -78,15 +77,15 @@ public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
         emlDataStr = emlDataStr.replace("{{{{senderEmailAddress}}}}", senderEmailAddress);
         emlDataStr = emlDataStr.replace("{{{{adId}}}}", adId);
         byte[] emlData = emlDataStr.getBytes("US-ASCII");
-        IntegrationTestRunner.getMailSender().sendMail(emlData);
+        runner.getMailSender().sendMail(emlData);
     }
 
     private void deliverReplyMailToRts(String emlName) throws Exception {
-        WiserMessage asqMessage = IntegrationTestRunner.getLastRtsSentMail();
+        WiserMessage asqMessage = runner.getLastRtsSentMail();
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
         String replyData = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName)));
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
-        IntegrationTestRunner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
+        runner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
     }
 }

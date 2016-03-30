@@ -11,11 +11,9 @@ import org.mockito.Mockito;
 import java.util.Arrays;
 
 public class SanityCheckServiceTest {
-
     private SanityCheckService s;
 
     private Check mockCheck = new Check() {
-
         public String getSubCategory() {
             // TODO Auto-generated method stub
             return "m";
@@ -36,14 +34,12 @@ public class SanityCheckServiceTest {
         }
     };
 
-
     @Test
     public void launchesSanityCheckFramework() throws Exception {
         CheckProvider cp = Mockito.mock(CheckProvider.class);
         Mockito.when(cp.getChecks()).thenReturn(Arrays.asList(mockCheck));
-        s = new SanityCheckService(Arrays.asList(cp));
+        s = new SanityCheckService(true, Arrays.asList(cp));
         s.start();
         s.stop();
     }
-
 }

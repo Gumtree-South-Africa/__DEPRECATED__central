@@ -16,11 +16,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class SenderNameIntegrationTest extends ReceiverTestsSetup {
-
     @Test(groups = {"receiverTests"})
     public void rtsProcessedAnAsqMailAndModifiesSenderName() throws Exception {
         deliverMailToRts("plain-asq.eml");
-        WiserMessage anonymizedAsq = IntegrationTestRunner.waitForMessageArrival(1, 5000L);
+        WiserMessage anonymizedAsq = runner.waitForMessageArrival(1, 5000L);
         MimeMessage anonAsq = anonymizedAsq.getMimeMessage();
         assertHasSingleTo(anonAsq, "obeuga@foon.nl", "O. Beuga via Marktplaats");
     }
@@ -32,6 +31,6 @@ public class SenderNameIntegrationTest extends ReceiverTestsSetup {
 
     private void deliverMailToRts(String emlName) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
-        IntegrationTestRunner.getMailSender().sendMail(emlData);
+        runner.getMailSender().sendMail(emlData);
     }
 }

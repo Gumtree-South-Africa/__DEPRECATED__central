@@ -3,6 +3,10 @@ package com.ecg.replyts.core.webapi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+
+import javax.annotation.PostConstruct;
 
 /**
  * User: maldana
@@ -11,20 +15,22 @@ import org.springframework.context.annotation.Bean;
  *
  * @author maldana@ebay.de
  */
+@Configuration
 public class DefaultApiConfiguration {
+    @Autowired
+    private ApplicationContext context;
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private EmbeddedWebserver webserver;
 
-
-    @Bean
-    public SpringContextProvider screeningContext() {
-        return new SpringContextProvider("/screeningv2", new String[]{"classpath:replyts-screeningv2-context.xml"}, applicationContext);
-    }
+    // Inject as a boolean so that we can @DependsOn in ReplyTS' EmbeddedWebserver initialization
 
     @Bean
-    public SpringContextProvider filterConfigContext() {
-        return new SpringContextProvider("/configv2", new String[]{"classpath:replyts-configv2-context.xml"}, applicationContext);
-    }
+    @Lazy(false)
+    public boolean defaultContextsInitialized() {
+        webserver.context(new SpringContextProvider("/screeningv2", new String[] { "classpath:screening-mvc-context.xml" }, context));
+        webserver.context(new SpringContextProvider("/configv2", new String[] { "classpath:config-mvc-context.xml" }, context));
 
+        return true;
+    }
 }

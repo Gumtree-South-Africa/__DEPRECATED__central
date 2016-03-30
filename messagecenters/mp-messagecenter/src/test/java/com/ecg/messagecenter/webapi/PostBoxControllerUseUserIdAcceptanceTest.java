@@ -9,19 +9,22 @@ import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
 
+import java.util.Properties;
+import java.util.function.Supplier;
+
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static org.hamcrest.Matchers.equalTo;
 
 public class PostBoxControllerUseUserIdAcceptanceTest {
-
-    @BeforeClass
-    public static void setup() throws Exception {
-        System.setProperty("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_USER_ID.toString());
-        System.setProperty("userIdentifierService", UserIdentifierType.BY_USER_ID.toString());
-    }
-
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule("/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql");
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
+        Properties properties = new Properties();
+
+        properties.put("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_USER_ID.toString());
+        properties.put("userIdentifierService", UserIdentifierType.BY_USER_ID.toString());
+
+        return properties;
+    }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql");
 
     @Test
     public void readConversation() {

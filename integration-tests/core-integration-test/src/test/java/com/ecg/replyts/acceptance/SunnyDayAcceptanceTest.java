@@ -15,6 +15,9 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import java.util.Properties;
+import java.util.function.Supplier;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -25,29 +28,35 @@ import static org.hamcrest.Matchers.nullValue;
  * All-is-well integration tests.
  */
 public class SunnyDayAcceptanceTest {
+    private EmbeddedCassandra CASDB = EmbeddedCassandra.getInstance();
 
-    private static final String KEYSPACE = "replyts_integration_test";
-    private static Session session;
-    private static final EmbeddedCassandra casdb = EmbeddedCassandra.getInstance();
+    private String keyspace = EmbeddedCassandra.createUniqueKeyspaceName();
+
+    private IntegrationTestRunner runner = new IntegrationTestRunner(((Supplier<Properties>) () -> {
+        Properties properties = new Properties();
+
+        properties.put("persistence.cassandra.keyspace", keyspace);
+
+        return properties;
+    }).get(), "/integrationtest-conf");
 
     @Before
     public void startReplytsAndClearMessages() throws Exception {
-        session = casdb.initStdSchema(KEYSPACE);
-        IntegrationTestRunner.setConfigResourceDirectory("/integrationtest-conf");
-        IntegrationTestRunner.getReplytsRunner();
-        IntegrationTestRunner.clearMessages();
+        CASDB.initStdSchema(keyspace);
+
+        runner.start();
+        runner.clearMessages();
     }
 
     @After
     public void shutdown() {
-        IntegrationTestRunner.stop();
-        casdb.cleanTables(session, KEYSPACE);
+        runner.stop();
     }
 
     @Test
     public void rtsProcessedAnAsqMailAndAReply() throws Exception {
         deliverMailToRts("plain-asq.eml");
-        WiserMessage anonymizedAsq = IntegrationTestRunner.waitForMessageArrival(1, 5000L);
+        WiserMessage anonymizedAsq = runner.waitForMessageArrival(1, 5000L);
         MimeMessage anonAsq = anonymizedAsq.getMimeMessage();
         assertThat(anonAsq.getSubject(), is("Reactie op uw advertentie: Twee matrassen, hoef je niet te draaien en wasbare hoezen"));
         assertThat(anonymizedAsq.getEnvelopeReceiver(), is("obeuga@foon.nl"));
@@ -59,7 +68,7 @@ public class SunnyDayAcceptanceTest {
         assertIsAnonymous(anonymizedAsq, "seller_66@hotmail.com");
 
         deliverReplyMailToRts("plain-asq-reply.eml");
-        WiserMessage anonymizedAsqReply = IntegrationTestRunner.waitForMessageArrival(2, 5000L);
+        WiserMessage anonymizedAsqReply = runner.waitForMessageArrival(2, 5000L);
         MimeMessage anonAsqReply = anonymizedAsqReply.getMimeMessage();
         assertThat(anonAsqReply.getSubject(), is("Antw: Reactie op uw advertentie: Twee matrassen, hoef je niet te draaien en wasbare hoezen"));
         assertThat(anonymizedAsqReply.getEnvelopeReceiver(), is("seller_66@hotmail.com"));
@@ -96,17 +105,16 @@ public class SunnyDayAcceptanceTest {
 
     private void deliverMailToRts(String emlName) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
-        IntegrationTestRunner.getMailSender().sendMail(emlData);
+        runner.getMailSender().sendMail(emlData);
     }
 
     private void deliverReplyMailToRts(String emlName) throws Exception {
-        WiserMessage asqMessage = IntegrationTestRunner.getLastRtsSentMail();
+        WiserMessage asqMessage = runner.getLastRtsSentMail();
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
         byte[] bytes = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
         String replyData = new String(bytes, "US-ASCII");
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
-        IntegrationTestRunner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
+        runner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
     }
-
 }

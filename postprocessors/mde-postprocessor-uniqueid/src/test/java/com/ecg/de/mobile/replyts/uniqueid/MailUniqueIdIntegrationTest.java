@@ -7,6 +7,9 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Properties;
+import java.util.function.Supplier;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -14,17 +17,17 @@ import static org.junit.Assert.assertNull;
  * Created by beckart on 09.03.15.
  */
 public class MailUniqueIdIntegrationTest {
-
-
     public static final String X_MOBILEDE_BUYER_ID = "X-MOBILEDE-BUYER-ID";
 
-    @BeforeClass
-    public static void setUp() {
-        System.setProperty("replyts.uniqueid.ignoredBuyerAddresses", "foo@Foo.com , a@b.com");
+    @Rule
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
+        Properties properties = new Properties();
 
-        System.setProperty("replyts.uniqueid.order", "1");
-    }
+        properties.put("replyts.uniqueid.ignoredBuyerAddresses", "foo@Foo.com , a@b.com");
+        properties.put("replyts.uniqueid.order", "1");
 
+        return properties;
+    }).get());
 
     private MailBuilder createInitialMailFromBuyer() {
         return MailBuilder.aNewMail()
@@ -45,10 +48,6 @@ public class MailUniqueIdIntegrationTest {
                 .from(from)
                 .to(to);
     }
-
-
-    @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule();
 
     @Test
     public void testFromBuyerToSeller() {

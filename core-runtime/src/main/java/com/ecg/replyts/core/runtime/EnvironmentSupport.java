@@ -1,22 +1,21 @@
 package com.ecg.replyts.core.runtime;
 
-import com.hazelcast.config.Config;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.PropertySource;
 
-import java.util.Properties;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-public interface EnvironmentSupport {
+public final class EnvironmentSupport {
+    public static Set<String> propertyNames(AbstractEnvironment environment) {
+        Set<String> propertyNames = new HashSet<>();
 
-    Properties getReplyTsProperties();
+        for (PropertySource source : environment.getPropertySources())
+            if (source instanceof EnumerablePropertySource)
+                propertyNames.addAll(Arrays.asList(((EnumerablePropertySource) source).getPropertyNames()));
 
-    Config getHazelcastConfig();
-
-    int getApiHttpPort();
-
-    String getConfigurationProfile();
-
-    boolean logbackAccessConfigExists();
-
-    String getLogbackAccessConfigFileName();
-
-    void logEnvironmentConfiguration();
+        return propertyNames;
+    }
 }

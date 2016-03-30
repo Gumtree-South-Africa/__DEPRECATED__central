@@ -1,10 +1,13 @@
 package com.ecg.replyts.app.postprocessorchain.postprocessors;
 
+import com.ecg.replyts.core.runtime.EnvironmentSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -12,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Expects regular expressions as input in property {@code "postprocessors.obfuscater.patterns[0..n]"}. e.g.
@@ -32,16 +36,16 @@ class PatternBasedObfuscatorConfiguration {
     private List<Pattern> patterns;
 
     @Autowired
-    public PatternBasedObfuscatorConfiguration(@Qualifier("replyts-properties") Properties p) {
-        patterns = new ArrayList<Pattern>();
-        for (Map.Entry<Object, Object> keyValue : p.entrySet()) {
-            String key = keyValue.getKey().toString();
-            if (key.startsWith("postprocessors.obfuscator.patterns[")) {
-                String regularExpression = keyValue.getValue().toString();
-                LOG.info("Removing all matches of /{}/ in outgoing mails.", regularExpression);
-                patterns.add(Pattern.compile(regularExpression, Pattern.CASE_INSENSITIVE));
-            }
-        }
+    public PatternBasedObfuscatorConfiguration(AbstractEnvironment environment) {
+        patterns = EnvironmentSupport.propertyNames(environment)
+          .stream()
+          .filter(key -> key.startsWith("postprocessors.obfuscator.patterns["))
+          .map(key -> {
+              LOG.info("Removing all matches of /{}/ in outgoing mails.", environment.getProperty(key));
+
+              return Pattern.compile(environment.getProperty(key), Pattern.CASE_INSENSITIVE);
+          })
+          .collect(Collectors.toList());
     }
 
     @Bean

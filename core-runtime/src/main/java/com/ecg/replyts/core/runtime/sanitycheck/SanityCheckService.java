@@ -4,6 +4,7 @@ import com.ecg.replyts.core.api.sanitychecks.CheckProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -17,33 +18,40 @@ import java.util.List;
  * @author mhuttar
  */
 public class SanityCheckService {
-
     private static final Logger LOG = LoggerFactory.getLogger(SanityCheckService.class);
+
     private final JmxPropagator jmxPropagator = new JmxPropagator("ReplyTS");
 
+    private boolean isJmxEnabled;
 
-    /**
-     * Initializes the {@link SanityCheckService} and registers all given {@link CheckProvider} with it.
-     *
-     * @param providers
-     */
     @Autowired
-    public SanityCheckService(List<CheckProvider> providers) {
-        LOG.info("Registering Check Providers from {}", providers);
-        for (CheckProvider p : providers) {
-            jmxPropagator.addCheck(p.getChecks());
+    public SanityCheckService(@Value("${cluster.jmx.enabled:true}") boolean isJmxEnabled, List<CheckProvider> providers) {
+        this.isJmxEnabled = isJmxEnabled;
+
+        if (isJmxEnabled) {
+            LOG.info("Registering Check Providers from {}", providers);
+
+            for (CheckProvider p : providers) {
+                jmxPropagator.addCheck(p.getChecks());
+            }
         }
     }
 
     @PostConstruct
     void start() {
-        jmxPropagator.start();
-        LOG.info("Sanity Check Service started");
+        if (isJmxEnabled) {
+            jmxPropagator.start();
+
+            LOG.info("Sanity Check Service started");
+        }
     }
 
     @PreDestroy
     void stop() {
-        jmxPropagator.stop();
-        LOG.info("Sanity Check Service shutdown");
+        if (isJmxEnabled) {
+            jmxPropagator.stop();
+
+            LOG.info("Sanity Check Service shutdown");
+        }
     }
 }

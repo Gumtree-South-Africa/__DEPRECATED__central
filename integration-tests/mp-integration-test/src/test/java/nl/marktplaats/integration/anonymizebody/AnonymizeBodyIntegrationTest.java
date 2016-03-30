@@ -1,6 +1,5 @@
 package nl.marktplaats.integration.anonymizebody;
 
-import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import nl.marktplaats.integration.support.ReceiverTestsSetup;
@@ -21,7 +20,7 @@ public class AnonymizeBodyIntegrationTest extends ReceiverTestsSetup {
     public void anonymizeMailInBodyForRecognizedFragments() throws Exception {
         {
             deliverMailToRts("plain-asq.eml");
-            WiserMessage forwardedAsq = IntegrationTestRunner.waitForMessageArrival(1, 5000L);
+            WiserMessage forwardedAsq = runner.waitForMessageArrival(1, 5000L);
 
             String plainPart = extractPlainText(forwardedAsq);
             assertThat(plainPart, containsString("U kunt mij mailen op: buyer66@hotmail.com"));
@@ -31,7 +30,7 @@ public class AnonymizeBodyIntegrationTest extends ReceiverTestsSetup {
 
         {
             deliverReplyMailToRts("non-anonymous-reply.eml");
-            WiserMessage forwardedReply = IntegrationTestRunner.waitForMessageArrival(2, 5000L);
+            WiserMessage forwardedReply = runner.waitForMessageArrival(2, 5000L);
             String anonymousReplySender = forwardedReply.getEnvelopeSender();
 
             String plainPart = extractPlainText(forwardedReply);
@@ -57,15 +56,15 @@ public class AnonymizeBodyIntegrationTest extends ReceiverTestsSetup {
 
     private void deliverMailToRts(String emlName) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
-        IntegrationTestRunner.getMailSender().sendMail(emlData);
+        runner.getMailSender().sendMail(emlData);
     }
 
     private void deliverReplyMailToRts(String emlName) throws Exception {
-        WiserMessage asqMessage = IntegrationTestRunner.getLastRtsSentMail();
+        WiserMessage asqMessage = runner.getLastRtsSentMail();
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
         String replyData = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName)));
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
-        IntegrationTestRunner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
+        runner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
     }
 }

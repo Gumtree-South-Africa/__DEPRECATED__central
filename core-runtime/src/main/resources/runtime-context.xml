@@ -2,16 +2,10 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context
-		http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-
-    <!-- replyts-properties are contributed by the root spring context hosting a factory making settings from various sources available. see ReplyTS class. -->
-    <context:property-placeholder system-properties-mode="OVERRIDE" properties-ref="replyts-properties"/>
-
-    <context:annotation-config/>
+    <context:annotation-config />
 
     <bean class="com.ecg.replyts.core.runtime.ConfigAdminConfiguration" />
     <bean class="com.ecg.replyts.core.runtime.configadmin.ClusterRefreshPublisher"/>
@@ -51,7 +45,9 @@
     <bean class="com.ecg.replyts.core.runtime.indexer.AsyncOutdatedEntityReporter"/>
 
     <context:component-scan base-package="com.ecg.replyts.app.postprocessorchain"/>
+
     <!-- Explicitly declare this with an ID to allow overriding in plugins -->
+
     <bean id="postProcessorChain" class="com.ecg.replyts.app.postprocessorchain.PostProcessorChain"/>
 
     <bean class="com.ecg.replyts.app.ProcessingConfiguration"/>

@@ -14,16 +14,16 @@ import java.util.stream.Stream;
 
 
 public class CassandraMailRepositoryIntegrationTest {
-
     private static final String MESSAGE_ID = "123qwe";
     private static final byte[] PAYLOAD = "payload".getBytes();
-    private static final String KEYSPACE = "replyts2_mail_test";
-    private static CassandraMailRepository repository;
-    private static Session session;
-    private static final EmbeddedCassandra casdb = EmbeddedCassandra.getInstance();
 
-    @BeforeClass
-    public static void init() {
+    private String KEYSPACE = EmbeddedCassandra.createUniqueKeyspaceName("m_");
+    private CassandraMailRepository repository;
+    private Session session;
+    private EmbeddedCassandra casdb = EmbeddedCassandra.getInstance();
+
+    @Before
+    public void init() {
         session = casdb.initStdSchema(KEYSPACE);
         repository = new CassandraMailRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
     }

@@ -6,6 +6,9 @@ set -o errexit
 readonly ARGS="$@"
 readonly DIR=$(dirname $0)
 
+# ulimit -n 65536
+# ulimit -u 2048
+
 # ignore SSL warnings so that we don't have to import tenant repository certificates
 
 MVN_ARGS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
@@ -62,9 +65,7 @@ function main() {
         log "Skipping the tests"
         MVN_ARGS="$MVN_ARGS -T1C -DskipTests=true"
     else
-        # we would use -T1C (one thread per core), but this breaks tests that start an embedded Cassandra instance
-        # so for now we run with 1 thread.
-        MVN_ARGS="$MVN_ARGS -T1"
+        MVN_ARGS="$MVN_ARGS"
         MVN_TASKS="clean package"
     fi
 

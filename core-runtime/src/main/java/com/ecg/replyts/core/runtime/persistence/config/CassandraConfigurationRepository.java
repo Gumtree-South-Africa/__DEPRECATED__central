@@ -23,7 +23,8 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
     private static final Logger LOG = LoggerFactory.getLogger(CassandraConfigurationRepository.class);
 
     private static final String CONFIGURATIONS_KEY = "config";
-    private static final ConfigurationJsonSerializer serializer = new ConfigurationJsonSerializer();
+
+    private final ConfigurationJsonSerializer serializer = new ConfigurationJsonSerializer();
 
     private final Session session;
     private final ConsistencyLevel readConsistency;

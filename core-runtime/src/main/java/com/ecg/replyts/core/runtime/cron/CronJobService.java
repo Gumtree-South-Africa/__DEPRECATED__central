@@ -17,6 +17,9 @@ import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.Collections;
@@ -35,51 +38,60 @@ import java.util.Map;
  *
  * @author mhuttar
  */
+@Service
 public class CronJobService implements CheckProvider {
-
-    protected static final String CRON_JOB_SERVICE = CronJobService.class.getName();
-
     private static final Logger LOG = LoggerFactory.getLogger(CronJobService.class);
 
-    private final Scheduler scheduler;
+    protected static final String CRON_JOB_SERVICE = CronJobService.class.getName();
 
     private final MonitoringSupport monitoringSupport;
 
     private final Map<Class<? extends CronJobExecutor>, CronJobExecutor> cronReg;
 
+    private final DistributedExecutionStatusMonitor statusMonitor;
+
+    private final HazelcastInstance hazelcast;
+
+    private Scheduler scheduler;
+
     private JmxInvokeSupport jmxInvokeSupport;
 
-    private final DistributedExecutionStatusMonitor statusMonitor;
-    private final HazelcastInstance hazelcast;
-    private final boolean disableCronjobs;
-
-
-    /**
-     * Initializes the {@link CronJobService} and registers all given {@link CronJobExecutor} to the embedded quartz
-     * scheduler.
-     *
-     * @param executors
-     * @param disableCronjobs
-     */
-    public CronJobService(List<CronJobExecutor> executors, DistributedExecutionStatusMonitor statusMonitor, HazelcastInstance hazelcast, boolean disableCronjobs) {
+    @Autowired
+    public CronJobService(
+      @Value("${cluster.jmx.enabled:true}") boolean isJmxEnabled,
+      List<CronJobExecutor> executors,
+      DistributedExecutionStatusMonitor statusMonitor,
+      HazelcastInstance hazelcast,
+      @Value("${node.passive:false}") boolean disableCronjobs) {
         this.statusMonitor = statusMonitor;
         this.hazelcast = hazelcast;
-        this.disableCronjobs = disableCronjobs;
+
         try {
             LOG.info("Initializing Cron Job Frameworks. Registered Cronjobs: {}", executors);
+
             monitoringSupport = new MonitoringSupport(executors, hazelcast);
+
             cronReg = sortExecutors(executors);
-            scheduler = new StdSchedulerFactory().getScheduler();
-            initExecutors();
-            scheduler.getContext().put(CRON_JOB_SERVICE, this);
-            scheduler.start();
-            jmxInvokeSupport = new JmxInvokeSupport(this, executors);
-            LOG.debug("Cron Jobs initialized");
+
+            if (!disableCronjobs) {
+                scheduler = new StdSchedulerFactory().getScheduler();
+
+                initExecutors();
+
+                scheduler.getContext().put(CRON_JOB_SERVICE, this);
+
+                scheduler.start();
+
+                LOG.debug("Cron jobs initialized");
+            } else {
+                LOG.debug("Cron jobs disabled");
+            }
+
+            jmxInvokeSupport = isJmxEnabled ? new JmxInvokeSupport(this, executors) : null;
         } catch (SchedulerException e) {
             throw new RuntimeException(e);
         }
     }
-
 
     private Map<Class<? extends CronJobExecutor>, CronJobExecutor> sortExecutors(List<CronJobExecutor> executors) {
         Map<Class<? extends CronJobExecutor>, CronJobExecutor> instances = new HashMap<Class<? extends CronJobExecutor>, CronJobExecutor>();
@@ -94,11 +106,8 @@ public class CronJobService implements CheckProvider {
 
 
     private void initExecutors() throws SchedulerException {
-        if (disableCronjobs) {
-            LOG.warn("Cronjobs disabled - this is a  passive node!");
-            return;
-        }
         LOG.info("Initializing Cron Jobs");
+
         for (CronJobExecutor cje : cronReg.values()) {
             String jobName = cje.getClass().getName();
             JobDetail jobDetail = JobBuilder.newJob(WrappedJobExecutor.class)
@@ -174,9 +183,15 @@ public class CronJobService implements CheckProvider {
     @PreDestroy
     void stop() {
         try {
-            jmxInvokeSupport.stop();
-            scheduler.shutdown();
-            LOG.info("Cron Job Service shutdown");
+            if (jmxInvokeSupport != null) {
+                jmxInvokeSupport.stop();
+            }
+
+            if (scheduler != null) {
+                scheduler.shutdown();
+
+                LOG.info("Cron Job Service shutdown");
+            }
         } catch (SchedulerException e) {
             throw new RuntimeException(e);
         }

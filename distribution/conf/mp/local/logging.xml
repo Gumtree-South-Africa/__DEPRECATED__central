@@ -30,6 +30,8 @@ from logback.xml.
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
     <logger name="ca.kijiji" level="DEBUG"/>
 
+    <logger name="org.springframework.cloud" level="DEBUG"/>
+
     <!-- Use confOverride property to add loggers as needed on the runtime environment -->
     <if condition='isDefined("confOverride")'>
         <then>

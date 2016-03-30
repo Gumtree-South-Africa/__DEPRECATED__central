@@ -1,6 +1,5 @@
 package nl.marktplaats.integration.urlgatewaypostprocessor;
 
-import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.ByteStreams;
 import nl.marktplaats.integration.support.ReceiverTestsSetup;
 import org.subethamail.wiser.WiserMessage;
@@ -17,7 +16,7 @@ public class UrlGatewayPostProcessorIntegrationTest extends ReceiverTestsSetup {
     @Test(groups = { "receiverTests" })
     public void rtsRewritesUrlsInMessageBodyForAsq() throws Exception {
         deliverMailToRts("linking-asq.eml");
-        WiserMessage message = IntegrationTestRunner.waitForMessageArrival(1, 5000L);
+        WiserMessage message = runner.waitForMessageArrival(1, 5000L);
 
         Multipart mainPart = (Multipart) message.getMimeMessage().getContent();
         MimeBodyPart textPart = (MimeBodyPart) mainPart.getBodyPart(0);
@@ -89,6 +88,6 @@ public class UrlGatewayPostProcessorIntegrationTest extends ReceiverTestsSetup {
 
     private void deliverMailToRts(String emlName) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
-        IntegrationTestRunner.getMailSender().sendMail(emlData);
+        runner.getMailSender().sendMail(emlData);
     }
 }

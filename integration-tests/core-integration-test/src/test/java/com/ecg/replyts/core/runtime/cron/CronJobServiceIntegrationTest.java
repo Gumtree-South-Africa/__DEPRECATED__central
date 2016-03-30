@@ -18,10 +18,8 @@ import java.util.concurrent.CountDownLatch;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-
 @Ignore
 public class CronJobServiceIntegrationTest {
-
     @Mock
     private HazelcastInstance hci;
 
@@ -30,7 +28,6 @@ public class CronJobServiceIntegrationTest {
 
     @Mock
     private DistributedExecutionStatusMonitor monitor;
-
 
     CountDownLatch cdl = new CountDownLatch(1);
 
@@ -48,20 +45,18 @@ public class CronJobServiceIntegrationTest {
         public void execute() throws Exception {
             cdl.countDown();
         }
-
-        ;
     };
 
     @Test(timeout = 2000)
     public void registersAndFiresCronjob() throws Exception {
-        new CronJobService(Arrays.asList(cje), monitor, hci, false);
+        new CronJobService(false, Arrays.asList(cje), monitor, hci, false);
         cdl.await();
     }
 
     @Test
     public void skipsJobExecutionWhenNotMaster() throws Exception {
         when(lock.tryLock()).thenReturn(false);
-        CronJobService item = spy(new CronJobService(Arrays.asList(cje), monitor, hci, false));
+        CronJobService item = spy(new CronJobService(false, Arrays.asList(cje), monitor, hci, false));
         item.invokeMonitoredIfLeader(cje.getClass());
         verify(item, never()).invokeMonitored(any(Class.class));
         // assertFalse(cdl.await(2, TimeUnit.SECONDS));
@@ -69,7 +64,7 @@ public class CronJobServiceIntegrationTest {
 
     @Test
     public void notifiesStatusMonitor() throws InterruptedException {
-        new CronJobService(Arrays.asList(cje), monitor, hci, false);
+        new CronJobService(false, Arrays.asList(cje), monitor, hci, false);
         cdl.await();
         InOrder inOrder = inOrder(monitor);
         inOrder.verify(monitor).start(any(CronExecution.class));

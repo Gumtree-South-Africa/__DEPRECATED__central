@@ -1,52 +1,100 @@
 package com.ecg.replyts.integration.test;
 
 import com.ecg.replyts.core.runtime.ReplyTS;
+import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
 import com.google.common.io.Files;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.elasticsearch.client.Client;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.core.io.ClassPathResource;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
 import java.io.File;
 import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 
 public final class ReplytsRunner {
+    public static final String DEFAULT_CONFIG_RESOURCE_DIRECTORY = "/integrationtest-conf";
 
-    static final String DEFAULT_CONFIG_RESOURCE_DIRECTORY = "/integrationtest-conf";
+    private static final String ELASTIC_SEARCH_PREFIX = "comaas_integration_test_";
 
-    private final String configResourcePrefix;
+    private final File dropFolder = Files.createTempDir();
+    private final Integer httpPort = OpenPortFinder.findFreePort();
+    private final Integer smtpOutPort = OpenPortFinder.findFreePort();
+    private final String elasticClusterName = ELASTIC_SEARCH_PREFIX + UUID.randomUUID();
 
-    private ReplyTS replyTs;
-    private int replytsHttpPort = -1;
+    private Wiser wiser = new Wiser(smtpOutPort);
 
-    private File dropFolder;
+    private AbstractApplicationContext context;
 
-    private Wiser wiser;
+    private Client searchClient;
 
-    public ReplytsRunner(String configResourcePrefix) {
-        this.configResourcePrefix = configResourcePrefix;
-    }
-
-    public void start() throws Exception {
-        if (replyTs != null) {
-            return;
-        }
-        replytsHttpPort = OpenPortFinder.findFreePort();
-
-        dropFolder = Files.createTempDir();
-        System.setProperty("mailreceiver.filesystem.dropfolder", dropFolder.getAbsolutePath());
-
-        int replytsSmtpOutPort = OpenPortFinder.findFreePort();
-        System.setProperty("delivery.smtp.port", String.valueOf(replytsSmtpOutPort));
-
-        wiser = new Wiser(replytsSmtpOutPort);
+    public ReplytsRunner(Properties testProperties, String configResourcePrefix) {
         wiser.start();
 
-        ClassPathEnvironmentSupport environmentSupport = new ClassPathEnvironmentSupport(configResourcePrefix, replytsHttpPort);
-        replyTs = new ReplyTS(environmentSupport);
+        if (!wiser.getServer().isRunning())
+            throw new IllegalStateException("SMTP server thread is not running");
+
+        try {
+            context = new ClassPathXmlApplicationContext(new String[] {
+                "classpath:server-context.xml",
+                "classpath:runtime-context.xml",
+                "classpath*:/plugin-inf/*.xml",
+            }, false);
+
+            context.getEnvironment().setActiveProfiles(ReplyTS.EMBEDDED_PROFILE);
+
+            Properties properties = new Properties();
+
+            properties.put("confDir", "classpath:" + configResourcePrefix);
+
+            ClassPathResource resource = new ClassPathResource(configResourcePrefix + "/replyts.properties");
+
+            properties.load(resource.getInputStream());
+
+            properties.put("persistence.cassandra.endpoint", "localhost:" + EmbeddedCassandraServerHelper.getNativeTransportPort());
+            properties.put("replyts.http.port", String.valueOf(httpPort));
+            properties.put("replyts.ssl.enabled", "false");
+            properties.put("delivery.smtp.port", String.valueOf(smtpOutPort));
+
+            properties.put("mailreceiver.filesystem.dropfolder", dropFolder.getAbsolutePath());
+
+            properties.put("search.es.clustername", elasticClusterName);
+
+            properties.put("node.passive", "true");
+            properties.put("cluster.jmx.enabled", "false");
+
+            context.getEnvironment().getPropertySources().addFirst(new PropertiesPropertySource("test", properties));
+
+            if (testProperties != null) {
+                properties.putAll(testProperties);
+            }
+
+            context.registerShutdownHook();
+
+            context.refresh();
+
+            if (context.getBean("started", Boolean.class) != true)
+                throw new IllegalStateException("COMaaS did not start up in its entirety");
+
+            searchClient = context.getBean(Client.class);
+
+            if (searchClient == null)
+                throw new IllegalStateException("COMaaS did not start up in its entirety");
+        } catch (Exception e) {
+            throw new IllegalStateException("COMaaS Abnormal Shutdown", e);
+        }
     }
 
     public void stop() {
-        replyTs.shutdown();
+        context.close();
+
         deleteDirectory(dropFolder);
+
         wiser.stop();
     }
 
@@ -54,11 +102,12 @@ public final class ReplytsRunner {
         return wiser.getMessages();
     }
 
-    /**
-     * @return port number on which ReplyTS Server is running. if no webserver started, -1,
-     */
-    public int getReplytsHttpPort() {
-        return replytsHttpPort;
+    public int getHttpPort() {
+        return httpPort;
+    }
+
+    public Client getSearchClient() {
+        return searchClient;
     }
 
     public File getDropFolder() {
@@ -76,5 +125,4 @@ public final class ReplytsRunner {
         }
         directory.delete();
     }
-
 }

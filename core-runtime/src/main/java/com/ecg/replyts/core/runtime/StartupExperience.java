@@ -2,41 +2,50 @@ package com.ecg.replyts.core.runtime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-/**
- * @author mhuttar
- */
+@Component
 public class StartupExperience {
-
     private static final Logger LOG = LoggerFactory.getLogger(StartupExperience.class);
 
     private final long begin;
 
-
     public StartupExperience() {
         begin = System.currentTimeMillis();
-        LOG.info("Starting ReplyTS Runtime");
     }
 
-    public void running(int apiHttpPort) {
-        LOG.info("    ____             __     ___________");
-        LOG.info("   / __ \\___  ____  / /_  _/_  __/ ___/");
-        LOG.info("  / /_/ / _ \\/ __ \\/ / / / // /  \\__ \\");
-        LOG.info(" / _, _/  __/ /_/ / / /_/ // /  ___/ /");
-        LOG.info("/_/ |_|\\___/ .___/_/\\__, //_/  /____/");
-        LOG.info("          /_/      /____/");
+    public StartupExperience(@Value("${confDir}") String confDir, @Value("${logDir:.}") String logDir) {
+        this();
 
-        LOG.info("ReplyTS Startup Complete in {}ms.", System.currentTimeMillis() - begin);
-        LOG.info("Documentation: https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki");
+        LOG.info("Starting COMaaS Runtime");
 
+        LOG.info("Config Directory: -DconfDir={}", confDir);
+        LOG.info("Log Directory:    -DlogDir={}", logDir);
+    }
+
+    public boolean running(int apiHttpPort) {
+        LOG.info("   __________  __  ___            _____");
+        LOG.info("  / ____/ __ \\/  |/  /___ _____ _/ ___/");
+        LOG.info(" / /   / / / / /|_/ / __ `/ __ `/\\__ \\");
+        LOG.info("/ /___/ /_/ / /  / / /_/ / /_/ /___/ /");
+        LOG.info("\\____/\\____/_/  /_/\\__,_/\\__,_//____/");
+        LOG.info("");
+
+        LOG.info("COMaaS Startup Complete in {}ms.", System.currentTimeMillis() - begin);
+        LOG.info("Documentation: https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki");
 
         try {
             LOG.info("Browse to: http://{}:{}", InetAddress.getLocalHost().getHostAddress(), apiHttpPort);
+
+            return true;
         } catch (UnknownHostException e) {
-            LOG.warn("could not resolve local host... ", e);
+            LOG.error("Could not resolve local host", e);
+
+            return false;
         }
     }
 }

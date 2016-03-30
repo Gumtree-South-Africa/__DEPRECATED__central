@@ -50,7 +50,7 @@ public class CronJobInvokerTest {
 
         when(hci.getLock(Mockito.anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(false);
-        srvc = new CronJobService(Collections.<CronJobExecutor>singletonList(cje), monitor, hci, false);
+        srvc = new CronJobService(true, Collections.<CronJobExecutor>singletonList(cje), monitor, hci, false);
     }
 
     @Test

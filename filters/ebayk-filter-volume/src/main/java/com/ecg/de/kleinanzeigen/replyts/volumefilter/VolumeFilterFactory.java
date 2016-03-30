@@ -2,7 +2,6 @@ package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
-import com.ecg.replyts.core.api.search.SearchService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Autowired;

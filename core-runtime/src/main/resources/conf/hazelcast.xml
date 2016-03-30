@@ -9,18 +9,19 @@
     </group>
 
     <properties>
-        <property name="hazelcast.jmx">true</property>
+        <!-- Local development: no need to advertise MBean -->
+
+        <property name="hazelcast.jmx">false</property>
         <property name="hazelcast.version.check.enabled">false</property>
     </properties>
 
-    <!--  local development: absolutely no need to join a cluster (this will just make the startup slower due to lookup timeouts) -->
+    <!-- Local development: absolutely no need to join a cluster (this will just make the startup slower due to lookup timeouts) -->
+
     <network>
         <join>
             <multicast enabled="false"/>
             <tcp-ip enabled="false"/>
             <aws enabled="false"/>
         </join>
-
     </network>
-
 </hazelcast>

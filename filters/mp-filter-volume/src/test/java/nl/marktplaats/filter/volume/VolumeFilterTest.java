@@ -22,11 +22,11 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class VolumeFilterTest {
-
     private static final String BUYER_ID = "buyer@mail.com";
-    private static final VolumeRule VOLUME_RULE_1_HOUR = new VolumeRule(1L, TimeUnit.HOURS, 100L, 200);
-    private static final VolumeRule VOLUME_RULE_2_DAY = new VolumeRule(1L, TimeUnit.DAYS, 200L, 100);
-    private static final List<VolumeRule> VOLUME_RULES = asList(VOLUME_RULE_2_DAY, VOLUME_RULE_1_HOUR);
+
+    private VolumeRule VOLUME_RULE_1_HOUR = new VolumeRule(1L, TimeUnit.HOURS, 100L, 200);
+    private VolumeRule VOLUME_RULE_2_DAY = new VolumeRule(1L, TimeUnit.DAYS, 200L, 100);
+    private List<VolumeRule> VOLUME_RULES = asList(VOLUME_RULE_2_DAY, VOLUME_RULE_1_HOUR);
 
     private VolumeFilter volumeFilter;
     private MessageProcessingContext messageProcessingContext;

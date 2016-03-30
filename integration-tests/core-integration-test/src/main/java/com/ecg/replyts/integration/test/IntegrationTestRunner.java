@@ -1,76 +1,100 @@
 package com.ecg.replyts.integration.test;
 
+import org.elasticsearch.client.Client;
 import org.junit.Assert;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.subethamail.wiser.WiserMessage;
 
+import java.io.File;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
 
-/**
- * Runs tests that depend on a mail receiver.
- */
 public class IntegrationTestRunner extends ExternalResource {
+    private final Logger LOGGER = LoggerFactory.getLogger("IntegrationTestRunner");
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("IntegrationTestRunner");
-    private static ReplytsRunner replytsRunner;
-    private static FileSystemMailSender mailSender;
-    private static String configResourceDirectory = ReplytsRunner.DEFAULT_CONFIG_RESOURCE_DIRECTORY;
+    private Properties testProperties;
 
-    /**
-     * Sets the config resource directory.
-     *
-     * !!   MUST BE CALLED BEFORE ANY OTHER METHOD IN THIS CLASS  !!
-     *
-     * @param configResourceDirectory the classpath directory of the configuration files to use
-     */
-    public static void setConfigResourceDirectory(String configResourceDirectory) {
-        IntegrationTestRunner.configResourceDirectory = configResourceDirectory;
+    private String configResourceDirectory;
+
+    private ReplytsRunner replytsRunner;
+
+    private FileSystemMailSender mailSender;
+
+    private Boolean isRunning = false;
+
+    public IntegrationTestRunner(Properties testProperties, String configResourceDirectory) {
+        this.testProperties = testProperties;
+        this.configResourceDirectory = configResourceDirectory;
     }
 
-    public static void start() {
+    public void start() {
+        if (isRunning)
+            throw new IllegalStateException("COMaaS is already running - won't be started multiple times");
+
         try {
-            LOGGER.info("Starting Reply T&S");
-            replytsRunner = new ReplytsRunner(configResourceDirectory);
-            replytsRunner.start();
+            LOGGER.info("Starting COMaaS");
 
+            replytsRunner = new ReplytsRunner(testProperties, configResourceDirectory);
             mailSender = new FileSystemMailSender(replytsRunner.getDropFolder());
+
+            isRunning = true;
         } catch (Exception e) {
-            LOGGER.error("ReplyTS startup failed for integration test.", e);
-            throw new IllegalStateException("Failed to start Reply T&S", e);
+            LOGGER.error("COMaaS startup failed for integration test.", e);
+
+            throw new IllegalStateException("Failed to start COMaaS", e);
         }
     }
 
-    public static void stop() {
-        if(replytsRunner != null) {
+    public void stop() {
+        if (isRunning) {
             replytsRunner.stop();
-            replytsRunner = null;
-            LOGGER.info("Stopped Reply T&S");
+
+            isRunning = false;
+
+            LOGGER.info("Stopped COMaaS");
         }
     }
 
-    public static ReplytsRunner getReplytsRunner() {
-        checkStarted();
-        return replytsRunner;
+    public int getHttpPort() {
+        ensureStarted();
+
+        return replytsRunner.getHttpPort();
     }
 
-    public static FileSystemMailSender getMailSender() {
-        checkStarted();
+    public Client getSearchClient() {
+        ensureStarted();
+
+        return replytsRunner.getSearchClient();
+    }
+
+    public File getDropFolder() {
+        ensureStarted();
+
+        return replytsRunner.getDropFolder();
+    }
+
+    public FileSystemMailSender getMailSender() {
+        ensureStarted();
+
         return mailSender;
     }
 
-    public static void clearMessages() {
-        checkStarted();
+    public void clearMessages() {
+        ensureStarted();
+
         replytsRunner.getMessages().clear();
     }
 
-    public static WiserMessage waitForMessageArrival(int expectedEmailNumber, long timeout) throws Exception {
-        checkStarted();
+    public WiserMessage waitForMessageArrival(int expectedEmailNumber, long timeout) throws Exception {
+        ensureStarted();
 
         long deadline = System.currentTimeMillis() + timeout;
         List<WiserMessage> messages;
@@ -89,10 +113,11 @@ public class IntegrationTestRunner extends ExternalResource {
         return messages.get(messages.size() - 1);
     }
 
-    public static void assertMessageDoesNotArrive(int expectedEmailNumber, long timeout) {
+    public void assertMessageDoesNotArrive(int expectedEmailNumber, long timeout) {
         List<WiserMessage> messages = replytsRunner.getMessages();
         try {
-            checkStarted();
+            ensureStarted();
+
             long deadline = System.currentTimeMillis() + timeout;
             Thread.sleep(10);
 
@@ -107,24 +132,24 @@ public class IntegrationTestRunner extends ExternalResource {
         assertThat("number of arrived messages", messages.size(), lessThan(expectedEmailNumber));
     }
 
-    public static WiserMessage getRtsSentMail(int emailNumber) {
-        checkStarted();
+    public WiserMessage getRtsSentMail(int emailNumber) {
+        ensureStarted();
+
         List<WiserMessage> messages = replytsRunner.getMessages();
         assertThat("number of arrived messages", messages.size(), greaterThanOrEqualTo(emailNumber));
         return messages.get(emailNumber - 1);
     }
 
-    public static WiserMessage getLastRtsSentMail() {
-        checkStarted();
+    public WiserMessage getLastRtsSentMail() {
+        ensureStarted();
+
         List<WiserMessage> messages = replytsRunner.getMessages();
         assertThat("number of arrived messages", messages.size(), greaterThan(0));
         return messages.get(messages.size() - 1);
     }
 
-    private static void checkStarted() {
-        if (replytsRunner == null) {
-            start();
-        }
+    private void ensureStarted() {
+        if (!isRunning)
+            throw new IllegalStateException("COMaaS is not currently running");
     }
-
 }

@@ -88,8 +88,7 @@ public class RabbitmqEventPublisherConfig {
     public static class RabbitMqEnabledConditional implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            Properties replyTsPropertis = context.getBeanFactory().getBean("replyts-properties", Properties.class);
-            return Boolean.parseBoolean(replyTsPropertis.getProperty("replyts.event.publisher.rabbitmq.enabled", "false"));
+            return Boolean.parseBoolean(context.getEnvironment().getProperty("replyts.event.publisher.rabbitmq.enabled", "false"));
         }
     }
 }

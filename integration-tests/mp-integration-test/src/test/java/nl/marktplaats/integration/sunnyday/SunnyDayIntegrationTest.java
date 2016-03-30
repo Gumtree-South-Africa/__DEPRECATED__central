@@ -1,6 +1,5 @@
 package nl.marktplaats.integration.sunnyday;
 
-import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import nl.marktplaats.integration.support.ReceiverTestsSetup;
@@ -30,7 +29,7 @@ public class SunnyDayIntegrationTest extends ReceiverTestsSetup {
     @Test(groups = { "receiverTests" })
     public void rtsProcessedAnAsqMailAndAReply() throws Exception {
         deliverMailToRts("plain-asq.eml");
-        WiserMessage anonymizedAsq = IntegrationTestRunner.waitForMessageArrival(1, 5000L);
+        WiserMessage anonymizedAsq = runner.waitForMessageArrival(1, 5000L);
         MimeMessage anonAsq = anonymizedAsq.getMimeMessage();
         assertThat(anonAsq.getSubject(), is("Reactie op uw advertentie: Twee matrassen, hoef je niet te draaien en wasbare hoezen"));
         assertThat(anonymizedAsq.getEnvelopeReceiver(), is("obeuga@foon.nl"));
@@ -42,7 +41,7 @@ public class SunnyDayIntegrationTest extends ReceiverTestsSetup {
         assertIsAnonymous(anonymizedAsq, "seller_66@hotmail.com");
 
         deliverReplyMailToRts("plain-asq-reply.eml");
-        WiserMessage anonymizedAsqReply = IntegrationTestRunner.waitForMessageArrival(2, 5000L);
+        WiserMessage anonymizedAsqReply = runner.waitForMessageArrival(2, 5000L);
         MimeMessage anonAsqReply = anonymizedAsqReply.getMimeMessage();
         assertThat(anonAsqReply.getSubject(), is("Antw: Reactie op uw advertentie: Twee matrassen, hoef je niet te draaien en wasbare hoezen"));
         assertThat(anonymizedAsqReply.getEnvelopeReceiver(), is("seller_66@hotmail.com"));
@@ -106,15 +105,15 @@ public class SunnyDayIntegrationTest extends ReceiverTestsSetup {
 
     private void deliverMailToRts(String emlName) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
-        IntegrationTestRunner.getMailSender().sendMail(emlData);
+        runner.getMailSender().sendMail(emlData);
     }
 
     private void deliverReplyMailToRts(String emlName) throws Exception {
-        WiserMessage asqMessage = IntegrationTestRunner.getLastRtsSentMail();
+        WiserMessage asqMessage = runner.getLastRtsSentMail();
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
         String replyData = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName)));
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
-        IntegrationTestRunner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
+        runner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
     }
 }

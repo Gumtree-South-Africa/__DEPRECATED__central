@@ -7,7 +7,6 @@ import java.util.Properties;
 public class IndexerActionConditionalHelper {
 
     public static String indexerType(ConditionContext context) {
-        Properties replyTsProperties = context.getBeanFactory().getBean("replyts-properties", Properties.class);
-        return replyTsProperties.getProperty("replyts.indexer.type", "chunked");
+        return context.getEnvironment().getProperty("replyts.indexer.type", "chunked");
     }
 }

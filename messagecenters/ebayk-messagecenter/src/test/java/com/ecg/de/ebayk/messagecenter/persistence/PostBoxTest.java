@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.util.List;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static junit.framework.Assert.assertEquals;
 import static org.joda.time.DateTime.now;
 import static org.junit.Assert.assertTrue;
@@ -61,7 +62,6 @@ public class PostBoxTest {
 
     @Test
     public void removeOldConversations() {
-
         PostBox pb =  new PostBox(
                 "bla@blah.com",
                 Optional.of(0L),
@@ -75,17 +75,14 @@ public class PostBoxTest {
                 )
         );
 
-
         List<ConversationThread> conversationThreads = pb.getConversationThreads();
 
         assertTrue(conversationThreads.size() == 5);
-        assertEquals("2", conversationThreads.get(0).getAdId());
-        assertEquals("3", conversationThreads.get(1).getAdId());
-        assertEquals("4", conversationThreads.get(2).getAdId());
-        assertEquals("5", conversationThreads.get(3).getAdId());
-        assertEquals("6", conversationThreads.get(4).getAdId());
-    }
 
+        List<String> containsIds = newArrayList("2", "3", "4", "5", "6");
+
+        conversationThreads.forEach(x -> assertTrue(containsIds.contains(x.getAdId())));
+    }
 
     @Test
     public void removeNoConversations() {

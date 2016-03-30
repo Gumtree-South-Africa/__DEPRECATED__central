@@ -26,10 +26,10 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class WordfilterTest {
 
-    private static final PatternEntry FOOSTR_PATTERN = new PatternEntry(Pattern.compile("FooStr[a-z]*"), 100, Collections.<String>emptyList());
-    private static final PatternEntry SUBJECT_PATTERN = new PatternEntry(Pattern.compile("subject"), 100, Collections.<String>emptyList());
-    private static final PatternEntry ANY_CHARACTER_PATTERN = new PatternEntry(Pattern.compile("."), 200, Collections.<String>emptyList());
-    private static final PatternEntry NOT_EXISTANT_PATTERN = new PatternEntry(Pattern.compile("googahhhbaaah"), 300, Collections.<String>emptyList());
+    private final PatternEntry FOOSTR_PATTERN = new PatternEntry(Pattern.compile("FooStr[a-z]*"), 100, Collections.<String>emptyList());
+    private final PatternEntry SUBJECT_PATTERN = new PatternEntry(Pattern.compile("subject"), 100, Collections.<String>emptyList());
+    private final PatternEntry ANY_CHARACTER_PATTERN = new PatternEntry(Pattern.compile("."), 200, Collections.<String>emptyList());
+    private final PatternEntry NOT_EXISTANT_PATTERN = new PatternEntry(Pattern.compile("googahhhbaaah"), 300, Collections.<String>emptyList());
 
     @Mock
     private MessageProcessingContext context;

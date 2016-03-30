@@ -7,6 +7,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.common.joda.time.DateTime;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -18,17 +19,9 @@ import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.ecg.replyts.integration.riak.EmbeddedRiakClientConfiguration.resetBrain;
-import static com.ecg.replyts.integration.test.IntegrationTestRunner.assertMessageDoesNotArrive;
-import static com.ecg.replyts.integration.test.IntegrationTestRunner.clearMessages;
-import static com.ecg.replyts.integration.test.IntegrationTestRunner.getReplytsRunner;
-import static com.ecg.replyts.integration.test.IntegrationTestRunner.setConfigResourceDirectory;
-import static com.ecg.replyts.integration.test.IntegrationTestRunner.waitForMessageArrival;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Junit test rule that starts an embedded ReplyTS instance, configured to communicate to a locally running dev
@@ -57,28 +50,40 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  *  </pre>
  */
 public class ReplyTsIntegrationTestRule implements TestRule {
+    private static final Logger LOG = LoggerFactory.getLogger(ReplyTsIntegrationTestRule.class);
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReplyTsIntegrationTestRule.class);
-    private final int deliveryTimeoutSeconds;
-    private final String[] cqlFilePaths;
+    private int deliveryTimeoutSeconds;
+
+    private String[] cqlFilePaths;
 
     private Description description;
+
     private ReplyTsConfigClient client;
-    private String replyTsConfigurationDir;
 
-    private static final EmbeddedCassandra CASDB = EmbeddedCassandra.getInstance();
-    private static final String KEYSPACE = "replyts_integration_test";
+    private IntegrationTestRunner testRunner;
 
-    /**
-     * instantiate new rule, with a default delivery timeout of 5 seconds.
-     */
+    private EmbeddedCassandra CASDB = EmbeddedCassandra.getInstance();
+
+    private String keyspace = EmbeddedCassandra.createUniqueKeyspaceName();
+
     public ReplyTsIntegrationTestRule() {
-        this(5, "cassandra_schema.cql");
+        this(null, null, 5, "cassandra_schema.cql");
+    }
+
+    public ReplyTsIntegrationTestRule(Properties testProperties) {
+        this(testProperties, null, 5, "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(String replyTsConfigurationDir, String... cqlFilePaths) {
-        this(5, cqlFilePaths);
-        this.replyTsConfigurationDir = replyTsConfigurationDir;
+        this(null, replyTsConfigurationDir, 5, cqlFilePaths);
+    }
+
+    public ReplyTsIntegrationTestRule(Properties testProperties, String replyTsConfigurationDir, String... cqlFilePaths) {
+        this(testProperties, replyTsConfigurationDir, 5, cqlFilePaths);
+    }
+
+    public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, String... cqlFilePaths) {
+        this(null, null, deliveryTimeoutSeconds, cqlFilePaths);
     }
 
     /**
@@ -87,49 +92,57 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      * @param deliveryTimeoutSeconds maximum number of seconds {@link #deliver(MailBuilder)} should wait for a mail to
      *                               be processed.
      */
-    public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, String... cqlFilePaths) {
+    public ReplyTsIntegrationTestRule(Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, String... cqlFilePaths) {
         this.deliveryTimeoutSeconds = deliveryTimeoutSeconds;
         this.cqlFilePaths = cqlFilePaths;
+
+        if (testProperties == null) {
+            testProperties = new Properties();
+        }
+
+        testProperties.put("persistence.cassandra.keyspace", keyspace);
+
+        this.testRunner = new IntegrationTestRunner(testProperties, configurationResourceDirectory != null ? configurationResourceDirectory : ReplytsRunner.DEFAULT_CONFIG_RESOURCE_DIRECTORY);
     }
 
     @Override
     public Statement apply(final Statement base, Description description) {
         this.description = description;
+
         final Session session;
+
         try {
-            session = CASDB.loadSchema(KEYSPACE, cqlFilePaths);
+            session = CASDB.loadSchema(keyspace, cqlFilePaths);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
 
+        testRunner.start();
+
         return new Statement() {
             @Override
             public void evaluate() throws Throwable { // NOSONAR
-                if (isNotBlank(replyTsConfigurationDir)) {
-                    setConfigResourceDirectory(replyTsConfigurationDir);
-                }
-                ReplytsRunner runner = getReplytsRunner();
-                client = new ReplyTsConfigClient(runner.getReplytsHttpPort());
+                client = new ReplyTsConfigClient(testRunner.getHttpPort());
 
                 try {
-                    resetBrain();
-                    clearMessages();
+                    testRunner.clearMessages();
                     base.evaluate();
-                    clearMessages();
+                    testRunner.clearMessages();
                 } finally {
                     cleanConfigs();
-                    IntegrationTestRunner.stop();
-                    CASDB.cleanTables(session, KEYSPACE);
+                    testRunner.stop();
+                    CASDB.cleanTables(session, keyspace);
                 }
             }
         };
     }
 
-    /**
-     * returns the port the screening and config api are running on. (RESTful API)
-     */
     public int getHttpPort() {
-        return getReplytsRunner().getReplytsHttpPort();
+        return testRunner.getHttpPort();
+    }
+
+    public Client getSearchClient() {
+        return testRunner.getSearchClient();
     }
 
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
@@ -140,7 +153,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      */
     public Configuration.ConfigurationId registerConfig(Class<? extends BasePluginFactory> type, ObjectNode config) {
         Configuration.ConfigurationId c = new Configuration.ConfigurationId(type.getName(), "instance-" + COUNTER.incrementAndGet());
-        LOGGER.info("Created config " + c);
+        LOG.info("Created config " + c);
         client.putConfiguration(new Configuration(c, PluginState.ENABLED, 100l, config));
         return c;
     }
@@ -173,9 +186,9 @@ public class ReplyTsIntegrationTestRule implements TestRule {
                 description.getMethodName(),
                 UUID.randomUUID().toString());
 
-        LOGGER.info("Sending Mail with unique identifier '{}' at '{}'", mailIdentifier, DateTime.now());
+        LOG.info("Sending Mail with unique identifier '{}' at '{}'", mailIdentifier, DateTime.now());
         mail.uniqueIdentifier(mailIdentifier);
-        File f = new File(getReplytsRunner().getDropFolder(), "tmp_pre_" + Math.random());
+        File f = new File(testRunner.getDropFolder(), "tmp_pre_" + Math.random());
 
         try (FileOutputStream fout = new FileOutputStream(f)) {
             mail.write(fout);
@@ -194,7 +207,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      */
     public void assertNoMailArrives() {
         // no need for high timeout. deliver mail already blocks until replyts has sent the mail out.
-        assertMessageDoesNotArrive(1, 100);
+        testRunner.assertMessageDoesNotArrive(1, 100);
     }
 
     public ReplyTsConfigClient getConfigClient() {
@@ -206,12 +219,11 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      */
     public MimeMessage waitForMail() {
         try {
-            MimeMessage message = waitForMessageArrival(1, 1000).getMimeMessage();
-            clearMessages();
+            MimeMessage message = testRunner.waitForMessageArrival(1, 1000).getMimeMessage();
+            testRunner.clearMessages();
             return message;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
 }

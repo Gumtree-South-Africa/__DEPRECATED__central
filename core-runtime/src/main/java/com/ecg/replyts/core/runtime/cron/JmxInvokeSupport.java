@@ -16,7 +16,6 @@ import java.util.List;
  * @author mhuttar
  */
 class JmxInvokeSupport {
-
     private final CronJobService srvc;
     private final List<CronJobExecutor> executors;
 
@@ -25,11 +24,11 @@ class JmxInvokeSupport {
     public JmxInvokeSupport(CronJobService srvc, List<CronJobExecutor> executors) {
         this.srvc = srvc;
         this.executors = executors;
+
         for (CronJobExecutor e : executors) {
             register(e);
         }
     }
-
 
     /**
      * registers an MBean for a Cron executor
@@ -58,13 +57,15 @@ class JmxInvokeSupport {
         MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
         for (CronJobExecutor cje : executors) {
             try {
-                mbeanServer.unregisterMBean(toOName(cje));
+                ObjectName objectName = toOName(cje);
+
+                if (mbeanServer.isRegistered(objectName))
+                    mbeanServer.unregisterMBean(objectName);
             } catch (Exception e) {
-                LOG.error("Could not register MBean for " + cje.getClass(), e);
+                LOG.error("Could not unregister MBean for " + cje.getClass(), e);
             }
         }
     }
-
 
     private ObjectName toOName(CronJobExecutor cje) throws MalformedObjectNameException {
         String objectName = String.format("ReplyTS:type=CronJobs,name=%s", cje.getClass().getSimpleName());

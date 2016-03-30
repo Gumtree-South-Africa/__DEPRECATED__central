@@ -11,20 +11,21 @@ import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 public class CassandraConfigurationRepositoryIntegrationTest {
+    private String KEYSPACE = EmbeddedCassandra.createUniqueKeyspaceName();
 
-    public static final String KEYSPACE = "replyts2_configuration_test";
-    private static Session session;
-    private static CassandraConfigurationRepository configurationRepository;
-    private static EmbeddedCassandra casdb;
+    private Session session;
+    private CassandraConfigurationRepository configurationRepository;
+    private EmbeddedCassandra casdb;
 
-    @BeforeClass
-    public static void init() {
+    @Before
+    public void init() {
         casdb = EmbeddedCassandra.getInstance();
         session = casdb.initStdSchema(KEYSPACE);
         configurationRepository = new CassandraConfigurationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);

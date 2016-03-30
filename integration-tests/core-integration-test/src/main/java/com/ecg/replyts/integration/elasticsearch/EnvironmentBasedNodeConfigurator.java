@@ -20,34 +20,43 @@ import static org.elasticsearch.common.settings.ImmutableSettings.settingsBuilde
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
 public class EnvironmentBasedNodeConfigurator {
-
     private static final Logger LOG = LoggerFactory.getLogger(EnvironmentBasedNodeConfigurator.class);
+
     private final String clusterName;
     private final String endpoints;
 
     static final String INDEX_NAME = "replyts";
 
     public EnvironmentBasedNodeConfigurator(String clusterName, String endpoints) {
-
         this.clusterName = clusterName;
         this.endpoints = endpoints;
     }
 
     public Node forEmbeddedEnvironments() {
         LOG.warn("Initializing ElasticSearch Embedded Standalone server. cluster {}. THIS IS AN AUTOMATION TEST ONLY MODE", clusterName, endpoints);
+
         Builder settingsBuilder = basicSettings(clusterName)
+                .put("http.enabled", false)
                 .put("node.local", true)
                 .put("node.client", false)
                 .put("node.data", true)
-                .put("path.data", "target/data-" + UUID.randomUUID().toString());
+                .put("index.number_of_shards", 1)
+                .put("index.number_of_replicas", 0)
+                .put("discovery.zen.ping.multicast", false)
+                .put("path.data", "target/es-data-" + UUID.randomUUID());
 
         Node node = createRunningEsNode(settingsBuilder);
 
-        LOG.info("deleting index " + INDEX_NAME);
+        LOG.info("Deleting index " + INDEX_NAME);
+
         IndicesAdminClient indicesAdmn = node.client().admin().indices();
+
         deleteIndexIfAvailable(indicesAdmn);
-        LOG.info("creating index " + INDEX_NAME);
+
+        LOG.info("Creating index " + INDEX_NAME);
+
         createIndex(indicesAdmn);
+
         return node;
     }
 

@@ -3,28 +3,31 @@ package com.ecg.replyts.core.runtime.indexer;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 
 public class CassandraIndexerClockRepositoryIntegrationTest extends AbstractIndexerClockRepositoryTest<CassandraIndexerClockRepository> {
+    private final String KEYSPACE = EmbeddedCassandra.createUniqueKeyspaceName();
 
-    private static final String KEYSPACE = "replyts2_clock_test";
-    private static EmbeddedCassandra casdb;
-    private static Session session;
+    private EmbeddedCassandra casdb = EmbeddedCassandra.getInstance();
+
+    private Session session;
+
+    public void init() {
+        if (session == null) {
+            session = casdb.initStdSchema(KEYSPACE);
+        }
+    }
 
     @Override
     protected CassandraIndexerClockRepository createClockRepository() throws Exception {
-        return CassandraIndexerClockRepository.createCassandraIndexerClockRepositoryForTesting("datacenter1", session);
-    }
+        init();
 
-    @BeforeClass
-    public static void init() {
-        casdb = EmbeddedCassandra.getInstance();
-        session = casdb.initStdSchema(KEYSPACE);
+        return CassandraIndexerClockRepository.createCassandraIndexerClockRepositoryForTesting("datacenter1", session);
     }
 
     @After
     public void cleanupTables() {
         casdb.cleanTables(session, KEYSPACE);
     }
-
 }

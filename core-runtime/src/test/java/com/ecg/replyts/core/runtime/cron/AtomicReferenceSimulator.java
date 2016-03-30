@@ -71,11 +71,6 @@ class AtomicReferenceSimulator implements IAtomicReference<Object> {
     }
 
     @Override
-    public Object getId() {
-        return null;
-    }
-
-    @Override
     public String getPartitionKey() {
         return null;
     }

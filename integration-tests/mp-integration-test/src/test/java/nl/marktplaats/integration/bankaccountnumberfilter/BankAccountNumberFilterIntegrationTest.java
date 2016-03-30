@@ -1,6 +1,5 @@
 package nl.marktplaats.integration.bankaccountnumberfilter;
 
-import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import nl.marktplaats.integration.support.ReceiverTestsSetup;
@@ -14,26 +13,26 @@ public class BankAccountNumberFilterIntegrationTest extends ReceiverTestsSetup {
     @Test(groups = { "receiverTests" })
     public void rtsBlocksMailWithFraudulentBankAccount() throws Exception {
         deliverMailToRts("buyer-asq.eml");
-        IntegrationTestRunner.waitForMessageArrival(1, 5000L);
+        runner.waitForMessageArrival(1, 5000L);
 
         deliverReplyMailToRts(1, "seller-reply-bank-account-123456.eml");
-        IntegrationTestRunner.assertMessageDoesNotArrive(2, 1000L);
+        runner.assertMessageDoesNotArrive(2, 1000L);
 
         deliverReplyMailToRts(1, "seller-reply-bank-account-654321.eml");
-        IntegrationTestRunner.waitForMessageArrival(2, 5000L);
+        runner.waitForMessageArrival(2, 5000L);
     }
 
     private void deliverMailToRts(String emlName) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
-        IntegrationTestRunner.getMailSender().sendMail(emlData);
+        runner.getMailSender().sendMail(emlData);
     }
 
     private void deliverReplyMailToRts(int replyToMessageNumber, String emlName) throws Exception {
-        WiserMessage lastMessage = IntegrationTestRunner.getRtsSentMail(replyToMessageNumber);
+        WiserMessage lastMessage = runner.getRtsSentMail(replyToMessageNumber);
         String anonymousSender = lastMessage.getEnvelopeSender();
 
         String replyData = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName)));
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousSender);
-        IntegrationTestRunner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
+        runner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
     }
 }

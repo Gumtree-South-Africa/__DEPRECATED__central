@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import static com.ecg.replyts.core.api.util.JsonObjects.builder;
 import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload.ResultOrdering.NEWEST_FIRST;
 import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload.ResultOrdering.OLDEST_FIRST;
-import static com.ecg.replyts.integration.elasticsearch.EmbeddedElasticSearchClientConfiguration.lastClient;
 import static com.jayway.restassured.path.json.JsonPath.from;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -53,7 +52,7 @@ public class SearchServiceTest {
     private final String uuid = UUID.randomUUID().toString();
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(10, "cassandra_schema.cql");
 
     @Before
     public void setup() {
@@ -535,11 +534,11 @@ public class SearchServiceTest {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            SearchRequestBuilder searchRequestBuilder = lastClient().prepareSearch("replyts")
+            SearchRequestBuilder searchRequestBuilder = rule.getSearchClient().prepareSearch("replyts")
                     .setTypes("message")
                     .setQuery(QueryBuilders.termQuery("_id", id));
 
-            boolean exists = lastClient().search(searchRequestBuilder.request()).actionGet().getHits().getTotalHits() > 0;
+            boolean exists = rule.getSearchClient().search(searchRequestBuilder.request()).actionGet().getHits().getTotalHits() > 0;
 
             if (exists) {
                 return;

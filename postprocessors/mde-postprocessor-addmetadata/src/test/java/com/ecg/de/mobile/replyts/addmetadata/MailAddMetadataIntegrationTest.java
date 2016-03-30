@@ -9,20 +9,21 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Properties;
+import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
 
 
 public class MailAddMetadataIntegrationTest {
-
-    @BeforeClass
-    public static void setUp() {
-        System.setProperty("replyts.mobilede.addmetadata.plugin.order", "201" );
-    }
-
     @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
+        Properties properties = new Properties();
 
+        properties.put("replyts.mobilede.addmetadata.plugin.order", "201" );
+
+        return properties;
+    }).get());
 
     @Test
     public void testAddingMetadata() {

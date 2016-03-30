@@ -1,9 +1,10 @@
 package nl.marktplaats.postprocessor.anonymizebody;
 
+import com.ecg.replyts.core.runtime.EnvironmentSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.AbstractEnvironment;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,9 +16,8 @@ public class AnonymizeEmailPostProcessorConfig {
     private List<String> patterns = new ArrayList<>();
 
     @Autowired
-    public AnonymizeEmailPostProcessorConfig(@Qualifier("replyts-properties") Properties properties) {
-        this(properties
-                .stringPropertyNames()
+    public AnonymizeEmailPostProcessorConfig(AbstractEnvironment environment) {
+        this(EnvironmentSupport.propertyNames(environment)
                 .stream()
                 .filter(key -> key.startsWith("anonymizebody.pattern."))
                 .sorted((key1, key2) -> {
@@ -25,7 +25,7 @@ public class AnonymizeEmailPostProcessorConfig {
                         int position2 = Integer.parseInt(key2.substring("anonymizebody.pattern.".length()));
                         return position1 - position2;
                 })
-                .map(key -> properties.getProperty(key))
+                .map(key -> environment.getProperty(key))
                 .collect(Collectors.toList())
         );
     }

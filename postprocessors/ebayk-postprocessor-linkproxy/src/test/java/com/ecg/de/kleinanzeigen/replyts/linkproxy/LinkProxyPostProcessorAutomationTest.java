@@ -8,21 +8,24 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Properties;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class LinkProxyPostProcessorAutomationTest {
-
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
+        Properties properties = new Properties();
 
-    @BeforeClass
-    public static void setUp() {
-        System.setProperty("replyts.linkescaper.proxyurl", "http://foo.com?url=%s");
-        System.setProperty("replyts.linkescaper.whitelist", "host.com");
+        properties.put("replyts.linkescaper.proxyurl", "http://foo.com?url=%s");
+        properties.put("replyts.linkescaper.whitelist", "host.com");
 
-    }
+        return properties;
+    }).get());
 
     @Test
     public void proxiesUnknownDomains() {

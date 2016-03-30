@@ -15,7 +15,7 @@ public class BankAccountFilterAutomationTest {
 
 
     @Rule
-    public ReplyTsIntegrationTestRule replyTS = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule replyTS = new ReplyTsIntegrationTestRule(10, "cassandra_schema.cql");
 
     @Test
     public void firesOnBankAccount() {

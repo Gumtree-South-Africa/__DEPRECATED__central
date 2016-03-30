@@ -2,6 +2,10 @@ package nl.marktplaats.postprocessor.anonymizebody;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.StandardEnvironment;
 
 import java.util.List;
 import java.util.Properties;
@@ -10,7 +14,10 @@ public class AnonymizeEmailPostProcessorConfigTest {
 
     @Test
     public void testCreateConfig() throws Exception {
+        AbstractEnvironment environment = new StandardEnvironment();
+
         Properties p = new Properties();
+
         p.setProperty("anonymizebody.pattern.0", "0");
         p.setProperty("anonymizebody.pattern.1000", "1000");
         p.setProperty("anonymizebody.pattern.200", "200");
@@ -18,7 +25,9 @@ public class AnonymizeEmailPostProcessorConfigTest {
         p.setProperty("anonymizebody.pattern.50", "50");
         p.setProperty("anonymizebody.pattern.3", "3");
 
-        AnonymizeEmailPostProcessorConfig config = new AnonymizeEmailPostProcessorConfig(p);
+        environment.getPropertySources().addFirst(new PropertiesPropertySource("test", p));
+
+        AnonymizeEmailPostProcessorConfig config = new AnonymizeEmailPostProcessorConfig(environment);
 
         List<String> patterns = config.getPatterns();
         Assert.assertEquals("0", patterns.get(0));

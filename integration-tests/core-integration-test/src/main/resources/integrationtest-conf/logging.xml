@@ -23,14 +23,12 @@ from logback.xml.
         </encoder>
     </appender>
 
-    <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
-
     <logger name="com.ecg.replyts" level="DEBUG"/>
     <logger name="com.ecg.de" level="DEBUG"/>
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
     <logger name="ca.kijiji" level="DEBUG"/>
 
-    <!--<logger name="org.cassandraunit.utils" level="DEBUG"/>-->
+    <logger name="org.cassandraunit.utils" level="DEBUG"/>
 
     <!-- Use confOverride property to add loggers as needed on the runtime environment -->
     <if condition='isDefined("confOverride")'>
@@ -41,7 +39,5 @@ from logback.xml.
 
     <root level="WARN">
         <appender-ref ref="STDOUT"/>
-        <!--<appender-ref ref="FILE"/>-->
     </root>
-
 </included>

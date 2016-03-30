@@ -21,31 +21,46 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
+import java.util.function.Supplier;
 
 @Test
 public class ReceiverTestsSetup {
+    private String KEYSPACE = EmbeddedCassandra.createUniqueKeyspaceName();
 
-    private static EmbeddedCassandra embeddedCassandra;
-    private static final String KEYSPACE = "replyts_integration_test";
+    private EmbeddedCassandra embeddedCassandra = EmbeddedCassandra.getInstance();
+
     private Session session;
 
+    protected IntegrationTestRunner runner;
 
     @BeforeGroups(groups = { "receiverTests" })
     public void startEmbeddedRts() throws Exception {
-
-        // WARNING!
-        // This MUST happen first!
-        // Do not put anything that creates a Logger before this line.
-        // Don't you even dare to initialize fields with their definition!
-        System.setProperty("confDir", configurationDirectory());
-
-        embeddedCassandra = EmbeddedCassandra.getInstance();
         session = embeddedCassandra.loadSchema(KEYSPACE, "cassandra_schema.cql", "cassandra_volume_filter_schema.cql");
 
-        IntegrationTestRunner.setConfigResourceDirectory("/mp-integration-test-conf");
-        IntegrationTestRunner.getReplytsRunner();
+        runner = new IntegrationTestRunner(((Supplier<Properties>) () -> {
+            Properties properties = new Properties();
 
-        ReplyTsConfigClient replyTsConfigClient = new ReplyTsConfigClient(IntegrationTestRunner.getReplytsRunner().getReplytsHttpPort());
+            properties.put("confDir", ((Supplier<String>) () -> {
+                List<String> configurationDirectoryAsModulePaths = Arrays.asList(
+                        "src/test/resources/mp-integration-test-conf",
+                        "replyts2-mp-integration-tests/src/test/resources/mp-integration-test-conf"
+                );
+
+                return configurationDirectoryAsModulePaths
+                        .stream()
+                        .filter(d -> new File(d).isDirectory())
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalStateException("Was not able to find configuration directory"));
+            }).get());
+            properties.put("persistence.cassandra.keyspace", KEYSPACE);
+
+            return properties;
+        }).get(), "/mp-integration-test-conf");
+
+        runner.start();
+
+        ReplyTsConfigClient replyTsConfigClient = new ReplyTsConfigClient(runner.getHttpPort());
 
         // Configure result inspector
         replyTsConfigClient.putConfiguration(
@@ -80,29 +95,15 @@ public class ReceiverTestsSetup {
                         JsonObjects.parse("[{'timeSpan': 10,'timeUnit': 'MINUTES','maxCount': 10,'score': 100}]")));
     }
 
-    private String configurationDirectory() {
-        // Current working directory is either the project root, or the replyts2-mp-integration-tests module root.
-        // Find the configuration directory from both roots.
-        List<String> configurationDirectoryAsModulePaths = Arrays.asList(
-                "src/test/resources/mp-integration-test-conf",
-                "replyts2-mp-integration-tests/src/test/resources/mp-integration-test-conf"
-        );
-        
-        return configurationDirectoryAsModulePaths
-                .stream()
-                .filter(d -> new File(d).isDirectory())
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Was not able to find configuration directory"));
-    }
-
     @BeforeMethod(groups = { "receiverTests" })
     public void clearReceivedMessages() throws IOException {
-        IntegrationTestRunner.clearMessages();
+        runner.clearMessages();
     }
 
     @AfterGroups(groups = { "receiverTests" })
     public void stopEmbeddedRts() throws IOException {
-        IntegrationTestRunner.stop();
+        runner.stop();
+
         embeddedCassandra.cleanTables(session, KEYSPACE);
     }
 

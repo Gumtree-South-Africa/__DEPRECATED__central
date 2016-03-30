@@ -5,18 +5,13 @@ import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
 import org.junit.After;
-import org.junit.BeforeClass;
 
 public class CassandraPostBoxRepositoryIntegrationTest extends AbstractPostBoxRepositoryTest<CassandraPostBoxRepository> {
+    private final String KEYSPACE = EmbeddedCassandra.createUniqueKeyspaceName("p_");
 
-    private static final String KEYSPACE = "messagebox_test";
-    private static EmbeddedCassandra casdb;
+    private EmbeddedCassandra casdb = EmbeddedCassandra.getInstance();
+
     private Session session;
-
-    @BeforeClass
-    public static void init() throws Exception {
-        casdb = EmbeddedCassandra.getInstance();
-    }
 
     @After
     public void cleanCassandra() {

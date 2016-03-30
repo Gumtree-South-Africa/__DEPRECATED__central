@@ -9,6 +9,7 @@ import com.google.common.net.MediaType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.core.env.StandardEnvironment;
 
 import java.util.Arrays;
 import java.util.List;
@@ -48,7 +49,7 @@ public class UrlGatewayPostProcessorTest {
 
     @Before
     public void setup() throws Exception {
-        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig("http://gateway.marktplaats.nl/?url=", new Properties());
+        UrlGatewayPostProcessorConfig config = new UrlGatewayPostProcessorConfig("http://gateway.marktplaats.nl/?url=", new StandardEnvironment());
 
         initMocks(this);
 

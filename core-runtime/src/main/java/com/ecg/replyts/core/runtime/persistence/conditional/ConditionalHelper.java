@@ -15,7 +15,6 @@ public class ConditionalHelper {
     }
 
     private static boolean isEnabled(ConditionContext context, String key, boolean defaultEnabled) {
-        Properties replyTsProperties = context.getBeanFactory().getBean("replyts-properties", Properties.class);
-        return Boolean.parseBoolean(replyTsProperties.getProperty(key, String.valueOf(defaultEnabled)));
+        return Boolean.parseBoolean(context.getEnvironment().getProperty(key, String.valueOf(defaultEnabled)));
     }
 }

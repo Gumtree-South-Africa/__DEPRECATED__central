@@ -9,23 +9,6 @@ import org.junit.runner.RunWith;
  * can be used as an utility to run tests in parallel from IntelliJ. It is not used by maven
  */
 @RunWith(ParallelSuite.class)
-@SuiteClasses({
-        // Exclude tests that cannot be run in parallel
-        "!**/SetCustomValueTest.class",
-        "!**/MessageFilteringAcceptanceTest.class",
-        "!**/SearchServiceTest.class",
-        "!**/MultiDomainAcceptanceTest.class",
-        "!**/SunnyDayAcceptanceTest.class",
-        "!**/MessageModerationAcceptanceTest.class",
-        "!**/AnonymizesOutgoingMailAcceptanceTest.class",
-        "!**/ConversationResumingTest.class",
-        "!**/RemoveLeakyMailQuotationsFromOutgoingMailAcceptanceTest.class",
-        "!**/PreprocessorRemoveIgnoreableMailsAcceptanceTest.class",
-        "!**/AttachmentSupportTest.class",
-        "!**/PreprocessorRemoveIgnorableMailsAcceptanceTest.class",
-        "!**/ConfigApiAcceptanceTest.class",
-        "!**/CloseConversationTest.class",
-        // Include the rest
-        "**/*Test.class"})
+@SuiteClasses({ "**/*Test.class" })
 public class ParallelTestRunner {
 }

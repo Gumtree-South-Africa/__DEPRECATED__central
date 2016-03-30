@@ -3,6 +3,7 @@ package com.ecg.replyts.core.runtime.indexer;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.concurrent.TimeUnit;
 

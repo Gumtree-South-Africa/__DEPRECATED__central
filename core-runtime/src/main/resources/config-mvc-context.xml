@@ -4,8 +4,8 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
         <property name="alwaysUseFullPath" value="true"/>
@@ -23,6 +23,5 @@
         </property>
     </bean>
 
-    <context:property-placeholder system-properties-mode="OVERRIDE" properties-ref="replyts-properties"/>
-    <context:component-scan base-package="com.ecg.replyts.core.webapi.screeningv2"/>
+    <context:component-scan base-package="com.ecg.replyts.core.webapi.configv2"/>
 </beans>

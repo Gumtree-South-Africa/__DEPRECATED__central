@@ -5,8 +5,11 @@ import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static junit.framework.Assert.assertEquals;
 import static org.joda.time.DateTime.now;
 import static org.junit.Assert.assertTrue;
@@ -19,10 +22,9 @@ import static org.junit.Assert.assertTrue;
  * @author maldana@ebay.de
  */
 public class PostBoxTest {
-
     public static final PostBox POST_BOX = new PostBox("" +
             "bla@blah.com",
-            Lists.newArrayList(
+            newArrayList(
                     new ConversationThread("2", "abc", now(), now().minusDays(179), now(),
                             1, Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(),
                             Optional.<String>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.of(now())),
@@ -45,7 +47,7 @@ public class PostBoxTest {
     public void sortsByModificationDate() {
         PostBox postBox = new PostBox("" +
                 "bla@blah.com",
-                Lists.newArrayList(
+                newArrayList(
                         new ConversationThread("123", "abc", now(), now().minusHours(100), now(), 1,
                                 Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(),
                                 Optional.<String>absent(), Optional.<String>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.of(now())),
@@ -63,7 +65,7 @@ public class PostBoxTest {
 
     @Test
     public void marksConversationAsUnread() {
-        PostBox postBox = new PostBox("bla@blah.com", Lists.newArrayList(
+        PostBox postBox = new PostBox("bla@blah.com", newArrayList(
                 new ConversationThread("adid1", "convid2", now().minusDays(4), now(), now(), 0, Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.of(now()))
         ));
 
@@ -76,11 +78,11 @@ public class PostBoxTest {
     public void removeOldConversations() {
         PostBox pb = new PostBox(
                 "bla@blah.com",
-                Lists.newArrayList(
-                        new ConversationThread("1", "abc", now().minusDays(180), now(), now(), 1,
+                newArrayList(
+                        new ConversationThread("1", "abc", now().minusDays(180).minusSeconds(5), now(), now(), 1,
                                 Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(),
                                 Optional.<String>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.of(now())),
-                        new ConversationThread("2", "abc", now().minusDays(180).plusSeconds(1), now(), now().minusHours(1), 1,
+                        new ConversationThread("2", "abc", now().minusDays(180).plusSeconds(5), now(), now().minusHours(1), 1,
                                 Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(),
                                 Optional.<String>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.of(now())),
                         new ConversationThread("3", "abc", now().minusDays(100), now(), now().minusHours(2), 1,
@@ -101,11 +103,10 @@ public class PostBoxTest {
         List<ConversationThread> conversationThreads = pb.getConversationThreads();
 
         assertTrue(conversationThreads.size() == 5);
-        assertEquals("2", conversationThreads.get(0).getAdId());
-        assertEquals("3", conversationThreads.get(1).getAdId());
-        assertEquals("4", conversationThreads.get(2).getAdId());
-        assertEquals("5", conversationThreads.get(3).getAdId());
-        assertEquals("6", conversationThreads.get(4).getAdId());
+
+        List<String> containsIds = newArrayList("2", "3", "4", "5", "6");
+
+        conversationThreads.forEach(x -> assertTrue(containsIds.contains(x.getAdId())));
     }
 
     @Test
@@ -134,7 +135,7 @@ public class PostBoxTest {
     @Test
     public void sortConversationThreads() {
         // sort based on last message created date if present
-        PostBox postBox1 = new PostBox("userId1", Lists.newArrayList(
+        PostBox postBox1 = new PostBox("userId1", newArrayList(
                 new ConversationThread("adId1", "convId1", now().minusDays(4), now(), now(), 0, Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.of(now().minusMinutes(4))),
                 new ConversationThread("adId2", "convId2", now().minusDays(4), now(), now(), 0, Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.of(now().minusMinutes(2)))));
 
@@ -142,7 +143,7 @@ public class PostBoxTest {
         assertEquals("convId1", postBox1.getConversationThreads().get(1).getConversationId());
 
         // sort based on conversation received date, if last message create date not present
-        PostBox postBox2 = new PostBox("userId2", Lists.newArrayList(
+        PostBox postBox2 = new PostBox("userId2", newArrayList(
                 new ConversationThread("adId3", "convId3", now().minusDays(4), now(), now().minusMinutes(4), 0, Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<DateTime>absent()),
                 new ConversationThread("adId4", "convId4", now().minusDays(4), now(), now().minusMinutes(2), 0, Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<DateTime>absent())));
 

@@ -51,7 +51,10 @@ public final class TimingReports {
 
     public static void newGauge(String gaugeName, Gauge gauge) {
         try {
-            MetricsService.getInstance().getRegistry().register(metricName(gaugeName), gauge);
+            String metric = metricName(gaugeName);
+
+            if (MetricsService.getInstance().getRegistry().getGauges((n, g) -> n.equals(metric)).size() == 0)
+                MetricsService.getInstance().getRegistry().register(metric, gauge);
         } catch (IllegalArgumentException e) {
             LOG.warn("can not register gauge " + gaugeName, e);
         }
