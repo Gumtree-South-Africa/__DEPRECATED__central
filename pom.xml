@@ -201,6 +201,13 @@
 
                 <module>listeners/mde-listener-dealerratinginvite</module>
             </modules>
+            <repositories>
+                <repository>
+                    <id>mde</id>
+                    <url>https://nexus.corp.mobile.de/nexus/content/groups/mobile-releases/</url>
+                </repository>
+            </repositories>
+
         </profile>
         <profile>
             <id>upload-mde-integration</id>
