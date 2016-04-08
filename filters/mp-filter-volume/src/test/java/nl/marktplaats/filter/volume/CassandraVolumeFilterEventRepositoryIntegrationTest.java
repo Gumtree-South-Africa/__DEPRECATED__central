@@ -2,7 +2,7 @@ package nl.marktplaats.filter.volume;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
-import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
+import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import nl.marktplaats.filter.volume.persistence.CassandraVolumeFilterEventRepository;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
@@ -14,13 +14,13 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 public class CassandraVolumeFilterEventRepositoryIntegrationTest {
-    private EmbeddedCassandra casdb = EmbeddedCassandra.getInstance();
+    private CassandraIntegrationTestProvisioner casdb = CassandraIntegrationTestProvisioner.getInstance();
 
     private Session session;
 
     private CassandraVolumeFilterEventRepository volumeFilterEventRepository;
 
-    private String keyspaceName = EmbeddedCassandra.createUniqueKeyspaceName("v_");
+    private String keyspaceName = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName("v_");
 
     private static final int TTL = 100;
 

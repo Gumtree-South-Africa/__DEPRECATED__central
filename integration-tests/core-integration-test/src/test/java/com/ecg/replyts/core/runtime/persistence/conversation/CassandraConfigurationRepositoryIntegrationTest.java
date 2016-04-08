@@ -7,26 +7,25 @@ import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
-import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
+import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 public class CassandraConfigurationRepositoryIntegrationTest {
-    private String KEYSPACE = EmbeddedCassandra.createUniqueKeyspaceName();
+    private String KEYSPACE = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
 
     private Session session;
     private CassandraConfigurationRepository configurationRepository;
-    private EmbeddedCassandra casdb;
+    private CassandraIntegrationTestProvisioner casdb;
 
     @Before
     public void init() {
-        casdb = EmbeddedCassandra.getInstance();
+        casdb = CassandraIntegrationTestProvisioner.getInstance();
         session = casdb.initStdSchema(KEYSPACE);
         configurationRepository = new CassandraConfigurationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
     }

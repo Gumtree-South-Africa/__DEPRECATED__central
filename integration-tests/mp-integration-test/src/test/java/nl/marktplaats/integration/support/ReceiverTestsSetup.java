@@ -6,12 +6,14 @@ import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
+import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.marktplaats.filter.bankaccount.BankAccountFilterFactory;
 import nl.marktplaats.filter.knowngood.KnownGoodFilterFactory;
 import nl.marktplaats.filter.volume.VolumeFilterFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.BeforeMethod;
@@ -20,22 +22,26 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.function.Supplier;
 
-@Test
 public class ReceiverTestsSetup {
-    private String KEYSPACE = EmbeddedCassandra.createUniqueKeyspaceName();
+    private static String KEYSPACE = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
 
-    private EmbeddedCassandra embeddedCassandra = EmbeddedCassandra.getInstance();
+    private static CassandraIntegrationTestProvisioner embeddedCassandra = CassandraIntegrationTestProvisioner.getInstance();
 
-    private Session session;
+    private static Session session;
 
-    protected IntegrationTestRunner runner;
+    protected static IntegrationTestRunner runner = null;
 
     @BeforeGroups(groups = { "receiverTests" })
-    public void startEmbeddedRts() throws Exception {
+    public static void startEmbeddedRts() throws Exception {
+        if (runner != null) {
+            throw new IllegalStateException("IntegrationTestRunner has already been set up - should only happen once for this group of tests!");
+        }
+
         session = embeddedCassandra.loadSchema(KEYSPACE, "cassandra_schema.cql", "cassandra_volume_filter_schema.cql");
 
         runner = new IntegrationTestRunner(((Supplier<Properties>) () -> {
@@ -96,12 +102,12 @@ public class ReceiverTestsSetup {
     }
 
     @BeforeMethod(groups = { "receiverTests" })
-    public void clearReceivedMessages() throws IOException {
+    public static void clearReceivedMessages() throws IOException {
         runner.clearMessages();
     }
 
     @AfterGroups(groups = { "receiverTests" })
-    public void stopEmbeddedRts() throws IOException {
+    public static void stopEmbeddedRts() throws IOException {
         runner.stop();
 
         embeddedCassandra.cleanTables(session, KEYSPACE);

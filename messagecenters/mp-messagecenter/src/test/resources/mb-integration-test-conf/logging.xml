@@ -1,7 +1,7 @@
 <!--
 
 LOOKS LIKE A BROKEN CONFIG? It's not, this is just a fragment that will be included
-from logback.xml.
+from logback-test.xml.
 
 -->
 <included>

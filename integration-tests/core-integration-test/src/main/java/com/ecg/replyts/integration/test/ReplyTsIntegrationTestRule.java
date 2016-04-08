@@ -5,7 +5,7 @@ import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
-import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
+import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.joda.time.DateTime;
@@ -62,24 +62,24 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     private IntegrationTestRunner testRunner;
 
-    private EmbeddedCassandra CASDB = EmbeddedCassandra.getInstance();
+    private CassandraIntegrationTestProvisioner CASDB = CassandraIntegrationTestProvisioner.getInstance();
 
-    private String keyspace = EmbeddedCassandra.createUniqueKeyspaceName();
+    private String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
 
     public ReplyTsIntegrationTestRule() {
-        this(null, null, 5, "cassandra_schema.cql");
+        this(null, null, 20, "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(Properties testProperties) {
-        this(testProperties, null, 5, "cassandra_schema.cql");
+        this(testProperties, null, 20, "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(String replyTsConfigurationDir, String... cqlFilePaths) {
-        this(null, replyTsConfigurationDir, 5, cqlFilePaths);
+        this(null, replyTsConfigurationDir, 20, cqlFilePaths);
     }
 
     public ReplyTsIntegrationTestRule(Properties testProperties, String replyTsConfigurationDir, String... cqlFilePaths) {
-        this(testProperties, replyTsConfigurationDir, 5, cqlFilePaths);
+        this(testProperties, replyTsConfigurationDir, 20, cqlFilePaths);
     }
 
     public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, String... cqlFilePaths) {

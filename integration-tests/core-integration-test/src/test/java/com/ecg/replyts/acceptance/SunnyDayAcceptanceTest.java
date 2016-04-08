@@ -1,7 +1,6 @@
 package com.ecg.replyts.acceptance;
 
-import com.datastax.driver.core.Session;
-import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
+import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.google.common.io.ByteStreams;
 import org.hamcrest.MatcherAssert;
@@ -28,9 +27,9 @@ import static org.hamcrest.Matchers.nullValue;
  * All-is-well integration tests.
  */
 public class SunnyDayAcceptanceTest {
-    private EmbeddedCassandra CASDB = EmbeddedCassandra.getInstance();
+    private CassandraIntegrationTestProvisioner CASDB = CassandraIntegrationTestProvisioner.getInstance();
 
-    private String keyspace = EmbeddedCassandra.createUniqueKeyspaceName();
+    private String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
 
     private IntegrationTestRunner runner = new IntegrationTestRunner(((Supplier<Properties>) () -> {
         Properties properties = new Properties();

@@ -6,9 +6,6 @@ set -o errexit
 readonly ARGS="$@"
 readonly DIR=$(dirname $0)
 
-# ulimit -n 65536
-# ulimit -u 2048
-
 # ignore SSL warnings so that we don't have to import tenant repository certificates
 
 MVN_ARGS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"

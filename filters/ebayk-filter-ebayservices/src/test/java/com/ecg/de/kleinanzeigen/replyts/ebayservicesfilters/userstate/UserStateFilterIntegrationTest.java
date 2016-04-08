@@ -18,7 +18,7 @@ import static junit.framework.Assert.assertEquals;
 public class UserStateFilterIntegrationTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule(10);
+    public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule();
 
     @Before
     public void setUp() throws Exception {

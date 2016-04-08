@@ -22,7 +22,7 @@ public class VolumeFilterIntegrationTest {
 
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(10, "cassandra_schema.cql");
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
     @Test
     public void violatesQuota() throws Exception {

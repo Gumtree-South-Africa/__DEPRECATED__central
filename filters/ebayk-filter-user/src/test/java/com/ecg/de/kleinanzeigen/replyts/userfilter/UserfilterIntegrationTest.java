@@ -19,7 +19,7 @@ import static junit.framework.Assert.*;
 public class UserfilterIntegrationTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule(10, "cassandra_schema.cql");
+    public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule();
 
     @Before
     public void setUp() throws Exception {

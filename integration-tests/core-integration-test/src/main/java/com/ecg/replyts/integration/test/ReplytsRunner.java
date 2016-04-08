@@ -1,10 +1,11 @@
 package com.ecg.replyts.integration.test;
 
 import com.ecg.replyts.core.runtime.ReplyTS;
-import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
+import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.io.Files;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.elasticsearch.client.Client;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -13,11 +14,14 @@ import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 public final class ReplytsRunner {
+    private static final Logger LOG = LoggerFactory.getLogger(ReplytsRunner.class);
+
     public static final String DEFAULT_CONFIG_RESOURCE_DIRECTORY = "/integrationtest-conf";
 
     private static final String ELASTIC_SEARCH_PREFIX = "comaas_integration_test_";
@@ -56,7 +60,7 @@ public final class ReplytsRunner {
 
             properties.load(resource.getInputStream());
 
-            properties.put("persistence.cassandra.endpoint", "localhost:" + EmbeddedCassandraServerHelper.getNativeTransportPort());
+            properties.put("persistence.cassandra.endpoint", CassandraIntegrationTestProvisioner.getEndPoint());
             properties.put("replyts.http.port", String.valueOf(httpPort));
             properties.put("replyts.ssl.enabled", "false");
             properties.put("delivery.smtp.port", String.valueOf(smtpOutPort));

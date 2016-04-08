@@ -1,15 +1,13 @@
 package com.ecg.replyts.core.runtime.indexer;
 
 import com.datastax.driver.core.Session;
-import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
+import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
 
 public class CassandraIndexerClockRepositoryIntegrationTest extends AbstractIndexerClockRepositoryTest<CassandraIndexerClockRepository> {
-    private final String KEYSPACE = EmbeddedCassandra.createUniqueKeyspaceName();
+    private final String KEYSPACE = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
 
-    private EmbeddedCassandra casdb = EmbeddedCassandra.getInstance();
+    private CassandraIntegrationTestProvisioner casdb = CassandraIntegrationTestProvisioner.getInstance();
 
     private Session session;
 

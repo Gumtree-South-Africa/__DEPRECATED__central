@@ -4,7 +4,6 @@ import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -13,7 +12,6 @@ import java.util.Properties;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
-
 
 public class MailAddMetadataIntegrationTest {
     @Rule

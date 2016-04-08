@@ -3,13 +3,13 @@ package com.ecg.messagecenter.persistence;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
-import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
+import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.junit.After;
 
 public class CassandraPostBoxRepositoryIntegrationTest extends AbstractPostBoxRepositoryTest<CassandraPostBoxRepository> {
-    private final String KEYSPACE = EmbeddedCassandra.createUniqueKeyspaceName("p_");
+    private final String KEYSPACE = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName("p_");
 
-    private EmbeddedCassandra casdb = EmbeddedCassandra.getInstance();
+    private CassandraIntegrationTestProvisioner casdb = CassandraIntegrationTestProvisioner.getInstance();
 
     private Session session;
 

@@ -18,7 +18,7 @@ import static junit.framework.Assert.assertEquals;
 public class IpRiskFilterIntegrationTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule(10);
+    public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule();
 
     @Before
     public void setUp() throws Exception {

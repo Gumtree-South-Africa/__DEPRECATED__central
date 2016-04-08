@@ -54,6 +54,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -63,6 +64,11 @@
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
             <scope>compile</scope>
         </dependency>
 
@@ -98,18 +104,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit-spring</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <!-- Fixes for the enforcer plugn -->
-        <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
             <groupId>com.googlecode.junit-toolbox</groupId>
             <artifactId>junit-toolbox</artifactId>
         </dependency>
@@ -119,37 +113,7 @@
             <artifactId>commons-lang3</artifactId>
             <scope>compile</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.thrift</groupId>
-            <artifactId>libthrift</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-        <!-- Snakeyaml is needed by embedded cassandra server. -->
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-        </dependency>
     </dependencies>
-
-    <properties>
-        <serial.tests>**/SetCustomValueTest.class,
-            **/MessageFilteringAcceptanceTest.class,
-            **/SearchServiceTest.class,
-            **/MultiDomainAcceptanceTest.class,
-            **/SunnyDayAcceptanceTest.class,
-            **/MessageModerationAcceptanceTest.class,
-            **/AnonymizesOutgoingMailAcceptanceTest.class,
-            **/ConversationResumingTest.class,
-            **/RemoveLeakyMailQuotationsFromOutgoingMailAcceptanceTest.class,
-            **/PreprocessorRemoveIgnoreableMailsAcceptanceTest.class,
-            **/AttachmentSupportTest.class,
-            **/PreprocessorRemoveIgnorableMailsAcceptanceTest.class,
-            **/ConfigApiAcceptanceTest.class,
-            **/CloseConversationTest.class
-        </serial.tests>
-    </properties>
 
     <build>
         <testResources>
@@ -171,13 +135,6 @@
                 </excludes>
             </testResource>
         </testResources>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-        </plugins>
     </build>
 
     <profiles>

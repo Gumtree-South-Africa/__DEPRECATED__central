@@ -3,7 +3,7 @@ package com.ecg.replyts.core.runtime.persistence.mail;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.ecg.replyts.integration.cassandra.EmbeddedCassandra;
+import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.joda.time.DateTime;
 import org.junit.*;
 import java.io.IOException;
@@ -17,10 +17,10 @@ public class CassandraMailRepositoryIntegrationTest {
     private static final String MESSAGE_ID = "123qwe";
     private static final byte[] PAYLOAD = "payload".getBytes();
 
-    private String KEYSPACE = EmbeddedCassandra.createUniqueKeyspaceName("m_");
+    private String KEYSPACE = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName("m_");
     private CassandraMailRepository repository;
     private Session session;
-    private EmbeddedCassandra casdb = EmbeddedCassandra.getInstance();
+    private CassandraIntegrationTestProvisioner casdb = CassandraIntegrationTestProvisioner.getInstance();
 
     @Before
     public void init() {

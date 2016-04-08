@@ -52,7 +52,7 @@ public class SearchServiceTest {
     private final String uuid = UUID.randomUUID().toString();
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(10, "cassandra_schema.cql");
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
     @Before
     public void setup() {
