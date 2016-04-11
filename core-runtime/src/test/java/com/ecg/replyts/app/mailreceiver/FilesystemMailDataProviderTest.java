@@ -48,7 +48,7 @@ public class FilesystemMailDataProviderTest {
     public void setup() {
         when(clusterModeManager.determineMode()).thenReturn(ClusterMode.OK);
         watchedDirectory = spy(new File(System.getProperty("java.io.tmpdir")));
-        instance = new FilesystemMailDataProvider(watchedDirectory, 5, 5, consumer, clusterModeManager);
+        instance = new FilesystemMailDataProvider(watchedDirectory, 5, 5, 1000, consumer, clusterModeManager);
     }
 
     @After

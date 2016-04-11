@@ -25,6 +25,7 @@ class FilesystemMailDataProvider implements MailDataProvider {
     static final String PROCESSING_FILE_PREFIX = "inwork_";
     private static final IncomingMailFileFilter INCOMING_FILE_FILTER = new IncomingMailFileFilter(INCOMING_FILE_PREFIX);
     private final File mailDataDir;
+    private final int watchRetryDelay;
     private final ClusterModeManager clusterModeManager;
     private final File failedDir;
     private MessageProcessingCoordinator consumer;
@@ -32,8 +33,10 @@ class FilesystemMailDataProvider implements MailDataProvider {
 
     private static final Counter FAILED_COUNTER = TimingReports.newCounter("processing_failed");
 
-    public FilesystemMailDataProvider(File mailDataDir, int retryDelay, int retryCounter, MessageProcessingCoordinator consumer, ClusterModeManager clusterModeManager) {
+    public FilesystemMailDataProvider(File mailDataDir, int retryDelay, int retryCounter, int watchRetryDelay, MessageProcessingCoordinator consumer, ClusterModeManager clusterModeManager) {
+        LOG.info("Watching dropfolder every "+ watchRetryDelay + " ms.");
         this.mailDataDir = mailDataDir;
+        this.watchRetryDelay = watchRetryDelay;
         this.clusterModeManager = clusterModeManager;
         this.failedDir = new File(mailDataDir, "failed");
         this.consumer = consumer;
@@ -63,7 +66,7 @@ class FilesystemMailDataProvider implements MailDataProvider {
 
     private void sleep() {
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.MILLISECONDS.sleep(watchRetryDelay);
         } catch (InterruptedException e) {
             LOG.error("Interrupted while waiting for mails", e);
             Thread.currentThread().interrupt();

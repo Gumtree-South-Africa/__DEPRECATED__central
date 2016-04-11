@@ -101,6 +101,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         }
 
         testProperties.put("persistence.cassandra.keyspace", keyspace);
+        testProperties.put("mailreceiver.watch.retrydelay.millis", 50);
 
         this.testRunner = new IntegrationTestRunner(testProperties, configurationResourceDirectory != null ? configurationResourceDirectory : ReplytsRunner.DEFAULT_CONFIG_RESOURCE_DIRECTORY);
     }
