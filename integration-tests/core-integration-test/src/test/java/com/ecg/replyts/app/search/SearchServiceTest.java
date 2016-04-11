@@ -29,7 +29,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static com.ecg.replyts.core.api.util.JsonObjects.builder;
 import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload.ResultOrdering.NEWEST_FIRST;
@@ -46,7 +45,6 @@ import static org.junit.Assert.assertThat;
 public class SearchServiceTest {
 
     private static final String URL_TEMPLATE = "http://localhost:%d/screeningv2/" + SearchMessageCommand.MAPPING;
-    private static final Long TIMEOUT_MS = 10000L;
     private String url;
 
     private final String uuid = UUID.randomUUID().toString();
@@ -159,8 +157,6 @@ public class SearchServiceTest {
         String instanceName = "subjectKeywordFilterFactory_" + uuid;
         ConfigurationId filterConfigId =
                 createFilter(SubjectKeywordFilterFactory.class, instanceName);
-        TimeUnit.MILLISECONDS.sleep(TIMEOUT_MS);
-
 
         List<List<String>> result;
         try {
@@ -179,7 +175,6 @@ public class SearchServiceTest {
             result = json.getList("body.processingFeedback.filterInstance");
         } finally {
             deleteFilter(filterConfigId);
-            TimeUnit.MILLISECONDS.sleep(TIMEOUT_MS);
         }
         assertThat(result.size(), is(1)); //-> List of filterNames
         assertThat(result.get(0), hasItem(instanceName));
@@ -193,7 +188,6 @@ public class SearchServiceTest {
         String filterName = SubjectKeywordFilterFactory.class.getName();
 
         ConfigurationId filterConfigId = createFilter(SubjectKeywordFilterFactory.class, instanceName);
-        TimeUnit.MILLISECONDS.sleep(TIMEOUT_MS);
 
         List<List<String>> result;
         try {
@@ -212,7 +206,6 @@ public class SearchServiceTest {
             result = json.getList("body.processingFeedback.filterName");
         } finally {
             deleteFilter(filterConfigId);
-            TimeUnit.MILLISECONDS.sleep(TIMEOUT_MS);
         }
 
         assertThat(result.size(), is(greaterThanOrEqualTo(1))); //-> List of filterNames
