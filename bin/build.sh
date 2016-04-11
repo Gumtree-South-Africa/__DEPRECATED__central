@@ -54,13 +54,13 @@ function parseCmd() {
 function main() {
     local start=$(date +"%s")
 
-    MVN_ARGS="$MVN_ARGS -s etc/settings.xml"
+    MVN_ARGS="$MVN_ARGS -s etc/settings.xml -T1C"
     MVN_TASKS="clean compile"
 
     # skip tests and set concurrency based on whether tests should be run
     if ! [[ ${RUN_TESTS} -eq 1 ]]; then
         log "Skipping the tests"
-        MVN_ARGS="$MVN_ARGS -T1C -DskipTests=true"
+        MVN_ARGS="$MVN_ARGS -DskipTests=true"
     else
         MVN_ARGS="$MVN_ARGS"
         MVN_TASKS="clean package"
