@@ -39,7 +39,7 @@ public class SearchIndexer {
     private String indexName = "replyts";
 
     @Value("${search.es.enabled:true}")
-    private boolean esEnabled;
+    private boolean esEnabled = true;
 
     public SearchIndexer(Client elasticSearchClient, IndexDataBuilder indexDataBuilder) {
         this.elasticSearchClient = elasticSearchClient;
