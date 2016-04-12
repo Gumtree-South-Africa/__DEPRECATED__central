@@ -75,7 +75,7 @@ function parseCmd() {
 function main() {
     local start=$(date +"%s")
 
-    MVN_ARGS="$MVN_ARGS -s etc/settings.xml -T1C"
+    MVN_ARGS="$MVN_ARGS -s etc/settings.xml -T0.5C"
     MVN_TASKS="clean compile"
 
     # skip tests and set concurrency based on whether tests should be run
