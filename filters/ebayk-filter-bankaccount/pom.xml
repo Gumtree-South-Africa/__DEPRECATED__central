@@ -21,7 +21,7 @@
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
-            <artifactId>core-integration-test</artifactId>
+            <artifactId>core-integration-test-api</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

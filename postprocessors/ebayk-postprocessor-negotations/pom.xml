@@ -31,7 +31,7 @@
 
         <dependency>
             <groupId>ecg.comaas</groupId>
-            <artifactId>core-integration-test</artifactId>
+            <artifactId>core-integration-test-api</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
