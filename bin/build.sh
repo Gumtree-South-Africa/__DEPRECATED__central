@@ -32,10 +32,12 @@ function startCassandra() {
 }
 
 function stopCassandra() {
-    log "Stopping cassandra"
-    kill $(cat $CASSANDRA_PID)
-    rm ${CASSANDRA_PID}
-    rm -rf ${CASSANDRA_DIR}
+    if [[ -e ${CASSANDRA_PID} ]]; then
+        log "Stopping cassandra"
+        kill $(cat ${CASSANDRA_PID})
+        rm ${CASSANDRA_PID}
+        rm -rf ${CASSANDRA_DIR}
+    fi
 }
 
 function parseCmd() {
