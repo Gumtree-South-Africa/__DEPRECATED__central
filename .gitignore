@@ -54,5 +54,7 @@ crashlytics-build.properties
 ### Logs
 *.log
 
-
+# test-related Cassandra files
+cassandra_tmp
+cassandra.pid
 

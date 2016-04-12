@@ -5,6 +5,8 @@ set -o errexit
 
 readonly ARGS="$@"
 readonly DIR=$(dirname $0)
+readonly CASSANDRA_DIR="$DIR/../cassandra_tmp"
+readonly CASSANDRA_PID="cassandra.pid"
 
 # ignore SSL warnings so that we don't have to import tenant repository certificates
 
@@ -17,6 +19,23 @@ function log() {
 function fatal() {
     log $*
     exit 1
+}
+
+function startCassandra() {
+    log "Starting cassandra"
+    rm -rf ${CASSANDRA_DIR}
+    mkdir ${CASSANDRA_DIR}
+    /opt/cassandra/bin/cassandra -p ${CASSANDRA_PID} "-Dcassandra.storagedir=$CASSANDRA_DIR"
+
+    # stop & clean cassandra dir on exit
+    trap "stopCassandra" EXIT
+}
+
+function stopCassandra() {
+    log "Stopping cassandra"
+    kill $(cat $CASSANDRA_PID)
+    rm ${CASSANDRA_PID}
+    rm -rf ${CASSANDRA_DIR}
 }
 
 function parseCmd() {
@@ -62,6 +81,7 @@ function main() {
         log "Skipping the tests"
         MVN_ARGS="$MVN_ARGS -DskipTests=true"
     else
+        startCassandra
         MVN_ARGS="$MVN_ARGS"
         MVN_TASKS="clean package"
     fi
@@ -102,6 +122,8 @@ function main() {
 
     log "Executing: mvn $MVN_ARGS $MVN_TASKS"
     mvn $MVN_ARGS $MVN_TASKS
+
+    stopCassandra
 
     local end=$(date +"%s")
     local diff=$(($end-$start))
