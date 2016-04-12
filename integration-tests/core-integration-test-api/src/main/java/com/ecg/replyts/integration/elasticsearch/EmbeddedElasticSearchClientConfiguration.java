@@ -15,17 +15,22 @@ public class EmbeddedElasticSearchClientConfiguration {
 
     @Value("${search.es.endpoints}")
     private String endpoints;
+
     @Value("${search.es.clustername}")
     private String clusterName;
 
-    private Node node;
+    @Value("${search.es.enabled:true}")
+    private boolean esEnabled;
 
     @Bean
     public Client esClient() {
+        if (!esEnabled) {
+            LOG.debug("ES is not enabled, not returning a client");
+            return null;
+        }
+
         EnvironmentBasedNodeConfigurator nodeConfigurator = new EnvironmentBasedNodeConfigurator(clusterName, endpoints);
-
-        node = nodeConfigurator.forEmbeddedEnvironments();
-
+        Node node = nodeConfigurator.forEmbeddedEnvironments();
         return node.client();
     }
 

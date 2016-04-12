@@ -18,13 +18,14 @@ import org.junit.Test;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.ecg.replyts.integration.test.support.Waiter.await;
 import static org.hamcrest.Matchers.is;
 
 public class MessageModerationAcceptanceTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
     private ProcessedMail processedMail;
 
     private static int counter = 1;

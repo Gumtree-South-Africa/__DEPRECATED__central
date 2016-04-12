@@ -38,12 +38,19 @@ public class SearchIndexer {
     @Value("${search.es.indexname:replyts}")
     private String indexName = "replyts";
 
+    @Value("${search.es.enabled:true}")
+    private boolean esEnabled;
+
     public SearchIndexer(Client elasticSearchClient, IndexDataBuilder indexDataBuilder) {
         this.elasticSearchClient = elasticSearchClient;
         this.indexDataBuilder = indexDataBuilder;
     }
 
     public void updateSearchSync(List<Conversation> conversations) {
+        if (!esEnabled) {
+            return;
+        }
+
         try {
             ListenableActionFuture<BulkResponse> responseFuture = updateSearchAsync(conversations);
             BulkResponse response = responseFuture.get(TIMEOUT_SYNC_UPDATE_MINUTES, MINUTES);
@@ -58,6 +65,9 @@ public class SearchIndexer {
     }
 
     public ListenableActionFuture<BulkResponse> updateSearchAsync(List<Conversation> conversations) {
+        if (!esEnabled) {
+            return null;
+        }
 
         try {
             BulkRequestBuilder bulk = elasticSearchClient.prepareBulk();

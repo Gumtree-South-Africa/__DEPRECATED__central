@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import java.util.Collections;
 
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -16,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 public class AttachmentSupportTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule replyTs = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule replyTs = new ReplyTsIntegrationTestRule(ES_ENABLED);
 
     @Test
     public void exposesAttachmentNamesInMessage() {

@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 import static com.ecg.replyts.core.api.util.JsonObjects.builder;
 import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload.ResultOrdering.NEWEST_FIRST;
 import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload.ResultOrdering.OLDEST_FIRST;
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.jayway.restassured.path.json.JsonPath.from;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -56,7 +57,7 @@ public class MessageGroupSearchServiceTest {
     private String url;
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
 
     @Before
     public void setup() {

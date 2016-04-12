@@ -149,7 +149,8 @@ public class IntegrationTestRunner extends ExternalResource {
     }
 
     private void ensureStarted() {
-        if (!isRunning)
+        if (!isRunning) {
             throw new IllegalStateException("COMaaS is not currently running");
+        }
     }
 }

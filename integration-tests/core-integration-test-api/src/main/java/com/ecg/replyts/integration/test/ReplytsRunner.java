@@ -82,13 +82,10 @@ public final class ReplytsRunner {
 
             context.refresh();
 
-            if (context.getBean("started", Boolean.class) != true)
+            if (context.getBean("started", Boolean.class) != true) {
                 throw new IllegalStateException("COMaaS did not start up in its entirety");
+            }
 
-            searchClient = context.getBean(Client.class);
-
-            if (searchClient == null)
-                throw new IllegalStateException("COMaaS did not start up in its entirety");
         } catch (Exception e) {
             throw new IllegalStateException("COMaaS Abnormal Shutdown", e);
         }
@@ -111,6 +108,14 @@ public final class ReplytsRunner {
     }
 
     public Client getSearchClient() {
+        if (searchClient == null) {
+            searchClient = context.getBean(Client.class);
+
+            if (searchClient == null) {
+                throw new IllegalStateException("COMaaS did not start up in its entirety");
+            }
+        }
+
         return searchClient;
     }
 

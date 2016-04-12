@@ -50,6 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *  </pre>
  */
 public class ReplyTsIntegrationTestRule implements TestRule {
+    public static final boolean ES_ENABLED = true;
     private static final Logger LOG = LoggerFactory.getLogger(ReplyTsIntegrationTestRule.class);
 
     private int deliveryTimeoutSeconds;
@@ -67,23 +68,27 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     private String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
 
     public ReplyTsIntegrationTestRule() {
-        this(null, null, 20, "cassandra_schema.cql");
+        this(null, null, 20, false, "cassandra_schema.cql");
+    }
+
+    public ReplyTsIntegrationTestRule(boolean esEnabled) {
+        this(null, null, 20, esEnabled, "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(Properties testProperties) {
-        this(testProperties, null, 20, "cassandra_schema.cql");
+        this(testProperties, null, 20, false, "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(String replyTsConfigurationDir, String... cqlFilePaths) {
-        this(null, replyTsConfigurationDir, 20, cqlFilePaths);
+        this(null, replyTsConfigurationDir, 20, false, cqlFilePaths);
     }
 
     public ReplyTsIntegrationTestRule(Properties testProperties, String replyTsConfigurationDir, String... cqlFilePaths) {
-        this(testProperties, replyTsConfigurationDir, 20, cqlFilePaths);
+        this(testProperties, replyTsConfigurationDir, 20, false, cqlFilePaths);
     }
 
     public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, String... cqlFilePaths) {
-        this(null, null, deliveryTimeoutSeconds, cqlFilePaths);
+        this(null, null, deliveryTimeoutSeconds, false, cqlFilePaths);
     }
 
     /**
@@ -92,7 +97,8 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      * @param deliveryTimeoutSeconds maximum number of seconds {@link #deliver(MailBuilder)} should wait for a mail to
      *                               be processed.
      */
-    public ReplyTsIntegrationTestRule(Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, String... cqlFilePaths) {
+    public ReplyTsIntegrationTestRule(Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds,
+                                      boolean esEnabled, String... cqlFilePaths) {
         this.deliveryTimeoutSeconds = deliveryTimeoutSeconds;
         this.cqlFilePaths = cqlFilePaths;
 
@@ -102,6 +108,8 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
         testProperties.put("persistence.cassandra.keyspace", keyspace);
         testProperties.put("mailreceiver.watch.retrydelay.millis", 250);
+        testProperties.put("search.es.enabled", esEnabled);
+        LOG.debug("Running tests with ES enabled: " + esEnabled);
 
         this.testRunner = new IntegrationTestRunner(testProperties, configurationResourceDirectory != null ? configurationResourceDirectory : ReplytsRunner.DEFAULT_CONFIG_RESOURCE_DIRECTORY);
     }
