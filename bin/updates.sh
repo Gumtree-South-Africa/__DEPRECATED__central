@@ -19,7 +19,8 @@ function main() {
 		IDIR=$(basename `dirname $i`)
 
 		MATCH=( `sed -n -e 's/.*\(https:\/\/github.*$\)/\1/p;s/.* hash: \(.*\))$/\1/p' $i` )
-		HEAD=`git ls-remote ${MATCH[0]} HEAD | cut -d$'\t' -f1`
+		GITURL=( `echo ${MATCH[0]} | sed 's/https:\/\//git@/g' | sed 's/github.corp.ebay.com\//github.corp.ebay.com:/g'` )
+		HEAD=`git ls-remote ${GITURL} HEAD | cut -d$'\t' -f1`
 
 		if ! [ -z "${MATCH[1]:-}" ] && ! [ -z "$HEAD" ] ; then
 			printf "Checking %-30s  ..\t[ %s ]\n" "$IDIR" \
