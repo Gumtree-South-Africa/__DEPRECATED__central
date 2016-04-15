@@ -362,7 +362,7 @@
                     <repositoryName>lib</repositoryName>
                     <logsDirectory>log</logsDirectory>
                     <extraJvmArguments>-DlogDir=@BASEDIR@/log -DconfDir=@BASEDIR@/conf -XX:-HeapDumpOnOutOfMemoryError
-                        -Djava.awt.headless=true
+                        -Djava.awt.headless=true -Dcom.datastax.driver.FORCE_NIO=true
                     </extraJvmArguments>
                     <programs>
                         <program>

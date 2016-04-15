@@ -44,16 +44,19 @@ function parseCmd() {
     RUN_TESTS=0
     RUN_INTEGRATION_TESTS=0
     TENANT=
+    PACKAGE=
     UPLOAD=
     EXECUTE=
 
-    while getopts ":tIT:U:E" OPTION; do
+    while getopts ":tIT:P:U:E" OPTION; do
         case ${OPTION} in
             t) log "Building with tests (but not integration tests)"; RUN_TESTS=1
                ;;
             I) log "Building with tests and integration tests"; RUN_TESTS=1; RUN_INTEGRATION_TESTS=1
                ;;
             T) log "Building for tenant $OPTARG"; TENANT="$OPTARG"
+               ;;
+            P) log "Build and Package tenant $OPTARG"; PACKAGE="$OPTARG"
                ;;
             U) log "Will upload to $OPTARG"; UPLOAD="$OPTARG"
                ;;
@@ -64,6 +67,9 @@ function parseCmd() {
         esac
     done
 
+    if [[ ! -z $PACKAGE && -z $TENANT ]] ; then
+        fatal "Must specify a tenant if you want to package"
+    fi
     if [[ ! -z $UPLOAD && -z $TENANT ]] ; then
         fatal "Must specify a tenant if you are specifying an upload target environment"
     fi
@@ -80,8 +86,8 @@ function main() {
 
     # skip tests and set concurrency based on whether tests should be run
     if ! [[ ${RUN_TESTS} -eq 1 ]]; then
-        log "Skipping the tests"
-        MVN_ARGS="$MVN_ARGS -DskipTests=true"
+       log "Skipping the tests"
+       MVN_ARGS="$MVN_ARGS -DskipTests=true"
     else
         startCassandra
         MVN_ARGS="$MVN_ARGS"
@@ -97,9 +103,22 @@ function main() {
     if ! [[ -z $TENANT ]] ; then
         MVN_ARGS="$MVN_ARGS -P${PROFILES}${TENANT}"
 
+        # Remove default profiles if supplied
+        if [[ "$PACKAGE" == 'local' ]]; then
+                PACKAGE=""
+        fi
+        if [[ "$UPLOAD" == 'local' ]]; then
+                UPLOAD=""
+        fi
+
+        if ! [[ -z $PACKAGE ]] ; then
+            MVN_ARGS="${MVN_ARGS},upload-${TENANT}-${PACKAGE}"
+    	    MVN_TASKS="clean package"
+        fi
+
         if ! [[ -z $UPLOAD ]] ; then
             MVN_ARGS="${MVN_ARGS},upload-${TENANT}-${UPLOAD}"
-	    MVN_TASKS="clean deploy"
+    	    MVN_TASKS="clean deploy"
         fi
 
         if ! [[ -z $EXECUTE ]] ; then
