@@ -13,10 +13,14 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 class Caller {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Caller.class);
 
     enum NegotationState {
         DELAYED__FILTER_DELAYED,
@@ -47,6 +51,7 @@ class Caller {
 
     @Autowired
     Caller(@Value("${api.basepath:http://kapi.mobile.rz/api/}") String basePath) {
+        LOG.info("Using basePath: " + basePath);
         this.basePath = basePath.endsWith("/") ? basePath : basePath+"/";
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
