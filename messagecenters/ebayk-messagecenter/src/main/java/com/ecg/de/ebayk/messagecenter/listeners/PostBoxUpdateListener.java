@@ -15,6 +15,9 @@ import com.google.common.collect.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 /**
  * User: maldana
@@ -29,7 +32,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
     private static final Counter PROCESSING_FAILED = TimingReports.newCounter("message-box.postBoxUpdateListener.failed") ;
 
-    private static final String API_HOST = System.getProperty("kmobilepush.host", "kapi.mobile.rz");
+    private static String API_HOST;
     private static final Integer API_PORT = Integer.parseInt(System.getProperty("kmobilepush.port", "80"));
 
     private static final String CUSTOM_VALUE_AD_API_USERID = "ad-api-user-id";
@@ -43,7 +46,18 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
 
 
     @Autowired
-    public PostBoxUpdateListener(PostBoxInitializer postBoxInitializer) {
+    public PostBoxUpdateListener(PostBoxInitializer postBoxInitializer,
+                                 @Value("${kmobilepush.host:}") String springProp) {
+        String sysProp = System.getProperty("kmobilepush.host");
+        if (isNotEmpty(sysProp)) {
+            API_HOST = sysProp;
+        } else if (isNotEmpty(springProp)) {
+            API_HOST = springProp;
+        } else {
+            API_HOST = "kapi.mobile.rz";
+        }
+        LOG.info("Using API_HOST: " + API_HOST);
+
         this.postBoxInitializer = postBoxInitializer;
         this.adImageLookup = new AdImageLookup(API_HOST, API_PORT);
         this.pushService = new PushService(API_HOST, API_PORT);
