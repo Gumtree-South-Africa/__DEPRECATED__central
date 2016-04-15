@@ -113,12 +113,12 @@ function main() {
 
         if ! [[ -z $PACKAGE ]] ; then
             MVN_ARGS="${MVN_ARGS},upload-${TENANT}-${PACKAGE}"
-    	    MVN_TASKS="clean package"
+            MVN_TASKS="clean package"
         fi
 
         if ! [[ -z $UPLOAD ]] ; then
             MVN_ARGS="${MVN_ARGS},upload-${TENANT}-${UPLOAD}"
-    	    MVN_TASKS="clean deploy"
+            MVN_TASKS="clean deploy"
         fi
 
         if ! [[ -z $EXECUTE ]] ; then
@@ -127,7 +127,7 @@ function main() {
             -Dmail.mime.ignoreunknownencoding=true
             -Dmail.mime.uudecode.ignoreerrors=true -Dmail.mime.uudecode.ignoremissingbeginend=true
             -Dmail.mime.multipart.allowempty=true -Dmaven.test.skip=true -Dmaven.exec.skip=false"
-	    MVN_TASKS="clean verify"
+            MVN_TASKS="clean verify"
         fi
     else
         log "Building all tenant modules (skipping distribution)"
