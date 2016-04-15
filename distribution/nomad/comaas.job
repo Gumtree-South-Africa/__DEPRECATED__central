@@ -1,9 +1,18 @@
 job "comaas" {
   region = "<insert your OpenStack tenant name here, e.g. 'fbar-dev'>"
 
-  datacenters = [ "<insert your OpenStack ds location here, e.g. 'ams1'>" ]
+  datacenters = [ "ams1" ]
 
   type = "service"
+
+  constraint {
+    attribute = "${attr.hostname}"
+    regexp = "core*"
+
+    # Don't run more than one core node per instance
+
+    distinct_hosts = true
+  }
 
   update {
     stagger = "30s"
