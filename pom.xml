@@ -412,6 +412,7 @@
         <libphonenumber-version>7.0.10</libphonenumber-version>
         <esper-version>4.9.0</esper-version>
         <gson-version>2.4</gson-version>
+        <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
 
         <!-- mde artifact versions -->
 
@@ -1249,6 +1250,12 @@
                         <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
                     </configuration>
                 </plugin>
+                <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>${maven-antrun-plugin.version}</version>
+                </plugin>
+
             </plugins>
         </pluginManagement>
 
