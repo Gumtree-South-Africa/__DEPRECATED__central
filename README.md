@@ -24,6 +24,7 @@ To run COMaaS for a specific tenant from your IDE, use the following Run configu
 
 * Runner / VM arguments:
   ```
+  -Drevision=running-from-ide
   -DconfDir=distribution/conf/<name of tenant, e.g. mp>/local
   -DlogDir=/tmp
   -Dmail.mime.parameters.strict=false
