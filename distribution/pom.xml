@@ -7,7 +7,8 @@
     <parent>
         <groupId>ecg.comaas</groupId>
         <artifactId>comaas</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>distribution</artifactId>
@@ -311,7 +312,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.groupId}.${project.parent.artifactId}_${project.parent.version}-${profile-classifier}-${env-name}</finalName>
+        <finalName>${project.groupId}.${project.parent.artifactId}-${project.parent.version}-${profile-classifier}-${env-name}</finalName>
 
         <plugins>
             <plugin>
@@ -329,18 +330,12 @@
                         </manifestEntries>
                     </archive>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <configuration>
-                    <skipPoms>false</skipPoms>
-                </configuration>
                 <executions>
                     <execution>
-                         <goals>
-                            <goal>revision</goal>
-                        </goals>
+                        <id>default-jar</id>
+                        <configuration>
+                            <classifier>${profile-classifier}-${env-name}</classifier>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -378,20 +373,21 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <finalName>${project.build.finalName}-${git.commit.id.abbrev}</finalName>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <tarLongFileMode>posix</tarLongFileMode>
-                    <descriptors>
-                        <descriptor>assembly/distribution.xml</descriptor>
-                    </descriptors>
-                </configuration>
                 <executions>
                     <execution>
+                        <id>${project.name}-${profile-classifier}-${env-name}</id>
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
+                        <configuration>
+                            <appendAssemblyId>true</appendAssemblyId>
+                            <finalName>${project.name}</finalName>
+                            <tarLongFileMode>posix</tarLongFileMode>
+                            <descriptors>
+                                <descriptor>assembly/distribution.xml</descriptor>
+                            </descriptors>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -399,10 +395,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <classifier>${profile-classifier}-${env-name}</classifier>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
+                <configuration>
+                    <classifier>${profile-classifier}-${env-name}</classifier>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -410,6 +412,14 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>${mainClass}</mainClass>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <configuration>
+                    <classifier>${profile-classifier}-${env-name}</classifier>
                 </configuration>
             </plugin>
 
@@ -431,26 +441,6 @@
                             </rules>
                             <fail>true</fail>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>write-revision</id>
-                        <phase>process-resources</phase>
-                        <configuration>
-                            <target>
-                                <echo message="project.flavor=${project.build.finalName}${line.separator}" file="target/appassembler/bin/revision.properties"/>
-                                <echo message="git.commit.id=${git.commit.id.abbrev}${line.separator}" file="target/appassembler/bin/revision.properties" append="true" />
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>

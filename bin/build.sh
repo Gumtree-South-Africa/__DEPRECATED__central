@@ -7,10 +7,11 @@ readonly ARGS="$@"
 readonly DIR=$(dirname $0)
 readonly CASSANDRA_DIR="$DIR/../cassandra_tmp"
 readonly CASSANDRA_PID="cassandra.pid"
+readonly REVISION="$(git rev-parse --short HEAD)"
 
 # ignore SSL warnings so that we don't have to import tenant repository certificates
 
-MVN_ARGS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+MVN_ARGS="-Drevision=$REVISION -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
 
 function log() {
     echo "[$(date)]: $*"
