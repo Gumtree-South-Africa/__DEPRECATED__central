@@ -229,7 +229,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      */
     public MimeMessage waitForMail() {
         try {
-            MimeMessage message = testRunner.waitForMessageArrival(1, 1000).getMimeMessage();
+            MimeMessage message = testRunner.waitForMessageArrival(1, deliveryTimeoutSeconds * 1000).getMimeMessage();
             testRunner.clearMessages();
             return message;
         } catch (Exception e) {

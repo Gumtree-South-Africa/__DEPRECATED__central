@@ -27,6 +27,8 @@ import static org.hamcrest.Matchers.nullValue;
  * All-is-well integration tests.
  */
 public class SunnyDayAcceptanceTest {
+    private static final long deliveryTimeoutMillis = 20_000;
+
     private CassandraIntegrationTestProvisioner CASDB = CassandraIntegrationTestProvisioner.getInstance();
 
     private String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
@@ -55,7 +57,7 @@ public class SunnyDayAcceptanceTest {
     @Test
     public void rtsProcessedAnAsqMailAndAReply() throws Exception {
         deliverMailToRts("plain-asq.eml");
-        WiserMessage anonymizedAsq = runner.waitForMessageArrival(1, 5000L);
+        WiserMessage anonymizedAsq = runner.waitForMessageArrival(1, deliveryTimeoutMillis);
         MimeMessage anonAsq = anonymizedAsq.getMimeMessage();
         assertThat(anonAsq.getSubject(), is("Reactie op uw advertentie: Twee matrassen, hoef je niet te draaien en wasbare hoezen"));
         assertThat(anonymizedAsq.getEnvelopeReceiver(), is("obeuga@foon.nl"));
@@ -67,7 +69,7 @@ public class SunnyDayAcceptanceTest {
         assertIsAnonymous(anonymizedAsq, "seller_66@hotmail.com");
 
         deliverReplyMailToRts("plain-asq-reply.eml");
-        WiserMessage anonymizedAsqReply = runner.waitForMessageArrival(2, 5000L);
+        WiserMessage anonymizedAsqReply = runner.waitForMessageArrival(2, deliveryTimeoutMillis);
         MimeMessage anonAsqReply = anonymizedAsqReply.getMimeMessage();
         assertThat(anonAsqReply.getSubject(), is("Antw: Reactie op uw advertentie: Twee matrassen, hoef je niet te draaien en wasbare hoezen"));
         assertThat(anonymizedAsqReply.getEnvelopeReceiver(), is("seller_66@hotmail.com"));
