@@ -29,18 +29,25 @@ function main() {
 		  echo "Could not find git hash in ${IDIR}"
 		  exit 1
 		fi
+		GITBRANCH="$(echo "${GITURL}" | cut -s -d'@' -f2)"
+		if [ -z "${GITBRANCH}" ]; then
+		  GITBRANCH="HEAD"
+		fi
+
+		# strip off any branch tags (@..)
+		GITURL="$(echo "${GITURL}" | cut -d'@' -f1)"
 
 		# rewrite https url into ssh url
 		GITSSH=$(echo ${GITURL} | sed 's/https:\/\//git@/g' | sed 's/github.corp.ebay.com\//github.corp.ebay.com:/g')
 
 		# find the HEAD git hash
-		HEAD=$(git ls-remote ${GITSSH} HEAD | cut -f1)
+		HEAD=$(git ls-remote ${GITSSH} ${GITBRANCH} | cut -f1)
 		if [ -z "{HEAD}" ]; then
 		  echo "Could not get HEAD from ${GITSSH}"
 		  exit 1
 		fi
 
-		printf "Checking %-30s  ..\t\t[ %s ]\n" "$IDIR" \
+		printf "Checking %-45s  [ %s ]\n" "$IDIR" \
 			  $([[ "$HEAD" == "${GITHASH}" ]] && echo "OK" || echo "OUTDATED")
 
 	done

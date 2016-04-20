@@ -77,7 +77,7 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>resultinspector-threshold</artifactId>
+                    <artifactId>mp-resultinspector-threshold</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
@@ -148,7 +148,7 @@
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>resultinspector-threshold</artifactId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
                     <version>${project.version}</version>
                 </dependency>
 

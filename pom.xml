@@ -62,7 +62,7 @@
                 <module>eventpublishers/mp-eventpublisher-kafka</module>
                 <module>eventpublishers/mp-eventpublisher-rabbitmq</module>
 
-                <module>resultinspectors/resultinspector-threshold</module>
+                <module>resultinspectors/mp-resultinspector-threshold</module>
 
                 <module>messagecenters/mp-messagecenter</module>
                 <module>integration-tests/mp-integration-test</module>
@@ -128,7 +128,7 @@
                 <module>postprocessors/ebayk-postprocessor-negotations</module>
                 <module>postprocessors/ebayk-postprocessor-openimmodeanonymizer</module>
 
-                <module>resultinspectors/resultinspector-threshold</module>
+                <module>resultinspectors/core-resultinspector-threshold</module>
 
                 <module>messagecenters/ebayk-messagecenter</module>
             </modules>
@@ -548,7 +548,12 @@
             </dependency>
             <dependency>
                 <groupId>ecg.comaas</groupId>
-                <artifactId>threshold-resultinspector</artifactId>
+                <artifactId>core-threshold-resultinspector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ecg.comaas</groupId>
+                <artifactId>mp-threshold-resultinspector</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

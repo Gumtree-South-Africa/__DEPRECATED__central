@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>resultinspector-threshold</artifactId>
+    <artifactId>core-resultinspector-threshold</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
