@@ -110,6 +110,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         testProperties.put("mailreceiver.watch.retrydelay.millis", 250);
         testProperties.put("search.es.enabled", esEnabled);
         testProperties.put("kmobilepush.host", "UNSET_PROPERTY");
+        testProperties.put("kapi.host", "UNSET_PROPERTY");
         LOG.debug("Running tests with ES enabled: " + esEnabled);
 
         this.testRunner = new IntegrationTestRunner(testProperties, configurationResourceDirectory != null ? configurationResourceDirectory : ReplytsRunner.DEFAULT_CONFIG_RESOURCE_DIRECTORY);

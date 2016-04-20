@@ -1,7 +1,7 @@
 # mde-listener-dealerratinginvite
 
 Originally taken from https://github.corp.ebay.com/mobile-de/replyts2-dealer-rating-invite-plugin
-(original git hash: 99da1e3d1b5e130277665e555084cd542540d5c8)
+(original git hash: 063875706d0a3bee42fa575d12ca4b427b1c3cb8)
 
 # Description
 
