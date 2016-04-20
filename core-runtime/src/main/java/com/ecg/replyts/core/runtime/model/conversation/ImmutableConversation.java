@@ -232,7 +232,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
         if(event instanceof ConversationDeletedEvent) {
             return updateInternal((ConversationDeletedEvent)event);
         }
-        LOG.warn("Ignoring unknown event of type {}: {}", event.getClass().getName(), event);
+        LOG.info("Ignoring unknown event of type {}: {}", event.getClass().getName(), event);
         return this;
     }
 

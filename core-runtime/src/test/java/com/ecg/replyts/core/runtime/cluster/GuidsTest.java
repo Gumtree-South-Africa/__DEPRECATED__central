@@ -29,7 +29,7 @@ public class GuidsTest {
     @Before
     public void setUp() throws Exception {
         when(clock.now()).thenReturn(date);
-        when(date.getTime()).thenReturn(10l); // a in 36digits
+        when(date.getTime()).thenReturn(10l); // b in base30
 
         when(pi.getId()).thenReturn("pid");
 
@@ -40,11 +40,17 @@ public class GuidsTest {
     @Test
     public void generateIds() throws Exception {
         // 11:xx
-        assertThat(guids.nextGuid()).isEqualTo("b:pid:a");
+        assertThat(guids.nextGuid()).isEqualTo("c:pid:b");
         // 12:xx
-        assertThat(guids.nextGuid()).isEqualTo("c:pid:a");
+        assertThat(guids.nextGuid()).isEqualTo("d:pid:b");
         // 13:xx
-        assertThat(guids.nextGuid()).isEqualTo("d:pid:a");
+        assertThat(guids.nextGuid()).isEqualTo("f:pid:b");
 
+    }
+
+    @Test
+    public void idsCounterComponentHandlesLongRollover() {
+        final Guids guids = new Guids(Long.MAX_VALUE, clock, pi);
+        assertThat(guids.nextGuid()).isEqualTo("kbmttcd1hd208:pid:b");
     }
 }

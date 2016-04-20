@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.basho.riak.client.IRiakClient;
@@ -10,24 +6,22 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
-import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
-import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
+import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
+import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.replay;
 
-/**
- *
- */
 public class RiakConversationRepository implements MutableConversationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RiakConversationRepository.class);
@@ -54,10 +48,11 @@ public class RiakConversationRepository implements MutableConversationRepository
     public RiakConversationRepository(IRiakClient riakClient) {
         this(riakClient, DEFAULT_BUCKET_NAME, DEFAULT_SECRET_BUCKET_NAME, DEFAULT_INDEX_BUCKET_NAME);
     }
+
     public RiakConversationRepository(IRiakClient riakClient, String bucketNamePrefix) {
-    	this(riakClient,bucketNamePrefix + DEFAULT_BUCKET_NAME, bucketNamePrefix + DEFAULT_SECRET_BUCKET_NAME, bucketNamePrefix + DEFAULT_INDEX_BUCKET_NAME );
-        }
-    
+        this(riakClient, bucketNamePrefix + DEFAULT_BUCKET_NAME, bucketNamePrefix + DEFAULT_SECRET_BUCKET_NAME, bucketNamePrefix + DEFAULT_INDEX_BUCKET_NAME);
+    }
+
     public RiakConversationRepository(IRiakClient riakClient, String bucketName, String secretBucketName, String indexBucketName) {
         this(new ConversationSecretBucket(riakClient, secretBucketName), new ConversationBucket(riakClient, bucketName), new ConversationIndexBucket(riakClient, indexBucketName));
     }
@@ -96,8 +91,8 @@ public class RiakConversationRepository implements MutableConversationRepository
             if (foundConversation == null) {
                 // see https://github.scm.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two-datacenter-operations
                 LOGGER.warn("could not load conversation {}, even tough there is a conversation secret referring to it: {}. " +
-                        "Recreating empty conversation (this is normal behaviour if you use two datacenters and have a " +
-                        "connection loss between them. if this is not the case right now, this might be an indicator for something going wrong)",
+                                "Recreating empty conversation (this is normal behaviour if you use two datacenters and have a " +
+                                "connection loss between them. if this is not the case right now, this might be an indicator for something going wrong)",
                         replayedEvent.getConversationId(), secret);
 
                 return DefaultMutableConversation.create(replayedEvent);
@@ -176,7 +171,7 @@ public class RiakConversationRepository implements MutableConversationRepository
     }
 
     @Override
-    public List<String> listConversationsModifiedBefore(DateTime before, int maxResults) {
+    public Set<String> getConversationsModifiedBefore(DateTime before, int maxResults) {
         try (Timer.Context ignore = modifiedBeforeTimer.time()) {
             return conversationBucket.modifiedBefore(before, maxResults);
         }

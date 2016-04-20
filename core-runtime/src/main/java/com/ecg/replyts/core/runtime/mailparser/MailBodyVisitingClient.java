@@ -11,7 +11,7 @@ import org.apache.james.mime4j.dom.SingleBody;
  * client for structured mail visitors that will iterate every part of a Mime4J Mail recursively. Visitors will only see
  * the leaf nodes of a mail (all mail bodies that are not multipart or do not have nested parts).
  */
-class MailBodyVisitingClient {
+public class MailBodyVisitingClient {
 
     private final ImmutableList<Entity> visitableElements;
 

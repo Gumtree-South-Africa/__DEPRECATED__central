@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewDeadConversationCommand;
@@ -156,7 +157,7 @@ abstract public class ConversationRepositoryIntegrationTestBase<R extends Mutabl
         );
     }
 
-    private void given(ConversationCommand... commands) {
+    protected void given(ConversationCommand... commands) {
         DefaultMutableConversation conv = DefaultMutableConversation.create((NewConversationCommand) commands[0]);
         for (int i = 1; i < commands.length; i++) {
             conv.applyCommand(commands[i]);
@@ -189,10 +190,10 @@ abstract public class ConversationRepositoryIntegrationTestBase<R extends Mutabl
     public void listsConversationsModifiedBefore() throws Exception {
         givenABunchOfCommands();
 
-        List<String> conversationIDs = conversationRepository.listConversationsModifiedBefore(new DateTime(2012, 2, 10, 9, 22, 0), 1);
+        Set<String> conversationIDs = conversationRepository.getConversationsModifiedBefore(new DateTime(2012, 2, 10, 9, 22, 0), 1);
 
         assertThat(conversationIDs, hasSize(1));
-        assertThat(conversationIDs.get(0), is(conversationId2));
+        assertThat(conversationIDs.iterator().next(), is(conversationId2));
     }
 
     private void assertEventOfTypeEmitted(Class<? extends ConversationEvent> conversationEventClass) {

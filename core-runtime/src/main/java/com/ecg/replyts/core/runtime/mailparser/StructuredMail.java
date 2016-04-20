@@ -3,6 +3,8 @@ package com.ecg.replyts.core.runtime.mailparser;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
+import com.ecg.replyts.core.runtime.mailfixers.ContentTransferEncodingMultipartFix;
+import com.ecg.replyts.core.runtime.mailfixers.ContentTypeBoundaryFix;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.net.MediaType;
@@ -19,9 +21,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static com.ecg.replyts.core.runtime.mailparser.MimeHelper.copy;
-import static com.ecg.replyts.core.runtime.mailparser.MimeHelper.parseAndConsume;
-import static com.ecg.replyts.core.runtime.mailparser.MimeHelper.write;
+import static com.ecg.replyts.core.runtime.mailparser.MimeHelper.*;
 import static com.google.common.base.Optional.fromNullable;
 import static java.lang.String.format;
 
@@ -65,15 +65,19 @@ public class StructuredMail implements Mail {
         return mailBodyVisitingClient;
     }
 
+    Message getOriginalMessage() {
+        return mail;
+    }
+
     public static Mail parseMail(InputStream i) throws ParsingException, IOException {
         try {
             StructuredMail structuredMail = new StructuredMail(parseAndConsume(i));
+            // Mime4j will analyze the contents lazily. Do this now so that we know upfront when a mail is unparseable
             structuredMail.ensureMailIsParseable();
             return structuredMail;
         } catch (RuntimeException e) {
             throw new ParsingException("Mail could not be parsed", e);
         }
-        // mime4j will analyze the contents lazily. enfore to do this now so that we can now when a mail is unparseable upfront
     }
 
     private void ensureMailIsParseable() throws ParsingException {
@@ -81,7 +85,7 @@ public class StructuredMail implements Mail {
         TextBodyCharsetValidatingVisitor visitor = new TextBodyCharsetValidatingVisitor();
         try {
             // are the important mail addresses in this mail parseable?
-            Preconditions.checkNotNull(getFrom(), "From field is empty pr unparseable");
+            Preconditions.checkNotNull(getFrom(), "From field is empty or unparseable");
 
             mailBodyVisitingClient.visit(visitor);
 
@@ -193,7 +197,11 @@ public class StructuredMail implements Mail {
 
         String mediaType = filteredHeader.endsWith(";") ? filteredHeader.substring(0, filteredHeader.length()-1) : filteredHeader;
 
-        return MediaType.parse(mediaType);
+        try {
+            return MediaType.parse(mediaType);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     @Override

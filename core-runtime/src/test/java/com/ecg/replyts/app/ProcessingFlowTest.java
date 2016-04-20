@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +37,7 @@ public class ProcessingFlowTest {
 
     @Before
     public void setUp() throws Exception {
-        flow = new ProcessingFlow(mailDeliveryService, postProcessor, filterChain, preProcessor);
+        flow = new ProcessingFlow(mailDeliveryService, postProcessor, filterChain, preProcessor, ImmutableList.of());
         when(context.getOutgoingMail()).thenReturn(mail);
     }
 
@@ -77,7 +78,7 @@ public class ProcessingFlowTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void verifyMailMayNotBeTermiantedByPostProcessor() throws Exception {
+    public void verifyMailMayNotBeTerminatedByPostProcessor() throws Exception {
         when(context.isTerminated()).thenReturn(true);
         flow.inputForPostProcessor(context);
     }
@@ -103,4 +104,26 @@ public class ProcessingFlowTest {
         verify(mailDeliveryService,never()).deliverMail(any(Mail.class));
     }
 
+    @Test
+    public void mailRejectedByOutgoingServerGetsFixedAndResent() throws Exception {
+        MailDeliveryException mailDeliveryException = new MailDeliveryException("javax.mail.internet.ParseException");
+        doThrow(mailDeliveryException)
+                .doNothing()
+                .when(mailDeliveryService).deliverMail(mail);
+
+        flow.inputForSending(context);
+
+        verify(mail, times(1)).applyOutgoingMailFixes(ImmutableList.of(), mailDeliveryException);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void mailRejectedByOutgoingServerCannotBeFixedNotSent() throws Exception {
+        MailDeliveryException mailDeliveryException = new MailDeliveryException("javax.mail.internet.ParseException");
+        doThrow(mailDeliveryException)
+                .when(mailDeliveryService).deliverMail(mail);
+
+        flow.inputForSending(context);
+
+        verify(mail, times(1)).applyOutgoingMailFixes(ImmutableList.of(), mailDeliveryException);
+    }
 }

@@ -6,6 +6,7 @@ import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -49,7 +50,7 @@ public interface ConversationRepository {
 
     List<String> listConversationsCreatedBetween(DateTime start, DateTime end);
 
-    List<String> listConversationsModifiedBefore(DateTime before, int maxResults);
+    Set<String> getConversationsModifiedBefore(DateTime before, int maxResults);
 
     /**
      * tries to find one single conversation that is between a buyer, a seller and about a specific ad id. (there could be more conversations, but only one is returned

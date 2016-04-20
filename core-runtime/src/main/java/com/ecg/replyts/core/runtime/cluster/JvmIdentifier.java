@@ -1,5 +1,7 @@
 package com.ecg.replyts.core.runtime.cluster;
 
+import com.ecg.replyts.core.api.util.UnsignedLong;
+
 import java.lang.management.ManagementFactory;
 
 class JvmIdentifier {
@@ -9,11 +11,11 @@ class JvmIdentifier {
     JvmIdentifier() {
         // something like '<pid>@<hostname>', at least in SUN / Oracle JVMs
         String jvmName = ManagementFactory.getRuntimeMXBean().getName();
-        // Method `toUnsignedString` ignores the sign bit, that's okay here.
-        this.id = Integer.toUnsignedString(jvmName.hashCode(), 36);
+        final long unsignedJvmId = Integer.toUnsignedLong(jvmName.hashCode());
+        this.id = UnsignedLong.fromLong(unsignedJvmId).toBase30();
     }
 
-    // Processor id as base 36 string.
+    // Processor id as base 30 string.
     public String getId() {
         return id;
     }

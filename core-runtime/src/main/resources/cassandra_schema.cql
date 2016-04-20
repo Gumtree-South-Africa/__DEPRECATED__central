@@ -1,12 +1,10 @@
 -- Testing environments:
--- CREATE KEYSPACE replyts2 WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': '1'} AND durable_writes = true;
+-- CREATE KEYSPACE IF NOT EXISTS replyts2 WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': '1'} AND durable_writes = true;
 
 -- L&P, Production environments:
--- CREATE KEYSPACE replyts2 WITH replication = {'class': 'NetworkTopologyStrategy'} AND durable_writes = true;
+-- CREATE KEYSPACE IF NOT EXISTS replyts2 WITH replication = {'class': 'NetworkTopologyStrategy'} AND durable_writes = true;
 
--- USE replyts2;
-
-CREATE TABLE core_conversation_events (
+CREATE TABLE IF NOT EXISTS core_conversation_events (
     conversation_id text,
     event_id timeuuid,
     event_json text,
@@ -27,11 +25,11 @@ CREATE TABLE core_conversation_events (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE core_conversation_modification_idx (
+CREATE TABLE IF NOT EXISTS core_conversation_modification_desc_idx (
     conversation_id text,
     modification_date timestamp,
     PRIMARY KEY (conversation_id, modification_date)
-) WITH CLUSTERING ORDER BY (modification_date ASC)
+) WITH CLUSTERING ORDER BY (modification_date DESC)
     AND bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
     AND comment = ''
@@ -46,7 +44,29 @@ CREATE TABLE core_conversation_modification_idx (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE core_conversation_resume_idx (
+CREATE TABLE IF NOT EXISTS core_conversation_modification_desc_idx_by_day (
+    year int,
+    month int,
+    day int,
+    modification_date timestamp,
+    conversation_id text,
+    PRIMARY KEY ((year, month, day), modification_date, conversation_id)
+) WITH CLUSTERING ORDER BY (modification_date DESC, conversation_id ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE IF NOT EXISTS core_conversation_resume_idx (
     compound_key text PRIMARY KEY,
     conversation_id text
 ) WITH bloom_filter_fp_chance = 0.01
@@ -63,11 +83,11 @@ CREATE TABLE core_conversation_resume_idx (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE core_mail_creation_idx (
+CREATE TABLE IF NOT EXISTS core_mail_creation_desc_index (
     mail_id text,
     mail_creation_date timestamp,
     PRIMARY KEY (mail_id, mail_creation_date)
-) WITH CLUSTERING ORDER BY (mail_creation_date ASC)
+) WITH CLUSTERING ORDER BY (mail_creation_date DESC)
     AND bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
     AND comment = ''
@@ -82,7 +102,29 @@ CREATE TABLE core_mail_creation_idx (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE core_conversation_secret (
+CREATE TABLE IF NOT EXISTS core_mail_creation_desc_idx_by_day (
+    year int,
+    month int,
+    day int,
+    mail_creation_date timestamp,
+    mail_id text,
+    PRIMARY KEY ((year, month, day), mail_creation_date, mail_id)
+) WITH CLUSTERING ORDER BY (mail_creation_date DESC, mail_id ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE IF NOT EXISTS core_conversation_secret (
     secret text PRIMARY KEY,
     conversation_id text
 ) WITH bloom_filter_fp_chance = 0.01
@@ -99,7 +141,7 @@ CREATE TABLE core_conversation_secret (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE core_mail (
+CREATE TABLE IF NOT EXISTS core_mail (
     mail_id text PRIMARY KEY,
     mail blob
 ) WITH bloom_filter_fp_chance = 0.01
@@ -133,7 +175,25 @@ CREATE TABLE core_indexer_clock (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE core_configuration (
+CREATE TABLE IF NOT EXISTS core_cronjob_clock (
+    job_name text PRIMARY KEY,
+    last_run_date timestamp,
+    last_processed_date timestamp
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE IF NOT EXISTS core_configuration (
     configuration_key text PRIMARY KEY,
     configuration text
 ) WITH bloom_filter_fp_chance = 0.01

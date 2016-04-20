@@ -4,14 +4,17 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.app.filterchain.FilterChain;
 import com.ecg.replyts.app.postprocessorchain.PostProcessorChain;
 import com.ecg.replyts.app.preprocessorchain.PreProcessorManager;
+import com.ecg.replyts.core.api.processing.MessageFixer;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+
+import java.util.List;
 
 /**
  * represents the mail's flow through various processing stages. Has input methods for all stages (messages can be input
@@ -22,7 +25,7 @@ class ProcessingFlow {
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingFlow.class);
 
     private final PreProcessorManager preProcessor;
-
+    private final List<MessageFixer> javaMailMessageFixers;
     private final FilterChain filterChain;
 
     private final PostProcessorChain postProcessor;
@@ -33,18 +36,20 @@ class ProcessingFlow {
     private final Timer filterChainTimer = TimingReports.newTimer("filterChain");
     private final Timer postProcessorTimer = TimingReports.newTimer("postProcessor");
     private final Timer sendingTimer = TimingReports.newTimer("sending");
+    private final Timer mailFixersTimer = TimingReports.newTimer("send-fail-fixers");
 
-    @Autowired
     ProcessingFlow(
             MailDeliveryService mailDeliveryService,
             @Qualifier("postProcessorChain") PostProcessorChain postProcessor,
             FilterChain filterChain,
-            PreProcessorManager preProcessor
+            PreProcessorManager preProcessor,
+            List<MessageFixer> javaMailMessageFixers
     ) {
         this.mailDeliveryService = mailDeliveryService;
         this.postProcessor = postProcessor;
         this.filterChain = filterChain;
         this.preProcessor = preProcessor;
+        this.javaMailMessageFixers = ImmutableList.copyOf(javaMailMessageFixers);
     }
 
     public void inputForPreProcessor(MessageProcessingContext context) {
@@ -85,11 +90,35 @@ class ProcessingFlow {
         if (context.isSkipDeliveryChannel(MessageProcessingContext.DELIVERY_CHANNEL_MAIL)) {
             return;
         }
-        try (Timer.Context timer = sendingTimer.time()) {
+        try {
+            doTimedSend(context);
+        } catch (MailDeliveryException e) {
+            // This can occur when MIME4J was able to parse the incoming email, but
+            // JavaMail couldn't parse it on the way out. There's still a chance we
+            // could recover by fixing the outgoing email.
+            tryMailSendingRecovery(e, context);
+        }
+    }
+
+    private void tryMailSendingRecovery(MailDeliveryException e, MessageProcessingContext context) {
+        LOG.info("Exception on delivery. Trying to recover and retry.");
+
+        try (Timer.Context ignored = mailFixersTimer.time()) {
+            context.getOutgoingMail().applyOutgoingMailFixes(javaMailMessageFixers, e);
+        }
+
+        try {
+            doTimedSend(context);
+            LOG.info("Successful recovery.");
+        } catch (MailDeliveryException deliveryException) {
+            throw new RuntimeException(deliveryException);
+        }
+    }
+
+    private void doTimedSend(MessageProcessingContext context) throws MailDeliveryException {
+        try (Timer.Context ignored = sendingTimer.time()) {
             LOG.debug("Sending Message {}", context.getMessageId());
             mailDeliveryService.deliverMail(context.getOutgoingMail());
-        } catch (MailDeliveryException e) {
-            throw new RuntimeException(e);
         }
     }
 }

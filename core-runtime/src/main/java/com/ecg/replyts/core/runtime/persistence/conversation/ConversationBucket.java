@@ -16,10 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.ecg.replyts.core.runtime.persistence.FetchIndexHelper.fetchResult;
 import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.timestampInMinutes;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 class ConversationBucket {
 
@@ -107,12 +108,12 @@ class ConversationBucket {
         }
     }
 
-    public List<String> modifiedBefore(DateTime before, int maxRows) {
+    public Set<String> modifiedBefore(DateTime before, int maxRows) {
         try {
             List<IndexEntry> indexEntries = fetchResult(bucket.fetchIndex(IntIndex.named(SECONDARY_INDEX_MODIFIED_AT)), before, maxRows);
             return indexEntries.stream()
                     .map(IndexEntry::getObjectKey)
-                    .collect(toList());
+                    .collect(toSet());
         } catch (RiakException e) {
             throw new RuntimeException("ConversationBucket: modified before '" + before + "' max rows '" + maxRows + "' search failed", e);
         }

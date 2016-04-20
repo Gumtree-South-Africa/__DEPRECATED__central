@@ -19,12 +19,12 @@ public class Guids {
     }
 
     Guids(long initialValue, Clock clock, JvmIdentifier jvmIdentifier) {
-        this.initialPart = ":" + jvmIdentifier.getId() + ":" + UnsignedLong.fromLong(clock.now().getTime()).toBase36();
+        this.initialPart = ":" + jvmIdentifier.getId() + ":" + UnsignedLong.fromLong(clock.now().getTime()).toBase30();
         this.id = new AtomicLong(initialValue);
     }
 
     public String nextGuid() {
-        return UnsignedLong.fromLong(id.incrementAndGet()).toBase36() + initialPart;
+        return UnsignedLong.fromLong(id.incrementAndGet()).toBase30() + initialPart;
     }
 
 }

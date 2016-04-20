@@ -7,16 +7,19 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
+import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
+import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.conditional.CassandraEnabledConditional;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
-import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
-import com.ecg.replyts.core.runtime.persistence.mail.CassandraMailRepository;
+import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.DefaultCassandraMailRepository;
 import com.google.common.base.Splitter;
 import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
@@ -73,7 +76,7 @@ public class CassandraPersistenceConfiguration {
     }
 
     public ConversationRepository createCassandraConversationRepository() {
-        return new CassandraConversationRepository(cassandraSession(), cassandraReadConsistency, cassandraWriteConsistency);
+        return new DefaultCassandraConversationRepository(cassandraSession(), cassandraReadConsistency, cassandraWriteConsistency);
     }
 
     public ConfigurationRepository createCassandraConfigurationRepository() {
@@ -81,11 +84,15 @@ public class CassandraPersistenceConfiguration {
     }
 
     public MailRepository createCassandraMailRepository() {
-        return new CassandraMailRepository(cassandraSession(), cassandraReadConsistency, cassandraWriteConsistency);
+        return new DefaultCassandraMailRepository(cassandraSession(), cassandraReadConsistency, cassandraWriteConsistency);
     }
 
     public IndexerClockRepository createCassandraIndexerClockRepository() {
         return new CassandraIndexerClockRepository(cassandraDataCenter, cassandraSessionForJobs());
+    }
+
+    public CronJobClockRepository createCassandraCronJobClockRepository() {
+        return new CassandraCronJobClockRepository(cassandraSession(), cassandraReadConsistency, cassandraWriteConsistency);
     }
 
     @Bean(name = "cassandraSession")

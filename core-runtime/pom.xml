@@ -162,6 +162,10 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-jmx</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
 
         <!-- encoding problems -->
 
@@ -186,8 +190,13 @@
             <artifactId>cassandra-driver-core</artifactId>
         </dependency>
 
-        <!-- testing -->
+        <!-- content-type detection -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+        </dependency>
 
+        <!-- testing -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -213,8 +222,7 @@
             <artifactId>httpclient</artifactId>
         </dependency>
 
-        <!-- testing DSL for Restful Webservices -->
-
+        <!-- Testing DSL for Restful Webservices -->
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>

@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -54,9 +54,9 @@ public class CleanupConversationCronJob implements CronJobExecutor {
 
         LOG.info("Cleanup: Deleting conversations older than {} days, everything before '{}'", config.getMaxConversationAgeDays(), deleteEverythingBefore);
 
-        final List<String> conversationsToDelete;
+        final Set<String> conversationsToDelete;
         try {
-            conversationsToDelete = conversationRepository.listConversationsModifiedBefore(deleteEverythingBefore, config.getMaxResults());
+            conversationsToDelete = conversationRepository.getConversationsModifiedBefore(deleteEverythingBefore, config.getMaxResults());
         } catch (RuntimeException e) {
             LOG.error("Cleanup: Failed to fetch conversations to delete", e);
             return;

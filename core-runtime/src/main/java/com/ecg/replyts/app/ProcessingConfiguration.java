@@ -4,6 +4,7 @@ import com.ecg.replyts.app.filterchain.FilterChain;
 import com.ecg.replyts.app.postprocessorchain.PostProcessorChain;
 import com.ecg.replyts.app.preprocessorchain.PreProcessorManager;
 import com.ecg.replyts.core.api.persistence.MailRepository;
+import com.ecg.replyts.core.api.processing.MessageFixer;
 import com.ecg.replyts.core.api.processing.ModerationService;
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
@@ -17,10 +18,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
+import javax.annotation.Resource;
 import java.util.List;
 
-import static com.google.common.base.Optional.fromNullable;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.joining;
 
 class ProcessingConfiguration {
 
@@ -34,7 +36,7 @@ class ProcessingConfiguration {
     @Autowired
     private Guids guids;
     @Autowired(required = false)
-    private List<MessageProcessedListener> messageProcessedListeners;
+    private List<MessageProcessedListener> messageProcessedListeners = emptyList();
     @Autowired
     private PreProcessorManager preProcessor;
     @Autowired
@@ -51,18 +53,21 @@ class ProcessingConfiguration {
     private SearchIndexer searchIndexer;
     @Autowired
     private ConversationEventListeners conversationEventListeners;
-
-    private List<MessageProcessedListener> processedListeners;
+    @Autowired
+    @Resource(name = "javaMailMessageFixers")
+    private List<MessageFixer> javaMailMessageFixers;
 
     @PostConstruct
     void setup() {
-        processedListeners = fromNullable(messageProcessedListeners).or(Collections.<MessageProcessedListener>emptyList());
-        StringBuilder foundListenersLogEntry = new StringBuilder("With MessageProcessedListeners: ");
-        for (MessageProcessedListener l : processedListeners) {
-            foundListenersLogEntry.append(l.getClass()).append(" ");
-        }
-        LOG.info(foundListenersLogEntry.toString());
-        flow = new ProcessingFlow(mailDeliveryService, postProcessor, filterChain, preProcessor);
+        LOG.info("With MessageProcessedListeners: {}", messageProcessedListeners
+                .stream()
+                .map(listener -> listener.getClass().getCanonicalName())
+                .collect(joining(", ")));
+        LOG.info("With Mail Fixers: {}", javaMailMessageFixers
+                .stream()
+                .map(fixer -> fixer.getClass().getCanonicalName())
+                .collect(joining(", ")));
+        flow = new ProcessingFlow(mailDeliveryService, postProcessor, filterChain, preProcessor, javaMailMessageFixers);
         finalizer = new ProcessingFinalizer(conversationRepository, mailRepository, searchIndexer, conversationEventListeners);
     }
 
@@ -71,13 +76,13 @@ class ProcessingConfiguration {
      */
     @Bean
     public MessageProcessingCoordinator messageProcessingCoordinator(@Value("${replyts.maxMessageProcessingTimeSeconds:0}")
-                                                                     long maxMessageProcessingTimeSeconds) {
-        return new MessageProcessingCoordinator(guids, finalizer, flow, processedListeners, new ProcessingContextFactory(maxMessageProcessingTimeSeconds));
+                                                                             long maxMessageProcessingTimeSeconds) {
+        return new MessageProcessingCoordinator(guids, finalizer, flow, messageProcessedListeners, new ProcessingContextFactory(maxMessageProcessingTimeSeconds));
     }
 
     @Bean
     public ModerationService moderationService() {
-        return new DirectMessageModerationService(conversationRepository, flow, mailRepository, searchIndexer, processedListeners, conversationEventListeners);
+        return new DirectMessageModerationService(conversationRepository, flow, mailRepository, searchIndexer, messageProcessedListeners, conversationEventListeners);
     }
 
 }

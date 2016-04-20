@@ -20,15 +20,19 @@ public class CleanupSearchCronJob implements CronJobExecutor {
     private final boolean cronJobEnabled;
     private final MutableSearchService searchService;
     private final int maxAgeDays;
+    private final int minuteInterval;
+
 
     @Autowired
     CleanupSearchCronJob(
             @Value("${replyts2.cronjob.cleanupSearch.enabled:true}") boolean cronJobEnabled,
             MutableSearchService searchService,
-            @Value("${replyts.maxConversationAgeDays}") int maxAgeDays) {
+            @Value("${replyts.maxConversationAgeDays}") int maxAgeDays,
+            @Value("${replyts2.cronjob.cleanupSearch.minuteInterval:30}") int minuteInterval ) {
         this.cronJobEnabled = cronJobEnabled;
         this.searchService = searchService;
         this.maxAgeDays = maxAgeDays;
+        this.minuteInterval = minuteInterval;
     }
 
     @Override
@@ -49,6 +53,6 @@ public class CleanupSearchCronJob implements CronJobExecutor {
         if (!cronJobEnabled) {
             return never();
         }
-        return everyNMinutes(30);
+        return everyNMinutes(minuteInterval);
     }
 }

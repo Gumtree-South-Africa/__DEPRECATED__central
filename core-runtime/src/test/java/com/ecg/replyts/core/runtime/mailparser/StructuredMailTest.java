@@ -14,17 +14,9 @@ import java.io.InputStreamReader;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
-/**
- *
- */
 public class StructuredMailTest {
-
-
     @Test(expected = ParsingException.class)
     public void wrapsUnparsableMailAddressToParsingException() throws ParsingException {
         parse("Delivered-To: Pascal Kontzak<bluetrox@gmx.de<mailto:bluetrox@gmx.de>>\nTo: foo@bar.com\nSubject: asdfasdf\n\nhello world");
@@ -137,6 +129,12 @@ public class StructuredMailTest {
         } catch (ParsingException e) {
             // expected
         }
+    }
+
+    @Test
+    public void unknownContentType_returnsNull() throws Exception {
+        Mail mail = parse("From: foo@bar.com\nTo: foo@bar.com,a@b.com,c@d.com\nDelivered-To: asf@ac.com\nContent-Type: ??\nSubject: asdfasdf\n\nhello world");
+        assertNull(mail.getMainContentType());
     }
 
     private Mail parse() {

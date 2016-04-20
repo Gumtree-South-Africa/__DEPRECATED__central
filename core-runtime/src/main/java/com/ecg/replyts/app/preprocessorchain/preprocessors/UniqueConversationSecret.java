@@ -24,7 +24,7 @@ class UniqueConversationSecret {
     public String nextSecret() {
         for (int i = 0; i < MAX_RETRIES; i++) {
             long newSecret = RANDOM.nextLong();
-            String hash = UnsignedLong.fromLong(newSecret).toBase36();
+            String hash = UnsignedLong.fromLong(newSecret).toBase30();
             if (conversationRepository.isSecretAvailable(hash)) {
                 return hash;
             }

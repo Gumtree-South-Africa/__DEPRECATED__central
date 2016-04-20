@@ -8,7 +8,7 @@ import org.apache.james.mime4j.dom.SingleBody;
  * implementations will not need to take care about the recursive format of mails or the analyzing mail bodies for their
  * type.
  */
-interface MailBodyVisitor {
+public interface MailBodyVisitor {
     /**
      * invoked by the client to visit all entities that carry actual mail data and are not just
      * structural overhead.

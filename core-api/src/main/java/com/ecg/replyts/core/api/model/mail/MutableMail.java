@@ -4,6 +4,10 @@
  */
 package com.ecg.replyts.core.api.model.mail;
 
+import com.ecg.replyts.core.api.processing.MessageFixer;
+
+import java.util.List;
+
 /**
  * @author alindhorst
  */
@@ -35,4 +39,14 @@ public interface MutableMail extends Mail {
      */
     void setTo(MailAddress newTo);
 
+    /**
+     * Try to apply some fixes to this message in order to send it successfully.
+     * Some clients send email that isn't valid, but isn't so broken that it can't be fixed.
+     * This method should be called explicitly when a sending error occurs, since the vast
+     * majority of email is valid and doesn't need any special handling.
+     *
+     * @param fixers            List of available message-fixers.
+     * @param originalException Exception that triggered the mail fixing process.
+     */
+    void applyOutgoingMailFixes(List<MessageFixer> fixers, Exception originalException);
 }

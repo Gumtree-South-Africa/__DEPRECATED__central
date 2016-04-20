@@ -3,8 +3,10 @@ package com.ecg.replyts.core.runtime.mailparser;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
+import com.ecg.replyts.core.api.processing.MessageFixer;
 import com.google.common.base.Optional;
 import com.google.common.net.MediaType;
+import org.apache.james.mime4j.dom.Message;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -13,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 class StructuredMutableMail implements MutableMail {
-
     private final StructuredMail mail;
 
     StructuredMutableMail(StructuredMail mail) {
@@ -40,6 +41,17 @@ class StructuredMutableMail implements MutableMail {
         mail.getMailHeader().setTo(newTo.getAddress());
     }
 
+    @Override
+    public void applyOutgoingMailFixes(List<MessageFixer> fixers, Exception originalException) {
+        if (fixers == null) {
+            return;
+        }
+
+        Message originalMessage = mail.getOriginalMessage();
+        for (MessageFixer fixer : fixers) {
+            fixer.applyIfNecessary(originalMessage, originalException);
+        }
+    }
 
     @Override
     public Map<String, List<String>> getDecodedHeaders() {

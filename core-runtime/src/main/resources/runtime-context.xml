@@ -2,8 +2,10 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+        xmlns:util="http://www.springframework.org/schema/util"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
     <context:annotation-config />
 
@@ -29,6 +31,8 @@
     <bean class="com.ecg.replyts.app.cronjobs.CleanupConversationCronJob"/>
     <bean class="com.ecg.replyts.app.cronjobs.CleanupMailCronJob"/>
     <bean class="com.ecg.replyts.app.cronjobs.CleanupSearchCronJob"/>
+    <bean class="com.ecg.replyts.app.cronjobs.cleanup.conversation.CleanupConversationConfiguration" />
+    <bean class="com.ecg.replyts.app.cronjobs.cleanup.mail.CleanupMailConfiguration" />
 
     <bean id="currentClock" class="com.ecg.replyts.core.api.util.CurrentClock"/>
     <bean id="timeoutHeldsCronJobTimeframe" class="com.ecg.replyts.app.cronjobs.Timeframe">
@@ -50,6 +54,16 @@
 
     <bean id="postProcessorChain" class="com.ecg.replyts.app.postprocessorchain.PostProcessorChain"/>
 
+    <!--
+        JavaMail is more conservative in what it accepts than MIME4J. These message fixers are
+        called when a message can be parsed and processed, but cannot be sent out.
+
+        This list can be redefined in plugins (re-declare with same id).
+    -->
+    <util:list id="javaMailMessageFixers" value-type="com.ecg.replyts.core.api.processing.MessageFixer">
+        <!-- Commented out for now to allow beta-testing (in Canada) -->
+        <!--<bean class="com.ecg.replyts.core.runtime.mailfixers.BrokenContentTypeFix"/>-->
+    </util:list>
     <bean class="com.ecg.replyts.app.ProcessingConfiguration"/>
 
     <bean class="com.ecg.replyts.core.runtime.cluster.ClusterServicesConfiguration"/>

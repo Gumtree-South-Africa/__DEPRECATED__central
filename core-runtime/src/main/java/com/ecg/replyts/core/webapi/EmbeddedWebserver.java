@@ -7,9 +7,11 @@ import com.ecg.replyts.core.webapi.ssl.SSLServerFactory;
 import com.ecg.replyts.core.webapi.util.ServerStartupLifecycleListener;
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.ConnectorStatistics;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.eclipse.jetty.http.HttpMethod.DELETE;
+import static org.eclipse.jetty.http.HttpMethod.GET;
+import static org.eclipse.jetty.http.HttpMethod.POST;
+import static org.eclipse.jetty.http.HttpMethod.PUT;
+import static org.eclipse.jetty.http.MimeTypes.Type.APPLICATION_JSON;
+import static org.eclipse.jetty.http.MimeTypes.Type.TEXT_JSON;
+import static org.eclipse.jetty.http.MimeTypes.Type.TEXT_PLAIN;
+
 /**
  * Wrapper around basic Jetty webserver.
  */
@@ -36,6 +46,8 @@ public class EmbeddedWebserver {
     private final List<ContextProvider> contextProviders = new ArrayList<>();
 
     private final HandlerCollection handlers = new HandlerCollection();
+
+    private boolean gzipEnabled;
 
     private Integer httpPort;
 
@@ -54,8 +66,10 @@ public class EmbeddedWebserver {
             @Value("${replyts.http.timeout:null}") Long httpTimeoutMs,
             @Value("${replyts.http.maxThreads:null}") Integer maxThreads,
             @Value("${replyts.http.maxThreadQueueSize:null}") Integer maxThreadQueueSize,
+            @Value("${replyts.jetty.gzip.enabled:false}") boolean gzipEnabled,
             Environment environment) {
         this.httpPort = httpPortNumber;
+        this.gzipEnabled = gzipEnabled;
 
         ThreadPoolBuilder builder = new ThreadPoolBuilder()
                 .withMaxThreads(Optional.ofNullable(maxThreads))
@@ -85,15 +99,17 @@ public class EmbeddedWebserver {
     }
 
     public void context(ContextProvider context) {
-        if (isStarted)
+        if (isStarted) {
             throw new IllegalStateException("Can not add (additional) contexts after the EmbeddedWebserver has been started");
+        }
 
         contextProviders.add(context);
     }
 
     public void start() {
-        if (isStarted)
+        if (isStarted) {
             throw new IllegalStateException("The EmbeddedWebserver has already been started!");
+        }
 
         ServerStartupLifecycleListener listener = new ServerStartupLifecycleListener();
 
@@ -103,8 +119,19 @@ public class EmbeddedWebserver {
             registerJettyOnJmx();
         }
 
-        addContextHandlers();
-        addAccessLoggingHandler();
+        if (gzipEnabled) {
+            LOG.info("Jetty gzip compression is enabled");
+            GzipHandler gzipHandler = buildGzipHandler(createContextHandler());
+            handlers.addHandler(gzipHandler);
+        } else {
+            handlers.addHandler(createContextHandler());
+        }
+
+        Handler accessLoggingHandler = createAccessLoggingHandler();
+        if (accessLoggingHandler != null) {
+            LOG.info("Access logging is enabled");
+            handlers.addHandler(accessLoggingHandler);
+        }
 
         server.setHandler(handlers);
 
@@ -125,10 +152,12 @@ public class EmbeddedWebserver {
         isStarted = true;
     }
 
-    private void addContextHandlers() {
+    private Handler createContextHandler() {
         LOG.info("Adding {} context handler(s) to the webserver", contextProviders.size());
 
-        contextProviders.forEach(context -> handlers.addHandler(context.create()));
+        HandlerCollection contextHandler = new HandlerCollection();
+        contextProviders.forEach(context -> contextHandler.addHandler(context.create()));
+        return contextHandler;
     }
 
     private void registerJettyOnJmx() {
@@ -140,9 +169,10 @@ public class EmbeddedWebserver {
         ConnectorStatistics.addToAllConnectors(server);
     }
 
-    private void addAccessLoggingHandler() {
-        if (handlers.getBean(RequestLogHandler.class) != null)
+    private Handler createAccessLoggingHandler() {
+        if (handlers.getBean(RequestLogHandler.class) != null) {
             throw new IllegalStateException("This EmbeddedWebserver already has a request-logging handler associated with it");
+        }
 
         if (new File(logbackAccessFileName).exists()) {
             LOG.info("Found config file for access logging: " + logbackAccessFileName);
@@ -157,9 +187,18 @@ public class EmbeddedWebserver {
 
             logbackLogger.start();
 
-            handlers.addHandler(requestLogHandler);
+            return requestLogHandler;
         } else {
             LOG.info("Did not find config file for access logging, access logging disabled. To enable, provide {}", logbackAccessFileName);
+            return null;
         }
+    }
+
+    private GzipHandler buildGzipHandler(Handler contextHandler) {
+        GzipHandler gzipHandler = new GzipHandler();
+        gzipHandler.setIncludedMethods(GET.asString(), POST.asString(), PUT.asString(), DELETE.asString());
+        gzipHandler.setIncludedMimeTypes(TEXT_PLAIN.asString(), TEXT_JSON.asString(), APPLICATION_JSON.asString());
+        gzipHandler.setHandler(contextHandler);
+        return gzipHandler;
     }
 }

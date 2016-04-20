@@ -3,7 +3,7 @@ package com.ecg.replyts.core.api.util;
 import java.math.BigInteger;
 
 /**
- * Internal utility that will convert a unsigned base36 value from a signed long value by internally seeing the value as unsigned.
+ * Internal utility that will convert a unsigned base30 value from a signed long value by internally seeing the value as unsigned.
  *
  * Unlike @{link java.lang.Long#toUnsignedString} and {@link com.google.common.primitives.UnsignedLongs#toString(long, int)}, this version
  * <em>does</em> take the upper bit into account.
@@ -34,10 +34,11 @@ public final class UnsignedLong {
     }
 
     /**
-     * @return base 36 representation of the unsigned long (lowercase)
+     * Convert the BigInteger to its base-30 equivalent String
+     * @return
      */
-    public String toBase36() {
-        return backed.toString(36).toLowerCase();
+    public String toBase30() {
+        return Base30.convert(backed);
     }
 
 }

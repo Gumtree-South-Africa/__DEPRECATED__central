@@ -413,6 +413,8 @@
         <libphonenumber-version>7.0.10</libphonenumber-version>
         <esper-version>4.9.0</esper-version>
         <gson-version>2.4</gson-version>
+        <tika-version>1.12</tika-version>
+        <apache-commons-version>3.1</apache-commons-version>
 
         <!-- mde artifact versions -->
 
@@ -1047,6 +1049,13 @@
                 <groupId>c3p0</groupId>
                 <artifactId>c3p0</artifactId>
                 <version>${c3p0-version}</version>
+            </dependency>
+
+            <!-- content-type detection -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika-version}</version>
             </dependency>
 
             <!-- testing -->
