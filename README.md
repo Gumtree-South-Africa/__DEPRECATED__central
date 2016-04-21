@@ -9,6 +9,9 @@ Download Cassandra from http://archive.apache.org/dist/cassandra/2.1.11/ to your
 
 Run `setup-cassandra.sh` to run initial db migrations.
 
+To build comaas from IDE add -Drevision=(ANY_NUMBER) to maven configuration 
+![IntelleJ Maven Config](/docs/comaas_maven_config.jpg)
+
 To run COMaaS for a specific tenant from your IDE, use the following Run configuration:
 
 * Type: Maven

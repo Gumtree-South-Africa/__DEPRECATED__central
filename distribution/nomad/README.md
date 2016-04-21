@@ -18,3 +18,11 @@ tar czvf ../latest.tar.gz .
 cd ../ && rm -rf ecg.comaas.*</code></pre>
 
 This file then has to be uploaded to a cluster-available web server. For dev purposes, the nagios001 node's /var/www/html folder can be used.
+
+
+## Build, package & deploy comaas for each tenant  
+
+There are pipelines to test, build, package, deploy and upload artifacts for each tenant setup in comaas-qa cloud. http://10.41.136.230/view/Pipelines/
+
+Pipeline execution deploys comaas for a given tenant to 3 core nodes (10.41.136.237-239) in the comaas-qa cluster 
+
