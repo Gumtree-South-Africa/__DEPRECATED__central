@@ -23,13 +23,13 @@ function fatal() {
 }
 
 function startCassandra() {
+    # stop & clean cassandra dir on exit
+    trap "stopCassandra" EXIT
+
     log "Starting cassandra"
     rm -rf ${CASSANDRA_DIR}
     mkdir ${CASSANDRA_DIR}
     /opt/cassandra/bin/cassandra -p ${CASSANDRA_PID} "-Dcassandra.storagedir=$CASSANDRA_DIR"
-
-    # stop & clean cassandra dir on exit
-    trap "stopCassandra" EXIT
 }
 
 function stopCassandra() {
