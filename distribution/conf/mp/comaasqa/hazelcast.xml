@@ -12,4 +12,14 @@
         <property name="hazelcast.version.check.enabled">false</property>
     </properties>
 
+
+    <network>
+        <join>
+            <multicast enabled="false"></multicast>
+            <tcp-ip enabled="true">
+                <members>10.41.136.239,10.41.136.238,10.41.136.237</members>
+            </tcp-ip>
+        </join>
+    </network>
+
 </hazelcast>

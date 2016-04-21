@@ -3,13 +3,23 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <group>
-        <name>replyts_mp</name>
-        <password>uS7eeCheiDiquie2Ahfieboo</password>
+        <name>replyts_ebayk</name>
+        <password>898uJlkj89523gbmanmKnOAdf</password>
     </group>
 
     <properties>
         <property name="hazelcast.jmx">true</property>
         <property name="hazelcast.version.check.enabled">false</property>
     </properties>
+
+
+    <network>
+        <join>
+            <multicast enabled="false"></multicast>
+            <tcp-ip enabled="true">
+                <members>10.41.136.239,10.41.136.238,10.41.136.237</members>
+            </tcp-ip>
+        </join>
+    </network>
 
 </hazelcast>
