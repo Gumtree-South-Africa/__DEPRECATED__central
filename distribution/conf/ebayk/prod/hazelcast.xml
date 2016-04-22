@@ -1,0 +1,37 @@
+<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config http://www.hazelcast.com/schema/config/hazelcast-config-3.1.xsd"
+           xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <group>
+        <name>replyts</name>
+        <password>hbilfytpiywrp98qyeuhqefjk</password>
+    </group>
+
+    <properties>
+        <property name="hazelcast.jmx">true</property>
+        <property name="hazelcast.version.check.enabled">false</property>
+    </properties>
+
+    <network>
+        <port auto-increment="false">5888</port>
+        <join>
+            <multicast enabled="false" />
+
+            <tcp-ip enabled="true">
+                <member>kreplyts46-1</member>
+                <member>kreplyts46-2</member>
+                <member>kreplyts47-1</member>
+                <member>kreplyts47-2</member>
+                <member>kreplytsmb46-1</member>
+                <member>kreplytsmb46-2</member>
+                <member>kreplytsmb47-1</member>
+                <member>kreplytsmb47-2</member>
+                <member>kreplytsjobs46-1</member>
+                <member>kreplytsjobs46-2</member>
+                <member>kreplytsjobs47-1</member>
+                <member>kreplytsjobs47-2</member>
+            </tcp-ip>
+        </join>
+    </network>
+
+</hazelcast>

@@ -89,21 +89,9 @@
 
         <profile>
             <id>upload-mp-comaasqa</id>
-
             <properties>
                 <env-name>comaasqa</env-name>
             </properties>
-
-            <distributionManagement>
-                <repository>
-                    <id>mp.releases</id>
-                    <url>http://mpnexus.corp.ebay.com/content/repositories/libs-releases-local</url>
-                </repository>
-                <snapshotRepository>
-                    <id>mp.snapshots</id>
-                    <url>http://mpnexus.corp.ebay.com/content/repositories/libs-snapshots-local</url>
-                </snapshotRepository>
-            </distributionManagement>
         </profile>
 
         <profile>
@@ -180,47 +168,37 @@
 
         <profile>
             <id>upload-ebayk-comaasqa</id>
-
             <properties>
                 <env-name>comaasqa</env-name>
             </properties>
+        </profile>
 
-            <distributionManagement>
-                <repository>
-                    <id>auto-deploy-releases</id>
-                    <url>https://kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/</url>
-                </repository>
-                <snapshotRepository>
-                    <uniqueVersion>false</uniqueVersion>
-                    <id>auto-deploy-snapshots</id>
-                    <name>Auto Deploy Snapshot Repository</name>
-                    <url>https://kautodeploy.corp.mobile.de/storage/belen-productive-deployment-snapshots/</url>
-                    <layout>default</layout>
-                </snapshotRepository>
-            </distributionManagement>
+        <profile>
+            <id>upload-ebayk-208</id>
+            <properties>
+                <env-name>208</env-name>
+            </properties>
+        </profile>
 
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-deploy-plugin</artifactId>
-                            <version>${maven-deploy-plugin.version}</version>
-                            <configuration>
-                                <skip>false</skip>
-                            </configuration>
-                            <executions>
-                                <execution>
-                                    <phase>deploy</phase>
-                                    <goals>
-                                        <goal>deploy</goal>
-                                    </goals>
-                                </execution>
-                            </executions>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
+        <profile>
+            <id>upload-ebayk-220</id>
+            <properties>
+                <env-name>220</env-name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>upload-ebayk-221</id>
+            <properties>
+                <env-name>221</env-name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>upload-ebayk-prod</id>
+            <properties>
+                <env-name>prod</env-name>
+            </properties>
         </profile>
 
         <profile>
@@ -287,41 +265,59 @@
 
         <profile>
             <id>upload-mde-comaasqa</id>
-
             <properties>
                 <env-name>comaasqa</env-name>
             </properties>
-
-            <distributionManagement>
-                <repository>
-                    <id>mde.releases</id>
-                    <url>https://nexus.corp.mobile.de/nexus/content/repositories/hosted-ecg-releases/</url>
-                </repository>
-                <snapshotRepository>
-                    <id>mde.snapshots</id>
-                    <url>https://nexus.corp.mobile.de/nexus/content/repositories/hosted-ecg-snapshots/</url>
-                </snapshotRepository>
-            </distributionManagement>
-
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>org.sonatype.plugins</groupId>
-                            <artifactId>nexus-staging-maven-plugin</artifactId>
-                            <version>${nexus-staging-maven-plugin.version}</version>
-                            <extensions>true</extensions>
-                            <configuration>
-                                <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
-                                <serverId>mdenexus</serverId>
-                                <nexusUrl>https://nexus.corp.mobile.de/nexus/</nexusUrl>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
         </profile>
 
+        <profile>
+            <id>upload-mde-204</id>
+            <properties>
+                <env-name>204</env-name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>upload-mde-207</id>
+            <properties>
+                <env-name>207</env-name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>upload-mde-212</id>
+            <properties>
+                <env-name>212</env-name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>upload-mde-213</id>
+            <properties>
+                <env-name>213</env-name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>upload-mde-215</id>
+            <properties>
+                <env-name>215</env-name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>upload-mde-224</id>
+            <properties>
+                <env-name>224</env-name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>upload-mde-prod</id>
+            <properties>
+                <env-name>prod</env-name>
+            </properties>
+        </profile>
     </profiles>
 
 

@@ -114,7 +114,7 @@ function main() {
 
         if ! [[ -z $PACKAGE ]] ; then
             MVN_ARGS="${MVN_ARGS},upload-${TENANT}-${PACKAGE}"
-    	    MVN_TASKS="clean package"
+    	    MVN_TASKS="package"
         fi
 
         if ! [[ -z $UPLOAD ]] ; then
