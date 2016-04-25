@@ -15,7 +15,7 @@ function fatal() {
 }
 
 function main() {
-	for i in $DIR/core-{api,runtime,graphite}/README.md $DIR/{eventpublishers,filters,integration-tests,listeners,messagecenters,postprocessors,resultinspectors}/*/README.md ; do
+	for i in $DIR/core-{api,runtime,graphite}/README.md $DIR/distribution/conf/{ebayk,mde}/README.md $DIR/{eventpublishers,filters,integration-tests,listeners,messagecenters,postprocessors,resultinspectors}/*/README.md ; do
 		IDIR=$(basename `dirname $i`)
 
 		# find github url + git hash in Readme

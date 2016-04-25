@@ -14,6 +14,12 @@
             <url>http://mpnexus.corp.ebay.com/content/groups/public</url>
             <name>MpNexus</name>
         </mirror>
+        <mirror>
+            <id>kijiji-belen-releases</id>
+            <url>https://nexus.corp.mobile.de/nexus/content/groups/kijiji-belen-releases/</url>
+            <!-- Exclude repositories with name 'ext-libs'. In replyts2-core, we need a local file repository for dependencies not available in public repository. -->
+            <mirrorOf>*,!ext-libs</mirrorOf>
+        </mirror>
     </mirrors>
 
     <servers>
@@ -22,5 +28,30 @@
             <username></username>
             <password></password>
         </server>
+
+        <server>
+            <id>kijiji-belen-releases</id>
+            <username>teamcity-belen</username>
+            <password>teamcity-belenB90</password>
+        </server>
+
+        <server>
+            <id>kijiji-belen-snapshots</id>
+            <username>teamcity-belen</username>
+            <password>teamcity-belenB90</password>
+        </server>
+
+        <server>
+            <id>auto-deploy-releases</id>
+            <username>belen</username>
+            <password>autodeploy123</password>
+        </server>
+
+        <server>
+            <id>auto-deploy-snapshots</id>
+            <username>belen</username>
+            <password>autodeploy123</password>
+        </server>
+
     </servers>
 </settings>

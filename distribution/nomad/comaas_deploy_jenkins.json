@@ -1,26 +1,30 @@
 {
   "job": {
-    "ID":"comaas-$TENANT",
+    "ID":"comaas-TENANT",
     "priority":50,
     "datacenters": [ "ams1"],
     "type": "system",
-    "name": "comaas-$TENANT",
+    "name": "comaas-TENANT",
     "region": "comaas-qa",
     "TaskGroups": [
       {
-        "Name":"comaas-node-$TENANT",
+        "Name":"comaas-node-TENANT",
         "count":1,
         "Tasks": [
           {
-            "Name":"comaas-$TENANT",
+            "Name":"comaas-TENANT",
             "driver":"raw_exec",
             "Artifacts": [
               {
-                "GetterSource":"http://buildmaster001/job/$PARENT_NAME/ws/distribution/latest.tar.gz"
+                "GetterSource":"http://buildmaster001/job/PARENT_NAME/ws/distribution/latest.tar.gz"
               }
             ],
             "config": {
               "command":"bin/comaas"
+            },
+            "LogConfig": {
+              "MaxFileSizeMB":10,
+              "MaxFiles":10
             },
             "Constraints": [
               {
@@ -29,10 +33,7 @@
                 "Operand": "distinct_hosts"
               }
             ],
-            "LogConfig": {
-              "MaxFileSizeMB":10,
-              "MaxFiles":10
-            },
+
             "resources": {
               "MemoryMB":1024,
               "DiskMB":2000,

@@ -69,10 +69,10 @@
             </modules>
         </profile>
         <profile>
-            <id>upload-mp-production</id>
+            <id>upload-mp-prod</id>
 
             <properties>
-                <env-name>production</env-name>
+                <env-name>prod</env-name>
             </properties>
 
             <distributionManagement>
@@ -120,12 +120,42 @@
 
                 <module>messagecenters/ebayk-messagecenter</module>
             </modules>
+
+            <distributionManagement>
+                <repository>
+                    <id>auto-deploy-releases</id>
+                    <url>https://nexus.corp.mobile.de/nexus/content/repositories/hosted-kijiji-belen-releases/</url>
+                </repository>
+            </distributionManagement>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-deploy-plugin</artifactId>
+                            <version>${maven-deploy-plugin.version}</version>
+                            <configuration>
+                                <skip>false</skip>
+                            </configuration>
+                            <executions>
+                                <execution>
+                                    <phase>deploy</phase>
+                                    <goals>
+                                        <goal>deploy</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
         </profile>
+
         <profile>
-            <id>upload-ebayk-production</id>
+            <id>upload-ebayk-prod</id>
 
             <properties>
-                <env-name>production</env-name>
+                <env-name>prod</env-name>
             </properties>
 
             <distributionManagement>
@@ -191,13 +221,6 @@
             <id>upload-ebayk-221</id>
             <properties>
                 <env-name>221</env-name>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>upload-ebayk-prod</id>
-            <properties>
-                <env-name>prod</env-name>
             </properties>
         </profile>
 
