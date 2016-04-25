@@ -3,9 +3,6 @@
 set -o nounset
 set -o errexit
 
-TENANT=$1
-ENVNAME=$2
-
 cd distribution/target
 tar xvfz "distribution-$TENANT-$ENVNAME.tar.gz"
 
