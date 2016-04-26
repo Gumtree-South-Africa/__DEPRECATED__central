@@ -9,9 +9,35 @@ readonly CASSANDRA_DIR="$DIR/../cassandra_tmp"
 readonly CASSANDRA_PID="cassandra.pid"
 readonly REVISION="$(git rev-parse --short HEAD)"
 
-# ignore SSL warnings so that we don't have to import tenant repository certificates
+# Import a few certificates if we haven't already
 
-MVN_ARGS="-Drevision=$REVISION -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+MVN_ARGS="-Drevision=$REVISION -Djavax.net.ssl.trustStore=comaas.jks -Djavax.net.ssl.trustStorePassword=comaas"
+
+if [ ! -f comaas.jks ] ; then
+    keytool -genkey -alias comaas -keyalg RSA -keystore comaas.jks -keysize 2048 \
+      -dname "CN=com, OU=COMaaS, O=eBay Classifieds, L=Amsterdam, S=Noord-Holland, C=NL" \
+      -storepass 'comaas' -keypass 'comaas'
+
+    # autodeploy
+
+    openssl s_client -connect autodeploy.corp.mobile.de:443 </dev/null | \
+      sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' 1>deploy.crt
+
+    keytool -import -noprompt -trustcacerts -alias autodeploy.corp.mobile.de -file deploy.crt \
+            -keystore comaas.jks -storepass 'comaas'
+
+    # kautodeploy
+
+    openssl s_client -connect kautodeploy.corp.mobile.de:443 </dev/null | \
+      sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' 1>deploy.crt
+
+    keytool -import -noprompt -trustcacerts -alias kautodeploy.corp.mobile.de -file deploy.crt \
+            -keystore comaas.jks -storepass 'comaas'
+
+    # remove 'ze file
+
+    rm -f deploy.crt
+fi
 
 function log() {
     echo "[$(date)]: $*"
@@ -143,7 +169,7 @@ function main() {
     fi
 
     log "Executing: mvn $MVN_ARGS $MVN_TASKS"
-    mvn $MVN_ARGS $MVN_TASKS
+    mvn -X -e $MVN_ARGS $MVN_TASKS
 
     stopCassandra
 

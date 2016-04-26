@@ -58,3 +58,6 @@ crashlytics-build.properties
 cassandra_tmp
 cassandra.pid
 
+# Keystore
+deploy.crt
+comaas.jks
