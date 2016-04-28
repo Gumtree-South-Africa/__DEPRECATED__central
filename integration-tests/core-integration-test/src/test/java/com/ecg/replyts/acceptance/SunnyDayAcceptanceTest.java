@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.nullValue;
  * All-is-well integration tests.
  */
 public class SunnyDayAcceptanceTest {
-    private static final long deliveryTimeoutMillis = 20_000;
+    private static final long deliveryTimeoutMillis = 5_000;
 
     private CassandraIntegrationTestProvisioner CASDB = CassandraIntegrationTestProvisioner.getInstance();
 
