@@ -16,7 +16,10 @@
             "driver":"raw_exec",
             "Artifacts": [
               {
-                "GetterSource":"http://buildmaster001/job/PARENT_NAME/ws/distribution/latest.tar.gz"
+                "GetterSource":"http://buildmaster001/job/PARENT_NAME/ws/distribution/ARTIFACT",
+                "GetterOptions": {
+                  "checksum": "md5"
+                }
               }
             ],
             "config": {
