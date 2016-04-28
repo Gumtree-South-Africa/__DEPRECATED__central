@@ -35,15 +35,15 @@ public class StartupExperience {
         LOG.info("\\____/\\____/_/  /_/\\__,_/\\__,_//____/");
         LOG.info("");
 
-        LOG.info("COMaaS Startup Complete in {}ms.", System.currentTimeMillis() - begin);
-        LOG.info("Documentation: https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki");
+        LOG.info("COMaaS startup complete in {}ms.", System.currentTimeMillis() - begin);
+        LOG.info("Documentation can be found here: https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki");
 
         try {
             LOG.info("Browse to: http://{}:{}", InetAddress.getLocalHost().getHostAddress(), apiHttpPort);
 
             return true;
         } catch (UnknownHostException e) {
-            LOG.error("Could not resolve local host", e);
+            LOG.error("Could not resolve localhost", e);
 
             return false;
         }
