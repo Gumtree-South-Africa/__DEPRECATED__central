@@ -18,25 +18,17 @@ if [ ! -f comaas.jks ] ; then
       -dname "CN=com, OU=COMaaS, O=eBay Classifieds, L=Amsterdam, S=Noord-Holland, C=NL" \
       -storepass 'comaas' -keypass 'comaas'
 
-    # autodeploy
+    # autodeploy, kautodeploy, nexus.corp.mobile.de
 
-    openssl s_client -connect autodeploy.corp.mobile.de:443 </dev/null | \
-      sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' 1>deploy.crt
+    for HOST in autodeploy.corp.mobile.de kautodeploy.corp.mobile.de nexus.corp.mobile.de ; do
+        openssl s_client -connect ${HOST}:443 </dev/null | \
+          sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' 1>deploy.crt
 
-    keytool -import -noprompt -trustcacerts -alias autodeploy.corp.mobile.de -file deploy.crt \
-            -keystore comaas.jks -storepass 'comaas'
+        keytool -import -noprompt -trustcacerts -alias ${HOST} -file deploy.crt \
+                -keystore comaas.jks -storepass 'comaas'
 
-    # kautodeploy
-
-    openssl s_client -connect kautodeploy.corp.mobile.de:443 </dev/null | \
-      sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' 1>deploy.crt
-
-    keytool -import -noprompt -trustcacerts -alias kautodeploy.corp.mobile.de -file deploy.crt \
-            -keystore comaas.jks -storepass 'comaas'
-
-    # remove 'ze file
-
-    rm -f deploy.crt
+        rm -f deploy.crt
+    done
 fi
 
 function log() {
