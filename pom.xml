@@ -67,13 +67,6 @@
                 <module>messagecenters/mp-messagecenter</module>
                 <module>integration-tests/mp-integration-test</module>
             </modules>
-        </profile>
-        <profile>
-            <id>upload-mp-prod</id>
-
-            <properties>
-                <env-name>prod</env-name>
-            </properties>
 
             <distributionManagement>
                 <repository>
@@ -91,6 +84,13 @@
             <id>upload-mp-comaasqa</id>
             <properties>
                 <env-name>comaasqa</env-name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>upload-mp-prod</id>
+            <properties>
+                <env-name>prod</env-name>
             </properties>
         </profile>
 
@@ -123,49 +123,12 @@
 
             <distributionManagement>
                 <repository>
-                    <id>auto-deploy-releases</id>
-                    <url>https://nexus.corp.mobile.de/nexus/content/repositories/hosted-kijiji-belen-releases/</url>
-                </repository>
-            </distributionManagement>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-deploy-plugin</artifactId>
-                            <version>${maven-deploy-plugin.version}</version>
-                            <configuration>
-                                <skip>false</skip>
-                            </configuration>
-                            <executions>
-                                <execution>
-                                    <phase>deploy</phase>
-                                    <goals>
-                                        <goal>deploy</goal>
-                                    </goals>
-                                </execution>
-                            </executions>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
-        </profile>
-
-        <profile>
-            <id>upload-ebayk-prod</id>
-
-            <properties>
-                <env-name>prod</env-name>
-            </properties>
-
-            <distributionManagement>
-                <repository>
-                    <id>auto-deploy-releases</id>
+                    <id>k-auto-deploy-releases</id>
                     <url>https://kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/</url>
                 </repository>
                 <snapshotRepository>
                     <uniqueVersion>false</uniqueVersion>
-                    <id>auto-deploy-snapshots</id>
+                    <id>k-auto-deploy-snapshots</id>
                     <name>Auto Deploy Snapshot Repository</name>
                     <url>https://kautodeploy.corp.mobile.de/storage/belen-productive-deployment-snapshots/</url>
                     <layout>default</layout>
@@ -198,9 +161,25 @@
 
         <profile>
             <id>upload-ebayk-comaasqa</id>
+
             <properties>
                 <env-name>comaasqa</env-name>
             </properties>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-deploy-plugin</artifactId>
+                            <version>${maven-deploy-plugin.version}</version>
+                            <configuration>
+                                <skip>true</skip>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
         </profile>
 
         <profile>
@@ -225,6 +204,13 @@
         </profile>
 
         <profile>
+            <id>upload-ebayk-prod</id>
+            <properties>
+                <env-name>prod</env-name>
+            </properties>
+        </profile>
+
+        <profile>
             <id>mde</id>
 
             <modules>
@@ -241,6 +227,7 @@
 
                 <module>listeners/mde-listener-dealerratinginvite</module>
             </modules>
+
             <repositories>
                 <repository>
                     <id>mde</id>
@@ -248,22 +235,17 @@
                 </repository>
             </repositories>
 
-        </profile>
-        <profile>
-            <id>upload-mde-integration</id>
-
-            <properties>
-                <env-name>integration</env-name>
-            </properties>
-
             <distributionManagement>
                 <repository>
-                    <id>mde.releases</id>
-                    <url>https://nexus.corp.mobile.de/nexus/content/repositories/hosted-ecg-releases/</url>
+                    <id>auto-deploy-releases</id>
+                    <url>https://autodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/</url>
                 </repository>
                 <snapshotRepository>
-                    <id>mde.snapshots</id>
-                    <url>https://nexus.corp.mobile.de/nexus/content/repositories/hosted-ecg-snapshots/</url>
+                    <uniqueVersion>false</uniqueVersion>
+                    <id>auto-deploy-snapshots</id>
+                    <name>Auto Deploy Snapshot Repository</name>
+                    <url>https://autodeploy.corp.mobile.de/storage/belen-productive-deployment-snapshots/</url>
+                    <layout>default</layout>
                 </snapshotRepository>
             </distributionManagement>
 
@@ -271,15 +253,20 @@
                 <pluginManagement>
                     <plugins>
                         <plugin>
-                            <groupId>org.sonatype.plugins</groupId>
-                            <artifactId>nexus-staging-maven-plugin</artifactId>
-                            <version>${nexus-staging-maven-plugin.version}</version>
-                            <extensions>true</extensions>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-deploy-plugin</artifactId>
+                            <version>${maven-deploy-plugin.version}</version>
                             <configuration>
-                                <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
-                                <serverId>mdenexus</serverId>
-                                <nexusUrl>https://nexus.corp.mobile.de/nexus/</nexusUrl>
+                                <skip>false</skip>
                             </configuration>
+                            <executions>
+                                <execution>
+                                    <phase>deploy</phase>
+                                    <goals>
+                                        <goal>deploy</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
                         </plugin>
                     </plugins>
                 </pluginManagement>
@@ -288,9 +275,25 @@
 
         <profile>
             <id>upload-mde-comaasqa</id>
+
             <properties>
                 <env-name>comaasqa</env-name>
             </properties>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-deploy-plugin</artifactId>
+                            <version>${maven-deploy-plugin.version}</version>
+                            <configuration>
+                                <skip>true</skip>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
         </profile>
 
         <profile>
@@ -342,7 +345,6 @@
             </properties>
         </profile>
     </profiles>
-
 
     <properties>
         <!-- Overridden in upload-* profiles to build for a certain (tenant) environment (integration, production, etc.) -->
