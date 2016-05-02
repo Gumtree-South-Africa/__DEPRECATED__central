@@ -23,7 +23,7 @@ echo "Uploading $PACKAGE to $URL"
 readonly start=$(date +"%s")
 
 set -o xtrace
-curl -vvv --progress-bar -X PUT --upload-file "${PACKAGE}" "${HOST}" > /dev/null
+curl -k -vvv --progress-bar -X PUT --upload-file "${PACKAGE}" "${HOST}" > /dev/null
 set +o xtrace
 
 readonly end=$(date +"%s")
