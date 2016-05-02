@@ -1,0 +1,105 @@
+package ca.kijiji.replyts.countrydelayedfilter;
+
+import ca.kijiji.replyts.LeGridClient;
+import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.google.common.collect.ImmutableMap;
+import mockit.Expectations;
+import mockit.FullVerifications;
+import mockit.Injectable;
+import mockit.Mocked;
+import mockit.Tested;
+import mockit.integration.junit4.JMockit;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.util.List;
+
+import static ca.kijiji.replyts.BoxHeaders.SENDER_IP_ADDRESS;
+import static ca.kijiji.replyts.countrydelayedfilter.CountryDelayedFilter.IS_COUNTRY_DELAYED_KEY;
+import static com.ecg.replyts.core.api.model.conversation.FilterResultState.HELD;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
+@RunWith(JMockit.class)
+public class CountryDelayedFilterTest {
+    private static final int SCORE = 100;
+
+    @Tested
+    private CountryDelayedFilter countryDelayedFilter;
+
+    @Injectable
+    private LeGridClient leGridClient;
+
+    @Mocked
+    private MessageProcessingContext mpc;
+
+    @Mocked
+    private Mail mail;
+
+    @Before
+    public void setUp() throws Exception {
+        countryDelayedFilter = new CountryDelayedFilter(SCORE, leGridClient);
+    }
+
+    @Test
+    public void ipPresent_countryDelayed() throws Exception {
+        final String ipAddress = "1.2.3.4";
+
+        new Expectations() {{
+            mpc.getMail();
+            result = mail;
+
+            mail.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
+            result = ipAddress;
+
+            leGridClient.getJsonAsMap("replier/ip-address/1.2.3.4/is-country-delayed");
+            result = ImmutableMap.of(IS_COUNTRY_DELAYED_KEY, Boolean.TRUE);
+        }};
+
+        List<FilterFeedback> feedbacks = countryDelayedFilter.filter(mpc);
+        assertThat(feedbacks.size(), is(1));
+        FilterFeedback feedback = feedbacks.get(0);
+        assertThat(feedback.getUiHint(), is("country is delayed"));
+        assertThat(feedback.getDescription(), is("IP country is delayed"));
+        assertThat(feedback.getResultState(), is(HELD));
+        assertThat(feedback.getScore(), is(SCORE));
+    }
+
+    @Test
+    public void ipBlank_countryNotDelayed_gridNotContacted() throws Exception {
+        final String ipAddress = "";
+
+        new Expectations() {{
+            mpc.getMail();
+            result = mail;
+
+            mail.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
+            result = ipAddress;
+        }};
+
+        List<FilterFeedback> feedbacks = countryDelayedFilter.filter(mpc);
+        assertThat(feedbacks.size(), is(0));
+        new FullVerifications(leGridClient) {};
+    }
+
+    @Test
+    public void noIp_countryNotDelayed_gridNotContacted() throws Exception {
+        final String ipAddress = "";
+
+        new Expectations() {{
+            mpc.getMail();
+            result = mail;
+
+            mail.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
+            result = ipAddress;
+        }};
+
+        List<FilterFeedback> feedbacks = countryDelayedFilter.filter(mpc);
+        assertThat(feedbacks.size(), is(0));
+        new FullVerifications(leGridClient) {};
+    }
+
+}

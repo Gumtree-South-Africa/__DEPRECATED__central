@@ -26,11 +26,6 @@
             <dependencies>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>core-graphite</artifactId>
-                </dependency>
-
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>mp-messagecenter</artifactId>
                     <version>${project.version}</version>
                     <exclusions>
@@ -93,11 +88,6 @@
             <dependencies>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>core-graphite</artifactId>
-                </dependency>
-
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>ebayk-filter-phonenumber</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -137,7 +127,7 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-filter-user</artifactId>
+                    <artifactId>core-filter-user</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
@@ -149,7 +139,6 @@
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>core-resultinspector-threshold</artifactId>
-                    <version>${project.version}</version>
                 </dependency>
 
                 <dependency>
@@ -238,11 +227,6 @@
             <dependencies>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>core-graphite</artifactId>
-                </dependency>
-
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>mde-postprocessor-rememberlastselleraddress</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -298,6 +282,89 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+            <id>kjca</id>
+
+            <properties>
+               <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+               <profile-classifier>kjca</profile-classifier>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-coremod-shared</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-coremod-jolokia</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-coremod-overrides</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-user</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-activable</artifactId>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-volume</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-countryblocked</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-countrydelayed</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-emailblocked</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-ipblocked</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-newreplier</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-messagecenter</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
     <dependencies>
@@ -308,6 +375,10 @@
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>core-graphite</artifactId>
         </dependency>
     </dependencies>
 
@@ -435,7 +506,7 @@
                         <configuration> 
                             <rules>
                                 <requireActiveProfile>
-                                    <profiles>mp,ebayk,mde</profiles>
+                                    <profiles>mp,ebayk,mde,kjca</profiles>
                                     <all>false</all>
                                 </requireActiveProfile>
                             </rules>

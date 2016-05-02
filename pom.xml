@@ -20,6 +20,11 @@
 
                 <module>integration-tests/core-integration-test-api</module>
                 <module>integration-tests/core-integration-test</module>
+
+                <module>filters/core-filter-user</module>
+                <module>filters/core-filter-activable</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>
 
             <!-- Always enable this profile (can't use activeByDefault in combination with -P) -->
@@ -115,8 +120,6 @@
                 <module>postprocessors/ebayk-postprocessor-linkproxy</module>
                 <module>postprocessors/ebayk-postprocessor-negotations</module>
                 <module>postprocessors/ebayk-postprocessor-openimmodeanonymizer</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
 
                 <module>messagecenters/ebayk-messagecenter</module>
             </modules>
@@ -344,6 +347,36 @@
                 <env-name>prod</env-name>
             </properties>
         </profile>
+
+        <profile>
+            <id>kjca</id>
+
+            <modules>
+                <module>coremods/kjca-coremod-shared</module>
+                <module>coremods/kjca-coremod-jolokia</module>
+                <module>coremods/kjca-coremod-overrides</module>
+
+                <module>filters/kjca-filter-volume</module>
+                <module>filters/kjca-filter-word</module>
+                <module>filters/kjca-filter-countryblocked</module>
+                <module>filters/kjca-filter-countrydelayed</module>
+                <module>filters/kjca-filter-emailblocked</module>
+                <module>filters/kjca-filter-ipblocked</module>
+                <module>filters/kjca-filter-newreplier</module>
+
+                <module>listeners/kjca-listener-dw</module>
+
+                <module>messagecenters/kjca-messagecenter</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>upload-kjca-comaasqa</id>
+
+            <properties>
+                <env-name>comaasqa</env-name>
+            </properties>
+        </profile>
     </profiles>
 
     <properties>
@@ -355,6 +388,7 @@
 
         <maven.exec.skip>true</maven.exec.skip>
 
+        <jolokia-spring.version>1.1.1</jolokia-spring.version>
         <mongo-java-driver-version>2.13.0</mongo-java-driver-version>
         <amqp-client-version>3.1.1</amqp-client-version>
         <logstash-logback-encoder-version>4.4</logstash-logback-encoder-version>
@@ -413,6 +447,7 @@
         <metrics.version>3.1.2</metrics.version>
         <mime4j-version>0.7.2</mime4j-version>
         <mockito-version>1.10.19</mockito-version>
+        <jmockit-version>1.12</jmockit-version>
         <quartz-version>2.2.1</quartz-version>
         <restassured-version>2.6.0</restassured-version>
         <riak-client.version>1.4.4</riak-client.version>
@@ -435,7 +470,9 @@
         <esper-version>4.9.0</esper-version>
         <gson-version>2.4</gson-version>
         <tika-version>1.12</tika-version>
-        <apache-commons-version>3.1</apache-commons-version>
+        <apache-activemq.version>5.7.0</apache-activemq.version>
+        <glassfish-jersey.version>2.7</glassfish-jersey.version>
+        <jsoup.version>1.7.3</jsoup.version>
 
         <!-- mde artifact versions -->
 
@@ -488,6 +525,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.jolokia</groupId>
+                <artifactId>jolokia-spring</artifactId>
+                <version>${jolokia-spring.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongo-java-driver</artifactId>
                 <version>${mongo-java-driver-version}</version>
@@ -524,11 +567,6 @@
 
             <dependency>
                 <groupId>ecg.comaas</groupId>
-                <artifactId>replyts2-message-box</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ecg.comaas</groupId>
                 <artifactId>core-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -542,6 +580,7 @@
                 <artifactId>core-graphite</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>ecg.comaas</groupId>
                 <artifactId>core-integration-test-api</artifactId>
@@ -552,35 +591,22 @@
                 <artifactId>core-integration-test</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
             <dependency>
-                <groupId>nl.marktplaats.comaas</groupId>
-                <artifactId>replyts2-filter-bankaccount</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>nl.marktplaats.comaas</groupId>
-                <artifactId>replyts2-filter-knowngood</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>nl.marktplaats.comaas</groupId>
-                <artifactId>replyts2-postprocessor-anonymizebody</artifactId>
+                <groupId>ecg.comaas</groupId>
+                <artifactId>core-filter-user</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>ecg.comaas</groupId>
-                <artifactId>core-threshold-resultinspector</artifactId>
+                <artifactId>core-filter-activable</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>ecg.comaas</groupId>
-                <artifactId>mp-threshold-resultinspector</artifactId>
+                <artifactId>core-resultinspector-threshold</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.ecg.de.kleinanzeigen.replyts</groupId>
-                <artifactId>graphite</artifactId>
-                <version>1.0.4</version>
             </dependency>
 
             <dependency>
@@ -650,6 +676,17 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jms</artifactId>
+                <version>${spring.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>commons-logging</artifactId>
+                        <groupId>commons-logging</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-consul-all</artifactId>
                 <version>${spring-cloud-consul.version}</version>
@@ -701,7 +738,7 @@
                 <groupId>net.sf.json-lib</groupId>
                 <artifactId>json-lib</artifactId>
                 <version>${json-lib.version}</version>
-                <classifier>jdk15</classifier>
+                <!--classifier>jdk15</classifier-->
                 <exclusions>
                     <exclusion>
                         <artifactId>commons-logging</artifactId>
@@ -968,6 +1005,17 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>io.dropwizard.metrics</groupId>
+                <artifactId>metrics-logback</artifactId>
+                <version>${metrics.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>slf4j-api</artifactId>
+                        <groupId>org.slf4j</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
 
             <!-- tackle encoding problems -->
             <dependency>
@@ -1077,6 +1125,39 @@
                 <version>${c3p0-version}</version>
             </dependency>
 
+            <dependency>
+                 <groupId>org.apache.activemq</groupId>
+                 <artifactId>activemq-core</artifactId>
+                 <version>${apache-activemq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-spring</artifactId>
+                <version>${apache-activemq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-pool</artifactId>
+                <version>${apache-activemq.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-client</artifactId>
+                <version>${glassfish-jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.media</groupId>
+                <artifactId>jersey-media-json-jackson</artifactId>
+                <version>${glassfish-jersey.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
+            </dependency>
+
             <!-- content-type detection -->
             <dependency>
                 <groupId>org.apache.tika</groupId>
@@ -1121,6 +1202,12 @@
                         <groupId>hamcrest-core</groupId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.jmockit</groupId>
+                <artifactId>jmockit</artifactId>
+                <version>${jmockit-version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>

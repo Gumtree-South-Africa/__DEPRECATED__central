@@ -3,19 +3,30 @@
 URL="$1"
 NAME="$2"
 SUBFOLDER="$3"
+BRANCH="master"
 
 if [ -z "$URL" ] || [ -z "$NAME" ] ; then
-  echo "$0: <url> <new-name> [subfolder-in-repo]"
+  echo "$0: <url>[@branch] <new-name> [subfolder-in-repo]"
 
   exit -1
 fi
+
+# Split clone URL and branch (if provided)
+
+FULLURL="$URL"
+
+echo "${URL}" | grep -q '@[\.a-zA-Z0-9]*$' && \
+  BRANCH="$(echo "${URL}" | sed 's/.*@\([\.a-zA-Z0-9]*\)$/\1/')" && \
+  URL="$(echo "${URL}" | sed 's/\(.*\)@[\.a-zA-Z0-9]*$/\1/')"
+
+# Copy either the whole branch or just a sub-folder
 
 if [ ! -z "$SUBFOLDER" ] ; then
   PARENTNAME=`basename "$URL"`
 
   echo "Will only copy sub-folder $SUBFOLDER from $PARENTNAME"
 
-  git clone "$URL"
+  git clone -b "$BRANCH" "$URL"
 
   if [ ! -d ${PARENTNAME}/${SUBFOLDER} ] ; then
     echo "Unable to find sub-folder ${SUBFOLDER}"
@@ -29,26 +40,25 @@ if [ ! -z "$SUBFOLDER" ] ; then
   HASH=`git rev-parse HEAD`
   cd .. && rm -rf ${PARENTNAME}
 else
-  git clone "$URL" ${NAME}
+  git clone -b "$BRANCH" "$URL" ${NAME}
 
   cd ${NAME}
   HASH=`git rev-parse HEAD`
   cd ..
 fi
 
-if [ -d ${NAME}/.git ] ; then
-  rm -rf ${NAME}/.git
-fi
+# Remove original repository .git and .gitignore
+
+[ -d ${NAME}/.git ] && rm -rf ${NAME}/.git
+[ -f ${NAME}/.gitignore ] && rm -f ${NAME}/.gitignore
 
 # Add the original URL + git hash to the README.md
 
-if [ -f ${NAME}/README.md ] ; then
-  mv ${NAME}/README.md ${NAME}/README.md.old
-fi
+[ -f ${NAME}/README.md ] && mv ${NAME}/README.md ${NAME}/README.md.old
 
 echo -e "# ${NAME}\n" >> ${NAME}/README.md
-echo -e "Originally taken from $URL" >> ${NAME}/README.md
-echo -e "(original git hash: $HASH" >> ${NAME}/README.md
+echo -e "Originally taken from $FULLURL" >> ${NAME}/README.md
+echo -e "(original git hash: ${HASH})" >> ${NAME}/README.md
 
 if [ -s ${NAME}/README.md.old ] ; then
   echo -e "\n# Description\n" >> ${NAME}/README.md
