@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# build.sh builds comaas and optionally runs tests, packages, uploads and deploys
 
 set -o nounset
 set -o errexit
