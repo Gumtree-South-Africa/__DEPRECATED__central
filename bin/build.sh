@@ -161,7 +161,7 @@ function main() {
     fi
 
     log "Executing: mvn $MVN_ARGS $MVN_TASKS"
-    mvn -X -e $MVN_ARGS $MVN_TASKS
+    mvn $MVN_ARGS $MVN_TASKS
 
     stopCassandra
 
