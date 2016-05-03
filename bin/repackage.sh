@@ -6,18 +6,25 @@
 set -o nounset
 set -o errexit
 
-cd distribution/target
-tar xvfz "distribution-$TENANT-$ENVNAME.tar.gz"
+function repackage() {
+  mkdir tmp
+  tar xfz ${ARTIFACT} -C tmp/
 
-for prop in ../conf/$TENANT/*; do
-  if [[ -f "$prop" || "$prop" == *comaasqa || "$prop" == *local ]]; then
-    continue
-  fi
+  for prop in distribution/conf/ebayk/*; do
+    if [[ -f "$prop" || "$prop" == *comaasqa || "$prop" == *local ]]; then
+      continue
+    fi
 
-  echo "ecg.comaas-$TENANT-$ENVNAME.tar.gz"
-  rm -f distribution/conf/*
-  cp "$prop"/* distribution/conf/
-  tar cvfz distribution-$TENANT-$(basename "$prop").tar.gz distribution
-done
+    rm -f tmp/conf/*
+    cp "$prop"/* tmp/conf/
+    tar cfz comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz tmp
+    echo "Created comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz"
+  done
 
-rm -rf distribution
+  rm -rf tmp
+}
+
+TENANT=$1
+GIT_HASH=$2
+ARTIFACT=$3
+repackage
