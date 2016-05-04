@@ -109,7 +109,6 @@
                 <module>filters/ebayk-filter-ebayservices</module>
                 <module>filters/ebayk-filter-emailaddress</module>
                 <module>filters/ebayk-filter-phonenumber</module>
-                <module>filters/ebayk-filter-user</module>
                 <module>filters/ebayk-filter-volume</module>
                 <module>filters/ebayk-filter-word</module>
 
