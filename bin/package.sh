@@ -5,6 +5,30 @@
 set -o nounset
 set -o errexit
 
+function usage() {
+  cat <<- EOF
+  Usage: package.sh <tenant> <git_hash> <environment> <builddir:builds>
+EOF
+  exit
+}
+
+function parseArgs() {
+  # check amount of args
+  [[ $# == 0 ]] && usage
+
+  WORKDIR=$PWD
+  TENANT=$1
+  GIT_HASH=$2
+  ENVIRONMENT=$3
+
+  if [ $# -eq 4 ]; then
+    DESTINATION=$4
+  else
+    DESTINATION=builds/
+  fi
+  mkdir -p ${DESTINATION}
+}
+
 function package() {
   ./bin/build.sh -T ${TENANT} -P ${ENVIRONMENT}
 
@@ -17,15 +41,11 @@ function package() {
   tar cfz ${WORKDIR}/${ARTIFACT} .
   cd ${WORKDIR}
 
-  cp ${ARTIFACT} ${DESTINATION}
+  mv ${ARTIFACT} ${DESTINATION}
   rm -rf distribution/target/distribution
 
   echo "Created ${DESTINATION}/${ARTIFACT}"
 }
 
-WORKDIR=$PWD
-TENANT=$1
-GIT_HASH=$2
-ENVIRONMENT=$3
-DESTINATION=$4
+parseArgs $@
 package

@@ -61,3 +61,6 @@ cassandra.pid
 # Keystore
 deploy.crt
 comaas.jks
+
+# build folder
+builds

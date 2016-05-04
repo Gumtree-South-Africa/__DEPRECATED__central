@@ -5,15 +5,32 @@
 set -o nounset
 set -o errexit
 
+function usage() {
+  cat <<- EOF
+  Usage: upload.sh <tenant> <git_hash> <package>
+EOF
+  exit
+}
+
+function parseArgs() {
+  # check amount of args
+  [[ $# == 0 ]] && usage
+
+  TENANT=$1
+  GIT_HASH=$2
+  PACKAGE=$3
+}
+
 # map to lookup the upload hosts for a tenant
 declare -A HOSTS=(
-  ["ebayk"]="https://comaas-uploader:ohy9Te#hah9U@kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/ecg/comaas/" \
-  ["mde"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/ecg/comaas/"
+  ["ebayk"]="https://comaas-uploader:ohy9Te#hah9U@kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/ecg/comaas/versions/" \
+  ["mde"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-team-releases/ecg/ecg-comaas/versions/"
+  #mde prod: https://autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-productive-releases/ecg/comaas/versions/
 )
 
 function upload() {
   # host to upload to
-  readonly HOST=${HOSTS[$TENANT]}
+  readonly HOST=${HOSTS[$TENANT]}${GIT_HASH}/
   readonly URL=$(echo ${HOST} | cut -d'@' -f2)
 
   echo "Uploading $PACKAGE to $URL"
@@ -30,6 +47,5 @@ function upload() {
   echo "Finished uploading $PACKAGE to $URL in $time."
 }
 
-TENANT=$1
-PACKAGE=$2
+parseArgs $@
 upload

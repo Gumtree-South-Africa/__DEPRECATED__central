@@ -6,6 +6,23 @@
 set -o nounset
 set -o errexit
 
+function usage() {
+  cat <<- EOF
+  Usage: repackage.sh <tenant> <git_hash> <artifact>
+EOF
+  exit
+}
+
+function parseArgs() {
+  # check amount of args
+  [[ $# == 0 ]] && usage
+
+  TENANT=$1
+  GIT_HASH=$2
+  ARTIFACT=$3
+  cur=$(pwd -P) && cd $(dirname ${ARTIFACT}) && BUILDDIR=$(pwd -P) && cd ${cur}
+}
+
 function repackage() {
   mkdir tmp
   tar xfz ${ARTIFACT} -C tmp/
@@ -17,14 +34,12 @@ function repackage() {
 
     rm -f tmp/conf/*
     cp "$prop"/* tmp/conf/
-    cd tmp && tar cfz ../comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz . && cd ..
-    echo "Created comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz"
+    cd tmp && tar cfz ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz . && cd ..
+    echo "Created ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz"
   done
 
   rm -rf tmp
 }
 
-TENANT=$1
-GIT_HASH=$2
-ARTIFACT=$3
+parseArgs $@
 repackage
