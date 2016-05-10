@@ -24,8 +24,8 @@ function deploy() {
 	MD5=($(md5sum -b ${ARTIFACT}))
 
 	cp distribution/nomad/comaas_deploy_jenkins.json comaas_deploy_jenkins.json
-	sed -i "s/PARENT_NAME/repo-server/" comaas_deploy_jenkins.json
 	sed -i "s/TENANT/$TENANT/g" comaas_deploy_jenkins.json
+	sed -i "s/GIT_HASH/$GIT_HASH/g" comaas_deploy_jenkins.json
 	sed -i "s/md5/md5:$MD5/" comaas_deploy_jenkins.json
 	# use ~ separator here since $ARTIFACT might contain slashes
 	sed -i "s~ARTIFACT~$ARTIFACT~" comaas_deploy_jenkins.json

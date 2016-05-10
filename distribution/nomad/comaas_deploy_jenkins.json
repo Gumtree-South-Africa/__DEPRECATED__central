@@ -16,7 +16,7 @@
             "driver":"raw_exec",
             "Artifacts": [
               {
-                "GetterSource":"http://buildmaster001/job/PARENT_NAME/ws/distribution/ARTIFACT",
+                "GetterSource":"http://buildmaster001/job/repo-server/ws/GIT_HASH/ARTIFACT",
                 "GetterOptions": {
                   "checksum": "md5"
                 }
