@@ -9,7 +9,13 @@ readonly ARGS="$@"
 readonly DIR=$(dirname $0)
 readonly CASSANDRA_DIR="$DIR/../cassandra_tmp"
 readonly CASSANDRA_PID="cassandra.pid"
-readonly REVISION="$(git rev-parse --short HEAD)"
+
+REVISION="$(git rev-parse --short HEAD)"
+
+# Override REVISION in case of an in-progress Gerrit review
+
+find .git/refs/heads/review -type f && \
+  REVISION="gerrit-$(basename `find .git/refs/heads/review -type f`)"
 
 # Import a few certificates if we haven't already
 
