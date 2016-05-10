@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:p="http://www.springframework.org/schema/p" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="ipDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
+          p:driverClass="com.mysql.jdbc.Driver"
+          p:jdbcUrl="${replyts2-blockedipfilter-plugin.dataSource.url}"
+          p:user="${replyts2-blockedipfilter-plugin.username:box}"
+          p:password="${replyts2-blockedipfilter-plugin.password:}"
+          p:initialPoolSize="${replyts2-blockedipfilter-plugin.dataSource.pool.c3p0.initialPoolSize:5}"
+          p:minPoolSize="${replyts2-blockedipfilter-plugin.dataSource.pool.c3p0.minPoolSize:3}"
+          p:maxPoolSize="${replyts2-blockedipfilter-plugin.dataSource.pool.c3p0.maxPoolSize:100}"
+          p:acquireIncrement="${replyts2-blockedipfilter-plugin.dataSource.pool.c3p0.acquireIncrement:5}"
+          p:maxIdleTime="${replyts2-blockedipfilter-plugin.dataSource.pool.c3p0.maxIdleTime:90}"
+          p:maxConnectionAge="${replyts2-blockedipfilter-plugin.dataSource.pool.c3p0.maxConnectionAge:900}"
+          p:idleConnectionTestPeriod="${replyts2- blockedipfilter-plugin.dataSource.pool.c3p0.idleConnectionTestPeriod:30}"
+          p:dataSourceName="${replyts2-blockedipfilter-plugin.dataSource.name:belen_tns}"
+          p:checkoutTimeout="${replyts2-blockedipfilter-plugin.dataSource.pool.checkoutTimeout:2000}"
+          p:connectionTesterClassName="com.mysql.jdbc.integration.c3p0.MysqlConnectionTester"
+          p:numHelperThreads="${replyts2-blockedipfilter-plugin.dataSource.pool.c3p0.numHelperThreads:10}"/>
+
+
+    <bean id="replyts2-blockedipfilter-plugin-datasource" class="com.ebay.au.gumtree.replyts.blockedip.BlockedIpFilterFactory">
+        <constructor-arg index="0" ref="ipDataSource"/>
+    </bean>
+
+
+</beans>

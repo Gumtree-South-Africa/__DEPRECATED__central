@@ -4,21 +4,9 @@
     <mirrors>
         <mirror>
             <id>mdenexus</id>
-            <mirrorOf>*</mirrorOf>
+            <mirrorOf>!ext-libs,!gtauNexus,*</mirrorOf>
             <url>https://nexus.corp.mobile.de/nexus/content/groups/mobile-releases</url>
             <name>MdeNexus</name>
-        </mirror>
-        <mirror>
-            <id>mpnexus</id>
-            <mirrorOf>*</mirrorOf>
-            <url>http://mpnexus.corp.ebay.com/content/groups/public</url>
-            <name>MpNexus</name>
-        </mirror>
-        <mirror>
-            <id>kijiji-belen-releases</id>
-            <url>https://nexus.corp.mobile.de/nexus/content/groups/kijiji-belen-releases/</url>
-            <!-- Exclude repositories with name 'ext-libs'. In replyts2-core, we need a local file repository for dependencies not available in public repository. -->
-            <mirrorOf>*,!ext-libs</mirrorOf>
         </mirror>
     </mirrors>
 

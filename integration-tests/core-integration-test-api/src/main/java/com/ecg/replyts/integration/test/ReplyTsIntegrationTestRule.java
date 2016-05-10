@@ -87,10 +87,6 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         this(testProperties, replyTsConfigurationDir, 20, false, cqlFilePaths);
     }
 
-    public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, String... cqlFilePaths) {
-        this(null, null, deliveryTimeoutSeconds, false, cqlFilePaths);
-    }
-
     /**
      * instantiate a new rule, delivery timeout can be configured
      *

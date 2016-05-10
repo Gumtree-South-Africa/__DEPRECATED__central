@@ -16,6 +16,111 @@
 
     <profiles>
         <profile>
+            <id>gtau</id>
+
+            <properties>
+                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                <profile-classifier>gtau</profile-classifier>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-graphite</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-user</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-volume</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-bankaccount</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-belenblockedad</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-belenblockeduser</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-ebayservices</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-coremod-readrepairindexer</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-coremod-autogatemaildelivery</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-messagecenter</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-robot</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-postprocessor-fromnamepreparator</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-postprocessor-sentrepliesnotifier</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-postprocessor-headerinjector</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-postprocessor-idreplacer</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-postprocessor-messagethreading</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-listener-jsonmessagelogger</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>mp</id>
 
             <properties>
@@ -88,29 +193,6 @@
             <dependencies>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-filter-phonenumber</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-filter-emailaddress</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-messagecenter</artifactId>
-                    <version>${project.version}</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>commons-logging</groupId>
-                            <artifactId>commons-logging</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>ebayk-postprocessor-openimmodeanonymizer</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -119,20 +201,14 @@
                     <artifactId>ebayk-postprocessor-negotiations</artifactId>
                     <version>${project.version}</version>
                 </dependency>
-
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-filter-word</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>core-filter-user</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>ebayk-postprocessor-buyeralias</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>ebayk-postprocessor-linkproxy</artifactId>
                     <version>${project.version}</version>
                 </dependency>
 
@@ -143,18 +219,27 @@
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-filter-volume</artifactId>
+                    <artifactId>core-filter-word</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-filter-bankaccount</artifactId>
+                    <artifactId>core-filter-user</artifactId>
                     <version>${project.version}</version>
                 </dependency>
-
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-filter-belenblockeduser</artifactId>
+                    <artifactId>core-filter-volume</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-bankaccount</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-belenblockeduser</artifactId>
                     <version>${project.version}</version>
                     <!-- belenblockeduserfilter has spring-beans in dependency provided. it's managed to compile from within this pom here.
                          for whatever reason, we do not want to provide spring-beans. -->
@@ -171,7 +256,7 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-filter-belenblockedad</artifactId>
+                    <artifactId>core-filter-belenblockedad</artifactId>
                     <version>${project.version}</version>
                     <!-- belenblockedadfilter has spring-beans in dependency provided. it's managed to compile from within this pom here.
                          for whatever reason, we do not want to provide spring-beans. -->
@@ -181,6 +266,21 @@
                             <artifactId>spring-beans</artifactId>
                         </exclusion>
                     </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-ebayservices</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>ebayk-filter-phonenumber</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>ebayk-filter-emailaddress</artifactId>
+                    <version>${project.version}</version>
                 </dependency>
 
                 <dependency>
@@ -196,14 +296,14 @@
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-filter-ebayservices</artifactId>
+                    <artifactId>ebayk-messagecenter</artifactId>
                     <version>${project.version}</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-postprocessor-linkproxy</artifactId>
-                    <version>${project.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>commons-logging</groupId>
+                            <artifactId>commons-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
 
                 <dependency>
@@ -503,10 +603,10 @@
                         <goals>
                             <goal>enforce</goal>
                         </goals>
-                        <configuration> 
+                        <configuration>
                             <rules>
                                 <requireActiveProfile>
-                                    <profiles>mp,ebayk,mde,kjca</profiles>
+                                    <profiles>mp,ebayk,mde,kjca,gtau</profiles>
                                     <all>false</all>
                                 </requireActiveProfile>
                             </rules>
