@@ -1,53 +1,72 @@
 {
   "job": {
-    "ID":"comaas-TENANT",
-    "priority":50,
-    "datacenters": [ "ams1"],
-    "type": "system",
+    "ID": "comaas-TENANT",
     "name": "comaas-TENANT",
-    "region": "comaas-qa",
-    "TaskGroups": [
-      {
-        "Name":"comaas-node-TENANT",
-        "count":1,
-        "Tasks": [
-          {
-            "Name":"comaas-TENANT",
-            "driver":"raw_exec",
-            "Artifacts": [
-              {
-                "GetterSource":"http://buildmaster001/job/repo-server/ws/GIT_HASH/ARTIFACT",
-                "GetterOptions": {
-                  "checksum": "md5"
-                }
-              }
-            ],
-            "config": {
-              "command":"bin/comaas"
-            },
-            "LogConfig": {
-              "MaxFileSizeMB":10,
-              "MaxFiles":10
-            },
-            "Constraints": [
-              {
-                "LTarget": "${attr.hostname}",
-                "RTarget": "core*",
-                "Operand": "distinct_hosts"
-              }
-            ],
+    "priority": 50,
 
-            "resources": {
-              "MemoryMB":1024,
-              "DiskMB":2000,
-              "CPU":200,
-              "network": {
-                "mbits":100
-              }
-            }
-          }]
-      }
-    ],
+    "datacenters": [ "ams1"],
+    "region": "comaas-qa",
+
+    "type": "system",
+
+    "TaskGroups": [ {
+      "Name":"comaas-node-TENANT",
+
+      "count":1,
+
+      "Tasks": [ {
+        "Name":"comaas-TENANT",
+        "driver":"raw_exec",
+        "Artifacts": [ {
+          "GetterSource":"http://buildmaster001/job/repo-server/ws/GIT_HASH/ARTIFACT",
+          "GetterOptions": {
+            "checksum": "md5"
+          }
+        } ],
+        "config": {
+          "command":"bin/comaas"
+        },
+        "LogConfig": {
+          "MaxFileSizeMB":10,
+          "MaxFiles":10
+        },
+        "Constraints": [ {
+          "LTarget": "${attr.hostname}",
+          "RTarget": "core*",
+          "Operand": "distinct_hosts"
+        } ],
+
+        "resources": {
+          "MemoryMB":1024,
+          "DiskMB":2000,
+          "CPU":200,
+          "network": {
+            "mbits":100,
+            "ReservedPorts": [ {
+              "Label": "comaas-TENANT"
+              "Value": PORT
+            } ]
+          }
+        },
+
+        "Services": [ {
+          "Name": "comaas-TENANT",
+          "Tags": [
+            "git-GIT_HASH"
+          ],
+          "PortLabel": "comaas-TENANT",
+          "Checks": [ {
+            "Name": "version-match",
+            "Type": "script",
+            "Interval": 10000000000,
+            "Timeout": 4000000000,
+            "Command": "/bin/bash",
+            "Args": [ "-c", "/usr/bin/curl -s http://localhost:PORT/health | grep GIT_HASH" ]
+          } ]
+        } ]
+      } ]
+    } ],
+
     "Update": {
       "MaxParallel": 1,
       "Stagger": 30000000000

@@ -14,7 +14,7 @@ REVISION="$(git rev-parse --short HEAD)"
 
 # Override REVISION in case of an in-progress Gerrit review
 
-find .git/refs/heads/review -type f && \
+find .git/refs/heads/review -type f 2>/dev/null && \
   REVISION="gerrit-$(basename `find .git/refs/heads/review -type f`)"
 
 # Import a few certificates if we haven't already
