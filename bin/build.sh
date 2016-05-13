@@ -55,15 +55,32 @@ function startCassandra() {
     log "Starting cassandra"
     rm -rf ${CASSANDRA_DIR}
     mkdir ${CASSANDRA_DIR}
-    /opt/cassandra/bin/cassandra -p ${CASSANDRA_PID} "-Dcassandra.storagedir=$CASSANDRA_DIR"
+    export PATH=$PATH:/opt/cassandra/bin:/usr/sbin
+    cassandra -p ${CASSANDRA_PID} "-Dcassandra.storagedir=$CASSANDRA_DIR"
 }
 
 function stopCassandra() {
     if [[ -e ${CASSANDRA_PID} ]]; then
         log "Stopping cassandra"
-        kill $(cat ${CASSANDRA_PID})
-        rm ${CASSANDRA_PID}
+        PID=$(cat ${CASSANDRA_PID})
+        kill ${PID}
+
+        counter=0
+        while $(ps -p "$PID" > /dev/null); do
+            if [ ${counter} -gt 10 ]; then
+                break
+            fi
+            log "waiting for Cassandra to exit"
+            sleep 1
+            counter=$(expr ${counter} + 1)
+        done
+        if $(ps -p "$PID" > /dev/null); then
+            log "Cassandra didn't exit in 10 seconds"
+            exit 1
+        fi
         rm -rf ${CASSANDRA_DIR}
+        rm -rf ${CASSANDRA_PID}
+        log "Cassandra stopped"
     fi
 }
 
@@ -113,8 +130,8 @@ function main() {
 
     # skip tests and set concurrency based on whether tests should be run
     if ! [[ ${RUN_TESTS} -eq 1 ]]; then
-       log "Skipping the tests"
-       MVN_ARGS="$MVN_ARGS -DskipTests=true"
+        log "Skipping the tests"
+        MVN_ARGS="$MVN_ARGS -DskipTests=true"
     else
         startCassandra
         MVN_ARGS="$MVN_ARGS"
@@ -140,12 +157,12 @@ function main() {
 
         if ! [[ -z $PACKAGE ]] ; then
             MVN_ARGS="${MVN_ARGS},upload-${TENANT}-${PACKAGE}"
-    	    MVN_TASKS="package"
+            MVN_TASKS="package"
         fi
 
         if ! [[ -z $UPLOAD ]] ; then
             MVN_ARGS="${MVN_ARGS},upload-${TENANT}-${UPLOAD}"
-    	    MVN_TASKS="clean deploy"
+            MVN_TASKS="clean deploy"
         fi
 
         if ! [[ -z $EXECUTE ]] ; then
