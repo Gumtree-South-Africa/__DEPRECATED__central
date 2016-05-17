@@ -65,6 +65,10 @@ public class CassandraCleanupMailCronJob implements CronJobExecutor {
 
         Iterators.partition(mailCreationDatesToDelete.iterator(), batchSize).forEachRemaining(idxs -> {
             cleanUpTasks.add(threadPoolExecutor.submit(() -> {
+                LOG.info("ThreadPoolExecutor completed task count: " + threadPoolExecutor.getCompletedTaskCount());
+                LOG.info("ThreadPoolExecutor active threads: " + threadPoolExecutor.getActiveCount());
+                LOG.info("ThreadPoolExecutor current pool size: " + threadPoolExecutor.getPoolSize());
+                LOG.info("ThreadPoolExecutor queue size: " + threadPoolExecutor.getQueue().size());
                 LOG.info("Cleanup: Deleting data related to {} mail creation dates", idxs.size());
                 idxs.forEach(mailCreationDate -> {
                     try {

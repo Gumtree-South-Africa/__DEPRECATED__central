@@ -28,16 +28,9 @@ import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static org.joda.time.DateTime.now;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 15:39
- *
- * @author maldana@ebay.de
- */
 public class PostBox {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PostBox.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PostBox.class);
 
     private final String userId;
     private final List<ConversationThread> conversationThreads;
@@ -53,16 +46,21 @@ public class PostBox {
         this.userId = userId.toLowerCase();
     }
 
-    public Long getNewRepliesCounter() {
-        Counter counter = new Counter();
-        this.conversationThreads.stream().forEach(ct -> counter.inc(ct.getNumUnreadMessages()));
-        return counter.getValue();
+    public int getNewRepliesCounter() {
+        return this.conversationThreads.stream().mapToInt(ConversationThread::getNumUnreadMessages).sum();
     }
 
-    public Long getNumUnreadConversation() {
-        Counter counter = new Counter();
-        this.conversationThreads.stream().forEach(ct -> counter.inc(ct.isContainsUnreadMessages() ? 1 : 0));
-        return counter.getValue();
+    public int getNumUnreadConversations() {
+        return (int) this.conversationThreads.stream().filter(ConversationThread::isContainsUnreadMessages).count();
+    }
+
+    public int getNumUnreadMessagesForConversation(String conversationId) {
+        for (ConversationThread conversationThread : conversationThreads) {
+            if (conversationThread.getConversationId().equals(conversationId)) {
+                return conversationThread.getNumUnreadMessages();
+            }
+        }
+        return 0;
     }
 
     public List<ConversationThread> getConversationThreads() {
@@ -70,6 +68,10 @@ public class PostBox {
         return FluentIterable.from(conversationThreads)
                 .limit(500) // we cap to 500 to not kill riak for very large objects
                 .toList();
+    }
+
+    public void removeConversations(List<String> conversationIds) {
+        conversationIds.forEach(this::removeConversation);
     }
 
     public Optional<ConversationThread> removeConversation(String conversationId) {
@@ -92,7 +94,7 @@ public class PostBox {
         if (oldConversation.isPresent()) {
             conversationThreads.add(oldConversation.get().sameButUnread(message));
         } else {
-            LOG.error("trying to mark conversation as unread but the conversation id is not in the postbox.");
+            LOGGER.error("trying to mark conversation as unread but the conversation id is not in the postbox.");
         }
     }
 
@@ -153,7 +155,7 @@ public class PostBox {
     }
 
     /**
-     * @return The new post box if it was changed or null if there were no unread messages
+     * @return The new post box if it was changed or the original one if there were no unread messages
      */
     public PostBox markAllAsRead() {
         AtomicBoolean changed = new AtomicBoolean(false);
@@ -165,7 +167,7 @@ public class PostBox {
                 return ct;
             }
         }).collect(Collectors.toList());
-        return changed.get() ? new PostBox(this.userId, newList) : null;
+        return changed.get() ? new PostBox(this.userId, newList) : this;
     }
 
     private List<ConversationThread> cleanupOldConversations(List<ConversationThread> conversationThreads) {
@@ -190,7 +192,7 @@ public class PostBox {
         return tmp;
     }
 
-    List<String> flushRemovedThreads() {
+    public List<String> flushRemovedThreads() {
         List<String> temp = removedThreads;
         removedThreads = new ArrayList<>();
         return temp;

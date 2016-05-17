@@ -1,6 +1,7 @@
 package com.ecg.replyts.acceptance;
 
 import com.ecg.replyts.core.runtime.ReplyTS;
+import com.ecg.replyts.core.webapi.control.HealthController;
 import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.jayway.restassured.RestAssured;
 import org.junit.Test;
@@ -36,7 +37,7 @@ public class HealthControllerTest {
         RestAssured
                 .expect()
                 .statusCode(200)
-                .body("version", equalTo(getClass().getPackage().getImplementationVersion()))
+                .body("version", equalTo(HealthController.class.getPackage().getImplementationVersion()))
                 .when()
                 .request()
                 .get("http://localhost:" + httpPort + "/health");

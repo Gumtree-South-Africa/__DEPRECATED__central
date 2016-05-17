@@ -70,7 +70,7 @@ public class MessageProcessingCoordinator {
      * Invoked by a Mail Receiver. The passed input stream is an input stream
      * the the actual mail contents. This method will perform the full message
      * processing and return once the message has reached an end state. If this
-     * method throws an exception, an abnormal behaviour occurred during
+     * method throws an exception, an abnormal behaviour occured during
      * processing, indicating the the Mail Receiver should try to redeliver that
      * message at a later time.
      */

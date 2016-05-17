@@ -13,13 +13,6 @@ import java.util.regex.Pattern;
 
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 
-/**
- * User: maldana
- * Date: 30.10.13
- * Time: 17:16
- *
- * @author maldana@ebay.de
- */
 public class MessageResponse {
 
     private static final Pattern REMOVE_DOUBLE_WHITESPACES = Pattern.compile("\\s+");

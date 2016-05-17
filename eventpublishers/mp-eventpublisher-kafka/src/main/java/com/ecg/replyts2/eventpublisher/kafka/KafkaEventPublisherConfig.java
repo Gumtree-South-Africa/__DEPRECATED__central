@@ -1,8 +1,9 @@
 package com.ecg.replyts2.eventpublisher.kafka;
 
 import com.ecg.replyts.core.api.model.MailCloakingService;
-import com.ecg.replyts.app.eventpublisher.MessageReceivedListener;
+import com.ecg.replyts.app.eventpublisher.EventConverter;
 import com.ecg.replyts.app.eventpublisher.EventPublisher;
+import com.ecg.replyts.app.eventpublisher.MessageReceivedListener;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,18 +12,20 @@ import org.springframework.context.annotation.*;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.util.Assert;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.Properties;
 
 /**
  * Conditionally configure event publishing to Kafka.
- *
+ * <p>
  * Enable publishing by adding the following to the {@code replyts.properties}:
- *
+ * <p>
  * <pre>{@code
  * replyts.event.publisher.kafka.enabled = true
  * replyts.kafka.broker.list = host1:9092,host2:9092
  * replyts.kafka.topic = conversations
+ * replyts.kafka.replay.topic = conversations_replay
  * }
  * </pre>
  */
@@ -35,19 +38,17 @@ public class KafkaEventPublisherConfig {
     private String kafkaBrokers;
     @Value("${replyts.kafka.topic:conversations}")
     private String kafkaTopic;
+    @Value("${replyts.kafka.replay.topic:conversations_replay}")
+    private String kafkaReplayTopic;
 
     @Autowired
     private MailCloakingService mailCloakingService;
 
     private Producer<String, byte[]> producer;
 
-    @Bean
+    @PostConstruct
     @Conditional(KafkaEnabledConditional.class)
-    public MessageReceivedListener kafkaMessageReceivedListener() {
-        return new MessageReceivedListener(mailCloakingService, newkafkaEventPublisher());
-    }
-
-    private EventPublisher newkafkaEventPublisher() {
+    private void createKafkaProducer() {
         Assert.hasLength(kafkaBrokers);
 
         Properties props = new Properties();
@@ -57,8 +58,20 @@ public class KafkaEventPublisherConfig {
 
         ProducerConfig config = new ProducerConfig(props);
         producer = new Producer<>(config);
+    }
 
+    @Bean
+    @Conditional(KafkaEnabledConditional.class)
+    public MessageReceivedListener kafkaMessageReceivedListener() {
+        return new MessageReceivedListener(new EventConverter(mailCloakingService), newKafkaEventPublisher());
+    }
+
+    public EventPublisher newKafkaEventPublisher() {
         return new KafkaEventPublisher(producer, kafkaTopic);
+    }
+
+    public EventPublisher newKafkaEventReplayPublisher() {
+        return new KafkaEventPublisher(producer, kafkaReplayTopic);
     }
 
     @PreDestroy

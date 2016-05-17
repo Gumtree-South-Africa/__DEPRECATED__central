@@ -20,9 +20,6 @@ import java.util.List;
 
 import static com.ecg.messagecenter.util.EmailHeaderFolder.unfold;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class MessagesResponseFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessagesResponseFactory.class);

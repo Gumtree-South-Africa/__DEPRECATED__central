@@ -2,13 +2,6 @@ package com.ecg.messagecenter;
 
 import com.ecg.replyts.core.runtime.ReplyTS;
 
-/**
- * User: maldana
- * Date: 24.10.13
- * Time: 14:17
- *
- * @author maldana@ebay.de
- */
 public class MessageCenterMain {
 
     public static void main(String[] args) throws Exception {

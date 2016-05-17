@@ -1,8 +1,5 @@
 package nl.marktplaats.filter.bankaccount;
 
-import com.ecg.replyts.app.Mails;
-import com.ecg.replyts.core.api.model.MailCloakingService;
-import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -13,20 +10,18 @@ import java.util.List;
 
 public class BankAccountFilterFactory implements FilterFactory {
 
-    private final MailCloakingService mailCloakingService;
-    private final MailRepository mailRepository;
+    private final DescriptionBuilder descriptionBuilder;
 
     @Autowired
-    public BankAccountFilterFactory(MailCloakingService mailCloakingService, MailRepository mailRepository) {
-        this.mailCloakingService = mailCloakingService;
-        this.mailRepository = mailRepository;
+    public BankAccountFilterFactory(DescriptionBuilder descriptionBuilder) {
+        this.descriptionBuilder = descriptionBuilder;
     }
 
     @Override
     public Filter createPlugin(String instanceName, JsonNode configuration) {
         BankAccountFilterConfiguration bankAccountFilterConfiguration = parseConfiguration(configuration);
         BankAccountFinder bankAccountFinder = new BankAccountFinder(bankAccountFilterConfiguration);
-        return new BankAccountFilter(bankAccountFinder, mailCloakingService, mailRepository, new Mails());
+        return new BankAccountFilter(bankAccountFinder, descriptionBuilder);
     }
 
     // default access for testing

@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class PushNotificationTextShortener {
 
     private static final int THREASHOLED_CHAR_SIZE_TO_MAX_TO_DISPLAY = 10000;

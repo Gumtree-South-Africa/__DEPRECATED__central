@@ -14,13 +14,6 @@ import com.google.common.base.Preconditions;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * User: maldana
- * Date: 30.10.13
- * Time: 17:14
- *
- * @author maldana@ebay.de
- */
 public class PostBoxListItemResponse {
 
     private String email;
@@ -34,7 +27,7 @@ public class PostBoxListItemResponse {
     private String adId;
 
     private ConversationRole role;
-    private Long numUnreadMessages;
+    private int numUnreadMessages;
     private boolean unread;
     private final List<String> attachments = Collections.emptyList();
 
@@ -71,11 +64,11 @@ public class PostBoxListItemResponse {
     // old style lookup when we didn't have a complete search aggregate on the list-view
     // todo: marked on calendar around June we deprecated this and throw it out (work with '...' placeholders if not data available)
     @Deprecated
-    public static Optional<PostBoxListItemResponse> createNonAggregateListViewItem(String userId, Long numUnreadMessages, Conversation conversationRts, UserIdentifierService userIdentifierService) {
+    public static Optional<PostBoxListItemResponse> createNonAggregateListViewItem(String userId, int numUnreadMessages, Conversation conversationRts, UserIdentifierService userIdentifierService) {
         PostBoxListItemResponse response = new PostBoxListItemResponse();
         response.email = userId;
         response.userId = userId;
-        response.unread = (numUnreadMessages != null && numUnreadMessages > 0);
+        response.unread = numUnreadMessages > 0;
         response.numUnreadMessages = numUnreadMessages;
         response.id = conversationRts.getId();
         response.buyerName = conversationRts.getCustomValues().get("buyer-name") == null ? "" : conversationRts.getCustomValues().get("buyer-name");
@@ -99,8 +92,6 @@ public class PostBoxListItemResponse {
 
     /**
      * May contain user id instead of e-mail address
-     *
-     * @return
      */
     @Deprecated
     public String getEmail() {
@@ -151,7 +142,7 @@ public class PostBoxListItemResponse {
         return unread;
     }
 
-    public Long getNumUnreadMessages() {
+    public int getNumUnreadMessages() {
         return numUnreadMessages;
     }
 

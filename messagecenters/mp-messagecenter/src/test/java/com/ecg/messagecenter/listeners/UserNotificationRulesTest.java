@@ -11,15 +11,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * User: maldana
- * Date: 28.10.13
- * Time: 15:10
- *
- * @author maldana@ebay.de
- */
 public class UserNotificationRulesTest {
-
 
     private UserNotificationRules notificationRules;
     private Message message;
@@ -27,7 +19,6 @@ public class UserNotificationRulesTest {
     @Before
     public void setUp() {
         notificationRules = new UserNotificationRules();
-
         message = mock(Message.class);
     }
 

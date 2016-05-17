@@ -2,13 +2,11 @@ package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.Counter;
 import com.ecg.messagecenter.persistence.PostBox;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
-import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -42,8 +40,7 @@ public class PostBoxResponseBuilderTest {
 
     @Before
     public void before() {
-        Counter counter = new Counter(10L);
-        when(postBox.getNewRepliesCounter()).thenReturn(counter.getValue());
+        when(postBox.getNewRepliesCounter()).thenReturn(10);
     }
 
     @Test
@@ -76,8 +73,7 @@ public class PostBoxResponseBuilderTest {
         List<ConversationThread> conversationThreadList = Arrays.asList(conversationThread, conversationThreadWithoutData);
         when(postBox.getConversationThreadsCapTo(3, 5)).thenReturn(conversationThreadList);
 
-        ResponseObject<PostBoxResponse> result = testObject.buildPostBoxResponse(USER_ID, 5, 3, postBox);
-        PostBoxResponse postBoxResponse = result.getBody();
+        PostBoxResponse postBoxResponse = testObject.buildPostBoxResponse(USER_ID, 5, 3, postBox);
         assertEquals(1, postBoxResponse.get_meta().getNumFound());
         assertEquals(3, postBoxResponse.get_meta().getPageNum());
         assertEquals(5, postBoxResponse.get_meta().getPageSize());

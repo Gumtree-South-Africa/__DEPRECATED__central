@@ -1,17 +1,11 @@
 package nl.marktplaats.filter.bankaccount;
 
-import com.ecg.replyts.app.Mails;
-import com.ecg.replyts.core.api.model.MailCloakingService;
-import com.ecg.replyts.core.api.model.conversation.*;
-import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.model.mail.MailAddress;
-import com.ecg.replyts.core.api.model.mail.TypedContent;
-import com.ecg.replyts.core.api.persistence.ConversationRepository;
-import com.ecg.replyts.core.api.persistence.MailRepository;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.mailparser.ParsingException;
-import com.google.common.net.MediaType;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
@@ -20,91 +14,55 @@ import org.mockito.Mock;
 
 import java.util.*;
 
-import static com.ecg.replyts.core.api.model.conversation.ConversationRole.Buyer;
-import static com.ecg.replyts.core.api.model.conversation.ConversationRole.Seller;
-import static org.hamcrest.CoreMatchers.containsString;
+import static java.util.Arrays.asList;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class BankAccountFilterTest {
 
-    private static final String PLAIN_TEXT_CONTENT_FRAUDULENT =
-            "Message with a fraudulent bank account: 123456. Good luck!";
-    private static final String HTML_CONTENT_FRAUDULENT =
-            "Message with a fraudulent bank account: <b>123456</b>. Good luck!";
-    private static final String HTML_CONTENT_FRAUDULENT_SPANS =
-            "Message with a fraudulent bank account: <b>12<span></span>34<span></span>56</b>. Good luck!";
+    private static final String PLAIN_TEXT_CONTENT_FRAUDULENT = "Message with a fraudulent bank account: 123456. Good luck!";
+    private static final String AD_ID = "m369147";
+    private static final String fromUserId = "123";
+    private static final String toUserId = "456";
 
-    private static final List<String> FRAUDULENT_BANK_ACCOUNTS = Arrays.asList(
-            "2593139", "757706428", "123456", "NL84INGB0002930139", "NO1225673786578");
+    @Mock private BankAccountFinder bankAccountFinder;
+    @Mock private DescriptionBuilder descriptionBuilder;
+    @Mock private Conversation conversation;
+    @Mock private MessageProcessingContext messageProcessingContext;
 
     private BankAccountFilter filter;
-    private BankAccountFilterConfiguration config;
-    private BankAccountFinder bankAccountFinder;
-
-    @Mock private Message message;
-    @Mock private Conversation conversation;
-    @Mock private Mail mail;
-    @Mock private TypedContent<String> mutablePlainContent;
-    @Mock private TypedContent<String> mutableHtmlContent;
-    @Mock private ConversationRepository conversationRepository;
-    @Mock private MailCloakingService mailCloakingService;
-    @Mock private MailRepository mailRepository;
-    @Mock private Mails mailsParser;
-
-    private String fromUserId = "123";
-    private String toUserId = "456";
 
     @Before
     public void setup() throws Exception {
         initMocks(this);
-
-        when(mail.getTextParts(false)).thenReturn(asTypedContentList(mutablePlainContent, mutableHtmlContent));
-        when(mutablePlainContent.getMediaType()).thenReturn(MediaType.create("text", "plain"));
-        when(mutablePlainContent.isMutable()).thenReturn(true);
-        when(mutableHtmlContent.getMediaType()).thenReturn(MediaType.create("text", "html"));
-        when(mutableHtmlContent.isMutable()).thenReturn(true);
-
-        when(message.getId()).thenReturn("msg98123");
-        when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).thenReturn(new MailAddress("anonymous-buyer@mail.com"));
-
-        when(mailsParser.readMail(any(byte[].class))).thenReturn(mail);
-
-        config = new BankAccountFilterConfiguration(FRAUDULENT_BANK_ACCOUNTS);
-        bankAccountFinder = new BankAccountFinder(config);
-        filter = new BankAccountFilter(bankAccountFinder, mailCloakingService, mailRepository, mailsParser);
-    }
-
-    private Conversation prepareSimpleSingleMailWithTexts(String adId, String subject, String plainTextPart, String htmlPart) {
-        when(mail.getSubject()).thenReturn(subject);
-        when(mutablePlainContent.getContent()).thenReturn(plainTextPart);
-        when(mutableHtmlContent.getContent()).thenReturn(htmlPart);
-
-        when(conversation.getAdId()).thenReturn(adId);
-        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
-        return conversation;
-    }
-
-    private MessageProcessingContext prepareMessageProcessingContext(Conversation conversation, Message message, Mail mail) {
-        MessageProcessingContext messageProcessingContext = mock(MessageProcessingContext.class);
+        filter = new BankAccountFilter(bankAccountFinder, descriptionBuilder);
         when(messageProcessingContext.getConversation()).thenReturn(conversation);
-        when(messageProcessingContext.getMail()).thenReturn(mail);
-        when(messageProcessingContext.getMessage()).thenReturn(message);
-        return messageProcessingContext;
+    }
+
+    private static Message createMockMessage(String index, MessageDirection direction, String subject, String plainTextPart) {
+        Message message = mock(Message.class, "message_" + index);
+        when(message.getId()).thenReturn("msg" + index);
+        when(message.getMessageDirection()).thenReturn(direction);
+        when(message.getPlainTextBody()).thenReturn(plainTextPart);
+        when(message.getHeaders()).thenReturn(new HashMap<String, String>(){{put("Subject", subject);}});
+        return message;
     }
 
     @Test
     public void matchExactly() {
-        prepareSimpleSingleMailWithTexts("m369147", "123456", "", "");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, "123456", "");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123456", 100);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("123456"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("123456"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
+        List<FilterFeedback> filterFeedbacks = filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
         assertThat(filterFeedbacks.size(), is(1));
@@ -113,22 +71,16 @@ public class BankAccountFilterTest {
 
     @Test
     public void doNotFailOnNullSubject() {
-        prepareSimpleSingleMailWithTexts("m369147", null, "", "123456");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, null, "123456");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123456", 100);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("123456"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("123456"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
-
-        assertNotNull(filterFeedbacks);
-        assertThat(filterFeedbacks.size(), is(1));
-        assertThat(filterFeedbacks.get(0), matchesAccount("123456", "123456", 100, FilterResultState.OK));
-    }
-
-    @Test
-    public void matchExactlyRemovingDuplicates() {
-        prepareSimpleSingleMailWithTexts("m369147", "123456", "123456", "123456");
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
+        List<FilterFeedback> filterFeedbacks = filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
         assertThat(filterFeedbacks.size(), is(1));
@@ -137,9 +89,17 @@ public class BankAccountFilterTest {
 
     @Test
     public void matchExactlyIbanKnownCountry() {
-        prepareSimpleSingleMailWithTexts("m369147", "NL84INGB0002930139", "", "");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, "NL84INGB0002930139", "");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("NL84INGB0002930139", "NL84INGB0002930139", 100);
+        BankAccountMatch bankAccountMatch1 = new BankAccountMatch("NL84INGB0002930139", "2930139", 0);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("NL84INGB0002930139"), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        when(bankAccountFinder.containsSingleBankAccountNumber("NL84INGB0002930139", asList("NL84INGB0002930139"), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|NL84INGB0002930139|");
+        when(descriptionBuilder.build(conversation, bankAccountMatch1, message, 1)).thenReturn("|NL84INGB0002930139|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
@@ -150,9 +110,15 @@ public class BankAccountFilterTest {
 
     @Test
     public void matchExactlyIbanOfUnknownCountry() {
-        prepareSimpleSingleMailWithTexts("m369147", "NO1225673786578", "", "");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, "NO1225673786578", "");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("NO1225673786578", "NO1225673786578", 100);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("NO1225673786578"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("NO1225673786578", asList("NO1225673786578"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|NO1225673786578|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
@@ -162,9 +128,17 @@ public class BankAccountFilterTest {
 
     @Test
     public void matchWithSeparatorsIbanKnownCountry() {
-        prepareSimpleSingleMailWithTexts("m369147", "NL84 INGB000 2930 139", "", "");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, "NL84 INGB000 2930 139", "");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("NL84INGB0002930139", "NL84 INGB000 2930 139", 100);
+        BankAccountMatch bankAccountMatch1 = new BankAccountMatch("NL84INGB0002930139", "2930 139", 0);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("NL84 INGB000 2930 139"), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        when(bankAccountFinder.containsSingleBankAccountNumber("NL84INGB0002930139", asList("NL84 INGB000 2930 139"), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|NL84INGB0002930139|");
+        when(descriptionBuilder.build(conversation, bankAccountMatch1, message, 1)).thenReturn("|NL84INGB0002930139|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
@@ -175,9 +149,15 @@ public class BankAccountFilterTest {
 
     @Test
     public void matchWithSeparatorsIbanOfUnknownCountry() {
-        prepareSimpleSingleMailWithTexts("m369147", "NO 12 25 67 37 86 57 8", "", "");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, "NO 12 25 67 37 86 57 8", "");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("NO1225673786578", "NO 12 25 67 37 86 57 8", 100);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("NO 12 25 67 37 86 57 8"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("NO1225673786578", asList("NO 12 25 67 37 86 57 8"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|NO1225673786578|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
@@ -187,23 +167,36 @@ public class BankAccountFilterTest {
 
     @Test
     public void matchWithSeparators() {
-        prepareSimpleSingleMailWithTexts("m369147", "123456", "12 34 56", "1 23 45 6");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, "12 34 56", "1 23 45 6");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "12 34 56", 0);
+        BankAccountMatch bankAccountMatch1 = new BankAccountMatch("123456", "1 23 45 6", 0);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("12 34 56", "1 23 45 6"), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("12 34 56", "1 23 45 6"), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
+        when(descriptionBuilder.build(conversation, bankAccountMatch1, message, 1)).thenReturn("|123456|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
-        assertThat(filterFeedbacks.size(), is(3));
-        assertThat(filterFeedbacks.get(0), matchesAccount("123456", "123456", 100, FilterResultState.OK));
-        assertThat(filterFeedbacks.get(1), matchesAccount("123456", "12 34 56", 0, FilterResultState.OK));
-        assertThat(filterFeedbacks.get(2), matchesAccount("123456", "1 23 45 6", 0, FilterResultState.OK));
+        assertThat(filterFeedbacks.size(), is(2));
+        assertThat(filterFeedbacks.get(0), matchesAccount("123456", "12 34 56", 0, FilterResultState.OK));
+        assertThat(filterFeedbacks.get(1), matchesAccount("123456", "1 23 45 6", 0, FilterResultState.OK));
     }
 
     @Test
     public void matchExactlySubjectOnly() {
-        prepareSimpleSingleMailWithTexts("m369147", "Re: please use 123456", "Nothing to see here.", "<p>Nothing to see here.</p>");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, "Re: please use 123456", "Nothing to see here.");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123456", 100);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("Re: please use 123456", "Nothing to see here."), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("Re: please use 123456", "Nothing to see here."), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
@@ -213,9 +206,15 @@ public class BankAccountFilterTest {
 
     @Test
     public void matchExactlyPlainTextMailOnly() {
-        prepareSimpleSingleMailWithTexts("m369147", "subject", PLAIN_TEXT_CONTENT_FRAUDULENT, "<p>Nothing to see here.</p>");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, "subject", PLAIN_TEXT_CONTENT_FRAUDULENT);
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123456", 100);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("subject", PLAIN_TEXT_CONTENT_FRAUDULENT), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("subject", PLAIN_TEXT_CONTENT_FRAUDULENT), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
@@ -223,35 +222,18 @@ public class BankAccountFilterTest {
         assertThat(filterFeedbacks.get(0), matchesAccount("123456", "123456", 100, FilterResultState.OK));
     }
 
-    @Test
-    public void matchExactlyHtmlMailOnly() {
-        prepareSimpleSingleMailWithTexts("m369147", "subject", "Nothing to see here.", HTML_CONTENT_FRAUDULENT);
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
-
-        assertNotNull(filterFeedbacks);
-        assertThat(filterFeedbacks.size(), is(1));
-        assertThat(filterFeedbacks.get(0), matchesAccount("123456", "123456", 100, FilterResultState.OK));
-    }
-
-    @Test
-    public void matchSpannedHtmlMailOnly() {
-        prepareSimpleSingleMailWithTexts("m369147", "subject", "Nothing to see here.", HTML_CONTENT_FRAUDULENT_SPANS);
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
-
-        assertNotNull(filterFeedbacks);
-        assertThat(filterFeedbacks.size(), is(1));
-        assertThat(filterFeedbacks.get(0), matchesAccount("123456", "123456", 100, FilterResultState.OK));
-    }
 
     @Test
     public void matchEscapedHtmlMailOnly() {
-        prepareSimpleSingleMailWithTexts("m369147", "subject", "Nothing to see here.", "Message with a fraudulent bank account: 1&#50;3&#x34;56</b>. Good luck!");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, "subject", "Message with a fraudulent bank account: 1&#50;3&#x34;56</b>. Good luck!");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123456", 100);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("subject", "Message with a fraudulent bank account: 1&#50;3&#x34;56</b>. Good luck!"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("subject", "Message with a fraudulent bank account: 1&#50;3&#x34;56</b>. Good luck!"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
@@ -261,9 +243,20 @@ public class BankAccountFilterTest {
 
     @Test
     public void matchMultipleBankAccounts() {
-        prepareSimpleSingleMailWithTexts("m369147", "subject", "123456", "NL84INGB0002930139");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, "123456", "NL84INGB0002930139");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123456", 100);
+        BankAccountMatch bankAccountMatch1 = new BankAccountMatch("NL84INGB0002930139", "NL84INGB0002930139", 100);
+        BankAccountMatch bankAccountMatch2 = new BankAccountMatch("NL84INGB0002930139", "2930139", 10);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("123456", "NL84INGB0002930139"), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1, bankAccountMatch2));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("123456", "NL84INGB0002930139"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("NL84INGB0002930139", asList("123456", "NL84INGB0002930139"), AD_ID)).thenReturn(asList(bankAccountMatch1, bankAccountMatch2));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
+        when(descriptionBuilder.build(conversation, bankAccountMatch1.withZeroScore(), message, 1)).thenReturn("|NL84INGB0002930139|");
+        when(descriptionBuilder.build(conversation, bankAccountMatch2.withZeroScore(), message, 1)).thenReturn("|NL84INGB0002930139|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
@@ -276,9 +269,17 @@ public class BankAccountFilterTest {
 
     @Test
     public void onlyLowCertaintyMatchesGiveHoldScore() {
-        prepareSimpleSingleMailWithTexts("m369147", "subject", "Maak aub geld over aan rekening 12 34 56 94 3, of naar rekening 12.34.56.94.3.", "Nothing to see here");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, "subject", "Maak aub geld over aan rekening 12 34 56 94 3, of naar rekening 12.34.56.94.3.");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "12 34 56", 50);
+        BankAccountMatch bankAccountMatch1 = new BankAccountMatch("123456", "12.34.56", 50);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("subject", "Maak aub geld over aan rekening 12 34 56 94 3, of naar rekening 12.34.56.94.3."), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("subject", "Maak aub geld over aan rekening 12 34 56 94 3, of naar rekening 12.34.56.94.3."), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
+        when(descriptionBuilder.build(conversation, bankAccountMatch1.withZeroScore(), message, 1)).thenReturn("|123456|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertTrue(filterFeedbacks.size() > 1);
@@ -290,283 +291,59 @@ public class BankAccountFilterTest {
     }
 
     @Test
-    public void usesConfiguredHighScore() {
-        config = new BankAccountFilterConfiguration(FRAUDULENT_BANK_ACCOUNTS, 80, 0, 0);
-        bankAccountFinder = new BankAccountFinder(config);
-        filter = new BankAccountFilter(bankAccountFinder, mailCloakingService, mailRepository, mailsParser);
-
-        prepareSimpleSingleMailWithTexts("m369147", "subject", "123456", "NL84INGB0002930139");
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
-
-        assertThat(filterFeedbacks.get(0).getScore(), is(80));
-    }
-
-    @Test
-    public void usesConfiguredLowScore() {
-        config = new BankAccountFilterConfiguration(FRAUDULENT_BANK_ACCOUNTS, 100, 30, 0);
-        bankAccountFinder = new BankAccountFinder(config);
-        filter = new BankAccountFilter(bankAccountFinder, mailCloakingService, mailRepository, mailsParser);
-
-        prepareSimpleSingleMailWithTexts("m369147", "subject", "1234568675", "");
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
-
-        assertThat(filterFeedbacks.get(0).getScore(), is(30));
-    }
-
-    /*
-    @Test
-    public void reasonContainsEvaluationFlag() {
-        config.setStatus(FilterStatus.EVALUATION);
-
-        prepareSimpleSingleMailWithTexts("m369147", "subject", "123456", "NL84INGB0002930139");
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
-
-        assertThat(filterFeedbacks.get(0).isEvaluation(), is(true));
-    }*/
-
-    @Test
-    public void descriptionContainsAllReportHeaders() {
-        when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-
-        Map<String, String> customValues = new HashMap<>();
-        customValues.put("from-userid", fromUserId);
-        customValues.put("to-userid", toUserId);
-        when(conversation.getCustomValues()).thenReturn(customValues);
-
-        when(conversation.getBuyerId()).thenReturn("fraudster@mail.com");
-        when(conversation.getSellerId()).thenReturn("victim@mail.com");
-        when(conversation.getId()).thenReturn("987654");
-
-        // First e-mail in conversation, sender is in the ReplyTo header.
-        when(mail.getReplyTo()).thenReturn("f.r.audster@mail.com");
-        when(mail.getUniqueHeader("X-Originating-IP")).thenReturn("10.1.2.3");
-
-        MailAddress anonymousFraudsterAddress = new MailAddress("fraudster-anon@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).
-                thenReturn(anonymousFraudsterAddress);
-
-        prepareSimpleSingleMailWithTexts("m369147", "123456", "", "");
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
-
-        assertNotNull(filterFeedbacks);
-        assertThat(filterFeedbacks.size(), is(1));
-        FilterFeedback reason = filterFeedbacks.get(0);
-        assertThat(reason.getDescription(), is(
-                "fraudster@mail.com|" +
-                        "100|" +
-                        "123456|" +
-                        "fraudster-anon@mail.marktplaats.nl|" +
-                        "f.r.audster@mail.com|" +
-                        "10.1.2.3|" +
-                        "victim@mail.com|" +
-                        "987654|" +
-                        "1|"+fromUserId+"|"+toUserId));
-    }
-
-    @Test
-    public void descriptionContainsSimplifiedIpAddress() {
-        when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-
-        when(conversation.getBuyerId()).thenReturn("fraudster@mail.com");
-        when(conversation.getSellerId()).thenReturn("victim@mail.com");
-        when(conversation.getId()).thenReturn("987654");
-
-        when(mail.getFrom()).thenReturn("f.r.audster@mail.com");
-        when(mail.getUniqueHeader("X-Originating-IP")).thenReturn("[10.1.2.3]");
-
-        MailAddress anonymousFraudsterAddress = new MailAddress("fraudster-anon@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).
-                thenReturn(anonymousFraudsterAddress);
-
-        prepareSimpleSingleMailWithTexts("m369147", "123456", "", "");
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
-
-        assertNotNull(filterFeedbacks);
-        assertThat(filterFeedbacks.size(), is(1));
-        FilterFeedback filterFeedback = filterFeedbacks.get(0);
-        assertThat(filterFeedback.getDescription(), containsString("|10.1.2.3|"));
-    }
-
-    @Test
     public void descriptionInFilterReasonContainsDataForOlderMessageWithFoundBankAccountNumber() throws Exception {
-        // Create the mails
-        final List<Mail> mails = new ArrayList<>(6);
-        mails.add(createMockMail(0, "automatisch@marktplaats.nl", "f.r.audster@mail.com", "innocent"));
-        mails.add(createMockMail(1, "thevictim@mail.com", null, "innocent"));
-        mails.add(createMockMail(2, "f.r.audster@mail.com", null, "give me money! 123.456"));
-        mails.add(createMockMail(3, "thevictim@mail.com", null, "it is transferred to 123456\n> give me money! 123456"));
-        mails.add(createMockMail(4, "f.r.audster@mail.com", null, "give me more money!"));
-        mails.add(createMockMail(5, "thevictim@mail.com", null, "where is my product?\n> give me more money! 123 456"));
-
-        // Create the messages
         List<Message> messages = new ArrayList<>(6);
-        messages.add(crateMockMessage(0, MessageDirection.BUYER_TO_SELLER));
-        messages.add(crateMockMessage(1, MessageDirection.SELLER_TO_BUYER));
-        messages.add(crateMockMessage(2, MessageDirection.BUYER_TO_SELLER));
-        messages.add(crateMockMessage(3, MessageDirection.SELLER_TO_BUYER));
-        messages.add(crateMockMessage(4, MessageDirection.BUYER_TO_SELLER));
-        messages.add(crateMockMessage(5, MessageDirection.SELLER_TO_BUYER));
+        messages.add(createMockMessage("0", MessageDirection.BUYER_TO_SELLER, "", ""));
+        messages.add(createMockMessage("1", MessageDirection.SELLER_TO_BUYER, "", "123456"));
+        messages.add(createMockMessage("2", MessageDirection.BUYER_TO_SELLER, "", ""));
+        messages.add(createMockMessage("3", MessageDirection.SELLER_TO_BUYER, "", ""));
+        messages.add(createMockMessage("4", MessageDirection.BUYER_TO_SELLER, "", ""));
+        Message message = createMockMessage("5", MessageDirection.SELLER_TO_BUYER, "subject", "where is my product?\n> give me more money! 123 456");
+        messages.add(message);
 
         Map<String, String> customValues = new HashMap<>();
         customValues.put("from-userid", fromUserId);
         customValues.put("to-userid", toUserId);
         when(conversation.getCustomValues()).thenReturn(customValues);
-
         when(conversation.getBuyerId()).thenReturn("fraudster@mail.com");
         when(conversation.getSellerId()).thenReturn("victim@mail.com");
-        when(conversation.getId()).thenReturn("987654");
-
+        when(conversation.getAdId()).thenReturn(AD_ID);
         when(conversation.getMessages()).thenReturn(messages);
+        when(messageProcessingContext.getMessage()).thenReturn(messages.get(5));
 
-        MailAddress anonymousFraudsterAddress = new MailAddress("fraudster-anon@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).
-                thenReturn(anonymousFraudsterAddress);
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123 456", 50);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("subject", "where is my product?\n> give me more money! 123 456"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("subject", "where is my product?\n> give me more money! 123 456"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("fraudster@mail.com|100|123456|fraudster-anon@mail.marktplaats.nl|f.r.audster@mail.com||victim@mail.com|"+AD_ID+"|4|"+fromUserId+"|"+toUserId);
 
-        MailAddress anonymousVictimAddress = new MailAddress("victim-anon@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(Seller, conversation)).
-                thenReturn(anonymousVictimAddress);
-
-        mockDfsAndParser(mails);
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, messages.get(5), mails.get(5));
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
-        assertNotNull(filterFeedbacks);
         assertThat(filterFeedbacks.size(), is(1));
         FilterFeedback filterFeedback = filterFeedbacks.get(0);
         assertThat(filterFeedback.getDescription(), is(
-                "fraudster@mail.com|" +
-                        "100|" +
-                        "123456|" +
-                        "fraudster-anon@mail.marktplaats.nl|" +
-                        "f.r.audster@mail.com|" +
-                        "|" +
-                        "victim@mail.com|" +
-                        "987654|" +
-                        "4|"+fromUserId+"|"+toUserId));
-    }
-
-    @Test
-    public void descriptionInFilterReasonIsCorrectWhenSellerIsFraudster() throws Exception {
-        // Create the mails
-        final List<Mail> mails = new ArrayList<>(2);
-        mails.add(createMockMail(0, "automatisch@marktplaats.nl", "buyer@mail.com", "innocent"));
-        mails.add(createMockMail(1, "seller@mail.com", null, "give me money! 123.456"));
-
-        // Create the messages
-        List<Message> messages = new ArrayList<>(2);
-        messages.add(crateMockMessage(0, MessageDirection.BUYER_TO_SELLER));
-        messages.add(crateMockMessage(1, MessageDirection.SELLER_TO_BUYER));
-
-        Map<String, String> customValues = new HashMap<>();
-        customValues.put("from-userid", fromUserId);
-        customValues.put("to-userid", toUserId);
-        when(conversation.getCustomValues()).thenReturn(customValues);
-        when(conversation.getBuyerId()).thenReturn("buyer@mail.com");
-        when(conversation.getSellerId()).thenReturn("seller@mail.com");
-        when(conversation.getId()).thenReturn("987654");
-
-        when(conversation.getMessages()).thenReturn(messages);
-
-        MailAddress anonymousBuyerAddress = new MailAddress("anonymous-buyer@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).thenReturn(anonymousBuyerAddress);
-
-        MailAddress anonymousSellerAddress = new MailAddress("anonymous-seller@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(Seller, conversation)).thenReturn(anonymousSellerAddress);
-
-        mockDfsAndParser(mails);
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, messages.get(1), mails.get(1));
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
-
-        assertNotNull(filterFeedbacks);
-        assertThat(filterFeedbacks.size(), is(1));
-        FilterFeedback filterFeedback = filterFeedbacks.get(0);
-        assertThat(filterFeedback.getDescription(), is(
-                "seller@mail.com|" +
-                        "100|" +
-                        "123456|" +
-                        "anonymous-seller@mail.marktplaats.nl|" +
-                        "seller@mail.com|" +
-                        "|" +
-                        "buyer@mail.com|" +
-                        "987654|" +
-                        "1|" +
-                        "456|" +
-                        "123"));
-    }
-
-    @Test
-    public void descriptionInFilterReasonIsCorrectWhenBuyerIsFraudster() throws Exception {
-        // Create the mails
-        final List<Mail> mails = new ArrayList<>(1);
-        mails.add(createMockMail(0, "automatisch@marktplaats.nl", "buyer@mail.com", "123456"));
-
-        // Create the messages
-        List<Message> messages = new ArrayList<>(2);
-        messages.add(crateMockMessage(0, MessageDirection.BUYER_TO_SELLER));
-
-        Map<String, String> customValues = new HashMap<>();
-        customValues.put("from-userid", fromUserId);
-        customValues.put("to-userid", toUserId);
-        when(conversation.getCustomValues()).thenReturn(customValues);
-        when(conversation.getBuyerId()).thenReturn("buyer@mail.com");
-        when(conversation.getSellerId()).thenReturn("seller@mail.com");
-        when(conversation.getId()).thenReturn("987654");
-
-        when(conversation.getMessages()).thenReturn(messages);
-
-        MailAddress anonymousBuyerAddress = new MailAddress("anonymous-buyer@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).thenReturn(anonymousBuyerAddress);
-
-        MailAddress anonymousSellerAddress = new MailAddress("anonymous-seller@mail.marktplaats.nl");
-        when(mailCloakingService.createdCloakedMailAddress(Seller, conversation)).thenReturn(anonymousSellerAddress);
-
-        mockDfsAndParser(mails);
-
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, messages.get(0), mails.get(0));
-        List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
-
-        assertNotNull(filterFeedbacks);
-        assertThat(filterFeedbacks.size(), is(1));
-        FilterFeedback filterFeedback = filterFeedbacks.get(0);
-        assertThat(filterFeedback.getDescription(), is(
-                "buyer@mail.com|" +
-                        "100|" +
-                        "123456|" +
-                        "anonymous-buyer@mail.marktplaats.nl|" +
-                        "buyer@mail.com|" +
-                        "|" +
-                        "seller@mail.com|" +
-                        "987654|" +
-                        "1|" +
-                        "123|" +
-                        "456"));
+            "fraudster@mail.com|100|123456|fraudster-anon@mail.marktplaats.nl|f.r.audster@mail.com||victim@mail.com|"+AD_ID+"|4|"+fromUserId+"|"+toUserId));
     }
 
     @Test
     public void doNotFailOnNullAdId() {
-        prepareSimpleSingleMailWithTexts(null, null, "", "123456");
+        when(conversation.getAdId()).thenReturn(null);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, null, "123456");
+        when(messageProcessingContext.getMessage()).thenReturn(message);
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         this.filter.filter(messageProcessingContext);
     }
 
     @Test
     public void findAdIdMatch() {
-        prepareSimpleSingleMailWithTexts("m757706428", null, "", "the ad is: 757706428");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, null, "the ad is: 757706428");
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("757706428", "757706428", 20);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("the ad is: 757706428"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("757706428", asList("the ad is: 757706428"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|757706428|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
@@ -576,64 +353,24 @@ public class BankAccountFilterTest {
 
     @Test
     public void removeScoreOnAdIdMatchWhenHigherMatchIsPresent() {
-        prepareSimpleSingleMailWithTexts("m757706428", null, "", "pay me via 123456, the ad is: 757706428");
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        Message message = createMockMessage("1", MessageDirection.BUYER_TO_SELLER, null, "pay me via 123456, the ad is: 757706428");
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
+        when(messageProcessingContext.getMessage()).thenReturn(message);
+        BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123456", 100);
+        BankAccountMatch bankAccountMatch1 = new BankAccountMatch("757706428", "757706428", 20);
+        when(bankAccountFinder.findBankAccountNumberMatches(asList("pay me via 123456, the ad is: 757706428"), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("pay me via 123456, the ad is: 757706428"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("757706428", asList("pay me via 123456, the ad is: 757706428"), AD_ID)).thenReturn(asList(bankAccountMatch1));
+        when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
+        when(descriptionBuilder.build(conversation, bankAccountMatch1.withZeroScore(), message, 1)).thenReturn("|757706428|");
 
-        MessageProcessingContext messageProcessingContext = prepareMessageProcessingContext(conversation, message, mail);
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
 
         assertNotNull(filterFeedbacks);
         assertThat(filterFeedbacks.size(), is(2));
         assertThat(filterFeedbacks.get(0), matchesAccount("123456", "123456", 100, FilterResultState.OK));
         assertThat(filterFeedbacks.get(1), matchesAccount("757706428", "757706428", 0, FilterResultState.OK));
-    }
-
-    private Mail createMockMail(int index, String from, String replyTo, String plain) {
-        Mail mail = mock(Mail.class, "mail_" + index);
-        when(mail.getSubject()).thenReturn("mail " + index);
-        when(mail.getFrom()).thenReturn(from);
-        when(mail.getReplyTo()).thenReturn(replyTo);
-        when(mail.getCustomHeaders()).thenReturn(Collections.<String, String>emptyMap());
-
-        // plain part
-        TypedContent<String> mutablePlainContent = mock(TypedContent.class);
-        when(mutablePlainContent.getContent()).thenReturn(plain);
-        when(mutablePlainContent.getMediaType()).thenReturn(MediaType.create("text", "plain"));
-        when(mutablePlainContent.isMutable()).thenReturn(true);
-
-        // html part
-        TypedContent<String> mutableHtmlContent = mock(TypedContent.class);
-        when(mutableHtmlContent.getContent()).thenReturn("<html>" + plain + "</html>");
-        when(mutableHtmlContent.getMediaType()).thenReturn(MediaType.create("text", "html"));
-        when(mutableHtmlContent.isMutable()).thenReturn(true);
-
-        when(mail.getTextParts(false)).thenReturn(asTypedContentList(mutablePlainContent, mutableHtmlContent));
-
-        return mail;
-    }
-
-    private Message crateMockMessage(int index, MessageDirection direction) {
-        Message message = mock(Message.class, "message_" + index);
-        when(message.getMessageDirection()).thenReturn(direction);
-        when(message.getId()).thenReturn("/messages/" + index);
-        return message;
-    }
-
-    private void mockDfsAndParser(final List<Mail> mails) throws ParsingException {
-        when(mailRepository.readInboundMail(anyString())).thenAnswer(invocation ->
-                        ((String) invocation.getArguments()[0]).getBytes()
-        );
-
-        when(mailsParser.readMail(any(byte[].class))).thenAnswer(invocation -> {
-            String name = new String((byte[]) invocation.getArguments()[0]);
-            int mailIndex = Integer.parseInt(name.substring("/messages/".length()));
-            return mails.get(mailIndex);
-        });
-    }
-
-    // Circumvents problems with generics in arrays
-    @SuppressWarnings({"unchecked"})
-    private List<TypedContent<String>> asTypedContentList(TypedContent<String> c1, TypedContent<String> c2) {
-        return Arrays.asList(c1, c2);
     }
 
     private static class BankAccountFilterMatcher extends TypeSafeMatcher<FilterFeedback> {

@@ -3,9 +3,6 @@ package com.ecg.messagecenter.identifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-/**
- * Created by beckart on 15.10.15.
- */
 public class UserIdentifierServiceFactory {
 
     private UserIdentifierType userIdentifierType;
@@ -24,13 +21,10 @@ public class UserIdentifierServiceFactory {
     }
 
     public UserIdentifierService createUserIdentifierService() {
-
-        if(userIdentifierType == UserIdentifierType.BY_MAIL) {
+        if (userIdentifierType == UserIdentifierType.BY_MAIL) {
             return new UserIdentifierServiceByMailAddress();
         } else {
             return new UserIdentifierServiceByUserIdHeaders(buyerUserIdName, sellerUserIdName);
         }
-
     }
-
 }

@@ -27,7 +27,7 @@ import java.io.Writer;
 @Controller
 class ConversationController {
 
-    private static final Timer API_POSTBOX_CONVERSATION_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-by-id");
+    private static final Timer API_POSTBOX_CONVERSATION_TIMER = TimingReports.newTimer("webapi-postbox-conversation-by-id");
 
     private final PostBoxService postBoxService;
 
@@ -60,16 +60,16 @@ class ConversationController {
     @RequestMapping(value = PostBoxConversationCommand.MAPPING,
             produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.PUT)
     @ResponseBody
-    ResponseObject<?> updateConversationToRead(
+    ResponseObject<?> markConversationAsRead(
             @PathVariable("userId") String userId,
             @PathVariable("conversationId") String conversationId,
             HttpServletResponse response) {
 
-        return wrapResponse(postBoxService.updateConversationToRead(userId, conversationId), response);
+        return wrapResponse(postBoxService.markConversationAsRead(userId, conversationId), response);
     }
 
     private ResponseObject<?> wrapResponse(Optional<ConversationResponse> conversationResponseOpt, HttpServletResponse response) {
-        Timer.Context timerContext = API_POSTBOX_CONVERSATION_BY_ID.time();
+        Timer.Context timerContext = API_POSTBOX_CONVERSATION_TIMER.time();
         try {
             return conversationResponseOpt.isPresent() ? ResponseObject.of(conversationResponseOpt.get()) : entityNotFound(response);
         } finally {

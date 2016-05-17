@@ -4,9 +4,6 @@ import org.joda.time.DateTime;
 
 import java.text.SimpleDateFormat;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class MessageCenterUtils {
     public static String truncateText(String description, int maxChars) {
 

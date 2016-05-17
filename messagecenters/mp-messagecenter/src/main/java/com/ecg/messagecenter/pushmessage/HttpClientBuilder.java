@@ -18,10 +18,6 @@ import java.util.List;
  * Create HTTP clients. It will be ensured, that the connection pool from created clients will be shutdown on VM shutdown.
  * <p>
  * NOTE: The factory shouldn't be used in loops because all generated HTTP client instances will be stored in a list for shutdown hook.
- * 
- * User: maldana Date: 05.07.11 Time: 08:42
- * 
- * @author maldana@ebay.de
  */
 final class HttpClientBuilder {
 
@@ -52,8 +48,8 @@ final class HttpClientBuilder {
     }
 
 
-    public static HttpClient buildHttpClient( int connectionTimeout,
-            int connectionManagerTimeout, int socketTimeout, int maxConnectionsPerHost, int maxTotalConnections) {
+    public static HttpClient buildHttpClient(int connectionTimeout,
+                                             int connectionManagerTimeout, int socketTimeout, int maxConnectionsPerHost, int maxTotalConnections) {
 
         HttpClient httpClient = new DefaultHttpClient(createConnectionManager(maxConnectionsPerHost, maxTotalConnections));
 

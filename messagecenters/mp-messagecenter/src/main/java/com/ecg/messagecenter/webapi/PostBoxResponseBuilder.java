@@ -27,7 +27,7 @@ public class PostBoxResponseBuilder {
         this.userIdentifierService = userIdentifierService;
     }
 
-    ResponseObject<PostBoxResponse> buildPostBoxResponse(String email, int size, int page, PostBox postBox) {
+    public PostBoxResponse buildPostBoxResponse(String email, int size, int page, PostBox postBox) {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         postBoxResponse.initNumUnread(postBox.getNewRepliesCounter(), postBox.getLastModification());
@@ -36,7 +36,7 @@ public class PostBoxResponseBuilder {
 
         postBoxResponse.meta(postBoxResponse.getConversations().size(), page, size);
 
-        return ResponseObject.of(postBoxResponse);
+        return postBoxResponse;
     }
 
     private void initConversationsPayload(String email, List<ConversationThread> conversationThreads, PostBoxResponse postBoxResponse) {

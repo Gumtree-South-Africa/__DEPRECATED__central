@@ -1,4 +1,4 @@
 # mp-eventpublisher-rabbitmq
 
 Based on 'replyts2-event-publisher' taken from https://github.corp.ebay.com/ReplyTS/replyts2-event-publisher
-(original git hash: b358a270224ad57ef5903e9f255736251e826dd6)
+(original git hash: a967169ec86dd9f4289a7f1bcaa22146899c4bcb)

@@ -11,12 +11,12 @@ import static org.junit.Assert.*;
 
 public class BankAccountFilterFactoryTest {
 
-    @Mock MailCloakingService mailCloakingService;
+    @Mock DescriptionBuilder descriptionBuilder;
     @Mock MailRepository mailRepository;
 
     @Test
     public void testParseConfiguration() throws Exception {
-        BankAccountFilterFactory factory = new BankAccountFilterFactory(mailCloakingService, mailRepository);
+        BankAccountFilterFactory factory = new BankAccountFilterFactory(descriptionBuilder);
 
         String json = "{" +
                 "    \"fraudulentBankAccounts\": [" +
@@ -48,7 +48,7 @@ public class BankAccountFilterFactoryTest {
 
     @Test
     public void testParseConfigurationWithDefaults() throws Exception {
-        BankAccountFilterFactory factory = new BankAccountFilterFactory(mailCloakingService, mailRepository);
+        BankAccountFilterFactory factory = new BankAccountFilterFactory(descriptionBuilder);
 
         String json = "{ \"fraudulentBankAccounts\": [ ]}";
 

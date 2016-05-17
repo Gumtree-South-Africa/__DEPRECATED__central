@@ -2,6 +2,7 @@ package com.ecg.messagecenter.persistence;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -11,29 +12,18 @@ import org.joda.time.DateTime;
 
 import static com.ecg.replyts.core.api.util.Pairwise.pairsAreEqual;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 15:40
- *
- * @author maldana@ebay.de
- */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ConversationThread {
-
-    /**
-     * {@value true} when this was changed since it was last read.
-     */
-    private final boolean modified;
 
     private final String adId;
     private final String conversationId;
     private final DateTime createdAt;
     private final DateTime modifiedAt;
     private final DateTime receivedAt;
-    private final long numUnreadMessages;
+    private int numUnreadMessages;
     private final Optional<Long> negotiationId;
 
-    // introduced later therefore Option to be compatible with persistent data
+    //introduced later therefore Option to be compatible with persistent data
     private final Optional<String> previewLastMessage;
     private final Optional<DateTime> lastMessageCreatedAt;
 
@@ -51,7 +41,9 @@ public class ConversationThread {
             @JsonProperty("createdAt") DateTime createdAt,
             @JsonProperty("modifiedAt") DateTime modifiedAt,
             @JsonProperty("receivedAt") DateTime receivedAt,
-            @JsonProperty("numUnreadMessages") long numUnreadMessages,
+            // TODO numUnreadMessages should be removed from constructor. It should be serialized to json only for Riak and
+            // not for Cassandra. For Cassandra the counter table should be used.
+            @JsonProperty("numUnreadMessages") int numUnreadMessages,
             @JsonProperty("previewLastMessage") Optional<String> previewLastMessage,
             @JsonProperty("buyerName") Optional<String> buyerName,
             @JsonProperty("sellerName") Optional<String> sellerName,
@@ -62,34 +54,11 @@ public class ConversationThread {
             @JsonProperty("userIdSeller") Optional<Long> userIdSeller,
             @JsonProperty("lastMessageCreatedAt") Optional<DateTime> lastMessageCreatedAt) {
 
-        this(false, adId, conversationId, createdAt, modifiedAt, receivedAt, numUnreadMessages, previewLastMessage, buyerName, sellerName, buyerId, messageDirection, negotiationId, userIdBuyer, userIdSeller, lastMessageCreatedAt);
-    }
-
-    public ConversationThread(
-            boolean modified,
-            String adId,
-            String conversationId,
-            DateTime createdAt,
-            DateTime modifiedAt,
-            DateTime receivedAt,
-            long numUnreadMessages,
-            Optional<String> previewLastMessage,
-            Optional<String> buyerName,
-            Optional<String> sellerName,
-            Optional<String> buyerId,
-            Optional<String> messageDirection,
-            Optional<Long> negotiationId,
-            Optional<Long> userIdBuyer,
-            Optional<Long> userIdSeller,
-            Optional<DateTime> lastMessageCreatedAt
-    ) {
-
         Preconditions.checkNotNull(adId);
         Preconditions.checkNotNull(conversationId);
         Preconditions.checkNotNull(createdAt);
         Preconditions.checkNotNull(modifiedAt);
 
-        this.modified = modified;
         this.adId = adId;
         this.conversationId = conversationId;
         this.createdAt = createdAt;
@@ -109,19 +78,15 @@ public class ConversationThread {
 
     public ConversationThread sameButUnread(String message) {
         Optional<String> actualMessage = Optional.fromNullable(message).or(previewLastMessage);
-        return new ConversationThread(modified, adId, conversationId, createdAt, DateTime.now(), DateTime.now(), numUnreadMessages + 1, actualMessage, buyerName, sellerName, buyerId, messageDirection, negotiationId, userIdBuyer, userIdSeller, lastMessageCreatedAt);
+        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), numUnreadMessages + 1, actualMessage, buyerName, sellerName, buyerId, messageDirection, negotiationId, userIdBuyer, userIdSeller, lastMessageCreatedAt);
     }
 
     public ConversationThread sameButRead() {
-        return new ConversationThread(modified, adId, conversationId, createdAt, DateTime.now(), DateTime.now(), 0, previewLastMessage, buyerName, sellerName, buyerId, messageDirection, negotiationId, userIdBuyer, userIdSeller, lastMessageCreatedAt);
+        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), 0, previewLastMessage, buyerName, sellerName, buyerId, messageDirection, negotiationId, userIdBuyer, userIdSeller, lastMessageCreatedAt);
     }
 
     public boolean containsNewListAggregateData() {
         return previewLastMessage.isPresent() && messageDirection.isPresent();
-    }
-
-    public boolean isModified() {
-        return modified;
     }
 
     public String getAdId() {
@@ -161,8 +126,12 @@ public class ConversationThread {
         return numUnreadMessages > 0;
     }
 
-    public long getNumUnreadMessages() {
+    public int getNumUnreadMessages() {
         return numUnreadMessages;
+    }
+
+    public void setNumUnreadMessages(int numUnreadMessages) {
+        this.numUnreadMessages = numUnreadMessages;
     }
 
     public DateTime getReceivedAt() {

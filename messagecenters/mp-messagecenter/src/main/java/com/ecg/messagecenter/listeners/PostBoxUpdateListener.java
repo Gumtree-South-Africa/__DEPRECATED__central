@@ -3,9 +3,10 @@ package com.ecg.messagecenter.listeners;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
+import com.ecg.messagecenter.persistence.NewMessageListener;
 import com.ecg.messagecenter.persistence.PostBoxService;
 import com.ecg.messagecenter.pushmessage.AdImageLookup;
-import com.ecg.messagecenter.pushmessage.PushMessageOnUnreadConversationCallback;
+import com.ecg.messagecenter.pushmessage.PushMessageOnNewReply;
 import com.ecg.messagecenter.pushmessage.PushService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
@@ -19,20 +20,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 17:33
- *
- * @author maldana@ebay.de
- */
 public class PostBoxUpdateListener implements MessageProcessedListener {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
     private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
     private static final Counter PROCESSING_FAILED = TimingReports.newCounter("message-box.postBoxUpdateListener.failed");
-
-    private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
     private static final String CUSTOM_VALUE_SKIP_MC = "skip-message-center";
 
@@ -60,7 +54,6 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
 
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
-
         if (skipMessageCentreForMessage(conversation)) {
             return;
         }
@@ -70,7 +63,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         }
 
         if (conversation.getSellerId() == null || conversation.getBuyerId() == null) {
-            LOG.info(
+            LOGGER.info(
                     String.format(
                             "No seller or buyer email available for conversation %s and conv-state %s and message %s",
                             conversation.getId(),
@@ -87,10 +80,9 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             if (buyerIdOptional.isPresent() || sellerIdOptional.isPresent()) {
                 PROCESSING_SUCCESS.inc();
             }
-
         } catch (Exception e) {
             PROCESSING_FAILED.inc();
-            LOG.error(
+            LOGGER.error(
                     String.format(
                             "Error with post-box synching for conversation %s and conv-state %s and message %s",
                             conversation.getId(),
@@ -122,7 +114,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     }
 
     private void updateMessageCenter(String userId, ConversationRole role, Conversation conversation, Message message, boolean newReplyArrived) {
-        Optional<PushMessageOnUnreadConversationCallback> callbackOptional;
+        Optional<NewMessageListener> callbackOptional;
         if (newReplyArrived) {
             callbackOptional = createPushMessageCallback(conversation, message);
         } else {
@@ -132,9 +124,9 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         postBoxService.processNewMessage(userId, conversation, message, role, newReplyArrived, callbackOptional);
     }
 
-    private Optional<PushMessageOnUnreadConversationCallback> createPushMessageCallback(Conversation conversation, Message message) {
+    private Optional<NewMessageListener> createPushMessageCallback(Conversation conversation, Message message) {
         if (pushEnabled) {
-            return Optional.of(new PushMessageOnUnreadConversationCallback(
+            return Optional.of(new PushMessageOnNewReply(
                     pushService,
                     adImageLookup,
                     conversation,

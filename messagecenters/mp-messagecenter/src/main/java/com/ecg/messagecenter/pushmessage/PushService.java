@@ -17,13 +17,6 @@ import java.io.UnsupportedEncodingException;
 
 import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
 
-/**
- * User: maldana
- * Date: 18.10.13
- * Time: 11:14
- *
- * @author maldana@ebay.de
- */
 public class PushService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PushService.class);

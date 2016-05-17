@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @RestController
 @RequestMapping(value = "/health")
 public class HealthController {
-    private static final String POM_PROPERTIES_VERSION_KEY = "version";
-
     @RequestMapping(method = RequestMethod.GET)
     public Health get() throws Exception {
         String version = getClass().getPackage().getImplementationVersion();

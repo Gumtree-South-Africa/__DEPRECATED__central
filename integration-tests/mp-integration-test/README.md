@@ -1,4 +1,4 @@
 # mp-integration-test
 
 Originally taken from https://github.corp.ebay.com/ecg-marktplaats/mp-replyts2
-(original git hash: 162f9b1bfe8200484f29b29030a73132faf96dc6)
+(original git hash: d296cd870d6a93ce5db9f1e9f211aa3e13e6679a)

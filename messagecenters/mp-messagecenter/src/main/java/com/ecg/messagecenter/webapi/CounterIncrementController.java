@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.persistence.PostBox;
-import com.ecg.messagecenter.persistence.PostBoxRepository;
+import com.ecg.messagecenter.persistence.PostBoxService;
 import com.ecg.messagecenter.webapi.requests.IncreaseUnreadCountersCommand;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.google.common.base.Function;
@@ -26,17 +26,18 @@ import java.util.Set;
 import static com.google.common.collect.FluentIterable.from;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+// TODO [ taken from original mp repository ]: To be refactored !!! We currently don't use it so park it for now !!!
 @Controller
 class CounterIncrementController {
 
-    private final PostBoxRepository repository;
+    private final PostBoxService postBoxService;
 
     private static final Logger LOG = LoggerFactory.getLogger(CounterIncrementController.class);
 
 
     @Autowired
-    public CounterIncrementController(PostBoxRepository repository) {
-        this.repository = repository;
+    public CounterIncrementController(PostBoxService postBoxService) {
+        this.postBoxService = postBoxService;
     }
 
     @ExceptionHandler
@@ -47,7 +48,6 @@ class CounterIncrementController {
     @RequestMapping(value = IncreaseUnreadCountersCommand.MAPPING, method = POST)
     @ResponseBody
     public ResponseObject<?> incrementReadCounters(@RequestBody IncreaseUnreadCountersCommand cmd) {
-
 
         Result loadedItems = preloadPostBoxes(cmd);
 
@@ -69,7 +69,8 @@ class CounterIncrementController {
 
         for (PostBox postBox : loadedItems.items.values()) {
             try {
-                repository.write(postBox);
+// TODO [ taken from original mp repository ]: implement me!
+//                repository.write(postBox);
             } catch (RuntimeException e) {
                 LOG.error("could not update postbox: #" + postBox.getUserId(), e);
             }
@@ -96,7 +97,8 @@ class CounterIncrementController {
 
         for (String mailAddress : emails) {
             try {
-                PostBox postBox = repository.byId(mailAddress);
+// TODO [ taken from original mp repository ]: implement me!
+                PostBox postBox = null; // postBoxService.getPostBox(mailAddress);
                 if (postBox != null) {
                     postBoxes.put(mailAddress, postBox);
                 }

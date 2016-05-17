@@ -9,13 +9,6 @@ import com.google.common.base.Optional;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * User: maldana
- * Date: 30.10.13
- * Time: 17:14
- *
- * @author maldana@ebay.de
- */
 public class ConversationResponse {
 
     private String id;

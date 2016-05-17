@@ -4,19 +4,11 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 
-/**
- * User: maldana
- * Date: 26.09.13
- * Time: 14:00
- *
- * @author maldana@ebay.de
- */
 public class ConversationBoundnessFinder {
 
     public static MailTypeRts boundnessForRole(ConversationRole role, String direction) {
         return boundnessForRole(role, MessageDirection.valueOf(direction));
     }
-
 
     public static MailTypeRts boundnessForRole(ConversationRole role, MessageDirection direction) {
 
@@ -33,8 +25,5 @@ public class ConversationBoundnessFinder {
             return MailTypeRts.INBOUND;
 
         throw new IllegalStateException("Unknown combination");
-
     }
-
-
 }

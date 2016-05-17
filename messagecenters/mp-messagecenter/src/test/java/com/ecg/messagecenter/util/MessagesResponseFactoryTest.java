@@ -11,11 +11,15 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
@@ -25,9 +29,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class MessagesResponseFactoryTest {
 
     private static final String PHONE_NUMBER = "123-123";
@@ -283,6 +284,48 @@ public class MessagesResponseFactoryTest {
 
     }
 
+
+    @Test
+    public void strippedEmailAddressWhenUserRepliesToOwnEmail() {
+        customValues.put("buyer-name", "BuyerName :)");
+        customValues.put("seller-name", "**SellerName**");
+
+        addMessage("Message from BuyerName :) to **SellerName**.", BUYER_TO_SELLER);
+
+        addMessage("Message2 from BuyerName :) to **SellerName**.\n" +
+                        "\n" +
+                        "From: \" BuyerName :) <buyerRealEmail@marktplaats.nl>\n" +
+                        "Date: Wednesday 17 February 2016 at 14:32\n" +
+                        "To: **SellerName** via Marktplaats <abc99321@mail.marktplaats.nl>\n" +
+                        "Subject: Re: Ik heb interesse in 'Ad'\n" +
+                        "\n" +
+                        "Message from BuyerName :) to **SellerName**."
+                , BUYER_TO_SELLER);
+
+        List<MessageResponse> messages = createMessagesList();
+
+        assertEquals("Message2 from BuyerName :) to **SellerName**.", messages.get(1).getTextShortTrimmed());
+    }
+
+    @Test
+    public void strippedEmailAddressWhenUserRepliesToOwnEmailWithGmailAddress() {
+        customValues.put("buyer-name", "BuyerName :)");
+        customValues.put("seller-name", "**SellerName**");
+
+        addMessage("Message from BuyerName :) to **SellerName**.", BUYER_TO_SELLER);
+
+        addMessage("Message2 from BuyerName :) to **SellerName**.\n" +
+                        "\n" +
+                        "On Thu, Feb 15, 2016 at 14:31 AM, BuyerName <buyerRealEmail@gmail.com> wrote:\n" +
+
+                        "Message from BuyerName :) to **SellerName**."
+                , BUYER_TO_SELLER);
+
+        List<MessageResponse> messages = createMessagesList();
+
+        assertEquals("Message2 from BuyerName :) to **SellerName**.", messages.get(1).getTextShortTrimmed());
+    }
+
     @Test
     public void removeEmailClientWhenActualEmailFragment() {
         customValues.put("buyer-name", "BuyerName :)");
@@ -292,16 +335,15 @@ public class MessagesResponseFactoryTest {
 
         addMessage("Message from **SellerName** :) to BuyerName.\n" +
                 "From: =?ANSI_X3.4-1968?Q?M=3Fur=3F_=26_Gra=3Fias=3F=3F_=40ho?= =?ANSI_X3.4-1968?Q?tmail_via_Marktplaats?\n" +
-                "To: realEmail@gmail.com\n"+
+                "To: realEmail@gmail.com\n" +
                 "Datum: Wednesday 20 January 2016 at 16:10\n+" +
                 "Message from BuyerName :) to **SellerName**.", SELLER_TO_BUYER);
 
         List<MessageResponse> messages = createMessagesList();
 
         assertEquals("Message from **SellerName** :) to BuyerName.\n" +
-                "From: =?ANSI_X3.4-1968?Q?M=3Fur=3F_=26_Gra=3Fias=3F=3F_=40ho?= =?ANSI_X3.4-1968?Q?tmail_via_Marktplaats?",
+                        "From: =?ANSI_X3.4-1968?Q?M=3Fur=3F_=26_Gra=3Fias=3F=3F_=40ho?= =?ANSI_X3.4-1968?Q?tmail_via_Marktplaats?",
                 messages.get(1).getTextShort());
-
     }
 
     @Test
@@ -344,7 +386,7 @@ public class MessagesResponseFactoryTest {
                 "Subject: Re: Ik heb interesse in 'Ad 7' - BuyerName\n" +
                 "From: BuyerName\n" +
                 "To: \"Seller\" <**SellerName**@marktplaats.nl<mailto:**SellerName**@marktplaats.nl>>\n" +
-                "Date: Wednesday 27 January 2016 12:01\n"+
+                "Date: Wednesday 27 January 2016 12:01\n" +
                 "Message 4\n", SELLER_TO_BUYER);
 
         List<MessageResponse> messages = createMessagesList();
@@ -360,7 +402,7 @@ public class MessagesResponseFactoryTest {
         addMessage("Message from BuyerName :) to **SellerName**.", BUYER_TO_SELLER);
 
         addMessage("Message 5\n" +
-                "Date: Wednesday 27 January 2016 12:01\n"+
+                "Date: Wednesday 27 January 2016 12:01\n" +
                 "Subject: Re: Ik heb interesse in 'Ad 7' - BuyerName\n" +
                 "From: BuyerName\n" +
                 "To: \"Seller\" <**SellerName**@marktplaats.nl<mailto:**SellerName**@marktplaats.nl>>\n" +
@@ -387,8 +429,23 @@ public class MessagesResponseFactoryTest {
         List<MessageResponse> messages = createMessagesList();
 
         assertEquals("Hi BuyerName :) via Marktplaats,\n" +
-                "Message from **SellerName** :) to BuyerName." , messages.get(1).getTextShort());
+                "Message from **SellerName** :) to BuyerName.", messages.get(1).getTextShort());
+    }
 
+    @Test
+    public void regexpsShouldNotChokeOnVeryLargeMessages() throws IOException {
+        customValues.put("buyer-name", "buyerName");
+        customValues.put("seller-name", "sellerName");
+
+        addMessage("First message", BUYER_TO_SELLER);
+
+        BufferedReader buffer = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("message-with-embedded-image")));
+        String largeMessage = buffer.lines().collect(Collectors.joining("\n"));
+        addMessage(largeMessage, SELLER_TO_BUYER);
+
+        createMessagesList();
+
+        // just verify it does not hang for 30 mins ;-)
     }
 
     private void addMessage(String text, MessageDirection messageDirection) {

@@ -6,16 +6,9 @@ import org.joda.time.DateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
-* User: maldana
-* Date: 30.10.13
-* Time: 17:14
-*
-* @author maldana@ebay.de
-*/
 public class PostBoxResponse {
 
-    private Long numUnread;
+    private int numUnread;
     private DateTime lastModified;
     private Meta _meta;
     private List<PostBoxListItemResponse> conversations = new ArrayList<>();
@@ -25,7 +18,7 @@ public class PostBoxResponse {
         return this;
     }
 
-    public PostBoxResponse initNumUnread(Long num, DateTime lastModified) {
+    public PostBoxResponse initNumUnread(int num, DateTime lastModified) {
         this.numUnread = num;
         this.lastModified = lastModified;
 
@@ -43,7 +36,7 @@ public class PostBoxResponse {
         return conversations;
     }
 
-    public Long getNumUnread() {
+    public int getNumUnread() {
         return numUnread;
     }
 

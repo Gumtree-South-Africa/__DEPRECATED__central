@@ -56,6 +56,16 @@ public class CronJobService implements CheckProvider {
 
     private JmxInvokeSupport jmxInvokeSupport;
 
+    private final boolean disableCronjobs;
+
+
+    /**
+     * Initializes the {@link CronJobService} and registers all given {@link CronJobExecutor} to the embedded quartz
+     * scheduler.
+     *
+     * @param executors
+     * @param disableCronjobs
+     */
     @Autowired
     public CronJobService(
       @Value("${cluster.jmx.enabled:true}") boolean isJmxEnabled,
@@ -65,6 +75,7 @@ public class CronJobService implements CheckProvider {
       @Value("${node.passive:false}") boolean disableCronjobs) {
         this.statusMonitor = statusMonitor;
         this.hazelcast = hazelcast;
+        this.disableCronjobs = disableCronjobs;
 
         try {
             LOG.info("Initializing Cron Job Frameworks. Registered Cronjobs: {}", executors);
@@ -107,7 +118,10 @@ public class CronJobService implements CheckProvider {
 
     private void initExecutors() throws SchedulerException {
         LOG.info("Initializing Cron Jobs");
-
+        if (disableCronjobs) {
+            LOG.warn("Cronjobs disabled - this is a passive node!");
+            return;
+        }
         for (CronJobExecutor cje : cronReg.values()) {
             String jobName = cje.getClass().getName();
             JobDetail jobDetail = JobBuilder.newJob(WrappedJobExecutor.class)

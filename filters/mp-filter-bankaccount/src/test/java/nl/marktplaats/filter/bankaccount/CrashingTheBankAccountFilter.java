@@ -10,15 +10,20 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Resources;
+import org.apache.tika.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -29,14 +34,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class CrashingTheBankAccountFilter {
 
-    @Mock private MailCloakingService mailCloakingService;
-    @Mock private MailRepository mailRepository;
-
-    private Mails mails = new Mails();
-
+    @Mock private DescriptionBuilder descriptionBuilder;
     @Mock private Conversation conversation;
     @Mock private Message message;
-    @Mock private Mail mail;
+    @Mock MessageProcessingContext messageProcessingContext;
 
     @Before
     public void setup() {
@@ -68,22 +69,16 @@ public class CrashingTheBankAccountFilter {
 
         BankAccountFilterConfiguration config = new BankAccountFilterConfiguration(BANK_ACCOUNTS);
         BankAccountFinder bankAccountFinder = new BankAccountFinder(config);
-        BankAccountFilter filter = new BankAccountFilter(bankAccountFinder, mailCloakingService, mailRepository, mails);
+        BankAccountFilter filter = new BankAccountFilter(bankAccountFinder, descriptionBuilder);
 
-        Mail mail = mails.readMail(ByteStreams.toByteArray(CrashingTheBankAccountFilter.class.getResourceAsStream(mailResource)));
         when(conversation.getAdId()).thenReturn("whatever");
-
-        MessageProcessingContext messageProcessingContext = mock(MessageProcessingContext.class);
-
-//            Map<String, String> customValues = new HashMap<>();
-//            customValues.put("from-userid", "1");
-//            customValues.put("to-userid", "2");
-//            when(conversation.getCustomValues()).thenReturn(customValues);
-
-
-            when(messageProcessingContext.getConversation()).thenReturn(conversation);
+        when(messageProcessingContext.getConversation()).thenReturn(conversation);
         when(messageProcessingContext.getMessage()).thenReturn(message);
-        when(messageProcessingContext.getMail()).thenReturn(mail);
+
+        InputStream textStream = CrashingTheBankAccountFilter.class.getResourceAsStream(mailResource);
+        String text = IOUtils.toString(textStream, "utf-8");
+
+        when(message.getPlainTextBody()).thenReturn(text);
 
         long warmUpCount = 10;
         for (int i = 0; i < warmUpCount; i++) {

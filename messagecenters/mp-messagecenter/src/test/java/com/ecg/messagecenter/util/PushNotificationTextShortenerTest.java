@@ -5,13 +5,6 @@ import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
 
-/**
- * User: maldana
- * Date: 28.10.13
- * Time: 10:22
- *
- * @author maldana@ebay.de
- */
 public class PushNotificationTextShortenerTest {
 
     public static final String FIRST_TEXT = "eBay Kleinanzeigen | Kostenlos. Einfach. Lokal. Anzeigen gratis inserieren mit eBay Kleinanzeigen\n\n Anfrage zu Ihrer Kleinanzeige\n\nLieber Nutzer! \n\n Ein Interessent hat eine Anfrage zu Ihrer Kleinanzeige gesendet: \n 'Runder Tisch, Bugholz-Stil' \n Anzeigennummer: 113817521\n\nNachricht von: Clara \n\n Hallo, \n \nbin an den Tisch interessiert.\n\nBeantworten Sie diese Nachricht einfach mit der 'Antworten'-Funktion Ihres E-Mail-Programms.\n\nSchützen Sie sich vor Betrug: Tipps f<C3><BC>r Ihre Sicherheit \n\n Falls Sie uns diese E-Mail als Spam oder Betrug melden wollen, klicken Sie bitte hier.\n\n Zum Schutz unserer Nutzer filtern wir Spam und andere verd<C3><A4>chtige Nachrichten. Wir behalten uns vor, bei konkretem Verdacht auf betr<C3><BC>gerische Aktivit<C3><A4>ten oder Verst<C3><B6><C3><9F>en gegen unsere Nutzungsbedingungen die <C3><9C>bermittlung von Nachrichten zu verz<C3><B6>gern oder zu verweigern.\n\nIhr eBay Kleinanzeigen-Team\n\nWenn Sie Fragen haben, schauen Sie bitte auf unsere Hilfeseiten oder\n kontaktieren Sie unseren Kundenservice.\n\nCopyright <C2><A9> 2005-2013 eBay International AG. Alle Rechte vorbehalten.\n Ausgewiesene Marken geh<C3><B6>ren ihren jeweiligen Eigent<C3><BC>mern. \n\n Hilfe | Datenschutzerkl<C3><A4>rung | Nutzungsbedingungen | Impressum | Presse | Kontakt";

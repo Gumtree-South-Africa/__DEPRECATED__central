@@ -10,9 +10,6 @@ import java.io.IOException;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class AdImageLookupTest {
 
     private static final String AD_WITH_IMAGES = "{\"{http://www.ebayclassifiedsgroup.com/schema/ad/v1}ad\":{\"declaredType\":\"com.ebay.ecg.api.spec.v1.schema.ad.Ad\",\"globalScope\":true,\"typeSubstituted\":true,\"nil\":false,\"scope\":\"javax.xml.bind.JAXBElement$GlobalScope\",\"name\":\"{http://www.ebayclassifiedsgroup.com/schema/ad/v1}ad\",\"value\":{\"title\":{\"value\":\"Rc Scaler und&#x2F;oder Crawler fahrer gesucht nähe  Meiningen\"},\"pictures\":{\"picture\":[{\"link\":[{\"href\":\"http://i.ebayimg.com/00/s/NjQwWDEwMjQ=/z/ZIAAAOxy4dNS8gay/$_14.JPG\",\"rel\":\"thumbnail\"},{\"href\":\"http://i.ebayimg.com/00/s/NjQwWDEwMjQ=/z/ZIAAAOxy4dNS8gay/$_74.JPG\",\"rel\":\"teaser\"},{\"href\":\"http://i.ebayimg.com/00/s/NjQwWDEwMjQ=/z/ZIAAAOxy4dNS8gay/$_75.JPG\",\"rel\":\"large\"},{\"href\":\"http://i.ebayimg.com/00/s/NjQwWDEwMjQ=/z/ZIAAAOxy4dNS8gay/$_20.JPG\",\"rel\":\"extraLarge\"},{\"href\":\"http://i.ebayimg.com/00/s/NjQwWDEwMjQ=/z/ZIAAAOxy4dNS8gay/$_{imageId}.JPG\",\"rel\":\"canonicalUrl\"}]}]},\"ad-status\":{\"value\":\"ACTIVE\"},\"id\":\"178485801\",\"version\":\"1.16\",\"locale\":\"de_DE\",\"otherAttributes\":{}}}}";
@@ -34,7 +31,6 @@ public class AdImageLookupTest {
         assertEquals("http://i.ebayimg.com/00/s/NjQwWDEwMjQ=/z/ZIAAAOxy4dNS8gay/$_{imageId}.JPG", url);
     }
 
-
     @Test
     public void adWithoutImages() throws Exception {
         httpReturnsPayload(AD_WITHOUT_IMAGES);
@@ -43,8 +39,6 @@ public class AdImageLookupTest {
 
         assertEquals("", url);
     }
-
-
 
     private void httpReturnsPayload(String adWithImages) throws IOException {
         when(httpResponse.getStatusLine().getStatusCode()).thenReturn(200);

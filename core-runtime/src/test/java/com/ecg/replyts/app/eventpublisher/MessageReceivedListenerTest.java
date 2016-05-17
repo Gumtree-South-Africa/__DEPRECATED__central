@@ -58,7 +58,7 @@ public class MessageReceivedListenerTest {
                 EventTestUtils.messageAddedEventWithMessageInBlockedState(),
                 EventTestUtils.messageFilteredEvent());
 
-        messageReceivedListener = new MessageReceivedListener(mailCloakingService, eventPublisher, serializer);
+        messageReceivedListener = new MessageReceivedListener(new EventConverter(mailCloakingService, serializer), eventPublisher);
         messageReceivedListener.eventsTriggered(conversation, conversationEvents);
 
         verify(serializer, times(3)).serialize(serializerEventCaptor.capture());

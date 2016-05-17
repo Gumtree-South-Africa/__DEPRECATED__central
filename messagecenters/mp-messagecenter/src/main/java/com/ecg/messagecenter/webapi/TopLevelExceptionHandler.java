@@ -11,9 +11,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 class TopLevelExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopLevelExceptionHandler.class);

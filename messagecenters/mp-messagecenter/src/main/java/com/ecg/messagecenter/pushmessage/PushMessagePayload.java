@@ -6,13 +6,6 @@ import net.sf.json.JSONObject;
 
 import java.util.Map;
 
-/**
- * User: maldana
- * Date: 18.09.13
- * Time: 17:19
- *
- * @author maldana@ebay.de
- */
 public class PushMessagePayload {
 
     private final String userId;

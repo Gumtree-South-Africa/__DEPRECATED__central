@@ -9,12 +9,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class PushMessagePayloadTest {
-
 
     @Test
     public void defaultNotIncludeAlertCounter() {
@@ -22,7 +17,6 @@ public class PushMessagePayloadTest {
 
         assertEquals("{\"email\":\"a\",\"message\":\"b\",\"activity\":\"c\",\"details\":{\"a1\":\"1\"}}", payload.asJson());
     }
-
 
     @Test
     public void includeAlertCounter() {
@@ -52,7 +46,4 @@ public class PushMessagePayloadTest {
 
         assertEquals("{\"email\":\"a\",\"message\":\"b\",\"activity\":\"c\",\"details\":{\"a1\":\"1\"},\"alertCounter\":10,\"apnsDetails\":{\"apnsSpecific1\":\"value1\",\"apnsSpecific2\":\"value2\"}}", payload.asJson());
     }
-
-
-
 }

@@ -43,7 +43,8 @@ function main() {
 
     local start=$(date +"%s")
 
-	mvn clean test -DfailIfNoTests=false -pl integration-tests/core-integration-test -am -Drevision=revision $@
+    # mvn clean test -DfailIfNoTests=false -Pmp -pl messagecenters/mp-messagecenter -am -Drevision=revision $@
+    mvn clean test -DfailIfNoTests=false -pl integration-tests/core-integration-test -am -Drevision=revision $@
 
     local end=$(date +"%s")
     local diff=$(($end-$start))

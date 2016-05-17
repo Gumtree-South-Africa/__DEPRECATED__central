@@ -3,6 +3,7 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationModificationDate;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventId;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
 
@@ -46,4 +47,13 @@ public interface CassandraConversationRepository extends MutableConversationRepo
      * @return stream of {@link ImmutablePair}s of Conversation and ConversationEvent
      */
     Stream<ImmutablePair<Conversation, ConversationEvent>> findEventsCreatedBetween(DateTime start, DateTime end);
+
+    /**
+     * Streams conversation event ids by year, month and day.
+     * @param year the year
+     * @param month the month
+     * @param day the day
+     * @return the stream with conversation event ids
+     */
+    Stream<ConversationEventId> streamConversationEventIdsByDay(int year, int month, int day);
 }

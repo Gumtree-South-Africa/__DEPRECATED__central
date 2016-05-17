@@ -19,9 +19,6 @@ import java.io.UnsupportedEncodingException;
 
 import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class AdImageLookup {
 
     private static final Logger LOG = LoggerFactory.getLogger(AdImageLookup.class);

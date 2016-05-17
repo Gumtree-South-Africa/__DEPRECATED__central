@@ -1,5 +1,6 @@
 package com.ecg.replyts2.eventpublisher.rabbitmq;
 
+import com.ecg.replyts.app.eventpublisher.EventConverter;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.app.eventpublisher.MessageReceivedListener;
 import com.ecg.replyts.app.eventpublisher.EventPublisher;
@@ -57,7 +58,7 @@ public class RabbitmqEventPublisherConfig {
     @Bean
     @Conditional(RabbitMqEnabledConditional.class)
     public MessageReceivedListener rabbitMqMessageReceivedListener() throws Exception {
-        return new MessageReceivedListener(mailCloakingService, newRabbitEventPublisher());
+        return new MessageReceivedListener(new EventConverter(mailCloakingService), newRabbitEventPublisher());
     }
 
     private EventPublisher newRabbitEventPublisher() throws Exception {
