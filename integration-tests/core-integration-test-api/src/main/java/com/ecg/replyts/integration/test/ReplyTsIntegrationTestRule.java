@@ -6,6 +6,7 @@ import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
+import com.ecg.replyts.integration.elasticsearch.EsUtils;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.joda.time.DateTime;
@@ -232,5 +233,9 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void waitUntilIndexedInEs(AwaitMailSentProcessedListener.ProcessedMail mail) {
+        EsUtils.waitUntilIndexed(mail, getSearchClient());
     }
 }

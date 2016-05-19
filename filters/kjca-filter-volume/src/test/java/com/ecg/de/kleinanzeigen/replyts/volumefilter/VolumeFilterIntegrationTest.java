@@ -6,12 +6,12 @@ import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.elasticsearch.action.admin.indices.flush.FlushRequest;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -19,9 +19,8 @@ import static org.junit.Assert.assertEquals;
  */
 public class VolumeFilterIntegrationTest {
 
-
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
 
     @Test
     public void violatesQuota() throws Exception {
@@ -37,15 +36,12 @@ public class VolumeFilterIntegrationTest {
         for (int i = 0; i < 3; i++) {
             AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
             assertEquals(MessageState.SENT, response.getMessage().getState());
+            rule.waitUntilIndexedInEs(response);
         }
-        // give Elastic search some time for flushing the index
-        // this time is rather random - which makes the test very unstable.
-        Thread.sleep(2000);
 
         AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
         assertEquals(1, response.getMessage().getProcessingFeedback().size());
     }
-
 
     @Test
     public void skipsQuotaViolation() throws InterruptedException {
@@ -61,9 +57,8 @@ public class VolumeFilterIntegrationTest {
         for (int i = 0; i < 2; i++) {
             AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
             assertEquals(MessageState.SENT, response.getMessage().getState());
+            rule.waitUntilIndexedInEs(response);
         }
-
-        TimeUnit.SECONDS.sleep(3);
 
         AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
         assertEquals(MessageState.SENT, response.getMessage().getState());
@@ -83,10 +78,8 @@ public class VolumeFilterIntegrationTest {
         for (int i = 0; i < 3; i++) {
             AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
             assertEquals(MessageState.SENT, response.getMessage().getState());
+            rule.waitUntilIndexedInEs(response);
         }
-        // give Elastic search some time for flushing the index
-        // this time is rather random - which makes the test very unstable.
-        Thread.sleep(2000);
 
         AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
         assertEquals(1, response.getMessage().getProcessingFeedback().size());
