@@ -70,10 +70,10 @@ public class PostBoxTest {
         PostBox pb = new PostBox(
                 "bla@blah.com",
                 Lists.newArrayList(
-                        new ConversationThread("1", "abc", now().minusDays(180), now(), now(), 1,
+                        new ConversationThread("1", "abc", now().minusDays(180).minusSeconds(5), now(), now(), 1,
                                 Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(),
                                 Optional.<String>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.of(now())),
-                        new ConversationThread("2", "abc", now().minusDays(180).plusSeconds(1), now(), now().minusHours(1), 1,
+                        new ConversationThread("2", "abc", now().minusDays(180).plusSeconds(5), now(), now().minusHours(1), 1,
                                 Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(), Optional.<String>absent(),
                                 Optional.<String>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.<Long>absent(), Optional.of(now())),
                         new ConversationThread("3", "abc", now().minusDays(100), now(), now().minusHours(2), 1,
@@ -93,12 +93,9 @@ public class PostBoxTest {
 
         List<ConversationThread> conversationThreads = pb.getConversationThreads();
 
-        assertTrue(conversationThreads.size() == 5);
-        assertEquals("2", conversationThreads.get(0).getAdId());
-        assertEquals("3", conversationThreads.get(1).getAdId());
-        assertEquals("4", conversationThreads.get(2).getAdId());
-        assertEquals("5", conversationThreads.get(3).getAdId());
-        assertEquals("6", conversationThreads.get(4).getAdId());
+        List<String> containsIds = Lists.newArrayList("2", "3", "4", "5", "6");
+
+        conversationThreads.forEach(x -> assertTrue(containsIds.contains(x.getAdId())));
     }
 
     @Test
