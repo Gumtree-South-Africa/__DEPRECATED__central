@@ -2,22 +2,17 @@ package com.ebay.ecg.replyts.robot.api;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.runtime.ReplyTS;
-import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
-import com.ecg.replyts.integration.test.ReplytsRunner;
 import com.jayway.restassured.RestAssured;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.context.annotation.Profile;
 
 import javax.mail.internet.MimeMessage;
 
-import java.util.Properties;
-import java.util.function.Supplier;
-
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -25,7 +20,7 @@ import static org.hamcrest.Matchers.equalTo;
 public class MessageControllerAcceptanceTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(true);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
 
     private static RabbitMQRunner rmq = new RabbitMQRunner();
 
@@ -162,7 +157,7 @@ public class MessageControllerAcceptanceTest {
 
     @Test
     public void testWhenNoConversationsReturned() throws Exception {
-        String seller = "seller4@seller.com";
+        String seller = "seller41@seller.com";
         String buyer = "buyer41@seller.com";
         String adId = "11114";
 
