@@ -156,12 +156,12 @@ function main() {
         fi
 
         if ! [[ -z $PACKAGE ]] ; then
-            MVN_ARGS="${MVN_ARGS},upload-${TENANT}-${PACKAGE}"
+            MVN_ARGS="${MVN_ARGS} -Denv-name=${PACKAGE}"
             MVN_TASKS="package"
         fi
 
         if ! [[ -z $UPLOAD ]] ; then
-            MVN_ARGS="${MVN_ARGS},upload-${TENANT}-${UPLOAD}"
+            MVN_ARGS="${MVN_ARGS} -Denv-name=${UPLOAD}"
             MVN_TASKS="clean deploy"
         fi
 

@@ -31,6 +31,7 @@ from logback.xml.
     <logger name="org.elasticsearch" level="DEBUG"/>
     <logger name="com.basho" level="DEBUG"/>
 
+    <logger name="org.springframework.cloud" level="INFO"/>
 
     <root level="DEBUG">
         <appender-ref ref="STDOUT"/>

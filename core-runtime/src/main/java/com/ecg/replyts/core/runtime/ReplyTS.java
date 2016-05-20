@@ -3,21 +3,34 @@ package com.ecg.replyts.core.runtime;
 import com.ecg.replyts.core.webapi.DefaultApiConfiguration;
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
+import com.ecwid.consul.v1.ConsulClient;
 import com.hazelcast.config.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.consul.config.ConsulPropertySource;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.bouncycastle.crypto.tls.ConnectionEnd.client;
 
 @Configuration
+@PropertySource("discovery.properties")
+@EnableDiscoveryClient
+@EnableAutoConfiguration
 @Import({ StartupExperience.class, EmbeddedWebserver.class })
 public class ReplyTS {
     private static final Logger LOG = LoggerFactory.getLogger(ReplyTS.class);

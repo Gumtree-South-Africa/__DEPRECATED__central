@@ -43,7 +43,7 @@
           "network": {
             "mbits":100,
             "ReservedPorts": [ {
-              "Label": "comaas-TENANT"
+              "Label": "comaas-TENANT",
               "Value": PORT
             } ]
           }
@@ -56,12 +56,11 @@
           ],
           "PortLabel": "comaas-TENANT",
           "Checks": [ {
-            "Name": "version-match",
-            "Type": "script",
+            "Name": "running",
+            "Type": "http",
+            "Path": "/health",
             "Interval": 10000000000,
-            "Timeout": 4000000000,
-            "Command": "/bin/bash",
-            "Args": [ "-c", "/usr/bin/curl -s http://localhost:PORT/health | grep GIT_HASH" ]
+            "Timeout": 4000000000
           } ]
         } ]
       } ]
