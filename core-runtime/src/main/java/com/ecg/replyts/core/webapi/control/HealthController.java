@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping(value = "/health")
 public class HealthController {
-    @Autowired
+//    @Autowired
     private final DiscoveryClient discoveryClient = null;
 
     @RequestMapping(method = RequestMethod.GET)
