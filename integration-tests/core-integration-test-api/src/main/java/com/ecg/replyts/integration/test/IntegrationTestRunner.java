@@ -110,7 +110,6 @@ public class IntegrationTestRunner extends ExternalResource {
         if (messages.size() != expectedEmailNumber) {
             Assert.fail("Expected " + expectedEmailNumber + " mails to arrive, but got " + messages.size());
         }
-        // assertThat("number of arrived messages", messages.size(), is(expectedEmailNumber));
         return messages.get(messages.size() - 1);
     }
 

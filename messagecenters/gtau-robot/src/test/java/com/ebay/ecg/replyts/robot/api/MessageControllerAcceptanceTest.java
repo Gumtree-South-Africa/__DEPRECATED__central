@@ -161,23 +161,23 @@ public class MessageControllerAcceptanceTest {
         String buyer = "buyer41@seller.com";
         String adId = "11114";
 
-        rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 aNewMail()
                         .from(buyer)
                         .to(seller)
                         .adId(adId)
                         .plainBody("First contact from buyer2.")
-        ).getConversation().getId();
+        ));
         MimeMessage contactMail = rule.waitForMail();
         String anonymizedBuyer = contactMail.getFrom()[0].toString();
 
-        rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 aNewMail()
                         .from(seller)
                         .to(anonymizedBuyer)
                         .adId(adId)
                         .plainBody("Reply from seller2.")
-        );
+        ));
         rule.waitForMail();
 
         RestAssured.given()
