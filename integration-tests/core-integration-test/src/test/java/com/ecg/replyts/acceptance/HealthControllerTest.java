@@ -1,6 +1,5 @@
 package com.ecg.replyts.acceptance;
 
-import com.ecg.replyts.core.runtime.ReplyTS;
 import com.ecg.replyts.core.webapi.control.HealthController;
 import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.jayway.restassured.RestAssured;
@@ -8,26 +7,33 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static com.ecg.replyts.core.runtime.ReplyTS.EMBEDDED_PROFILE;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertNotNull;
 
 import javax.annotation.PostConstruct;
-import java.util.Properties;
+import java.util.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextHierarchy({
     @ContextConfiguration(classes = HealthControllerTest.TestConfiguration.class),
+    @ContextConfiguration(classes = HealthControllerTest.DiscoveryConfiguration.class),
     @ContextConfiguration(locations = "classpath:server-context.xml")
 })
-@ActiveProfiles(ReplyTS.EMBEDDED_PROFILE)
+@ActiveProfiles(EMBEDDED_PROFILE)
 public class HealthControllerTest {
     @Value("${replyts.http.port}")
     private Integer httpPort;
@@ -38,6 +44,8 @@ public class HealthControllerTest {
                 .expect()
                 .statusCode(200)
                 .body("version", equalTo(HealthController.class.getPackage().getImplementationVersion()))
+                .body("discoveryEnabled", equalTo(true))
+                .body("conversationRepositoryHosts[0]", equalTo("fuzzy-cats"))
                 .when()
                 .request()
                 .get("http://localhost:" + httpPort + "/health");
@@ -45,21 +53,25 @@ public class HealthControllerTest {
 
     @Configuration
     public static class TestConfiguration {
-        private static final String DEFAULT_PASSWORD = "replyts";
-
         @Autowired
         private ConfigurableEnvironment environment;
 
         @PostConstruct
         public void properties() {
-            ClassLoader classLoader = getClass().getClassLoader();
-
             Properties properties = new Properties();
 
             properties.put("confDir", "classpath:/integrationtest-conf");
             properties.put("replyts.control.context", "integration-test-control-context.xml");
 
             properties.put("replyts.http.port", OpenPortFinder.findFreePort());
+
+            // Disabling both will nonetheless make HealthController 'choose' Cassandra
+
+            properties.put("persistence.riak.enabled", "false");
+            properties.put("persistence.cassandra.enabled", "false");
+
+            properties.put("service.configuration.enabled", true);
+            properties.put("service.discovery.enabled", true);
 
             environment.getPropertySources().addLast(new PropertiesPropertySource("test", properties));
         }
@@ -69,6 +81,32 @@ public class HealthControllerTest {
         @Bean
         public Boolean defaultContextsInitialized() {
             return true;
+        }
+    }
+
+    @Configuration
+    @PropertySource("discovery.properties")
+    @EnableDiscoveryClient
+    @EnableAutoConfiguration
+    public static class DiscoveryConfiguration {
+        @Autowired
+        private ConfigurableEnvironment environment;
+
+        @Autowired
+        private DiscoveryClient discoveryClient;
+
+        @PostConstruct
+        @ConditionalOnBean(DiscoveryClient.class)
+        private void autoDiscoveryOverrides() {
+            Map<String, Object> gatheredProperties = new HashMap<>();
+
+            assertNotNull(discoveryClient);
+
+            // Skip actual auto-discovery - @ConditionalOnBean will ensure that this is only called if the DiscoveryClient is available
+
+            gatheredProperties.put("persistence.cassandra.endpoint", "fuzzy-cats");
+
+            environment.getPropertySources().addFirst(new MapPropertySource("Auto-discovered services", gatheredProperties));
         }
     }
 }

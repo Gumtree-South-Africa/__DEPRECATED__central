@@ -60,6 +60,8 @@ public class SpringContextProvider implements ContextProvider {
         contextHandler.setContextPath(path);
         contextHandler.addServlet(new ServletHolder(dispatcherServlet), "/*");
 
+        context.refresh();
+
         return contextHandler;
     }
 

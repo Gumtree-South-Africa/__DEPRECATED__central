@@ -7,7 +7,7 @@
     "datacenters": [ "ams1"],
     "region": "comaas-qa",
 
-    "type": "system",
+    "type": "service",
 
     "TaskGroups": [ {
       "Name":"comaas-node-TENANT",

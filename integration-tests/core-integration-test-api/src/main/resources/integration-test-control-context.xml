@@ -3,8 +3,10 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
        xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
     <mvc:annotation-driven>
         <mvc:message-converters>
             <bean id="jacksonMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter" />
@@ -21,6 +23,8 @@
           p:arguments="#{{'hazelcast.logging.type','slf4j'}}" />
 
     <!-- Directly specify the controllers to test embedded web server -->
+
+    <context:annotation-config />
 
     <bean class="com.ecg.replyts.core.webapi.control.IndexController" />
     <bean class="com.ecg.replyts.core.webapi.control.HealthController" />

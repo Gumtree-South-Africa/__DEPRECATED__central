@@ -4,7 +4,6 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.client.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,7 +16,6 @@ import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping(value = "/health")
-@DependsOn("discoveryClient")
 public class HealthController {
     private String version = getClass().getPackage().getImplementationVersion();
 
@@ -27,13 +25,13 @@ public class HealthController {
     @Value("${replyts.tenant:unknown}")
     private String tenant;
 
-    @Value("${spring.cloud.discovery.enabled:false}")
+    @Value("${spring.cloud.config.discovery.enabled:false}")
     private boolean isDiscoveryEnabled;
 
     @Value("#{'${persistence.riak.enabled:false}' ? 'riak' : 'cassandra'}")
     private String conversationRepositorySource;
 
-    @Value("#{'${persistence.riak.enabled:false}' ? '${persistence.riak.datacenter.primary.hosts:unknown}' : '${persistence.cassandra.endpoint:unknown}'}")
+    @Value("#{'${persistence.riak.enabled:false}' ? '${persistence.riak.datacenter.primary.hosts:unknown}'.split(',') : '${persistence.cassandra.endpoint:unknown}'.split(',')}")
     private List<String> conversationRepositoryHosts;
 
     @Value("#{'${persistence.riak.enabled:false}' ? '${persistence.riak.bucket.name.prefix:}' : '${persistence.cassandra.keyspace:}'}")
@@ -43,7 +41,7 @@ public class HealthController {
     private String searchClusterName;
 
     @Autowired(required = false)
-    private Client client = null;
+    private Client searchClient = null;
 
     @RequestMapping(method = RequestMethod.GET)
     public Health get() throws Exception {
@@ -87,7 +85,7 @@ public class HealthController {
         }
 
         public String getSearchClusterVersion() throws InterruptedException {
-            if (client == null) {
+            if (searchClient == null) {
                 return "unknown";
             }
 
@@ -96,7 +94,7 @@ public class HealthController {
 
                 // If versions differ between cluster nodes, return a comma separated list instead
 
-                client.admin().cluster().prepareNodesInfo().execute().get().forEach(info -> versions.add(info.getVersion().toString()));
+                searchClient.admin().cluster().prepareNodesInfo().execute().get().forEach(info -> versions.add(info.getVersion().toString()));
 
                 return StringUtils.collectionToDelimitedString(versions, ", ");
             } catch (ExecutionException|ElasticsearchException e) {
