@@ -309,6 +309,12 @@
                 <dependency>
                     <groupId>net.logstash.logback</groupId>
                     <artifactId>logstash-logback-encoder</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>ch.qos.logback</groupId>
+                            <artifactId>logback-core</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
             </dependencies>
         </profile>
