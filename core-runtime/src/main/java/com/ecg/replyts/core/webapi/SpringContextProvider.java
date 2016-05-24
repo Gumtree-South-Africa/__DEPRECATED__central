@@ -4,6 +4,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -37,6 +38,8 @@ public class SpringContextProvider implements ContextProvider {
 
         context.setConfigLocations(contextLocations);
         context.setParent(parentContext);
+
+        ((ConfigurableEnvironment) parentContext.getEnvironment()).getPropertySources().forEach(source -> context.getEnvironment().getPropertySources().addFirst(source));
 
         DispatcherServlet dispatcherServlet = new DispatcherServlet(context);
         ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS | ServletContextHandler.NO_SECURITY);

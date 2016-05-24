@@ -9,6 +9,8 @@
 
     <context:annotation-config />
 
+    <bean class="org.springframework.context.support.ConversionServiceFactoryBean" />
+
     <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer"
           p:nullValue="null" />
 

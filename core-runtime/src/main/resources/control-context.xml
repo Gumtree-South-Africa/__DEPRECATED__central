@@ -3,14 +3,31 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:p="http://www.springframework.org/schema/p"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+    <bean id="objectMapperBuilder" class="org.springframework.http.converter.json.Jackson2ObjectMapperBuilder" />
+    <bean id="objectMapperBuilderIndented" factory-bean="objectMapperBuilder" factory-method="indentOutput">
+        <constructor-arg value="true" />
+    </bean>
+
     <mvc:annotation-driven>
         <mvc:message-converters>
-            <bean id="jacksonMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter" />
+            <bean id="jacksonMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                <property name="objectMapper"><bean factory-bean="objectMapperBuilderIndented" factory-method="build" /></property>
+            </bean>
         </mvc:message-converters>
     </mvc:annotation-driven>
 
-    <context:component-scan base-package="com.ecg.replyts.core.webapi.control"/>
+    <bean class="org.springframework.context.support.ConversionServiceFactoryBean" />
+
+    <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer"
+          p:nullValue="null" />
+
+    <bean id="loggingTypeSetter" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
+          p:targetObject="#{@systemProperties}" p:targetMethod="setProperty"
+          p:arguments="#{{'hazelcast.logging.type','slf4j'}}" />
+
+    <context:component-scan base-package="com.ecg.replyts.core.webapi.control" />
 </beans>

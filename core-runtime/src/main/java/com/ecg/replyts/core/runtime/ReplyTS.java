@@ -2,14 +2,11 @@ package com.ecg.replyts.core.runtime;
 
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
-import com.hazelcast.config.Config;
-import com.hazelcast.config.FileSystemXmlConfig;
-import com.hazelcast.config.XmlConfigBuilder;
+import com.hazelcast.config.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,8 +24,8 @@ import java.io.InputStream;
 
 @Configuration
 @PropertySource("discovery.properties")
-//@EnableDiscoveryClient
-//@EnableAutoConfiguration
+@EnableDiscoveryClient
+@EnableAutoConfiguration
 @Import({ StartupExperience.class, EmbeddedWebserver.class })
 public class ReplyTS {
     private static final Logger LOG = LoggerFactory.getLogger(ReplyTS.class);

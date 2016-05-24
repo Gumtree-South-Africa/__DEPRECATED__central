@@ -25,8 +25,8 @@ for PKG in $(ls $BUILD_DIR/comaas-$TENANT*); do
   if [[ "$TENANT" == "mp" && "$DESTINATION" == "demo" ]] ; then
     tar -xzf ${PKG} --to-command="cat" ./conf/deploy.conf > deploy.conf
     # This requires the deploy.py script to be on the PATH
-    deploy.py --redeploy --config deploy.conf --component ${PKG} ;;
+    deploy.py --redeploy --config deploy.conf --component ${PKG}
   else
-    `dirname $0`/upload.sh $TENANT $DESTINATION $GIT_HASH $PKG ;;
+    `dirname $0`/upload.sh $TENANT $DESTINATION $GIT_HASH $PKG
   fi
 done

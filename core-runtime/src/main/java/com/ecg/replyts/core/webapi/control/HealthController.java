@@ -1,63 +1,107 @@
 package com.ecg.replyts.core.webapi.control;
 
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.client.Client;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping(value = "/health")
+@DependsOn("discoveryClient")
 public class HealthController {
-//    @Autowired
-    private final DiscoveryClient discoveryClient = null;
+    private String version = getClass().getPackage().getImplementationVersion();
+
+    @Value("${spring.application.name:unknown}")
+    private String instanceName;
+
+    @Value("${replyts.tenant:unknown}")
+    private String tenant;
+
+    @Value("${spring.cloud.discovery.enabled:false}")
+    private boolean isDiscoveryEnabled;
+
+    @Value("#{'${persistence.riak.enabled:false}' ? 'riak' : 'cassandra'}")
+    private String conversationRepositorySource;
+
+    @Value("#{'${persistence.riak.enabled:false}' ? '${persistence.riak.datacenter.primary.hosts:unknown}' : '${persistence.cassandra.endpoint:unknown}'}")
+    private List<String> conversationRepositoryHosts;
+
+    @Value("#{'${persistence.riak.enabled:false}' ? '${persistence.riak.bucket.name.prefix:}' : '${persistence.cassandra.keyspace:}'}")
+    private String conversationRepositorySchemaOrPrefix;
+
+    @Value("${search.es.clustername:unknown}")
+    private String searchClusterName;
+
+    @Autowired(required = false)
+    private Client client = null;
 
     @RequestMapping(method = RequestMethod.GET)
     public Health get() throws Exception {
-        String version = getClass().getPackage().getImplementationVersion();
-
-        return new Health(version, getCassandraURIs());
-    }
-
-    public List<String> getCassandraURIs() {
-        if (discoveryClient == null) {
-            return Collections.emptyList();
-        }
-        List<ServiceInstance> list = discoveryClient.getInstances("cassandra");
-
-        return list.stream()
-                .map(instance -> instance.getUri().toString())
-                .collect(Collectors.toList());
+        return new Health();
     }
 
     class Health {
-        String version;
-
-        List<String> cassandraURIs;
-
-        private Health(String version, List<String> cassandraURIs) {
-            this.version = version;
-            this.cassandraURIs = cassandraURIs;
+        private Health() {
         }
 
         public String getVersion() {
             return version;
         }
 
-        public List<String> getCassandraURIs() {
-            return cassandraURIs;
+        public String getInstanceName() {
+            return instanceName;
         }
 
-        public String getInstanceId() {
-            if (discoveryClient == null) {
-                return "";
+        public String getTenant() {
+            return tenant;
+        }
+
+        public Boolean isDiscoveryEnabled() {
+            return isDiscoveryEnabled;
+        }
+
+        public String getConversationRepositorySource() {
+            return conversationRepositorySource;
+        }
+
+        public List<String> getConversationRepositoryHosts() {
+            return conversationRepositoryHosts;
+        }
+
+        public String getConversationRepositorySchemaOrPrefix() {
+            return conversationRepositorySchemaOrPrefix;
+        }
+
+        public String getSearchClusterName() {
+            return searchClusterName;
+        }
+
+        public String getSearchClusterVersion() throws InterruptedException {
+            if (client == null) {
+                return "unknown";
             }
-            return discoveryClient.getLocalServiceInstance().getServiceId();
+
+            try {
+                Set<String> versions = new HashSet<>();
+
+                // If versions differ between cluster nodes, return a comma separated list instead
+
+                client.admin().cluster().prepareNodesInfo().execute().get().forEach(info -> versions.add(info.getVersion().toString()));
+
+                return StringUtils.collectionToDelimitedString(versions, ", ");
+            } catch (ExecutionException|ElasticsearchException e) {
+                return "error";
+            }
         }
     }
 }
