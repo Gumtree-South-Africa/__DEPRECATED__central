@@ -15,7 +15,7 @@ fi
 
 # Upload or deploy
 for PKG in $(ls $BUILD_DIR/comaas-$TENANT*); do 
-  DESTINATION=$(echo "$ARTIFACT" | sed "s/^.*\-${TENANT}\-\([a-zA-Z0-9]*\)\-.*$/\1/")
+  DESTINATION=$(echo "$PKG" | sed "s/^.*\-${TENANT}\-\([a-zA-Z0-9]*\)\-.*$/\1/")
 
   if [[ "$DESTINATION" == "comaasqa" || "$DESTINATION" == "local" ]] ; then
     continue
