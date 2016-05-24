@@ -64,12 +64,25 @@ function deploy() {
   done
 
   for HOSTID in $(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | jq -r '.[].NodeID') ; do
-    set -o xtrace
     # Also check the actual /health endpoint and compare the versions
     HOST=$(curl -s http://consul001:4646/v1/node/${HOSTID} | jq -r .Name)
 
-    ACTUAL=$(curl -s http://${HOST}:${PORT}/health | jq -r ".version")
-    set +o xtrace
+    for i in $(seq 1 $ATTEMPTS); do
+      sleep $i
+
+      HEALTH=$(curl -s http://${HOST}:${PORT}/health)
+      if [ -n "$HEALTH" ]; then
+        break
+      fi
+
+      if [ $i -eq $ATTEMPTS ]; then
+        echo "Unable to get Health from http://${HOST}:${PORT}/health, exiting"
+        exit 1
+      fi
+    done
+
+    echo "Health on $HOST is $HEALTH"
+    ACTUAL=$(echo ${HEALTH} | jq -r ".version")
 
     if [ "$ACTUAL" = "$GIT_HASH" ] ; then
       echo "Host ${HOST} is running the correct version: $GIT_HASH"
