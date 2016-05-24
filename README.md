@@ -39,6 +39,8 @@ To run COMaaS for a specific tenant from your IDE, use the following Run configu
   -Dmaven.wagon.http.ssl.insecure=true
   -Dmaven.wagon.http.ssl.allowall=true
   -Dmaven.wagon.http.ssl.ignore.validity.dates=true
+  -Djavax.net.ssl.trustStore=comaas.jks
+  -Djavax.net.ssl.trustStorePassword=comaas
   ```
 * Skip tests: check this
 
