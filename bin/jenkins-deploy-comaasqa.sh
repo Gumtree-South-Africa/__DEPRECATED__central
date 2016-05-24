@@ -6,7 +6,7 @@ set -o nounset
 # Not exiting on error, since we have a retry mechanism in here
 # set -o errexit
 
-ATTEMPTS=5
+ATTEMPTS=10
 
 function usage() {
   cat <<- EOF
