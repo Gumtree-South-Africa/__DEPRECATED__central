@@ -36,7 +36,7 @@ public class ConversationBlockRepositoryTest {
         ConversationBlock conversationBlock = new ConversationBlock(CONV_ID, 1, now, Optional.empty());
         repository.write(conversationBlock);
 
-        repository.cleanupOldConversationBlocks(now.get());
+        repository.cleanupOldConversationBlocks(now.get().plusSeconds(1));
 
         IRiakObject fetchedObj = riakClient.fetchBucket(ConversationBlockRepository.BUCKET_NAME).execute().fetch(CONV_ID).execute();
 
