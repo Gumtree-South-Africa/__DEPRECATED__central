@@ -3,7 +3,8 @@
 # jenkins-deploy-comaasqa.sh deploys a comaas package to the comaasqa env
 
 set -o nounset
-set -o errexit
+# Not exiting on error, since we have a retry mechanism in here
+# set -o errexit
 
 ATTEMPTS=5
 
@@ -45,6 +46,7 @@ function deploy() {
     echo "No evaluation ID returned - Nomad job failed"
     exit 1
   fi
+  echo "Found EvalID: $EVALUATIONID"
 
   # Try ATTEMPTS times to detect 'running' state on all nodes before failing
   for i in $(seq 1 $ATTEMPTS) ; do
@@ -62,28 +64,33 @@ function deploy() {
       break;
     fi
   done
+  echo "All allocations are running"
 
-  for HOSTID in $(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | jq -r '.[].NodeID') ; do
-    # Also check the actual /health endpoint and compare the versions
-    HOST=$(curl -s http://consul001:4646/v1/node/${HOSTID} | jq -r .Name)
+  HOSTS=$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | jq -r '.[].NodeID')
+  echo "Checking hosts: $HOSTS"
 
+  for HOSTID in ${HOSTS} ; do
+    # Check the actual /health endpoint and compare the versions
     for i in $(seq 1 $ATTEMPTS); do
       sleep $i
+      HOST=$(curl -s http://consul001:4646/v1/node/${HOSTID} | jq -r .Name)
+      echo "Checking host: $HOST"
 
-      HEALTH=$(curl -s http://${HOST}:${PORT}/health)
-      if [ -n "$HEALTH" ]; then
-        break
+      if [ -n "$HOST" ]; then
+        HEALTH=$(curl -s http://${HOST}:${PORT}/health)
+        echo "${HOST}'s health is $HEALTH"
+        if [ -n "$HEALTH" ]; then
+          break
+        fi
       fi
 
       if [ $i -eq $ATTEMPTS ]; then
-        echo "Unable to get Health from http://${HOST}:${PORT}/health, exiting"
+        echo "Unable to get health from http://${HOST}:${PORT}/health, exiting"
         exit 1
       fi
     done
 
-    echo "Health on $HOST is $HEALTH"
     ACTUAL=$(echo ${HEALTH} | jq -r ".version")
-
     if [ "$ACTUAL" = "$GIT_HASH" ] ; then
       echo "Host ${HOST} is running the correct version: $GIT_HASH"
     else
