@@ -37,6 +37,8 @@ public class SunnyDayAcceptanceTest {
         Properties properties = new Properties();
 
         properties.put("persistence.cassandra.keyspace", keyspace);
+        properties.put("persistence.cassandra.enabled", true);
+        properties.put("persistence.riak.enabled", false);
 
         return properties;
     }).get(), "/integrationtest-conf");
@@ -67,6 +69,9 @@ public class SunnyDayAcceptanceTest {
         assertHasAnonymousFrom(anonAsq);
         assertRtsHeadersNotPresent(anonAsq);
         assertIsAnonymous(anonymizedAsq, "seller_66@hotmail.com");
+
+        // if the test is too quick, it will fail. Fixing it properly in the meantime, this is just a quick fix [gg].
+        Thread.sleep(3000);
 
         deliverReplyMailToRts("plain-asq-reply.eml");
         WiserMessage anonymizedAsqReply = runner.waitForMessageArrival(2, deliveryTimeoutMillis);
