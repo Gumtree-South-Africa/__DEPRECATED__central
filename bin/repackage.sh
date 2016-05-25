@@ -32,10 +32,27 @@ function repackage() {
       continue
     fi
 
-    rm -f tmp/conf/*
-    cp "$prop"/* tmp/conf/
-    cd tmp && tar cfz ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz . && cd ..
-    echo "Created ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz"
+    case "$TENANT" in
+      kjca)
+        # Create a tar archive with all the libs
+        rm -rf tmp/{bin,conf,log}
+        cd tmp && tar cf ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar . && cd ..
+        echo "Created ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar"
+        # Create a single JAR with only a META-INF/MANIFEST.MF
+        cd tmp/lib && mkdir ../META-INF
+        echo -e "Manifest-Version: 1.0\nArchiver-Version: Bash Archiver\nBuilt-By: thecomaasteam" >> ../META-INF/MANIFEST.MF
+        echo "Clss-Path: $(ls -1 * | xargs)" | fold -w 69 | sed -e 's/^/ /' -e 's/^ Clss-Path/Class-Path/' >> ../META-INF/MANIFEST.MF
+        echo -e "Created-By: COMaaS Team 1.0.0.AWESOME\nBuild-Jdk: $(javac -version 2>&1 | sed -e 's/javac//' -e 's/\ //g')" >> ../META-INF/MANIFEST.MF
+        echo -e "Main-Class: com.ecg.replyts.core.runtime.ReplyTS" >> ../META-INF/MANIFEST.MF
+        cd .. && rm -rf lib && zip -r ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.jar . && cd ..
+        echo "Created ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.jar"
+        ;;
+      *)
+        rm -f tmp/conf/*
+        cp "$prop"/* tmp/conf/
+        cd tmp && tar cfz ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz . && cd ..
+        echo "Created ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz"
+    esac
   done
 
   rm -rf tmp

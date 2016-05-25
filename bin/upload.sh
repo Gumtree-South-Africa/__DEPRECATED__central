@@ -25,8 +25,9 @@ function parseArgs() {
 # map to lookup the upload hosts for a tenant
 declare -A HOSTS=(
   ["mp"]="mp-deploy001.opslp.ams01.marktplaats.nl"
-  ["ebayk"]="https://comaas-uploader:ohy9Te#hah9U@kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/ecg/comaas/versions/" \
+  ["ebayk"]="https://comaas-uploader:ohy9Te#hah9U@kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/ecg/comaas/versions/"
   ["mde"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-team-releases/ecg/ecg-comaas/versions/"
+  ["kjca"]='http://comaas:bMv!Yne7Apj3F4pW@nexus.kjdev.ca/content/repositories/comaas/ecg/comaas/versions/'
 
   # Overrides for specific environments
   ["mp-prod"]="deploy001.esh.ops.prod.icas.ecg.so"
@@ -36,8 +37,9 @@ declare -A HOSTS=(
 # map to lookup upload methods for a tenant
 declare -A METHODS=(
   ["mp"]="rsync"
-  ["ebayk"]="autodeployer"
-  ["mde"]="autodeployer"
+  ["ebayk"]="curl"
+  ["mde"]="curl"
+  ["kjca"]="curl"
 )
 
 function upload() {
@@ -52,7 +54,7 @@ function upload() {
   readonly start=$(date +"%s")
 
   case ${METHOD} in
-    autodeployer) 
+    curl) 
       # host to upload to
       readonly HOST=${HOST_VALUE}${GIT_HASH}/
       readonly URL=$(echo ${HOST} | cut -d'@' -f2)
