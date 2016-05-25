@@ -28,7 +28,7 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
     @Autowired
     private MailRepository mailRepository;
 
-    private static final ConcurrentHashMap<String, ProcessedMail> RECEIVED_MAILS = new ConcurrentHashMap<String, ProcessedMail>();
+    private static final ConcurrentHashMap<String, ProcessedMail> RECEIVED_MAILS = new ConcurrentHashMap<>();
 
     public static class ProcessedMail {
         private final Mail outboundMail;
@@ -55,7 +55,7 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
         }
     }
 
-    private static final LinkedBlockingQueue<ProcessedMail> OUTCOME = new LinkedBlockingQueue<ProcessedMail>();
+    private static final LinkedBlockingQueue<ProcessedMail> OUTCOME = new LinkedBlockingQueue<>();
 
     /**
      * waits for replyts to have finished the next mail.
@@ -101,6 +101,7 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
 
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
+        LOG.info("Processing message with id '{}'");
         Mail m = null;
         try {
             if (message.getState() == MessageState.SENT) {

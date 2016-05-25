@@ -1,11 +1,14 @@
 package com.ecg.replyts.acceptance;
 
-import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
-import com.ecg.replyts.integration.test.IntegrationTestRunner;
+import com.ecg.replyts.core.runtime.ReplyTS;
+import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.google.common.io.ByteStreams;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.*;
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.context.annotation.Profile;
 import org.subethamail.wiser.WiserMessage;
 
 import javax.mail.Address;
@@ -14,9 +17,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import java.util.Properties;
-import java.util.function.Supplier;
-
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -26,40 +27,16 @@ import static org.hamcrest.Matchers.nullValue;
 /**
  * All-is-well integration tests.
  */
+@Profile(ReplyTS.EMBEDDED_PROFILE)
 public class SunnyDayAcceptanceTest {
-    private static final long deliveryTimeoutMillis = 20_000;
 
-    private CassandraIntegrationTestProvisioner CASDB = CassandraIntegrationTestProvisioner.getInstance();
-
-    private String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
-
-    private IntegrationTestRunner runner = new IntegrationTestRunner(((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
-
-        properties.put("persistence.cassandra.keyspace", keyspace);
-        properties.put("persistence.cassandra.enabled", true);
-        properties.put("persistence.riak.enabled", false);
-
-        return properties;
-    }).get(), "/integrationtest-conf");
-
-    @Before
-    public void startReplytsAndClearMessages() throws Exception {
-        CASDB.initStdSchema(keyspace);
-
-        runner.start();
-        runner.clearMessages();
-    }
-
-    @After
-    public void shutdown() {
-        runner.stop();
-    }
+    @Rule
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
 
     @Test
     public void rtsProcessedAnAsqMailAndAReply() throws Exception {
         deliverMailToRts("plain-asq.eml");
-        WiserMessage anonymizedAsq = runner.waitForMessageArrival(1, deliveryTimeoutMillis);
+        WiserMessage anonymizedAsq = rule.waitForWiserMail();
         MimeMessage anonAsq = anonymizedAsq.getMimeMessage();
         assertThat(anonAsq.getSubject(), is("Reactie op uw advertentie: Twee matrassen, hoef je niet te draaien en wasbare hoezen"));
         assertThat(anonymizedAsq.getEnvelopeReceiver(), is("obeuga@foon.nl"));
@@ -70,11 +47,8 @@ public class SunnyDayAcceptanceTest {
         assertRtsHeadersNotPresent(anonAsq);
         assertIsAnonymous(anonymizedAsq, "seller_66@hotmail.com");
 
-        // if the test is too quick, it will fail. Fixing it properly in the meantime, this is just a quick fix [gg].
-        Thread.sleep(3000);
-
-        deliverReplyMailToRts("plain-asq-reply.eml");
-        WiserMessage anonymizedAsqReply = runner.waitForMessageArrival(2, deliveryTimeoutMillis);
+        deliverReplyMailToRts(anonymizedAsq, "plain-asq-reply.eml");
+        WiserMessage anonymizedAsqReply = rule.waitForWiserMail();
         MimeMessage anonAsqReply = anonymizedAsqReply.getMimeMessage();
         assertThat(anonAsqReply.getSubject(), is("Antw: Reactie op uw advertentie: Twee matrassen, hoef je niet te draaien en wasbare hoezen"));
         assertThat(anonymizedAsqReply.getEnvelopeReceiver(), is("seller_66@hotmail.com"));
@@ -111,16 +85,21 @@ public class SunnyDayAcceptanceTest {
 
     private void deliverMailToRts(String emlName) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
-        runner.getMailSender().sendMail(emlData);
+        rule.getMailSender().sendMail(emlData);
+
+        // wait for listener to be triggered - this means the mail is sent & stored properly
+        AwaitMailSentProcessedListener.awaitMail();
     }
 
-    private void deliverReplyMailToRts(String emlName) throws Exception {
-        WiserMessage asqMessage = runner.getLastRtsSentMail();
+    private void deliverReplyMailToRts(WiserMessage asqMessage, String emlName) throws Exception {
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
         byte[] bytes = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
         String replyData = new String(bytes, "US-ASCII");
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
-        runner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
+        rule.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
+
+        // wait for listener to be triggered - this means the mail is sent & stored properly
+        AwaitMailSentProcessedListener.awaitMail();
     }
 }

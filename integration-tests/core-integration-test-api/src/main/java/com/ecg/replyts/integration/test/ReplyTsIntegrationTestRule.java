@@ -15,6 +15,7 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.subethamail.wiser.WiserMessage;
 
 import javax.mail.internet.MimeMessage;
 import java.io.File;
@@ -235,7 +236,25 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         }
     }
 
+    /**
+     * awaits the next mail ReplyTS sends out.
+     */
+    public WiserMessage waitForWiserMail() {
+        try {
+            WiserMessage message = testRunner.waitForMessageArrival(1, deliveryTimeoutSeconds * 1000);
+            testRunner.clearMessages();
+            return message;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void waitUntilIndexedInEs(AwaitMailSentProcessedListener.ProcessedMail mail) {
         EsUtils.waitUntilIndexed(mail, getSearchClient());
     }
+
+    public FileSystemMailSender getMailSender() {
+        return testRunner.getMailSender();
+    }
+
 }
