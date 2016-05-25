@@ -12,7 +12,7 @@
     "TaskGroups": [ {
       "Name":"comaas-node-TENANT",
 
-      "count":1,
+      "count":3,
 
       "Tasks": [ {
         "Name":"comaas-TENANT",
