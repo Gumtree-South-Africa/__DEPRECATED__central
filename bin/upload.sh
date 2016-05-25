@@ -42,14 +42,16 @@ declare -A METHODS=(
 
 function upload() {
   # prefer a specific environment; otherwise default to the tenant default
-  HOST_VALUE="${HOSTS[${TENANT}-${DESTINATION}]}"
-  if [ -z "$HOST_VALUE" ] ; then HOST_VALUE="${HOSTS[$TENANT]}" fi
+  HOST_VALUE="${HOSTS[${TENANT}-${DESTINATION}]:-}"
+  if [ -z "$HOST_VALUE" ] ; then
+    HOST_VALUE="${HOSTS[$TENANT]}"
+  fi
 
   METHOD="${METHODS[$TENANT]}"
 
   readonly start=$(date +"%s")
 
-  case $METHOD in
+  case ${METHOD} in
     autodeployer) 
       # host to upload to
       readonly HOST=${HOST_VALUE}${GIT_HASH}/

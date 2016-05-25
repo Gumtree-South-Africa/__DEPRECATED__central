@@ -3,10 +3,10 @@
 TENANT=$1
 GIT_HASH=$2
 ARTIFACT=$3
+BUILD_DIR=$4
 
-if [ -z "$TENANT" ] || [ -z "$GIT_HASH" ] || [ -z "$ARTIFACT" ] ; then
-  echo "$0: <tenant> <git-hash> <artifact>"
-
+if [ -z "$TENANT" ] || [ -z "$GIT_HASH" ] || [ -z "$ARTIFACT" ] || [ -z "$BUILD_DIR" ]; then
+  echo "$0: <tenant> <git-hash> <artifact> <build_dir>"
   exit 1
 fi
 
