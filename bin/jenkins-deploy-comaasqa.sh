@@ -6,7 +6,7 @@ set -o nounset
 # Not exiting on error, since we have a retry mechanism in here
 # set -o errexit
 
-ATTEMPTS=10
+ATTEMPTS=20
 
 function usage() {
   cat <<- EOF
@@ -68,6 +68,7 @@ function deploy() {
 
   HOSTS=$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | jq -r '.[].NodeID')
   echo "Checking hosts: $HOSTS"
+  # TODO(gg): Wait for the number of hosts that we expect (from the job file)
 
   for HOSTID in ${HOSTS} ; do
     # Check the actual /health endpoint and compare the versions
