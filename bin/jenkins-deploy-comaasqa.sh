@@ -53,9 +53,9 @@ function deploy() {
     sleep $i
 
     # All allocations on TENANT Nomad nodes should now be in the 'running' state (if not, fail)
-    if [ $(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | \
+    if [ ! -z "$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | \
          jq -c ".[] | { running: (.TaskStates[\"comaas-${TENANT}\"].State == \"running\"), id: .ID }" | \
-         grep ':false') ] ; then
+         grep ':false')" ] ; then
       if [ $i -eq $ATTEMPTS ] ; then
         echo "Unable to get into the groove yo - waited a while but still non-running clients"
         exit 1
