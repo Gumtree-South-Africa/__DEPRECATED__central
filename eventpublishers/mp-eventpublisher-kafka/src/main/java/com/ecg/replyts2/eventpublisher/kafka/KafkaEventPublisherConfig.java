@@ -54,6 +54,10 @@ public class KafkaEventPublisherConfig {
     @PostConstruct
     @Conditional(KafkaEnabledConditional.class)
     private void createKafkaProducer() {
+        if(!kafkaEnabled) {
+            LOGGER.debug("Kafka Event Publisher is disabled!");
+            return;
+        }
         Assert.hasLength(kafkaBrokers);
 
         Properties props = new Properties();
