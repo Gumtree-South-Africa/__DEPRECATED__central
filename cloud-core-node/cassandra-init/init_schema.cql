@@ -174,7 +174,7 @@ CREATE TABLE volume_events (
 CREATE TABLE mb_unread_counters (
     postbox_id text,
     conversation_id text,
-    num_unread counter,
+    num_unread int,
     PRIMARY KEY (postbox_id, conversation_id)
 ) WITH CLUSTERING ORDER BY (conversation_id ASC)
     AND bloom_filter_fp_chance = 0.01
