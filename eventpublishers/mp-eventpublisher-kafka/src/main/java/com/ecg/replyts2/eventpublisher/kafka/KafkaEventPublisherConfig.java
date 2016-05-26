@@ -92,9 +92,7 @@ public class KafkaEventPublisherConfig {
     public static class KafkaEnabledConditional implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            boolean enabled = context.getEnvironment().getProperty("replyts.event.publisher.kafka.enabled", Boolean.class, false);
-            LOGGER.debug("Kafka Event Publisher: {}" , enabled);
-            return enabled;
+            return context.getEnvironment().getProperty("replyts.event.publisher.kafka.enabled", Boolean.class, false);
         }
     }
 }
