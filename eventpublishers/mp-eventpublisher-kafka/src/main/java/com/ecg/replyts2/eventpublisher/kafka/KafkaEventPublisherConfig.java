@@ -6,6 +6,9 @@ import com.ecg.replyts.app.eventpublisher.EventPublisher;
 import com.ecg.replyts.app.eventpublisher.MessageReceivedListener;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
+import kafka.utils.KafkaScheduler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
@@ -31,6 +34,8 @@ import java.util.Properties;
  */
 @Configuration
 public class KafkaEventPublisherConfig {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(KafkaEventPublisherConfig.class);
 
     @Value("${replyts.event.publisher.kafka.enabled:false}")
     private boolean kafkaEnabled;
@@ -83,7 +88,9 @@ public class KafkaEventPublisherConfig {
     public static class KafkaEnabledConditional implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            return context.getEnvironment().getProperty("replyts.event.publisher.kafka.enabled", Boolean.class, false);
+            boolean enabled = context.getEnvironment().getProperty("replyts.event.publisher.kafka.enabled", Boolean.class, false);
+            LOGGER.debug("Kafka Event Publisher: {}" , enabled);
+            return enabled;
         }
     }
 }
