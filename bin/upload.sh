@@ -67,8 +67,8 @@ function upload() {
 
       ;;
     rsync)
-      readonly PREFIX="mpreplyts2"
-      readonly REMOTE_DIR=/opt/tarballs/replyts2
+      readonly PREFIX="comaas"
+      readonly REMOTE_DIR=/opt/tarballs/ecg-comaas
       readonly RELEASE_FOLDER="${PREFIX}-$(date +%Y%m%d%H%M%S)"
       readonly KEEPVERSIONS=20
 
