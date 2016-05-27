@@ -38,7 +38,7 @@ $CQLSH_PATH/cqlsh $HOST 9042 -e "USE system; SELECT keyspace_name FROM schema_ke
 $CQLSH_PATH/cqlsh $HOST 9042 -e "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'ams1': '2'} AND durable_writes = true;"
 $CQLSH_PATH/cqlsh $HOST 9042 -k "$KEYSPACE" -f core-runtime/src/main/resources/cassandra_schema.cql
 $CQLSH_PATH/cqlsh $HOST 9042 -k "$KEYSPACE" -f filters/mp-filter-volume/src/main/resources/cassandra_volume_filter_schema.cql
-$CQLSH_PATH/cqlsh $HOST 9042 -k "$KEYSPACE" -f etc/cassandra_messagebox_schema.cql
+$CQLSH_PATH/cqlsh $HOST 9042 -k "$KEYSPACE" -f messagecenters/mp-messagecenter/src/main/resources/cassandra_messagebox_schema.cql
 
 if [ $? -eq 0 ] ; then
     echo "Keyspace $KEYSPACE was successfully created"
