@@ -7,8 +7,10 @@ set -o errexit
 
 readonly ARGS="$@"
 readonly DIR=$(dirname $0)
+
 readonly CASSANDRA_DIR="$DIR/../cassandra_tmp"
 readonly CASSANDRA_PID="cassandra.pid"
+readonly CASSANDRA_HOME=$CASSANDRA_DIR
 
 REVISION="$(git rev-parse --short HEAD)"
 
@@ -56,7 +58,7 @@ function startCassandra() {
     rm -rf ${CASSANDRA_DIR}
     mkdir ${CASSANDRA_DIR}
     export PATH=$PATH:/opt/cassandra/bin:/usr/sbin
-    cassandra -p ${CASSANDRA_PID} "-Dcassandra.storagedir=$CASSANDRA_DIR"
+    cassandra -Dcassandra.config="file:///$PWD/etc/cassandra.yaml" -p ${CASSANDRA_PID}
 }
 
 function stopCassandra() {
