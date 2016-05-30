@@ -75,13 +75,13 @@ function upload() {
       echo "Syncing $PACKAGE to ${HOST_VALUE} ..."
 
       set -o xtrace
-      ssh builder@${HOST_VALUE} "mkdir -p ${REMOTE_DIR}/${RELEASE_FOLDER}"
+      ssh ${HOST_VALUE} "mkdir -p ${REMOTE_DIR}/${RELEASE_FOLDER}"
       rsync -avv --no-times --no-o --no-p --size-only \
         ${PACKAGE} \
-        builder@${HOST_VALUE}:${REMOTE_DIR}/${RELEASE_FOLDER}/$(basename $PACKAGE)
+        ${HOST_VALUE}:${REMOTE_DIR}/${RELEASE_FOLDER}/$(basename $PACKAGE)
 
       echo "Cleaning up old versions on ${HOST_VALUE} ..."
-      ssh builder@${HOST_VALUE} "ls -td ${REMOTE_DIR}/${PREFIX}-* | sed -ne'1,${KEEPVERSIONS}!p' | xargs -r rm -rv"
+      ssh ${HOST_VALUE} "ls -td ${REMOTE_DIR}/${PREFIX}-* | sed -ne'1,${KEEPVERSIONS}!p' | xargs -r rm -rv"
       set +o xtrace
 
       ;;
