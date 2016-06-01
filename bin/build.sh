@@ -58,7 +58,7 @@ function startCassandra() {
     rm -rf ${CASSANDRA_DIR}
     mkdir ${CASSANDRA_DIR}
     export PATH=$PATH:/opt/cassandra/bin:/usr/sbin
-    cassandra -Dcassandra.config="file:///$PWD/etc/cassandra.yaml" "-Dcassandra.storagedir=$CASSANDRA_DIR" -p ${CASSANDRA_PID}
+    cassandra "-Dcassandra.logdir=$CASSANDRA_DIR" "-Dcassandra.config=file:///$PWD/etc/cassandra.yaml" "-Dcassandra.storagedir=$CASSANDRA_DIR" -p ${CASSANDRA_PID}
 }
 
 function stopCassandra() {
