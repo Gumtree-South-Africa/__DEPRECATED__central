@@ -24,13 +24,13 @@ function parseArgs() {
 
 # map to lookup the upload hosts for a tenant
 declare -A HOSTS=(
-  ["mp"]="mp-deploy001.opslp.ams01.marktplaats.nl"
+  ["mp"]="builder@mp-deploy001.opslp.ams01.marktplaats.nl"
   ["ebayk"]="https://comaas-uploader:ohy9Te#hah9U@kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/ecg/comaas/versions/"
   ["mde"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-team-releases/ecg/ecg-comaas/versions/"
   ["kjca"]='http://comaas:bMv!Yne7Apj3F4pW@nexus.kjdev.ca/content/repositories/comaas/ecg/comaas/versions/'
 
   # Overrides for specific environments
-  ["mp-prod"]="deploy001.esh.ops.prod.icas.ecg.so"
+  ["mp-prod"]="builder@deploy001.esh.ops.prod.icas.ecg.so"
   ["mde-prod"]="https://autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-productive-releases/ecg/comaas/versions/"
 )
 
