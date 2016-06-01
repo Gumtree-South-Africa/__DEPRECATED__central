@@ -33,6 +33,13 @@ function repackage() {
     fi
 
     case "$TENANT" in
+      ebayk)
+        if [ ! -d tmp/comaas ] ; then
+          mkdir comaas-tmp && mv tmp/* comaas-tmp/ && mv comaas-tmp tmp/comaas
+        fi
+        rm -f tmp/comaas/conf/* && cp "$prop"/* tmp/comaas/conf/
+        cd tmp && tar cfz ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz . && cd ..
+        ;;
       kjca)
         # Create a tar archive with all the libs
         rm -rf tmp/{bin,conf,log}
@@ -45,14 +52,14 @@ function repackage() {
         echo -e "Created-By: COMaaS Team 1.0.0.AWESOME\nBuild-Jdk: $(javac -version 2>&1 | sed -e 's/javac//' -e 's/\ //g')" >> ../META-INF/MANIFEST.MF
         echo -e "Main-Class: com.ecg.replyts.core.runtime.ReplyTS" >> ../META-INF/MANIFEST.MF
         cd .. && rm -rf lib && zip -r ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.jar . && cd ..
-        echo "Created ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.jar"
         ;;
       *)
-        rm -f tmp/conf/*
-        cp "$prop"/* tmp/conf/
+        rm -f tmp/conf/* && cp "$prop"/* tmp/conf/
         cd tmp && tar cfz ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz . && cd ..
-        echo "Created ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz"
+        ;;
     esac
+
+    echo "Created ${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}.tar.gz"
   done
 
   rm -rf tmp
