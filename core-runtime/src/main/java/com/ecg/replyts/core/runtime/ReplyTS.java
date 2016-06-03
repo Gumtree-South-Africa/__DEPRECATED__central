@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.consul.discovery.ConsulDiscoveryClient;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -70,6 +71,12 @@ public class ReplyTS {
 
         @Autowired(required = false)
         private DiscoveryClient discoveryClient;
+
+        @PostConstruct
+        @ConditionalOnBean(DiscoveryClient.class)
+        private void autoDiscoverySelf() {
+            LOG.info("Registered service under instance {}", discoveryClient.getLocalServiceInstance().getUri().toString());
+        }
 
         @PostConstruct
         @ConditionalOnBean(DiscoveryClient.class)
