@@ -89,16 +89,19 @@ function stopCassandra() {
 function parseCmd() {
     RUN_TESTS=0
     RUN_INTEGRATION_TESTS=0
+    RUN_INTEGRATION_TESTS_ONLY=0
     TENANT=
     PACKAGE=
     UPLOAD=
     EXECUTE=
 
-    while getopts ":tIT:P:U:E" OPTION; do
+    while getopts ":tIiT:P:U:E" OPTION; do
         case ${OPTION} in
             t) log "Building with tests (but not integration tests)"; RUN_TESTS=1
                ;;
             I) log "Building with tests and integration tests"; RUN_TESTS=1; RUN_INTEGRATION_TESTS=1
+               ;;
+            i) log "Building with integration tests only"; RUN_TESTS=1; RUN_INTEGRATION_TESTS_ONLY=1
                ;;
             T) log "Building for tenant $OPTARG"; TENANT="$OPTARG"
                ;;
@@ -175,6 +178,11 @@ function main() {
             -Dmail.mime.multipart.allowempty=true -Dmaven.test.skip=true -Dmaven.exec.skip=false"
             MVN_TASKS="clean verify"
         fi
+
+    elif [[ "$RUN_INTEGRATION_TESTS_ONLY" -eq 1 ]] ; then
+        echo "Running Integration Tests only"
+        MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P mp -pl integration-tests/mp-integration-test,integration-tests/core-integration-test "
+        MVN_TASKS="clean package"
     else
         log "Building all tenant modules (skipping distribution)"
 
