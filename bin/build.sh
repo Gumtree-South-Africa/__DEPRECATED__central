@@ -89,19 +89,28 @@ function stopCassandra() {
 function parseCmd() {
     RUN_TESTS=0
     RUN_INTEGRATION_TESTS=0
-    RUN_INTEGRATION_TESTS_ONLY=0
+    RUN_ONLY_INTEGRATION_TESTS_ALL=0
+    RUN_ONLY_INTEGRATION_TESTS_P1=0
+    RUN_ONLY_INTEGRATION_TESTS_P2=0
+    RUN_MP_INTEGRATION_TESTS=0
     TENANT=
     PACKAGE=
     UPLOAD=
     EXECUTE=
 
-    while getopts ":tIiT:P:U:E" OPTION; do
+    while getopts ":tIi123T:P:U:E" OPTION; do
         case ${OPTION} in
             t) log "Building with tests (but not integration tests)"; RUN_TESTS=1
                ;;
             I) log "Building with tests and integration tests"; RUN_TESTS=1; RUN_INTEGRATION_TESTS=1
                ;;
-            i) log "Building with integration tests only"; RUN_TESTS=1; RUN_INTEGRATION_TESTS_ONLY=1
+            i) log "Building with all integration tests only"; RUN_TESTS=1; RUN_ONLY_INTEGRATION_TESTS_ALL=1
+               ;;
+            1) log "Building with integration tests part1 only"; RUN_TESTS=1; RUN_ONLY_INTEGRATION_TESTS_P1=1
+               ;;
+            2) log "Building with integration tests part2 only"; RUN_TESTS=1; RUN_ONLY_INTEGRATION_TESTS_P2=1
+               ;;
+            3) log "Building with MP integration tests only"; RUN_TESTS=1; RUN_MP_INTEGRATION_TESTS=1
                ;;
             T) log "Building for tenant $OPTARG"; TENANT="$OPTARG"
                ;;
@@ -179,9 +188,21 @@ function main() {
             MVN_TASKS="clean verify"
         fi
 
-    elif [[ "$RUN_INTEGRATION_TESTS_ONLY" -eq 1 ]] ; then
-        echo "Running Integration Tests only"
-        MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P mp -pl integration-tests/mp-integration-test,integration-tests/core-integration-test "
+    elif [[ "$RUN_ONLY_INTEGRATION_TESTS_ALL" -eq 1 ]] ; then
+        echo "Running All Integration Tests only"
+        MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P mp,integration-tests-part1,integration-tests-part2 -pl integration-tests/mp-integration-test,integration-tests/core-integration-test "
+        MVN_TASKS="clean package"
+    elif [[ "$RUN_ONLY_INTEGRATION_TESTS_P1" -eq 1 ]] ; then
+        echo "Running Integration Tests P1 only"
+        MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P integration-tests-part1 -pl integration-tests/core-integration-test "
+        MVN_TASKS="clean package"
+    elif [[ "$RUN_MP_INTEGRATION_TESTS" -eq 1 ]] ; then
+        echo "Running MP Integration Tests only"
+        MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P mp -pl integration-tests/mp-integration-test "
+        MVN_TASKS="clean package"
+    elif [[ "$RUN_ONLY_INTEGRATION_TESTS_P2" -eq 1 ]] ; then
+        echo "Running Integration Tests P2 only"
+        MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P integration-tests-part2 -pl integration-tests/core-integration-test "
         MVN_TASKS="clean package"
     else
         log "Building all tenant modules (skipping distribution)"

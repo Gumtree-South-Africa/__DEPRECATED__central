@@ -144,14 +144,22 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <forkCount>0.5C</forkCount>
-                    <reuseForks>false</reuseForks>
-                    <argLine>-Xmx6G</argLine>
-                </configuration>
+                <executions>
+                <execution>
+                    <id>default-test</id>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
+
+    <properties>
+        <part1.tests>**/acceptance/**.java,**/integration.riak/**.class</part1.tests>
+        <part2.tests>**/core.runtime/**/**.java,**/app.search/**.class</part2.tests>
+    </properties>
 
     <profiles>
         <profile>
@@ -168,5 +176,65 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>integration-tests-part1</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>test</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <includes>
+                                        <include>${part1.tests}</include>
+                                    </includes>
+                                    <forkCount>0.5C</forkCount>
+                                    <reuseForks>false</reuseForks>
+                                    <argLine>-Xmx6G</argLine>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>integration-tests-part2</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>test</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <includes>
+                                        <include>${part2.tests}</include>
+                                    </includes>
+                                    <forkCount>0.5C</forkCount>
+                                    <reuseForks>false</reuseForks>
+                                    <argLine>-Xmx6G</argLine>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
     </profiles>
+
 </project>
