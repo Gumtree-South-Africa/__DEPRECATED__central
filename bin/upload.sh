@@ -20,13 +20,17 @@ function parseArgs() {
   DESTINATION=$2
   GIT_HASH=$3
   PACKAGE=$4
+
+  # Rename the package to remove noenv (if it exists)
+  echo "$PACKAGE" | grep '\-noenv\-' >/dev/null &&
+    mv "$PACKAGE" $(echo "$PACKAGE" | sed 's/\-noenv\-/\-/')
 }
 
 # map to lookup the upload hosts for a tenant
 declare -A HOSTS=(
   ["mp"]="builder@mp-deploy001.opslp.ams01.marktplaats.nl"
   ["ebayk"]="https://comaas-uploader:ohy9Te#hah9U@kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/ecg/comaas/versions/"
-  ["mde"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-team-releases/ecg/ecg-comaas/versions/"
+  ["mde"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-team-releases/ecg/ecg-comaas/"
   ["kjca"]='http://comaas:bMv!Yne7Apj3F4pW@nexus.kjdev.ca/content/repositories/comaas/ecg/comaas/versions/'
 
   # Overrides for specific environments
