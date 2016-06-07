@@ -7,7 +7,7 @@ set -o errexit
 
 function usage() {
   cat <<- EOF
-  Usage: upload.sh <tenant> <destination> <git_hash> <package>
+  Usage: upload.sh <tenant> <git_hash> <package> <?destination>
 EOF
   exit
 }
@@ -17,13 +17,11 @@ function parseArgs() {
   [[ $# == 0 ]] && usage
 
   TENANT=$1
-  DESTINATION=$2
-  GIT_HASH=$3
-  PACKAGE=$4
-
-  # Rename the package to remove noenv (if it exists)
-  echo "$PACKAGE" | grep '\-noenv\-' >/dev/null &&
-    mv "$PACKAGE" $(echo "$PACKAGE" | sed 's/\-noenv\-/\-/')
+  GIT_HASH=$2
+  PACKAGE=$3
+  # destination can be omitted, in that case it's a package destined for multiple environments,
+  # so we upload it to the default url
+  DESTINATION=${4:-}
 }
 
 # map to lookup the upload hosts for a tenant

@@ -13,9 +13,16 @@ fi
 # Repackage into packages for each TENANT environment
 `dirname $0`/repackage.sh $TENANT $GIT_HASH $ARTIFACT
 
+PACKAGE_REGEX=".*/comaas-$TENANT-([0-9a-zA-Z]*)-[0-9a-z]\..*"
+
 # Upload or deploy
-for PKG in $(ls $BUILD_DIR/comaas-$TENANT*); do 
-  DESTINATION=$(echo "$PKG" | sed "s/^.*\-${TENANT}\-\([a-zA-Z0-9]*\)\-.*$/\1/")
+for PKG in $(ls $BUILD_DIR/comaas-$TENANT*); do
+
+  if [[ ${PKG} =~ ${PACKAGE_REGEX} ]]; then
+    DESTINATION="${BASH_REMATCH[1]}"
+  else
+    DESTINATION=""
+  fi
 
   if [[ "$DESTINATION" == "comaasqa" || "$DESTINATION" == "local" ]] ; then
     continue
@@ -27,6 +34,6 @@ for PKG in $(ls $BUILD_DIR/comaas-$TENANT*); do
     # This requires the deploy.py script to be on the PATH
     deploy.py --redeploy --config deploy.conf --logdir . --component ${PKG} --dry-run
   else
-    `dirname $0`/upload.sh $TENANT $DESTINATION $GIT_HASH $PKG
+    `dirname $0`/upload.sh $TENANT $GIT_HASH $PKG $DESTINATION
   fi
 done
