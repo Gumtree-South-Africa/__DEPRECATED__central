@@ -13,7 +13,7 @@ fi
 # Repackage into packages for each TENANT environment
 `dirname $0`/repackage.sh $TENANT $GIT_HASH $ARTIFACT
 
-PACKAGE_REGEX=".*/comaas-$TENANT-([0-9a-zA-Z]*)-[0-9a-z]\..*"
+PACKAGE_REGEX=".*/comaas-$TENANT-([0-9a-zA-Z]+)-[0-9a-z]+\..*"
 
 # Upload or deploy
 for PKG in $(ls $BUILD_DIR/comaas-$TENANT*); do
