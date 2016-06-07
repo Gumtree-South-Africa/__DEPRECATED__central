@@ -9,9 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.context.embedded.EmbeddedServletContainer;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
+import org.springframework.boot.context.embedded.EmbeddedWebApplicationContext;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.consul.discovery.ConsulDiscoveryClient;
+import org.springframework.cloud.consul.discovery.ConsulLifecycle;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -66,6 +70,12 @@ public class ReplyTS {
         @Value("#{'${persistence.riak.enabled:false}' ? 'riak' : 'cassandra'}")
         private String conversationRepositorySource;
 
+        @Value("${replyts.http.port:0}")
+        private Integer httpPort;
+
+        @Autowired
+        private ConsulLifecycle lifecycle;
+
         @Autowired
         private ConfigurableEnvironment environment;
 
@@ -75,6 +85,25 @@ public class ReplyTS {
         @PostConstruct
         @ConditionalOnBean(DiscoveryClient.class)
         private void autoDiscoverySelf() {
+            // XXX: Temporary fix until we switch to the Spring Boot webserver
+
+            lifecycle.onApplicationEvent(new EmbeddedServletContainerInitializedEvent(
+              new EmbeddedWebApplicationContext(),
+              new EmbeddedServletContainer() {
+                      @Override
+                      public void start() throws EmbeddedServletContainerException {
+                      }
+
+                      @Override
+                      public void stop() throws EmbeddedServletContainerException {
+                      }
+
+                      @Override
+                      public int getPort() {
+                              return httpPort;
+                      }
+              }));
+
             LOG.info("Registered service under instance {}", discoveryClient.getLocalServiceInstance().getUri().toString());
         }
 
