@@ -24,7 +24,8 @@ function parseArgs() {
 }
 
 function repackage() {
-  mkdir tmp
+  mkdir -p tmp
+  mkdir -p tmp2
   tar xfz ${ARTIFACT} -C tmp/
 
   for prop in distribution/conf/${TENANT}/*; do
@@ -60,6 +61,18 @@ function repackage() {
         cd .. && rm -rf lib && zip -r ${PACKAGE_BASE}.jar . && cd ..
         echo "Created ${PACKAGE_BASE}.jar"
         ;;
+      mp)
+      # Repackaging for MP
+        DISTRIB_ARTIFACT_NAME=nl.marktplaats.mp-replyts2_$(basename "$prop")-$GIT_HASH_FULL-$DATETIME.tar.gz
+        DISTRIB_BUILD_DIR=nl.marktplaats.mp-replyts2_$(basename "$prop")-$GIT_HASH_FULL-$DATETIME
+        mkdir -p tmp2/$DISTRIB_BUILD_DIR
+        cp -r tmp/* tmp2/$DISTRIB_BUILD_DIR/
+        cd tmp2/$DISTRIB_BUILD_DIR
+        mv bin/comaas bin/mp-replyts2
+        tar cfz $BUILDDIR/$DISTRIB_ARTIFACT_NAME . && cd ../..
+        echo "Created ${BUILDDIR}/${DISTRIB_ARTIFACT_NAME}"
+        continue
+      ;;
       *)
         rm -f tmp/conf/* && cp "$prop"/* tmp/conf/
         cd tmp && tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
@@ -69,8 +82,10 @@ function repackage() {
 
   done
 
-  rm -rf tmp
+  rm -rf tmp tmp2
 }
 
 parseArgs $@
+GIT_HASH_FULL=$(git rev-parse HEAD)
+DATETIME=$(date +"%C%y%m%d-%H%M")
 repackage
