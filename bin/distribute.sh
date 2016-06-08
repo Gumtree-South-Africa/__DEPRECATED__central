@@ -3,6 +3,16 @@
 set -o nounset
 set -o errexit
 
+function usage() {
+  cat <<- EOF
+  Usage: distribute.sh <tenant> <git_hash> <artifact> <build_dir>
+EOF
+  exit
+}
+
+# check amount of args
+[[ $# == 0 ]] && usage
+
 TENANT=$1
 GIT_HASH=$2
 ARTIFACT=$3
@@ -17,7 +27,7 @@ fi
 `dirname $0`/repackage.sh $TENANT $GIT_HASH $ARTIFACT
 
 if [[ "$TENANT" == "mp" ]]; then
-  MP_PACKAGE_REGEX=".*/nl.marktplaats.mp-replyts2_([0-9a-zA-Z]+)-.*"
+  MP_PACKAGE_REGEX=".*/nl.marktplaats.mp-replyts2_comaas-([0-9a-zA-Z]+)-.*"
 
   # Upload or deploy
   for PKG in $(ls ${BUILD_DIR}/nl.marktplaats.mp-replyts2*); do
