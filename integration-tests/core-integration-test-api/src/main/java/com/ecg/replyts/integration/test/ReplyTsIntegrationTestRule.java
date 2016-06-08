@@ -77,6 +77,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         this(null, null, 20, esEnabled, "cassandra_schema.cql");
     }
 
+    public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, boolean esEnabled) {
+        this(null, null, deliveryTimeoutSeconds, esEnabled, "cassandra_schema.cql");
+    }
+
     public ReplyTsIntegrationTestRule(Properties testProperties) {
         this(testProperties, null, 20, false, "cassandra_schema.cql");
     }

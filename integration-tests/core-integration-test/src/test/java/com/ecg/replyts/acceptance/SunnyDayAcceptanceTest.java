@@ -31,7 +31,7 @@ import static org.hamcrest.Matchers.nullValue;
 public class SunnyDayAcceptanceTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(45, ES_ENABLED);
 
     @Test
     public void rtsProcessedAnAsqMailAndAReply() throws Exception {
