@@ -61,9 +61,25 @@
 
         </profile>
 
+        <!-- This profile is required to be able to run core tests only-->
+        <profile>
+            <id>core</id>
+            <modules>
+                <module>filters/core-filter-bankaccount</module>
+                <module>filters/core-filter-belenblockedad</module>
+                <module>filters/core-filter-belenblockeduser</module>
+                <module>filters/core-filter-ebayservices</module>
+                <module>filters/core-filter-volume</module>
+                <module>filters/core-filter-word</module>
+                <module>filters/core-filter-user</module>
+                <module>filters/core-filter-activable</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
+            </modules>
+        </profile>
+
         <profile>
             <id>default</id>
-
             <modules>
                 <module>core-api</module>
                 <module>core-runtime</module>
@@ -1075,9 +1091,9 @@
             </dependency>
 
             <dependency>
-                 <groupId>org.apache.activemq</groupId>
-                 <artifactId>activemq-core</artifactId>
-                 <version>${apache-activemq.version}</version>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-core</artifactId>
+                <version>${apache-activemq.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.activemq</groupId>
