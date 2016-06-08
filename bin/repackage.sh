@@ -63,14 +63,15 @@ function repackage() {
         ;;
       mp)
       # Repackaging for MP
-        DISTRIB_ARTIFACT_NAME=nl.marktplaats.mp-replyts2_$(basename "$prop")-$GIT_HASH_FULL-$DATETIME.tar.gz
-        DISTRIB_BUILD_DIR=nl.marktplaats.mp-replyts2_$(basename "$prop")-$GIT_HASH_FULL-$DATETIME
-        mkdir -p tmp2/$DISTRIB_BUILD_DIR
-        cp -r tmp/* tmp2/$DISTRIB_BUILD_DIR/
-        cd tmp2/$DISTRIB_BUILD_DIR
-        mv bin/comaas bin/mp-replyts2
-        tar cfz $BUILDDIR/$DISTRIB_ARTIFACT_NAME . && cd ../..
-        echo "Created ${BUILDDIR}/${DISTRIB_ARTIFACT_NAME}"
+        DISTRIB_ARTIFACT=nl.marktplaats.mp-replyts2_comaas-$(basename "$prop")-${GIT_HASH_FULL}-${DATETIME}
+        rm -rf tmp2
+        mkdir -p tmp2/${DISTRIB_ARTIFACT}
+        cp -r tmp/* tmp2/${DISTRIB_ARTIFACT}/
+        rm -f tmp2/${DISTRIB_ARTIFACT}/conf/* && cp "$prop"/* tmp2/${DISTRIB_ARTIFACT}/conf/
+        cd tmp2
+        mv ${DISTRIB_ARTIFACT}/bin/comaas ${DISTRIB_ARTIFACT}/bin/mp-replyts2
+        tar cfz ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz . && cd ..
+        echo "Created ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz"
         continue
       ;;
       *)
