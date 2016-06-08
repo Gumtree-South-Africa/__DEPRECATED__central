@@ -39,65 +39,72 @@ function deploy() {
   sed -i "s~ARTIFACT~$ARTIFACT_NAME~" comaas_deploy_jenkins.json # Use ~ separator here since $ARTIFACT might contain slashes
 
   # Extract the Evaluation ID on return or fail if there isn't one
-  EVALUATIONID=$(curl -s -X POST -d @comaas_deploy_jenkins.json http://consul001:4646/v1/jobs --header "Content-Type:application/json" | \
-    jq -r '.EvalID')
+  EVALUATIONID=$(curl -s -X POST -d @comaas_deploy_jenkins.json http://consul001:4646/v1/jobs --header "Content-Type:application/json" | jq -r '.EvalID')
 
   if [ ! $? -eq 0 ] || [ -z "$EVALUATIONID" ] ; then
     echo "No evaluation ID returned - Nomad job failed"
     exit 1
   fi
-  echo "Found EvalID: $EVALUATIONID"
 
-  # Try ATTEMPTS times to detect 'running' state on all nodes before failing
-  for i in $(seq 1 $ATTEMPTS) ; do
-    sleep $i
+  # Check this evaluation and any subsequent (NextEval) ones
+  while [ 1 ] ; do
+    echo "Checking eval $EVALUATIONID"
 
-    # All allocations on TENANT Nomad nodes should now be in the 'running' state (if not, fail)
-    if [ ! -z "$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | \
-         jq -c ".[] | { running: (.TaskStates[\"comaas-${TENANT}\"].State == \"running\"), id: .ID }" | \
-         grep ':false')" ] ; then
-      if [ $i -eq $ATTEMPTS ] ; then
-        echo "Unable to get into the groove yo - waited a while but still non-running clients"
-        exit 1
-      fi
-    else
-      break;
-    fi
-  done
-  echo "All allocations are running"
-
-  HOSTS=$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | jq -r '.[].NodeID')
-  echo "Checking hosts: $HOSTS"
-  # TODO(gg): Wait for the number of hosts that we expect (from the job file)
-
-  for HOSTID in ${HOSTS} ; do
-    # Check the actual /health endpoint and compare the versions
-    for i in $(seq 1 $ATTEMPTS); do
+    # Try ATTEMPTS times to detect 'running' state on all nodes before failing
+    for i in $(seq 1 $ATTEMPTS) ; do
       sleep $i
-      HOST=$(curl -s http://consul001:4646/v1/node/${HOSTID} | jq -r .Name)
-      echo "Checking host: $HOST"
 
-      if [ -n "$HOST" ]; then
-        HEALTH=$(curl -s http://${HOST}:${PORT}/health)
-        echo "${HOST}'s health is $HEALTH"
-        if [ -n "$HEALTH" ]; then
-          break
+      # All allocations on TENANT Nomad nodes should now be in the 'running' state (if not, fail)
+      if [ ! -z "$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | \
+           jq -c ".[] | { running: (.TaskStates[\"comaas-${TENANT}\"].State == \"running\"), id: .ID }" | \
+           grep ':false')" ] ; then
+        if [ $i -eq $ATTEMPTS ] ; then
+          echo "Unable to get into the groove yo - waited a while but still non-running clients"
+          exit 1
         fi
+      else
+        break;
       fi
+    done
+    echo "All allocations are running"
 
-      if [ $i -eq $ATTEMPTS ]; then
-        echo "Unable to get health from http://${HOST}:${PORT}/health, exiting"
+    HOSTS=$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | jq -r '.[].NodeID')
+    echo "Checking hosts from eval $EVALUATIONID: $HOSTS"
+
+    for HOSTID in ${HOSTS} ; do
+      # Check the actual /health endpoint and compare the versions
+      for i in $(seq 1 $ATTEMPTS); do
+        sleep $i
+        HOST=$(curl -s http://consul001:4646/v1/node/${HOSTID} | jq -r .Name)
+        echo "Checking host: $HOST"
+
+        if [ -n "$HOST" ]; then
+          HEALTH=$(curl -s http://${HOST}:${PORT}/health)
+          echo "${HOST}'s health is $HEALTH"
+          if [ -n "$HEALTH" ]; then
+            break
+          fi
+        fi
+
+        if [ $i -eq $ATTEMPTS ]; then
+          echo "Unable to get health from http://${HOST}:${PORT}/health, exiting"
+          exit 1
+        fi
+      done
+
+      ACTUAL=$(echo ${HEALTH} | jq -r ".version")
+      if [ "$ACTUAL" = "$GIT_HASH" ] ; then
+        echo "Host ${HOST} is running the correct version: $GIT_HASH"
+      else
+        echo "Host ${HOST} is NOT running the correct version: $ACTUAL (should be running $GIT_HASH)"
         exit 1
       fi
     done
 
-    ACTUAL=$(echo ${HEALTH} | jq -r ".version")
-    if [ "$ACTUAL" = "$GIT_HASH" ] ; then
-      echo "Host ${HOST} is running the correct version: $GIT_HASH"
-    else
-      echo "Host ${HOST} is NOT running the correct version: $ACTUAL (should be running $GIT_HASH)"
-      exit 1
-    fi
+    # Extract the NextEval - stop if this is the last one)    
+    EVALUATIONID="$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID} | jq -r '.NextEval')"
+
+    [[ -z "$EVALUATIONID" ]] && break
   done
 
   echo "Deployed $ARTIFACT_NAME to comaasqa"
