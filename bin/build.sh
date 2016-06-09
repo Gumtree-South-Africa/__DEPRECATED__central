@@ -97,11 +97,11 @@ function parseCmd() {
     UPLOAD=
     EXECUTE=
 
-    while getopts ":tI123T:P:U:E" OPTION; do
+    while getopts ":tI123TR:P:U:E" OPTION; do
         case ${OPTION} in
-            t) log "Building with tests (but not integration tests)"; RUN_TESTS=1
+            t) log "Building with tests (but not integration tests)"; RUN_TESTS=1; RUN_CORE_TESTS=1
                ;;
-            I) log "Building with tests and integration tests"; RUN_TESTS=1; RUN_INTEGRATION_TESTS=1
+            I) log "Building with tests and integration tests"; RUN_TESTS=1;  RUN_CORE_TESTS=1; RUN_INTEGRATION_TESTS=1
                ;;
             1) log "Building with integration tests part1 only"; RUN_TESTS=1; RUN_ONLY_INTEGRATION_TESTS_P1=1
                ;;
@@ -110,6 +110,8 @@ function parseCmd() {
             3) log "Building with core module tests only"; RUN_TESTS=1; RUN_CORE_TESTS=1
                ;;
             T) log "Building for tenant $OPTARG"; TENANT="$OPTARG"
+               ;;
+            R) log "Building and testing for tenant $OPTARG"; TENANT="$OPTARG"; RUN_TESTS=1;
                ;;
             P) log "Build and Package tenant $OPTARG"; PACKAGE="$OPTARG"
                ;;
@@ -147,8 +149,11 @@ function main() {
     else
         startCassandra
         MVN_ARGS="$MVN_ARGS"
-        PROFILES="core,core-tests,"
         MVN_TASKS="clean package"
+
+        if [[ "$RUN_CORE_TESTS" -eq 1 ]] ; then
+                PROFILES="core,core-tests,"
+        fi
     fi
 
     if [ "$RUN_INTEGRATION_TESTS" -eq 1 ] ; then
