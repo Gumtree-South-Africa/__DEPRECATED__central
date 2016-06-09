@@ -97,7 +97,7 @@ function parseCmd() {
     UPLOAD=
     EXECUTE=
 
-    while getopts ":tI123TR:P:U:E" OPTION; do
+    while getopts ":tI123:T:R:P:U:E" OPTION; do
         case ${OPTION} in
             t) log "Building with tests (but not integration tests)"; RUN_TESTS=1; RUN_CORE_TESTS=1
                ;;
