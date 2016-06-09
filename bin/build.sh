@@ -53,7 +53,7 @@ function fatal() {
 function startCassandra() {
     # stop & clean cassandra dir on exit
     trap "stopCassandra" EXIT
-
+    export PATH=$PATH:/opt/cassandra/bin:/usr/sbin
     log "Starting cassandra"
     rm -rf ${CASSANDRA_DIR}
     mkdir ${CASSANDRA_DIR}
@@ -97,7 +97,7 @@ function parseCmd() {
     UPLOAD=
     EXECUTE=
 
-    while getopts ":tI123:T:R:P:U:E" OPTION; do
+    while getopts ":tI123T:R:P:U:E" OPTION; do
         case ${OPTION} in
             t) log "Building with tests (but not integration tests)"; RUN_TESTS=1; RUN_CORE_TESTS=1
                ;;
