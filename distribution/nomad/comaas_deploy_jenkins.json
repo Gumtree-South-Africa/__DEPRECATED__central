@@ -12,7 +12,7 @@
     "TaskGroups": [ {
       "Name":"comaas-node-TENANT",
 
-      "count":3,
+      "count": COUNT,
 
       "Tasks": [ {
         "Name":"comaas-TENANT",
@@ -68,7 +68,7 @@
 
     "Update": {
       "MaxParallel": 1,
-      "Stagger": 30000000000
+      "Stagger": STAGGER
     }
   }
 }

@@ -67,6 +67,20 @@ For more information on this see https://github.corp.ebay.com/ReplyTS/replyts2-c
 *  After starting ReplyTS launch jconsole and invoke ReplayTS.ClusterModeControl.Operations.switchToFailoverMode so email processing works. 
 For more information on this see https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two%20Datacenter%20Operations
 
+## Auto-discovery of (cloud) services and properties (Consul)
+COMaaS has support for auto-discovery of some cloud services (currently Cassandra, when registered in Consul) as well as configuration properties (Consul KV).
+
+### Registration with Consul
+When `service.discovery.enabled` is enabled, the application will register itself with the Consul server as `comaas:core:<tenant>:<port>` and appear under 'comaas-core' in Consul.
+
+### Consul services
+When `service.discovery.enabled` is enabled, the application will automatically scan for other Consul-registered services. Currently this is only Cassandra, where the service name is hard-matched to 'cassandra'. Cassandra must be registered with Consul (e.g. through a `cassandra.json` file on each Cassandra/Consul node) for this to work.
+
+### Consul configuration (KV)
+When `service.configuration.enabled` is enabled in addition to `service.discovery.enabled`, Consul will also be added as a PropertySource for configuration resolution (similar to replyts.properties). Configuration in Consul overrides what is present in the replyts.properties file.
+
+In order to add keys to consul, add them with the prefix `comaas/<tenant>` or `comaas/comaas:core:<tenant>:<port>`. E.g. `comaas/kjca/persistence.riak.enabled` with value `false`. This prefix approach allows one Consul instance to contain properties for multiple tenants (or the same tenant running on multiple ports).
+
 ## MP system overview
 ![Messaging system overview at Marktplaats](/docs/20151221-messaging-system-overview.jpg)
 

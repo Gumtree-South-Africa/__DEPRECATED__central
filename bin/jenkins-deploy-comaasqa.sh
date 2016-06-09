@@ -8,6 +8,9 @@ set -o nounset
 
 ATTEMPTS=20
 
+COUNT=3
+STAGGER=30000000000
+
 function usage() {
   cat <<- EOF
   Usage: jenkins-deploy-comaasqa.sh <tenant> <build_dir> <artifact_name> <git_hash>
@@ -32,11 +35,15 @@ function deploy() {
 
   cp distribution/nomad/comaas_deploy_jenkins.json comaas_deploy_jenkins.json
 
+  sed -i "s/COUNT/$COUNT/g" comaas_deploy_jenkins.json
+  sed -i "s/STAGGER/$STAGGER/g" comaas_deploy_jenkins.json
   sed -i "s/TENANT/$TENANT/g" comaas_deploy_jenkins.json
   sed -i "s/GIT_HASH/$GIT_HASH/g" comaas_deploy_jenkins.json
   sed -i "s/PORT/$PORT/g" comaas_deploy_jenkins.json
   sed -i "s/md5/md5:$MD5/" comaas_deploy_jenkins.json
   sed -i "s~ARTIFACT~$ARTIFACT_NAME~" comaas_deploy_jenkins.json # Use ~ separator here since $ARTIFACT might contain slashes
+
+  STAGGER_S=$((($STAGGER / 1000000000)))
 
   # Extract the Evaluation ID on return or fail if there isn't one
   EVALUATIONID=$(curl -s -X POST -d @comaas_deploy_jenkins.json http://consul001:4646/v1/jobs --header "Content-Type:application/json" | jq -r '.EvalID')
@@ -47,6 +54,7 @@ function deploy() {
   fi
 
   # Check this evaluation and any subsequent (NextEval) ones
+  HEALTHY_HOSTS=0
   while [ 1 ] ; do
     echo "Checking eval $EVALUATIONID"
 
@@ -66,6 +74,7 @@ function deploy() {
         break;
       fi
     done
+
     echo "All allocations are running"
 
     HOSTS=$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | jq -r '.[].NodeID')
@@ -95,11 +104,16 @@ function deploy() {
       ACTUAL=$(echo ${HEALTH} | jq -r ".version")
       if [ "$ACTUAL" = "$GIT_HASH" ] ; then
         echo "Host ${HOST} is running the correct version: $GIT_HASH"
+        let HEALTHY_HOSTS+=1
       else
         echo "Host ${HOST} is NOT running the correct version: $ACTUAL (should be running $GIT_HASH)"
         exit 1
       fi
     done
+
+    # Sleep the number of seconds between staggered updates (rolling-update)
+    echo "Waiting $STAGGER_S seconds until next rolling update will have been triggered by Nomad"
+    sleep $STAGGER_S
 
     # Extract the NextEval - stop if this is the last one)    
     EVALUATIONID="$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID} | jq -r '.NextEval')"
@@ -107,7 +121,12 @@ function deploy() {
     [[ -z "$EVALUATIONID" ]] && break
   done
 
-  echo "Deployed $ARTIFACT_NAME to comaasqa"
+  if [ ! $COUNT -eq $HEALTHY_HOSTS ] ; then
+    echo "Couldn't find the prerequisite number of healthy hosts ($COUNT vs. $HEALTHY_HOSTS)"
+    exit 1
+  fi
+
+  echo "Successfully deployed $ARTIFACT_NAME to $COUNT comaasqa nodes"
 }
 
 parseArgs $@
