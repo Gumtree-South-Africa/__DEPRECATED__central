@@ -93,12 +93,14 @@ function parseCmd() {
     RUN_ONLY_INTEGRATION_TESTS_P2=0
     RUN_CORE_TESTS=0
     TENANT=
+    TENANT_ONLY=
     PACKAGE=
-    UPLOAD=
     EXECUTE=
 
-    while getopts ":tI123T:R:P:U:E" OPTION; do
+    while getopts ":htI123T:R:P:E" OPTION; do
         case ${OPTION} in
+            h) usage; exit 0;
+               ;;
             t) log "Building with tests (but not integration tests)"; RUN_TESTS=1; RUN_CORE_TESTS=1
                ;;
             I) log "Building with tests and integration tests"; RUN_TESTS=1;  RUN_CORE_TESTS=1; RUN_INTEGRATION_TESTS=1
@@ -111,11 +113,9 @@ function parseCmd() {
                ;;
             T) log "Building for tenant $OPTARG"; TENANT="$OPTARG"
                ;;
-            R) log "Building and testing for tenant $OPTARG"; TENANT="$OPTARG"; RUN_TESTS=1;
+            R) log "Building and testing for tenant $OPTARG"; TENANT="$OPTARG"; TENANT_ONLY=1; RUN_TESTS=1;
                ;;
             P) log "Build and Package tenant $OPTARG"; PACKAGE="$OPTARG"
-               ;;
-            U) log "Will upload to $OPTARG"; UPLOAD="$OPTARG"
                ;;
             E) log "Build and Execute Comaas for specific tenant. Please start ecg-comaas-vagrant manually"; EXECUTE=true
                ;;
@@ -127,8 +127,8 @@ function parseCmd() {
     if [[ ! -z $PACKAGE && -z $TENANT ]] ; then
         fatal "Must specify a tenant if you want to package"
     fi
-    if [[ ! -z $UPLOAD && -z $TENANT ]] ; then
-        fatal "Must specify a tenant if you are specifying an upload target environment"
+    if [[ ! -z $TENANT_ONLY && -z $TENANT ]] ; then
+        fatal "Must specify a tenant if you want to build and test tenants code"
     fi
     if [[ ! -z $EXECUTE && -z $TENANT ]] ; then
         fatal "Must specify a tenant if you want to run Comaas"
@@ -167,18 +167,10 @@ function main() {
         if [[ "$PACKAGE" == 'local' ]]; then
                 PACKAGE=""
         fi
-        if [[ "$UPLOAD" == 'local' ]]; then
-                UPLOAD=""
-        fi
 
         if ! [[ -z $PACKAGE ]] ; then
             MVN_ARGS="${MVN_ARGS} -Denv-name=${PACKAGE}"
             MVN_TASKS="package"
-        fi
-
-        if ! [[ -z $UPLOAD ]] ; then
-            MVN_ARGS="${MVN_ARGS} -Denv-name=${UPLOAD}"
-            MVN_TASKS="clean deploy"
         fi
 
         if ! [[ -z $EXECUTE ]] ; then
@@ -223,6 +215,30 @@ function main() {
     local diff=$(($end-$start))
     local time=$(printf "Total time: %d min %d sec" $(($diff / 60)) $(($diff % 60)))
     log ${time}
+}
+
+function usage() {
+cat << EOF
+Usage:
+    no args (default) - build all modules
+    -t - builds and tests (but not integration tests) for Comaas and tenants
+    -i - builds and runs core integration tests
+    -I - builds and runs ALL tests (including integration tests)
+    -1 - builds and runs part 1 integration tests
+    -2 - builds and runs part 2 integration tests
+    -3 - builds and runs core tests
+    -t -T <TENANT> - build tenant's code and runs tests for all tenant's modules (including core modules)
+    -R <TENANT> - build tenant's code and runs tests for tenant modules only (excluding core modules)
+    -T <TENANT> - build tenant's code
+    -T <TENANT> -P - build and package tenant's code
+    -T <TENANT> -U - build, package and uploads tenant's code
+    -T <TENANT> -E - build, package and execute tenant's code
+
+    where TENANT is one or more of [ebayk,mp,kjca,mde,gtau]
+
+    Examples: "$0 -T ebayk,mp -P -t" - build, test and package ebayk and mp distributions
+    
+EOF
 }
 
 parseCmd ${ARGS}
