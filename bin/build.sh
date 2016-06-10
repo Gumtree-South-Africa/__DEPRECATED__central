@@ -128,7 +128,7 @@ function parseCmd() {
         fatal "Must specify a tenant if you want to package"
     fi
     if [[ ! -z $TENANT_ONLY && -z $TENANT ]] ; then
-        fatal "Must specify a tenant if you want to build and test tenants code"
+        fatal "Must specify a tenant if you want to build and test tenant's code"
     fi
     if [[ ! -z $EXECUTE && -z $TENANT ]] ; then
         fatal "Must specify a tenant if you want to run Comaas"
