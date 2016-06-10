@@ -29,8 +29,8 @@ fi
 if [[ "$TENANT" == "mp" ]]; then
   MP_PACKAGE_REGEX=".*/nl.marktplaats.mp-replyts2_comaas-([0-9a-zA-Z]+)-.*"
 
-  # Upload or deploy
-  for PKG in $(ls ${BUILD_DIR}/nl.marktplaats.mp-replyts2*); do
+  # Upload or deploy (only the 3 most recent packages)
+  for PKG in $(ls -td ${BUILD_DIR}/nl.marktplaats.mp-replyts2* | head -n3); do
 
     if [[ ${PKG} =~ ${MP_PACKAGE_REGEX} ]]; then
       DESTINATION="${BASH_REMATCH[1]}"
