@@ -263,9 +263,9 @@ public class ImmutableConversation implements Conversation { // NOSONAR
                                 .withMessageDirection(event.getMessageDirection())
                                 .withReceivedAt(event.getReceivedAt())
                                 .withHeaders(event.getHeaders())
-                                .withPlainTextBody(event.getPlainTextBody())
                                 .withLastModifiedAt(event.getReceivedAt())
                                 .withAttachments(event.getAttachments())
+                                .withTextParts(event.getTextParts())
                                 .withSenderMessageIdHeader(event.getSenderMessageIdHeader())
                                 .withInResponseToMessageId(event.getInResponseToMessageId())
                 ).
@@ -290,7 +290,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
                                 withLastModifiedAt(event.getDecidedAt()).
                                 withFilterResultState(event.getFilterResultState()).
                                 withLastModifiedAt(event.getConversationModifiedAt()).
-                                withPlainTextBody(message.getPlainTextBody()).
+                                withTextParts(message.getTextParts()).
                                 withProcessingFeedback(event.getProcessingFeedback())
                 ).withLastModifiedAt(event.getConversationModifiedAt()).
                         build();
@@ -312,7 +312,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
                                 withHumanResultState(event.getHumanResultState()).
                                 withLastModifiedAt(event.getConversationModifiedAt()).
                                 withState(newMessageState).
-                                withPlainTextBody(message.getPlainTextBody()).
+                                withTextParts(message.getTextParts()).
                                 withLastEditor(Optional.fromNullable(event.getEditor()))
                 ).withLastModifiedAt(event.getConversationModifiedAt()).build();
     }
@@ -333,8 +333,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
         ImmutableMessage.Builder messageToUpdate = ImmutableMessage.Builder.aMessage(message).
                 withLastModifiedAt(event.getConversationModifiedAt()).
                 withState(event.getTerminationState()).
-
-                withPlainTextBody(message.getPlainTextBody());
+                withTextParts(message.getTextParts());
         // don't add processing feedback for sent, as this is the default behaviour
         if (event.getTerminationState() != MessageState.SENT) {
             messageToUpdate.withProcessingFeedback(ProcessingFeedbackBuilder.aProcessingFeedback()

@@ -68,14 +68,11 @@ public class ConversationFinderTest {
 
     @Before
     public void setUp() throws Exception {
-
         conversationFinder = new ConversationFinder(newConversationCreator, existingConversationLoader, new String[]{"ebay.com"}, conversationResumer);
-
     }
 
     @Test
     public void refusesMailsFromCloakedSender() {
-
         Mockito.when(mail.getFrom()).thenReturn("buyer.123@ebay.com");
         Mockito.when(mail.getDeliveredTo()).thenReturn("somebody@ebay.com");
 
@@ -83,7 +80,6 @@ public class ConversationFinderTest {
         conversationFinder.preProcess(messageProcessingContext);
 
         assertTrue(messageProcessingContext.isTerminated());
-
     }
 
     @Test
@@ -107,7 +103,6 @@ public class ConversationFinderTest {
 
         verify(conversationResumer).resumeExistingConversation(messageProcessingContext);
         verify(newConversationCreator, never()).setupNewConversation(messageProcessingContext);
-
     }
 
     @Test
@@ -129,9 +124,7 @@ public class ConversationFinderTest {
         conversationFinder.preProcess(messageProcessingContext);
 
         verify(messageProcessingContext, never()).addCommand(any(AddMessageCommand.class));
-
     }
-
 
     @Test
     public void createsNewConversationWhenNotReply() {

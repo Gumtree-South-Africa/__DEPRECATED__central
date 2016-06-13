@@ -10,12 +10,15 @@ import com.ecg.replyts.core.api.util.Pairwise;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.collect.Iterables;
 import org.joda.time.DateTime;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * Event to indicate a {@link com.ecg.replyts.core.api.model.conversation.Message}
@@ -28,11 +31,11 @@ public class MessageAddedEvent extends ConversationEvent {
     private final FilterResultState filterResultState;
     private final ModerationResultState humanResultState;
     private final Map<String, String> headers;
-    private final String plainTextBody;
     private final MessageState state;
     private final String senderMessageIdHeader;
     private final String inResponseToMessageId;
-    private List<String> attachments;
+    private final List<String> attachments;
+    private final List<String> textParts;
 
     @JsonCreator
     public MessageAddedEvent( // NOSONAR
@@ -46,23 +49,25 @@ public class MessageAddedEvent extends ConversationEvent {
                               @JsonProperty("humanResultState") ModerationResultState humanResultState,
                               @JsonProperty("headers") Map<String, String> headers,
                               @JsonProperty("plainTextBody") String plainTextBody,
-                              @JsonProperty("attachments") List<String> attachments) {
+                              @JsonProperty("attachments") List<String> attachments,
+                              @JsonProperty("textParts") List<String> textParts) {
         super(eventIdForMessage(MessageAddedEvent.class, messageId, receivedAt), receivedAt);
         Assert.notNull(messageDirection);
         Assert.notNull(receivedAt);
         Assert.notNull(filterResultState);
         Assert.notNull(humanResultState);
+
         this.messageId = messageId;
-        this.attachments = attachments == null ? Collections.<String>emptyList() : attachments;
+        this.attachments = attachments == null ? Collections.emptyList() : attachments;
         this.messageDirection = messageDirection;
         this.receivedAt = receivedAt;
         this.filterResultState = filterResultState;
         this.humanResultState = humanResultState;
         this.headers = headers;
-        this.plainTextBody = plainTextBody;
         this.state = state;
         this.senderMessageIdHeader = senderMessageIdHeader;
         this.inResponseToMessageId = inResponseToMessageId;
+        this.textParts = (textParts == null || Iterables.isEmpty(textParts)) && !isEmpty(plainTextBody) ? Arrays.asList(plainTextBody) : textParts;
     }
 
     public MessageAddedEvent(AddMessageCommand command) {
@@ -76,8 +81,9 @@ public class MessageAddedEvent extends ConversationEvent {
                 FilterResultState.OK,
                 ModerationResultState.GOOD,
                 command.getHeaders(),
-                command.getPlainTextBody(),
-                command.getAttachments()
+                null,
+                command.getAttachments(),
+                command.getTextParts()
         );
     }
 
@@ -105,10 +111,6 @@ public class MessageAddedEvent extends ConversationEvent {
         return headers;
     }
 
-    public String getPlainTextBody() {
-        return plainTextBody;
-    }
-
     public MessageState getState() {
         return state;
     }
@@ -125,6 +127,10 @@ public class MessageAddedEvent extends ConversationEvent {
         return attachments;
     }
 
+    public List<String> getTextParts() {
+        return textParts;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -137,20 +143,23 @@ public class MessageAddedEvent extends ConversationEvent {
                 humanResultState, that.humanResultState,
                 messageDirection, that.messageDirection,
                 messageId, that.messageId,
-                plainTextBody, that.plainTextBody,
                 receivedAt, that.receivedAt,
                 state, that.state,
                 senderMessageIdHeader, that.senderMessageIdHeader,
                 inResponseToMessageId, that.inResponseToMessageId,
                 getEventId(), that.getEventId(),
-                getConversationModifiedAt(), that.getConversationModifiedAt()
+                getConversationModifiedAt(), that.getConversationModifiedAt(),
+                textParts, that.textParts
         );
 
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(messageId, messageDirection, receivedAt, filterResultState, humanResultState, headers, plainTextBody, state, senderMessageIdHeader, inResponseToMessageId, getEventId(), getConversationModifiedAt());
+        return Objects.hashCode(
+            messageId, messageDirection, receivedAt, filterResultState, humanResultState, headers,
+            state, senderMessageIdHeader, inResponseToMessageId, getEventId(), getConversationModifiedAt(), textParts
+        );
     }
 
 }

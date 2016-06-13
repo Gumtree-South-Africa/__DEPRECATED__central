@@ -124,6 +124,6 @@ public class SearchIndexerTest {
                 .withReceivedAt(new DateTime(2012, 1, 30, 20, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withLastModifiedAt(new DateTime(2012, 1, 30, 20, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withHeader("Subject", "Hello subject")
-                .withPlainTextBody("some text");
+                .withTextParts(Arrays.asList("some text"));
     }
 }

@@ -5,6 +5,11 @@
 HOST=$1
 KEYSPACE=$2
 
+function fail_gracefully {
+    echo $1
+    exit 0
+}
+
 if [ -z "$HOST" ] ; then
     HOST="replyts.dev.kjdev.ca"
 fi
@@ -23,11 +28,11 @@ fi
 
 # Don't fail with an error - this is typically desirable behavior
 cqlsh $HOST 9042 -e "USE system; SELECT keyspace_name FROM schema_keyspaces WHERE keyspace_name = '$KEYSPACE';" | grep '0 rows' >/dev/null ||
-  echo "Keyspace $KEYSPACE already exists - not recreating it" && exit 0
+  fail_gracefully "Keyspace $KEYSPACE already exists - not recreating it"
 
 # cqlsh $HOST 9042 -e "DROP KEYSPACE IF EXISTS $KEYSPACE;"
 
-cqlsh $HOST 9042 -e "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'ams1': '2'} AND durable_writes = true;"
+cqlsh $HOST 9042 -e "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': 1} AND durable_writes = true;"
 cqlsh $HOST 9042 -k "$KEYSPACE" -f core-runtime/src/main/resources/cassandra_schema.cql
 cqlsh $HOST 9042 -k "$KEYSPACE" -f filters/mp-filter-volume/src/main/resources/cassandra_volume_filter_schema.cql
 cqlsh $HOST 9042 -k "$KEYSPACE" -f messagecenters/mp-messagecenter/src/main/resources/cassandra_messagebox_schema.cql

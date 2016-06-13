@@ -49,11 +49,9 @@ public interface CassandraConversationRepository extends MutableConversationRepo
     Stream<ImmutablePair<Conversation, ConversationEvent>> findEventsCreatedBetween(DateTime start, DateTime end);
 
     /**
-     * Streams conversation event ids by year, month and day.
-     * @param year the year
-     * @param month the month
-     * @param day the day
+     * Streams conversation events created in the hour of the provided date.
+     * @param date to date to search conversation events
      * @return the stream with conversation event ids
      */
-    Stream<ConversationEventId> streamConversationEventIdsByDay(int year, int month, int day);
+    Stream<ConversationEventId> streamConversationEventIdsByHour(DateTime date);
 }

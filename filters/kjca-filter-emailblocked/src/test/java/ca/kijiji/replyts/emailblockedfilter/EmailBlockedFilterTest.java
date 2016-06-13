@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static ca.kijiji.replyts.emailblockedfilter.EmailBlockedFilter.IS_BLOCKED_KEY;
@@ -69,7 +70,7 @@ public class EmailBlockedFilterTest {
                 .withFilterResultState(OK)
                 .withHumanResultState(ModerationResultState.UNCHECKED)
                 .withHeaders(ImmutableMap.<String, String>of())
-                .withPlainTextBody("")
+                .withTextParts(Arrays.asList(""))
                 .withProcessingFeedback(ImmutableList.<ProcessingFeedback>of())
                 .withLastEditor(Optional.<String>absent());
 

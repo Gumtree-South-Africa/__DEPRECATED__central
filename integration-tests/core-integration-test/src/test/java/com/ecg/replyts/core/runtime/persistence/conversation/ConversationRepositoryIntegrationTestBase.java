@@ -128,14 +128,12 @@ abstract public class ConversationRepositoryIntegrationTestBase<R extends Mutabl
                         withReceivedAt(new DateTime(2012, 2, 10, 9, 11, 43)).
                         addHeader("To", "buyer@hotmail.com").
                         addHeader("From", "seller@gmail.com").
-                        withPlainTextBody("").
                         build(),
                 AddMessageCommandBuilder.anAddMessageCommand(conversationId1, "9277").
                         withMessageDirection(MessageDirection.SELLER_TO_BUYER).
                         withReceivedAt(new DateTime(2012, 2, 10, 10, 10, 0)).
                         addHeader("From", "buyer@hotmail.com").
                         addHeader("To", "9y3k9x6cvm8dp@platform.ebay.com").
-                        withPlainTextBody("").
                         build(),
                 MessageFilteredCommandBuilder.aMessageFilteredCommand(conversationId1, "9277").
                         withState(FilterResultState.HELD).

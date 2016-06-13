@@ -13,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
 
 @Component("conversationFinder")
@@ -69,18 +67,13 @@ public class ConversationFinder implements PreProcessor {
             }
         }
 
-        List<String> textParts = context.getMail().getPlaintextParts();
-        String plainTextBody = (textParts.isEmpty() ? "" : textParts.get(0));
-
-
-
         AddMessageCommand addMessageCommand =
                 anAddMessageCommand(context.getConversation().getId(), context.getMessageId()).
                         withMessageDirection(context.getMessageDirection()).
                         withSenderMessageIdHeader(context.getMail().getUniqueHeader(Mail.MESSAGE_ID_HEADER)).
                         withInResponseToMessageId(context.getInResponseToMessageId()).
                         withHeaders(context.getMail().getUniqueHeaders()).
-                        withPlainTextBody(plainTextBody).
+                        withTextParts(context.getMail().getPlaintextParts()).
                         withAttachmentFilenames(context.getMail().getAttachmentNames()).
                         build();
 

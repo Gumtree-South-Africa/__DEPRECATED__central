@@ -100,7 +100,6 @@ public class FilterChainTest {
                         build();
         AddMessageCommand messageCommand = AddMessageCommandBuilder.anAddMessageCommand(CONVERSATION_ID, MESSAGE_ID)
                 .withMessageDirection(MessageDirection.BUYER_TO_SELLER)
-                .withPlainTextBody("")
                 .withReceivedAt(new DateTime())
                 .withHeaders(new HashMap<>())
                 .build();

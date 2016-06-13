@@ -41,7 +41,7 @@ class ProcessingContextFactory {
         NewConversationCommand newConversation = aNewDeadConversationCommand(conversationId).build();
         AddMessageCommand addMessage = anAddMessageCommand(conversationId, messageId)
                 .withMessageDirection(MessageDirection.UNKNOWN)
-                .withPlainTextBody(findText(mail))
+                .withTextParts(mail.get().getPlaintextParts())
                 .withHeaders(findHeaders(mail))
                 .build();
 

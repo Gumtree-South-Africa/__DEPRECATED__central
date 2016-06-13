@@ -22,10 +22,8 @@ public final class AddMessageCommandBuilder {
     private String senderMessageIdHeader;
     private List<String> attachmentFilenames = Collections.emptyList();
     private String inResponseToMessageId;
-
     private Map<String, String> headers = new HashMap<>();
-
-    private String plainTextBody = "";
+    private List<String> textParts = Collections.emptyList();
 
     private AddMessageCommandBuilder() {
     }
@@ -73,12 +71,15 @@ public final class AddMessageCommandBuilder {
         return this;
     }
 
-    public AddMessageCommandBuilder withPlainTextBody(String plainTextBody) {
-        this.plainTextBody = plainTextBody;
+    public AddMessageCommandBuilder withTextParts(List<String> textParts) {
+        this.textParts = textParts;
         return this;
     }
 
     public AddMessageCommand build() {
-        return new AddMessageCommand(conversationId, messageId, state, messageDirection, receivedAt, senderMessageIdHeader, inResponseToMessageId, headers, plainTextBody, attachmentFilenames);
+        return new AddMessageCommand(
+            conversationId, messageId, state, messageDirection, receivedAt, senderMessageIdHeader,
+                inResponseToMessageId, headers, attachmentFilenames, textParts
+        );
     }
 }

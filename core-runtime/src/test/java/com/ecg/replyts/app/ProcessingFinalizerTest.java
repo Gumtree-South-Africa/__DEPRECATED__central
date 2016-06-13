@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedComm
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.processing.Termination;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
+import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.google.common.base.Optional;
@@ -46,12 +47,16 @@ public class ProcessingFinalizerTest {
     @Mock
     private ConversationEventListeners conversationEventListeners;
 
+    @Mock
+    private MailPublisher mailProcessedListener;
+
     private ProcessingFinalizer messagePersister;
 
     @Before
     public void setUp() throws Exception {
         when(constraint.tooManyMessagesIn(any(Conversation.class))).thenReturn(false);
-        messagePersister = new ProcessingFinalizer(conversationRepository, mailRepository, searchIndexer, constraint, conversationEventListeners);
+        messagePersister = new ProcessingFinalizer(conversationRepository, mailRepository, searchIndexer, constraint,
+                conversationEventListeners, mailProcessedListener, false);
         when(termination.getEndState()).thenReturn(MessageState.ORPHANED);
         when(termination.getIssuer()).thenReturn(Object.class);
         when(conv.getId()).thenReturn("a");

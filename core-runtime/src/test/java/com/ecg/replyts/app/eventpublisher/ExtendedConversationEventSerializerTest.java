@@ -20,6 +20,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class ExtendedConversationEventSerializerTest {
                     build();
     private static final AddMessageCommand addMessageCommand = AddMessageCommandBuilder.anAddMessageCommand(CONVERSATION_ID, MESSAGE_ID)
             .withMessageDirection(MessageDirection.BUYER_TO_SELLER)
-            .withPlainTextBody("This is the body.\nIt contains newlines, \t tabs and some šⓣŕáñǵÈ characters.\n")
+            .withTextParts(Arrays.asList("This is the body.\nIt contains newlines, \t tabs and some šⓣŕáñǵÈ characters.\n"))
             .withReceivedAt(TIMESTAMP)
             .withHeaders(new HashMap<>())
             .build();

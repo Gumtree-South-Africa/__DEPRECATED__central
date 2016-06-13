@@ -1,4 +1,4 @@
 # mp-postprocessor-anonymizebody
 
 Originally taken from https://github.corp.ebay.com/ecg-marktplaats/mp-replyts2
-(original git hash: d296cd870d6a93ce5db9f1e9f211aa3e13e6679a)
+(original git hash: f5001edd0b24f399373a9f523a7bd7b2b3b31a33)

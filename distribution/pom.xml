@@ -143,6 +143,11 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>mp-eventpublisher-kafka-mail</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>mp-filter-bankaccount</artifactId>
                     <version>${project.version}</version>
                 </dependency>

@@ -14,6 +14,8 @@ import org.joda.time.DateTimeZone;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.Builder.aConversation;
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage.Builder.aMessage;
@@ -75,6 +77,6 @@ public class ImmutableConversationJsonTest {
                 .withState(MessageState.SENT)
                 .withReceivedAt(new DateTime(2012, 1, 30, 20, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withLastModifiedAt(new DateTime(2012, 1, 30, 20, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
-                .withPlainTextBody("");
+                .withTextParts(Arrays.asList(""));
     }
 }

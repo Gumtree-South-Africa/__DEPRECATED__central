@@ -20,7 +20,7 @@ import java.util.zip.ZipOutputStream;
 /**
  * stores inbound and outbound mail in a zipped (no compression) unlzma archive
  */
-class StoredMail {
+public class StoredMail {
 
     public static final String OUTBOUND = "OUTBOUND";
     private static final String OUTBOUND_HASH = "OUTBOUND_HASH";

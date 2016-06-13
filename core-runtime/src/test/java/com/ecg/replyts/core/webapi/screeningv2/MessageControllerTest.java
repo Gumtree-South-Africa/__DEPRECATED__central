@@ -99,8 +99,7 @@ public class MessageControllerTest {
         when(conversationRepository.getById(CONVERSATION_ID)).thenReturn(conversation);
         conversation.applyCommand(new AddMessageCommand(
                 CONVERSATION_ID, MESSAGE_ID, MessageState.HELD, MessageDirection.BUYER_TO_SELLER,
-                now, "", "", ImmutableMap.<String, String>of(), "", ImmutableList.<String>of()
-        ));
+                now, "", "", ImmutableMap.<String, String>of(), ImmutableList.of(), ImmutableList.of()));
 
         ModerateMessagePayload timedOutMessage = new ModerateMessagePayload();
         timedOutMessage.setEditor(EDITOR_NAME);
@@ -115,8 +114,7 @@ public class MessageControllerTest {
 
         conversation.applyCommand(new AddMessageCommand(
                 CONVERSATION_ID, MESSAGE_ID, MessageState.HELD, MessageDirection.BUYER_TO_SELLER,
-                now, "", "", ImmutableMap.<String, String>of(), "", ImmutableList.<String>of()
-        ));
+                now, "", "", ImmutableMap.<String, String>of(), ImmutableList.of(), ImmutableList.of()));
 
         ResponseObject<?> responseObject = messageController.changeMessageState(CONVERSATION_ID, MESSAGE_ID, positiveModeration);
 
@@ -137,12 +135,9 @@ public class MessageControllerTest {
         when(conversationRepository.getById(CONVERSATION_ID)).thenReturn(conversation);
         conversation.applyCommand(new AddMessageCommand(
                 CONVERSATION_ID, MESSAGE_ID, MessageState.HELD, MessageDirection.BUYER_TO_SELLER,
-                now, "", "", ImmutableMap.<String, String>of(), "", ImmutableList.<String>of()
-        ));
+                now, "", "", ImmutableMap.of(), ImmutableList.of(), ImmutableList.of()));
         conversation.applyCommand(
-                new MessageModeratedCommand(CONVERSATION_ID, MESSAGE_ID, now,
-                        new ModerationAction(ModerationResultState.BAD, Optional.fromNullable(EDITOR_NAME))
-                )
+                new MessageModeratedCommand(CONVERSATION_ID, MESSAGE_ID, now, new ModerationAction(ModerationResultState.BAD, Optional.fromNullable(EDITOR_NAME)))
         );
 
         ResponseObject<?> response = messageController.changeMessageState(CONVERSATION_ID, MESSAGE_ID, moderationCommandWithOldState);

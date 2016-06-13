@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -143,7 +144,7 @@ public class RobotService {
         Mails mails = new Mails();
 
         AddMessageCommandBuilder builder = anAddMessageCommand(conversation.getId(), messageId)
-                .withPlainTextBody(payload.getMessage())
+                .withTextParts(Arrays.asList(payload.getMessage()))
                 .withMessageDirection(payload.getMessageDirectionEnum())
                 .addHeader(Header.Robot.key, Header.Robot.value)
                 .addHeader(Header.ReplyChannel.key, Header.ReplyChannel.value);

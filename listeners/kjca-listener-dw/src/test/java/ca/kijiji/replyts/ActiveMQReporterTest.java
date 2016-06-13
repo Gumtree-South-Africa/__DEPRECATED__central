@@ -30,6 +30,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.jms.UncategorizedJmsException;
 import org.springframework.jms.core.JmsTemplate;
 
+import java.util.Arrays;
+
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -80,7 +82,7 @@ public class ActiveMQReporterTest {
                 .withState(MessageState.SENT)
                 .withReceivedAt(msgReceivedDate)
                 .withLastModifiedAt(convModifiedDate)
-                .withPlainTextBody("")
+                .withTextParts(Arrays.asList(""))
                 .withHeader(BoxHeaders.REPLIER_NAME.getHeaderName(), REPLIER_NAME)
                 .withHeader(BoxHeaders.REPLIER_ID.getHeaderName(), REPLIER_ID)
                 .withHeader(BoxHeaders.POSTER_ID.getHeaderName(), POSTER_ID);

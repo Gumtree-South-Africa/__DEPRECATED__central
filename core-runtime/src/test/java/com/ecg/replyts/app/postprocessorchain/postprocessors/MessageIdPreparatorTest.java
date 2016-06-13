@@ -20,10 +20,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
@@ -49,14 +49,13 @@ public class MessageIdPreparatorTest {
         msg1Headers.put("References", "<" + new MessageIdHeaderEncryption().encrypt("2:2") + "@test-domain.com>");
 
         MutableConversation conversation = DefaultMutableConversation.create(new NewConversationCommand(
-                "1", "1", "b@abc.com", "s@xyz.com", "abc123", "xyz809",
-                new DateTime(), ConversationState.ACTIVE, new HashMap<String, String>()));
+                "1", "1", "b@abc.com", "s@xyz.com", "abc123", "xyz809", new DateTime(), ConversationState.ACTIVE, new HashMap()));
         conversation.applyCommand(new AddMessageCommand(
-                "1", "1:1", MessageState.SENT, MessageDirection.BUYER_TO_SELLER, new DateTime().minusHours(2), "<ABC@abc.com>", null, msg1Headers, "", Collections.<String>emptyList()));
+                "1", "1:1", MessageState.SENT, MessageDirection.BUYER_TO_SELLER, new DateTime().minusHours(2), "<ABC@abc.com>", null, msg1Headers, emptyList(), emptyList()));
         conversation.applyCommand(new AddMessageCommand(
-                "1", "2:2", MessageState.SENT, MessageDirection.SELLER_TO_BUYER, new DateTime().minusHours(1), "<STU@xyz.com>", "1:1", msg2Headers, "", Collections.<String>emptyList()));
+                "1", "2:2", MessageState.SENT, MessageDirection.SELLER_TO_BUYER, new DateTime().minusHours(1), "<STU@xyz.com>", "1:1", msg2Headers, emptyList(), emptyList()));
         conversation.applyCommand(new AddMessageCommand(
-                "1", "3:3", MessageState.SENT, MessageDirection.BUYER_TO_SELLER, new DateTime(), "<DEF@abc.com>", "2:2", msg3Headers, "", Collections.<String>emptyList()));
+                "1", "3:3", MessageState.SENT, MessageDirection.BUYER_TO_SELLER, new DateTime(), "<DEF@abc.com>", "2:2", msg3Headers, emptyList(), emptyList()));
 
         // The third message is coming in from the seller to the buyer.
         Mail mail = new Mails().readMail(ByteStreams.toByteArray(getClass().getResourceAsStream("MessageIdPreparatorTest-mail.eml")));
@@ -83,18 +82,15 @@ public class MessageIdPreparatorTest {
     @Test
     public void messageIdHeaderGeneratedReferencesHeaderNot() throws Exception {
         // Set up a conversation with a two messages.
-        Map<String, String> msg1Headers = new HashMap<String, String>();
-        msg1Headers.put("Message-ID", "<ABC@abc.com>");
-        Map<String, String> msg2Headers = new HashMap<String, String>();
-        msg1Headers.put("Message-ID", "<STU@xyz.com>");
+        Map<String, String> msg1Headers = new HashMap() {{ put("Message-ID", "<ABC@abc.com>"); }};
+        Map<String, String> msg2Headers = new HashMap() {{ put("Message-ID", "<STU@xyz.com>"); }};
 
         MutableConversation conversation = DefaultMutableConversation.create(new NewConversationCommand(
-                "1", "1", "b@abc.com", "s@xyz.com", "abc123", "xyz809",
-                new DateTime(), ConversationState.ACTIVE, new HashMap<String, String>()));
+                "1", "1", "b@abc.com", "s@xyz.com", "abc123", "xyz809", new DateTime(), ConversationState.ACTIVE, new HashMap()));
         conversation.applyCommand(new AddMessageCommand(
-                "1", "1:1", MessageState.SENT, MessageDirection.BUYER_TO_SELLER, new DateTime().minusHours(2), "<ABC@abc.com>", null, msg1Headers, "", Collections.<String>emptyList()));
+                "1", "1:1", MessageState.SENT, MessageDirection.BUYER_TO_SELLER, new DateTime().minusHours(2), "<ABC@abc.com>", null, msg1Headers, emptyList(), emptyList()));
         conversation.applyCommand(new AddMessageCommand(
-                "1", "2:2", MessageState.SENT, MessageDirection.SELLER_TO_BUYER, new DateTime().minusHours(1), "<STU@xyz.com>", null, msg2Headers, "", Collections.<String>emptyList()));
+                "1", "2:2", MessageState.SENT, MessageDirection.SELLER_TO_BUYER, new DateTime().minusHours(1), "<STU@xyz.com>", null, msg2Headers, emptyList(), emptyList()));
 
         // The second message
         Mail mail = new Mails().readMail(ByteStreams.toByteArray(getClass().getResourceAsStream("MessageIdPreparatorTest-mail.eml")));

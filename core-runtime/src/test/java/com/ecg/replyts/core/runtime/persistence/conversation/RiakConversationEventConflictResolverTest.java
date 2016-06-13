@@ -13,6 +13,8 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static com.google.common.collect.Maps.newHashMap;
+import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
@@ -39,7 +41,7 @@ public class RiakConversationEventConflictResolverTest {
 
     @Test
     public void resolveEmptyListToNull() throws Exception {
-        List<ConversationEvents> events = Collections.emptyList();
+        List<ConversationEvents> events = emptyList();
         assertThat(resolver.resolve(events), is(nullValue()));
     }
 
@@ -110,7 +112,7 @@ public class RiakConversationEventConflictResolverTest {
                         "sellersecret",
                         originalStartedDate,
                         ConversationState.ACTIVE,
-                        Maps.<String, String>newHashMap()),
+                        newHashMap()),
 
                 new MessageAddedEvent(
                         "msg1",
@@ -121,8 +123,10 @@ public class RiakConversationEventConflictResolverTest {
                         null,
                         FilterResultState.OK,
                         ModerationResultState.UNCHECKED,
-                        Maps.<String, String>newHashMap(),
-                        "foobar", Collections.<String>emptyList()
+                        newHashMap(),
+                        "foobar",
+                        emptyList(),
+                        emptyList()
                 )
         ));
 
@@ -136,7 +140,7 @@ public class RiakConversationEventConflictResolverTest {
                         "sellersecret",
                         DateTime.now().minusDays(1),
                         ConversationState.ACTIVE,
-                        Maps.<String, String>newHashMap()),
+                        newHashMap()),
                 new MessageAddedEvent(
                         "msg2",
                         MessageDirection.BUYER_TO_SELLER,
@@ -146,8 +150,10 @@ public class RiakConversationEventConflictResolverTest {
                         null,
                         FilterResultState.OK,
                         ModerationResultState.UNCHECKED,
-                        Maps.<String, String>newHashMap(),
-                        "foobar", Collections.<String>emptyList()
+                        newHashMap(),
+                        "foobar",
+                        emptyList(),
+                        emptyList()
                 )
         ));
 

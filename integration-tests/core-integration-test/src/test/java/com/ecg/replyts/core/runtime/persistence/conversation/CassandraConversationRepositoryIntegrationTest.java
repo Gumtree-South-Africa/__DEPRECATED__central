@@ -2,6 +2,7 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventId;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.junit.After;
@@ -49,6 +50,16 @@ public class CassandraConversationRepositoryIntegrationTest extends Conversation
     @After
     public void cleanupTables() {
         casdb.cleanTables(session, KEYSPACE);
+    }
+
+    @Test
+    public void shouldStoreConversationEventByDay() {
+        DateTime timeNow = now();
+        DateTime firstMsgReceivedAtDateTime = new DateTime(timeNow.getYear(), timeNow.getMonthOfYear(), timeNow.getDayOfMonth(), 9, 11, 43);
+        given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
+        List<ConversationEventId> conversationEvents = getConversationRepository().streamConversationEventIdsByHour(timeNow)
+                .collect(Collectors.toList());
+        assertEquals(1, conversationEvents.size());
     }
 
     @Test
@@ -140,6 +151,26 @@ public class CassandraConversationRepositoryIntegrationTest extends Conversation
         assertNull(getConversationRepository().getLastModifiedDate(conversationId1));
     }
 
+    @Test
+    public void deleteConversationCommandDeletesConversationEventsByDay() {
+        // create conversation
+        DateTime firstMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 11, 43);
+        given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
+
+        // update conversation
+        DateTime timeNow = now();
+        DefaultMutableConversation conversation = (DefaultMutableConversation) conversationRepository.getById(conversationId1);
+        conversation.applyCommand(newAddMessageCommand(conversationId1, "msg456", timeNow));
+        conversation.commit(conversationRepository, conversationEventListeners);
+
+        conversation.applyCommand(new ConversationDeletedCommand(conversationId1, now()));
+        conversation.commit(this.conversationRepository, conversationEventListeners);
+
+        List<ConversationEventId> conversationEventIds = getConversationRepository().streamConversationEventIdsByHour(timeNow)
+                .collect(Collectors.toList());
+        assertTrue(conversationEventIds.isEmpty());
+    }
+
     private NewConversationCommand newConversationCommand(String convId) {
         return NewConversationCommandBuilder.aNewConversationCommand(convId).
                 withAdId("m123456").
@@ -157,8 +188,6 @@ public class CassandraConversationRepositoryIntegrationTest extends Conversation
                 withReceivedAt(receivedAtDateTime).
                 addHeader("From", "buyer@hotmail.com").
                 addHeader("To", "9y3k9x6cvm8dp@platform.ebay.com").
-                withPlainTextBody("").
                 build();
     }
-
 }

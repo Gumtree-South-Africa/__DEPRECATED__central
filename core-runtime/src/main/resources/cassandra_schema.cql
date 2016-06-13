@@ -25,14 +25,12 @@ CREATE TABLE IF NOT EXISTS core_conversation_events (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE IF NOT EXISTS core_conversation_events_by_day (
-    year int,
-    month int,
-    day int,
+CREATE TABLE IF NOT EXISTS core_conversation_events_by_date (
+    creatdate timestamp,
     conversation_id text,
     event_id timeuuid,
     event_json text,
-    PRIMARY KEY ((year, month, day), conversation_id, event_id)
+    PRIMARY KEY (creatdate, conversation_id, event_id)
 ) WITH CLUSTERING ORDER BY (conversation_id ASC, event_id DESC)
     AND bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
@@ -181,7 +179,7 @@ CREATE TABLE IF NOT EXISTS core_mail (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE core_indexer_clock (
+CREATE TABLE IF NOT EXISTS core_indexer_clock (
     datacenter text PRIMARY KEY,
     lastindex timestamp
 ) WITH bloom_filter_fp_chance = 0.01

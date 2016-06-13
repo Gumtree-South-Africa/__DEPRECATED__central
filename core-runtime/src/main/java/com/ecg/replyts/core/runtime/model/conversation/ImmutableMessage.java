@@ -29,7 +29,8 @@ public class ImmutableMessage implements Message {
     private final ModerationResultState humanResultState;
     private final Map<String, String> headers;
     private final String plainTextBody;
-    private List<String> attachments;
+    private final List<String> attachments;
+    private final List<String> textParts;
     private final List<ProcessingFeedback> processingFeedback;
 
     private final Optional<String> lastEditor;
@@ -43,7 +44,6 @@ public class ImmutableMessage implements Message {
         Preconditions.checkNotNull(bdr.filterResultState);
         Preconditions.checkNotNull(bdr.humanResultState);
         Preconditions.checkNotNull(bdr.headers);
-        Preconditions.checkNotNull(bdr.plainTextBody);
         Preconditions.checkNotNull(bdr.processingFeedback);
         Preconditions.checkNotNull(bdr.lastEditor);
 
@@ -58,10 +58,11 @@ public class ImmutableMessage implements Message {
         this.filterResultState = bdr.filterResultState;
         this.humanResultState = bdr.humanResultState;
         this.headers = ImmutableMap.copyOf(bdr.headers);
-        this.plainTextBody = bdr.plainTextBody;
         this.processingFeedback = ImmutableList.copyOf(bdr.processingFeedback);
         this.lastEditor = bdr.lastEditor;
-        this.attachments = bdr.attachments!= null ? ImmutableList.copyOf(bdr.attachments) : Collections.<String>emptyList();
+        this.attachments = bdr.attachments != null ? ImmutableList.copyOf(bdr.attachments) : Collections.emptyList();
+        this.textParts = bdr.textParts != null ? ImmutableList.copyOf(bdr.textParts) : Collections.emptyList();
+        this.plainTextBody = this.textParts.isEmpty() ? "" : this.textParts.get(0);
     }
 
     @Override
@@ -145,6 +146,11 @@ public class ImmutableMessage implements Message {
         return lastEditor;
     }
 
+    @Override
+    public List<String> getTextParts() {
+        return textParts;
+    }
+
     public static final class Builder {
         private int version = 0;
         private String id;
@@ -154,13 +160,13 @@ public class ImmutableMessage implements Message {
         private DateTime lastModifiedAt;
         private FilterResultState filterResultState = FilterResultState.OK;
         private ModerationResultState humanResultState = ModerationResultState.UNCHECKED;
-        private Map<String, String> headers = new HashMap<String, String>();
-        private String plainTextBody;
-        private List<ProcessingFeedback> processingFeedback = new ArrayList<ProcessingFeedback>();
+        private Map<String, String> headers = new HashMap<>();
+        private List<ProcessingFeedback> processingFeedback = new ArrayList<>();
         private Optional<String> lastEditor = Optional.absent();
         private String senderMessageIdHeader;
         private String inResponseToMessageId;
         public List<String> attachments;
+        public List<String> textParts;
 
         private Builder() {
         }
@@ -170,7 +176,6 @@ public class ImmutableMessage implements Message {
         }
 
         public static Builder aMessage(Message message) {
-
             Builder builder = new Builder().
                     withId(message.getId()).
                     withMessageDirection(message.getMessageDirection()).
@@ -185,7 +190,6 @@ public class ImmutableMessage implements Message {
                     withSenderMessageIdHeader(message.getSenderMessageIdHeader()).
                     withAttachments(message.getAttachmentFilenames()).
                     withProcessingFeedback(message.getProcessingFeedback());
-
 
             builder.version= message.getVersion()+1;
             return builder;
@@ -256,11 +260,6 @@ public class ImmutableMessage implements Message {
             return this;
         }
 
-        public Builder withPlainTextBody(String plainTextBody) {
-            this.plainTextBody = plainTextBody;
-            return this;
-        }
-
         public Builder withSenderMessageIdHeader(String senderMessageIdHeader) {
             this.senderMessageIdHeader = senderMessageIdHeader;
             return this;
@@ -283,9 +282,13 @@ public class ImmutableMessage implements Message {
             return this;
         }
 
+        public Builder withTextParts(List<String> textParts) {
+            this.textParts = textParts;
+            return this;
+        }
+
         public Message build() {
             return new ImmutableMessage(this);
         }
-
     }
 }

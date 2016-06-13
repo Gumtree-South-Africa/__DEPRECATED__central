@@ -154,10 +154,9 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
         }
     }
 
-    @Override
-    public Stream<ConversationEventId> streamConversationEventIdsByDay(int year, int month, int day) {
+    public Stream<ConversationEventId> streamConversationEventIdsByHour(DateTime date) {
         try (Timer.Context ignored = streamConversationEventIdsByDayTimer.time()) {
-            Statement bound = Statements.SELECT_CONVERSATION_EVENTS_BY_DAY.bind(this, year, month, day);
+            Statement bound = Statements.SELECT_CONVERSATION_EVENTS_BY_DATE.bind(this, date.hourOfDay().roundFloorCopy().toDate());
             ResultSet resultset = session.execute(bound);
             return toStream(resultset).map(row -> new ConversationEventId(row.getString(FIELD_CONVERSATION_ID), row.getUUID(FIELD_EVENT_ID)));
         }
@@ -225,7 +224,7 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
             for (ConversationEvent conversationEvent : toBeCommittedEvents) {
                 try {
                     UUID eventId = UUIDs.timeBased();
-                    DateTime currentTime = DateTime.now();
+                    DateTime currentTime = new DateTime(UUIDs.unixTimestamp(eventId));
                     String jsonEventStr = objectMapper.writeValueAsString(conversationEvent);
                     batch.add(Statements.INSERT_CONVERSATION_EVENTS.bind(
                             this,
@@ -233,11 +232,9 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
                             eventId,
                             conversationEvent.getClass().getCanonicalName() + "@@" + jsonEventStr));
                     if (conversationEvent instanceof MessageAddedEvent) {
-                        batch.add(Statements.INSERT_CONVERSATION_EVENTS_BY_DAY.bind(
+                        batch.add(Statements.INSERT_CONVERSATION_EVENTS_BY_DATE.bind(
                                 this,
-                                currentTime.getYear(),
-                                currentTime.getMonthOfYear(),
-                                currentTime.getDayOfMonth(),
+                                currentTime.hourOfDay().roundFloorCopy().toDate(),
                                 conversationId,
                                 eventId,
                                 jsonEventStr)
@@ -345,8 +342,7 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
                 DateTime modificationDateTime = conversationModificationDate.getModificationDateTime();
                 batch.add(Statements.DELETE_CONVERSATION_MODIFICATION_IDX_BY_DAY.bind(this, modificationDateTime.getYear(), modificationDateTime.getMonthOfYear(),
                         modificationDateTime.getDayOfMonth(), conversationModificationDate.getModificationDate(), conversationId));
-                batch.add(Statements.DELETE_CONVERSATION_EVENTS_BY_DAY.bind(this, modificationDateTime.getYear(), modificationDateTime.getMonthOfYear(),
-                        modificationDateTime.getDayOfMonth(), conversationId));
+                batch.add(Statements.DELETE_CONVERSATION_EVENTS_BY_DATE.bind(this, modificationDateTime.hourOfDay().roundFloorCopy().toDate(), conversationId));
 
             });
             batch.setConsistencyLevel(getWriteConsistency()).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
@@ -401,7 +397,7 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
     private enum Statements {
 
         SELECT_FROM_CONVERSATION_EVENTS("SELECT * FROM core_conversation_events WHERE conversation_id=? ORDER BY event_id ASC"),
-        SELECT_CONVERSATION_EVENTS_BY_DAY("SELECT conversation_id, event_id FROM core_conversation_events_by_day WHERE year = ? AND month = ? AND day = ?"),
+        SELECT_CONVERSATION_EVENTS_BY_DATE("SELECT conversation_id, event_id FROM core_conversation_events_by_date WHERE creatdate = ?"),
         SELECT_CONVERSATION_ID_FROM_SECRET("SELECT conversation_id FROM core_conversation_secret WHERE secret=? LIMIT 1"),
         SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN("SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING"),
         SELECT_CONVERSATION_WHERE_MODIFICATION_BEFORE("SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date <= ? LIMIT ? ALLOW FILTERING"),
@@ -417,14 +413,14 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
         INSERT_CONVERSATION_MODIFICATION_IDX("INSERT INTO core_conversation_modification_desc_idx (conversation_id, modification_date) VALUES (?,?)", true),
         INSERT_CONVERSATION_MODIFICATION_IDX_BY_DAY("INSERT INTO core_conversation_modification_desc_idx_by_day (year, month, day, modification_date, conversation_id) VALUES (?, ?, ?, ?, ?)", true),
         INSERT_RESUME_IDX("INSERT INTO core_conversation_resume_idx (compound_key, conversation_id) VALUES (?,?)", true),
-        INSERT_CONVERSATION_EVENTS_BY_DAY("INSERT INTO core_conversation_events_by_day (year, month, day, conversation_id, event_id, event_json) VALUES (?, ?, ?, ?, ?, ?)", true),
+        INSERT_CONVERSATION_EVENTS_BY_DATE("INSERT INTO core_conversation_events_by_date (creatdate, conversation_id, event_id, event_json) VALUES (?, ?, ?, ?)", true),
 
         DELETE_CONVERSATION_EVENTS("DELETE FROM core_conversation_events WHERE conversation_id=?", true),
         DELETE_CONVERSATION_SECRET("DELETE FROM core_conversation_secret WHERE secret=?", true),
         DELETE_CONVERSATION_MODIFICATION_IDX("DELETE FROM core_conversation_modification_desc_idx WHERE conversation_id = ? AND modification_date = ?", true),
         DELETE_CONVERSATION_MODIFICATION_IDXS("DELETE FROM core_conversation_modification_desc_idx WHERE conversation_id=?", true),
         DELETE_CONVERSATION_MODIFICATION_IDX_BY_DAY("DELETE FROM core_conversation_modification_desc_idx_by_day WHERE year = ? AND month = ? AND day = ? AND modification_date = ? AND conversation_id = ?", true),
-        DELETE_CONVERSATION_EVENTS_BY_DAY("DELETE FROM core_conversation_events_by_day WHERE year = ? AND month = ? AND day = ? AND conversation_id = ?", true),
+        DELETE_CONVERSATION_EVENTS_BY_DATE("DELETE FROM core_conversation_events_by_date WHERE creatdate = ? AND conversation_id = ?", true),
         DELETE_RESUME_IDX("DELETE FROM core_conversation_resume_idx WHERE compound_key=?", true),
 
         SELECT_EVENTS_WHERE_CREATE_BETWEEN("SELECT * FROM core_conversation_events WHERE event_id > minTimeuuid(?) AND event_id < maxTimeuuid(?) ALLOW FILTERING");

@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.processing.Termination;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
+import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.google.common.base.Optional;
@@ -39,20 +40,29 @@ class ProcessingFinalizer {
     private final SearchIndexer searchIndexer;
     private final ExcessiveConversationSizeConstraint conversationSizeConstraint;
     private final ConversationEventListeners conversationEventListeners;
+    private final boolean skipMailStorage;
+    private final MailPublisher mailPublisher;
 
     @Autowired
-    ProcessingFinalizer(MutableConversationRepository conversationRepository, MailRepository mailRepository, SearchIndexer searchIndexer, ConversationEventListeners conversationEventListeners) {
-        this(conversationRepository, mailRepository, searchIndexer, new ExcessiveConversationSizeConstraint(MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION), conversationEventListeners);
+    ProcessingFinalizer(MutableConversationRepository conversationRepository, MailRepository mailRepository,
+                        SearchIndexer searchIndexer, ConversationEventListeners conversationEventListeners,
+                        MailPublisher mailPublisher, boolean skipMailStorage) {
+        this(conversationRepository, mailRepository, searchIndexer,
+                new ExcessiveConversationSizeConstraint(MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION),
+                conversationEventListeners, mailPublisher, skipMailStorage);
     }
 
     ProcessingFinalizer(MutableConversationRepository conversationRepository, MailRepository mailRepository,
-                               SearchIndexer searchIndexer, ExcessiveConversationSizeConstraint constraint,
-                        ConversationEventListeners conversationEventListeners) {
+                        SearchIndexer searchIndexer, ExcessiveConversationSizeConstraint constraint,
+                        ConversationEventListeners conversationEventListeners, MailPublisher mailPublisher,
+                        boolean skipMailStorage) {
         this.conversationRepository = conversationRepository;
         this.mailRepository = mailRepository;
         this.searchIndexer = searchIndexer;
         conversationSizeConstraint = constraint;
         this.conversationEventListeners = conversationEventListeners;
+        this.skipMailStorage = skipMailStorage;
+        this.mailPublisher = mailPublisher;
     }
 
 
@@ -75,8 +85,7 @@ class ProcessingFinalizer {
                 termination.getEndState()));
 
         conversation.commit(conversationRepository, conversationEventListeners);
-
-        mailRepository.persistMail(messageId, incomingMailContent, outgoingMailContent);
+        processEmail(messageId, incomingMailContent, outgoingMailContent);
 
         reportConversationSizeInMetrics(conversation);
 
@@ -86,6 +95,17 @@ class ProcessingFinalizer {
             LOG.error("Search update failed for conversation", e);
         }
 
+    }
+
+    private void processEmail(String messageId, byte[] incomingMailContent, Optional<byte[]> outgoingMailContent) {
+        if (skipMailStorage) {
+            LOG.trace("Skipping persistence step, you can configure it with persistence.skip property");
+        } else {
+            mailRepository.persistMail(messageId, incomingMailContent, outgoingMailContent);
+        }
+        if (mailPublisher != null) {
+            mailPublisher.publishMail(messageId, incomingMailContent, outgoingMailContent);
+        }
     }
 
     private void reportConversationSizeInMetrics(DefaultMutableConversation conversation) {

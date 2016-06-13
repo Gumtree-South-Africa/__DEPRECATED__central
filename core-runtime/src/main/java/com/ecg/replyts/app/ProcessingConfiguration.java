@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.processing.MessageFixer;
 import com.ecg.replyts.core.api.processing.ModerationService;
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
+import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
@@ -56,6 +57,10 @@ class ProcessingConfiguration {
     @Autowired
     @Resource(name = "javaMailMessageFixers")
     private List<MessageFixer> javaMailMessageFixers;
+    @Value("${persistence.skip.mail.storage:false}")
+    private boolean skipMailStorage;
+    @Autowired(required = false)
+    private MailPublisher processedListener;
 
     @PostConstruct
     void setup() {
@@ -68,7 +73,8 @@ class ProcessingConfiguration {
                 .map(fixer -> fixer.getClass().getCanonicalName())
                 .collect(joining(", ")));
         flow = new ProcessingFlow(mailDeliveryService, postProcessor, filterChain, preProcessor, javaMailMessageFixers);
-        finalizer = new ProcessingFinalizer(conversationRepository, mailRepository, searchIndexer, conversationEventListeners);
+        finalizer = new ProcessingFinalizer(conversationRepository, mailRepository, searchIndexer,
+                conversationEventListeners, processedListener, skipMailStorage);
     }
 
     /**

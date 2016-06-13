@@ -11,7 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.substring;
@@ -43,7 +45,8 @@ public class BankAccountFilter implements Filter {
             ).collect(toList());
 
             List<FilterFeedback> result = new ArrayList<>();
-            for (BankAccountMatch banMatch : setAllScoresToZeroExceptFirstMaxScore(bankAccountFinder.findBankAccountNumberMatches(condensedTexts, conv.getAdId()))) {
+            List<BankAccountMatch> bankAccountMatches = bankAccountFinder.findBankAccountNumberMatches(condensedTexts, conv.getAdId());
+            for (BankAccountMatch banMatch : setAllScoresToZeroExceptFirstMaxScore(bankAccountMatches)) {
                 List<Message> allMgs = conv.getMessages();
                 Message firstMatchingMsg = allMgs.stream().filter(msg ->
                     !bankAccountFinder.containsSingleBankAccountNumber(banMatch.getBankAccount(), extractMessageTexts(msg), conv.getAdId()).isEmpty()
@@ -83,10 +86,9 @@ public class BankAccountFilter implements Filter {
     }
 
     private List<String> extractMessageTexts(Message message) {
-        List<String> result = new ArrayList<>(2);
-        String subject = message.getHeaders().get("Subject"); // "Subject" - Mail.SUBJECT
+        List<String> result = message.getTextParts().stream().filter(s -> !s.isEmpty()).collect(Collectors.toList());
+        String subject = message.getHeaders().get("Subject");
         if (!isEmpty(subject)) result.add(subject);
-        if (!isEmpty(message.getPlainTextBody())) result.add(message.getPlainTextBody());
         return result;
     }
 

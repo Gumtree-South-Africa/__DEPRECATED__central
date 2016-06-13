@@ -30,6 +30,12 @@ public class HtmlRemoverTest {
     }
 
     @Test
+    public void testHtmlEntities() throws HtmlCleanupException {
+        String resp = new HtmlRemover("&#72;&#105;&#32;&#97;&#103;&#97;&#105;&#110;&#46;").getPlaintext();
+        Assert.assertEquals("Hi again.", resp);
+    }
+
+    @Test
     public void testSpaceBeforeInline() throws Exception {
         String resp = new HtmlRemover("<body>Hello <span>World</span>").getPlaintext();
         Assert.assertEquals("Hello World", resp);

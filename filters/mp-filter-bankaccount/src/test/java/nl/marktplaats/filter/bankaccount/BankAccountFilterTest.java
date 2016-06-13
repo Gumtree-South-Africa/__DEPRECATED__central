@@ -46,8 +46,8 @@ public class BankAccountFilterTest {
         Message message = mock(Message.class, "message_" + index);
         when(message.getId()).thenReturn("msg" + index);
         when(message.getMessageDirection()).thenReturn(direction);
-        when(message.getPlainTextBody()).thenReturn(plainTextPart);
-        when(message.getHeaders()).thenReturn(new HashMap<String, String>(){{put("Subject", subject);}});
+        when(message.getTextParts()).thenReturn(Arrays.asList(plainTextPart));
+        when(message.getHeaders()).thenReturn(new HashMap() {{ put("Subject", subject); }} );
         return message;
     }
 
@@ -173,8 +173,9 @@ public class BankAccountFilterTest {
         when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
         BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "12 34 56", 0);
         BankAccountMatch bankAccountMatch1 = new BankAccountMatch("123456", "1 23 45 6", 0);
-        when(bankAccountFinder.findBankAccountNumberMatches(asList("12 34 56", "1 23 45 6"), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
-        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("12 34 56", "1 23 45 6"), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        List<String> textParts = asList("1 23 45 6", "12 34 56");
+        when(bankAccountFinder.findBankAccountNumberMatches(textParts, AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", textParts, AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
         when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
         when(descriptionBuilder.build(conversation, bankAccountMatch1, message, 1)).thenReturn("|123456|");
 
@@ -193,8 +194,9 @@ public class BankAccountFilterTest {
         when(messageProcessingContext.getMessage()).thenReturn(message);
         when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
         BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123456", 100);
-        when(bankAccountFinder.findBankAccountNumberMatches(asList("Re: please use 123456", "Nothing to see here."), AD_ID)).thenReturn(asList(bankAccountMatch));
-        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("Re: please use 123456", "Nothing to see here."), AD_ID)).thenReturn(asList(bankAccountMatch));
+        List<String> textParts = asList("Nothing to see here.", "Re: please use 123456");
+        when(bankAccountFinder.findBankAccountNumberMatches(textParts, AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", textParts, AD_ID)).thenReturn(asList(bankAccountMatch));
         when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
 
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
@@ -211,8 +213,9 @@ public class BankAccountFilterTest {
         when(messageProcessingContext.getMessage()).thenReturn(message);
         when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
         BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123456", 100);
-        when(bankAccountFinder.findBankAccountNumberMatches(asList("subject", PLAIN_TEXT_CONTENT_FRAUDULENT), AD_ID)).thenReturn(asList(bankAccountMatch));
-        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("subject", PLAIN_TEXT_CONTENT_FRAUDULENT), AD_ID)).thenReturn(asList(bankAccountMatch));
+        List<String> textParts = asList(PLAIN_TEXT_CONTENT_FRAUDULENT, "subject");
+        when(bankAccountFinder.findBankAccountNumberMatches(textParts, AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", textParts, AD_ID)).thenReturn(asList(bankAccountMatch));
         when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
 
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
@@ -222,7 +225,6 @@ public class BankAccountFilterTest {
         assertThat(filterFeedbacks.get(0), matchesAccount("123456", "123456", 100, FilterResultState.OK));
     }
 
-
     @Test
     public void matchEscapedHtmlMailOnly() {
         when(conversation.getAdId()).thenReturn(AD_ID);
@@ -230,8 +232,9 @@ public class BankAccountFilterTest {
         when(messageProcessingContext.getMessage()).thenReturn(message);
         when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
         BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123456", 100);
-        when(bankAccountFinder.findBankAccountNumberMatches(asList("subject", "Message with a fraudulent bank account: 1&#50;3&#x34;56</b>. Good luck!"), AD_ID)).thenReturn(asList(bankAccountMatch));
-        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("subject", "Message with a fraudulent bank account: 1&#50;3&#x34;56</b>. Good luck!"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        List<String> textParts = asList("Message with a fraudulent bank account: 1&#50;3&#x34;56</b>. Good luck!", "subject");
+        when(bankAccountFinder.findBankAccountNumberMatches(textParts, AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", textParts, AD_ID)).thenReturn(asList(bankAccountMatch));
         when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
 
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);
@@ -250,9 +253,10 @@ public class BankAccountFilterTest {
         BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123456", 100);
         BankAccountMatch bankAccountMatch1 = new BankAccountMatch("NL84INGB0002930139", "NL84INGB0002930139", 100);
         BankAccountMatch bankAccountMatch2 = new BankAccountMatch("NL84INGB0002930139", "2930139", 10);
-        when(bankAccountFinder.findBankAccountNumberMatches(asList("123456", "NL84INGB0002930139"), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1, bankAccountMatch2));
-        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("123456", "NL84INGB0002930139"), AD_ID)).thenReturn(asList(bankAccountMatch));
-        when(bankAccountFinder.containsSingleBankAccountNumber("NL84INGB0002930139", asList("123456", "NL84INGB0002930139"), AD_ID)).thenReturn(asList(bankAccountMatch1, bankAccountMatch2));
+        List<String> textParts = asList("NL84INGB0002930139", "123456");
+        when(bankAccountFinder.findBankAccountNumberMatches(textParts, AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1, bankAccountMatch2));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", textParts, AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("NL84INGB0002930139", textParts, AD_ID)).thenReturn(asList(bankAccountMatch1, bankAccountMatch2));
         when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
         when(descriptionBuilder.build(conversation, bankAccountMatch1.withZeroScore(), message, 1)).thenReturn("|NL84INGB0002930139|");
         when(descriptionBuilder.build(conversation, bankAccountMatch2.withZeroScore(), message, 1)).thenReturn("|NL84INGB0002930139|");
@@ -275,8 +279,9 @@ public class BankAccountFilterTest {
         when(conversation.getMessages()).thenReturn(Collections.singletonList(message));
         BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "12 34 56", 50);
         BankAccountMatch bankAccountMatch1 = new BankAccountMatch("123456", "12.34.56", 50);
-        when(bankAccountFinder.findBankAccountNumberMatches(asList("subject", "Maak aub geld over aan rekening 12 34 56 94 3, of naar rekening 12.34.56.94.3."), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
-        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("subject", "Maak aub geld over aan rekening 12 34 56 94 3, of naar rekening 12.34.56.94.3."), AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        List<String> textParts = asList("Maak aub geld over aan rekening 12 34 56 94 3, of naar rekening 12.34.56.94.3.", "subject");
+        when(bankAccountFinder.findBankAccountNumberMatches(textParts, AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", textParts, AD_ID)).thenReturn(asList(bankAccountMatch, bankAccountMatch1));
         when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("|123456|");
         when(descriptionBuilder.build(conversation, bankAccountMatch1.withZeroScore(), message, 1)).thenReturn("|123456|");
 
@@ -310,10 +315,10 @@ public class BankAccountFilterTest {
         when(conversation.getAdId()).thenReturn(AD_ID);
         when(conversation.getMessages()).thenReturn(messages);
         when(messageProcessingContext.getMessage()).thenReturn(messages.get(5));
-
         BankAccountMatch bankAccountMatch = new BankAccountMatch("123456", "123 456", 50);
-        when(bankAccountFinder.findBankAccountNumberMatches(asList("subject", "where is my product?\n> give me more money! 123 456"), AD_ID)).thenReturn(asList(bankAccountMatch));
-        when(bankAccountFinder.containsSingleBankAccountNumber("123456", asList("subject", "where is my product?\n> give me more money! 123 456"), AD_ID)).thenReturn(asList(bankAccountMatch));
+        List<String> textParts = asList("where is my product?\n> give me more money! 123 456", "subject");
+        when(bankAccountFinder.findBankAccountNumberMatches(textParts, AD_ID)).thenReturn(asList(bankAccountMatch));
+        when(bankAccountFinder.containsSingleBankAccountNumber("123456", textParts, AD_ID)).thenReturn(asList(bankAccountMatch));
         when(descriptionBuilder.build(conversation, bankAccountMatch, message, 1)).thenReturn("fraudster@mail.com|100|123456|fraudster-anon@mail.marktplaats.nl|f.r.audster@mail.com||victim@mail.com|"+AD_ID+"|4|"+fromUserId+"|"+toUserId);
 
         List<FilterFeedback> filterFeedbacks = this.filter.filter(messageProcessingContext);

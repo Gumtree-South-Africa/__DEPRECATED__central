@@ -127,6 +127,7 @@
                 <module>postprocessors/mp-postprocessor-urlgateway</module>
 
                 <module>eventpublishers/mp-eventpublisher-kafka</module>
+                <module>eventpublishers/mp-eventpublisher-kafka-mail</module>
                 <module>eventpublishers/mp-eventpublisher-rabbitmq</module>
 
                 <module>resultinspectors/mp-resultinspector-threshold</module>
@@ -250,7 +251,7 @@
 
                 <module>listeners/kjca-listener-dw</module>
 
-                <module>messagecenters/kjca-messagecenter</module>
+                <!-- module>messagecenters/kjca-messagecenter</module -->
 
                 <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>

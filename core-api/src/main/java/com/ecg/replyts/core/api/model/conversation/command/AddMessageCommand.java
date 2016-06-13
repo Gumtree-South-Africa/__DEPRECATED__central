@@ -19,10 +19,12 @@ public class AddMessageCommand extends ConversationCommand {
     private final String senderMessageIdHeader;
     private final String inResponseToMessageId;
     private final Map<String, String> headers;
-    private final String plainTextBody;
     private final List<String> attachments;
+    private final List<String> textParts;
 
-    public AddMessageCommand(String conversationId, String messageId, MessageState state, MessageDirection messageDirection, DateTime receivedAt, String senderMessageIdHeader, String inResponseToMessageId, Map<String, String> headers, String plainTextBody, List<String> attachments) {
+    public AddMessageCommand(String conversationId, String messageId, MessageState state, MessageDirection messageDirection,
+                             DateTime receivedAt, String senderMessageIdHeader, String inResponseToMessageId,
+                             Map<String, String> headers, List<String> attachments, List<String> textParts) {
         super(conversationId);
 
         if (messageDirection == null) throw new IllegalArgumentException();
@@ -36,7 +38,7 @@ public class AddMessageCommand extends ConversationCommand {
         this.senderMessageIdHeader = senderMessageIdHeader;
         this.inResponseToMessageId = inResponseToMessageId;
         this.headers = Collections.unmodifiableMap(headers);
-        this.plainTextBody = plainTextBody;
+        this.textParts = textParts;
     }
 
     public String getMessageId() {
@@ -67,11 +69,11 @@ public class AddMessageCommand extends ConversationCommand {
         return state;
     }
 
-    public String getPlainTextBody() {
-        return plainTextBody;
-    }
-
     public List<String> getAttachments() {
         return attachments;
+    }
+
+    public List<String> getTextParts() {
+        return textParts;
     }
 }

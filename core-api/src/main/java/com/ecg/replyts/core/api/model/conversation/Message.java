@@ -75,10 +75,14 @@ public interface Message {
     Map<String, String> getHeaders();
 
     /**
-     *
      * @return the plain text body of the message
      */
     String getPlainTextBody();
+
+    /**
+     * @return list of all text parts from the email
+     */
+    List<String> getTextParts();
 
     /**
      * @deprecated this version of text extracting does not work as one would assume and generates junk in 80% of the cases.

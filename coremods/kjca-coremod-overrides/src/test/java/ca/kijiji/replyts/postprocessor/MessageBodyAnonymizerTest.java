@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.ecg.replyts.core.api.model.conversation.FilterResultState.OK;
@@ -75,7 +76,7 @@ public class MessageBodyAnonymizerTest {
                 .withFilterResultState(OK)
                 .withHumanResultState(ModerationResultState.UNCHECKED)
                 .withHeaders(ImmutableMap.<String, String>of())
-                .withPlainTextBody("")
+                .withTextParts(Arrays.asList(""))
                 .withProcessingFeedback(ImmutableList.<ProcessingFeedback>of())
                 .withLastEditor(Optional.<String>absent());
 

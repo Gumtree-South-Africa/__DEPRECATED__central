@@ -30,7 +30,7 @@ public class ImmutableConversationTest {
             "secret2",
             new DateTime(),
             ConversationState.ACTIVE,
-            ImmutableMap.<String, String>of());
+            ImmutableMap.of());
 
     private ImmutableConversation conv;
 
@@ -43,8 +43,10 @@ public class ImmutableConversationTest {
             null,
             FilterResultState.OK,
             ModerationResultState.UNCHECKED,
-            ImmutableMap.<String, String>of(),
-            "messagebody", Collections.<String>emptyList()
+            ImmutableMap.of(),
+            "messagebody",
+            Collections.emptyList(),
+            Collections.emptyList()
     );
 
     private MessageAddedEvent messageAddedEvent2 = new MessageAddedEvent(
@@ -56,19 +58,15 @@ public class ImmutableConversationTest {
             "msgid1",
             FilterResultState.OK,
             ModerationResultState.UNCHECKED,
-            ImmutableMap.<String, String>of(),
-            "messagebody", Collections.<String>emptyList()
+            ImmutableMap.of(),
+            "messagebody",
+            Collections.emptyList(),
+            Collections.emptyList()
     );
 
-
-    private MessageFilteredEvent message1Filtered = new MessageFilteredEvent(
-            "msgid1", new DateTime(), FilterResultState.DROPPED, Collections.<ProcessingFeedback>emptyList()
-    );
-
+    private MessageFilteredEvent message1Filtered = new MessageFilteredEvent("msgid1", new DateTime(), FilterResultState.DROPPED, Collections.emptyList());
     private MessageTerminatedEvent message1Terminated = new MessageTerminatedEvent("msgid1", new DateTime(), "noreason", "system", MessageState.BLOCKED);
-
     private MessageModeratedEvent message1Moderated = new MessageModeratedEvent("msgid1", new DateTime(), ModerationResultState.GOOD, "me");
-
 
     @Before
     public void setUp() throws Exception {

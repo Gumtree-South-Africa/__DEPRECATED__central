@@ -16,6 +16,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
+
 import static org.joda.time.DateTime.now;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Mockito.*;
@@ -53,7 +55,7 @@ public class PostBoxUpdateListenerTest {
                 .withFilterResultState(FilterResultState.OK)
                 .withHumanResultState(ModerationResultState.UNCHECKED)
                 .withHeaders(ImmutableMap.of())
-                .withPlainTextBody("")
+                .withTextParts(Arrays.asList(""))
                 .withProcessingFeedback(ImmutableList.of())
                 .withLastEditor(Optional.absent());
     }
