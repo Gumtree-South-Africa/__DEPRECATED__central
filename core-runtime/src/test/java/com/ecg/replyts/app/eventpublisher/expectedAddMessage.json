@@ -10,8 +10,10 @@
     "filterResultState": "OK",
     "humanResultState": "GOOD",
     "headers": {},
-    "plainTextBody": "This is the body.\nIt contains newlines, \t tabs and some šⓣŕáñǵÈ characters.\n",
     "attachments": [],
+    "textParts": [
+      "This is the body.\nIt contains newlines, \t tabs and some šⓣŕáñǵÈ characters.\n"
+    ],
     "eventId": "MessageAddedEvent-message-5801a-1326183103000",
     "conversationModifiedAt": "2012-01-10T08:11:43.000Z",
     "formatVer": 1
