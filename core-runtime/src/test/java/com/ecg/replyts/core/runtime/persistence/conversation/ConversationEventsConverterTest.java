@@ -56,7 +56,7 @@ public class ConversationEventsConverterTest {
         customValues.put("def", "456");
         ConversationCreatedEvent conversationCreatedEvent = new ConversationCreatedEvent("1", "2", "3", "4", "buyersecret", "sellersecret", now, ACTIVE, customValues);
 
-        MessageAddedEvent messageAddedEvent = new MessageAddedEvent("5", BUYER_TO_SELLER, now, MessageState.SENT, "<ABC@platform.com>", "1:1", OK, UNCHECKED, Collections.<String, String>emptyMap(), "body", Collections.<String>emptyList());
+        MessageAddedEvent messageAddedEvent = new MessageAddedEvent("5", BUYER_TO_SELLER, now, MessageState.SENT, "<ABC@platform.com>", "1:1", OK, UNCHECKED, Collections.<String, String>emptyMap(), "body", Collections.<String>emptyList(), null);
 
         List<ConversationEvent> domainObject = new ArrayList<ConversationEvent>();
         domainObject.add(conversationCreatedEvent);
@@ -88,7 +88,7 @@ public class ConversationEventsConverterTest {
         assertThat(messageAddedEvent.getFilterResultState(), is(OK));
         assertThat(messageAddedEvent.getHumanResultState(), is(UNCHECKED));
         assertThat(messageAddedEvent.getHeaders().isEmpty(), is(true));
-        assertThat(messageAddedEvent.getPlainTextBody(), is("body"));
+        assertThat(messageAddedEvent.getTextParts() != null && messageAddedEvent.getTextParts().size() > 0 ? messageAddedEvent.getTextParts().get(0) : "", is("body"));
     }
 
 

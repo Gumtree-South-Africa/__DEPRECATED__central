@@ -251,7 +251,7 @@
 
                 <module>listeners/kjca-listener-dw</module>
 
-                <!-- module>messagecenters/kjca-messagecenter</module -->
+                <module>messagecenters/kjca-messagecenter</module>
 
                 <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>

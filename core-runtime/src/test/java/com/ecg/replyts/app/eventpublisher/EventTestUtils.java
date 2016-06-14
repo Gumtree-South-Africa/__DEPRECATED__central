@@ -23,7 +23,8 @@ public class EventTestUtils {
                 ModerationResultState.UNCHECKED,
                 ImmutableMap.of(),
                 "Text",
-                Collections.<String>emptyList());
+                Collections.<String>emptyList(),
+                null);
     }
 
     public static MessageAddedEvent messageAddedEventWithMessageInBlockedState() {
@@ -38,7 +39,8 @@ public class EventTestUtils {
                 ModerationResultState.UNCHECKED,
                 ImmutableMap.of(),
                 "Text",
-                Collections.<String>emptyList());
+                Collections.<String>emptyList(),
+                null);
     }
 
     public static MessageFilteredEvent messageFilteredEvent() {
