@@ -46,7 +46,7 @@ public class CloudDiscoveryConfiguration {
     @Value("${replyts.http.port:0}")
     private Integer httpPort;
 
-    @Autowired
+    @Autowired(required = false)
     private ConsulLifecycle lifecycle;
 
     @Autowired(required = false)
@@ -61,6 +61,10 @@ public class CloudDiscoveryConfiguration {
     @PostConstruct
     @ConditionalOnBean(DiscoveryClient.class)
     public void initializeDiscovery() {
+        if (lifecycle == null) {
+            // don't try to do anything with Consul
+            return;
+        }
         // Initialize the Consul lifecycle explicitly to register the service and make it discoverable
 
         // XXX: Temporary fix until we switch to the Spring Boot webserver
