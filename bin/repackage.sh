@@ -8,7 +8,7 @@ set -o errexit
 
 function usage() {
   cat <<- EOF
-  Usage: repackage.sh <tenant> <git_hash> <artifact>
+  Usage: repackage.sh <tenant> <git_hash> <artifact> <timestamp>
 EOF
   exit
 }
@@ -20,6 +20,7 @@ function parseArgs() {
   TENANT=$1
   GIT_HASH=$2
   ARTIFACT=$3
+  TIMESTAMP=$4
   cur=$(pwd -P) && cd $(dirname ${ARTIFACT}) && BUILDDIR=$(pwd -P) && cd ${cur}
 }
 
@@ -33,9 +34,9 @@ function repackage() {
       continue
     fi
 
-    PACKAGE_BASE=${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}
+    PACKAGE_BASE=${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}-${TIMESTAMP}
     if [[ "$prop" == *noenv ]]; then
-      PACKAGE_BASE=${BUILDDIR}/comaas-${TENANT}-${GIT_HASH}
+      PACKAGE_BASE=${BUILDDIR}/comaas-${TENANT}-${GIT_HASH}-${TIMESTAMP}
     fi
 
     case "$TENANT" in
@@ -63,7 +64,7 @@ function repackage() {
         ;;
       mp)
       # Repackaging for MP
-        DISTRIB_ARTIFACT=nl.marktplaats.mp-replyts2_comaas-$(basename "$prop")-${GIT_HASH_FULL}-${DATETIME}
+        DISTRIB_ARTIFACT=nl.marktplaats.mp-replyts2_comaas-$(basename "$prop")-${GIT_HASH_FULL}-${TIMESTAMP}
         rm -rf tmp2
         mkdir -p tmp2/${DISTRIB_ARTIFACT}
         cp -r tmp/* tmp2/${DISTRIB_ARTIFACT}/
@@ -88,5 +89,4 @@ function repackage() {
 
 parseArgs $@
 GIT_HASH_FULL=$(git rev-parse HEAD)
-DATETIME=$(date +"%C%y%m%d-%H%M")
 repackage

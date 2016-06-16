@@ -5,7 +5,7 @@ set -o errexit
 
 function usage() {
   cat <<- EOF
-  Usage: distribute.sh <tenant> <git_hash> <artifact> <build_dir>
+  Usage: distribute.sh <tenant> <git_hash> <artifact> <timestamp> <build_dir>
 EOF
   exit
 }
@@ -16,15 +16,11 @@ EOF
 TENANT=$1
 GIT_HASH=$2
 ARTIFACT=$3
-BUILD_DIR=$4
-
-if [ -z "$TENANT" ] || [ -z "$GIT_HASH" ] || [ -z "$ARTIFACT" ] || [ -z "$BUILD_DIR" ]; then
-  echo "$0: <tenant> <git-hash> <artifact> <build_dir>"
-  exit 1
-fi
+TIMESTAMP=$4
+BUILD_DIR=$5
 
 # Repackage into packages for each TENANT environment
-`dirname $0`/repackage.sh $TENANT $GIT_HASH $ARTIFACT
+`dirname $0`/repackage.sh $TENANT $GIT_HASH $ARTIFACT $TIMESTAMP
 
 if [[ "$TENANT" == "mp" ]]; then
   MP_PACKAGE_REGEX=".*/nl.marktplaats.mp-replyts2_comaas-([0-9a-zA-Z]+)-.*"
