@@ -197,6 +197,7 @@
             <modules>
                 <module>filters/mde-filter-comaservice</module>
                 <module>filters/mde-filter-fsbofraud</module>
+                <module>filters/mde-filter-badword</module>
 
                 <module>postprocessors/mde-postprocessor-addmetadata</module>
                 <module>postprocessors/mde-postprocessor-demandreporting</module>
@@ -266,7 +267,7 @@
         <!-- Make sure that the exec plugin by default does not run in the 'verify' phase, unless this variable is overridden (by for example, a task runner (see ../README)) -->
 
         <maven.exec.skip>true</maven.exec.skip>
-
+        <cs-filter-shared.version>1.5</cs-filter-shared.version>
         <jolokia-spring.version>1.1.1</jolokia-spring.version>
         <mongo-java-driver-version>2.13.0</mongo-java-driver-version>
         <amqp-client-version>3.4.2</amqp-client-version>
@@ -1224,6 +1225,11 @@
                         <artifactId>mongo-java-driver</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>de.mobile.cs.filter</groupId>
+                <artifactId>cs-filter-shared</artifactId>
+                <version>${cs-filter-shared.version}</version>
             </dependency>
             <dependency>
                 <groupId>de.mobile.analytics</groupId>

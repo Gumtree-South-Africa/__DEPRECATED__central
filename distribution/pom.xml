@@ -334,6 +334,22 @@
             <dependencies>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-filter-badword</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-filter-fsbofraud</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-filter-comaservice</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>mde-postprocessor-rememberlastselleraddress</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -347,13 +363,6 @@
                     <artifactId>mde-postprocessor-donotanonymize</artifactId>
                     <version>${project.version}</version>
                 </dependency>
-
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>mde-filter-fsbofraud</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>mde-postprocessor-addmetadata</artifactId>
@@ -364,13 +373,6 @@
                     <artifactId>mde-postprocessor-uniqueid</artifactId>
                     <version>${project.version}</version>
                 </dependency>
-
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>mde-filter-comaservice</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>mde-postprocessor-demandreporting</artifactId>
