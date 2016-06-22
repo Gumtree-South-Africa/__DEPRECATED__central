@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.embedded.EmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
@@ -23,10 +22,9 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Configuration
 @PropertySource("file:${confDir}/replyts.properties")
@@ -37,11 +35,11 @@ import java.util.Map;
 public class CloudDiscoveryConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CloudDiscoveryConfiguration.class);
 
-    private static final String INSTANCE_CASSANDRA = "cassandra";
-    private static final String PROPERTY_CASSANDRA_ENDPOINT = "persistence.cassandra.endpoint";
-
-    @Value("#{'${persistence.riak.enabled:false}' ? 'riak' : 'cassandra'}")
-    private String conversationRepositorySource;
+    private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = Collections.unmodifiableMap(Stream.of(
+      new AbstractMap.SimpleEntry<>("cassandra", "persistence.cassandra.endpoint"),
+      new AbstractMap.SimpleEntry<>("elasticsearch", "search.es.endpoints"),
+      new AbstractMap.SimpleEntry<>("graphite", "graphite.endpoint.hostname")
+    ).collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
 
     @Value("${replyts.http.port:0}")
     private Integer httpPort;
@@ -59,15 +57,12 @@ public class CloudDiscoveryConfiguration {
     private DiscoveryClient discoveryClient;
 
     @PostConstruct
-    @ConditionalOnBean(DiscoveryClient.class)
     public void initializeDiscovery() {
         if (lifecycle == null) {
-            // don't try to do anything with Consul
             return;
         }
-        // Initialize the Consul lifecycle explicitly to register the service and make it discoverable
 
-        // XXX: Temporary fix until we switch to the Spring Boot webserver
+        // XXX: Temporary fix until we switch to Spring Boot (this jumpstarts the lifecycle which fetches the properties)
 
         lifecycle.onApplicationEvent(new EmbeddedServletContainerInitializedEvent(
                 new EmbeddedWebApplicationContext(),
@@ -95,21 +90,21 @@ public class CloudDiscoveryConfiguration {
 
         LOG.info("Auto-discovering cloud services and overriding appropriate properties");
 
-        // Ask the auto-discovery mechanism about Cassandra instances
+        // Ask the auto-discovery mechanism about discoverable service instances
 
-        if (conversationRepositorySource.equals(INSTANCE_CASSANDRA)) {
+        DISCOVERABLE_SERVICE_PROPERTIES.forEach((service, property) -> {
             List<String> instances = new ArrayList<>();
 
-            discoveryClient.getInstances(conversationRepositorySource).forEach(instance -> instances.add(instance.getHost()));
+            discoveryClient.getInstances(service).forEach(instance -> instances.add(instance.getHost()));
 
             if (instances.size() > 0) {
-                LOG.info("Auto-discovered {} instances - adding to property {}", instances.size(), PROPERTY_CASSANDRA_ENDPOINT);
+                LOG.info("Auto-discovered {} {} instance(s) - adding to property {}", instances.size(), service, property);
 
-                gatheredProperties.put(PROPERTY_CASSANDRA_ENDPOINT, StringUtils.collectionToDelimitedString(instances, ","));
+                gatheredProperties.put(property, StringUtils.collectionToDelimitedString(instances, ","));
             } else {
-                LOG.info("Auto-discovered 0 instances - not populating property {}", PROPERTY_CASSANDRA_ENDPOINT);
+                LOG.info("Auto-discovered 0 {} instance(s) - not populating property {}", service, property);
             }
-        }
+        });
 
         environment.getPropertySources().addFirst(new MapPropertySource("Auto-discovered services", gatheredProperties));
 
