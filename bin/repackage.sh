@@ -34,9 +34,12 @@ function repackage() {
       continue
     fi
 
+
     PACKAGE_BASE=${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}-${TIMESTAMP}
+    PACKAGE_NAME=comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}-${TIMESTAMP}
     if [[ "$prop" == *noenv ]]; then
       PACKAGE_BASE=${BUILDDIR}/comaas-${TENANT}-${GIT_HASH}-${TIMESTAMP}
+      PACKAGE_NAME=comaas-${TENANT}-${GIT_HASH}-${TIMESTAMP}
     fi
 
     case "$TENANT" in
@@ -73,6 +76,21 @@ function repackage() {
         mv ${DISTRIB_ARTIFACT}/bin/comaas ${DISTRIB_ARTIFACT}/bin/mp-replyts2
         tar cfz ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz . && cd ..
         echo "Created ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz"
+        continue
+      ;;
+      mde)
+      # Repackaging for MDE
+        rm -rf tmp2
+        mkdir -p tmp2/comaas-mde
+        cp -r tmp/* tmp2/comaas-mde/
+        rm -f tmp2/comaas-mde/conf/* && cp "$prop"/* tmp2/comaas-mde/conf/
+        cd tmp2
+        tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
+        HOMEDIR=$PWD
+        cd ${BUILDDIR}
+        md5sum ${PACKAGE_NAME}.tar.gz > ${PACKAGE_NAME}.tar.gz.md5
+        cd $HOMEDIR
+        echo "Created package for mde ${PACKAGE_BASE}.tar.gz"
         continue
       ;;
       *)
