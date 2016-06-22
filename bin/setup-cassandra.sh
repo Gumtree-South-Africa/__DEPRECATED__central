@@ -4,6 +4,7 @@
 
 HOST=$1
 KEYSPACE=$2
+ISNONDEV=$3
 
 function fail_gracefully {
     echo $1
@@ -32,7 +33,12 @@ cqlsh $HOST 9042 -e "USE system; SELECT keyspace_name FROM schema_keyspaces WHER
 
 # cqlsh $HOST 9042 -e "DROP KEYSPACE IF EXISTS $KEYSPACE;"
 
-cqlsh $HOST 9042 -e "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': 1} AND durable_writes = true;"
+if [[ ! -z "$ISNONDEV" ]]; then
+    echo "Creating keyspace with replication factor of 2"
+    cqlsh $HOST 9042 -e  "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'ams1': '2'} AND durable_writes = true;"
+else
+    cqlsh $HOST 9042 -e "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': 1} AND durable_writes = true;"
+fi
 cqlsh $HOST 9042 -k "$KEYSPACE" -f core-runtime/src/main/resources/cassandra_schema.cql
 cqlsh $HOST 9042 -k "$KEYSPACE" -f filters/mp-filter-volume/src/main/resources/cassandra_volume_filter_schema.cql
 cqlsh $HOST 9042 -k "$KEYSPACE" -f messagecenters/mp-messagecenter/src/main/resources/cassandra_messagebox_schema.cql
