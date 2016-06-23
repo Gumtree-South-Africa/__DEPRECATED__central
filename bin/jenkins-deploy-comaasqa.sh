@@ -13,7 +13,7 @@ STAGGER=30000000000
 
 function usage() {
   cat <<- EOF
-  Usage: jenkins-deploy-comaasqa.sh <tenant> <build_dir> <artifact_name> <git_hash>
+  Usage: jenkins-deploy-comaasqa.sh <tenant> <build_dir> <artifact_name> <git_hash> 
 EOF
   exit
 }
@@ -30,6 +30,7 @@ function parseArgs() {
 
 function deploy() {
   # Send the job to Nomad
+  TIMESTAMP=(${BUILD_DIR:(-13)})
   MD5=($(md5sum -b ${BUILD_DIR}/${ARTIFACT_NAME}))
   PORT=$(tar -xzf ${BUILD_DIR}/${ARTIFACT_NAME} --to-command="grep ^replyts.http.port=" ./conf/replyts.properties | cut -d'=' -f2)
 
