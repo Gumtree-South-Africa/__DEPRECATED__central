@@ -39,6 +39,7 @@ function deploy() {
   sed -i "s/STAGGER/$STAGGER/g" comaas_deploy_jenkins.json
   sed -i "s/TENANT/$TENANT/g" comaas_deploy_jenkins.json
   sed -i "s/GIT_HASH/$GIT_HASH/g" comaas_deploy_jenkins.json
+  sed -i "s/TIMESTAMP/$TIMESTAMP/g" comaas_deploy_jenkins.json
   sed -i "s/PORT/$PORT/g" comaas_deploy_jenkins.json
   sed -i "s/md5/md5:$MD5/" comaas_deploy_jenkins.json
   sed -i "s~ARTIFACT~$ARTIFACT_NAME~" comaas_deploy_jenkins.json # Use ~ separator here since $ARTIFACT might contain slashes

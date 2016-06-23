@@ -18,7 +18,7 @@
         "Name":"comaas-TENANT",
         "driver":"raw_exec",
         "Artifacts": [ {
-          "GetterSource":"http://buildmaster001/job/repo-server/ws/GIT_HASH/ARTIFACT",
+          "GetterSource":"http://buildmaster001/job/repo-server/ws/GIT_HASH-TIMESTAMP/ARTIFACT",
           "GetterOptions": {
             "checksum": "md5"
           }
