@@ -43,7 +43,7 @@ if [[ "$TENANT" == "mp" ]]; then
       # This requires the deploy.py script to be on the PATH
       deploy.py --redeploy --config distribution/conf/mp/demo/deploy.conf --logdir . --component ${PKG} --dry-run
     else
-      `dirname $0`/upload.sh $TENANT $GIT_HASH $PKG $DESTINATION
+      `dirname $0`/upload.sh $TENANT $GIT_HASH $PKG $TIMESTAMP $DESTINATION
     fi
   done
 else
@@ -61,6 +61,6 @@ else
       continue
     fi
 
-    `dirname $0`/upload.sh $TENANT $GIT_HASH $PKG $DESTINATION
+    `dirname $0`/upload.sh $TENANT $GIT_HASH $PKG $TIMESTAMP $DESTINATION
   done
 fi

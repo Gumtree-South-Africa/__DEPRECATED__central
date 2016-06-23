@@ -7,7 +7,7 @@ set -o errexit
 
 function usage() {
   cat <<- EOF
-  Usage: upload.sh <tenant> <git_hash> <package> <?destination>
+  Usage: upload.sh <tenant> <git_hash> <package> <timestamp> <?destination>
 EOF
   exit
 }
@@ -19,9 +19,10 @@ function parseArgs() {
   TENANT=$1
   GIT_HASH=$2
   PACKAGE=$3
+  TIMESTAMP=$4
   # destination can be omitted, in that case it's a package destined for multiple environments,
   # so we upload it to the default url
-  DESTINATION=${4:-}
+  DESTINATION=${5:-}
 }
 
 # map to lookup the upload hosts for a tenant
@@ -58,7 +59,7 @@ function upload() {
   case ${METHOD} in
     curl) 
       # host to upload to
-      readonly HOST=${HOST_VALUE}${GIT_HASH}/
+      readonly HOST=${HOST_VALUE}${GIT_HASH}-${TIMESTAMP}/
       readonly URL=$(echo ${HOST} | cut -d'@' -f2)
 
       echo "Uploading $PACKAGE to $URL"
