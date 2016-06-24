@@ -14,11 +14,11 @@
 
 
     <network>
-        <port port-count="9">13100</port>
+        <port auto-increment="false">13100</port>
          <join>
             <multicast enabled="false"></multicast>
             <tcp-ip enabled="true">
-                <members>10.41.136.239,10.41.136.238,10.41.136.237</members>
+                <members>core001,core002,core003</members>
             </tcp-ip>
         </join>
     </network>
