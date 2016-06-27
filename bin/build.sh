@@ -163,14 +163,9 @@ function main() {
     if ! [[ -z $TENANT ]] ; then
         MVN_ARGS="$MVN_ARGS -P${PROFILES}${TENANT}"
 
-        # Remove default profiles if supplied
-        if [[ "$PACKAGE" == 'local' ]]; then
-                PACKAGE=""
-        fi
-
         if ! [[ -z $PACKAGE ]] ; then
             MVN_ARGS="${MVN_ARGS} -Denv-name=${PACKAGE}"
-            MVN_TASKS="package"
+            MVN_TASKS="clean package"
         fi
 
         if ! [[ -z $EXECUTE ]] ; then
@@ -230,13 +225,13 @@ Usage:
     -t -T <TENANT> - build tenant's code and runs tests for all tenant's modules (including core modules)
     -R <TENANT> - build tenant's code and runs tests for tenant modules only (excluding core modules)
     -T <TENANT> - build tenant's code
-    -T <TENANT> -P - build and package tenant's code
-    -T <TENANT> -U - build, package and uploads tenant's code
+    -T <TENANT> -P <ENVNAME> - build and package tenant's code for ENVNAME
     -T <TENANT> -E - build, package and execute tenant's code
 
-    where TENANT is one or more of [ebayk,mp,kjca,mde,gtau]
+    where TENANT is one or more of [ebayk,mp,kjca,mde,gtau],
+    ENVNAME is the properties profile name. common values [local, comaasqa]
 
-    Examples: "$0 -T ebayk,mp -P -t" - build, test and package ebayk and mp distributions
+    Examples: "$0 -t -T ebayk,mp " - build and test ebayk and mp distributions
     
 EOF
 }

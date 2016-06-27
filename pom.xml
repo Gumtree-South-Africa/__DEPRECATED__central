@@ -363,7 +363,7 @@
 
         <mde-dealer-rating-domain.version>0.140</mde-dealer-rating-domain.version>
         <mde-visitor-info-domain.version>3.0.1</mde-visitor-info-domain.version>
-        <maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>
+
     </properties>
 
     <repositories>
@@ -1294,11 +1294,6 @@
                             </goals>
                         </execution>
                     </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-shade-plugin</artifactId>
-                    <version>${maven-shade-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
