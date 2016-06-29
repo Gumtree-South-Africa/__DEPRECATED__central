@@ -1,16 +1,8 @@
 package com.ecg.messagecenter.persistence.cassandra;
 
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.BatchStatement;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
-import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.PostBox;
-import com.ecg.messagecenter.persistence.PostBoxUnreadCounts;
+import com.datastax.driver.core.*;
+import com.ecg.messagecenter.persistence.*;
 import com.ecg.messagecenter.util.StreamUtils;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
@@ -18,9 +10,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import org.joda.time.DateTime;
+import org.joda.time.Minutes;
+import org.joda.time.Seconds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +24,8 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 
 /**
  * Persists {@link ConversationThread}s and unread counters in Cassandra.
@@ -73,7 +71,15 @@ import java.util.stream.Collectors;
  */
 public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
 
+    private final int ttlResponseData;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCassandraPostBoxRepository.class);
+
+    private static final String FIELD_USER_ID = "userid";
+    private static final String FIELD_CONVERSATION_ID = "convid";
+    private static final String FIELD_CONVERSATION_TYPE = "convtype";
+    private static final String FIELD_CREATION_DATE = "createdate";
+    private static final String FIELD_RESPONSE_SPEED = "responsespeed";
 
     private final Session session;
     private final Map<Statements, PreparedStatement> preparedStatements;
@@ -89,12 +95,17 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer addReplaceConversationThreadTimer = TimingReports.newTimer("cassandra.postBoxRepo.addReplaceConversationThread");
     private final Timer selectConversationUnreadMessagesCountTimer = TimingReports.newTimer("cassandra.postBoxRepo.selectConversationUnreadMessagesCount");
     private final Timer updateConversationUnreadMessagesCountTimer = TimingReports.newTimer("cassandra.postBoxRepo.updateConversationUnreadMessagesCount");
+    private final Timer selectResponseDataTimer = TimingReports.newTimer("cassandra.postBoxRepo.selectResponseData");
+    private final Timer updateResponseDataTimer = TimingReports.newTimer("cassandra.postBoxRepo.addOrUpdateResponseDataAsync");
 
-    public DefaultCassandraPostBoxRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
+    @Autowired
+    public DefaultCassandraPostBoxRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency,
+                                             @Value("${persistence.cassandra.ttl.response.data:31536000}") int ttlResponseData) {
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
         preparedStatements = Statements.prepare(session);
+        this.ttlResponseData = ttlResponseData;
     }
 
     @Override
@@ -229,6 +240,32 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         }
     }
 
+    @Override
+    public List<ResponseData> getResponseData(String userId) {
+        try (Timer.Context ignored = selectResponseDataTimer.time()) {
+            ResultSet result = session.execute(Statements.SELECT_RESPONSE_DATA.bind(this, userId));
+            return toStream(result)
+                    .map(this::rowToResponseData)
+                    .collect(Collectors.toList());
+        }
+    }
+
+    @Override
+    public void addOrUpdateResponseDataAsync(ResponseData responseData) {
+        try (Timer.Context ignored = updateResponseDataTimer.time()) {
+            int secondsSinceConvCreation = Seconds.secondsBetween(responseData.getConversationCreationDate(), DateTime.now()).getSeconds();
+
+            Statement bound = Statements.UPDATE_RESPONSE_DATA.bind(this,
+                    ttlResponseData - secondsSinceConvCreation,
+                    responseData.getConversationType().name().toLowerCase(),
+                    responseData.getConversationCreationDate().toDate(),
+                    responseData.getResponseSpeed(),
+                    responseData.getUserId(),
+                    responseData.getConversationId());
+            session.executeAsync(bound);
+        }
+    }
+
     @Autowired
     public void setObjectMapperConfigurer(JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
         this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
@@ -240,6 +277,11 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     public ConsistencyLevel getWriteConsistency() {
         return writeConsistency;
+    }
+
+    private ResponseData rowToResponseData(Row row) {
+        return new ResponseData(row.getString(FIELD_USER_ID), row.getString(FIELD_CONVERSATION_ID),
+                new DateTime(row.getDate(FIELD_CREATION_DATE)), MessageType.get(row.getString(FIELD_CONVERSATION_TYPE)), row.getInt(FIELD_RESPONSE_SPEED));
     }
 
     private Optional<ConversationThread> toConversationThread(String postboxId, String conversationId, String jsonValue, int numUnreadMessages) {
@@ -266,7 +308,11 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         SELECT_POSTBOX_CONVERSATION_UNREAD_COUNTS("SELECT conversation_id, num_unread FROM mb_unread_counters WHERE postbox_id=?"),
         // TODO: use following two statements in postbox/conversation thread cleanup job (which is not yet written)
         DELETE_CONVERSATION_UNREAD_COUNT("DELETE FROM mb_unread_counters WHERE postbox_id=? and conversation_id=?", true),
-        DELETE_POSTBOX_UNREAD_COUNTS("DELETE FROM mb_unread_counters WHERE postbox_id=?", true);
+        DELETE_POSTBOX_UNREAD_COUNTS("DELETE FROM mb_unread_counters WHERE postbox_id=?", true),
+
+        // response rate and speed
+        SELECT_RESPONSE_DATA("SELECT userid, convid, convtype, createdate, responsespeed FROM mb_response_data WHERE userid=?"),
+        UPDATE_RESPONSE_DATA("UPDATE mb_response_data USING TTL ? SET convtype=?, createdate=?, responsespeed=? WHERE userid=? AND convid=?");
 
         private final String cql;
         private final boolean modifying;

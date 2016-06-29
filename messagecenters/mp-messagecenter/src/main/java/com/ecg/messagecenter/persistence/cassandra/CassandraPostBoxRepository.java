@@ -3,6 +3,7 @@ package com.ecg.messagecenter.persistence.cassandra;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.PostBox;
 import com.ecg.messagecenter.persistence.PostBoxUnreadCounts;
+import com.ecg.messagecenter.persistence.ResponseData;
 import com.google.common.base.Optional;
 
 import java.util.List;
@@ -89,4 +90,17 @@ public interface CassandraPostBoxRepository {
      * @param postBoxId id of postbox
      */
     List<String> getConversationThreadIds(String postBoxId);
+
+    /**
+     * Return the list with response data per conversation for the user.
+     * @param userId the user id
+     * @return the list with response data
+     */
+    List<ResponseData> getResponseData(String userId);
+
+    /**
+     * Add or update the response data for the conversation of the user.
+     * @param responseData the response data
+     */
+    void addOrUpdateResponseDataAsync(ResponseData responseData);
 }

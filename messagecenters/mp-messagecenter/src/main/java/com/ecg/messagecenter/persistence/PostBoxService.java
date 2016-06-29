@@ -50,4 +50,11 @@ public interface PostBoxService {
      * @return unread messages and unread conversation counts for postbox, both are 0 when postbox is unknown
      */
     PostBoxUnreadCounts getUnreadCounts(String postBoxId);
+
+    /**
+     * Return the list with response data per conversation for the user.
+     * @param userId the user id
+     * @return the list with response data
+     */
+    List<ResponseData> getResponseData(String userId);
 }

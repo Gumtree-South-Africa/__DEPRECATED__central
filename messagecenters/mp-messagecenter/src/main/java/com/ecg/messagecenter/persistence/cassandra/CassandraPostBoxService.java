@@ -2,23 +2,18 @@ package com.ecg.messagecenter.persistence.cassandra;
 
 import com.codahale.metrics.Histogram;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
-import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.NewMessageListener;
-import com.ecg.messagecenter.persistence.PostBox;
-import com.ecg.messagecenter.persistence.PostBoxService;
-import com.ecg.messagecenter.persistence.PostBoxUnreadCounts;
+import com.ecg.messagecenter.persistence.*;
 import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.messagecenter.webapi.PostBoxResponseBuilder;
 import com.ecg.messagecenter.webapi.responses.ConversationResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.core.api.model.conversation.ConversationState;
-import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.messagecenter.persistence.ResponseData;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.base.Optional;
+import org.joda.time.Minutes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +30,7 @@ public class CassandraPostBoxService implements PostBoxService {
 
     private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
     private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX = TimingReports.newHistogram("webapi-postbox-num-conversations-of-postbox");
+    private static final String X_MESSAGE_TYPE = "X-Message-Type";
 
     private final CassandraPostBoxRepository postBoxRepository;
     private final ConversationRepository conversationRepository;
@@ -94,6 +90,8 @@ public class CassandraPostBoxService implements PostBoxService {
         if (newReplyArrived) {
             postBoxRepository.incrementConversationUnreadMessagesCount(postBoxId, conversation.getId());
         }
+
+        handleResponseData(postBoxId, conversation, newMessage, conversationRole);
 
         if (newMessageListener.isPresent()) {
             long postBoxUnreadMessagesCount = postBoxRepository.getUnreadCounts(postBoxId).getNumUnreadMessages();
@@ -183,6 +181,11 @@ public class CassandraPostBoxService implements PostBoxService {
         return postBoxRepository.getUnreadCounts(postBoxId);
     }
 
+    @Override
+    public List<ResponseData> getResponseData(String userId) {
+        return postBoxRepository.getResponseData(userId);
+    }
+
     private Optional<String> customValue(Conversation conversation, String customValueKey) {
         return Optional.fromNullable(conversation.getCustomValues().get(customValueKey));
     }
@@ -194,5 +197,28 @@ public class CassandraPostBoxService implements PostBoxService {
     private Optional<String> extractPreviewLastMessage(Conversation conversation, Message message) {
         String filteredMessage = messageResponseFactory.getCleanedMessage(conversation, message);
         return Optional.of(MessageCenterUtils.truncateText(filteredMessage, previewLastMessageMaxChars));
+    }
+
+    private void handleResponseData(String postBoxId, Conversation conversation, Message newMessage, ConversationRole conversationRole) {
+        // BR: only for sellers
+        if (ConversationRole.Seller == conversationRole) {
+            // BR: only for conversations initiated by buyer
+            if (conversation.getMessages().size() == 1 && MessageDirection.BUYER_TO_SELLER == newMessage.getMessageDirection()) {
+                ResponseData initialResponseData = new ResponseData(postBoxId, conversation.getId(), conversation.getCreatedAt(),
+                        MessageType.get(newMessage.getHeaders().get(X_MESSAGE_TYPE)));
+                postBoxRepository.addOrUpdateResponseDataAsync(initialResponseData);
+            } else if (conversation.getMessages().size() > 1 && MessageDirection.BUYER_TO_SELLER == conversation.getMessages().get(0).getMessageDirection()) {
+                // BR: only consider the first response from seller
+                java.util.Optional<Message> firstSellerToBuyerMessage = conversation.getMessages().stream()
+                        .filter(message -> MessageDirection.SELLER_TO_BUYER == message.getMessageDirection()).findFirst();
+                if (firstSellerToBuyerMessage.isPresent() && firstSellerToBuyerMessage.get().getId().equals(newMessage.getId())) {
+                    int responseSpeed = Minutes.minutesBetween(conversation.getCreatedAt(), newMessage.getReceivedAt()).getMinutes();
+                    // Only the response speed value is different from the initially created response data. The conversation type is the type of the first message.
+                    ResponseData updatedResponseData = new ResponseData(postBoxId, conversation.getId(), conversation.getCreatedAt(),
+                            MessageType.get(conversation.getMessages().get(0).getHeaders().get(X_MESSAGE_TYPE)), responseSpeed);
+                    postBoxRepository.addOrUpdateResponseDataAsync(updatedResponseData);
+                }
+            }
+        }
     }
 }

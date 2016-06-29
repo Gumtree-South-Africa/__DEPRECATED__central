@@ -1,7 +1,7 @@
 # mp-messagecenter
 
 Originally taken from https://github.corp.ebay.com/ReplyTS/replyts2-message-box
-(original git hash: 9628ba39fc9fc3ddbfbb444c229ff246788bd75d)
+(original git hash: ca4ebc3688d6797545cb3833c5976ffd73dfb47a)
 
 # Description
 

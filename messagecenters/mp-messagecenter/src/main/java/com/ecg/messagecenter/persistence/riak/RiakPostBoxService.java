@@ -2,17 +2,14 @@ package com.ecg.messagecenter.persistence.riak;
 
 import com.codahale.metrics.Histogram;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
-import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.NewMessageListener;
-import com.ecg.messagecenter.persistence.PostBox;
-import com.ecg.messagecenter.persistence.PostBoxService;
-import com.ecg.messagecenter.persistence.PostBoxUnreadCounts;
+import com.ecg.messagecenter.persistence.*;
 import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.messagecenter.webapi.PostBoxResponseBuilder;
 import com.ecg.messagecenter.webapi.responses.ConversationResponse;
 import com.ecg.messagecenter.webapi.responses.MessageResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
+import com.ecg.messagecenter.persistence.ResponseData;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -202,6 +199,11 @@ public class RiakPostBoxService implements PostBoxService {
     }
 
     @Override
+    public List<ResponseData> getResponseData(String userId) {
+        throw new UnsupportedOperationException("Response data is not implemented for Riak");
+    }
+
+    @Override
     public PostBoxResponse getConversations(String postBoxId, Integer size, Integer page) {
         PostBox postBox = postBoxRepository.getPostBox(postBoxId);
 
@@ -209,6 +211,8 @@ public class RiakPostBoxService implements PostBoxService {
 
         return postBoxResponseBuilder.buildPostBoxResponse(postBoxId, size, page, postBox);
     }
+
+
 
     private void markConversationAsRead(String userId, String conversationId, PostBox postBox) {
         List<ConversationThread> threadsToUpdate = new ArrayList<>();

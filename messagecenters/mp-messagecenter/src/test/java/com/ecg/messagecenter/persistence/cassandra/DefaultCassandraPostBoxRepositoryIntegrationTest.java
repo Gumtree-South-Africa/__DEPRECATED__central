@@ -2,9 +2,7 @@ package com.ecg.messagecenter.persistence.cassandra;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
-import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.PostBox;
-import com.ecg.messagecenter.persistence.PostBoxUnreadCounts;
+import com.ecg.messagecenter.persistence.*;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.base.Optional;
@@ -13,8 +11,6 @@ import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,34 +18,29 @@ import java.util.List;
 import static com.jayway.awaitility.Awaitility.await;
 import static com.jayway.awaitility.pollinterval.FibonacciPollInterval.fibonacci;
 import static org.joda.time.DateTime.now;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class DefaultCassandraPostBoxRepositoryIntegrationTest {
+
     private static final String FOO_BAR_POST_BOX_ID = "foo@bar.com";
     private static final String BAR_FOO_POST_BOX_ID = "bar@foo.com";
 
-    private static CassandraIntegrationTestProvisioner casdb = CassandraIntegrationTestProvisioner.getInstance();
-
-    private static String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
-
-    private static Session session;
-
     private static CassandraPostBoxRepository postBoxRepository;
+
+    private static CassandraIntegrationTestProvisioner casdb = CassandraIntegrationTestProvisioner.getInstance();
+    private static String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
+    private static Session session;
 
     @BeforeClass
     public static void init() {
         try {
-            session = casdb.loadSchema(keyspace, new String[] { "cassandra_messagebox_schema.cql" });
+            session = casdb.loadSchema(keyspace, "cassandra_messagebox_schema.cql");
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-
-        DefaultCassandraPostBoxRepository repo = new DefaultCassandraPostBoxRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
+        DefaultCassandraPostBoxRepository repo = new DefaultCassandraPostBoxRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, 30);
 
         repo.setObjectMapperConfigurer(new JacksonAwareObjectMapperConfigurer());
-
         postBoxRepository = repo;
     }
 
@@ -153,6 +144,23 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         assertEquals(0, reloadedPostBox.getConversationThreads().get(0).getNumUnreadMessages());
         assertEquals(0, reloadedPostBox.getConversationThreads().get(1).getNumUnreadMessages());
         assertEquals(0, reloadedPostBox.getConversationThreads().get(2).getNumUnreadMessages());
+    }
+
+    @Test
+    public void shouldAddOrUpdateResponseData() {
+        DateTime creationDate = DateTime.now();
+        ResponseData expectedResponseData = new ResponseData("userId", "conversationId1", creationDate, MessageType.ASQ, 50);
+
+        postBoxRepository.addOrUpdateResponseDataAsync(expectedResponseData);
+
+        await()
+                .pollInterval(fibonacci())
+                .atMost(Duration.TWO_SECONDS)
+                .until(() -> postBoxRepository.getResponseData("userId").size() == 1);
+
+        List<ResponseData> responseDataList = postBoxRepository.getResponseData("userId");
+
+        assertEquals(expectedResponseData, responseDataList.get(0));
     }
 
     private PostBox createPostBox(int numConversations, String postBoxId) {
