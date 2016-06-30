@@ -30,11 +30,12 @@
                     "MaxFileSizeMB":10,
                     "MaxFiles":10
                 },
-                "Constraints": [ {
-                    "LTarget": "${attr.hostname}",
-                    "RTarget": "core*",
-                    "Operand": "distinct_hosts"
-                } ]
+
+                "resources": {
+                    "MemoryMB":1024,
+                    "DiskMB":2000,
+                    "CPU":200
+                }
             } ]
         } ],
 
