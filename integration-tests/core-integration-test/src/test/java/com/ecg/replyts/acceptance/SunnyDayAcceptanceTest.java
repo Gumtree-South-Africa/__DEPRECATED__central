@@ -30,8 +30,10 @@ import static org.hamcrest.Matchers.nullValue;
 @Profile(ReplyTS.EMBEDDED_PROFILE)
 public class SunnyDayAcceptanceTest {
 
+    private static final int deliveryTimeoutSeconds = 45;
+
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(45, ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(deliveryTimeoutSeconds, ES_ENABLED);
 
     @Test
     public void rtsProcessedAnAsqMailAndAReply() throws Exception {
@@ -88,7 +90,7 @@ public class SunnyDayAcceptanceTest {
         rule.getMailSender().sendMail(emlData);
 
         // wait for listener to be triggered - this means the mail is sent & stored properly
-        AwaitMailSentProcessedListener.awaitMails(1);
+        AwaitMailSentProcessedListener.awaitMails(1, deliveryTimeoutSeconds);
     }
 
     private void deliverReplyMailToRts(WiserMessage asqMessage, String emlName) throws Exception {
@@ -100,6 +102,6 @@ public class SunnyDayAcceptanceTest {
         rule.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
 
         // wait for listener to be triggered - this means the mail is sent & stored properly
-        AwaitMailSentProcessedListener.awaitMails(2);
+        AwaitMailSentProcessedListener.awaitMails(2, deliveryTimeoutSeconds);
     }
 }

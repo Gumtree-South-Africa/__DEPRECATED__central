@@ -17,8 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -67,8 +65,8 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
     /**
      * waits for replyts to have finished processing at least #count mails.
      */
-    public static void awaitMails(int count) throws InterruptedException {
-        long end = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(2);
+    public static void awaitMails(int count, int deliveryTimeoutSeconds) throws InterruptedException {
+        long end = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(deliveryTimeoutSeconds);
         int size = 0;
         while (System.currentTimeMillis() < end) {
             TimeUnit.MILLISECONDS.sleep(50);
@@ -89,7 +87,7 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
         long end = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(deliveryTimeoutSeconds);
         while (System.currentTimeMillis() < end) {
             try {
-                TimeUnit.MILLISECONDS.sleep(20);
+                TimeUnit.MILLISECONDS.sleep(50);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
