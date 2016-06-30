@@ -40,6 +40,9 @@ public class HealthController {
     @Value("${search.es.clustername:unknown}")
     private String searchClusterName;
 
+    @Value("${persistence.cassandra.dc:unknown}")
+    private String cassandraDc;
+
     @Autowired(required = false)
     private Client searchClient = null;
 
@@ -78,6 +81,10 @@ public class HealthController {
 
         public String getConversationRepositorySchemaOrPrefix() {
             return conversationRepositorySchemaOrPrefix;
+        }
+
+        public String getCassandraDc() {
+            return cassandraDc;
         }
 
         public String getSearchClusterName() {
