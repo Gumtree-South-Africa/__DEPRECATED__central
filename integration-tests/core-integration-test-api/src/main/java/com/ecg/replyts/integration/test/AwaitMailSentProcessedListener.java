@@ -58,10 +58,17 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
     private static final LinkedBlockingQueue<ProcessedMail> OUTCOME = new LinkedBlockingQueue<>();
 
     /**
+     * Clears the mails it knows about; starts with a clean slate.
+     */
+    public static void clearMails() {
+        OUTCOME.clear();
+    }
+
+    /**
      * waits for replyts to have finished the next mail.
+     * You might want to call AwaitMailSentProcessedListener.clearMails() before.
      */
     public static ProcessedMail awaitMail() {
-        OUTCOME.clear();
         try {
             ProcessedMail result = OUTCOME.poll(2, TimeUnit.SECONDS);
             if (result == null) {
@@ -101,7 +108,7 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
 
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
-        LOG.info("Processing message with id '{}'");
+        LOG.info("Processing message with id '{}'", message.getId());
         Mail m = null;
         try {
             if (message.getState() == MessageState.SENT) {

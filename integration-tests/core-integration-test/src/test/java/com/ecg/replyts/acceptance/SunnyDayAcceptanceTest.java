@@ -84,6 +84,8 @@ public class SunnyDayAcceptanceTest {
     }
 
     private void deliverMailToRts(String emlName) throws Exception {
+        AwaitMailSentProcessedListener.clearMails();
+
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
         rule.getMailSender().sendMail(emlData);
 
@@ -92,6 +94,8 @@ public class SunnyDayAcceptanceTest {
     }
 
     private void deliverReplyMailToRts(WiserMessage asqMessage, String emlName) throws Exception {
+        AwaitMailSentProcessedListener.clearMails();
+
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
         byte[] bytes = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
