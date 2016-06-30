@@ -95,13 +95,22 @@ public class CloudDiscoveryConfiguration {
         DISCOVERABLE_SERVICE_PROPERTIES.forEach((service, property) -> {
             List<String> instances = new ArrayList<>();
 
-            discoveryClient.getInstances(service).forEach(instance -> instances.add(instance.getHost()+":"+instance.getPort()));
+            discoveryClient.getInstances(service).forEach(instance -> {
+                String suffix = ":" + instance.getPort();
+
+                if (instance.getMetadata().containsKey("register-without-port")) {
+                    suffix = "";
+                }
+
+                instances.add(instance.getHost() + suffix);
+            });
 
             if (instances.size() > 0) {
-                LOG.info("Auto-discovered {} {} instance(s) - adding to property {}", instances.size(), service, property);
-                LOG.debug("Instance(s)  {}", instances);
+                String instanceList = StringUtils.collectionToDelimitedString(instances, ",");
 
-                gatheredProperties.put(property, StringUtils.collectionToDelimitedString(instances, ","));
+                LOG.info("Auto-discovered {} {} instance(s) - adding property {} = {}", instances.size(), service, property, instanceList);
+
+                gatheredProperties.put(property, instanceList);
             } else {
                 LOG.info("Auto-discovered 0 {} instance(s) - not populating property {}", service, property);
             }
