@@ -99,6 +99,7 @@ public class CloudDiscoveryConfiguration {
 
             if (instances.size() > 0) {
                 LOG.info("Auto-discovered {} {} instance(s) - adding to property {}", instances.size(), service, property);
+                LOG.debug("Instance(s)  {}", instances);
 
                 gatheredProperties.put(property, StringUtils.collectionToDelimitedString(instances, ","));
             } else {
