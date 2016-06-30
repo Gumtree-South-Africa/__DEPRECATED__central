@@ -84,18 +84,14 @@ public class SunnyDayAcceptanceTest {
     }
 
     private void deliverMailToRts(String emlName) throws Exception {
-        AwaitMailSentProcessedListener.clearMails();
-
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
         rule.getMailSender().sendMail(emlData);
 
         // wait for listener to be triggered - this means the mail is sent & stored properly
-        AwaitMailSentProcessedListener.awaitMail();
+        AwaitMailSentProcessedListener.awaitMails(1);
     }
 
     private void deliverReplyMailToRts(WiserMessage asqMessage, String emlName) throws Exception {
-        AwaitMailSentProcessedListener.clearMails();
-
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
         byte[] bytes = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
@@ -104,6 +100,6 @@ public class SunnyDayAcceptanceTest {
         rule.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
 
         // wait for listener to be triggered - this means the mail is sent & stored properly
-        AwaitMailSentProcessedListener.awaitMail();
+        AwaitMailSentProcessedListener.awaitMails(2);
     }
 }

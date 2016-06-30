@@ -13,9 +13,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * Listener that gets informed whenever a mail has been processed by replyts and gives integration tests access to the
@@ -28,7 +34,9 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
     @Autowired
     private MailRepository mailRepository;
 
-    private static final ConcurrentHashMap<String, ProcessedMail> RECEIVED_MAILS = new ConcurrentHashMap<>();
+    private static final Map<String, ProcessedMail> RECEIVED_MAILS_MAP = new ConcurrentHashMap<>();
+
+    private static final List<ProcessedMail> RECEIVED_MAILS = Collections.synchronizedList(newArrayList());
 
     public static class ProcessedMail {
         private final Mail outboundMail;
@@ -55,33 +63,23 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
         }
     }
 
-    private static final LinkedBlockingQueue<ProcessedMail> OUTCOME = new LinkedBlockingQueue<>();
 
     /**
-     * Clears the mails it knows about; starts with a clean slate.
+     * waits for replyts to have finished processing at least #count mails.
      */
-    public static void clearMails() {
-        OUTCOME.clear();
-    }
-
-    /**
-     * waits for replyts to have finished the next mail.
-     * You might want to call AwaitMailSentProcessedListener.clearMails() before.
-     */
-    public static ProcessedMail awaitMail() {
-        try {
-            ProcessedMail result = OUTCOME.poll(2, TimeUnit.SECONDS);
-            if (result == null) {
-                throw new RuntimeException("Timeout awaiting processed mail");
+    public static void awaitMails(int count) throws InterruptedException {
+        long end = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(2);
+        int size = 0;
+        while (System.currentTimeMillis() < end) {
+            TimeUnit.MILLISECONDS.sleep(50);
+            size = RECEIVED_MAILS.size();
+            if (size >= count) {
+                LOG.info("Listener received {} mails", size);
+                return;
             }
-            return result;
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
-    }
-
-    public static ProcessedMail awaitMailIdentifiedBy(String uniqueIdentifier) {
-        return awaitMailIdentifiedBy(uniqueIdentifier, 5);
+        LOG.debug("Listener didn't receive enough mails: {}", size);
+        throw new RuntimeException("Timeout awaiting at least 1 mail");
     }
 
     /**
@@ -95,14 +93,14 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            ProcessedMail identifiedMail = RECEIVED_MAILS.get(uniqueIdentifier);
+            ProcessedMail identifiedMail = RECEIVED_MAILS_MAP.get(uniqueIdentifier);
             if (identifiedMail != null) {
                 LOG.info("Message with unique identifier '{}' downloaded at {}", uniqueIdentifier, DateTime.now());
                 return identifiedMail;
             }
 
         }
-        throw new RuntimeException("Timeout awaiting processed mail with unique identifier '" + uniqueIdentifier + "' at " + DateTime.now() + ". Mails in inbox: " + RECEIVED_MAILS.keySet());
+        throw new RuntimeException("Timeout awaiting processed mail with unique identifier '" + uniqueIdentifier + "' at " + DateTime.now() + ". Mails in inbox: " + RECEIVED_MAILS_MAP.keySet());
 
     }
 
@@ -114,16 +112,15 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
             if (message.getState() == MessageState.SENT) {
                 m = StructuredMail.parseMail(new ByteArrayInputStream(mailRepository.readOutboundMail(message.getId())));
             }
-            OUTCOME.add(new ProcessedMail(message, m, conversation));
+            RECEIVED_MAILS.add(new ProcessedMail(message, m, conversation));
             String key = message.getHeaders().get(MailBuilder.UNIQUE_IDENTIFIER_HEADER);
             if (key != null) {
-                RECEIVED_MAILS.put(key, new ProcessedMail(message, m, conversation));
-                LOG.info("Message with unique identifier '{}' arrived at {}. Mails in Inbox: {}", key, DateTime.now(), RECEIVED_MAILS.keySet());
+                RECEIVED_MAILS_MAP.put(key, new ProcessedMail(message, m, conversation));
+                LOG.info("Message with unique identifier '{}' arrived at {}. Mails in Inbox: {}", key, DateTime.now(), RECEIVED_MAILS_MAP.keySet());
             }
         } catch (Exception e) {
             LOG.error("FAILURE AT DELIVERY", e);
             throw new RuntimeException(e);
         }
-
     }
 }
