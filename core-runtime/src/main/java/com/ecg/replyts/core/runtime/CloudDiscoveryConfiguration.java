@@ -95,7 +95,7 @@ public class CloudDiscoveryConfiguration {
         DISCOVERABLE_SERVICE_PROPERTIES.forEach((service, property) -> {
             List<String> instances = new ArrayList<>();
 
-            discoveryClient.getInstances(service).forEach(instance -> instances.add(instance.getHost()));
+            discoveryClient.getInstances(service).forEach(instance -> instances.add(instance.getHost()+":"+instance.getPort()));
 
             if (instances.size() > 0) {
                 LOG.info("Auto-discovered {} {} instance(s) - adding to property {}", instances.size(), service, property);
