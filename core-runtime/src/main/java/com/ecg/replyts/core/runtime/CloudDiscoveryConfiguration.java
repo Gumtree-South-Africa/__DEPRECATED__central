@@ -37,8 +37,7 @@ public class CloudDiscoveryConfiguration {
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = Collections.unmodifiableMap(Stream.of(
       new AbstractMap.SimpleEntry<>("cassandra", "persistence.cassandra.endpoint"),
-      new AbstractMap.SimpleEntry<>("elasticsearch", "search.es.endpoints"),
-      new AbstractMap.SimpleEntry<>("graphite", "graphite.endpoint.hostname")
+      new AbstractMap.SimpleEntry<>("elasticsearch", "search.es.endpoints")
     ).collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
 
     @Value("${replyts.http.port:0}")
@@ -96,13 +95,7 @@ public class CloudDiscoveryConfiguration {
             List<String> instances = new ArrayList<>();
 
             discoveryClient.getInstances(service).forEach(instance -> {
-                String suffix = ":" + instance.getPort();
-
-                if (instance.getMetadata().containsKey("register-without-port")) {
-                    suffix = "";
-                }
-
-                instances.add(instance.getHost() + suffix);
+                 instances.add(instance.getHost() + ":" + instance.getPort());
             });
 
             if (instances.size() > 0) {
