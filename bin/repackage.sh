@@ -85,6 +85,7 @@ function repackage() {
         cp -r tmp/* tmp2/comaas-mde/
         rm -f tmp2/comaas-mde/conf/* && cp "$prop"/* tmp2/comaas-mde/conf/
         cd tmp2
+        cd comaas-mde/lib && ln -s core-runtime-* core-runtime.jar && cd ../..
         tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
         HOMEDIR=$PWD
         cd ${BUILDDIR}
