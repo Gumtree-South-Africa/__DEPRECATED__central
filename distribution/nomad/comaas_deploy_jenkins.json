@@ -1,47 +1,118 @@
 {
-    "job": {
+    "Job": {
+        "Region": "comaas-qa",
         "ID": "comaas-TENANT",
-        "name": "comaas-TENANT",
-        "priority": 50,
-
-        "datacenters": [ "ams1"],
-        "region": "comaas-qa",
-
-        "type": "service",
-
-        "TaskGroups": [ {
-            "Name":"comaas-node-TENANT",
-
-            "count": COUNT,
-
-            "Tasks": [ {
-                "Name":"comaas-TENANT",
-                "driver":"raw_exec",
-                "Artifacts": [ {
-                    "GetterSource":"http://buildmaster001/job/repo-server/ws/GIT_HASH-TIMESTAMP/ARTIFACT",
-                    "GetterOptions": {
-                        "checksum": "md5"
+        "Name": "comaas-TENANT",
+        "Type": "service",
+        "Priority": 50,
+        "AllAtOnce": false,
+        "Datacenters": [
+            "ams1"
+        ],
+        "Constraints": null,
+        "TaskGroups": [
+            {
+                "Name": "comaas-node-TENANT",
+                "Count": COUNT,
+                "Constraints": null,
+                "Tasks": [
+                    {
+                        "Name": "comaas-TENANT",
+                        "Driver": "raw_exec",
+                        "User": "",
+                        "Config": {
+                            "command": "bin/comaas"
+                        },
+                        "Constraints": [
+                            {
+                                "LTarget": "${attr.hostname}",
+                                "RTarget": "core*",
+                                "Operand": "distinct_hosts"
+                            }
+                        ],
+                        "Env": null,
+                        "Services": [
+                            {
+                                "Id": "",
+                                "Name": "comaas-TENANT-comaas-node-TENANT-comaas-TENANT",
+                                "Tags": [
+                                    "git-GIT_HASH"
+                                ],
+                                "PortLabel": "comaas_TENANT",
+                                "Checks": [
+                                    {
+                                        "Id": "",
+                                        "Name": "tenant_running",
+                                        "Type": "http",
+                                        "Command": "",
+                                        "Args": null,
+                                        "Path": "/health",
+                                        "Protocol": "",
+                                        "Interval": 10000000000,
+                                        "Timeout": 5000000000
+                                    }
+                                ]
+                            }
+                        ],
+                        "Resources": {
+                            "CPU": 200,
+                            "MemoryMB": 1024,
+                            "DiskMB": 2000,
+                            "IOPS": 0,
+                            "Networks": [
+                                {
+                                    "Public": false,
+                                    "CIDR": "",
+                                    "ReservedPorts": [
+                                        {
+                                            "Label": "comaas_TENANT",
+                                            "Value": PORT
+                                        }
+                                    ],
+                                    "DynamicPorts": null,
+                                    "IP": "",
+                                    "MBits": 100
+                                }
+                            ]
+                        },
+                        "Meta": null,
+                        "KillTimeout": 5000000000,
+                        "LogConfig": {
+                            "MaxFiles": 10,
+                            "MaxFileSizeMB": 10
+                        },
+                        "Artifacts": [
+                            {
+                                "GetterSource": "http://buildmaster001/job/repo-server/ws/GIT_HASH-TIMESTAMP/ARTIFACT",
+                                "GetterOptions": {
+                                    "checksum": "md5"
+                                },
+                                "RelativeDest": ""
+                            }
+                        ]
                     }
-                } ],
-                "config": {
-                    "command":"bin/comaas"
+                ],
+                "RestartPolicy": {
+                    "Interval": 60000000000,
+                    "Attempts": 2,
+                    "Delay": 15000000000,
+                    "Mode": "delay"
                 },
-                "LogConfig": {
-                    "MaxFileSizeMB":10,
-                    "MaxFiles":10
-                },
-
-                "resources": {
-                    "MemoryMB":1024,
-                    "DiskMB":2000,
-                    "CPU":200
-                }
-            } ]
-        } ],
-
+                "Meta": null
+            }
+        ],
         "Update": {
-            "MaxParallel": 1,
-            "Stagger": STAGGER
-        }
-    }
+            "Stagger": STAGGER,
+            "MaxParallel": 1
+        },
+        "Periodic": null,
+        "Meta": null,
+        "Status": "",
+        "StatusDescription": "",
+        "CreateIndex": 0,
+        "ModifyIndex": 0,
+        "JobModifyIndex": 0
+    },
+    "EnforceIndex": false,
+    "JobModifyIndex": 0
 }
