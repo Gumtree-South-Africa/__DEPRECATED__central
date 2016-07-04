@@ -1,0 +1,115 @@
+{
+  "Job": {
+    "Region": "comaas-qa",
+    "ID": "comaas-kjca",
+    "Name": "comaas-kjca",
+    "Type": "service",
+    "Priority": 50,
+    "AllAtOnce": false,
+    "Datacenters": [
+      "ams1"
+    ],
+    "Constraints": null,
+    "TaskGroups": [
+      {
+        "Name": "comaas-node-kjca",
+        "Count": 3,
+        "Constraints": null,
+        "Tasks": [
+          {
+            "Name": "comaas-kjca",
+            "Driver": "raw_exec",
+            "User": "",
+            "Config": {
+              "command": "bin/comaas"
+            },
+            "Constraints": [
+              {
+                "LTarget": "${attr.hostname}",
+                "RTarget": "core*",
+                "Operand": "distinct_hosts"
+              }
+            ],
+            "Env": null,
+            "Services": [
+              {
+                "Id": "",
+                "Name": "comaas-kjca-comaas-node-kjca-comaas-kjca",
+                "Tags": [
+                  "git-GIT_HASH"
+                ],
+                "PortLabel": "comaas_kjca",
+                "Checks": [
+                  {
+                    "Id": "",
+                    "Name": "tenant_running",
+                    "Type": "http",
+                    "Command": "",
+                    "Args": null,
+                    "Path": "/health",
+                    "Protocol": "",
+                    "Interval": 10000000000,
+                    "Timeout": 5000000000
+                  }
+                ]
+              }
+            ],
+            "Resources": {
+              "CPU": 200,
+              "MemoryMB": 1024,
+              "DiskMB": 2000,
+              "IOPS": 0,
+              "Networks": [
+                {
+                  "Public": false,
+                  "CIDR": "",
+                  "ReservedPorts": [
+                    {
+                      "Label": "comaas_kjca",
+                      "Value": 8080
+                    }
+                  ],
+                  "DynamicPorts": null,
+                  "IP": "",
+                  "MBits": 100
+                }
+              ]
+            },
+            "Meta": null,
+            "KillTimeout": 5000000000,
+            "LogConfig": {
+              "MaxFiles": 10,
+              "MaxFileSizeMB": 10
+            },
+            "Artifacts": [
+              {
+                "GetterSource": "http://buildmaster001/job/repo-server/ws/GIT_HASH-TIMESTAMP/ARTIFACT",
+                "GetterOptions": {
+                  "checksum": "md5:59a4b97500a83274cd5fe21a34e5e113"
+                },
+                "RelativeDest": "local/"
+              }
+            ]
+          }
+        ],
+        "RestartPolicy": {
+          "Interval": 60000000000,
+          "Attempts": 2,
+          "Delay": 15000000000,
+          "Mode": "delay"
+        },
+        "Meta": null
+      }
+    ],
+    "Update": {
+      "Stagger": 30000000000,
+      "MaxParallel": 1
+    },
+    "Periodic": null,
+    "Meta": null,
+    "Status": "",
+    "StatusDescription": "",
+    "CreateIndex": 0,
+    "ModifyIndex": 0
+  }
+}
