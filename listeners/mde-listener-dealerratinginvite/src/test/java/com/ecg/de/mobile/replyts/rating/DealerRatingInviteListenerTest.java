@@ -6,55 +6,44 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.google.common.collect.Maps;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
-/**
- * Created by vbalaramiah on 4/28/15.
- */
-@RunWith(MockitoJUnitRunner.class)
-public class DealerRatingInviteListenerTest {
+import static org.mockito.Mockito.*;
 
-    @Mock
-    private DealerRatingService svc;
+public final class DealerRatingInviteListenerTest {
 
-    @Mock
-    private Message message;
+    private DealerRatingService svc = mock(DealerRatingService.class);
+    private Message message = mock(Message.class);
+    private Conversation conversation = mock(Conversation.class);
+    private final DealerRatingInviteListener listener = new DealerRatingInviteListener(svc);
 
-    @Mock
-    private Conversation conversation;
+    public DealerRatingInviteListenerTest() {
 
-    @Test
-    public void processIfInitial() {
-        DealerRatingInviteListener listener = new DealerRatingInviteListener(svc);
-        Map<String, String> headers = Maps.newHashMap();
-        headers.put("X-Cust-Seller_Type","dealer");
-        when(message.getHeaders()).thenReturn(headers);
         when(message.getId()).thenReturn("1234-abcd");
         when(conversation.getId()).thenReturn("56789-efgh");
         listener.messageProcessed(conversation, message);
+    }
+
+    @Test
+    public void processIfInitial() {
+        final Map<String, String> headers = Maps.newHashMap();
+        headers.put("X-Cust-Seller_Type", "dealer");
+        when(message.getHeaders()).thenReturn(headers);
+
+        listener.messageProcessed(conversation, message);
+
         verify(svc).saveInvitation(message, "56789-efgh");
     }
 
     @Test
     public void doNotProcessIfNotInitial() {
-        DealerRatingInviteListener listener = new DealerRatingInviteListener(svc);
-        Map<String, String> headers = Maps.newHashMap();
-        headers.put("X-Cust-Buyer_Type","dealer");
+        final Map<String, String> headers = Maps.newHashMap();
+        headers.put("X-Cust-Buyer_Type", "dealer");
         when(message.getHeaders()).thenReturn(headers);
-        when(message.getId()).thenReturn("1234-abcd");
-        when(conversation.getId()).thenReturn("56789-efgh");
+
         listener.messageProcessed(conversation, message);
+
         verify(svc, never()).saveInvitation(message, "56789-efgh");
     }
 

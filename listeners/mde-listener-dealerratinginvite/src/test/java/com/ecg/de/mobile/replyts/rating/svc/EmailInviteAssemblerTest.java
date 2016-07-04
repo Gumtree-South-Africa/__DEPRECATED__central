@@ -1,27 +1,21 @@
 package com.ecg.de.mobile.replyts.rating.svc;
 
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.google.common.collect.Maps;
+import de.mobile.dealer.rating.invite.EmailInviteEntity;
+import org.junit.Test;
+
+import java.util.Map;
+
+import static com.ecg.de.mobile.replyts.rating.svc.EmailInviteAssembler.*;
+import static de.mobile.dealer.rating.invite.EmailInviteTriggerType.BY_CONTACT_MESSAGE;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Map;
-
-import org.junit.Test;
-
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.google.common.collect.Maps;
-
-import de.mobile.dealer.rating.invite.EmailInviteEntity;
-import static de.mobile.dealer.rating.invite.EmailInviteTriggerType.BY_CONTACT_MESSAGE;
-
-/**
- * Created by vbalaramiah on 4/28/15.
- */
-public class EmailInviteAssemblerTest {
-
-    private final EmailInviteAssembler assembler = new EmailInviteAssembler();
+public final class EmailInviteAssemblerTest {
 
     @Test
     public void testToEmailInviteWithAllHeadersPresent() {
@@ -39,11 +33,11 @@ public class EmailInviteAssemblerTest {
         when(message.getHeaders()).thenReturn(headers);
         
         String conversationId = "56789-efgh";
-        EmailInviteEntity invite = assembler.toEmailInvite(message, conversationId);
+        EmailInviteEntity invite = assemble(message, conversationId);
         
         assertThat(invite.getTriggerType(), is(BY_CONTACT_MESSAGE));
-        assertThat(invite.getAdId(), is(123l));
-        assertThat(invite.getDealerId(), is(456l));
+        assertThat(invite.getAdId(), is(123L));
+        assertThat(invite.getDealerId(), is(456L));
         assertThat(invite.getIpAddress(), is("123.123.123.123"));
         assertThat(invite.getSource(), is("SourceXY"));
         assertThat(invite.getLocale(), is("de"));
@@ -61,11 +55,11 @@ public class EmailInviteAssemblerTest {
         when(message.getHeaders()).thenReturn(headers);
         
         String conversationId = "56789-efgh";
-        EmailInviteEntity invite = assembler.toEmailInvite(message, conversationId);
+        EmailInviteEntity invite = assemble(message, conversationId);
         
         assertThat(invite.getTriggerType(), is(BY_CONTACT_MESSAGE));
-        assertThat(invite.getAdId(), is(0l));
-        assertThat(invite.getDealerId(), is(0l));
+        assertThat(invite.getAdId(), is(0L));
+        assertThat(invite.getDealerId(), is(0L));
         assertThat(invite.getIpAddress(), is(nullValue()));
         assertThat(invite.getSource(), is(nullValue()));
         assertThat(invite.getLocale(), is(nullValue()));
@@ -84,7 +78,7 @@ public class EmailInviteAssemblerTest {
         headers.put("Reply-To", "max@mustermann.de");
         when(message.getHeaders()).thenReturn(headers);
         
-        EmailInviteEntity invite = assembler.toEmailInvite(message, null);
+        EmailInviteEntity invite = assemble(message, null);
         assertThat(invite.getBuyerEmail(), is("max@mustermann.de"));
     }
 
@@ -96,7 +90,7 @@ public class EmailInviteAssemblerTest {
         headers.put("From", "max@mustermann.de");
         when(message.getHeaders()).thenReturn(headers);
         
-        EmailInviteEntity invite = assembler.toEmailInvite(message, null);
+        EmailInviteEntity invite = assemble(message, null);
         assertThat(invite.getBuyerEmail(), is("max@mustermann.de"));
     }
 
@@ -109,9 +103,9 @@ public class EmailInviteAssemblerTest {
         headers.put("X-Cust-Customer_Id", "COMA456");
         when(message.getHeaders()).thenReturn(headers);
         
-        EmailInviteEntity invite = assembler.toEmailInvite(message, null);
-        assertThat(invite.getAdId(), is(123l));
-        assertThat(invite.getDealerId(), is(456l));
+        EmailInviteEntity invite = assemble(message, null);
+        assertThat(invite.getAdId(), is(123L));
+        assertThat(invite.getDealerId(), is(456L));
     }
     
     @Test
@@ -123,9 +117,9 @@ public class EmailInviteAssemblerTest {
         headers.put("X-Cust-Customer_Id", "456abc");
         when(message.getHeaders()).thenReturn(headers);
         
-        EmailInviteEntity invite = assembler.toEmailInvite(message, null);
-        assertThat(invite.getAdId(), is(0l));
-        assertThat(invite.getDealerId(), is(0l));
+        EmailInviteEntity invite = assemble(message, null);
+        assertThat(invite.getAdId(), is(0L));
+        assertThat(invite.getDealerId(), is(0L));
     }
     
     @Test(expected=RuntimeException.class)
@@ -136,7 +130,7 @@ public class EmailInviteAssemblerTest {
         headers.put("From", "assaf safsaf");
         when(message.getHeaders()).thenReturn(headers);
         
-        assembler.toEmailInvite(message, null);
+        assemble(message, null);
     }
 
     @Test
@@ -147,7 +141,7 @@ public class EmailInviteAssemblerTest {
         headers.put("From", "Max Mustermann ( <max@mustermann.de>");
         when(message.getHeaders()).thenReturn(headers);
         
-        EmailInviteEntity invite = assembler.toEmailInvite(message, null);
+        EmailInviteEntity invite = assemble(message, null);
         assertThat(invite.getBuyerEmail(), is("max@mustermann.de"));
     }
 
@@ -159,7 +153,7 @@ public class EmailInviteAssemblerTest {
         headers.put("From", "foo <test111@foo.de> <test@mobile.de>");
         when(message.getHeaders()).thenReturn(headers);
         
-        EmailInviteEntity invite = assembler.toEmailInvite(message, null);
+        EmailInviteEntity invite = assemble(message, null);
         assertThat(invite.getBuyerEmail(), is("test@mobile.de"));
     }
 
