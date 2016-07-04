@@ -1,8 +1,8 @@
 {
     "Job": {
         "Region": "comaas-qa",
-        "ID": "comaas-kjca",
-        "Name": "comaas-kjca",
+        "ID": "comaas-TENANT",
+        "Name": "comaas-TENANT",
         "Type": "service",
         "Priority": 50,
         "AllAtOnce": false,
@@ -12,12 +12,12 @@
         "Constraints": null,
         "TaskGroups": [
             {
-                "Name": "comaas-node-kjca",
-                "Count": 3,
+                "Name": "comaas-node-TENANT",
+                "Count": COUNT,
                 "Constraints": null,
                 "Tasks": [
                     {
-                        "Name": "comaas-kjca",
+                        "Name": "comaas-TENANT",
                         "Driver": "raw_exec",
                         "User": "",
                         "Config": {
@@ -34,11 +34,11 @@
                         "Services": [
                             {
                                 "Id": "",
-                                "Name": "comaas-kjca-comaas-node-kjca-comaas-kjca",
+                                "Name": "comaas-TENANT-comaas-node-TENANT-comaas-TENANT",
                                 "Tags": [
                                     "git-GIT_HASH"
                                 ],
-                                "PortLabel": "comaas_kjca",
+                                "PortLabel": "comaas_TENANT",
                                 "Checks": [
                                     {
                                         "Id": "",
@@ -65,8 +65,8 @@
                                     "CIDR": "",
                                     "ReservedPorts": [
                                         {
-                                            "Label": "comaas_kjca",
-                                            "Value": 8080
+                                            "Label": "comaas_TENANT",
+                                            "Value": PORT
                                         }
                                     ],
                                     "DynamicPorts": null,
@@ -85,9 +85,9 @@
                             {
                                 "GetterSource": "http://buildmaster001/job/repo-server/ws/GIT_HASH-TIMESTAMP/ARTIFACT",
                                 "GetterOptions": {
-                                    "checksum": "md5:59a4b97500a83274cd5fe21a34e5e113"
+                                    "checksum": "md5"
                                 },
-                                "RelativeDest": "local/"
+                                "RelativeDest": ""
                             }
                         ]
                     }
@@ -102,7 +102,7 @@
             }
         ],
         "Update": {
-            "Stagger": 30000000000,
+            "Stagger": STAGGER,
             "MaxParallel": 1
         },
         "Periodic": null,
