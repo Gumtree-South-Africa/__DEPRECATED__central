@@ -56,6 +56,7 @@ class ExpiringRegEx {
             return text.charAt(index);
         }
 
+        @Override
         public String toString(){
 
             return text == null ? "" : text.toString();

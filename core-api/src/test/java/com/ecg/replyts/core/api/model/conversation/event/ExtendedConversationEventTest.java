@@ -15,7 +15,7 @@ public class ExtendedConversationEventTest {
 
         ExtendedConversationEvent conversationEvent = objectMapper
                 .reader(ExtendedConversationEvent.class)
-                .readValue(getClass().getResourceAsStream("message_filtered_event.json"));
+                .readValue(getClass().getResourceAsStream("extended_conversation_event.json"));
 
         assertEquals("MessageFilteredEvent-3:aqn58e:ihfxk67p-1448523755385", conversationEvent.event.getEventId());
         assertEquals("2:aqn58e:ihfxk67p", conversationEvent.conversation.conversationId);

@@ -1,7 +1,7 @@
 package com.ecg.de.ebayk.messagecenter.pushmessage;
 
 import ca.kijiji.replyts.BoxHeaders;
-import com.codahale.metrics.Counter;
+import ca.kijiji.tracing.TraceThreadLocal;
 import com.ecg.de.ebayk.messagecenter.capi.AdInfoLookup;
 import com.ecg.de.ebayk.messagecenter.capi.UserInfoLookup;
 import com.ecg.de.ebayk.messagecenter.cleanup.TextCleaner;
@@ -9,7 +9,6 @@ import com.ecg.de.ebayk.messagecenter.persistence.PostBox;
 import com.ecg.de.ebayk.messagecenter.persistence.PostBoxInitializer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,32 +26,61 @@ public class PushMessageOnUnreadConversationCallback implements PostBoxInitializ
     private static final String FROM = "From";
     private static final String SOUND_FILE_NAME = "kijijica-push.caf";
 
-    private static final Counter COUNTER_PUSH_SENT = TimingReports.newCounter("message-box.push-message-sent");
-    private static final Counter COUNTER_PUSH_NO_DEVICE = TimingReports.newCounter("message-box.push-message-no-device");
-    private static final Counter COUNTER_PUSH_FAILED = TimingReports.newCounter("message-box.push-message-failed");
-
     private static final Logger LOG = LoggerFactory.getLogger(PushMessageOnUnreadConversationCallback.class);
     private static final Locale DEFAULT_LOCALE = Locale.CANADA;
     private static final Pattern DISPLAY_NAME_REMOVE_QUOTES = Pattern.compile("^\"([^\"]+)\"$");
 
-    private final PushService pushService;
+    private final PushService amqPushService;
+    private final PushService sendPushService;
     private final AdInfoLookup adInfoLookup;
     private final UserInfoLookup userInfoLookup;
     private final Conversation conversation;
     private final Message message;
+    private final Integer sendPushPercentage;
 
     public PushMessageOnUnreadConversationCallback(
-            PushService pushService,
+            Integer sendPushPercentage,
+            PushService amqPushService,
+            PushService sendPushService,
             AdInfoLookup adInfoLookup,
             UserInfoLookup userInfoLookup,
             Conversation conversation,
             Message message) {
-
-        this.pushService = pushService;
+        this.sendPushPercentage = sendPushPercentage;
+        this.amqPushService = amqPushService;
+        this.sendPushService = sendPushService;
         this.adInfoLookup = adInfoLookup;
         this.userInfoLookup = userInfoLookup;
         this.conversation = conversation;
         this.message = message;
+    }
+
+    static String truncateText(String description, int maxChars) {
+        if (isNullOrEmpty(description)) {
+            return "";
+        }
+
+        if (description.length() <= maxChars) {
+            return description;
+        }
+
+        String substring = description.substring(0, maxChars);
+        return substringBeforeLast(substring, " ").concat("...");
+    }
+
+    private static String substringBeforeLast(String str, String separator) {
+        if (isNullOrEmpty(str) || isNullOrEmpty(separator)) {
+            return str;
+        }
+        int pos = str.lastIndexOf(separator);
+        if (pos == -1) {
+            return str;
+        }
+        return str.substring(0, pos);
+    }
+
+    static boolean isNullOrEmpty(String input) {
+        return input == null || input.isEmpty();
     }
 
     @Override
@@ -65,9 +94,10 @@ public class PushMessageOnUnreadConversationCallback implements PostBoxInitializ
         sendPushMessage(postBox);
     }
 
-
     void sendPushMessage(PostBox postBox) {
+        PushService pushService = null;
         try {
+            TraceThreadLocal.set(UUID.randomUUID().toString());
             Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.lookupAdInfo(Long.parseLong(conversation.getAdId()));
             Optional<UserInfoLookup.UserInfo> userInfo = userInfoLookup.lookupUserInfo(postBox.getEmail());
 
@@ -77,31 +107,44 @@ public class PushMessageOnUnreadConversationCallback implements PostBoxInitializ
                 return;
             }
 
-            LOG.debug("Sending push message, Payload:[{}]", payload.get().asJson());
-            PushService.Result sendPushResult = PushService.Result.ok(null);
-            if (pushService != null) {
-                sendPushResult = pushService.sendPushMessage(payload.get());
-            }
-
-            if (PushService.Result.Status.OK == sendPushResult.getStatus()) {
-                COUNTER_PUSH_SENT.inc();
-            }
-
-            if (PushService.Result.Status.NOT_FOUND == sendPushResult.getStatus()) {
-                COUNTER_PUSH_NO_DEVICE.inc();
-            }
-
-            if (PushService.Result.Status.ERROR == sendPushResult.getStatus()) {
-                COUNTER_PUSH_FAILED.inc();
-                LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), sendPushResult.getException());
-            }
+            pushService = determinePushService();
+            sendPushMessageInternal(pushService, payload.get());
 
         } catch (Exception e) {
-            COUNTER_PUSH_FAILED.inc();
+            if (pushService != null) {
+                pushService.incrementCounter(PushService.Result.Status.ERROR);
+            }
             LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), e);
         }
     }
 
+    private void sendPushMessageInternal(PushService pushService, PushMessagePayload payload) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Sending push message, Payload:[{}]", payload.asJson());
+        }
+        PushService.Result sendPushResult = pushService.sendPushMessage(payload);
+
+        pushService.incrementCounter(sendPushResult.getStatus());
+
+        if (PushService.Result.Status.ERROR == sendPushResult.getStatus()) {
+            LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), sendPushResult.getException());
+        }
+
+    }
+
+    /**
+     * Determines which push service to use, this is for tuning and rolling out sending push notifications via SEND API.
+     *
+     * @return the right push service to be used.
+     */
+    private PushService determinePushService() {
+        if (sendPushPercentage == null || Math.random() * 100 >= sendPushPercentage) {
+            LOG.debug("No send service percentage is defined or random number is larger than the allowed percentage. Falling back to using old push service.");
+            return amqPushService;
+        }
+        LOG.debug("Going to send message thru SEND");
+        return sendPushService;
+    }
 
     private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, PostBox postBox, Optional<AdInfoLookup.AdInfo> adInfo, Optional<UserInfoLookup.UserInfo> userInfo) {
         if (!userInfo.isPresent()) {
@@ -177,33 +220,5 @@ public class PushMessageOnUnreadConversationCallback implements PostBoxInitializ
         }
         return "";
 
-    }
-
-    public static String truncateText(String description, int maxChars) {
-
-        if (isNullOrEmpty(description))
-            return "";
-
-        if (description.length() <= maxChars) {
-            return description;
-        } else {
-            String substring = description.substring(0, maxChars);
-            return substringBeforeLast(substring, " ").concat("...");
-        }
-    }
-
-    private static String substringBeforeLast(String str, String separator) {
-        if (isNullOrEmpty(str) || isNullOrEmpty(separator)) {
-            return str;
-        }
-        int pos = str.lastIndexOf(separator);
-        if (pos == -1) {
-            return str;
-        }
-        return str.substring(0, pos);
-    }
-
-    static boolean isNullOrEmpty(String input) {
-        return input == null || input.isEmpty();
     }
 }

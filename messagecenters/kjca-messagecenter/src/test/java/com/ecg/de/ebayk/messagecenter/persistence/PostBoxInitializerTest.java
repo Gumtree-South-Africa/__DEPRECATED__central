@@ -14,7 +14,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +21,6 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -73,7 +71,7 @@ public class PostBoxInitializerTest {
                                 .withHumanResultState(ModerationResultState.UNCHECKED)
                                 .withReceivedAt(now)
                                 .withLastModifiedAt(now)
-                                .withTextParts(Arrays.asList(MSG_TEXT))
+                                .withTextParts(ImmutableList.of(MSG_TEXT))
                                 .withState(MessageState.SENT)
                 );
     }
@@ -145,7 +143,7 @@ public class PostBoxInitializerTest {
                         .withHumanResultState(ModerationResultState.UNCHECKED)
                         .withReceivedAt(now)
                         .withLastModifiedAt(now)
-                        .withTextParts(Arrays.asList(""))
+                        .withTextParts(ImmutableList.of(""))
                         .withState(MessageState.SENT)
                         .build()))
                 .build();
@@ -175,7 +173,7 @@ public class PostBoxInitializerTest {
                         .withHumanResultState(ModerationResultState.UNCHECKED)
                         .withReceivedAt(now)
                         .withLastModifiedAt(now)
-                        .withTextParts(Arrays.asList(""))
+                        .withTextParts(ImmutableList.of(""))
                         .withState(MessageState.SENT))
                 .build();
 
@@ -213,7 +211,7 @@ public class PostBoxInitializerTest {
                         .withHumanResultState(ModerationResultState.UNCHECKED)
                         .withReceivedAt(now)
                         .withLastModifiedAt(now)
-                        .withTextParts(Arrays.asList("Hi everybody"))
+                        .withTextParts(ImmutableList.of("Hi everybody"))
                         .withState(MessageState.SENT)
                         .build()))
                 .build();
@@ -249,7 +247,7 @@ public class PostBoxInitializerTest {
                         .withHumanResultState(ModerationResultState.UNCHECKED)
                         .withReceivedAt(now)
                         .withLastModifiedAt(now)
-                        .withTextParts(Arrays.asList("Hi everybody"))
+                        .withTextParts(ImmutableList.of("Hi everybody"))
                         .withState(MessageState.SENT)
                         .build()))
                 .build();

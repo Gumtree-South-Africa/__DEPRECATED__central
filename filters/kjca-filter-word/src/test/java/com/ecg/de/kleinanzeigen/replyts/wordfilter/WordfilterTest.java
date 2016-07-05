@@ -1,10 +1,13 @@
 package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 
+import ca.kijiji.replyts.Activation;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,7 +15,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -26,10 +28,10 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class WordfilterTest {
 
-    private static final PatternEntry FOOSTR_PATTERN = new PatternEntry(Pattern.compile("FooStr[a-z]*"), 100, Collections.<String>emptyList());
-    private static final PatternEntry SUBJECT_PATTERN = new PatternEntry(Pattern.compile("subject"), 100, Collections.<String>emptyList());
-    private static final PatternEntry ANY_CHARACTER_PATTERN = new PatternEntry(Pattern.compile("."), 200, Collections.<String>emptyList());
-    private static final PatternEntry NOT_EXISTANT_PATTERN = new PatternEntry(Pattern.compile("googahhhbaaah"), 300, Collections.<String>emptyList());
+    private static final PatternEntry FOOSTR_PATTERN = new PatternEntry(Pattern.compile("FooStr[a-z]*"), 100, Collections.emptyList());
+    private static final PatternEntry SUBJECT_PATTERN = new PatternEntry(Pattern.compile("subject"), 100, Collections.emptyList());
+    private static final PatternEntry ANY_CHARACTER_PATTERN = new PatternEntry(Pattern.compile("."), 200, Collections.emptyList());
+    private static final PatternEntry NOT_EXISTANT_PATTERN = new PatternEntry(Pattern.compile("googahhhbaaah"), 300, Collections.emptyList());
 
     @Mock
     private MessageProcessingContext context;
@@ -97,7 +99,7 @@ public class WordfilterTest {
     }
 
     private List<FilterFeedback> filter(PatternEntry... pattern) {
-        return new Wordfilter(new FilterConfig(true, newArrayList(pattern)), 1000L).filter(context);
+        return new Wordfilter(new FilterConfig(true, true, newArrayList(pattern)), new Activation(new ObjectNode(JsonNodeFactory.instance)), 1000L).filter(context);
     }
 
     @Test
@@ -139,7 +141,7 @@ public class WordfilterTest {
     public void allwaysFilterOnAbsentPatternCategory() {
         when(conversation.getCustomValues()).thenReturn(ImmutableMap.of(Wordfilter.CATEGORY_ID, "212"));
 
-        List<FilterFeedback> fb = filter(new PatternEntry(Pattern.compile("subject"), 100, Collections.<String>emptyList()));
+        List<FilterFeedback> fb = filter(new PatternEntry(Pattern.compile("subject"), 100, Collections.emptyList()));
 
         assertThat(fb).hasSize(1);
         assertThat(fb.get(0).getScore()).isEqualTo(100);
@@ -147,7 +149,7 @@ public class WordfilterTest {
 
     public void callTimeGuard() {
 
-        filter(new PatternEntry(Pattern.compile("subject"), 100, Collections.<String>emptyList()));
+        filter(new PatternEntry(Pattern.compile("subject"), 100, Collections.emptyList()));
 
         verify(timeGuard).check();
     }
@@ -157,9 +159,9 @@ public class WordfilterTest {
         Message previousMessage = mock(Message.class);
         when(previousMessage.getId()).thenReturn("previousMsg");
         when(previousMessage.getState()).thenReturn(MessageState.SENT);
-        when(previousMessage.getProcessingFeedback()).thenReturn(Arrays.<ProcessingFeedback>asList(new ImmutableProcessingFeedback(WordfilterFactory.class.getName(), "sampleinstance", "FooStr[a-z]*", "desc", 100, FilterResultState.OK, false)));
+        when(previousMessage.getProcessingFeedback()).thenReturn(Collections.singletonList(new ImmutableProcessingFeedback(WordfilterFactory.class.getName(), "sampleinstance", "FooStr[a-z]*", "desc", 100, FilterResultState.OK, false)));
 
-        when(conversation.getMessages()).thenReturn(asList(previousMessage));
+        when(conversation.getMessages()).thenReturn(Collections.singletonList(previousMessage));
 
         FilterFeedback result = filter(FOOSTR_PATTERN).get(0);
         assertThat(result.getScore().longValue()).isEqualTo(0L);

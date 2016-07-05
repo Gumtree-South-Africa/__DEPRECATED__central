@@ -6,9 +6,9 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class CountryBlockedFilter implements Filter {
         ImmutableList.Builder<FilterFeedback> feedbacks = ImmutableList.builder();
         String ipAddress = context.getMail().getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
 
-        if (!StringUtils.hasText(ipAddress)) {
+        if (StringUtils.isBlank(ipAddress)) {
             LOG.debug("IP Address is empty -- not scoring");
             return feedbacks.build();
         }

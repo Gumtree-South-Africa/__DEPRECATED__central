@@ -14,18 +14,18 @@ class PreviousPatternsExtractor {
     private final Conversation conversation;
     private final Message currentMessage;
 
-    PreviousPatternsExtractor(Conversation conversation,Message currentMessage) {
+    PreviousPatternsExtractor(Conversation conversation, Message currentMessage) {
         this.conversation = conversation;
         this.currentMessage = currentMessage;
     }
 
-    public Set<String> previouselyFiredPatterns() {
+    Set<String> previouslyFiredPatterns() {
         Builder<String> found = ImmutableSet.builder();
 
         for (Message message : conversation.getMessages()) {
-            boolean isCurentMessage = message.getId().equals(currentMessage.getId());
+            boolean isCurrentMessage = message.getId().equals(currentMessage.getId());
             boolean messageWasNotSent = message.getState() != MessageState.SENT;
-            if(isCurentMessage || messageWasNotSent) {
+            if (isCurrentMessage || messageWasNotSent) {
                 continue;
             }
             addAllWordfilterHits(message.getProcessingFeedback(), found);
@@ -36,7 +36,7 @@ class PreviousPatternsExtractor {
     private void addAllWordfilterHits(List<ProcessingFeedback> processingFeedback, Builder<String> found) {
         for (ProcessingFeedback feedback : processingFeedback) {
             boolean isWordfilterHit = feedback.getFilterName().equals(WordfilterFactory.class.getName());
-            if(isWordfilterHit) {
+            if (isWordfilterHit) {
                 found.add(feedback.getUiHint());
             }
         }

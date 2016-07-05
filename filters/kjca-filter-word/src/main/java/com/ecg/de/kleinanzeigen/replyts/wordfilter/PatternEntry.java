@@ -21,15 +21,15 @@ class PatternEntry {
         this.categoryIds = categoryIds;
     }
 
-    public Pattern getPattern() {
+    Pattern getPattern() {
         return pattern;
     }
 
-    public int getScore() {
+    int getScore() {
         return score;
     }
 
-    public List<String> getCategoryIds() {
+    List<String> getCategoryIds() {
         return categoryIds;
     }
 }

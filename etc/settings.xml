@@ -3,6 +3,13 @@
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
     <mirrors>
         <mirror>
+            <id>kjcanexus</id>
+            <mirrorOf>kjca-nexus</mirrorOf>
+            <url>http://nexus.kjdev.ca/content/repositories/public</url>
+            <name>KjcaNexus</name>
+        </mirror>
+
+        <mirror>
             <id>mdenexus</id>
             <mirrorOf>!ext-libs,!gtauNexus,*</mirrorOf>
             <url>https://nexus.corp.mobile.de/nexus/content/groups/mobile-releases</url>

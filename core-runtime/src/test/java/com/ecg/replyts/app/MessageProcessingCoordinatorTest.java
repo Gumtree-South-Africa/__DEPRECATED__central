@@ -22,12 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageProcessingCoordinatorTest {
@@ -69,6 +67,7 @@ public class MessageProcessingCoordinatorTest {
 
     private final static byte[] SENT_MAIL = "bar".getBytes();
 
+    @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws Exception {
         when(guids.nextGuid()).thenReturn("1", "2", "3", "4", "5", "6", "7");
@@ -81,24 +80,22 @@ public class MessageProcessingCoordinatorTest {
         when(processingContextFactory.deadConversationForMessageIdConversationId(anyString(), anyString(), any(Optional.class))).thenReturn(deadConversation);
         when(context.getConversation()).thenReturn(conversation);
 
-        coordinator = new MessageProcessingCoordinator(guids, persister, mails, flow, asList(messageProcessedListener),
+        coordinator = new MessageProcessingCoordinator(guids, persister, mails, flow, singletonList(messageProcessedListener),
                 processingContextFactory);
     }
 
     @Test
-    public void persistsUnparsableMail() throws Exception {
+    public void persistsUnparseableMail() throws Exception {
         ParsingException exception = new ParsingException("parse error");
         doThrow(exception).when(mails).readMail(any(byte[].class));
 
         coordinator.accept(is);
 
-        verify(persister).persistAndIndex(deadConversation, "1", "foo".getBytes(), Optional.<byte[]>absent(), Termination.unparseable(exception));
-
-
+        verify(persister).persistAndIndex(deadConversation, "1", "foo".getBytes(), Optional.absent(), Termination.unparseable(exception));
     }
 
     @Test
-    public void doesNotOfferUnparsableMailToProcessingFlow() throws Exception {
+    public void doesNotOfferUnparseableMailToProcessingFlow() throws Exception {
         doThrow(new ParsingException("parse error")).when(mails).readMail(any(byte[].class));
 
         coordinator.accept(is);
@@ -113,18 +110,17 @@ public class MessageProcessingCoordinatorTest {
     }
 
     @Test
-    public void persistsUnsassignableMailAsOrphaned() throws Exception {
+    public void persistsUnassignableMailAsOrphaned() throws Exception {
         terminateWith(MessageState.ORPHANED, this, "orphaned", false);
         coordinator.accept(is);
-        verify(persister).persistAndIndex(deadConversation, "1", "foo".getBytes(), Optional.<byte[]>absent(), new Termination(MessageState.ORPHANED, MessageProcessingCoordinatorTest.class, "orphaned"));
-
+        verify(persister).persistAndIndex(deadConversation, "1", "foo".getBytes(), Optional.absent(), new Termination(MessageState.ORPHANED, MessageProcessingCoordinatorTest.class, "orphaned"));
     }
 
     @Test
     public void persistsTerminatedMail() throws Exception {
         terminateWith(MessageState.BLOCKED, this, "blocked", true);
         coordinator.accept(is);
-        verify(persister).persistAndIndex(conversation, "1", "foo".getBytes(), Optional.<byte[]>absent(), new Termination(MessageState.BLOCKED, MessageProcessingCoordinatorTest.class, "blocked"));
+        verify(persister).persistAndIndex(conversation, "1", "foo".getBytes(), Optional.absent(), new Termination(MessageState.BLOCKED, MessageProcessingCoordinatorTest.class, "blocked"));
     }
 
     @Test
@@ -135,34 +131,45 @@ public class MessageProcessingCoordinatorTest {
 
         coordinator.accept(is);
         verify(persister).persistAndIndex(conversation, "1", "foo".getBytes(), Optional.of(SENT_MAIL), Termination.sent());
-
     }
-
 
     @Test(expected = Exception.class)
     public void doesNotSwallowExceptions() throws Exception {
         doThrow(new IllegalStateException()).when(flow).inputForPreProcessor(any(MessageProcessingContext.class));
         coordinator.accept(is);
-
     }
 
-
     @Test
-    public void invoceListenerAfterPersisting() throws Exception {
+    public void invokeListenerAfterPersisting() throws Exception {
         coordinator.accept(is);
         verify(messageProcessedListener)
                 .messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
     }
 
     @Test
-    public void invokeListenerOnUnparsableMessage() throws ParsingException, IOException {
+    public void invokeListenerOnUnparseableMessage() throws ParsingException, IOException {
         when(mails.readMail(any(byte[].class))).thenThrow(new ParsingException());
 
         coordinator.accept(is);
 
         verify(messageProcessedListener)
                 .messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
+    }
 
+    @Test
+    public void skipCrashingListener() throws Exception {
+        coordinator = new MessageProcessingCoordinator(guids, persister, mails, flow,
+                asList(messageProcessedListener, messageProcessedListener),
+                processingContextFactory);
+
+        doThrow(new NoClassDefFoundError())
+                .doNothing()
+                .when(messageProcessedListener).messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
+
+        coordinator.accept(is);
+
+        verify(messageProcessedListener, times(2))
+                .messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
     }
 
     private void terminateWith(final MessageState state, final Object issuer, final String reason,

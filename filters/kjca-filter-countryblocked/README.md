@@ -1,4 +1,4 @@
 # kjca-filter-countryblocked
 
 Originally taken from https://github.corp.ebay.com/ecg-kijiji-ca/replyts2-ca-filters-plugin
-(original git hash: eca65c4dccb5c4d17a63684418b6b8676b91eddf)
+(original git hash: eea6b74f016e3bace2299e09272b6043797fbc7c)

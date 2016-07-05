@@ -15,12 +15,17 @@ class PatternRulesParser {
     private static final String CATEGORY_IDS_FIELD = "categoryIds";
 
     private final List<PatternEntry> patterns;
-    private final boolean ignoreQuotedRegularExpresssions;
+    private final boolean ignoreQuotedRegularExpressions;
+    private final boolean ignoreFollowUps;
 
     PatternRulesParser(JsonNode json) {
         JsonNode ignoreQuotedRegexps = json.get("ignoreQuotedRegexps");
-        ignoreQuotedRegularExpresssions = ignoreQuotedRegexps != null && ignoreQuotedRegexps.asBoolean();
-        ImmutableList.Builder<PatternEntry> builder = ImmutableList.<PatternEntry>builder();
+        ignoreQuotedRegularExpressions = ignoreQuotedRegexps != null && ignoreQuotedRegexps.asBoolean();
+
+        JsonNode ignoreFollowUpsConfig = json.get("ignoreFollowUps");
+        ignoreFollowUps = ignoreFollowUpsConfig != null && ignoreFollowUpsConfig.asBoolean();
+
+        ImmutableList.Builder<PatternEntry> builder = ImmutableList.builder();
         ArrayNode rulesArray = (ArrayNode) json.get("rules");
         Preconditions.checkArgument(rulesArray != null, "given config does not contain a rules element.");
         for (JsonNode n : rulesArray) {
@@ -37,16 +42,16 @@ class PatternRulesParser {
     }
 
     private List<String> listOfCategoryIds(JsonNode json) {
-        Iterable<JsonNode> nodes = Optional.<Iterable<JsonNode>>fromNullable(json.get(CATEGORY_IDS_FIELD)).or(Collections.<JsonNode>emptyList());
+        Iterable<JsonNode> nodes = Optional.<Iterable<JsonNode>>fromNullable(json.get(CATEGORY_IDS_FIELD)).or(Collections.emptyList());
         ImmutableList.Builder<String> idList = ImmutableList.builder();
-        for(JsonNode categoryId : nodes) {
+        for (JsonNode categoryId : nodes) {
             idList.add(categoryId.asText());
         }
         return idList.build();
     }
 
-    public FilterConfig getConfig() {
-        return new FilterConfig(ignoreQuotedRegularExpresssions, patterns);
+    FilterConfig getConfig() {
+        return new FilterConfig(ignoreQuotedRegularExpressions, ignoreFollowUps, patterns);
     }
 
 }

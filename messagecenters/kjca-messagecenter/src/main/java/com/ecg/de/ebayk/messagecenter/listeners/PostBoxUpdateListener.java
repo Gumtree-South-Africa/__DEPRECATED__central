@@ -7,7 +7,9 @@ import com.ecg.de.ebayk.messagecenter.capi.AdInfoLookup;
 import com.ecg.de.ebayk.messagecenter.capi.Configuration;
 import com.ecg.de.ebayk.messagecenter.capi.UserInfoLookup;
 import com.ecg.de.ebayk.messagecenter.persistence.PostBoxInitializer;
-import com.ecg.de.ebayk.messagecenter.pushmessage.*;
+import com.ecg.de.ebayk.messagecenter.pushmessage.ActiveMQPushServiceImpl;
+import com.ecg.de.ebayk.messagecenter.pushmessage.PushMessageOnUnreadConversationCallback;
+import com.ecg.de.ebayk.messagecenter.pushmessage.PushService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -38,9 +40,11 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
 
     private final UserNotificationRules userNotificationRules;
     private final PostBoxInitializer postBoxInitializer;
-    private final PushService pushService;
+    private final PushService amqPushService;
+    private final PushService sendPushService;
     private final AdInfoLookup adInfoLookup;
     private final UserInfoLookup userInfoLookup;
+    private final Integer pushServicePercentage;
 
     @Autowired
     public PostBoxUpdateListener(PostBoxInitializer postBoxInitializer,
@@ -54,17 +58,23 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                                  @Value("${capi.socketTimeout:2500}") Integer socketTimeout,
                                  @Value("${capi.maxConnectionsPerHost:40}") Integer maxConnectionsPerHost,
                                  @Value("${capi.retryCount:1}") Integer retryCount,
-                                 @Qualifier("pushMessageJmsTemplate") JmsTemplate jmsTemplate) {
+                                 @Value("${send.push.percentage:0}") Integer pushServicePercentage,
+                                 @Qualifier("pushMessageJmsTemplate") JmsTemplate jmsTemplate,
+                                 @Qualifier("sendPushService") PushService sendPushService) {
         this.postBoxInitializer = postBoxInitializer;
 
         final Configuration configuration = new Configuration(capiHost, capiPort, capiUsername, capiPassword, connectionTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, retryCount);
         this.adInfoLookup = new AdInfoLookup(configuration);
         this.userInfoLookup = new UserInfoLookup(configuration);
 
+        this.pushServicePercentage = pushServicePercentage;
+
         if (pushEnabled) {
-            this.pushService = new ActiveMQPushServiceImpl(jmsTemplate);
+            this.amqPushService = new ActiveMQPushServiceImpl(jmsTemplate);
+            this.sendPushService = sendPushService;
         } else {
-            this.pushService = null;
+            this.amqPushService = null;
+            this.sendPushService = null;
         }
         this.userNotificationRules = new UserNotificationRules();
     }
@@ -112,7 +122,9 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                 conversation,
                 newReplyArrived,
                 new PushMessageOnUnreadConversationCallback(
-                        pushService,
+                        pushServicePercentage,
+                        amqPushService,
+                        sendPushService,
                         adInfoLookup,
                         userInfoLookup,
                         conversation,

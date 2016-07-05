@@ -76,7 +76,7 @@ public class MessageProcessingCoordinator {
      */
     public void accept(InputStream input) throws IOException {
 
-        try(Timer.Context timer = OVERALL_TIMER.time()) {
+        try (Timer.Context ignored = OVERALL_TIMER.time()) {
             byte[] bytes = ByteStreams.toByteArray(input);
             LOG.debug("received new message. Size {} bytes", bytes.length);
             Optional<Mail> mail = parseMail(bytes);
@@ -97,7 +97,6 @@ public class MessageProcessingCoordinator {
             } else {
                 handleSuccess(context, bytes);
             }
-
         }
     }
 
@@ -112,7 +111,7 @@ public class MessageProcessingCoordinator {
         } catch (ParsingException e) {
             Termination termination = Termination.unparseable(e);
             String messageId = guids.nextGuid();
-            handleTermination(termination, messageId, Optional.<Mail>absent(), Optional.<DefaultMutableConversation>absent(), incomingMailContents);
+            handleTermination(termination, messageId, Optional.absent(), Optional.absent(), incomingMailContents);
         }
 
         return Optional.absent();
@@ -145,7 +144,7 @@ public class MessageProcessingCoordinator {
                 conversation.get() :
                 processingContextFactory.deadConversationForMessageIdConversationId(messageId, guids.nextGuid(), mail);
 
-        persister.persistAndIndex(c, messageId, messageBytes, Optional.<byte[]>absent(), termination);
+        persister.persistAndIndex(c, messageId, messageBytes, Optional.absent(), termination);
 
         handleProcessedMessageListener(c, c.getMessageById(messageId));
 
@@ -157,7 +156,16 @@ public class MessageProcessingCoordinator {
             LOG.debug("Informing Message Processed listener {} about completed message", listener.getClass());
             try {
                 listener.messageProcessed(c, m);
-            } catch (RuntimeException e) {
+            } catch (Throwable e) {
+                // We want to isolate failures in listeners.
+                // They're implemented in plugins and may be packaged/deployed separately, so
+                // they may also fail independently from others.
+                // This will also catch non-recoverable errors like out-of-memory exceptions.
+                // The reasoning is that it's better to try to catch all known exceptions and
+                // attempt to continue than cause the thread to crash and possibly lose data
+                // by not executing other listeners.
+                // Many Errors like LinkageErrors are not recoverable only for a specific listener
+                // (others wouldn't be affected).
                 LOG.error("Error in MessageProcessedListener " + listener.getClass(), e);
             }
         }

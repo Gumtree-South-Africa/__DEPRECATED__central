@@ -1,6 +1,7 @@
 package com.ecg.replyts.core.api.model.conversation.event;
 
 import com.ecg.replyts.core.api.util.Assert;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -25,6 +26,7 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
         @Type(value = ConversationDeletedEvent.class, name = "ConversationDeletedEvent"),
         @Type(value = CustomValueAddedEvent.class, name = "CustomValueAddedEvent")
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class ConversationEvent {
 
     private final String eventId;

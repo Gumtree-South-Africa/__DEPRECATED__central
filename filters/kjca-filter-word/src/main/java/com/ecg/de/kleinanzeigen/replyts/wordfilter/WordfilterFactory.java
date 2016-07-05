@@ -1,5 +1,6 @@
 package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 
+import ca.kijiji.replyts.Activation;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,8 +17,10 @@ class WordfilterFactory implements FilterFactory {
         this.regexProcessingTimeoutMs = regexProcessingTimeoutMs;
     }
 
+    @Override
     public Filter createPlugin(String filtername, JsonNode jsonNode) {
         PatternRulesParser ruleParser = new PatternRulesParser(jsonNode);
-        return new Wordfilter(ruleParser.getConfig(), regexProcessingTimeoutMs);
+        Activation activation = new Activation(jsonNode);
+        return new Wordfilter(ruleParser.getConfig(), activation, regexProcessingTimeoutMs);
     }
 }

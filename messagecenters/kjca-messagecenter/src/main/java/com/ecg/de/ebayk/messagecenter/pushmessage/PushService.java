@@ -1,9 +1,30 @@
 package com.ecg.de.ebayk.messagecenter.pushmessage;
 
+import com.codahale.metrics.Counter;
+
 public abstract class PushService {
-    public static final String PUSH_DELIVERY_CHANNEL = "push";
+
+    protected abstract Counter getPushFailedCounter();
+
+    protected abstract Counter getPushNoDeviceCounter();
+
+    protected abstract Counter getPushSentCounter();
 
     public abstract Result sendPushMessage(final PushMessagePayload payload);
+
+    public void incrementCounter(Result.Status status) {
+        if (PushService.Result.Status.OK == status) {
+            getPushSentCounter().inc();
+        }
+
+        if (PushService.Result.Status.NOT_FOUND == status) {
+            getPushNoDeviceCounter().inc();
+        }
+
+        if (PushService.Result.Status.ERROR == status) {
+            getPushFailedCounter().inc();
+        }
+    }
 
     public static class Result {
 

@@ -26,6 +26,11 @@
             <artifactId>core-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+
         <!-- Testing -->
 
         <dependency>

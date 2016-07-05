@@ -1,10 +1,16 @@
 package com.ecg.de.ebayk.messagecenter.listeners;
 
-import com.ecg.de.ebayk.messagecenter.persistence.PostBoxInitializer;
 import com.ecg.de.ebayk.messagecenter.capi.AdInfoLookup;
-import com.ecg.de.ebayk.messagecenter.pushmessage.PushService;
 import com.ecg.de.ebayk.messagecenter.capi.UserInfoLookup;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.de.ebayk.messagecenter.persistence.PostBoxInitializer;
+import com.ecg.de.ebayk.messagecenter.pushmessage.PushService;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.google.common.base.Optional;
@@ -16,11 +22,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
-
 import static org.joda.time.DateTime.now;
 import static org.joda.time.DateTimeZone.UTC;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PostBoxUpdateListenerTest {
@@ -31,6 +39,8 @@ public class PostBoxUpdateListenerTest {
     @Mock
     private PushService pushService;
     @Mock
+    private PushService sendPushService;
+    @Mock
     private AdInfoLookup adInfoLookup;
     @Mock
     private UserInfoLookup userInfoLookup;
@@ -40,7 +50,7 @@ public class PostBoxUpdateListenerTest {
 
     @Before
     public void setUp() throws Exception {
-        listener = new PostBoxUpdateListener(postBoxInitializer, false, "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, null);
+        listener = new PostBoxUpdateListener(postBoxInitializer, false, "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, 0, null, sendPushService);
 
         convoBuilder = ImmutableConversation.Builder
                 .aConversation()
@@ -55,7 +65,7 @@ public class PostBoxUpdateListenerTest {
                 .withFilterResultState(FilterResultState.OK)
                 .withHumanResultState(ModerationResultState.UNCHECKED)
                 .withHeaders(ImmutableMap.of())
-                .withTextParts(Arrays.asList(""))
+                .withTextParts(ImmutableList.of(""))
                 .withProcessingFeedback(ImmutableList.of())
                 .withLastEditor(Optional.absent());
     }

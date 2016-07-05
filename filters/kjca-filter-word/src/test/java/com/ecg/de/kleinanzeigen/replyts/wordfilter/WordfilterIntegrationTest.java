@@ -3,6 +3,7 @@ package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
@@ -22,9 +23,10 @@ public class WordfilterIntegrationTest {
     @Before
     public void setUp() throws Exception {
         replyTsIntegrationTestRule.registerConfig(WordfilterFactory.class, (ObjectNode) JsonObjects.parse("" +
-                "{'ignoreQuotedRegexps':true,'rules': [{'regexp': 'badword', 'score':2000}," +
-                                                        "{'regexp': 'meanword', 'score':12000}," +
-                                                        "{'regexp': 'badcategoryword', 'score':6000 , 'categoryIds': ['c218', 'c45556565']}]}"));
+                "{'ignoreQuotedRegexps':true,'rules': [" +
+                "{'regexp': 'badword', 'score':2000}," +
+                "{'regexp': 'meanword', 'score':12000}," +
+                "{'regexp': 'badcategoryword', 'score':6000 , 'categoryIds': ['c218', 'c45556565']}]}"));
 
     }
 
@@ -56,8 +58,8 @@ public class WordfilterIntegrationTest {
         processedMail = replyTsIntegrationTestRule.deliver(aNewMail().from("bar@foo.com").to(processedMail.getOutboundMail().getFrom()).htmlBody("this is badword number two"));
 
         ProcessingFeedback feedback = processedMail.getMessage().getProcessingFeedback().get(0);
-        assertEquals("badword",feedback.getUiHint());
-        assertEquals(0l, feedback.getScore().longValue());
+        assertEquals("badword", feedback.getUiHint());
+        assertEquals(0L, feedback.getScore().longValue());
     }
 
     @Test
@@ -69,8 +71,30 @@ public class WordfilterIntegrationTest {
         processedMail = replyTsIntegrationTestRule.deliver(aNewMail().from("bar@foo.com").to(processedMail.getOutboundMail().getFrom()).htmlBody("this is meanword"));
 
         ProcessingFeedback feedback = processedMail.getMessage().getProcessingFeedback().get(0);
-        assertEquals("meanword",feedback.getUiHint());
-        assertEquals(12000l, feedback.getScore().longValue());
+        assertEquals("meanword", feedback.getUiHint());
+        assertEquals(12000L, feedback.getScore().longValue());
+    }
+
+    @Test
+    public void followUpsIgnored() throws Exception {
+        replyTsIntegrationTestRule.getConfigClient()
+                .listConfigurations()
+                .forEach(configuration -> replyTsIntegrationTestRule.deleteConfig(configuration.getConfigurationId()));
+
+        replyTsIntegrationTestRule.registerConfig(WordfilterFactory.class, (ObjectNode) JsonObjects.parse(
+                "{'ignoreFollowUps':true,'rules': [{'regexp': 'badword', 'score':2000}]}")
+        );
+
+        MailBuilder initialReply = aNewMail().uniqueIdentifier("first").adId("1234").from("foo@bar.com").to("bar@foo.com").htmlBody("No problems here");
+        AwaitMailSentProcessedListener.ProcessedMail initialMail = replyTsIntegrationTestRule.deliver(initialReply);
+        assertEquals(0, initialMail.getMessage().getProcessingFeedback().size());
+
+        MailBuilder followUp = aNewMail()
+                .from(initialMail.getConversation().getSellerId())
+                .to(initialMail.getOutboundMail().getFrom())
+                .htmlBody("uh oh. badword here. but should be ignored 'cause it's a follow-up");
+        AwaitMailSentProcessedListener.ProcessedMail followUpMail = replyTsIntegrationTestRule.deliver(followUp);
+        assertEquals(0, followUpMail.getMessage().getProcessingFeedback().size());
     }
 }
 

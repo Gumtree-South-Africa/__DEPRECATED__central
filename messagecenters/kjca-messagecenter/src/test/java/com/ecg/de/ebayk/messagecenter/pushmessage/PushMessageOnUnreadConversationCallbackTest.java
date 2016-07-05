@@ -5,6 +5,7 @@ import com.ecg.de.ebayk.messagecenter.capi.AdInfoLookup;
 import com.ecg.de.ebayk.messagecenter.capi.UserInfoLookup;
 import com.ecg.de.ebayk.messagecenter.persistence.ConversationThread;
 import com.ecg.de.ebayk.messagecenter.persistence.PostBox;
+import com.ecg.de.ebayk.messagecenter.pushmessage.send.SendPushService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -37,14 +38,20 @@ public class PushMessageOnUnreadConversationCallbackTest {
     private PushMessageOnUnreadConversationCallback listener;
 
     private Message message;
-    private PushService pushService;
+    private PushService amqPushService;
+    private PushService sendPushService;
     private PostBox postBox;
+    private Conversation conversation;
+    private AdInfoLookup adInfoLookup;
+    private UserInfoLookup userInfoLookup;
 
     @Before
     public void setUp() {
-        pushService = mock(PushService.class);
+        amqPushService = mock(PushService.class);
+        sendPushService = mock(SendPushService.class);
         PushService.Result result = mock(PushService.Result.class);
-        when(pushService.sendPushMessage(any(PushMessagePayload.class))).thenReturn(result);
+        when(amqPushService.sendPushMessage(any(PushMessagePayload.class))).thenReturn(result);
+        when(sendPushService.sendPushMessage(any(PushMessagePayload.class))).thenReturn(result);
 
         Map<String, ConversationThread> unreadConvs = mock(Map.class);
         when(unreadConvs.size()).thenReturn(10);
@@ -56,7 +63,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         message = mock(Message.class);
         when(message.getPlainTextBody()).thenReturn("message-text");
 
-        Conversation conversation = mock(Conversation.class);
+        conversation = mock(Conversation.class);
         when(conversation.getId()).thenReturn("asdf:asdf");
         when(conversation.getAdId()).thenReturn("123");
         when(conversation.getBuyerId()).thenReturn(BUYER_MAIL);
@@ -64,34 +71,42 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(conversation.getMessages()).thenReturn(ImmutableList.of(message));
 
 
-        AdInfoLookup adInfoLookup = mock(AdInfoLookup.class);
+        adInfoLookup = mock(AdInfoLookup.class);
         AdInfoLookup.AdInfo adInfo = new AdInfoLookup.AdInfo();
         adInfo.setImageUrl("http://image_url");
         adInfo.setTitle("Ad Title");
         when(adInfoLookup.lookupAdInfo(anyLong())).thenReturn(Optional.ofNullable(adInfo));
 
-        UserInfoLookup userInfoLookup = mock(UserInfoLookup.class);
+        userInfoLookup = mock(UserInfoLookup.class);
         when(userInfoLookup.lookupUserInfo(anyString())).thenReturn(Optional.of(new UserInfoLookup.UserInfo("123")));
 
-
-        listener = new PushMessageOnUnreadConversationCallback(pushService, adInfoLookup, userInfoLookup, conversation, message);
+        listener = new PushMessageOnUnreadConversationCallback(0, amqPushService, sendPushService, adInfoLookup, userInfoLookup, conversation, message);
     }
 
     @Test
     public void doNotSendPushMessageIfNoRulesApply() {
         listener.success(postBox, false);
 
-        verify(pushService, never()).sendPushMessage(any(PushMessagePayload.class));
+        verify(amqPushService, never()).sendPushMessage(any(PushMessagePayload.class));
+    }
+
+    @Test
+    public void canSwitchToSendService() throws Exception {
+        listener = new PushMessageOnUnreadConversationCallback(100, amqPushService, sendPushService, adInfoLookup, userInfoLookup, conversation, message);
+        when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
+        when(message.getHeaders()).thenReturn(ImmutableMap.of("From", SELLER_MAIL));
+        listener.success(postBox, true);
+        verify(sendPushService).sendPushMessage(any(PushMessagePayload.class));
+        verify(amqPushService, never()).sendPushMessage(any(PushMessagePayload.class));
     }
 
     @Test
     public void sendPushMessageToBuyer() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "Poster display name <" + SELLER_MAIL + ">"));
-
         listener.success(postBox, true);
 
-        verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
+        verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
             public boolean matches(Object o) {
                 PushMessagePayload payload = (PushMessagePayload) o;
@@ -110,7 +125,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
         listener.success(postBox, true);
 
-        verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
+        verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
             public boolean matches(Object o) {
                 PushMessagePayload payload = (PushMessagePayload) o;
@@ -129,7 +144,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
         listener.success(postBox, true);
 
-        verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
+        verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
             public boolean matches(Object o) {
                 PushMessagePayload payload = (PushMessagePayload) o;
@@ -148,7 +163,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
         listener.success(postBox, true);
 
-        verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
+        verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
             public boolean matches(Object o) {
                 PushMessagePayload payload = (PushMessagePayload) o;
@@ -167,7 +182,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
         listener.success(postBox, true);
 
-        verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
+        verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
             public boolean matches(Object o) {
                 PushMessagePayload payload = (PushMessagePayload) o;
@@ -186,7 +201,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
         listener.success(postBox, true);
 
-        verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
+        verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
             public boolean matches(Object o) {
                 PushMessagePayload payload = (PushMessagePayload) o;
@@ -205,7 +220,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
         listener.success(postBox, true);
 
-        verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
+        verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             private String expectedValue = "Poster display name: " + PushMessageOnUnreadConversationCallback.truncateText(unnecessarilyLongMessage, 50);
             private String payloadMessage;
 
@@ -232,7 +247,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
         listener.success(postBox, true);
 
-        verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
+        verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             private String expectedValue = "Poster display name: " + unnecessarilyLongMessage;
             private String payloadMessage;
 

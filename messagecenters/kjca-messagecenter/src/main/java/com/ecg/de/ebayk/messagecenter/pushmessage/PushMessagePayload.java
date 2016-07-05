@@ -36,6 +36,18 @@ public class PushMessagePayload {
         return details;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getActivity() {
+        return activity;
+    }
+
+    public Optional<Integer> getAlertCounter() {
+        return alertCounter;
+    }
+
     public String asJson() {
         JSONObject json = new JSONObject();
 

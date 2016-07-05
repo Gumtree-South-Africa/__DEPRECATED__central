@@ -1,0 +1,57 @@
+{
+  "event": {
+    "type": "MessageFilteredEvent",
+    "messageId": "3:aqn58e:ihfxk67p",
+    "decidedAt": "2015-11-26T07:42:35.385Z",
+    "filterResultState": "DROPPED",
+    "processingFeedback": [
+      {
+        "@class": "com.ecg.replyts.core.api.model.conversation.ImmutableProcessingFeedback",
+        "filterName": "nl.marktplaats.filter.bankaccount.BankAccountFilterFactory",
+        "filterInstance": "instance-0",
+        "uiHint": "987654321",
+        "description": "baf description",
+        "score": 100,
+        "resultState": "OK",
+        "evaluation": false
+      },
+      {
+        "@class": "com.ecg.replyts.core.api.model.conversation.ImmutableProcessingFeedback",
+        "filterName": "com.ecg.de.kleinanzeigen.replyts.thresholdresultinspector.ThresholdResultInspector",
+        "filterInstance": "instance-0",
+        "uiHint": "DROPPED",
+        "description": "Score exceeded DROPPED threshold",
+        "score": 0,
+        "resultState": "DROPPED",
+        "evaluation": false
+      }
+    ],
+    "eventId": "MessageFilteredEvent-3:aqn58e:ihfxk67p-1448523755385",
+    "conversationModifiedAt": "2015-11-26T07:42:35.385Z",
+    "formatVer": 1
+  },
+  "conversation": {
+    "sellerAnonymousEmail": "s.351367h48ohao@replyts.dev.kjdev.ca",
+    "buyerAnonymousEmail": "b.1l9e2ct9w8obh@replyts.dev.kjdev.ca",
+    "conversationId": "2:aqn58e:ihfxk67p",
+    "adId": "m1000002149",
+    "buyerId": "kjhsddaa@gmail.com",
+    "sellerId": ";ljksfj@hotmail.com",
+    "createdAt": "2015-11-26T07:40:21.843Z",
+    "lastModifiedAt": "2015-11-26T07:42:35.385Z",
+    "state": "ACTIVE",
+    "closed": false,
+    "closedByBuyer": false,
+    "closedBySeller": false,
+    "messageCount": 2,
+    "customValues": {
+      "to-userid": "18887261",
+      "l1-categoryid": "201",
+      "l2-categoryid": "219",
+      "origin": "AURORA",
+      "from": "Buyer",
+      "from-userid": "18887262",
+      "to": "Seller"
+    }
+  }
+}
