@@ -66,35 +66,38 @@ public class VolumeFilterIntegrationTest {
 
     @Test
     public void remembersViolations() throws Exception {
-        rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
-                "    rules: [\n" +
-                "        {\"allowance\": 3, \"perTimeValue\": 4, \"perTimeUnit\": \"SECONDS\", \"score\": 100," +
-                "           \"scoreMemoryDurationValue\": 10, \"scoreMemoryDurationUnit\": \"SECONDS\"}\n" +
-                "    ]\n" +
-                " }"));
+        rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse(
+                "{rules: [" +
+                        "{\"allowance\": 2, " +
+                        "\"perTimeValue\":  8, " +
+                        "\"perTimeUnit\": \"SECONDS\", " +
+                        "\"score\": 100," +
+                        "\"scoreMemoryDurationValue\": 16, " +
+                        "\"scoreMemoryDurationUnit\": \"SECONDS\"}" +
+                        "]}"));
 
-
+        // Send 2 messages, hopefully within 8 seconds
         String from = "foo" + System.currentTimeMillis() + "@bar.com";
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 2; i++) {
             AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
             assertEquals(MessageState.SENT, response.getMessage().getState());
-            rule.waitUntilIndexedInEs(response);
         }
 
+        // We've now violated the quota, so sending another message should fail
         AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
         assertEquals(1, response.getMessage().getProcessingFeedback().size());
 
-        // violation memory window starts
+        // Wait until the quota window has elapsed but the ttl on the in-memory violation store has not yet
+        TimeUnit.SECONDS.sleep(10);
 
-        TimeUnit.SECONDS.sleep(4); // should be long enough to get outside the quota window, but before violation expires
-
+        // The violation has not expired yet, even though we're outside the quota window (due to the ttl), sending a message should fail
         response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
-        assertEquals(1, response.getMessage().getProcessingFeedback().size()); // still remember violation
+        assertEquals(1, response.getMessage().getProcessingFeedback().size());
 
-        TimeUnit.SECONDS.sleep(4); // should be long enough to "forget" the violation
+        // Get outside the ttl
+        TimeUnit.SECONDS.sleep(10);
 
-        // violation memory window ends
-
+        // And we should be able to send messages again
         response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
         assertEquals(MessageState.SENT, response.getMessage().getState());
     }
