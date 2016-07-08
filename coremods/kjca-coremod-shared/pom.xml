@@ -31,6 +31,11 @@
             <artifactId>jersey-media-json-jackson</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.getsentry.raven</groupId>
+            <artifactId>raven-logback</artifactId>
+        </dependency>
+
         <!-- Testing -->
 
         <dependency>
