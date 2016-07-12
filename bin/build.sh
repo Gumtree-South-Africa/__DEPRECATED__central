@@ -13,11 +13,11 @@ readonly CASSANDRA_PID="cassandra.pid"
 readonly CASSANDRA_HOME=$CASSANDRA_DIR
 
 REVISION="$(git rev-parse --short HEAD)"
-
 # Override REVISION in case of an in-progress Gerrit review
 if [[ $(git rev-parse --abbrev-ref HEAD) == review* ]]; then
-    REVISION="gerrit-$(git rev-parse --abbrev-ref HEAD | egrep -o '/[^/]+$' | egrep -o '[0-9]+')"
+    REVISION="gerrit-$(git rev-parse --abbrev-ref HEAD | egrep -o '/[^/]+$' | egrep -o '[a-zA-Z0-9\-]+')"
 fi
+echo "Building revision $REVISION"
 
 # Import a few certificates if we haven't already
 
