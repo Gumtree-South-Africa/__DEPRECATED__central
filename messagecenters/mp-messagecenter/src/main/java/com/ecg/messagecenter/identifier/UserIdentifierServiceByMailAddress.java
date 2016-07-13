@@ -3,7 +3,8 @@ package com.ecg.messagecenter.identifier;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
 
 public class UserIdentifierServiceByMailAddress implements UserIdentifierService {
 
@@ -51,12 +52,12 @@ public class UserIdentifierServiceByMailAddress implements UserIdentifierService
 
     @Override
     public Optional<String> getBuyerUserId(Conversation conversation) {
-        return Optional.fromNullable(conversation.getBuyerId());
+        return Optional.ofNullable(conversation.getBuyerId());
     }
 
     @Override
     public Optional<String> getSellerUserId(Conversation conversation) {
-        return Optional.fromNullable(conversation.getSellerId());
+        return Optional.ofNullable(conversation.getSellerId());
     }
 
     @Override

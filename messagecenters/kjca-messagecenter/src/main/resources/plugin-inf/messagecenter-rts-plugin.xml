@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <import resource="classpath:/msgcenter-context.xml"/>
+    <import resource="classpath:/message-center-jms-context.xml"/>
+    <import resource="classpath:/send-context.xml"/>
+
+    <bean class="com.ecg.messagecenter.listeners.PostBoxUpdateListener"/>
+
+    <bean class="com.ecg.messagecenter.persistence.PostBoxRepository"/>
+    <bean class="com.ecg.messagecenter.persistence.ConversationBlockRepository"/>
+    <bean class="com.ecg.messagecenter.persistence.PostBoxInitializer"/>
+
+    <bean class="com.ecg.messagecenter.webapi.MessageCenterApiConfiguration"/>
+
+    <bean class="com.ecg.messagecenter.cronjobs.PostBoxCleanupCronJob"/>
+    <bean class="com.ecg.messagecenter.cronjobs.ConversationBlockCleanupCronJob"/>
+
+    <bean class="com.ecg.messagecenter.filters.UserBlockedConversationFilterFactory"/>
+
+</beans>

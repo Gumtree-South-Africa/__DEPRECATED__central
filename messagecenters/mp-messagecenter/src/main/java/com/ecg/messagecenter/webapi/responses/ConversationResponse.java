@@ -4,10 +4,10 @@ import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.google.common.base.Optional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ConversationResponse {
 
@@ -49,7 +49,7 @@ public class ConversationResponse {
             response.messages = builtResponse.get();
             return Optional.of(response);
         } else {
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 

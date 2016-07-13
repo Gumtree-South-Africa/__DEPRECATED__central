@@ -8,11 +8,11 @@ import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class PostBoxListItemResponse {
 
@@ -48,16 +48,16 @@ public class PostBoxListItemResponse {
         this.sellerName = conversationThread.getSellerName().isPresent() ? conversationThread.getSellerName().get() : "";
         this.adId = conversationThread.getAdId();
         this.role = userIdentifierService.getRoleFromConversation(userId, conversationThread);
-        this.negotiationId = conversationThread.getNegotiationId().orNull();
-        this.userIdBuyer = conversationThread.getUserIdBuyer().orNull();
-        this.userIdSeller = conversationThread.getUserIdSeller().orNull();
+        this.negotiationId = conversationThread.getNegotiationId().orElse(null);
+        this.userIdBuyer = conversationThread.getUserIdBuyer().orElse(null);
+        this.userIdSeller = conversationThread.getUserIdSeller().orElse(null);
 
         this.lastMessage = new MessageResponse(
-                MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(conversationThread.getLastMessageCreatedAt().or(conversationThread.getReceivedAt())),
+                MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(conversationThread.getLastMessageCreatedAt().orElse(conversationThread.getReceivedAt())),
                 null,
                 ConversationBoundnessFinder.boundnessForRole(this.role, conversationThread.getMessageDirection().get()),
                 conversationThread.getPreviewLastMessage().get(),
-                Optional.<String>absent(),
+                Optional.<String>empty(),
                 Collections.<MessageResponse.Attachment>emptyList());
     }
 
@@ -86,7 +86,7 @@ public class PostBoxListItemResponse {
             return Optional.of(response);
 
         } else {
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 

@@ -8,10 +8,8 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
-import org.joda.time.Minutes;
 import org.joda.time.Seconds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +21,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
@@ -130,7 +129,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                         json_value,
                         unreadCount);
 
-                ctOptional.transform(conversationThreads::add);
+                ctOptional.map(conversationThreads::add);
             });
 
             return new PostBox(postBoxId, conversationThreads);
@@ -173,7 +172,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                 int numUnreadMessages = getConversationUnreadMessagesCount(postBoxId, conversationId);
                 return toConversationThread(postBoxId, row.getString("conversation_id"), row.getString("json_value"), numUnreadMessages);
             } else {
-                return Optional.absent();
+                return Optional.empty();
             }
         }
     }
@@ -291,7 +290,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             return Optional.of(conversationThread);
         } catch (IOException e) {
             LOGGER.error("Could not deserialize post box {} conversation {} json: {}", postboxId, conversationId, jsonValue, e);
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 

@@ -3,11 +3,11 @@ package com.ecg.messagecenter.identifier;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -72,31 +72,31 @@ public class UserIdentifierServiceByUserIdHeadersTest {
 
     @Test
     public void testGetRoleForConversationGivenUserIdWhenEqualsUserIdBuyerThenReturnsRoleBuyer() {
-        when(conversationThread.getUserIdBuyer()).thenReturn(com.google.common.base.Optional.of(123L));
+        when(conversationThread.getUserIdBuyer()).thenReturn(Optional.of(123L));
         assertThat(userIdentifierService.getRoleFromConversation("123", conversationThread), is(ConversationRole.Buyer));
     }
 
     @Test
     public void testGetRoleForConversationGivenUserIdWhenEqualsBuyerIdThenReturnsRoleBuyer() {
-        when(conversationThread.getUserIdBuyer()).thenReturn(com.google.common.base.Optional.of(0L));
-        when(conversationThread.getUserIdSeller()).thenReturn(com.google.common.base.Optional.of(0L));
-        when(conversationThread.getBuyerId()).thenReturn(com.google.common.base.Optional.of("123"));
+        when(conversationThread.getUserIdBuyer()).thenReturn(Optional.of(0L));
+        when(conversationThread.getUserIdSeller()).thenReturn(Optional.of(0L));
+        when(conversationThread.getBuyerId()).thenReturn(Optional.of("123"));
         assertThat(userIdentifierService.getRoleFromConversation("123", conversationThread), is(ConversationRole.Buyer));
     }
 
 
     @Test
     public void testGetRoleForConversationGivenUserIdWhenEqualsUserIdSellerThenReturnsRoleSeller() {
-        when(conversationThread.getUserIdBuyer()).thenReturn(com.google.common.base.Optional.of(0L));
-        when(conversationThread.getUserIdSeller()).thenReturn(com.google.common.base.Optional.of(123L));
+        when(conversationThread.getUserIdBuyer()).thenReturn(Optional.of(0L));
+        when(conversationThread.getUserIdSeller()).thenReturn(Optional.of(123L));
         assertThat(userIdentifierService.getRoleFromConversation("123", conversationThread), is(ConversationRole.Seller));
     }
 
     @Test
     public void testGetRoleForConversationGivenUserIdWhenEqualsSellerIdThenReturnsRoleSeller() {
-        when(conversationThread.getUserIdBuyer()).thenReturn(com.google.common.base.Optional.of(0L));
-        when(conversationThread.getUserIdSeller()).thenReturn(com.google.common.base.Optional.of(0L));
-        when(conversationThread.getBuyerId()).thenReturn(com.google.common.base.Optional.of("000"));
+        when(conversationThread.getUserIdBuyer()).thenReturn(Optional.of(0L));
+        when(conversationThread.getUserIdSeller()).thenReturn(Optional.of(0L));
+        when(conversationThread.getBuyerId()).thenReturn(Optional.of("000"));
         assertThat(userIdentifierService.getRoleFromConversation("123", conversationThread), is(ConversationRole.Seller));
     }
 

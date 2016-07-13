@@ -4,7 +4,6 @@ import com.ecg.replyts.core.api.util.Pairwise;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -21,11 +20,10 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.of;
 import static org.joda.time.DateTime.now;
 
 public class PostBox {
@@ -84,9 +82,9 @@ public class PostBox {
         if (indexToRemove != -1) {
             ConversationThread removed = conversationThreads.remove(indexToRemove);
             this.removedThreads.add(removed.getConversationId());
-            return of(removed);
+            return Optional.of(removed);
         }
-        return absent();
+        return Optional.empty();
     }
 
     public void markConversationUnread(String conversationId, String message) {
@@ -99,7 +97,7 @@ public class PostBox {
     }
 
     public Map<String, ConversationThread> getUnreadConversations() {
-        return getUnreadConversationsInternal(Optional.<Integer>absent());
+        return getUnreadConversationsInternal(Optional.<Integer>empty());
     }
 
     public Map<String, ConversationThread> getUnreadConversationsInternal(Optional<Integer> maxSize) {
@@ -148,10 +146,10 @@ public class PostBox {
     public Optional<ConversationThread> lookupConversation(String conversationId) {
         for (ConversationThread conversationThread : conversationThreads) {
             if (conversationThread.getConversationId().equals(conversationId)) {
-                return of(conversationThread);
+                return Optional.of(conversationThread);
             }
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 
     /**
@@ -184,11 +182,11 @@ public class PostBox {
     private List<ConversationThread> cleanupAndSort(List<ConversationThread> conversationThreads) {
         List<ConversationThread> tmp = cleanupOldConversations(conversationThreads);
 
-        Collections.sort(tmp, (o1, o2) ->
-                DateTimeComparator.getInstance().compare(
-                        o2.getLastMessageCreatedAt().or(o2.getReceivedAt()),
-                        o1.getLastMessageCreatedAt().or(o1.getReceivedAt())
-                ));
+        Collections.sort(tmp, (o1, o2) -> DateTimeComparator.getInstance().compare(
+            o2.getLastMessageCreatedAt().orElse(o2.getReceivedAt()),
+            o1.getLastMessageCreatedAt().orElse(o1.getReceivedAt())
+        ));
+
         return tmp;
     }
 

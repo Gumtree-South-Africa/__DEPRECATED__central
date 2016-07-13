@@ -14,11 +14,12 @@ import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+
+import java.util.Optional;
 
 public class PostBoxUpdateListener implements MessageProcessedListener {
 
@@ -118,7 +119,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         if (newReplyArrived) {
             callbackOptional = createPushMessageCallback(conversation, message);
         } else {
-            callbackOptional = Optional.absent();
+            callbackOptional = Optional.empty();
         }
 
         postBoxService.processNewMessage(userId, conversation, message, role, newReplyArrived, callbackOptional);
@@ -133,7 +134,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                     message
             ));
         } else {
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 }

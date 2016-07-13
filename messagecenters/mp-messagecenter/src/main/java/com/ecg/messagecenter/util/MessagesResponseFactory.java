@@ -9,7 +9,6 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static com.ecg.messagecenter.util.EmailHeaderFolder.unfold;
 
@@ -39,7 +39,7 @@ public class MessagesResponseFactory {
         List<Message> filtered = filterMessages(conv.getMessages(), conv, id);
 
         if (filtered.size() == 0) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         ConversationRole role = userIdentifierService.getRoleFromConversation(id, conv);
@@ -62,7 +62,7 @@ public class MessagesResponseFactory {
 
 
         if (transformedMessages.size() == 0) {
-            return Optional.absent();
+            return Optional.empty();
         } else {
             return Optional.of(Iterables.getLast(transformedMessages));
         }
@@ -72,7 +72,7 @@ public class MessagesResponseFactory {
         List<Message> filtered = filterMessages(messageRts, conv, id);
 
         if (filtered.size() == 0) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         ConversationRole role = userIdentifierService.getRoleFromConversation(id, conv);
@@ -83,7 +83,7 @@ public class MessagesResponseFactory {
         addReplyMessages(role, conv, filtered, transformedMessages);
 
         if (transformedMessages.size() == 0) {
-            return Optional.absent();
+            return Optional.empty();
         } else {
             return Optional.of(transformedMessages);
         }
@@ -117,7 +117,7 @@ public class MessagesResponseFactory {
                         firstMessage.getHeaders().get("X-Offerid"),
                         ConversationBoundnessFinder.boundnessForRole(role, firstMessage.getMessageDirection()),
                         getUserMessage(firstMessage),
-                        Optional.fromNullable(phoneNumber),
+                        Optional.ofNullable(phoneNumber),
                         MessageResponse.Attachment.transform(firstMessage),
                         conv.getBuyerId()));
     }
@@ -131,7 +131,7 @@ public class MessagesResponseFactory {
                             messageRts.get(i).getHeaders().get("X-Offerid"),
                             ConversationBoundnessFinder.boundnessForRole(role, messageRts.get(i).getMessageDirection()),
                             getCleanedMessage(conv, messageRts.get(i)),
-                            Optional.<String>absent(),
+                            Optional.<String>empty(),
                             MessageResponse.Attachment.transform(messageRts.get(i)),
                             messageRts.get(i).getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? conv.getBuyerId() : conv.getSellerId()
                     )

@@ -4,9 +4,9 @@ import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.PostBox;
 import com.ecg.messagecenter.persistence.PostBoxUnreadCounts;
 import com.ecg.messagecenter.persistence.ResponseData;
-import com.google.common.base.Optional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A postbox repository for Cassandra.

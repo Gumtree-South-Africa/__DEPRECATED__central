@@ -10,9 +10,9 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.base.Optional;
 
 import java.util.List;
+import java.util.Optional;
 
 public class PostBoxResponseBuilder {
 
@@ -58,7 +58,7 @@ public class PostBoxResponseBuilder {
         Conversation conversation = conversationRepository.getById(conversationThread.getConversationId());
 
         if (conversation == null) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         LIST_AGGREGATE_MISS.inc();

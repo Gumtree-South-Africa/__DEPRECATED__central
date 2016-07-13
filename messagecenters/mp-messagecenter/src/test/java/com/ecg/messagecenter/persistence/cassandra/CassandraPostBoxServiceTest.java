@@ -7,13 +7,13 @@ import com.ecg.messagecenter.persistence.ResponseData;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
-import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.Builder.aConversation;
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage.Builder.aMessage;
@@ -47,7 +47,7 @@ public class CassandraPostBoxServiceTest {
 
         Conversation conversation = aConversation().withId("id").withAdId("adId").withCreatedAt(creationDateTime).withLastModifiedAt(new DateTime()).withState(ConversationState.ACTIVE).withMessage(messageBuilder).build();
 
-        service.processNewMessage("userId", conversation, messageBuilder.build(), ConversationRole.Seller, false, Optional.absent());
+        service.processNewMessage("userId", conversation, messageBuilder.build(), ConversationRole.Seller, false, Optional.empty());
 
         ResponseData responseData = new ResponseData("userId", "id", creationDateTime, MessageType.ASQ, -1);
         verify(postBoxRepository).addOrUpdateResponseDataAsync(responseData);
@@ -65,7 +65,7 @@ public class CassandraPostBoxServiceTest {
         Conversation conversation = aConversation().withId("id").withAdId("adId").withCreatedAt(creationDateTime).withLastModifiedAt(new DateTime())
                 .withState(ConversationState.ACTIVE).withMessages(Arrays.asList(firstMessageBuilder.build(), secondMessageBuilder.build())).build();
 
-        service.processNewMessage("userId", conversation, secondMessageBuilder.build(), ConversationRole.Seller, false, Optional.absent());
+        service.processNewMessage("userId", conversation, secondMessageBuilder.build(), ConversationRole.Seller, false, Optional.empty());
 
         ResponseData responseData = new ResponseData("userId", "id", creationDateTime, MessageType.ASQ, 10);
         verify(postBoxRepository).addOrUpdateResponseDataAsync(responseData);
@@ -84,7 +84,7 @@ public class CassandraPostBoxServiceTest {
         Conversation conversation = aConversation().withId("id").withAdId("adId").withCreatedAt(creationDateTime).withLastModifiedAt(new DateTime())
                 .withState(ConversationState.ACTIVE).withMessages(Arrays.asList(firstMessageBuilder.build(), secondMessageBuilder.build(), thirdMessageBuilder.build())).build();
 
-        service.processNewMessage("userId", conversation, thirdMessageBuilder.build(), ConversationRole.Seller, false, Optional.absent());
+        service.processNewMessage("userId", conversation, thirdMessageBuilder.build(), ConversationRole.Seller, false, Optional.empty());
 
         ResponseData responseData = new ResponseData("userId", "id", creationDateTime, MessageType.ASQ, 10);
         verify(postBoxRepository, never()).addOrUpdateResponseDataAsync(responseData);
@@ -100,7 +100,7 @@ public class CassandraPostBoxServiceTest {
 
         Conversation conversation = aConversation().withId("id").withAdId("adId").withCreatedAt(creationDateTime).withLastModifiedAt(new DateTime()).withState(ConversationState.ACTIVE).withMessage(messageBuilder).build();
 
-        service.processNewMessage("userId", conversation, messageBuilder.build(), ConversationRole.Seller, false, Optional.absent());
+        service.processNewMessage("userId", conversation, messageBuilder.build(), ConversationRole.Seller, false, Optional.empty());
 
         ResponseData responseData = new ResponseData("userId", "id", creationDateTime, MessageType.ASQ, -1);
         verify(postBoxRepository, never()).addOrUpdateResponseDataAsync(responseData);
@@ -116,7 +116,7 @@ public class CassandraPostBoxServiceTest {
 
         Conversation conversation = aConversation().withId("id").withAdId("adId").withCreatedAt(creationDateTime).withLastModifiedAt(new DateTime()).withState(ConversationState.ACTIVE).withMessage(messageBuilder).build();
 
-        service.processNewMessage("userId", conversation, messageBuilder.build(), ConversationRole.Buyer, false, Optional.absent());
+        service.processNewMessage("userId", conversation, messageBuilder.build(), ConversationRole.Buyer, false, Optional.empty());
 
         ResponseData responseData = new ResponseData("userId", "id", creationDateTime, MessageType.ASQ, -1);
         verify(postBoxRepository, never()).addOrUpdateResponseDataAsync(responseData);

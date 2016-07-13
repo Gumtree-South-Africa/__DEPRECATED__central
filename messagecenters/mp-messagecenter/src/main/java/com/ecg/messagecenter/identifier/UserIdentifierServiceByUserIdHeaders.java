@@ -3,7 +3,8 @@ package com.ecg.messagecenter.identifier;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
 
 public class UserIdentifierServiceByUserIdHeaders implements UserIdentifierService {
 
@@ -24,13 +25,13 @@ public class UserIdentifierServiceByUserIdHeaders implements UserIdentifierServi
     @Override
     public Optional<String> getUserIdentificationOfConversation(Conversation conversation, ConversationRole role) {
         String customValueName = role == ConversationRole.Buyer ? getBuyerUserIdName() : getSellerUserIdName();
-        return Optional.fromNullable(conversation.getCustomValues().get(customValueName));
+        return Optional.ofNullable(conversation.getCustomValues().get(customValueName));
     }
 
     @Override
     public ConversationRole getRoleFromConversation(String id, Conversation conversation) {
-        Optional<String> buyerId = Optional.fromNullable(conversation.getCustomValues().get(getBuyerUserIdName()));
-        Optional<String> sellerId = Optional.fromNullable(conversation.getCustomValues().get(getSellerUserIdName()));
+        Optional<String> buyerId = Optional.ofNullable(conversation.getCustomValues().get(getBuyerUserIdName()));
+        Optional<String> sellerId = Optional.ofNullable(conversation.getCustomValues().get(getSellerUserIdName()));
 
 
         if (buyerId.isPresent() && buyerId.get().equals(id)) {
@@ -61,12 +62,12 @@ public class UserIdentifierServiceByUserIdHeaders implements UserIdentifierServi
 
     @Override
     public Optional<String> getBuyerUserId(Conversation conversation) {
-        return Optional.fromNullable(conversation.getCustomValues().get(getBuyerUserIdName()));
+        return Optional.ofNullable(conversation.getCustomValues().get(getBuyerUserIdName()));
     }
 
     @Override
     public Optional<String> getSellerUserId(Conversation conversation) {
-        return Optional.fromNullable(conversation.getCustomValues().get(getSellerUserIdName()));
+        return Optional.ofNullable(conversation.getCustomValues().get(getSellerUserIdName()));
     }
 
     @Override

@@ -85,6 +85,8 @@
                 <module>core-runtime</module>
                 <module>core-graphite</module>
 
+                <module>messagecenters/core-messagecenter</module>
+
                 <module>integration-tests/core-integration-test-api</module>
                 <module>integration-tests/core-integration-test</module>
             </modules>
@@ -521,6 +523,12 @@
                 <groupId>org.jolokia</groupId>
                 <artifactId>jolokia-spring</artifactId>
                 <version>${jolokia-spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ecg.comaas</groupId>
+                <artifactId>core-messagecenter</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>

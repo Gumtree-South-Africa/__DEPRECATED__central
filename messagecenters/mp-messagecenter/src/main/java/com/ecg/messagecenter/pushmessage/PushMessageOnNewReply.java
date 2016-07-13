@@ -6,13 +6,13 @@ import com.ecg.messagecenter.util.PushNotificationTextShortener;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import org.elasticsearch.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
@@ -92,7 +92,7 @@ public class PushMessageOnNewReply implements NewMessageListener {
                         ImmutableMap.of("conversationId", conversation.getId()),
                         Optional.of(unreadCount),
                         Optional.of(gcmDetails(conversation, message)),
-                        Optional.<Map<String, String>>absent())
+                        Optional.<Map<String, String>>empty())
         );
     }
 

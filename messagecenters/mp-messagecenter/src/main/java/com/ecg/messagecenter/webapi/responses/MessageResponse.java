@@ -1,15 +1,18 @@
 package com.ecg.messagecenter.webapi.responses;
 
+import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.net.MediaType;
+import org.joda.time.DateTime;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.Optional;
 
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 
@@ -120,5 +123,4 @@ public class MessageResponse {
             return ImmutableList.copyOf(attachments);
         }
     }
-
 }

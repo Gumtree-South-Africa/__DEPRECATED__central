@@ -22,6 +22,11 @@
 
         <dependency>
             <groupId>ecg.comaas</groupId>
+            <artifactId>core-messagecenter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ecg.comaas</groupId>
             <artifactId>kjca-coremod-shared</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.pushmessage;
 
-import com.google.common.base.Optional;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -14,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+
+import java.util.Optional;
 
 import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
 
@@ -83,11 +84,11 @@ public class PushService {
 
 
         public static Result ok(PushMessagePayload payload) {
-            return new Result(payload, Status.OK, Optional.<Exception>absent());
+            return new Result(payload, Status.OK, Optional.<Exception>empty());
         }
 
         public static Result notFound(PushMessagePayload payload) {
-            return new Result(payload, Status.NOT_FOUND, Optional.<Exception>absent());
+            return new Result(payload, Status.NOT_FOUND, Optional.<Exception>empty());
         }
 
         public static Result error(PushMessagePayload payload, Exception e) {

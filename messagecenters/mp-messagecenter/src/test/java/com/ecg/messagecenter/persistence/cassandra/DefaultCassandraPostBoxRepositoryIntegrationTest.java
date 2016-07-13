@@ -5,7 +5,6 @@ import com.datastax.driver.core.Session;
 import com.ecg.messagecenter.persistence.*;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
-import com.google.common.base.Optional;
 import com.jayway.awaitility.Duration;
 import org.joda.time.DateTime;
 import org.junit.After;
@@ -14,6 +13,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.jayway.awaitility.Awaitility.await;
 import static com.jayway.awaitility.pollinterval.FibonacciPollInterval.fibonacci;
@@ -172,8 +172,8 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
                     "adId", "conversationId" + i,
                     receivedAt, receivedAt, receivedAt, i,
                     Optional.of("Message"), Optional.of("buyer name"), Optional.of("seller name"),
-                    Optional.of("buyerId"), Optional.of("sellerId"), Optional.<Long>absent(),
-                    Optional.<Long>absent(), Optional.<Long>absent(), Optional.of(receivedAt));
+                    Optional.of("buyerId"), Optional.of("sellerId"), Optional.<Long>empty(),
+                    Optional.<Long>empty(), Optional.<Long>empty(), Optional.of(receivedAt));
             conversations.add(ct);
         }
         return new PostBox(postBoxId, conversations);

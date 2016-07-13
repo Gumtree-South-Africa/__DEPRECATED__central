@@ -1,10 +1,10 @@
 package com.ecg.messagecenter.pushmessage;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import net.sf.json.JSONObject;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class PushMessagePayload {
 
@@ -17,7 +17,7 @@ public class PushMessagePayload {
     private final Optional<Map<String, String>> apnsDetails;
 
     public PushMessagePayload(String userId, String message, String activity, Map<String, String> details) {
-        this(userId, message, activity, details, Optional.<Long>absent(), Optional.<Map<String, String>>absent(), Optional.<Map<String, String>>absent());
+        this(userId, message, activity, details, Optional.<Long>empty(), Optional.<Map<String, String>>empty(), Optional.<Map<String, String>>empty());
     }
 
     public PushMessagePayload(String userId, String message, String activity, Map<String, String> details, Optional<Long> alertCounter, Optional<Map<String, String>> gcmDetails, Optional<Map<String, String>> apnsDetails) {

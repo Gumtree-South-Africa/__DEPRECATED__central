@@ -11,11 +11,15 @@
     </parent>
 
     <dependencies>
-
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>core-messagecenter</artifactId>
         </dependency>
 
         <dependency>

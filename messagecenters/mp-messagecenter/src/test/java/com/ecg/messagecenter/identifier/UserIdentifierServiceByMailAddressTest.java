@@ -3,9 +3,10 @@ package com.ecg.messagecenter.identifier;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -55,14 +56,14 @@ public class UserIdentifierServiceByMailAddressTest {
 
     @Test
     public void testBuyerRoleForThread() {
-        when(conversationThread.getBuyerId()).thenReturn(com.google.common.base.Optional.of("buyeR@buyer.de"));
+        when(conversationThread.getBuyerId()).thenReturn(Optional.of("buyeR@buyer.de"));
         ConversationRole role = userIdentifierService.getRoleFromConversation("buyer@buyer.de", conversationThread);
         assertThat(role, is(ConversationRole.Buyer));
     }
 
     @Test
     public void testSellerRoleForThread() {
-        when(conversationThread.getBuyerId()).thenReturn(com.google.common.base.Optional.of("buyeR@buyer.de"));
+        when(conversationThread.getBuyerId()).thenReturn(Optional.of("buyeR@buyer.de"));
         ConversationRole role = userIdentifierService.getRoleFromConversation("selleR@seller.de", conversationThread);
         assertThat(role, is(ConversationRole.Seller));
     }

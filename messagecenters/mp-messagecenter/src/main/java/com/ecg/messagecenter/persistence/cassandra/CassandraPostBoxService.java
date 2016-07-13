@@ -12,7 +12,7 @@ import com.ecg.messagecenter.persistence.ResponseData;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.base.Optional;
+import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +20,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
+import java.util.Optional;
 
-import static com.google.common.base.Optional.absent;
 import static org.joda.time.DateTime.now;
 
 public class CassandraPostBoxService implements PostBoxService {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraPostBoxService.class);
 
     private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
@@ -65,6 +64,11 @@ public class CassandraPostBoxService implements PostBoxService {
             return;
         }
 
+        Optional<DateTime> lastMessageCreatedAt = Optional.<DateTime>ofNullable(newMessage.getReceivedAt());
+
+        if (!lastMessageCreatedAt.isPresent())
+            lastMessageCreatedAt = Optional.ofNullable(conversation.getLastModifiedAt());
+
         ConversationThread newConversationThread = new ConversationThread(
                 conversation.getAdId(),
                 conversation.getId(),
@@ -78,12 +82,12 @@ public class CassandraPostBoxService implements PostBoxService {
                 extractPreviewLastMessage(conversation, newMessage),
                 customValue(conversation, "buyer-name"),
                 customValue(conversation, "seller-name"),
-                Optional.fromNullable(conversation.getBuyerId()),
-                Optional.fromNullable(newMessage.getMessageDirection().name()),
+                Optional.<String>ofNullable(conversation.getBuyerId()),
+                Optional.<String>ofNullable(newMessage.getMessageDirection().name()),
                 customValueAsLong(conversation, "negotiationid"),
                 customValueAsLong(conversation, userIdentifierService.getBuyerUserIdName()),
                 customValueAsLong(conversation, userIdentifierService.getSellerUserIdName()),
-                Optional.fromNullable(newMessage.getReceivedAt()).or(Optional.of(conversation.getLastModifiedAt())));
+                lastMessageCreatedAt);
 
         postBoxRepository.addReplaceConversationThread(postBoxId, newConversationThread);
 
@@ -103,7 +107,7 @@ public class CassandraPostBoxService implements PostBoxService {
     public Optional<ConversationResponse> getConversation(String postBoxId, String conversationId) {
         Conversation conversation = conversationRepository.getById(conversationId);
         if (conversation == null) {
-            return absent();
+            return Optional.empty();
         }
 
         int unreadMessagesCount = postBoxRepository.getConversationUnreadMessagesCount(postBoxId, conversationId);
@@ -115,7 +119,7 @@ public class CassandraPostBoxService implements PostBoxService {
     public Optional<ConversationResponse> markConversationAsRead(String postBoxId, String conversationId) {
         Conversation conversation = conversationRepository.getById(conversationId);
         if (conversation == null) {
-            return absent();
+            return Optional.empty();
         }
 
         postBoxRepository.resetConversationUnreadMessagesCountAsync(postBoxId, conversationId);
@@ -130,7 +134,7 @@ public class CassandraPostBoxService implements PostBoxService {
             return responseOptional;
         } else {
             LOGGER.info("Postbox {}, conversation {} contains no visible messages", postBoxId, conversation.getId());
-            return absent();
+            return Optional.empty();
         }
     }
 
@@ -187,11 +191,11 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     private Optional<String> customValue(Conversation conversation, String customValueKey) {
-        return Optional.fromNullable(conversation.getCustomValues().get(customValueKey));
+        return Optional.ofNullable(conversation.getCustomValues().get(customValueKey));
     }
 
     private Optional<Long> customValueAsLong(Conversation conversation, String customValueKey) {
-        return customValue(conversation, customValueKey).transform(Long::valueOf);
+        return customValue(conversation, customValueKey).map(Long::valueOf);
     }
 
     private Optional<String> extractPreviewLastMessage(Conversation conversation, Message message) {

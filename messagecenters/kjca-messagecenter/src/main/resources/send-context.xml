@@ -5,12 +5,12 @@
 
     <bean id="metricRegistry" class="com.codahale.metrics.MetricRegistry"/>
 
-    <bean id="serviceDiscoveryConfig" class="com.ecg.de.ebayk.messagecenter.pushmessage.send.discovery.ServiceDiscoveryConfig">
+    <bean id="serviceDiscoveryConfig" class="com.ecg.messagecenter.pushmessage.send.discovery.ServiceDiscoveryConfig">
         <constructor-arg ref="metricRegistry"/>
     </bean>
 
-    <bean id="sendClient" class="com.ecg.de.ebayk.messagecenter.pushmessage.send.client.SendClient"/>
+    <bean id="sendClient" class="com.ecg.messagecenter.pushmessage.send.client.SendClient"/>
 
-    <bean id="sendPushService" class="com.ecg.de.ebayk.messagecenter.pushmessage.send.SendPushService"/>
+    <bean id="sendPushService" class="com.ecg.messagecenter.pushmessage.send.SendPushService"/>
 
 </beans>

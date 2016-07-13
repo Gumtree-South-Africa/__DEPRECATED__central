@@ -23,7 +23,6 @@ from logback-test.xml.
         </encoder>
     </appender>
 
-    <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
     <logger name="com.ecg.messagecenter" level="INFO"/>
 
     <logger name="com.ecg.replyts" level="DEBUG"/>

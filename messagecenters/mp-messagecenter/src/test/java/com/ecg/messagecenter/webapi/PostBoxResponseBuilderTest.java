@@ -7,7 +7,6 @@ import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
-import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,6 +17,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -47,27 +47,27 @@ public class PostBoxResponseBuilderTest {
     public void buildsPostBoxResponse() {
         ConversationThread conversationThread = mock(ConversationThread.class);
         when(conversationThread.containsNewListAggregateData()).thenReturn(true);
-        when(conversationThread.getBuyerName()).thenReturn(Optional.absent());
-        when(conversationThread.getSellerName()).thenReturn(Optional.absent());
+        when(conversationThread.getBuyerName()).thenReturn(Optional.empty());
+        when(conversationThread.getSellerName()).thenReturn(Optional.empty());
         when(conversationThread.getNegotiationId()).thenReturn(Optional.of(1L));
         when(conversationThread.getUserIdBuyer()).thenReturn(Optional.of(BUYER_ID));
         when(conversationThread.getUserIdSeller()).thenReturn(Optional.of(SELLER_ID));
         when(conversationThread.getMessageDirection()).thenReturn(Optional.of(MessageDirection.BUYER_TO_SELLER.name()));
         when(conversationThread.getReceivedAt()).thenReturn(RECEIVED_DATE);
-        when(conversationThread.getLastMessageCreatedAt()).thenReturn(Optional.absent());
+        when(conversationThread.getLastMessageCreatedAt()).thenReturn(Optional.empty());
         when(conversationThread.getPreviewLastMessage()).thenReturn(Optional.of(LAST_MESSAGE));
         when(userIdentifierService.getRoleFromConversation(USER_ID, conversationThread)).thenReturn(ConversationRole.Buyer);
 
         ConversationThread conversationThreadWithoutData = mock(ConversationThread.class);
         when(conversationThreadWithoutData.containsNewListAggregateData()).thenReturn(false);
-        when(conversationThreadWithoutData.getBuyerName()).thenReturn(Optional.absent());
-        when(conversationThreadWithoutData.getSellerName()).thenReturn(Optional.absent());
+        when(conversationThreadWithoutData.getBuyerName()).thenReturn(Optional.empty());
+        when(conversationThreadWithoutData.getSellerName()).thenReturn(Optional.empty());
         when(conversationThreadWithoutData.getNegotiationId()).thenReturn(Optional.of(2L));
         when(conversationThreadWithoutData.getUserIdBuyer()).thenReturn(Optional.of(BUYER_ID));
         when(conversationThreadWithoutData.getUserIdSeller()).thenReturn((Optional.of(SELLER_ID)));
         when(conversationThreadWithoutData.getMessageDirection()).thenReturn(Optional.of(MessageDirection.BUYER_TO_SELLER.name()));
         when(conversationThreadWithoutData.getReceivedAt()).thenReturn(RECEIVED_DATE);
-        when(conversationThreadWithoutData.getLastMessageCreatedAt()).thenReturn(Optional.absent());
+        when(conversationThreadWithoutData.getLastMessageCreatedAt()).thenReturn(Optional.empty());
         when(conversationThreadWithoutData.getPreviewLastMessage()).thenReturn(Optional.of(LAST_MESSAGE));
         when(userIdentifierService.getRoleFromConversation(USER_ID, conversationThreadWithoutData)).thenReturn(ConversationRole.Seller);
         List<ConversationThread> conversationThreadList = Arrays.asList(conversationThread, conversationThreadWithoutData);

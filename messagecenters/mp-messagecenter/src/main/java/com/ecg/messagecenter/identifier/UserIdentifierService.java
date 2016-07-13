@@ -3,7 +3,8 @@ package com.ecg.messagecenter.identifier;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
 
 /**
  * Created by beckart on 15.10.15.

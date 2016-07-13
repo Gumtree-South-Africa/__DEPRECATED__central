@@ -5,9 +5,9 @@ import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.google.common.base.Optional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PostBoxService {
 
