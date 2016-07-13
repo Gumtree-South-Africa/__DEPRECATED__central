@@ -13,9 +13,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by beckart on 15.10.15.
- */
 public class UserIdentifierServiceByMailAddressTest {
 
     private Conversation conversation = mock(Conversation.class);

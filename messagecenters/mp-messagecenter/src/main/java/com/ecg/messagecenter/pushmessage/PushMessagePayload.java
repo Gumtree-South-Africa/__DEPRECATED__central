@@ -17,10 +17,11 @@ public class PushMessagePayload {
     private final Optional<Map<String, String>> apnsDetails;
 
     public PushMessagePayload(String userId, String message, String activity, Map<String, String> details) {
-        this(userId, message, activity, details, Optional.<Long>empty(), Optional.<Map<String, String>>empty(), Optional.<Map<String, String>>empty());
+        this(userId, message, activity, details, Optional.empty(), Optional.empty(), Optional.empty());
     }
 
-    public PushMessagePayload(String userId, String message, String activity, Map<String, String> details, Optional<Long> alertCounter, Optional<Map<String, String>> gcmDetails, Optional<Map<String, String>> apnsDetails) {
+    public PushMessagePayload(String userId, String message, String activity, Map<String, String> details, Optional<Long> alertCounter,
+                              Optional<Map<String, String>> gcmDetails, Optional<Map<String, String>> apnsDetails) {
         if (details == null) {
             details = Maps.newHashMap();
         }

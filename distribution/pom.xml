@@ -204,11 +204,6 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-postprocessor-negotiations</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>ebayk-postprocessor-buyeralias</artifactId>
                     <version>${project.version}</version>
                 </dependency>

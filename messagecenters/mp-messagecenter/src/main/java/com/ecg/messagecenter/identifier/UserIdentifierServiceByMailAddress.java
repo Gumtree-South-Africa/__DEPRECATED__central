@@ -24,9 +24,9 @@ public class UserIdentifierServiceByMailAddress implements UserIdentifierService
 
     @Override
     public Optional<String> getUserIdentificationOfConversation(Conversation conversation, ConversationRole role) {
-        if(role == ConversationRole.Buyer) {
+        if (role == ConversationRole.Buyer) {
             return getBuyerUserId(conversation);
-        } else if(role == ConversationRole.Seller) {
+        } else if (role == ConversationRole.Seller) {
             return getSellerUserId(conversation);
         } else {
             throw new IllegalArgumentException("Invalid role " + role);
@@ -36,12 +36,12 @@ public class UserIdentifierServiceByMailAddress implements UserIdentifierService
     @Override
     public ConversationRole getRoleFromConversation(String id, Conversation conversation) {
 
-        if(conversation.getBuyerId().toLowerCase().equals(id.toLowerCase())) {
+        if (conversation.getBuyerId().toLowerCase().equals(id.toLowerCase())) {
             return ConversationRole.Buyer;
-        } else if(conversation.getSellerId().toLowerCase().equals(id.toLowerCase())) {
+        } else if (conversation.getSellerId().toLowerCase().equals(id.toLowerCase())) {
             return ConversationRole.Seller;
         } else {
-            throw new IllegalArgumentException("buyer or seller id " + id  + " is not found in conversation " + conversation.getId());
+            throw new IllegalArgumentException("buyer or seller id " + id + " is not found in conversation " + conversation.getId());
         }
     }
 

@@ -131,7 +131,7 @@ public class MessagesResponseFactory {
                             messageRts.get(i).getHeaders().get("X-Offerid"),
                             ConversationBoundnessFinder.boundnessForRole(role, messageRts.get(i).getMessageDirection()),
                             getCleanedMessage(conv, messageRts.get(i)),
-                            Optional.<String>empty(),
+                            Optional.empty(),
                             MessageResponse.Attachment.transform(messageRts.get(i)),
                             messageRts.get(i).getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? conv.getBuyerId() : conv.getSellerId()
                     )

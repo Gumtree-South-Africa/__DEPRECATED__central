@@ -2,18 +2,14 @@ package com.ecg.messagecenter.pushmessage;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-
 import java.util.Optional;
 
 import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
@@ -33,25 +29,19 @@ public class PushService {
     public Result sendPushMessage(final PushMessagePayload payload) {
 
         try {
-
             HttpRequest request = buildRequest(payload);
-            return httpClient.execute(mobilepushHost, request, new ResponseHandler<Result>() {
-                @Override
-                public Result handleResponse(HttpResponse response) throws IOException {
-                    int code = response.getStatusLine().getStatusCode();
-                    switch (code) {
-                        case 200:
-                            return Result.ok(payload);
-                        case 404:
-                            return Result.notFound(payload);
-                        default:
-                            // application wise only 200 (sending success) + 404 (non-registered device) make sense to us
-                            return Result.error(payload, new RuntimeException("Unexpected response: " + response.getStatusLine()));
-                    }
+            return httpClient.execute(mobilepushHost, request, response -> {
+                int code = response.getStatusLine().getStatusCode();
+                switch (code) {
+                    case 200:
+                        return Result.ok(payload);
+                    case 404:
+                        return Result.notFound(payload);
+                    default:
+                        // application wise only 200 (sending success) + 404 (non-registered device) make sense to us
+                        return Result.error(payload, new RuntimeException("Unexpected response: " + response.getStatusLine()));
                 }
             });
-
-
         } catch (Exception e) {
             return Result.error(payload, e);
         }
@@ -84,11 +74,11 @@ public class PushService {
 
 
         public static Result ok(PushMessagePayload payload) {
-            return new Result(payload, Status.OK, Optional.<Exception>empty());
+            return new Result(payload, Status.OK, Optional.empty());
         }
 
         public static Result notFound(PushMessagePayload payload) {
-            return new Result(payload, Status.NOT_FOUND, Optional.<Exception>empty());
+            return new Result(payload, Status.NOT_FOUND, Optional.empty());
         }
 
         public static Result error(PushMessagePayload payload, Exception e) {
@@ -107,5 +97,4 @@ public class PushService {
             return e;
         }
     }
-
 }

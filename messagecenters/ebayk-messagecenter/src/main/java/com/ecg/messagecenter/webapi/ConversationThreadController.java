@@ -136,7 +136,6 @@ class ConversationThreadController {
                         item.getSellerName(),
                         item.getBuyerId(),
                         item.getMessageDirection(),
-                        item.getNegotiationId(),
                         item.getUserIdBuyer(),
                         item.getUserIdSeller())
                 );

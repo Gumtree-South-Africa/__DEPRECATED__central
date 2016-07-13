@@ -14,18 +14,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * User: maldana
- * Date: 30.10.13
- * Time: 17:14
- *
- * @author maldana@ebay.de
- */
 public class PostBoxListItemResponse {
 
     private String email;
     private String id;
-    private Long negotiationId;
     private String buyerName;
     private String sellerName;
     private String adId;
@@ -56,9 +48,9 @@ public class PostBoxListItemResponse {
                 conversationThread.getRobot(),
                 ConversationBoundnessFinder.boundnessForRole(this.role, conversationThread.getMessageDirection().get()),
                 conversationThread.getPreviewLastMessage().get(),
-                Optional.<String>empty(),
-                Collections.<MessageResponse.Attachment>emptyList(),
-                Collections.<MessageResponse.MessageLink>emptyList());
+                Optional.empty(),
+                Collections.emptyList(),
+                Collections.emptyList());
     }
 
     // old style lookup when we didn't have a complete search aggregate on the list-view
@@ -130,7 +122,7 @@ public class PostBoxListItemResponse {
     }
 
     public List<String> getAttachments() {
-        return attachments == null ? Collections.<String>emptyList() : attachments;
+        return attachments == null ? Collections.emptyList() : attachments;
     }
 
     public String getRobot() {

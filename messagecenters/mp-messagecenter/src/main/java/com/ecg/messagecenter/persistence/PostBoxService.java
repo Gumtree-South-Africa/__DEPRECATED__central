@@ -16,7 +16,7 @@ public interface PostBoxService {
                            Message message,
                            ConversationRole conversationRole,
                            boolean newReplyArrived,
-                           Optional<NewMessageListener> postBoxWriteCallback);
+                           Optional<NewMessageListener> newMessageListener);
 
     Optional<ConversationResponse> getConversation(String postBoxId, String conversationId);
 

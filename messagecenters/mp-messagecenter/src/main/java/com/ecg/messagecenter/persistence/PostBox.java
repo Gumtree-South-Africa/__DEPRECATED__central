@@ -7,7 +7,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
@@ -62,10 +61,8 @@ public class PostBox {
     }
 
     public List<ConversationThread> getConversationThreads() {
-        // TODO: what limit applies to Cassandra?
-        return FluentIterable.from(conversationThreads)
-                .limit(500) // we cap to 500 to not kill riak for very large objects
-                .toList();
+        // we cap to 500 to not kill riak for very large objects
+        return conversationThreads.stream().limit(500).collect(Collectors.toList());
     }
 
     public void removeConversations(List<String> conversationIds) {
@@ -119,10 +116,7 @@ public class PostBox {
     }
 
     public List<ConversationThread> getConversationThreadsCapTo(int page, int maxSize) {
-        return FluentIterable.from(conversationThreads)
-                .skip(page * maxSize)
-                .limit(maxSize)
-                .toList();
+        return conversationThreads.stream().skip(page * maxSize).limit(maxSize).collect(Collectors.toList());
     }
 
     public String getUserId() {
@@ -182,11 +176,11 @@ public class PostBox {
     private List<ConversationThread> cleanupAndSort(List<ConversationThread> conversationThreads) {
         List<ConversationThread> tmp = cleanupOldConversations(conversationThreads);
 
-        Collections.sort(tmp, (o1, o2) -> DateTimeComparator.getInstance().compare(
-            o2.getLastMessageCreatedAt().orElse(o2.getReceivedAt()),
-            o1.getLastMessageCreatedAt().orElse(o1.getReceivedAt())
-        ));
-
+        Collections.sort(tmp, (o1, o2) ->
+                DateTimeComparator.getInstance().compare(
+                        o2.getLastMessageCreatedAt().orElse(o2.getReceivedAt()),
+                        o1.getLastMessageCreatedAt().orElse(o1.getReceivedAt())
+                ));
         return tmp;
     }
 

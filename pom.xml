@@ -171,7 +171,6 @@
 
                 <module>postprocessors/ebayk-postprocessor-buyeralias</module>
                 <module>postprocessors/ebayk-postprocessor-linkproxy</module>
-                <module>postprocessors/ebayk-postprocessor-negotiations</module>
                 <module>postprocessors/ebayk-postprocessor-openimmodeanonymizer</module>
 
                 <module>messagecenters/ebayk-messagecenter</module>

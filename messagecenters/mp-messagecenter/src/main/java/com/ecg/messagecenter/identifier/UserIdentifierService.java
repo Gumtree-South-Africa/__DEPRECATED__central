@@ -6,9 +6,6 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 
 import java.util.Optional;
 
-/**
- * Created by beckart on 15.10.15.
- */
 public interface UserIdentifierService {
 
     String DEFAULT_SELLER_USER_ID_NAME = "user-id-seller";

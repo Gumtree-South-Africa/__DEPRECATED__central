@@ -5,7 +5,6 @@ import org.joda.time.DateTime;
 import java.util.Optional;
 
 public class ConversationThread extends AbstractConversationThread {
-    private final Optional<Long> negotiationId;
     private final Optional<Long> userIdBuyer;
     private final Optional<Long> userIdSeller;
 
@@ -21,7 +20,6 @@ public class ConversationThread extends AbstractConversationThread {
             Optional<String> sellerName,
             Optional<String> buyerId,
             Optional<String> messageDirection,
-            Optional<Long> negotiationId,
             Optional<Long> userIdBuyer,
             Optional<Long> userIdSeller) {
         super(
@@ -38,7 +36,6 @@ public class ConversationThread extends AbstractConversationThread {
                 messageDirection
         );
 
-        this.negotiationId = negotiationId;
         this.userIdBuyer = userIdBuyer;
         this.userIdSeller = userIdSeller;
     }
@@ -50,15 +47,11 @@ public class ConversationThread extends AbstractConversationThread {
         if (!actualMessage.isPresent())
             actualMessage = previewLastMessage;
 
-        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), true, actualMessage, buyerName, sellerName, buyerId, messageDirection, negotiationId, userIdSeller, userIdBuyer);
+        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), true, actualMessage, buyerName, sellerName, buyerId, messageDirection, userIdSeller, userIdBuyer);
     }
 
     public boolean containsNewListAggregateData() {
         return previewLastMessage.isPresent() && messageDirection.isPresent();
-    }
-
-    public Optional<Long> getNegotiationId() {
-        return negotiationId;
     }
 
     public Optional<Long> getUserIdSeller() {

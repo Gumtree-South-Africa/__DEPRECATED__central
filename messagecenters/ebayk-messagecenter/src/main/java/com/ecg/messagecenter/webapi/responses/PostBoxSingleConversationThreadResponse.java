@@ -10,13 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
-* User: maldana
-* Date: 30.10.13
-* Time: 17:14
-*
-* @author maldana@ebay.de
-*/
 public class PostBoxSingleConversationThreadResponse {
 
     private String id;
@@ -28,9 +21,8 @@ public class PostBoxSingleConversationThreadResponse {
     private Long userIdBuyer;
     private Long userIdSeller;
     private String adId;
-    private List<MessageResponse> messages = new ArrayList<MessageResponse>();
+    private List<MessageResponse> messages = new ArrayList<>();
     private long numUnread;
-    private String negotiationId;
 
 
     private PostBoxSingleConversationThreadResponse() {
@@ -39,7 +31,6 @@ public class PostBoxSingleConversationThreadResponse {
     public static Optional<PostBoxSingleConversationThreadResponse> create(long numUnread, String email, Conversation conversationRts) {
         PostBoxSingleConversationThreadResponse response = new PostBoxSingleConversationThreadResponse();
         response.id = conversationRts.getId();
-        response.negotiationId = conversationRts.getCustomValues().get("negotiationid");
         response.role = ConversationBoundnessFinder.lookupUsersRole(email, conversationRts);
         response.buyerName = conversationRts.getCustomValues().get("buyer-name") == null ? "" : conversationRts.getCustomValues().get("buyer-name");
         response.sellerName = conversationRts.getCustomValues().get("seller-name") == null ? "" : conversationRts.getCustomValues().get("seller-name");
@@ -95,10 +86,6 @@ public class PostBoxSingleConversationThreadResponse {
 
     public String getSellerEmail() {
         return sellerEmail;
-    }
-
-    public Long getNegotiationId() {
-        return negotiationId == null ? null : Long.valueOf(negotiationId);
     }
 
     public Long getUserIdBuyer() {

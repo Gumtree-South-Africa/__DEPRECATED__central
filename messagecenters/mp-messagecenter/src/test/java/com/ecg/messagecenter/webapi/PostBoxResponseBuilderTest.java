@@ -26,14 +26,18 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class PostBoxResponseBuilderTest {
 
-    public static final long BUYER_ID = 111L;
-    public static final long SELLER_ID = 222L;
+    private static final long BUYER_ID = 111L;
+    private static final long SELLER_ID = 222L;
     private static final String USER_ID = "test@email.com";
     private static final DateTime RECEIVED_DATE = new DateTime(2015, 3, 26, 12, 0, 0, 0);
-    public static final String LAST_MESSAGE = "Last message";
-    @Mock private ConversationRepository conversationRepository;
-    @Mock private UserIdentifierService userIdentifierService;
-    @Mock private PostBox postBox;
+    private static final String LAST_MESSAGE = "Last message";
+
+    @Mock
+    private ConversationRepository conversationRepository;
+    @Mock
+    private UserIdentifierService userIdentifierService;
+    @Mock
+    private PostBox postBox;
 
     @InjectMocks
     private PostBoxResponseBuilder testObject = new PostBoxResponseBuilder(conversationRepository, userIdentifierService);
@@ -49,7 +53,6 @@ public class PostBoxResponseBuilderTest {
         when(conversationThread.containsNewListAggregateData()).thenReturn(true);
         when(conversationThread.getBuyerName()).thenReturn(Optional.empty());
         when(conversationThread.getSellerName()).thenReturn(Optional.empty());
-        when(conversationThread.getNegotiationId()).thenReturn(Optional.of(1L));
         when(conversationThread.getUserIdBuyer()).thenReturn(Optional.of(BUYER_ID));
         when(conversationThread.getUserIdSeller()).thenReturn(Optional.of(SELLER_ID));
         when(conversationThread.getMessageDirection()).thenReturn(Optional.of(MessageDirection.BUYER_TO_SELLER.name()));
@@ -62,7 +65,6 @@ public class PostBoxResponseBuilderTest {
         when(conversationThreadWithoutData.containsNewListAggregateData()).thenReturn(false);
         when(conversationThreadWithoutData.getBuyerName()).thenReturn(Optional.empty());
         when(conversationThreadWithoutData.getSellerName()).thenReturn(Optional.empty());
-        when(conversationThreadWithoutData.getNegotiationId()).thenReturn(Optional.of(2L));
         when(conversationThreadWithoutData.getUserIdBuyer()).thenReturn(Optional.of(BUYER_ID));
         when(conversationThreadWithoutData.getUserIdSeller()).thenReturn((Optional.of(SELLER_ID)));
         when(conversationThreadWithoutData.getMessageDirection()).thenReturn(Optional.of(MessageDirection.BUYER_TO_SELLER.name()));

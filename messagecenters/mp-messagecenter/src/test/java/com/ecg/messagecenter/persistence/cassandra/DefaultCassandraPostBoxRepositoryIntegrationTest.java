@@ -172,8 +172,8 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
                     "adId", "conversationId" + i,
                     receivedAt, receivedAt, receivedAt, i,
                     Optional.of("Message"), Optional.of("buyer name"), Optional.of("seller name"),
-                    Optional.of("buyerId"), Optional.of("sellerId"), Optional.<Long>empty(),
-                    Optional.<Long>empty(), Optional.<Long>empty(), Optional.of(receivedAt));
+                    Optional.of("buyerId"), Optional.of("sellerId"), Optional.empty(),
+                    Optional.empty(), Optional.of(receivedAt));
             conversations.add(ct);
         }
         return new PostBox(postBoxId, conversations);

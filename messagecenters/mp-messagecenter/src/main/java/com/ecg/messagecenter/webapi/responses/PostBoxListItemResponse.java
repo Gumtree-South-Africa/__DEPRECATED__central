@@ -19,7 +19,6 @@ public class PostBoxListItemResponse {
     private String email;
     private String userId;
     private String id;
-    private Long negotiationId;
     private String buyerName;
     private String sellerName;
     private Long userIdBuyer;
@@ -48,7 +47,6 @@ public class PostBoxListItemResponse {
         this.sellerName = conversationThread.getSellerName().isPresent() ? conversationThread.getSellerName().get() : "";
         this.adId = conversationThread.getAdId();
         this.role = userIdentifierService.getRoleFromConversation(userId, conversationThread);
-        this.negotiationId = conversationThread.getNegotiationId().orElse(null);
         this.userIdBuyer = conversationThread.getUserIdBuyer().orElse(null);
         this.userIdSeller = conversationThread.getUserIdSeller().orElse(null);
 
@@ -57,8 +55,8 @@ public class PostBoxListItemResponse {
                 null,
                 ConversationBoundnessFinder.boundnessForRole(this.role, conversationThread.getMessageDirection().get()),
                 conversationThread.getPreviewLastMessage().get(),
-                Optional.<String>empty(),
-                Collections.<MessageResponse.Attachment>emptyList());
+                Optional.empty(),
+                Collections.emptyList());
     }
 
     // old style lookup when we didn't have a complete search aggregate on the list-view
@@ -150,10 +148,6 @@ public class PostBoxListItemResponse {
         return attachments == null ? Collections.<String>emptyList() : attachments;
     }
 
-    public Long getNegotiationId() {
-        return negotiationId;
-    }
-
     public Long getUserIdBuyer() {
         return userIdBuyer;
     }
@@ -161,5 +155,4 @@ public class PostBoxListItemResponse {
     public Long getUserIdSeller() {
         return userIdSeller;
     }
-
 }

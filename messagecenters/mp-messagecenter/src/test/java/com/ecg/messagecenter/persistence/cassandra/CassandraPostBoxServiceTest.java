@@ -7,11 +7,13 @@ import com.ecg.messagecenter.persistence.ResponseData;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
+import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Collections;
 import java.util.Optional;
 

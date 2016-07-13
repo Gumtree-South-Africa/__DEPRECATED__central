@@ -16,8 +16,6 @@ import static com.ecg.replyts.core.api.util.Pairwise.pairsAreEqual;
 public class ConversationThread extends AbstractConversationThread {
     private int numUnreadMessages;
 
-    private final Optional<Long> negotiationId;
-
     //introduced later therefore Option to be compatible with persistent data
     private final Optional<DateTime> lastMessageCreatedAt;
 
@@ -39,7 +37,6 @@ public class ConversationThread extends AbstractConversationThread {
             @JsonProperty("sellerName") Optional<String> sellerName,
             @JsonProperty("buyerId") Optional<String> buyerId,
             @JsonProperty("messageDirection") Optional<String> messageDirection,
-            @JsonProperty("negotiationId") Optional<Long> negotiationId,
             @JsonProperty("userIdBuyer") Optional<Long> userIdBuyer,
             @JsonProperty("userIdSeller") Optional<Long> userIdSeller,
             @JsonProperty("lastMessageCreatedAt") Optional<DateTime> lastMessageCreatedAt) {
@@ -57,7 +54,6 @@ public class ConversationThread extends AbstractConversationThread {
           messageDirection);
 
         this.numUnreadMessages = numUnreadMessages;
-        this.negotiationId = negotiationId;
         this.userIdBuyer = userIdBuyer;
         this.userIdSeller = userIdSeller;
         this.lastMessageCreatedAt = lastMessageCreatedAt.isPresent() ? lastMessageCreatedAt : receivedAt != null ? Optional.of(receivedAt) : Optional.<DateTime>empty();
@@ -66,11 +62,11 @@ public class ConversationThread extends AbstractConversationThread {
     @Override
     public ConversationThread sameButUnread(String message) {
         Optional<String> actualMessage = message == null ? previewLastMessage : Optional.of(message);
-        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), numUnreadMessages + 1, actualMessage, buyerName, sellerName, buyerId, messageDirection, negotiationId, userIdBuyer, userIdSeller, lastMessageCreatedAt);
+        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), numUnreadMessages + 1, actualMessage, buyerName, sellerName, buyerId, messageDirection, userIdBuyer, userIdSeller, lastMessageCreatedAt);
     }
 
     public ConversationThread sameButRead() {
-        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), 0, previewLastMessage, buyerName, sellerName, buyerId, messageDirection, negotiationId, userIdBuyer, userIdSeller, lastMessageCreatedAt);
+        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), 0, previewLastMessage, buyerName, sellerName, buyerId, messageDirection, userIdBuyer, userIdSeller, lastMessageCreatedAt);
     }
 
     @JsonIgnore
@@ -84,10 +80,6 @@ public class ConversationThread extends AbstractConversationThread {
 
     public void setNumUnreadMessages(int numUnreadMessages) {
         this.numUnreadMessages = numUnreadMessages;
-    }
-
-    public Optional<Long> getNegotiationId() {
-        return negotiationId;
     }
 
     public Optional<Long> getUserIdSeller() {

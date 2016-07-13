@@ -159,7 +159,7 @@ public class PushMessageOnNewReply implements NewMessageListener {
         return str.substring(0, pos);
     }
 
-    static boolean isNullOrEmpty(String input) {
+    private static boolean isNullOrEmpty(String input) {
         return input == null || input.isEmpty();
     }
 }

@@ -5,13 +5,29 @@
 
     <bean class="com.ecg.messagecenter.listeners.PostBoxUpdateListener"/>
 
+    <!-- Old Cassandra PostBox Repository -->
     <bean class="com.ecg.messagecenter.persistence.cassandra.DefaultCassandraPostBoxRepository">
         <constructor-arg name="session" ref="cassandraSession"/>
         <constructor-arg name="readConsistency" ref="cassandraReadConsistency"/>
         <constructor-arg name="writeConsistency" ref="cassandraWriteConsistency"/>
     </bean>
 
-    <bean class="com.ecg.messagecenter.persistence.cassandra.CassandraPostBoxService"/>
+    <!-- New Cassandra PostBox Repository -->
+    <bean class="com.ecg.messagebox.persistence.cassandra.DefaultCassandraPostBoxRepository">
+        <constructor-arg name="keyspace" value="${persistence.cassandra.keyspace}"/>
+        <constructor-arg name="session" ref="cassandraSession"/>
+        <constructor-arg name="readConsistency" ref="cassandraReadConsistency"/>
+        <constructor-arg name="writeConsistency" ref="cassandraWriteConsistency"/>
+        <constructor-arg name="messageTextPreviewMaxChars" value="${replyts.maxPreviewMessageCharacters:250}"/>
+    </bean>
+
+    <!-- Old Cassandra PostBox Repository -->
+    <bean id="oldCassandraPostBoxService" class="com.ecg.messagecenter.persistence.cassandra.CassandraPostBoxService"/>
+
+    <!-- New Cassandra PostBox Service -->
+    <bean id="newCassandraPostBoxService" class="com.ecg.messagebox.service.CassandraPostBoxService"/>
+
+    <bean id="postBoxDelegatorService" class="com.ecg.messagebox.service.PostBoxDelegatorService"/>
 
     <bean class="com.ecg.messagecenter.webapi.MessageCenterApiConfiguration"/>
 

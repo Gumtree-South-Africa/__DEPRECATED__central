@@ -9,6 +9,7 @@ import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -33,11 +34,11 @@ class PostBoxController {
     private static final Timer GET_POSTBOX_TIMER = TimingReports.newTimer("webapi-postbox-by-email");
     private static final Timer DELETE_CONVERSATIONS_TIMER = TimingReports.newTimer("webapi-postbox-conversation-delete");
 
-    private final PostBoxService postBoxService;
+    private final PostBoxService postBoxDelegatorService;
 
     @Autowired
-    public PostBoxController(PostBoxService postBoxService) {
-        this.postBoxService = postBoxService;
+    public PostBoxController(@Qualifier("postBoxDelegatorService") PostBoxService postBoxDelegatorService) {
+        this.postBoxDelegatorService = postBoxDelegatorService;
     }
 
     @InitBinder
@@ -60,7 +61,7 @@ class PostBoxController {
 
         Timer.Context timerContext = GET_POSTBOX_TIMER.time();
         try {
-            return ResponseObject.of(postBoxService.getConversations(postBoxId, size, page));
+            return ResponseObject.of(postBoxDelegatorService.getConversations(postBoxId, size, page));
         } finally {
             timerContext.stop();
         }
@@ -76,7 +77,7 @@ class PostBoxController {
 
         Timer.Context timerContext = GET_POSTBOX_TIMER.time();
         try {
-            PostBoxResponse postBoxResponse = postBoxService.markConversationsAsRead(postBoxId, size, page);
+            PostBoxResponse postBoxResponse = postBoxDelegatorService.markConversationsAsRead(postBoxId, size, page);
             return postBoxResponse == null ? ResponseObject.of(RequestState.OK) : ResponseObject.of(postBoxResponse);
         } finally {
             timerContext.stop();
@@ -94,7 +95,7 @@ class PostBoxController {
 
         Timer.Context timerContext = DELETE_CONVERSATIONS_TIMER.time();
         try {
-            PostBoxResponse postBoxResponse = postBoxService.deleteConversations(postBoxId, asList(conversationIds), page, size);
+            PostBoxResponse postBoxResponse = postBoxDelegatorService.deleteConversations(postBoxId, asList(conversationIds), page, size);
             return postBoxResponse == null ? ResponseObject.of(RequestState.OK) : ResponseObject.of(postBoxResponse);
         } finally {
             timerContext.stop();

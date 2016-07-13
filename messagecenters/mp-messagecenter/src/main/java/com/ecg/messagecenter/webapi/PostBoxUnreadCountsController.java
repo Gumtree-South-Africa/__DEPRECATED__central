@@ -7,6 +7,7 @@ import com.ecg.messagecenter.webapi.responses.PostBoxUnreadCountsResponse;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,11 +26,11 @@ public class PostBoxUnreadCountsController {
 
     private static final String MAPPING = "/postboxes/{postBoxId}/unread-counters";
 
-    private final PostBoxService postBoxService;
+    private final PostBoxService postBoxDelegatorService;
 
     @Autowired
-    public PostBoxUnreadCountsController(PostBoxService postBoxService) {
-        this.postBoxService = postBoxService;
+    public PostBoxUnreadCountsController(@Qualifier("postBoxDelegatorService") PostBoxService postBoxDelegatorService) {
+        this.postBoxDelegatorService = postBoxDelegatorService;
     }
 
     @ExceptionHandler
@@ -42,7 +43,7 @@ public class PostBoxUnreadCountsController {
     public ResponseObject<PostBoxUnreadCountsResponse> getUnreadCounts(@PathVariable String postBoxId) {
         Timer.Context timerContext = API_POSTBOX_GET_UNREAD_COUNTS.time();
         try {
-            PostBoxUnreadCounts unreadCounts = postBoxService.getUnreadCounts(postBoxId);
+            PostBoxUnreadCounts unreadCounts = postBoxDelegatorService.getUnreadCounts(postBoxId);
             return ResponseObject.of(new PostBoxUnreadCountsResponse(unreadCounts));
         } finally {
             timerContext.stop();

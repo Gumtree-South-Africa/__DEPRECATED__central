@@ -70,7 +70,6 @@ public class PostBoxInitializer {
                         Optional.ofNullable(conversation.getCustomValues().get("seller-name")),
                         Optional.ofNullable(conversation.getBuyerId()),
                         Optional.ofNullable(Iterables.getLast(conversation.getMessages()).getMessageDirection().name()),
-                        lookupNegotiationId(conversation),
                         customValueAsLong(conversation, "user-id-buyer"),
                         customValueAsLong(conversation, "user-id-seller"))
         );
@@ -88,11 +87,6 @@ public class PostBoxInitializer {
             return Optional.empty();
         }
         return Optional.of(Long.parseLong(conversation.getCustomValues().get(customValueKey)));
-    }
-
-    private Optional<Long> lookupNegotiationId(Conversation conversation) {
-        String customValueNegotiationId = conversation.getCustomValues().get("negotiationid");
-        return customValueNegotiationId == null ? Optional.<Long>empty() : Optional.of(Long.valueOf(customValueNegotiationId));
     }
 
     private Optional<String> extractPreviewLastMessage(Conversation conversation, String email) {

@@ -14,18 +14,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * User: maldana
- * Date: 30.10.13
- * Time: 17:14
- *
- * @author maldana@ebay.de
- */
 public class PostBoxListItemResponse {
 
     private String email;
     private String id;
-    private Long negotiationId;
     private String buyerName;
     private String sellerName;
     private Long userIdBuyer;
@@ -51,7 +43,6 @@ public class PostBoxListItemResponse {
         this.sellerName = conversationThread.getSellerName().isPresent() ? conversationThread.getSellerName().get(): "";
         this.adId = conversationThread.getAdId();
         this.role = ConversationBoundnessFinder.lookupUsersRole(email, conversationThread);
-        this.negotiationId = conversationThread.getNegotiationId().orElse(null);
         this.userIdBuyer = conversationThread.getUserIdBuyer().orElse(null);
         this.userIdSeller = conversationThread.getUserIdSeller().orElse(null);
 
@@ -60,8 +51,8 @@ public class PostBoxListItemResponse {
                 null,
                 ConversationBoundnessFinder.boundnessForRole(this.role, conversationThread.getMessageDirection().get()),
                 conversationThread.getPreviewLastMessage().get(),
-                Optional.<String>empty(),
-                Collections.<MessageResponse.Attachment>emptyList());
+                Optional.empty(),
+                Collections.emptyList());
     }
 
     // old style lookup when we didn't have a complete search aggregate on the list-view
@@ -137,10 +128,6 @@ public class PostBoxListItemResponse {
 
     public List<String> getAttachments() {
         return attachments == null ? Collections.<String>emptyList() : attachments;
-    }
-
-    public Long getNegotiationId() {
-        return negotiationId;
     }
 
     public Long getUserIdBuyer() {

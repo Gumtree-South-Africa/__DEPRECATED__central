@@ -55,9 +55,6 @@ public class PostBoxToJsonConverter {
             if (thread.getMessageDirection().isPresent()) {
                 builder.attr("messageDirection", thread.getMessageDirection().get());
             }
-            if (thread.getNegotiationId().isPresent()) {
-                builder.attr("negotiationId", thread.getNegotiationId().get());
-            }
             if (thread.getUserIdBuyer().isPresent()) {
                 builder.attr("userIdBuyer", thread.getUserIdBuyer().get());
             }

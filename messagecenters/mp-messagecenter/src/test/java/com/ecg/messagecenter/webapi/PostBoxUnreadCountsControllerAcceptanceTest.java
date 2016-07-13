@@ -24,7 +24,7 @@ public class PostBoxUnreadCountsControllerAcceptanceTest {
         properties.put("userIdentifierService", UserIdentifierType.BY_USER_ID.toString());
 
         return properties;
-    }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql");
+    }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_new_messagebox_schema.cql");
 
     @Test
     public void getPostBoxUnreadCounts() {

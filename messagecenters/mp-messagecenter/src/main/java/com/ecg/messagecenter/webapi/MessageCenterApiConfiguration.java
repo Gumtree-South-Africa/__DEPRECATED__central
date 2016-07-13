@@ -8,15 +8,9 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 
-/**
- * User: maldana
- * Date: 24.10.13
- * Time: 14:00
- *
- * @author maldana@ebay.de
- */
 @Configuration
 class MessageCenterApiConfiguration {
+
     @Autowired
     private ApplicationContext context;
 

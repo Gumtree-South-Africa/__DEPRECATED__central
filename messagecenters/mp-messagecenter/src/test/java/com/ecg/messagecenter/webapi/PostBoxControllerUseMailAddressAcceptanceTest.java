@@ -23,7 +23,7 @@ public class PostBoxControllerUseMailAddressAcceptanceTest {
         properties.put("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_MAIL.toString());
 
         return properties;
-    }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql");
+    }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_new_messagebox_schema.cql");
 
     @Test
     public void readConversation() {

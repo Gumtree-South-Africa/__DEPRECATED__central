@@ -11,14 +11,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 15:46
- *
- * @author maldana@ebay.de
- */
 class PostBoxConverter implements Converter<PostBox> {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxConverter.class);

@@ -9,13 +9,6 @@ import org.joda.time.DateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 16:23
- *
- * @author maldana@ebay.de
- */
 class JsonToPostBoxConverter {
 
     public PostBox toPostBox(String key, String jsonString) {
@@ -35,7 +28,6 @@ class JsonToPostBoxConverter {
                             lookupStringValue(threadNode, "sellerName"),
                             lookupStringValue(threadNode, "buyerId"),
                             lookupStringValue(threadNode, "messageDirection"),
-                            lookupLongValue(threadNode, "negotiationId"),
                             lookupLongValue(threadNode, "userIdBuyer"),
                             lookupLongValue(threadNode, "userIdSeller"))
             );

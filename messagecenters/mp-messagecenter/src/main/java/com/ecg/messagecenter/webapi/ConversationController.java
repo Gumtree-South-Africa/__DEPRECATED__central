@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -29,11 +30,11 @@ class ConversationController {
 
     private static final Timer API_POSTBOX_CONVERSATION_TIMER = TimingReports.newTimer("webapi-postbox-conversation-by-id");
 
-    private final PostBoxService postBoxService;
+    private final PostBoxService postBoxDelegatorService;
 
     @Autowired
-    public ConversationController(PostBoxService postBoxService) {
-        this.postBoxService = postBoxService;
+    public ConversationController(@Qualifier("postBoxDelegatorService") PostBoxService postBoxDelegatorService) {
+        this.postBoxDelegatorService = postBoxDelegatorService;
     }
 
     @InitBinder
@@ -54,7 +55,7 @@ class ConversationController {
             @PathVariable("conversationId") String conversationId,
             HttpServletResponse response) {
 
-        return wrapResponse(postBoxService.getConversation(userId, conversationId), response);
+        return wrapResponse(postBoxDelegatorService.getConversation(userId, conversationId), response);
     }
 
     @RequestMapping(value = PostBoxConversationCommand.MAPPING,
@@ -65,7 +66,7 @@ class ConversationController {
             @PathVariable("conversationId") String conversationId,
             HttpServletResponse response) {
 
-        return wrapResponse(postBoxService.markConversationAsRead(userId, conversationId), response);
+        return wrapResponse(postBoxDelegatorService.markConversationAsRead(userId, conversationId), response);
     }
 
     private ResponseObject<?> wrapResponse(Optional<ConversationResponse> conversationResponseOpt, HttpServletResponse response) {
