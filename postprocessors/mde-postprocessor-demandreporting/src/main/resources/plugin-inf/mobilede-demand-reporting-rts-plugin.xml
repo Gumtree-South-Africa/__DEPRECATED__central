@@ -35,6 +35,19 @@
         </constructor-arg>
     </bean>
 
+    <bean id="userTrackingConfig" class="com.ecg.de.mobile.replyts.demand.usertracking.UserTrackingHandler.Config"/>
+
+    <bean id="userTrackingHandler" class="com.ecg.de.mobile.replyts.demand.usertracking.UserTrackingHandler" destroy-method="flushOnExit">
+        <constructor-arg ref="userTrackingConfig"/>
+        <constructor-arg>
+            <bean class="com.ecg.de.mobile.replyts.demand.usertracking.TrackingEventPublisherFactory">
+                <constructor-arg ref="userTrackingConfig" />
+                <constructor-arg ref="httpClient" />
+                <constructor-arg ref="gson" />
+            </bean>
+        </constructor-arg>
+    </bean>
+
     <bean class="com.ecg.de.mobile.replyts.demand.DemandReportingPostProcessor">
         <constructor-arg>
             <bean class="com.ecg.de.mobile.replyts.demand.DemandReportingHandlerFactory">
@@ -42,6 +55,7 @@
             </bean>
         </constructor-arg>
         <constructor-arg ref="behaviorTrackingHandler"/>
+        <constructor-arg ref="userTrackingHandler" />
         <constructor-arg value="${mobilede.demand.reporting.plugin.order}"/>
     </bean>
 

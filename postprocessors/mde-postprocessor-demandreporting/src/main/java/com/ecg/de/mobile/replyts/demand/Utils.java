@@ -1,8 +1,14 @@
 package com.ecg.de.mobile.replyts.demand;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
+import javax.annotation.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+
+
 
 public final class Utils {
     private static final String AD_ID_PREFIX = "COMA";
@@ -33,6 +39,17 @@ public final class Utils {
             return Long.valueOf(string);
         }
         return -1L;
+    }
+
+    public static int intValueOr(@Nullable String s, int fallback) {
+        if (! isNullOrEmpty(s)) {
+            try {
+                return Integer.parseInt(s);
+            } catch (NumberFormatException e) {
+                // expected
+            }
+        }
+        return fallback;
     }
 
     public static Map<String, String> parseAbTestMap(String input) {

@@ -1,5 +1,6 @@
 package com.ecg.de.mobile.replyts.demand;
 
+import com.ecg.de.mobile.replyts.demand.usertracking.UserTrackingHandler;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.junit.Test;
 
@@ -12,14 +13,19 @@ public class DemandReportingPostProcessorTest {
     public void callsBehaviorTrackingAndDemandReportingOnPostprocess() throws Exception {
         MessageProcessingContext context = mock(MessageProcessingContext.class);
         BehaviorTrackingHandler behaviorTrackingHandler = mock(BehaviorTrackingHandler.class);
+        UserTrackingHandler userTrackingHandler = mock(UserTrackingHandler.class);
         DemandReportingHandlerFactory demandReportingHandlerFactory = mock(DemandReportingHandlerFactory.class);
         DemandReportingHandler demandReportingHandler = mock(DemandReportingHandler.class);
         when(demandReportingHandlerFactory.createDemandReportingHandler()).thenReturn(demandReportingHandler);
-        DemandReportingPostProcessor postProcessor = new DemandReportingPostProcessor(demandReportingHandlerFactory, behaviorTrackingHandler, 1);
+        DemandReportingPostProcessor postProcessor = new DemandReportingPostProcessor(demandReportingHandlerFactory,
+            behaviorTrackingHandler,
+            userTrackingHandler,
+            1);
         postProcessor.postProcess(context);
 
 
         verify(demandReportingHandler).handle(context);
         verify(behaviorTrackingHandler).handle(context);
+        verify(userTrackingHandler).handle(context);
     }
 }
