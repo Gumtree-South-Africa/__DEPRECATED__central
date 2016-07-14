@@ -310,7 +310,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         DELETE_POSTBOX_UNREAD_COUNTS("DELETE FROM mb_unread_counters WHERE postbox_id=?", true),
 
         // response rate and speed
-        SELECT_RESPONSE_DATA("SELECT userid, convid, convtype, createdate, responsespeed FROM mb_response_data WHERE userid=?"),
+        SELECT_RESPONSE_DATA("SELECT userid, convid, convtype, createdate, responsespeed FROM mb_response_data WHERE userid=? LIMIT 100"),
         UPDATE_RESPONSE_DATA("UPDATE mb_response_data USING TTL ? SET convtype=?, createdate=?, responsespeed=? WHERE userid=? AND convid=?");
 
         private final String cql;
