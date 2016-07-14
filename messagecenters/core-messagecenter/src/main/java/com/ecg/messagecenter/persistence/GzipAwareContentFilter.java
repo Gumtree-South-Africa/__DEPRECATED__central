@@ -2,7 +2,6 @@ package com.ecg.messagecenter.persistence;
 
 import com.basho.riak.client.IRiakObject;
 import com.google.common.base.Charsets;
-import com.google.common.base.Objects;
 import com.google.common.io.ByteStreams;
 
 import java.io.ByteArrayInputStream;
@@ -10,6 +9,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import java.util.Objects;
 
 final class GzipAwareContentFilter {
 
@@ -19,7 +20,7 @@ final class GzipAwareContentFilter {
     }
 
     public static String unpackIfGzipped(IRiakObject object) {
-        if (Objects.equal(object.getContentType(), GZIP_MIMETYPE)) {
+        if (Objects.equals(object.getContentType(), GZIP_MIMETYPE)) {
 
             try (GZIPInputStream in = new GZIPInputStream(new ByteArrayInputStream(object.getValue()));) {
 
