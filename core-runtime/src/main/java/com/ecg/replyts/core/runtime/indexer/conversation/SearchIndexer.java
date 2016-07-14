@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ListenableActionFuture;
+import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -46,11 +47,14 @@ public class SearchIndexer {
         this.indexDataBuilder = indexDataBuilder;
     }
 
+    public static long getFetchedDocumentCount() {
+        return INDEX_OPERATIONS_COUNTER.getCount();
+    }
+
     public void updateSearchSync(List<Conversation> conversations) {
         if (!esEnabled) {
             return;
         }
-
         try {
             ListenableActionFuture<BulkResponse> responseFuture = updateSearchAsync(conversations);
             BulkResponse response = responseFuture.get(TIMEOUT_SYNC_UPDATE_MINUTES, MINUTES);
@@ -65,35 +69,39 @@ public class SearchIndexer {
     }
 
     public ListenableActionFuture<BulkResponse> updateSearchAsync(List<Conversation> conversations) {
+        return updateSearchAsync(conversations, true);
+    }
+
+    public ListenableActionFuture<BulkResponse> updateSearchAsync(List<Conversation> conversations, boolean registerListener) {
         if (!esEnabled) {
             return null;
         }
-
         try {
             BulkRequestBuilder bulk = elasticSearchClient.prepareBulk();
-
             for (Conversation conversation : conversations) {
                 updateSearch(conversation, bulk);
             }
-
-            ActionListener<BulkResponse> listener = new ActionListener<BulkResponse>() {
-                @Override
-                public void onResponse(BulkResponse bulkItemResponses) {
-                    LOG.debug("Indexing complete ");
-                }
-
-                @Override
-                public void onFailure(Throwable e) {
-                    StringBuilder s = new StringBuilder("Failed Indexing conversations: '");
-                    for (Conversation conversation : conversations) {
-                        s.append(conversation.getId()).append(", ");
-                    }
-                    s.append("'");
-                    LOG.error(s.toString(), e);
-                }
-            };
             ListenableActionFuture<BulkResponse> execute = bulk.execute();
-            execute.addListener(listener);
+
+            if (registerListener) {
+                ActionListener<BulkResponse> listener = new ActionListener<BulkResponse>() {
+                    @Override
+                    public void onResponse(BulkResponse bulkItemResponses) {
+                        LOG.debug("Indexing complete ");
+                    }
+
+                    @Override
+                    public void onFailure(Throwable e) {
+                        StringBuilder s = new StringBuilder("Failed Indexing conversations: '");
+                        for (Conversation conversation : conversations) {
+                            s.append(conversation.getId()).append(", ");
+                        }
+                        s.append("'");
+                        LOG.error(s.toString(), e);
+                    }
+                };
+                execute.addListener(listener);
+            }
             return execute;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -110,6 +118,5 @@ public class SearchIndexer {
                     .setSource(indexData.getDocument());
             bulk.add(indexRequestBuilder);
         }
-
     }
 }

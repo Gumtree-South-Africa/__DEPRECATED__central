@@ -27,13 +27,15 @@ public class IndexerActionConfiguration {
     private int streamingThreadCount;
     @Value("${replyts.indexer.streaming.queue.size:100000}")
     private int workQueueSize;
+    @Value("${replyts.indexer.streaming.maxWaitingTasks:30}")
+    private int maxWaitingTasks;
     @Value("${replyts.indexer.streaming.conversationid.batch.size:3000}")
     private int conversationIdBatchSize;
     
     @Bean
     @Conditional(StreamingIndexerActionConditional.class)
     public IndexerAction streamingIndexer() {
-        return new StreamingIndexerAction(conversationRepository, indexerChunkHandler, streamingThreadCount, workQueueSize, conversationIdBatchSize);
+        return new StreamingIndexerAction(conversationRepository, indexerChunkHandler, streamingThreadCount, workQueueSize, conversationIdBatchSize, maxWaitingTasks);
     }
 
     @Bean

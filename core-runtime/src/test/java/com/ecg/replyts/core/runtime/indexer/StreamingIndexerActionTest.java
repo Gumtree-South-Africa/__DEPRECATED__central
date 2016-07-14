@@ -5,6 +5,7 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.mock;
@@ -16,7 +17,7 @@ public class StreamingIndexerActionTest {
     ConversationRepository conversationRepository = mock(ConversationRepository.class);
     IndexerChunkHandler indexerChunkHandler = mock(IndexerChunkHandler.class);
 
-    StreamingIndexerAction streamingIndexerAction = new StreamingIndexerAction(conversationRepository, indexerChunkHandler, 8, 1000, 10);
+    StreamingIndexerAction streamingIndexerAction = new StreamingIndexerAction(conversationRepository, indexerChunkHandler, 8, 1000, 10, 300);
 
     @Test
     public void shouldIndexWithDateRange() {
@@ -27,6 +28,6 @@ public class StreamingIndexerActionTest {
 
         streamingIndexerAction.doIndexBetween(from, to, null, null);
 
-        verify(indexerChunkHandler).indexChunk(Arrays.asList("c1", "c2"));
+        verify(indexerChunkHandler).indexChunkAsync(new HashSet(Arrays.asList("c1", "c2")));
     }
 }
