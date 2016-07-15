@@ -32,8 +32,8 @@ import java.util.stream.Stream;
 @EnableDiscoveryClient
 @EnableAutoConfiguration
 @Import(ConsulConfigBootstrapConfiguration.class)
-public class CloudDiscoveryConfiguration {
-    private static final Logger LOG = LoggerFactory.getLogger(CloudDiscoveryConfiguration.class);
+public class ParentDiscoveryConfiguration {
+    private static final Logger LOG = LoggerFactory.getLogger(ParentDiscoveryConfiguration.class);
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = Collections.unmodifiableMap(Stream.of(
       new AbstractMap.SimpleEntry<>("cassandra", "persistence.cassandra.endpoint"),
@@ -115,6 +115,29 @@ public class CloudDiscoveryConfiguration {
 
         if (propertySourceLocator != null) {
             environment.getPropertySources().addFirst(propertySourceLocator.locate(environment));
+        }
+    }
+
+    @PostConstruct
+    public void initializePersistenceStrategyIfMissing() {
+        if (!environment.containsProperty("persistence.strategy")) {
+            String strategy;
+
+            if (Boolean.parseBoolean(environment.getProperty("persistence.riak.enabled"))) {
+                strategy = "riak";
+            } else if (Boolean.parseBoolean(environment.getProperty("persistence.cassandra.enabled"))) {
+                strategy = "cassandra";
+            } else {
+                throw new IllegalStateException("No persistence (strategy) indicator found; e.g. persistence.strategy, persistence.cassandra.enabled, ..");
+            }
+
+            LOG.warn("Found deprecated 'persistence.*.enabled' property - re-writing to 'persistence.strategy'");
+
+            Map<String, Object> propertyMap = Collections.unmodifiableMap(Stream.of(
+                    new AbstractMap.SimpleEntry<>("persistence.strategy", strategy)
+            ).collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
+
+            environment.getPropertySources().addFirst(new MapPropertySource("strategy", propertyMap));
         }
     }
 }

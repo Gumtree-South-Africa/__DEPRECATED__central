@@ -1,4 +1,4 @@
-package com.ecg.replyts.core.runtime.persistence;
+package com.ecg.replyts.core.runtime.persistence.strategy;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
@@ -9,17 +9,17 @@ import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
-import com.ecg.replyts.core.runtime.persistence.conditional.CassandraEnabledConditional;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.DefaultCassandraMailRepository;
+import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import com.google.common.base.Splitter;
 import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
@@ -31,6 +31,7 @@ import java.util.Collection;
 import static java.util.stream.Collectors.toList;
 
 @Configuration
+@ConditionalOnProperty(name = "persistence.strategy", havingValue = "cassandra")
 public class CassandraPersistenceConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraPersistenceConfiguration.class);
 
@@ -75,30 +76,40 @@ public class CassandraPersistenceConfiguration {
         }
     }
 
-    public ConversationRepository createCassandraConversationRepository() {
-        return new DefaultCassandraConversationRepository(cassandraSession(), cassandraReadConsistency, cassandraWriteConsistency);
+    @Bean
+    public ConversationRepository conversationRepository(Session cassandraSession) {
+        return new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
-    public ConfigurationRepository createCassandraConfigurationRepository() {
-        return new CassandraConfigurationRepository(cassandraSession(), cassandraReadConsistency, cassandraWriteConsistency);
+    @Bean
+    public ConfigurationRepository configurationRepository(Session cassandraSession) {
+        return new CassandraConfigurationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
-    public MailRepository createCassandraMailRepository() {
-        return new DefaultCassandraMailRepository(cassandraSession(), cassandraReadConsistency, cassandraWriteConsistency);
+    @Bean
+    public MailRepository mailRepository(Session cassandraSession) {
+        return new DefaultCassandraMailRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
-    public IndexerClockRepository createCassandraIndexerClockRepository() {
-        return new CassandraIndexerClockRepository(cassandraDataCenter, cassandraSessionForJobs());
+    @Bean
+    public IndexerClockRepository indexerClockRepository(Session cassandraSessionForJobs) {
+        return new CassandraIndexerClockRepository(cassandraDataCenter, cassandraSessionForJobs);
     }
 
-    public CronJobClockRepository createCassandraCronJobClockRepository() {
-        return new CassandraCronJobClockRepository(cassandraSession(), cassandraReadConsistency, cassandraWriteConsistency);
+    @Bean
+    public CronJobClockRepository cronJobClockRepository(Session cassandraSession) {
+        return new CassandraCronJobClockRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+    }
+
+    @Bean
+    public ConversationMigrator conversationMigrator() {
+        return null;
     }
 
     @Bean(name = "cassandraSession")
-    @Conditional(CassandraEnabledConditional.class)
     public Session cassandraSession() {
         Object[] clusterAndSession = buildClusterAndSession(idleTimeoutSeconds);
+
         cassandraCluster = (Cluster) clusterAndSession[0];
         cassandraSession = (Session) clusterAndSession[1];
 
@@ -106,11 +117,12 @@ public class CassandraPersistenceConfiguration {
     }
 
     @Bean(name = "cassandraSessionForJobs")
-    @Conditional(CassandraEnabledConditional.class)
     public Session cassandraSessionForJobs() {
         Object[] clusterAndSession = buildClusterAndSession(idleTimeoutSecondsForJobs);
+
         cassandraClusterForJobs = (Cluster) clusterAndSession[0];
         cassandraSessionForJobs = (Session) clusterAndSession[1];
+
         return cassandraSessionForJobs;
     }
 
@@ -146,7 +158,8 @@ public class CassandraPersistenceConfiguration {
             Closeables.close(cassandraCluster, true);
             Closeables.close(cassandraSessionForJobs, true);
             Closeables.close(cassandraClusterForJobs, true);
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 
     @Bean(name = "cassandraReadConsistency")
@@ -157,10 +170,5 @@ public class CassandraPersistenceConfiguration {
     @Bean(name = "cassandraWriteConsistency")
     public ConsistencyLevel getCassandraWriteConsistency() {
         return cassandraWriteConsistency;
-    }
-
-    // For testing purposes
-    public void setCassandraKeyspace(String cassandraKeyspace) {
-        this.cassandraKeyspace = cassandraKeyspace;
     }
 }

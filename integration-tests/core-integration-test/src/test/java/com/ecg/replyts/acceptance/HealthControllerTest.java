@@ -67,8 +67,7 @@ public class HealthControllerTest {
 
             // Disabling both will nonetheless make HealthController 'choose' Cassandra
 
-            properties.put("persistence.riak.enabled", "false");
-            properties.put("persistence.cassandra.enabled", "false");
+            properties.put("persistence.strategy", "none");
 
             properties.put("service.configuration.enabled", true);
             properties.put("service.discovery.enabled", true);

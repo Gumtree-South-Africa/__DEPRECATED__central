@@ -1,7 +1,7 @@
-package com.ecg.replyts.core.runtime.persistence;
+package com.ecg.replyts.core.runtime.persistence.strategy;
 
-import com.ecg.replyts.core.runtime.cluster.RiakHostConfig;
-import com.ecg.replyts.core.runtime.cluster.RiakHostConfig.Host;
+import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
+import com.ecg.replyts.core.runtime.persistence.RiakHostConfig.Host;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

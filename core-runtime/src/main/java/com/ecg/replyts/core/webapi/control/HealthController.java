@@ -28,13 +28,13 @@ public class HealthController {
     @Value("${spring.cloud.config.discovery.enabled:false}")
     private boolean isDiscoveryEnabled;
 
-    @Value("#{'${persistence.riak.enabled:false}' ? 'riak' : 'cassandra'}")
+    @Value("${persistence.strategy}")
     private String conversationRepositorySource;
 
-    @Value("#{'${persistence.riak.enabled:false}' ? '${persistence.riak.datacenter.primary.hosts:unknown}'.split(',') : '${persistence.cassandra.endpoint:unknown}'.split(',')}")
+    @Value("#{'${persistence.strategy:cassandra}' == \"riak\" ? '${persistence.riak.datacenter.primary.hosts:unknown}'.split(',') : '${persistence.cassandra.endpoint:unknown}'.split(',')}")
     private List<String> conversationRepositoryHosts;
 
-    @Value("#{'${persistence.riak.enabled:false}' ? '${persistence.riak.bucket.name.prefix:}' : '${persistence.cassandra.keyspace:}'}")
+    @Value("#{'${persistence.strategy:cassandra}' == \"riak\" ? '${persistence.riak.bucket.name.prefix:}' : '${persistence.cassandra.keyspace:}'}")
     private String conversationRepositorySchemaOrPrefix;
 
     @Value("${search.es.clustername:unknown}")

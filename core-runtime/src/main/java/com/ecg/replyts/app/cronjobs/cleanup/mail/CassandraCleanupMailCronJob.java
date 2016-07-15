@@ -10,7 +10,13 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -18,27 +24,50 @@ import java.util.stream.Stream;
 
 import static org.joda.time.DateTime.now;
 
+@Component
+@Conditional(CassandraCleanupMailCronJob.Condition.class)
 public class CassandraCleanupMailCronJob implements CronJobExecutor {
+    // Used to determine whether to enable this cron-job (strategy = cassandra && cron-job = enabled)
+    public static class Condition extends AllNestedConditions {
+        public Condition() {
+            super(ConfigurationPhase.PARSE_CONFIGURATION);
+        }
+
+        @ConditionalOnProperty(name = "persistence.strategy", havingValue = "cassandra")
+        static class OnCassandraStrategy { }
+
+        @ConditionalOnProperty(name = "replyts2.cleanup.mail.enabled", havingValue = "true")
+        static class OnEnabled { }
+    }
 
     private static final Logger LOG = LoggerFactory.getLogger(CassandraCleanupMailCronJob.class);
+
     protected static final String CLEANUP_MAIL_JOB_NAME = "cleanupMailJob";
 
     @Autowired
     private CassandraMailRepository mailRepository;
+
     @Autowired
     private CronJobClockRepository cronJobClockRepository;
 
-    private final ThreadPoolExecutor threadPoolExecutor;
-    private final int maxMailAgeDays;
-    private final int batchSize;
-    private final String cronJobExpression;
+    private ThreadPoolExecutor threadPoolExecutor;
 
-    public CassandraCleanupMailCronJob(int workQueueSize,
-                                       int threadCount,
-                                       int maxMailAgeDays,
-                                       int batchSize,
-                                       String cronJobExpression) {
+    private String cronJobExpression;
+    private int maxMailAgeDays;
+    private int batchSize;
 
+    @Autowired
+    public CassandraCleanupMailCronJob(
+            @Value("${replyts.cleanup.mail.streaming.queue.size:100000}")
+            int workQueueSize,
+            @Value("${replyts.cleanup.mail.streaming.threadcount:4}")
+            int threadCount,
+            @Value("${replyts.cleanup.mail.maxagedays:120}")
+            int maxMailAgeDays,
+            @Value("${replyts.cleanup.mail.streaming.batch.size:3000}")
+            int batchSize,
+            @Value("${replyts.cleanup.mail.schedule.expression:0 0 0 * * ? *}")
+        String cronJobExpression) {
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(workQueueSize);
         RejectedExecutionHandler rejectionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
 

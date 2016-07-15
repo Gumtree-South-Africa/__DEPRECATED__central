@@ -1,10 +1,12 @@
-package com.ecg.replyts.core.runtime.cluster;
+package com.ecg.replyts.core.runtime.persistence;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -25,9 +27,10 @@ import static java.lang.String.format;
  *
  * @author mhuttar
  */
+@Component
 public class RiakHostConfig {
-
     private final List<Host> hostList;
+
     private final int protobufPort;
     private final int httpPort;
 
@@ -37,7 +40,6 @@ public class RiakHostConfig {
      * Need hasCode/equals to be able to use the host as key in maps.
      */
     public static class Host {
-
         private final String host;
         private final int protobufPort;
 
@@ -112,5 +114,4 @@ public class RiakHostConfig {
     public int getHttpPort() {
         return httpPort;
     }
-
 }

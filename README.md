@@ -79,7 +79,7 @@ When `service.discovery.enabled` is enabled, the application will automatically 
 ### Consul configuration (KV)
 When `service.configuration.enabled` is enabled in addition to `service.discovery.enabled`, Consul will also be added as a PropertySource for configuration resolution (similar to replyts.properties). Configuration in Consul overrides what is present in the replyts.properties file.
 
-In order to add keys to consul, add them with the prefix `comaas/<tenant>` or `comaas/comaas:core:<tenant>:<port>`. E.g. `comaas/kjca/persistence.riak.enabled` with value `false`. This prefix approach allows one Consul instance to contain properties for multiple tenants (or the same tenant running on multiple ports).
+In order to add keys to consul, add them with the prefix `comaas/<tenant>` or `comaas/comaas:core:<tenant>:<port>`. E.g. `comaas/kjca/persistence.strategy` with value `cassandra`. This prefix approach allows one Consul instance to contain properties for multiple tenants (or the same tenant running on multiple ports).
 
 ## MP system overview
 ![Messaging system overview at Marktplaats](/docs/20151221-messaging-system-overview.jpg)

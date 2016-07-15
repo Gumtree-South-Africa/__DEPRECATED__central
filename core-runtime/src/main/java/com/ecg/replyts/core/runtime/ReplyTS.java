@@ -59,7 +59,7 @@ public class ReplyTS {
                 "classpath:server-context.xml",
                 "classpath:runtime-context.xml",
                 "classpath*:/plugin-inf/*.xml",
-            }, false, new AnnotationConfigApplicationContext(CloudDiscoveryConfiguration.class));
+            }, false, new AnnotationConfigApplicationContext(ParentDiscoveryConfiguration.class));
 
             context.getEnvironment().setActiveProfiles(PRODUCTIVE_PROFILE);
 

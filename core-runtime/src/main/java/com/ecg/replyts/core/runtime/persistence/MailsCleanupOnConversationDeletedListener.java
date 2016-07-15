@@ -12,11 +12,12 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-class MailsCleanupOnConversationDeletedListener implements ConversationEventListener {
-
+@Component
+public class MailsCleanupOnConversationDeletedListener implements ConversationEventListener {
     private final MailRepository mailRepository;
 
     private static final Logger LOG = LoggerFactory.getLogger(MailsCleanupOnConversationDeletedListener.class);

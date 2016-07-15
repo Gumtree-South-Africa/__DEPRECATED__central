@@ -18,8 +18,7 @@ public class ReadRepairIndexerIntegrationTest {
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
         Properties properties = new Properties();
 
-        properties.put("persistence.cassandra.enabled", false);
-        properties.put("persistence.riak.enabled", true);
+        properties.put("persistence.strategy", "riak");
 
         return properties;
     }).get());

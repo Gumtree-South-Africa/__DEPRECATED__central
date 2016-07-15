@@ -2,7 +2,7 @@ package com.ecg.replyts.core.runtime.cluster.monitor;
 
 import com.basho.riak.client.IRiakClient;
 import com.basho.riak.client.RiakException;
-import com.ecg.replyts.core.runtime.cluster.RiakHostConfig.Host;
+import com.ecg.replyts.core.runtime.persistence.RiakHostConfig.Host;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,7 +1,7 @@
 package com.ecg.replyts.core.runtime.cluster.monitor;
 
 import com.basho.riak.client.RiakException;
-import com.ecg.replyts.core.runtime.cluster.RiakHostConfig;
+import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
