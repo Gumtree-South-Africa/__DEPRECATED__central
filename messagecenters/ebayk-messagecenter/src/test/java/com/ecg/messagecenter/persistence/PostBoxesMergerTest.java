@@ -109,7 +109,7 @@ public class PostBoxesMergerTest {
 
     private ConversationThread createConvThread(DateTime modifiedAt, String convId) {
         DateTime receivedDate = modifiedAt;
-        return new ConversationThread("123", convId, CREATED_AT, modifiedAt, receivedDate, false, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Long>empty(), Optional.<Long>empty(), Optional.<Long>empty());
+        return new ConversationThread("123", convId, CREATED_AT, modifiedAt, receivedDate, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
 
     }
 

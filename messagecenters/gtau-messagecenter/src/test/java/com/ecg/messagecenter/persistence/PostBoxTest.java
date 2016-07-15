@@ -10,24 +10,17 @@ import static junit.framework.Assert.assertEquals;
 import static org.joda.time.DateTime.now;
 import static org.junit.Assert.assertTrue;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 16:48
- *
- * @author maldana@ebay.de
- */
 public class PostBoxTest {
 
     public static final PostBox POST_BOX = new PostBox("" +
             "bla@blah.com",
             Optional.of(0L),
             Lists.newArrayList(
-                    new ConversationThread("2", "abc",now(), now().minusDays(179), now(), true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                    new ConversationThread("3", "abc",now(), now().minusDays(100), now(), true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                    new ConversationThread("4", "abc",now(), now().minusHours(100), now(), true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                    new ConversationThread("5", "abc",now(), now().minusSeconds(100), now(), true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                    new ConversationThread("6", "cba",now(), now().minusHours(10), now().minusHours(4), false, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty())
+                    new ConversationThread("2", "abc",now(), now().minusDays(179), now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                    new ConversationThread("3", "abc",now(), now().minusDays(100), now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                    new ConversationThread("4", "abc",now(), now().minusHours(100), now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                    new ConversationThread("5", "abc",now(), now().minusSeconds(100), now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                    new ConversationThread("6", "cba",now(), now().minusHours(10), now().minusHours(4), false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty())
             )
     );
 
@@ -37,8 +30,8 @@ public class PostBoxTest {
                 "bla@blah.com",
                 Optional.of(0L),
                 Lists.newArrayList(
-                        new ConversationThread("123", "abc", now(), now().minusHours(100), now(), true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                        new ConversationThread("321", "cba",now(),  now().minusHours(10), now().minusHours(4), false, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty())
+                        new ConversationThread("123", "abc", now(), now().minusHours(100), now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                        new ConversationThread("321", "cba",now(),  now().minusHours(10), now().minusHours(4), false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty())
                 )
         );
 
@@ -56,12 +49,12 @@ public class PostBoxTest {
                 "bla@blah.com",
                 Optional.of(0L),
                 Lists.newArrayList(
-                        new ConversationThread("1", "abc", now().minusDays(180), now(), now(), true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                        new ConversationThread("2", "abc", now().minusDays(180).plusSeconds(1), now(), now().minusHours(1), true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                        new ConversationThread("3", "abc", now().minusDays(100), now(), now().minusHours(2), true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                        new ConversationThread("4", "abc", now().minusHours(100), now(), now().minusHours(3), true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                        new ConversationThread("5", "abc", now().minusSeconds(100), now(), now().minusHours(4), true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                        new ConversationThread("6", "cba", now().minusHours(10), now(), now().minusHours(5), false, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty())
+                        new ConversationThread("1", "abc", now().minusDays(180), now(), now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                        new ConversationThread("2", "abc", now().minusDays(180).plusSeconds(1), now(), now().minusHours(1), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                        new ConversationThread("3", "abc", now().minusDays(100), now(), now().minusHours(2), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                        new ConversationThread("4", "abc", now().minusHours(100), now(), now().minusHours(3), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                        new ConversationThread("5", "abc", now().minusSeconds(100), now(), now().minusHours(4), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                        new ConversationThread("6", "cba", now().minusHours(10), now(), now().minusHours(5), false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty())
                 )
         );
 
@@ -79,9 +72,7 @@ public class PostBoxTest {
 
     @Test
     public void removeNoConversations() {
-        PostBox postBox = POST_BOX;
-
-        List<ConversationThread> conversationThreads = postBox.getConversationThreads();
+        List<ConversationThread> conversationThreads = POST_BOX.getConversationThreads();
 
         assertTrue(conversationThreads.size() == 5);
     }

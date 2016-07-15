@@ -12,16 +12,7 @@ import java.util.Optional;
 import static junit.framework.Assert.assertEquals;
 import static org.joda.time.DateTime.now;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 16:16
- *
- * @author maldana@ebay.de
- */
 public class PostBoxConverterTest {
-
-    private DateTime created = DateTime.now();
 
     private PostBoxConverter converter;
 
@@ -62,7 +53,7 @@ public class PostBoxConverterTest {
 
     @Test
     public void receivedAtIsNullSafeDeconstruct(){
-        PostBox postBox = new PostBox("bla@blah.com", Optional.of(1l), Lists.newArrayList(
+        PostBox postBox = new PostBox("bla@blah.com", Optional.of(1L), Lists.newArrayList(
                 new ConversationThread("321", "cba", now(), now(), null, false, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty())));
 
         PostBoxConverter converter = new PostBoxConverter(PostBoxRepository.POST_BOX);
@@ -92,10 +83,5 @@ public class PostBoxConverterTest {
                 new ConversationThread("213", "bca", createdAt3, modifiedAt3, receivedAt3, false, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty())
         ));
     }
-
-
-
-
-
 
 }

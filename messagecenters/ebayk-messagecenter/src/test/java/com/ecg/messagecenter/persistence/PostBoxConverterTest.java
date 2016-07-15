@@ -12,16 +12,7 @@ import java.util.Optional;
 import static junit.framework.Assert.assertEquals;
 import static org.joda.time.DateTime.now;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 16:16
- *
- * @author maldana@ebay.de
- */
 public class PostBoxConverterTest {
-
-    private DateTime created = DateTime.now();
 
     private PostBoxConverter converter;
 
@@ -46,7 +37,7 @@ public class PostBoxConverterTest {
     }
 
     @Test
-    public void constructDeconstructPostboxGzipped(){
+    public void constructDeconstructPostboxGzipped() {
         PostBox postBox = createPostBox();
 
         PostBoxConverter converter = new PostBoxConverter();
@@ -61,9 +52,9 @@ public class PostBoxConverterTest {
     }
 
     @Test
-    public void receivedAtIsNullSafeDeconstruct(){
-        PostBox postBox = new PostBox("bla@blah.com", Optional.of(1l), Lists.newArrayList(
-                new ConversationThread("321", "cba", now(), now(), null, false, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Long>empty(), Optional.<Long>empty(), Optional.<Long>empty())));
+    public void receivedAtIsNullSafeDeconstruct() {
+        PostBox postBox = new PostBox("bla@blah.com", Optional.of(1L), Lists.newArrayList(
+                new ConversationThread("321", "cba", now(), now(), null, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty())));
 
         PostBoxConverter converter = new PostBoxConverter();
         IRiakObject riakObject = converter.fromDomain(postBox, new BasicVClock(new byte[]{}));
@@ -84,14 +75,9 @@ public class PostBoxConverterTest {
         DateTime receivedAt2 = dt.withMillis(1391332984879L);
 
         return new PostBox("bla@blah.com", Optional.of(1L), Lists.newArrayList(
-                new ConversationThread("123", "abc", createdAt1, modifiedAt1, receivedAt1, true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Long>empty(), Optional.<Long>empty(), Optional.<Long>empty()),
-                new ConversationThread("321", "cba", createdAt2, modifiedAt2, receivedAt2, false, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Long>empty(), Optional.<Long>empty(), Optional.<Long>empty())
+                new ConversationThread("123", "abc", createdAt1, modifiedAt1, receivedAt1, true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                new ConversationThread("321", "cba", createdAt2, modifiedAt2, receivedAt2, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty())
         ));
     }
-
-
-
-
-
 
 }
