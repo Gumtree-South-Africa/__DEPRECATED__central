@@ -28,6 +28,6 @@ public class StreamingIndexerActionTest {
 
         streamingIndexerAction.doIndexBetween(from, to, null, null);
 
-        verify(indexerChunkHandler).indexChunkAsync(new HashSet(Arrays.asList("c1", "c2")));
+        verify(indexerChunkHandler).indexChunkAsync(new HashSet(Arrays.asList("c1", "c2"))); 
     }
 }
