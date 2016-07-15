@@ -3,6 +3,7 @@ package com.ecg.replyts.core.runtime.indexer;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import org.joda.time.DateTime;
 import org.junit.Test;
+import org.omg.PortableServer.THREAD_POLICY_ID;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -28,6 +29,10 @@ public class StreamingIndexerActionTest {
 
         streamingIndexerAction.doIndexBetween(from, to, null, null);
 
+        try {
+            // Give scheduler some time to submit the task
+            Thread.sleep(500);
+        } catch (InterruptedException ignored) {}
         verify(indexerChunkHandler).indexChunkAsync(new HashSet(Arrays.asList("c1", "c2"))); 
     }
 }
