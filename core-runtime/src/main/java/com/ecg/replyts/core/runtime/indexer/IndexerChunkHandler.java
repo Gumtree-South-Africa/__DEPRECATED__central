@@ -99,6 +99,10 @@ class IndexerChunkHandler {
     private ListenableActionFuture<BulkResponse> indexChunkPartitionAsync(List<String> conversationIds) {
         try (Timer.Context timer = FETCH_TIMER.time()) {
             List<Conversation> conversations = fetchConversations(conversationIds);
+            if(conversations.size() != conversationIds.size()) {
+                LOG.warn("At least some conversation IDs were not found in the database, {} conversations expected, but only {} retrieved",
+                        conversationIds.size(), conversations.size());
+            }
             return indexer.updateSearchAsync(conversations, false);
         }
     }

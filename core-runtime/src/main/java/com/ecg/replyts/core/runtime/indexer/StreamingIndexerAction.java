@@ -82,31 +82,29 @@ public class StreamingIndexerAction implements IndexerAction {
 
     public void doIndexBetween(DateTime dateFrom, DateTime dateTo, IndexingMode indexingMode, IndexingJournal journal) {
         try (Timer.Context ignored = TIMER.time()) {
-
             LOGGER.info("Started indexing");
             Stream<String> conversations = conversationRepository.streamConversationsModifiedBetween(dateFrom, dateTo);
-
-
-            Iterators.partition(conversations.iterator(), conversationIdBatchSize).forEachRemaining(ids -> {
-                Set<String> unqids = new HashSet(ids);
-                submittedConvCounter += unqids.size();
-                LOGGER.info("Scheduling for indexing batch {} containing {} conversations, {} submitted in total", taskCounter++, unqids.size(), submittedConvCounter);
-                threadPoolExecutor.submit(() -> {
-                    List<ListenableActionFuture<BulkResponse>> docs = indexerChunkHandler.indexChunkAsync(unqids);
-                    indexingTasks.addAll(docs);
-                });
-                if (indexingTasks.size() > maxWaitingTasks || (Runtime.getRuntime().freeMemory() < minFreeMemoryBytes && !indexingTasks.isEmpty())) {
-                    drainQueue(indexingTasks, false);
-                }
-            });
-
-            drainQueue(indexingTasks, true);
-            LOGGER.info("Total {} conversations, {} fetched documents, {} indexed documents", submittedConvCounter, SearchIndexer.getFetchedDocumentCount(), receivedDocCounter);
+            indexConversations(conversations);
             LOGGER.info("Finished indexing.");
         }
-
     }
 
+    public void indexConversations(Stream<String> conversations) {
+        Iterators.partition(conversations.iterator(), conversationIdBatchSize).forEachRemaining(ids -> {
+            Set<String> unqids = new HashSet(ids);
+            submittedConvCounter += unqids.size();
+            LOGGER.info("Scheduling for indexing batch {} containing {} conversations, {} submitted in total", taskCounter++, unqids.size(), submittedConvCounter);
+            threadPoolExecutor.submit(() -> {
+                List<ListenableActionFuture<BulkResponse>> docs = indexerChunkHandler.indexChunkAsync(unqids);
+                indexingTasks.addAll(docs);
+            });
+            if (indexingTasks.size() > maxWaitingTasks || (Runtime.getRuntime().freeMemory() < minFreeMemoryBytes && !indexingTasks.isEmpty())) {
+                drainQueue(indexingTasks, false);
+            }
+        });
+        drainQueue(indexingTasks, true);
+        LOGGER.info("Total {} conversations, {} fetched documents, {} indexed documents", submittedConvCounter, SearchIndexer.getFetchedDocumentCount(), receivedDocCounter);
+    }
 
     private void drainQueue(ConcurrentLinkedQueue<ListenableActionFuture<BulkResponse>> indexingTasks, boolean finishing) {
         try (Timer.Context ignored = QUEUE_DRAIN.time()) {
@@ -151,4 +149,5 @@ public class StreamingIndexerAction implements IndexerAction {
             LOGGER.info("Elastic average indexing time is {} ms per document", receivedDocCounter > 0 && elasticResponseTimeMs > 0 ? (int) (elasticResponseTimeMs / receivedDocCounter) : "0");
         }
     }
+
 }
