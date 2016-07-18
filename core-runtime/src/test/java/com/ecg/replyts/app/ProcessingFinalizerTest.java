@@ -34,7 +34,6 @@ public class ProcessingFinalizerTest {
     @Mock
     private SearchIndexer searchIndexer;
 
-
     @Mock
     private DefaultMutableConversation conv;
 

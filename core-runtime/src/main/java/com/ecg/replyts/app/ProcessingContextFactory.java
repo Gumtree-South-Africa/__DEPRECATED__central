@@ -39,26 +39,21 @@ class ProcessingContextFactory {
      */
     public DefaultMutableConversation deadConversationForMessageIdConversationId(String messageId, String conversationId, Optional<Mail> mail) {
         NewConversationCommand newConversation = aNewDeadConversationCommand(conversationId).build();
+
+        List<String> textParts = Collections.emptyList();
+        if (mail.isPresent()) {
+            textParts = mail.get().getPlaintextParts();
+        }
+
         AddMessageCommand addMessage = anAddMessageCommand(conversationId, messageId)
                 .withMessageDirection(MessageDirection.UNKNOWN)
-                .withTextParts(mail.get().getPlaintextParts())
+                .withTextParts(textParts)
                 .withHeaders(findHeaders(mail))
                 .build();
 
         DefaultMutableConversation deadConversation = DefaultMutableConversation.create(newConversation);
         deadConversation.applyCommand(addMessage);
         return deadConversation;
-    }
-
-    private String findText(Optional<Mail> mail) {
-        if (!mail.isPresent()) {
-            return "";
-        }
-        List<String> plaintextParts = mail.get().getPlaintextParts();
-        if (!plaintextParts.isEmpty()) {
-            return plaintextParts.get(0);
-        }
-        return "";
     }
 
     private Map<String, String> findHeaders(Optional<Mail> mail) {
