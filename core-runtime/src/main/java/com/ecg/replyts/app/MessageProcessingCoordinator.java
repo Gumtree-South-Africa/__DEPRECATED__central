@@ -109,6 +109,7 @@ public class MessageProcessingCoordinator {
             return mail;
 
         } catch (ParsingException e) {
+            LOG.warn("Could not parse mail", e);
             Termination termination = Termination.unparseable(e);
             String messageId = guids.nextGuid();
             handleTermination(termination, messageId, Optional.absent(), Optional.absent(), incomingMailContents);
