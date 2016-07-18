@@ -4,7 +4,7 @@ import com.ecg.replyts.core.api.indexer.Indexer;
 import com.ecg.replyts.core.api.indexer.IndexerStatus;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.core.api.util.JsonObjects.Builder;
-import com.ecg.replyts.core.runtime.indexer.StreamingIndexerAction;
+import com.ecg.replyts.core.runtime.indexer.IndexerChunkHandler;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -30,7 +30,8 @@ class IndexInvokeController {
     @Autowired
     private Indexer indexer;
 
-    private StreamingIndexerAction streamingIndexer;
+    @Autowired
+    private IndexerChunkHandler chunkIndexer;
 
     private static final Splitter CONVERSATION_SPLITTER = Splitter.on(CharMatcher.WHITESPACE.or(CharMatcher.is(',')).or(CharMatcher.BREAKING_WHITESPACE)).trimResults().omitEmptyStrings();
 
@@ -56,7 +57,7 @@ class IndexInvokeController {
         final List<String> conversations = CONVERSATION_SPLITTER.splitToList(conversationList);
         LOG.info("Invoke index conversation via Web interface for conversations: " + conversations);
         executorService.execute(() -> {
-            streamingIndexer.indexConversations(conversations.stream());
+            chunkIndexer.indexChunk(conversations);
         });
         return "Index conversations by ID started.";
     }

@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-class IndexerChunkHandler {
+public class IndexerChunkHandler {
 
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("index-chunk");
     private static final Timer FETCH_TIMER = TimingReports.newTimer("fetch-chunk");
