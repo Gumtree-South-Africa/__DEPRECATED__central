@@ -2,14 +2,9 @@ package com.ecg.de.kleinanzeigen.replyts.linkproxy;
 
 import com.google.common.collect.Sets;
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.netty.util.internal.StringUtil;
-import org.springframework.beans.factory.support.MethodReplacer;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

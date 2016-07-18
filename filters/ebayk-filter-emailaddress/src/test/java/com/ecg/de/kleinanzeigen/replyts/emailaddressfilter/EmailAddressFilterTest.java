@@ -4,7 +4,8 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import org.elasticsearch.common.collect.ImmutableSet;
+
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

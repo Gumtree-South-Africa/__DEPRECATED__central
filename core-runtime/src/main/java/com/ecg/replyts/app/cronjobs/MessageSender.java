@@ -10,7 +10,7 @@ import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.google.common.base.Optional;
-import org.elasticsearch.common.joda.time.DateTime;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

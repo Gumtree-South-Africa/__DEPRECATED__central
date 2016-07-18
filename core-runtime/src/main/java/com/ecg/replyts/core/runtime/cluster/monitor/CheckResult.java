@@ -1,7 +1,7 @@
 package com.ecg.replyts.core.runtime.cluster.monitor;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import org.elasticsearch.common.base.Joiner;
 
 import java.util.Set;
 

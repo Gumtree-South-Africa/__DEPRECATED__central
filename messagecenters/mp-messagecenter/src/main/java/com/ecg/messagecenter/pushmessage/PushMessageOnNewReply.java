@@ -6,8 +6,8 @@ import com.ecg.messagecenter.util.PushNotificationTextShortener;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import org.elasticsearch.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

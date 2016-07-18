@@ -9,7 +9,7 @@ import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner
 import com.ecg.replyts.integration.elasticsearch.EsUtils;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.joda.time.DateTime;
+import org.joda.time.DateTime;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
