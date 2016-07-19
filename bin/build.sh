@@ -156,7 +156,7 @@ function main() {
         fi
     fi
 
-    if [ "$RUN_INTEGRATION_TESTS" -eq 1 ] ; then
+    if [[ "$RUN_INTEGRATION_TESTS" -eq 1 ]] ; then
         PROFILES="${PROFILES}integration-tests-part1,integration-tests-part2,"
     fi
 
@@ -185,7 +185,7 @@ function main() {
         echo "Running Integration Tests P2 only"
         MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P integration-tests-part2,!distribution "
         MVN_TASKS="clean package"
-    elif [[ "$RUN_CORE_TESTS" -eq 1 ]] ; then
+    elif [[ "$RUN_CORE_TESTS" -eq 1 && "$RUN_INTEGRATION_TESTS" -eq 0 ]] ; then
         echo "Running Core Tests only"
         MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P core,core-tests,!distribution "
         MVN_TASKS="clean package"
@@ -217,7 +217,6 @@ cat << EOF
 Usage:
     no args (default) - build all modules
     -t - builds and tests (but not integration tests) for Comaas and tenants
-    -i - builds and runs core integration tests
     -I - builds and runs ALL tests (including integration tests)
     -1 - builds and runs part 1 integration tests
     -2 - builds and runs part 2 integration tests
