@@ -34,51 +34,75 @@ import javax.annotation.PreDestroy;
 import java.util.List;
 
 @Configuration
-@Profile(ReplyTS.PRODUCTIVE_PROFILE)
 @ConditionalOnProperty(name = "persistence.strategy", havingValue = "riak")
 public class RiakPersistenceConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(RiakPersistenceConfiguration.class);
-
-    @Value("${persistence.riak.connectionPoolSizePerRiakHost}")
-    private int connectionPoolSizePerRiakHost;
-
-    @Value("${persistence.riak.maxConnectionsToRiakCluster}")
-    private int totalMaxConnectionsToRiakCluster;
-
-    @Value("${persistence.riak.connectionTimeoutMs}")
-    private int connectionTimeoutMs;
-
-    @Value("${persistence.riak.requestTimeoutMs}")
-    private int requestTimeoutMs;
-
-    @Value("${persistence.riak.idleConnectionTimeoutMs}")
-    private int idleConnectionTtlMs;
 
     @Value("${persistence.riak.bucket.name.prefix:}")
     private String bucketNamePrefix = "";
 
     @Autowired
-    private RiakHostConfig hostConfig;
-
     private IRiakClient riakClient;
 
-    @Bean
-    public IRiakClient createPrimaryRiakClusterClient() throws RiakException {
-        LOG.info("Riak Hosts in primary datacenter: {}", hostConfig.getHostList());
+    @Configuration
+    @Profile(ReplyTS.PRODUCTIVE_PROFILE)
+    static class RiakClientConfiguration {
+        @Value("${persistence.riak.idleConnectionTimeoutMs}")
+        private int idleConnectionTtlMs;
 
-        // The server should only connect to the Riak notes in the same (primary) datacenter.
-        List<RiakHostConfig.Host> primaryHostList = hostConfig.getHostList();
+        @Value("${persistence.riak.connectionTimeoutMs}")
+        private int connectionTimeoutMs;
 
-        // Note: The parameter totalMaximumConnections makes only sense if max connections for the cluster is smaller
-        // that the sum of the pool size per node.
-        PBClusterConfig config = new PBClusterConfig(totalMaxConnectionsToRiakCluster);
-        PBClientConfig clientConfig = createClientConfigBuilderWithDefaults()
-                .withPoolSize(connectionPoolSizePerRiakHost)
-                .build();
+        @Value("${persistence.riak.requestTimeoutMs}")
+        private int requestTimeoutMs;
 
-        config.addHosts(clientConfig, primaryHostListAsStringArray());
+        @Value("${persistence.riak.connectionPoolSizePerRiakHost}")
+        private int connectionPoolSizePerRiakHost;
 
-        return (riakClient = RiakFactory.newClient(config));
+        @Value("${persistence.riak.maxConnectionsToRiakCluster}")
+        private int totalMaxConnectionsToRiakCluster;
+
+        @Autowired
+        private RiakHostConfig hostConfig;
+
+        @Bean
+        public IRiakClient createPrimaryRiakClusterClient () throws RiakException {
+            LOG.info("Riak Hosts in primary datacenter: {}", hostConfig.getHostList());
+
+            // The server should only connect to the Riak notes in the same (primary) datacenter.
+            List<RiakHostConfig.Host> primaryHostList = hostConfig.getHostList();
+
+            // Note: The parameter totalMaximumConnections makes only sense if max connections for the cluster is smaller
+            // that the sum of the pool size per node.
+            PBClusterConfig config = new PBClusterConfig(totalMaxConnectionsToRiakCluster);
+            PBClientConfig clientConfig = createClientConfigBuilderWithDefaults()
+                    .withPoolSize(connectionPoolSizePerRiakHost)
+                    .build();
+
+            config.addHosts(clientConfig, primaryHostListAsStringArray());
+
+            return RiakFactory.newClient(config);
+        }
+
+        private String[] primaryHostListAsStringArray() {
+            return Lists.transform(hostConfig.getHostList(), new Function<RiakHostConfig.Host, String>() {
+                @Nullable
+                @Override
+                public String apply(RiakHostConfig.Host input) {
+                    return input.getHost();
+                }
+            }).toArray(new String[0]);
+        }
+
+        private PBClientConfig.Builder createClientConfigBuilderWithDefaults() {
+            return new PBClientConfig.Builder()
+                    .withConnectionTimeoutMillis(connectionTimeoutMs)
+                    .withIdleConnectionTTLMillis(idleConnectionTtlMs)
+                    .withInitialPoolSize(0) // we really want this to be 0. otherwise the riak client will not be able to initialize if any riak node is unavailable.
+                    .withRequestTimeoutMillis(requestTimeoutMs)
+                    .withPort(hostConfig.getProtobufPort());
+        }
+
     }
 
     @PreDestroy
@@ -109,25 +133,6 @@ public class RiakPersistenceConfiguration {
     @Bean
     public ConversationMigrator conversationMigrator(RiakConversationRepository conversationRepository) throws RiakRetryFailedException {
         return new ConversationMigrator(conversationRepository, riakClient);
-    }
-
-    private String[] primaryHostListAsStringArray() {
-        return Lists.transform(hostConfig.getHostList(), new Function<RiakHostConfig.Host, String>() {
-            @Nullable
-            @Override
-            public String apply(RiakHostConfig.Host input) {
-                return input.getHost();
-            }
-        }).toArray(new String[0]);
-    }
-
-    private PBClientConfig.Builder createClientConfigBuilderWithDefaults() {
-        return new PBClientConfig.Builder()
-                .withConnectionTimeoutMillis(connectionTimeoutMs)
-                .withIdleConnectionTTLMillis(idleConnectionTtlMs)
-                .withInitialPoolSize(0) // we really want this to be 0. otherwise the riak client will not be able to initialize if any riak node is unavailable.
-                .withRequestTimeoutMillis(requestTimeoutMs)
-                .withPort(hostConfig.getProtobufPort());
     }
 
     private boolean useBucketNamePrefix() {
