@@ -28,7 +28,7 @@ public class HealthController {
     @Value("${spring.cloud.config.discovery.enabled:false}")
     private boolean isDiscoveryEnabled;
 
-    @Value("${persistence.strategy}")
+    @Value("${persistence.strategy:unknown}")
     private String conversationRepositorySource;
 
     @Value("#{'${persistence.strategy:cassandra}' == \"riak\" ? '${persistence.riak.datacenter.primary.hosts:unknown}'.split(',') : '${persistence.cassandra.endpoint:unknown}'.split(',')}")
