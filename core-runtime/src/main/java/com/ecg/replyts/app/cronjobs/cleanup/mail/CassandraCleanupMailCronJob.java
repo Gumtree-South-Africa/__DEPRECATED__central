@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
@@ -25,21 +26,8 @@ import java.util.stream.Stream;
 import static org.joda.time.DateTime.now;
 
 @Component
-@Conditional(CassandraCleanupMailCronJob.Condition.class)
+@ConditionalOnExpression("'${persistence.strategy}$-${replyts2.cleanup.mail.enabled}' == 'cassandra-true'")
 public class CassandraCleanupMailCronJob implements CronJobExecutor {
-    // Used to determine whether to enable this cron-job (strategy = cassandra && cron-job = enabled)
-    public static class Condition extends AllNestedConditions {
-        public Condition() {
-            super(ConfigurationPhase.PARSE_CONFIGURATION);
-        }
-
-        @ConditionalOnProperty(name = "persistence.strategy", havingValue = "cassandra")
-        static class OnCassandraStrategy { }
-
-        @ConditionalOnProperty(name = "replyts2.cleanup.mail.enabled", havingValue = "true")
-        static class OnEnabled { }
-    }
-
     private static final Logger LOG = LoggerFactory.getLogger(CassandraCleanupMailCronJob.class);
 
     protected static final String CLEANUP_MAIL_JOB_NAME = "cleanupMailJob";

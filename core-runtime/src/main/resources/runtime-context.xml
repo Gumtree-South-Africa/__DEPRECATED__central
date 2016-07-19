@@ -31,8 +31,8 @@
     <bean class="com.ecg.replyts.app.cronjobs.CleanupConversationCronJob"/>
     <bean class="com.ecg.replyts.app.cronjobs.CleanupMailCronJob"/>
     <bean class="com.ecg.replyts.app.cronjobs.CleanupSearchCronJob"/>
-    <bean class="com.ecg.replyts.app.cronjobs.cleanup.conversation.CassandraCleanupConversationCronJob" />
-    <bean class="com.ecg.replyts.app.cronjobs.cleanup.mail.CassandraCleanupMailCronJob" />
+
+    <context:component-scan base-package="com.ecg.replyts.app.cronjobs.cleanup" />
 
     <bean id="currentClock" class="com.ecg.replyts.core.api.util.CurrentClock"/>
     <bean id="timeoutHeldsCronJobTimeframe" class="com.ecg.replyts.app.cronjobs.Timeframe">
