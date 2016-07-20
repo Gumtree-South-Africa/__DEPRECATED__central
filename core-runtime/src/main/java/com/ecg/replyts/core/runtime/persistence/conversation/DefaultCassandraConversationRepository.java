@@ -207,6 +207,9 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
         try (Timer.Context ignored = findByIndexKeyTimer.time()) {
             Statement bound = Statements.SELECT_WHERE_COMPOUND_KEY.bind(this, key.serialize());
             ResultSet resultset = session.execute(bound);
+            if (resultset.one() == null) {
+                return Optional.absent();
+            }
             return Optional
                     .fromNullable(resultset.one())
                     .transform(row -> row.getString(FIELD_CONVERSATION_ID))

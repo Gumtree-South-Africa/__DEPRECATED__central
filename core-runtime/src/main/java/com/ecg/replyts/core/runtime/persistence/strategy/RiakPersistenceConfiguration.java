@@ -1,6 +1,5 @@
 package com.ecg.replyts.core.runtime.persistence.strategy;
 
-
 import com.basho.riak.client.IRiakClient;
 import com.basho.riak.client.RiakException;
 import com.basho.riak.client.RiakFactory;
@@ -41,8 +40,41 @@ public class RiakPersistenceConfiguration {
     @Value("${persistence.riak.bucket.name.prefix:}")
     private String bucketNamePrefix = "";
 
+    @Value("#{'${persistence.riak.bucket.name.prefix:}' != ''}")
+    private Boolean useBucketNamePrefix;
+
     @Autowired
     private IRiakClient riakClient;
+
+    @Bean
+    public ConversationRepository conversationRepository() {
+        return useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix) : new RiakConversationRepository(riakClient);
+    }
+
+    @Bean
+    public ConfigurationRepository configurationRepository() throws RiakRetryFailedException {
+        return useBucketNamePrefix ? new RiakConfigurationRepository(riakClient, bucketNamePrefix) : new RiakConfigurationRepository(riakClient);
+    }
+
+    @Bean
+    public MailRepository mailRepository() throws RiakRetryFailedException {
+        return new DiffingRiakMailRepository(bucketNamePrefix, riakClient);
+    }
+
+    @Bean
+    public IndexerClockRepository indexerClockRepository() throws RiakRetryFailedException {
+        return new RiakIndexerClockRepository(riakClient, bucketNamePrefix);
+    }
+
+    @Bean
+    public ConversationMigrator conversationMigrator(RiakConversationRepository conversationRepository) throws RiakRetryFailedException {
+        return new ConversationMigrator(conversationRepository, riakClient);
+    }
+
+    @PreDestroy
+    void shutdown() {
+        riakClient.shutdown();
+    }
 
     @Configuration
     @Profile(ReplyTS.PRODUCTIVE_PROFILE)
@@ -103,39 +135,5 @@ public class RiakPersistenceConfiguration {
                     .withPort(hostConfig.getProtobufPort());
         }
 
-    }
-
-    @PreDestroy
-    void shutdown() {
-        riakClient.shutdown();
-    }
-
-    @Bean
-    public ConversationRepository conversationRepository() {
-        return useBucketNamePrefix() ? new RiakConversationRepository(riakClient, bucketNamePrefix) : new RiakConversationRepository(riakClient);
-    }
-
-    @Bean
-    public ConfigurationRepository configurationRepository() throws RiakRetryFailedException {
-        return useBucketNamePrefix() ? new RiakConfigurationRepository(riakClient, bucketNamePrefix) : new RiakConfigurationRepository(riakClient);
-    }
-
-    @Bean
-    public MailRepository mailRepository() throws RiakRetryFailedException {
-        return new DiffingRiakMailRepository(bucketNamePrefix, riakClient);
-    }
-
-    @Bean
-    public IndexerClockRepository indexerClockRepository() throws RiakRetryFailedException {
-        return new RiakIndexerClockRepository(riakClient, bucketNamePrefix);
-    }
-
-    @Bean
-    public ConversationMigrator conversationMigrator(RiakConversationRepository conversationRepository) throws RiakRetryFailedException {
-        return new ConversationMigrator(conversationRepository, riakClient);
-    }
-
-    private boolean useBucketNamePrefix() {
-        return bucketNamePrefix != null && !bucketNamePrefix.isEmpty();
     }
 }

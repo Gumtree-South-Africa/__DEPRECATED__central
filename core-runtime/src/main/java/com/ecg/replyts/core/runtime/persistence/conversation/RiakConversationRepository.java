@@ -63,6 +63,12 @@ public class RiakConversationRepository implements MutableConversationRepository
         this.conversationIndexBucket = conversationIndexBucket;
     }
 
+    public List<ConversationEvent> getConversationEvents(String conversationId) {
+        ConversationEvents conversationEvents = conversationBucket.byId(conversationId);
+
+        return conversationEvents.getEvents();
+    }
+
     @Override
     public MutableConversation getById(String conversationId) {
         final Timer.Context context = getByIdTimer.time();
@@ -77,7 +83,6 @@ public class RiakConversationRepository implements MutableConversationRepository
             context.stop();
         }
     }
-
 
     @Override
     public MutableConversation getBySecret(String secret) {

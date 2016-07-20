@@ -5,12 +5,13 @@ import com.ecg.replyts.core.api.cron.CronJobExecutor;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
+import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.app.eventpublisher.EventConverter;
 import com.ecg.replyts.app.eventpublisher.EventPublisher;
+import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationRepository;
 import com.google.common.collect.Iterators;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -39,7 +40,7 @@ public class KafkaEventReplayCronJob implements CronJobExecutor {
 
     private final String cronExpression;
 
-    private final CassandraConversationRepository conversationRepository;
+    private final ConversationRepository conversationRepository;
     private final String startDateString;
     private final String endDateString;
 
@@ -51,11 +52,10 @@ public class KafkaEventReplayCronJob implements CronJobExecutor {
 
     KafkaEventReplayCronJob(
             String cronExpression,
-            CassandraConversationRepository conversationRepository,
+            ConversationRepository conversationRepository,
             String startDateString, String endDateString,
             int eventBatchSize, int streamingThreadCount, int workQueueSize,
             EventPublisher eventPublisher, MailCloakingService mailCloakingService) {
-
         this.cronExpression = cronExpression;
 
         this.conversationRepository = conversationRepository;
@@ -83,7 +83,13 @@ public class KafkaEventReplayCronJob implements CronJobExecutor {
 
             DateTime startDateTime = DATE_TIME_FORMATTER.parseDateTime(startDateString);
             DateTime endDateTime = DATE_TIME_FORMATTER.parseDateTime(endDateString);
-            Stream<ImmutablePair<Conversation, ConversationEvent>> stream = conversationRepository.findEventsCreatedBetween(startDateTime, endDateTime);
+            Stream<ImmutablePair<Conversation, ConversationEvent>> stream;
+
+            if (conversationRepository instanceof CassandraConversationRepository) {
+                stream = ((CassandraConversationRepository) conversationRepository).findEventsCreatedBetween(startDateTime, endDateTime);
+            } else {
+                throw new IllegalStateException("Conversation repository is not a Cassandra repository");
+            }
 
             List<Future<?>> eventReplayTasks = new ArrayList<>();
 

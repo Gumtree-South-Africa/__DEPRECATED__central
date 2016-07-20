@@ -17,7 +17,9 @@ import com.google.common.base.Splitter;
 import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,43 +40,10 @@ public class CassandraPersistenceConfiguration {
     @Value("${persistence.cassandra.dc:#{null}}")
     private String cassandraDataCenter;
 
-    @Value("${persistence.cassandra.username:#{null}}")
-    private String cassandraUsername;
-
-    @Value("${persistence.cassandra.password:#{null}}")
-    private String cassandraPassword;
-
-    @Value("${persistence.cassandra.keyspace:#{null}}")
-    private String cassandraKeyspace;
-
-    @Value("${persistence.cassandra.consistency.read:#{null}}")
+    @Autowired
     private ConsistencyLevel cassandraReadConsistency;
-
-    @Value("${persistence.cassandra.consistency.write:#{null}}")
+    @Autowired
     private ConsistencyLevel cassandraWriteConsistency;
-
-    @Value("${persistence.cassandra.idleTimeoutSeconds:#{null}}")
-    private Integer idleTimeoutSeconds;
-
-    @Value("${persistence.cassandra.jobs.idleTimeoutSeconds:#{null}}")
-    private Integer idleTimeoutSecondsForJobs;
-
-    private Collection<InetSocketAddress> cassandraContactPoints;
-    private Session cassandraSession;
-    private Cluster cassandraCluster;
-    private Session cassandraSessionForJobs;
-    private Cluster cassandraClusterForJobs;
-
-    @Value("${persistence.cassandra.endpoint:}")
-    public void setCassandraEndpoint(String cassandraEndpoint) {
-        if (StringUtils.hasLength(cassandraEndpoint)) {
-            cassandraContactPoints = Splitter.on(',').withKeyValueSeparator(':').split(cassandraEndpoint)
-                    .entrySet()
-                    .stream()
-                    .map(entry -> new InetSocketAddress(entry.getKey().trim(), Integer.valueOf(entry.getValue().trim())))
-                    .collect(toList());
-        }
-    }
 
     @Bean
     public ConversationRepository conversationRepository(Session cassandraSession) {
@@ -106,69 +75,114 @@ public class CassandraPersistenceConfiguration {
         return null;
     }
 
-    @Bean(name = "cassandraSession")
-    public Session cassandraSession() {
-        Object[] clusterAndSession = buildClusterAndSession(idleTimeoutSeconds);
+    @Configuration
+    @ConditionalOnExpression("#{'${persistence.strategy}' == 'cassandra' || '${persistence.strategy}' == 'hybrid'}")
+    static class CassandraClientConfiguration {
+        @Value("${persistence.cassandra.dc:#{null}}")
+        private String cassandraDataCenter;
 
-        cassandraCluster = (Cluster) clusterAndSession[0];
-        cassandraSession = (Session) clusterAndSession[1];
+        @Value("${persistence.cassandra.username:#{null}}")
+        private String cassandraUsername;
 
-        return cassandraSession;
-    }
+        @Value("${persistence.cassandra.password:#{null}}")
+        private String cassandraPassword;
 
-    @Bean(name = "cassandraSessionForJobs")
-    public Session cassandraSessionForJobs() {
-        Object[] clusterAndSession = buildClusterAndSession(idleTimeoutSecondsForJobs);
+        @Value("${persistence.cassandra.keyspace:#{null}}")
+        private String cassandraKeyspace;
 
-        cassandraClusterForJobs = (Cluster) clusterAndSession[0];
-        cassandraSessionForJobs = (Session) clusterAndSession[1];
+        @Value("${persistence.cassandra.consistency.read:#{null}}")
+        private ConsistencyLevel cassandraReadConsistency;
 
-        return cassandraSessionForJobs;
-    }
+        @Value("${persistence.cassandra.consistency.write:#{null}}")
+        private ConsistencyLevel cassandraWriteConsistency;
 
-    private Object[] buildClusterAndSession(Integer idleTimeoutSeconds) {
-        LOG.info("Connecting to Cassandra dc {}, contactpoints {}, user '{}'", cassandraDataCenter, cassandraContactPoints, cassandraUsername);
-        Cluster.Builder builder = Cluster.
-                builder().
-                withLoadBalancingPolicy(new DCAwareRoundRobinPolicy(cassandraDataCenter)).
-                addContactPointsWithPorts(cassandraContactPoints);
-        if (StringUtils.hasLength(cassandraUsername)) {
-            builder.withAuthProvider(new PlainTextAuthProvider(cassandraUsername, cassandraPassword));
+        @Value("${persistence.cassandra.idleTimeoutSeconds:#{null}}")
+        private Integer idleTimeoutSeconds;
+
+        @Value("${persistence.cassandra.jobs.idleTimeoutSeconds:#{null}}")
+        private Integer idleTimeoutSecondsForJobs;
+
+        private Collection<InetSocketAddress> cassandraContactPoints;
+        private Session cassandraSession;
+        private Cluster cassandraCluster;
+        private Session cassandraSessionForJobs;
+        private Cluster cassandraClusterForJobs;
+
+        @Value("${persistence.cassandra.endpoint:}")
+        public void setCassandraEndpoint(String cassandraEndpoint) {
+            if (StringUtils.hasLength(cassandraEndpoint)) {
+                cassandraContactPoints = Splitter.on(',').withKeyValueSeparator(':').split(cassandraEndpoint)
+                        .entrySet()
+                        .stream()
+                        .map(entry -> new InetSocketAddress(entry.getKey().trim(), Integer.valueOf(entry.getValue().trim())))
+                        .collect(toList());
+            }
         }
 
-        // Pooling options in Protocol V3
-        PoolingOptions poolingOptions = new PoolingOptions();
-        poolingOptions.setMaxConnectionsPerHost(HostDistance.LOCAL, 10);
-        poolingOptions.setMaxConnectionsPerHost(HostDistance.REMOTE, 2);
-        poolingOptions.setCoreConnectionsPerHost(HostDistance.LOCAL, 2);
-        poolingOptions.setCoreConnectionsPerHost(HostDistance.REMOTE, 1);
-        if (idleTimeoutSeconds != null) poolingOptions.setIdleTimeoutSeconds(idleTimeoutSeconds);
-        builder.withPoolingOptions(poolingOptions);
+        @Bean(name = "cassandraSession")
+        public Session cassandraSession() {
+            Object[] clusterAndSession = buildClusterAndSession(idleTimeoutSeconds);
 
-        Cluster cassandraCluster = builder.build();
-        Session cassandraSession = cassandraCluster.connect(cassandraKeyspace);
+            cassandraCluster = (Cluster) clusterAndSession[0];
+            cassandraSession = (Session) clusterAndSession[1];
 
-        return new Object[] { cassandraCluster, cassandraSession };
-    }
-
-    @PreDestroy
-    public void closeCassandra() {
-        try {
-            Closeables.close(cassandraSession, true);
-            Closeables.close(cassandraCluster, true);
-            Closeables.close(cassandraSessionForJobs, true);
-            Closeables.close(cassandraClusterForJobs, true);
-        } catch (IOException ignored) {
+            return cassandraSession;
         }
-    }
 
-    @Bean(name = "cassandraReadConsistency")
-    public ConsistencyLevel getCassandraReadConsistency() {
-        return cassandraReadConsistency;
-    }
+        @Bean(name = "cassandraSessionForJobs")
+        public Session cassandraSessionForJobs() {
+            Object[] clusterAndSession = buildClusterAndSession(idleTimeoutSecondsForJobs);
 
-    @Bean(name = "cassandraWriteConsistency")
-    public ConsistencyLevel getCassandraWriteConsistency() {
-        return cassandraWriteConsistency;
+            cassandraClusterForJobs = (Cluster) clusterAndSession[0];
+            cassandraSessionForJobs = (Session) clusterAndSession[1];
+
+            return cassandraSessionForJobs;
+        }
+
+        private Object[] buildClusterAndSession(Integer idleTimeoutSeconds) {
+            LOG.info("Connecting to Cassandra dc {}, contactpoints {}, user '{}'", cassandraDataCenter, cassandraContactPoints, cassandraUsername);
+            Cluster.Builder builder = Cluster.
+                    builder().
+                    withLoadBalancingPolicy(new DCAwareRoundRobinPolicy(cassandraDataCenter)).
+                    addContactPointsWithPorts(cassandraContactPoints);
+            if (StringUtils.hasLength(cassandraUsername)) {
+                builder.withAuthProvider(new PlainTextAuthProvider(cassandraUsername, cassandraPassword));
+            }
+
+            // Pooling options in Protocol V3
+            PoolingOptions poolingOptions = new PoolingOptions();
+            poolingOptions.setMaxConnectionsPerHost(HostDistance.LOCAL, 10);
+            poolingOptions.setMaxConnectionsPerHost(HostDistance.REMOTE, 2);
+            poolingOptions.setCoreConnectionsPerHost(HostDistance.LOCAL, 2);
+            poolingOptions.setCoreConnectionsPerHost(HostDistance.REMOTE, 1);
+            if (idleTimeoutSeconds != null) poolingOptions.setIdleTimeoutSeconds(idleTimeoutSeconds);
+            builder.withPoolingOptions(poolingOptions);
+
+            Cluster cassandraCluster = builder.build();
+            Session cassandraSession = cassandraCluster.connect(cassandraKeyspace);
+
+            return new Object[]{cassandraCluster, cassandraSession};
+        }
+
+        @PreDestroy
+        public void closeCassandra() {
+            try {
+                Closeables.close(cassandraSession, true);
+                Closeables.close(cassandraCluster, true);
+                Closeables.close(cassandraSessionForJobs, true);
+                Closeables.close(cassandraClusterForJobs, true);
+            } catch (IOException ignored) {
+            }
+        }
+
+        @Bean(name = "cassandraReadConsistency")
+        public ConsistencyLevel getCassandraReadConsistency() {
+            return cassandraReadConsistency;
+        }
+
+        @Bean(name = "cassandraWriteConsistency")
+        public ConsistencyLevel getCassandraWriteConsistency() {
+            return cassandraWriteConsistency;
+        }
     }
 }

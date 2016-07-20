@@ -1,7 +1,7 @@
 package com.ecg.replyts2.eventpublisher.kafka.cronjob;
 
 import com.ecg.replyts.core.api.model.MailCloakingService;
-import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
+import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts2.eventpublisher.kafka.KafkaEventPublisherConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ public class KafkaEventReplayCronJobConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaEventReplayCronJobConfig.class);
 
     @Autowired
-    private CassandraConversationRepository conversationRepository;
+    private ConversationRepository conversationRepository;
     @Autowired
     private MailCloakingService mailCloakingService;
     @Autowired
