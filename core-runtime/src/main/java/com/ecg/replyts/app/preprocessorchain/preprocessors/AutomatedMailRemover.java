@@ -45,6 +45,8 @@ public class AutomatedMailRemover implements PreProcessor {
     private static final String X_LOOP = "X-Loop";
     private static final String RETURN_PATH = "Return-Path";
     private static final String NULL_VALUE = "<>";
+    private static final String MAILER_DAEMON_VALUE = "<MAILER-DAEMON>";
+
     private static final String AUTO_SUBMITTED = "Auto-Submitted";
     private static final MediaType REPORT_MEDIATYPE = MediaType.parse("Multipart/report");
     private static final String MAILER_DAEMON = "MAILER-DAEMON@";
@@ -55,7 +57,7 @@ public class AutomatedMailRemover implements PreProcessor {
         Mail mail = context.getMail();
 
 
-        boolean isAcceptableMail = checkNullReturnPath(mail, context) && // NOSONAR
+        boolean isAcceptableMail = checkReturnPath(mail, context) && // NOSONAR
                 checkFromMailerDaemon(mail, context) &&
                 checkAutoSubmitted(mail, context) &&
                 checkXLoop(mail, context) &&
@@ -69,9 +71,9 @@ public class AutomatedMailRemover implements PreProcessor {
 
     }
 
-    private boolean checkNullReturnPath(final Mail mail, final MessageProcessingContext ctx) {
+    private boolean checkReturnPath(final Mail mail, final MessageProcessingContext ctx) {
         String returnPathHeader = mail.getUniqueHeader(RETURN_PATH);
-        if (NULL_VALUE.equalsIgnoreCase(returnPathHeader)) {
+        if (NULL_VALUE.equalsIgnoreCase(returnPathHeader) || MAILER_DAEMON_VALUE.equalsIgnoreCase(returnPathHeader)) {
             ctx.terminateProcessing(MessageState.IGNORED, this, "Is auto generated mail (empty return path)");
             return false;
         }

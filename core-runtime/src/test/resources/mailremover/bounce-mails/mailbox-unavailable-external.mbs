@@ -1,0 +1,95 @@
+Return-Path: <MAILER-DAEMON>
+X-Original-To: receipient@mydomain.com
+Delivered-To: receipient@mydomain.com
+Received: from localhost (localhost [127.0.0.1])
+        by kreplyts47-2.mobile.rz (Postfix) with ESMTP id B72A46810F1
+        for <receipient@mydomain.com>; Mon, 18 Jul 2016 20:33:05 +0200 (CEST)
+Received: from kreplyts47-2.mobile.rz ([127.0.0.1])
+        by localhost (kreplyts47-2.mobile.rz [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id wPkBjgMdL_9u
+        for <receipient@mydomain.com>;
+        Mon, 18 Jul 2016 20:33:05 +0200 (CEST)
+Received: from mailin47-1.mobile.de (unknown [10.47.131.251])
+        by kreplyts47-2.mobile.rz (Postfix) with ESMTP id 7613E68133F
+        for <receipient@mydomain.com>; Mon, 18 Jul 2016 20:33:03 +0200 (CEST)
+Received: by mailin47-1.mobile.de (Postfix, from userid 5025)
+        id 746DD607AE; Mon, 18 Jul 2016 20:33:03 +0200 (CEST)
+Received: from mout-bounce.web.de (mout-bounce.web.de [212.227.17.19])
+        by mailin47-1.mobile.de (Postfix) with ESMTPS id 4FC3260199
+        for <receipient@mydomain.com>; Mon, 18 Jul 2016 20:33:03 +0200 (CEST)
+Received: from mda by moweb103.server.lan id 0MHEFy-1bcwrk1Kao-00DwKx
+    Mon, 18 Jul 2016 20:33:02 +0200
+Date: Mon, 18 Jul 2016 20:33:02 +0200
+From: "WEB.DE Mailer Daemon" <keineantwortadresse@web.de>
+To: receipient@mydomain.com
+Subject: Mail delivery failed: returning message to sender
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+X-UI-Out-Filterresults: unknown:0;V01:K0:k8fYimELqXM=:5MauDN7fNuLB49IyGPdb/g
+ ==
+X-Originating-IP: 212.227.17.19
+Message-Id: <20160718183303.746DD607AE@mailin47-1.mobile.de>
+
+This message was created automatically by mail delivery software.
+
+A message that you sent could not be delivered to one or more of
+its recipients. This is a permanent error. The following address(es)
+failed:
+
+mail@address.com:
+SMTP error from remote server for RCPT TO command, host: mx01.emig.kundenserver.de (217.72.192.66) reason: 550 Requested action not taken: mailbox unavailable
+
+
+
+--- The header of the original message is following. ---
+
+Received: from [212.227.17.8] ([212.227.17.8]) by mx-ha.web.de (mxweb104) with
+ ESMTPS (Nemesis) id 0MN1nw-1bRRKf48XQ-006cT5 for
+ <mail@address.com>; Mon, 18 Jul 2016 20:33:02 +0200
+Received: from mailout47-4.mobile.de ([91.211.75.4]) by mx-ha.web.de
+ (mxweb104) with ESMTPS (Nemesis) id 0MO8ng-1bSXGL48P6-005X4h for
+ <mail@address.com>; Mon, 18 Jul 2016 20:33:01 +0200
+Received: from localhost (localhost [127.0.0.1])
+        by mailout47-4.mobile.de (Postfix) with ESMTP id C750A100251
+        for <mail@address.com>; Mon, 18 Jul 2016 20:33:01 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=
+        mail.ebay-kleinanzeigen.de; h=from:from:message-id:content-type
+        :content-type:mime-version:subject:subject:date:date; s=
+        klein200909; t=1468866781; bh=qVlXYvy7B79LVfPJqHelUQ7/vgABeMfu5O
+        uk2jF+yik=; b=aSJhjdQTDMvrFS9Kwtp+5OC8uKPMhUZl1+rhNE3Sm0YkjfQlV6
+        KFYfRYb9FEXC70QLDZX8QL91NAQt8RWWhlwsGBribBwnLN/b+qNPYWtxj5VfJX0c
+        LV1gyPB5Cpcwp+14dohrS6vJkJ8eBymb67MhswCfupQIwIhvxvg8itk/I=
+Received: from kreplyts47-1.mobile.rz (mo-lb002.mobile.rz [10.47.28.251])
+        by mailout47-4.mobile.de (Postfix) with ESMTP id BA9311002AE
+        for <mail@address.com>; Mon, 18 Jul 2016 20:33:01 +0200 (CEST)
+Received: from kreplyts47-1.mobile.rz (localhost [127.0.0.1])
+        by kreplyts47-1.mobile.rz (Postfix) with ESMTP id AF4DA641388
+        for <mail@address.com>; Mon, 18 Jul 2016 20:33:01 +0200 (CEST)
+Date: Mon, 18 Jul 2016 20:33:00 +0200 (CEST)
+Subject: Nutzer-Anfrage zu Ihrer Anzeige "Synology DiskStation DS112J
+ NAS-Server, gebraucht"
+MIME-Version: 1.0
+Content-Type: text/html;charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Message-ID: <mlxkibc5t8z8bc7pk11ox2561zye3udr0m4809dpm1rl2n9c2el@mail.ebay-kleinanzeigen.de>
+To: mail@address.com
+From: =?ISO-8859-1?Q?J=FCrgen_=FCber_eBay_Kleinanzeigen?=
+ <receipient@mydomain.com>
+X-UI-Out-Filterresults: notjunk:1;V01:K0:GCZTYNT09UQ=:ol2Iv0Vn+1la0PSlGy/6uA
+ NxBHq9S2lft6Ka/Y4R+5r3MICs8Nck3nZtPJBb2t5wOHYqFUyrQjU1SPy52KZ2CIefXLKR9Y4
+ jElvxk+S2T6kMqOF++Oczp2NCQfT7ku/3iGqkQCnYePAG9W38UK3/WoPkmqf5wRbBVFmVBz7A
+ h0MD7Dl6GKe5HQ2TQf3MNZGiNPc8ZjSGhzi3UpcXRJjRsy5BKJZZB7gDKP5EaVBUOgDUJvHlh
+ Ur+imOt+1dGqV0Yv9xppA4PWqGQzGt7skbFJQIOND3N5tugTW/2PDbiQvtFY0Mimy/DiOiagG
+ w2QhtVYw5iY0dlRdLcpI964f1NY6r7732ZNetwTz/SGaCD2DEgaE+Z30fYREX5LmF4b7tGuan
+ Bge5PKFVsIy57A+2KcSlvqKKpQrJXQYMzcMttSdl5uI4aK0HQlZdufU/5lKC3tr0nrsWYkHKh
+ 66s+gt12W+g3dC8D9AOaqxQfkSRjCt+T+EQTwf1KXXWDaa/LSByBHvz37oa5aPuTrRpNu/qln
+ 3ExFxG4rL4Xwj1YQH06zVu02E5Pp5GIrDh5EhlNSviQWJZeRU2AtfwGoUIJYDUVPkMDTsaaF/
+ kN344VDcIULlwDL1qgnpTv8USnp4ZJU1ERRCI8rfMI4d0K+DlHjuh09klCSwLo3PR/wUDICbC
+ CKjtJw5HnMG8hJ8hpXFn8RMKhMFL1iYT8k+A2zKbWcIab6j8S4umstAhFGo8homaxEv6vfRwp
+ 3ZC0FgOgYhf9NWoRa0vt2P6Km1HWAKgqUJSrFbPkwa6PABhg43+XKOemLWO+PUWfjY1atI2b2
+ VN10bPicIf3+MR6XYGfTztQ67zA01S6XiCDCP2sQAulbmfP7OAWD3Br8w8w6PuXuXyk9yoZuT
+ WRcqOq74BtnTgjmNhFLmgup3cyWSYa4abexRhZykG2lCMPJpcD0AS7A+USYZQNibYyiZcHjDv
+ nPzZtrJKS7UUodN3x4e9a38QQCW0u6ihsxTVSgeBD0TTRb5Kle4Oyvgn72sva/wOZjbxxSi97
+ Z5ppkISQbXKckWomNRtF/119Qt7jepIHYCgNpyo2v8KSNP9RLu580CO8ApPPi81bp+egTUd9c
+ ojwvbxqeobf2S6ciQqInIYVy1ku0nmjYiNCmn8k4KW7aL+NAlK5tkey/w==
