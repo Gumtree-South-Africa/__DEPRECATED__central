@@ -28,7 +28,7 @@ function parseArgs() {
 # map to lookup the upload hosts for a tenant
 declare -A HOSTS=(
   ["mp"]="builder@mp-deploy001.opslp.ams01.marktplaats.nl"
-  ["ebayk"]="https://comaas-uploader:ohy9Te#hah9U@kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/ecg/comaas/versions/"
+  ["ebayk"]="https://comaas-uploader:ohy9Te#hah9U@kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/com/ecg/ebayk/comaas/"
   ["mde"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-team-releases/ecg/ecg-comaas/"
   ["kjca"]='http://comaas:bMv!Yne7Apj3F4pW@nexus.kjdev.ca/content/repositories/comaas/ecg/comaas/versions/'
 
