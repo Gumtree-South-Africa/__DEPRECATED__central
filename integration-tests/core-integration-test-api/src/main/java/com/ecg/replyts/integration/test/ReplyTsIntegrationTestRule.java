@@ -69,6 +69,8 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     private String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
 
+    private boolean cassandraEnabled = true;
+
     public ReplyTsIntegrationTestRule() {
         this(null, null, 20, false, "cassandra_schema.cql");
     }
@@ -115,6 +117,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         testProperties.put("kapi.host", "UNSET_PROPERTY");
         LOG.debug("Running tests with ES enabled: " + esEnabled);
 
+        if ("riak".equals(testProperties.get("persistence.strategy"))) {
+            cassandraEnabled = false;
+        }
+
         this.testRunner = new IntegrationTestRunner(testProperties, configurationResourceDirectory != null ? configurationResourceDirectory : ReplytsRunner.DEFAULT_CONFIG_RESOURCE_DIRECTORY);
     }
 
@@ -122,16 +128,19 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     public Statement apply(final Statement base, Description description) {
         this.description = description;
 
-        final Session session;
+        Session session = null;
 
-        try {
-            session = CASDB.loadSchema(keyspace, cqlFilePaths);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
+        if (cassandraEnabled) {
+            try {
+                session = CASDB.loadSchema(keyspace, cqlFilePaths);
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
         }
 
         testRunner.start();
 
+        Session finalSession = session;
         return new Statement() {
             @Override
             public void evaluate() throws Throwable { // NOSONAR
@@ -144,7 +153,9 @@ public class ReplyTsIntegrationTestRule implements TestRule {
                 } finally {
                     cleanConfigs();
                     testRunner.stop();
-                    CASDB.cleanTables(session, keyspace);
+                    if (cassandraEnabled) {
+                        CASDB.cleanTables(finalSession, keyspace);
+                    }
                 }
             }
         };

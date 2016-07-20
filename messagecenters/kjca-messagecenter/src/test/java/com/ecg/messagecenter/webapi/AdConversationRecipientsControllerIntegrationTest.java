@@ -4,15 +4,13 @@ import com.ecg.messagecenter.webapi.requests.MessageCenterGetAdConversationRecip
 import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Properties;
-import java.util.function.Supplier;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Properties;
+import java.util.function.Supplier;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static org.hamcrest.Matchers.equalTo;
@@ -41,6 +39,7 @@ public class AdConversationRecipientsControllerIntegrationTest {
         Properties properties = new Properties();
 
         properties.put("push-mobile.enabled","false");
+        properties.put("persistence.strategy", "riak");
 
         return properties;
     }).get());

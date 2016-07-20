@@ -9,7 +9,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
+import java.util.Properties;
+
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 
 public class ConversationThreadControllerIntegrationTest {
 
@@ -19,8 +22,12 @@ public class ConversationThreadControllerIntegrationTest {
             .adId("232323")
             .plainBody("First contact from buyer.");
 
+    private final Properties testProperties = new Properties() {{
+        put("persistence.strategy", "riak");
+    }};
+
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
 
     @Test
     public void existingConversation_sellerBlocksUnblocks() throws Exception {

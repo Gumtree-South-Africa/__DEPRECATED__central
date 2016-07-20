@@ -8,14 +8,20 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
 import javax.mail.internet.MimeMessage;
+import java.util.Properties;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.hamcrest.Matchers.equalTo;
 
 public class PostBoxOverviewControllerAcceptanceTest {
 
+    private final Properties testProperties = new Properties() {{
+        put("persistence.strategy", "riak");
+    }};
+
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
 
     @Test
     public void readConversation() {

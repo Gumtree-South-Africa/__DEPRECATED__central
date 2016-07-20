@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
@@ -19,8 +20,12 @@ import static org.junit.Assert.assertEquals;
  */
 public class VolumeFilterIntegrationTest {
 
+    private final Properties testProperties = new Properties() {{
+        put("persistence.strategy", "riak");
+    }};
+
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
 
     @Test
     public void violatesQuota() throws Exception {

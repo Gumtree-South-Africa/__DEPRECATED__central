@@ -9,8 +9,12 @@ Download Cassandra from http://archive.apache.org/dist/cassandra/2.1.14/ to your
 
 Run `setup-cassandra.sh` to run initial db migrations.
 
-To build comaas from IDE add -Drevision=(ANY_NUMBER) to maven configuration 
-![IntelleJ Maven Config](/docs/comaas_maven_config.jpg)
+To build comaas from IDE add -Drevision=(ANYTHING) to maven configuration. For the rest of
+this doc we'll assume you picked "123".
+![IntelliJ Maven Config](/docs/comaas_maven_config.jpg)
+
+Check the profile you want to build against in IntelliJ's Maven Projects view
+![IntelliJ Profile Selection](/docs/intellij-profile-selection.png)
 
 To run COMaaS for a specific tenant from your IDE, use the following Run configuration:
 
@@ -22,12 +26,11 @@ To run COMaaS for a specific tenant from your IDE, use the following Run configu
 * Parameters / Profiles: [name of tenant, e.g. mp]
 
 * General / Maven home directory: [make sure you select the latest version, usually not the IntelliJ built-in, e.g. 3.3.9]
-* General / User settings file: etc/settings.xml (select 'Override' to override)
 * General / Make sure "Execute goals recursively" is checked
 
 * Runner / VM arguments:
   ```
-  -Drevision=running-from-ide
+  -Drevision=123
   -DconfDir=distribution/conf/<name of tenant, e.g. mp>/local
   -DlogDir=/tmp
   -Dmail.mime.parameters.strict=false

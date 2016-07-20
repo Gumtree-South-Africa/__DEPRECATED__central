@@ -10,14 +10,22 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Properties;
+
 import static com.ecg.de.kleinanzeigen.replyts.wordfilter.Wordfilter.CATEGORY_ID;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.junit.Assert.assertEquals;
 
 public class WordfilterIntegrationTest {
 
+    private final Properties testProperties = new Properties() {{
+        put("persistence.strategy", "riak");
+    }};
+
     @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
+
 
 
     @Before
