@@ -5,8 +5,9 @@ import com.ecg.replyts.core.api.sanitychecks.Message;
 import com.ecg.replyts.core.api.sanitychecks.Result;
 import com.ecg.replyts.core.api.sanitychecks.Status;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
+import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.client.AdminClient;
-import org.elasticsearch.cluster.health.ClusterHealthStatus;
+
 import org.elasticsearch.node.Node;
 import org.springframework.beans.factory.annotation.Value;
 
