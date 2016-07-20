@@ -17,13 +17,16 @@
             <groupId>ecg.comaas</groupId>
             <artifactId>core-api</artifactId>
         </dependency>
+
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-runtime</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.retrofit</groupId>
-            <artifactId>retrofit</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -32,15 +35,33 @@
         </dependency>
 
         <dependency>
+            <groupId>com.scarabsoft</groupId>
+            <artifactId>jrest</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.scarabsoft</groupId>
+            <artifactId>jrest-converter-gson</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-integration-test-api</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>

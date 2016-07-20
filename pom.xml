@@ -313,6 +313,7 @@
         <javax-mail-version>1.4.7</javax-mail-version>
         <jetty-version>9.3.5.v20151012</jetty-version>
         <joda-time-version>2.8.2</joda-time-version>
+        <jrest-version>1.0.2</jrest-version>
         <jsr305-version>3.0.1</jsr305-version>
         <junit-version>4.12</junit-version>
         <junit-hierarchicalcontextrunner-version>4.12.1</junit-hierarchicalcontextrunner-version>
@@ -1370,6 +1371,20 @@
                 <artifactId>junit-toolbox</artifactId>
                 <version>${junit-toolbox.version}</version>
             </dependency>
+
+            <!-- JRest -->
+            <dependency>
+                <groupId>com.scarabsoft</groupId>
+                <artifactId>jrest</artifactId>
+                <version>${jrest-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.scarabsoft</groupId>
+                <artifactId>jrest-converter-gson</artifactId>
+                <version>${jrest-version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

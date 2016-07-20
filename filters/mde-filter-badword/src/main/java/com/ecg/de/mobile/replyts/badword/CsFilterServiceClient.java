@@ -1,15 +1,14 @@
 package com.ecg.de.mobile.replyts.badword;
 
-import com.google.gson.Gson;
+import com.scarabsoft.jrest.JRest;
+import com.scarabsoft.jrest.annotation.Param;
+import com.scarabsoft.jrest.annotation.Post;
+import com.scarabsoft.jrest.converter.GsonConverterFactory;
 import de.mobile.cs.filter.domain.BadwordDTO;
 import de.mobile.cs.filter.domain.FilterResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import retrofit.RestAdapter;
-import retrofit.converter.GsonConverter;
-import retrofit.http.POST;
-import retrofit.http.Query;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +18,6 @@ import static de.mobile.cs.filter.domain.BadwordType.SWEARWORD;
 
 @Component
 class CsFilterServiceClient {
-
     private static final Logger logger = LoggerFactory.getLogger(CsFilterServiceClient.class);
 
     private static final BadwordDTO FAILED_BADWORD = BadwordDTO.newBuilder()
@@ -31,17 +29,17 @@ class CsFilterServiceClient {
 
     interface Service {
 
-        @POST("/v1/filter")
-        FilterResult filterText(@Query("text") String text);
+        @Post(value = "/v1/filter", multipart = false)
+        FilterResult filterText(@Param("text") String text);
 
     }
 
     private final Service filterService;
 
     CsFilterServiceClient(String endpoint) {
-        filterService = new RestAdapter.Builder()
-                .setEndpoint(endpoint)
-                .setConverter(new GsonConverter(new Gson()))
+        filterService = JRest.newBuilder()
+                .baseUrl(endpoint)
+                .converterFactory(new GsonConverterFactory())
                 .build()
                 .create(Service.class);
     }
@@ -57,5 +55,4 @@ class CsFilterServiceClient {
             return Collections.singletonList(FAILED_BADWORD);
         }
     }
-
 }
