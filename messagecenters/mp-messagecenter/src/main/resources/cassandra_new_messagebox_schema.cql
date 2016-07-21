@@ -41,13 +41,12 @@ CREATE TABLE IF NOT EXISTS mb_ad_conversation_idx (
     pbid text,
     adid text,
     convid text,
-    unread int,
     visibility int,
     latestmsgid timeuuid,
     PRIMARY KEY (pbid, adid, convid)
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = 'Used for paginating conversations. Columns: postbox id, ad id, conversation id, unread messages count, visibility (1 - Recent, 2 - Archived), latest message id'
+    AND comment = 'Used for paginating conversations. Columns: postbox id, ad id, conversation id, visibility (1 - Active, 2 - Archived), latest message id'
     AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
     AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
     AND dclocal_read_repair_chance = 0.1
@@ -76,7 +75,6 @@ CREATE TYPE IF NOT EXISTS conversation_message (
 CREATE TABLE IF NOT EXISTS mb_conversations (
     pbid text,
     convid text,
-    unread int,
     adid text,
     visibility int,
     notifynew int,
@@ -86,7 +84,7 @@ CREATE TABLE IF NOT EXISTS mb_conversations (
     PRIMARY KEY (pbid, convid)
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = 'Stores ad conversations. Columns: postbox id, conversation id, unread messages count, ad id, visibility (1 - Recent, 2 - Archived), notify on new messages (1 - Notify, 2 - Mute), me participant, other participant, latest message preview'
+    AND comment = 'Stores ad conversations. Columns: postbox id, conversation id, ad id, visibility (1 - Active, 2 - Archived), notify on new messages (1 - Notify, 2 - Mute), me participant, other participant, latest message preview'
     AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
     AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
     AND dclocal_read_repair_chance = 0.1

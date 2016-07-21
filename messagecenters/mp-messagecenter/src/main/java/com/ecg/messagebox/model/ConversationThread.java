@@ -1,9 +1,8 @@
 package com.ecg.messagebox.model;
 
-import com.google.common.base.Objects;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ConversationThread {
@@ -104,8 +103,8 @@ public class ConversationThread {
         return this;
     }
 
-    public Optional<List<Message>> getMessages() {
-        return Optional.ofNullable(messages);
+    public List<Message> getMessages() {
+        return messages;
     }
 
     public ConversationThread addMessages(List<Message> messages) {
@@ -119,20 +118,20 @@ public class ConversationThread {
         if (o == null || getClass() != o.getClass()) return false;
         ConversationThread that = (ConversationThread) o;
         return numUnreadMessages == that.numUnreadMessages &&
-                Objects.equal(id, that.id) &&
-                Objects.equal(adId, that.adId) &&
+                Objects.equals(id, that.id) &&
+                Objects.equals(adId, that.adId) &&
                 visibility == that.visibility &&
                 messageNotification == that.messageNotification &&
-                Objects.equal(meParticipant, that.meParticipant) &&
-                Objects.equal(otherParticipant, that.otherParticipant) &&
-                Objects.equal(latestMessagePreview, that.latestMessagePreview) &&
-                Objects.equal(blockedUserInfo, that.blockedUserInfo) &&
-                Objects.equal(messages, that.messages);
+                Objects.equals(meParticipant, that.meParticipant) &&
+                Objects.equals(otherParticipant, that.otherParticipant) &&
+                Objects.equals(latestMessagePreview, that.latestMessagePreview) &&
+                Objects.equals(blockedUserInfo, that.blockedUserInfo) &&
+                Objects.equals(messages, that.messages);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, adId, visibility, messageNotification, meParticipant, otherParticipant,
+        return Objects.hash(id, adId, visibility, messageNotification, meParticipant, otherParticipant,
                 latestMessagePreview, numUnreadMessages, blockedUserInfo, messages);
     }
 }

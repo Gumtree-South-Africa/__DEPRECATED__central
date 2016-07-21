@@ -7,12 +7,18 @@ import java.util.Objects;
  */
 public class PostBoxUnreadCounts {
 
-    private final int numUnreadMessages;
-    private final int numUnreadConversations;
+    private String postBoxId;
+    private int numUnreadMessages;
+    private int numUnreadConversations;
 
-    public PostBoxUnreadCounts(int numUnreadConversations, int numUnreadMessages) {
+    public PostBoxUnreadCounts(String postBoxId, int numUnreadConversations, int numUnreadMessages) {
+        this.postBoxId = postBoxId;
         this.numUnreadMessages = numUnreadMessages;
         this.numUnreadConversations = numUnreadConversations;
+    }
+
+    public String getPostBoxId() {
+        return postBoxId;
     }
 
     public int getNumUnreadMessages() {
@@ -28,12 +34,13 @@ public class PostBoxUnreadCounts {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PostBoxUnreadCounts that = (PostBoxUnreadCounts) o;
-        return numUnreadMessages == that.numUnreadMessages &&
-                numUnreadConversations == that.numUnreadConversations;
+        return Objects.equals(postBoxId, that.postBoxId)
+                && numUnreadMessages == that.numUnreadMessages
+                && numUnreadConversations == that.numUnreadConversations;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(numUnreadMessages, numUnreadConversations);
+        return Objects.hash(postBoxId, numUnreadMessages, numUnreadConversations);
     }
 }

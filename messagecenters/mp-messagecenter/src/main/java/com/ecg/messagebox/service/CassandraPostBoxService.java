@@ -2,15 +2,7 @@ package com.ecg.messagebox.service;
 
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.messagebox.model.ConversationThread;
-import com.ecg.messagebox.model.Message;
-import com.ecg.messagebox.model.MessageNotification;
-import com.ecg.messagebox.model.MessageType;
-import com.ecg.messagebox.model.Participant;
-import com.ecg.messagebox.model.ParticipantRole;
-import com.ecg.messagebox.model.PostBox;
-import com.ecg.messagebox.model.PostBoxUnreadCounts;
-import com.ecg.messagebox.model.Visibility;
+import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.persistence.NewMessageListener;
@@ -25,12 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 
@@ -44,7 +31,7 @@ public class CassandraPostBoxService implements PostBoxService {
     private final MessagesResponseFactory messageResponseFactory;
     private final UserIdentifierService userIdentifierService;
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private final ExecutorService executorService;
 
     private final Timer processNewMessageTimer = TimingReports.newTimer("postBoxService.v2.processNewMessage");
     private final Timer getConversationTimer = TimingReports.newTimer("postBoxService.v2.getConversation");
@@ -60,6 +47,7 @@ public class CassandraPostBoxService implements PostBoxService {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.messageResponseFactory = new MessagesResponseFactory(userIdentifierService);
+        this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
 
     @Override
@@ -99,7 +87,7 @@ public class CassandraPostBoxService implements PostBoxService {
                 } else {
                     ConversationThread newConversation = new ConversationThread(
                             rtsConversation.getId(), rtsConversation.getAdId(),
-                            Visibility.RECENT, MessageNotification.RECEIVE,
+                            Visibility.ACTIVE, MessageNotification.RECEIVE,
                             getThisParticipant(rtsConversation, conversationRole), getOtherParticipant(rtsConversation, conversationRole),
                             newMessage);
 

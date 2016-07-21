@@ -141,10 +141,10 @@ public class PostBoxDelegatorService implements PostBoxService {
             if (readFromNewDataModel) {
                 CompletableFuture
                         .runAsync(() ->
-                                newPostBoxService.getConversations(postBoxId, Visibility.RECENT, page, size), executorService)
+                                newPostBoxService.getConversations(postBoxId, Visibility.ACTIVE, page, size), executorService)
                         .exceptionally(ex -> {
                             LOGGER.error("### New Data Model - Read ### - Could not get conversations for postBoxId {} and visibility {}",
-                                    postBoxId, Visibility.RECENT.name(), ex);
+                                    postBoxId, Visibility.ACTIVE.name(), ex);
                             return null;
                         });
             }

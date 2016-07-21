@@ -1,25 +1,9 @@
 package com.ecg.messagebox.persistence.cassandra;
 
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.BatchStatement;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.UDTValue;
-import com.datastax.driver.core.UserType;
-import com.ecg.messagebox.model.BlockedUserInfo;
-import com.ecg.messagebox.model.ConversationThread;
+import com.datastax.driver.core.*;
+import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.model.Message;
-import com.ecg.messagebox.model.MessageNotification;
-import com.ecg.messagebox.model.MessageType;
-import com.ecg.messagebox.model.Participant;
-import com.ecg.messagebox.model.ParticipantRole;
-import com.ecg.messagebox.model.PostBox;
-import com.ecg.messagebox.model.PostBoxUnreadCounts;
-import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.persistence.cassandra.model.ConversationIndex;
 import com.ecg.messagebox.utils.StreamUtils;
@@ -31,21 +15,8 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static com.datastax.driver.core.utils.UUIDs.unixTimestamp;
@@ -59,8 +30,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     private static final int TIMEOUT_IN_SECONDS = 5;
 
-    private static final int DUMMY_UNREAD_COUNT = 3;
-
     private final String keyspace;
     private final Session session;
     private final ConsistencyLevel readConsistency;
@@ -71,9 +40,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     private final int messageTextPreviewMaxChars;
 
-    private final Map<Statements, PreparedStatement> preparedStatements;
+    private Map<Statements, PreparedStatement> preparedStatements;
 
-    private ExecutorService executorService;
+    private final ExecutorService executorService;
 
     private final Timer getPaginatedConversationIdsTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getPaginatedConversationIds");
     private final Timer getPostBoxTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getPostBox");
@@ -103,7 +72,8 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     public DefaultCassandraPostBoxRepository(String keyspace, Session session,
                                              ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency,
-                                             int messageTextPreviewMaxChars) {
+                                             int messageTextPreviewMaxChars,
+                                             boolean writeToNewDataModel) {
         this.keyspace = keyspace;
         this.session = session;
         this.readConsistency = readConsistency;
@@ -116,7 +86,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-        preparedStatements = Statements.prepare(session);
+        if (writeToNewDataModel) {
+            preparedStatements = Statements.prepare(session);
+        }
     }
 
     @Override
@@ -142,7 +114,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                         })
                         .collect(Collectors.toList());
 
-                PostBoxUnreadCounts postBoxUnreadCounts = createPostBoxUnreadCounts(conversationUnreadCountsMap.values());
+                PostBoxUnreadCounts postBoxUnreadCounts = createPostBoxUnreadCounts(postBoxId, conversationUnreadCountsMap.values());
 
                 return new PostBox(postBoxId, conversations, postBoxUnreadCounts);
 
@@ -286,14 +258,14 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             List<Integer> conversationUnreadCounts = StreamUtils.toStream(result)
                     .map(row -> row.getInt("unread"))
                     .collect(Collectors.toList());
-            return createPostBoxUnreadCounts(conversationUnreadCounts);
+            return createPostBoxUnreadCounts(postBoxId, conversationUnreadCounts);
         }
     }
 
-    private PostBoxUnreadCounts createPostBoxUnreadCounts(Collection<Integer> conversationUnreadCounts) {
+    private PostBoxUnreadCounts createPostBoxUnreadCounts(String postBoxId, Collection<Integer> conversationUnreadCounts) {
         CountersConsumer counters = conversationUnreadCounts.stream()
                 .collect(CountersConsumer::new, CountersConsumer::add, CountersConsumer::reduce);
-        return new PostBoxUnreadCounts(counters.numUnreadConversations, counters.numUnreadMessages);
+        return new PostBoxUnreadCounts(postBoxId, counters.numUnreadConversations, counters.numUnreadMessages);
     }
 
     private static class CountersConsumer {
@@ -358,7 +330,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                     .setString("email", otherParticipant.getEmail())
                     .setString("role", otherParticipant.getRole().getValue());
 
-            batch.add(Statements.UPDATE_CONVERSATION.bind(this, conversation.getAdId(), DUMMY_UNREAD_COUNT, Visibility.RECENT.getCode(), MessageNotification.RECEIVE.getCode(),
+            batch.add(Statements.UPDATE_CONVERSATION.bind(this, conversation.getAdId(), Visibility.ACTIVE.getCode(), MessageNotification.RECEIVE.getCode(),
                     meParticipantUDTValue, otherParticipantUDTValue, messagePreviewUDTValue(message), postBoxId, conversation.getId()));
 
             newMessageCqlStatements(postBoxId, conversation.getId(), conversation.getAdId(), message, incrementUnreadCount).forEach(batch::add);
@@ -374,7 +346,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
             BatchStatement batch = new BatchStatement();
 
-            batch.add(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE.bind(this, DUMMY_UNREAD_COUNT, Visibility.RECENT.getCode(), messagePreviewUDTValue(message), postBoxId, conversationId));
+            batch.add(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE.bind(this, Visibility.ACTIVE.getCode(), messagePreviewUDTValue(message), postBoxId, conversationId));
             newMessageCqlStatements(postBoxId, conversationId, adId, message, incrementUnreadCount).forEach(batch::add);
 
             batch.setConsistencyLevel(getWriteConsistency());
@@ -394,7 +366,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private List<Statement> newMessageCqlStatements(String postBoxId, String conversationId, String adId, Message message, boolean incrementUnreadCount) {
         List<Statement> statements = new ArrayList<>();
 
-        statements.add(Statements.UPDATE_AD_CONVERSATION_INDEX.bind(this, DUMMY_UNREAD_COUNT, Visibility.RECENT.getCode(), message.getId(), postBoxId, adId, conversationId));
+        statements.add(Statements.UPDATE_AD_CONVERSATION_INDEX.bind(this, Visibility.ACTIVE.getCode(), message.getId(), postBoxId, adId, conversationId));
 
         statements.add(Statements.INSERT_MESSAGE.bind(this, postBoxId, conversationId,
                 message.getId(), message.getText(), message.getSenderUserId(), message.getType().getValue()));
@@ -552,17 +524,17 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         SELECT_AD_UNREAD_COUNT("SELECT unread FROM mb_ad_conversation_unread_counts WHERE pbid = ? and adid = ?"),
 
         // select postbox
-        SELECT_CONVERSATION_INDICES("SELECT convid, adid, unread, visibility, latestmsgid FROM mb_ad_conversation_idx WHERE pbid = ?"),
+        SELECT_CONVERSATION_INDICES("SELECT convid, adid, visibility, latestmsgid FROM mb_ad_conversation_idx WHERE pbid = ?"),
         SELECT_CONVERSATION_IDS("SELECT convid FROM mb_ad_conversation_idx WHERE pbid = ?"),
-        SELECT_AD_CONVERSATION_INDICES("SELECT convid, unread, visibility, latestmsgid FROM mb_ad_conversation_idx WHERE pbid = ? AND adid = ?"),
-        SELECT_CONVERSATIONS("SELECT convid, unread, visibility, notifynew, meparticipant, otherparticipant, adid, latestmsgprev" +
+        SELECT_AD_CONVERSATION_INDICES("SELECT convid, visibility, latestmsgid FROM mb_ad_conversation_idx WHERE pbid = ? AND adid = ?"),
+        SELECT_CONVERSATIONS("SELECT convid, visibility, notifynew, meparticipant, otherparticipant, adid, latestmsgprev" +
                 " FROM mb_conversations WHERE pbid = ? AND convid IN ?"),
         SELECT_CONVERSATIONS_UNREAD_COUNTS("SELECT convid, unread FROM mb_conversation_unread_counts WHERE pbid = ?"),
 
         SELECT_AD_IDS("SELECT convid, adid FROM mb_conversations WHERE pbid = ? AND convid IN ?"),
 
         // select single conversation + messages
-        SELECT_CONVERSATION("SELECT convid, adid, unread, visibility, notifynew, meparticipant, otherparticipant, latestmsgprev FROM mb_conversations WHERE pbid = ? AND convid = ?"),
+        SELECT_CONVERSATION("SELECT convid, adid, visibility, notifynew, meparticipant, otherparticipant, latestmsgprev FROM mb_conversations WHERE pbid = ? AND convid = ?"),
         SELECT_CONVERSATION_UNREAD_COUNT("SELECT unread FROM mb_conversation_unread_counts WHERE pbid = ? AND convid = ?"),
         SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR("SELECT msgid, msg, senderid, type FROM mb_messages WHERE pbid = ? AND convid = ? LIMIT ?"),
         SELECT_CONVERSATION_MESSAGES_WITH_CURSOR("SELECT msgid, msg, senderid, type FROM mb_messages WHERE pbid = ? AND convid = ? AND msgid < ? LIMIT ?"),
@@ -571,12 +543,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         UPDATE_CONVERSATION_UNREAD_COUNT("UPDATE mb_conversation_unread_counts SET unread = ? WHERE pbid = ? AND convid = ?", true),
         UPDATE_AD_CONVERSATION_UNREAD_COUNT("UPDATE mb_ad_conversation_unread_counts SET unread = ? WHERE pbid = ? AND adid = ? AND convid = ?", true),
 
-        UPDATE_CONVERSATION_UNREAD_MSG_COUNT("UPDATE mb_conversations SET unread = ? WHERE pbid = ? AND convid = ?", true),
-        UPDATE_AD_CONVERSATION_IDX_UNREAD_MSG_COUNT("UPDATE mb_ad_conversation_idx SET unread = ? WHERE pbid = ? AND adid = ? AND convid = ?", true),
-
-        UPDATE_AD_CONVERSATION_INDEX("UPDATE mb_ad_conversation_idx SET unread = ?, visibility = ?, latestmsgid = ? WHERE pbid = ? AND adid = ? AND convid = ?", true),
-        UPDATE_CONVERSATION_LATEST_MESSAGE("UPDATE mb_conversations SET unread = ?, visibility = ?, latestmsgprev = ? WHERE pbid = ? AND convid = ?", true),
-        UPDATE_CONVERSATION("UPDATE mb_conversations SET adid = ?, unread = ?, visibility = ?, notifynew = ?, meparticipant = ?, otherparticipant = ?, latestmsgprev = ? WHERE pbid = ? AND convid = ?", true),
+        UPDATE_AD_CONVERSATION_INDEX("UPDATE mb_ad_conversation_idx SET visibility = ?, latestmsgid = ? WHERE pbid = ? AND adid = ? AND convid = ?", true),
+        UPDATE_CONVERSATION_LATEST_MESSAGE("UPDATE mb_conversations SET visibility = ?, latestmsgprev = ? WHERE pbid = ? AND convid = ?", true),
+        UPDATE_CONVERSATION("UPDATE mb_conversations SET adid = ?, visibility = ?, notifynew = ?, meparticipant = ?, otherparticipant = ?, latestmsgprev = ? WHERE pbid = ? AND convid = ?", true),
         INSERT_MESSAGE("INSERT INTO mb_messages (pbid, convid, msgid, msg, senderid, type) VALUES (?, ?, ?, ?, ?, ?)", true),
 
         CHANGE_CONVERSATION_VISIBILITY("UPDATE mb_conversations SET visibility = ? WHERE pbid = ? AND convid = ?", true),

@@ -7,18 +7,18 @@ import java.util.Objects;
 
 public class PostBox {
 
-    private String postBoxId;
+    private String id;
     private List<ConversationThread> conversations;
     private PostBoxUnreadCounts unreadCounts;
 
-    public PostBox(String postBoxId, List<ConversationThread> conversations, PostBoxUnreadCounts unreadCounts) {
-        this.postBoxId = postBoxId;
+    public PostBox(String id, List<ConversationThread> conversations, PostBoxUnreadCounts unreadCounts) {
+        this.id = id;
         this.conversations = conversations;
         this.unreadCounts = unreadCounts;
     }
 
-    public String getPostBoxId() {
-        return postBoxId;
+    public String getId() {
+        return id;
     }
 
     public List<ConversationThread> getConversations() {
@@ -34,20 +34,20 @@ public class PostBox {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PostBox postBox = (PostBox) o;
-        return Objects.equals(postBoxId, postBox.postBoxId)
+        return Objects.equals(id, postBox.id)
                 && Objects.equals(conversations, postBox.conversations)
                 && Objects.equals(unreadCounts, postBox.unreadCounts);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(postBoxId, conversations);
+        return Objects.hash(id, conversations, unreadCounts);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("postBoxId", postBoxId)
+                .add("id", id)
                 .add("conversationThreads", conversations)
                 .add("unreadCounts", unreadCounts)
                 .toString();

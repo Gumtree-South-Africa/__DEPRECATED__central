@@ -6,7 +6,7 @@ import java.util.Map;
 
 public enum Visibility {
 
-    RECENT(1),
+    ACTIVE(1),
     ARCHIVED(2);
 
     private int code;

@@ -19,6 +19,7 @@
         <constructor-arg name="readConsistency" ref="cassandraReadConsistency"/>
         <constructor-arg name="writeConsistency" ref="cassandraWriteConsistency"/>
         <constructor-arg name="messageTextPreviewMaxChars" value="${replyts.maxPreviewMessageCharacters:250}"/>
+        <constructor-arg name="writeToNewDataModel" value="${messagebox.newDataModel.write.enabled:false}"/>
     </bean>
 
     <!-- Old Cassandra PostBox Repository -->
