@@ -34,7 +34,7 @@ declare -A HOSTS=(
 
   # Overrides for specific environments
   ["mp-prod"]="builder@deploy001.esh.ops.prod.icas.ecg.so"
-  ["mde-prod"]="https://autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-productive-releases/ecg/comaas/versions/"
+  ["mde-prod"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-productive-releases/ecg/ecg-comaas/"
 )
 
 # map to lookup upload methods for a tenant
