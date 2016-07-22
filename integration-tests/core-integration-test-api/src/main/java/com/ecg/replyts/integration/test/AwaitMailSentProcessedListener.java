@@ -4,15 +4,13 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
-import com.ecg.replyts.core.runtime.mailparser.StructuredMail;
+import com.ecg.replyts.integration.smtp.CapturingMailDeliveryService;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.ByteArrayInputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +28,7 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
     private static final Logger LOG = LoggerFactory.getLogger(AwaitMailSentProcessedListener.class);
 
     @Autowired
-    private MailRepository mailRepository;
+    private CapturingMailDeliveryService deliveryService;
 
     private static final Map<String, ProcessedMail> RECEIVED_MAILS_MAP = new ConcurrentHashMap<>();
 
@@ -108,7 +106,7 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
         Mail m = null;
         try {
             if (message.getState() == MessageState.SENT) {
-                m = StructuredMail.parseMail(new ByteArrayInputStream(mailRepository.readOutboundMail(message.getId())));
+                m = deliveryService.getLastSentMail();
             }
             RECEIVED_MAILS.add(new ProcessedMail(message, m, conversation));
             String key = message.getHeaders().get(MailBuilder.UNIQUE_IDENTIFIER_HEADER);

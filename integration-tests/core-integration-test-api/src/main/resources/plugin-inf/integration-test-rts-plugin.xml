@@ -23,4 +23,7 @@
     <bean class="com.ecg.replyts.integration.elasticsearch.EmbeddedElasticSearchClientConfiguration"/>
 
     <bean class="com.ecg.replyts.integration.AlwaysHappyClusterMonitor"/>
+
+    <bean class="com.ecg.replyts.integration.smtp.CapturingMailDeliveryService" primary="true"/>
+
 </beans>

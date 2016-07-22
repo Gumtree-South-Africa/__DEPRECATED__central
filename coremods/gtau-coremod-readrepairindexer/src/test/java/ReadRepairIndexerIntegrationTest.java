@@ -8,7 +8,6 @@ import java.util.Properties;
 import java.util.function.Supplier;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Created by mdarapour.

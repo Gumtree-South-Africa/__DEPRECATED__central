@@ -8,7 +8,7 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 
 
-class SmtpPing {
+public class SmtpPing {
 
     /**
      * QUIT command for SMTP Server with SMTP conform line terminators.
