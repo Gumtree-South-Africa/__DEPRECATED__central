@@ -169,7 +169,10 @@ function main() {
         fi
 
         if ! [[ -z $EXECUTE ]] ; then
-            MVN_ARGS="${MVN_ARGS} -DconfDir=distribution/conf/${TENANT}/local -DlogDir=/tmp
+            if [[ -z $PACKAGE ]]; then
+                    PACKAGE="local"
+            fi
+            MVN_ARGS="${MVN_ARGS} -DconfDir=distribution/conf/${TENANT}/${PACKAGE} -DlogDir=/tmp
             -Dmail.mime.parameters.strict=false -Dmail.mime.address.strict=false
             -Dmail.mime.ignoreunknownencoding=true
             -Dmail.mime.uudecode.ignoreerrors=true -Dmail.mime.uudecode.ignoremissingbeginend=true
@@ -226,9 +229,10 @@ Usage:
     -T <TENANT> - build tenant's code
     -T <TENANT> -P <ENVNAME> - build and package tenant's code for ENVNAME
     -T <TENANT> -E - build, package and execute tenant's code
+    -T <TENANT> -P <ENVNAME> -E - build, package and execute tenant's code with ENVNAME
 
     where TENANT is one or more of [ebayk,mp,kjca,mde,gtau],
-    ENVNAME is the properties profile name. common values [local, comaasqa]
+    ENVNAME is the properties profile name. common values [local, comaasqa, bare]
 
     Examples: "$0 -t -T ebayk,mp " - build and test ebayk and mp distributions
     
