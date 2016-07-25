@@ -24,6 +24,22 @@ function parseArgs() {
   cur=$(pwd -P) && cd $(dirname ${ARTIFACT}) && BUILDDIR=$(pwd -P) && cd ${cur}
 }
 
+function repackage-mde-ebayk() {
+   local TENANT=$1
+   rm -rf tmp2
+   mkdir -p tmp2/comaas-$TENANT
+   cp -r tmp/* tmp2/comaas-$TENANT/
+   rm -f tmp2/comaas-$TENANT/conf/* && cp "$prop"/* tmp2/comaas-$TENANT/conf/
+   cd tmp2
+   cd comaas-$TENANT/lib && ln -s core-runtime-* core-runtime.jar && cd ../..
+   tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
+   HOMEDIR=$PWD
+   cd ${BUILDDIR}
+   md5sum ${PACKAGE_NAME}.tar.gz > ${PACKAGE_NAME}.tar.gz.md5
+   cd $HOMEDIR
+   echo "Created package for $TENANT ${PACKAGE_BASE}.tar.gz"
+}
+
 function repackage() {
   mkdir -p tmp
   mkdir -p tmp2
@@ -44,12 +60,8 @@ function repackage() {
 
     case "$TENANT" in
       ebayk)
-        if [ ! -d tmp/comaas ] ; then
-          mkdir comaas-tmp && mv tmp/* comaas-tmp/ && mv comaas-tmp tmp/comaas
-        fi
-        rm -f tmp/comaas/conf/* && cp "$prop"/* tmp/comaas/conf/
-        cd tmp && tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
-        echo "Created ${PACKAGE_BASE}.tar.gz"
+        repackage-mde-ebayk ebayk
+        continue
         ;;
       kjca)
         # Create a tar archive with all the libs
@@ -80,18 +92,7 @@ function repackage() {
       ;;
       mde)
       # Repackaging for MDE
-        rm -rf tmp2
-        mkdir -p tmp2/comaas-mde
-        cp -r tmp/* tmp2/comaas-mde/
-        rm -f tmp2/comaas-mde/conf/* && cp "$prop"/* tmp2/comaas-mde/conf/
-        cd tmp2
-        cd comaas-mde/lib && ln -s core-runtime-* core-runtime.jar && cd ../..
-        tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
-        HOMEDIR=$PWD
-        cd ${BUILDDIR}
-        md5sum ${PACKAGE_NAME}.tar.gz > ${PACKAGE_NAME}.tar.gz.md5
-        cd $HOMEDIR
-        echo "Created package for mde ${PACKAGE_BASE}.tar.gz"
+        repackage-mde-ebayk mde
         continue
       ;;
       *)
