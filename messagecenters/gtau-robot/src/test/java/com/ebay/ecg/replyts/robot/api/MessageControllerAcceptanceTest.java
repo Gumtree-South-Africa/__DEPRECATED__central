@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.springframework.context.annotation.Profile;
 
 import javax.mail.internet.MimeMessage;
+import java.util.Properties;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
@@ -19,8 +20,12 @@ import static org.hamcrest.Matchers.equalTo;
 @Profile(ReplyTS.EMBEDDED_PROFILE)
 public class MessageControllerAcceptanceTest {
 
+    private final Properties properties = new Properties() {{
+        put("persistence.strategy", "riak");
+    }};
+
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(properties, null, 20, ES_ENABLED);
 
     private static RabbitMQRunner rmq = new RabbitMQRunner();
 

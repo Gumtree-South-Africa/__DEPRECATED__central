@@ -11,7 +11,6 @@ import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepos
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
-import com.ecg.replyts.core.runtime.persistence.mail.DefaultCassandraMailRepository;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import com.google.common.base.Splitter;
 import com.google.common.io.Closeables;
@@ -56,11 +55,6 @@ public class CassandraPersistenceConfiguration {
     }
 
     @Bean
-    public MailRepository mailRepository(Session cassandraSession) {
-        return new DefaultCassandraMailRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
-    }
-
-    @Bean
     public IndexerClockRepository indexerClockRepository(Session cassandraSessionForJobs) {
         return new CassandraIndexerClockRepository(cassandraDataCenter, cassandraSessionForJobs);
     }
@@ -68,6 +62,11 @@ public class CassandraPersistenceConfiguration {
     @Bean
     public CronJobClockRepository cronJobClockRepository(Session cassandraSession) {
         return new CassandraCronJobClockRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+    }
+
+    @Bean
+    public MailRepository mailRepository(Session cassandraSession) {
+        return null;
     }
 
     @Bean

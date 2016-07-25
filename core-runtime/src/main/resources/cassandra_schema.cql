@@ -104,67 +104,10 @@ CREATE TABLE IF NOT EXISTS core_conversation_resume_idx (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE IF NOT EXISTS core_mail_creation_desc_index (
-    mail_id text,
-    mail_creation_date timestamp,
-    PRIMARY KEY (mail_id, mail_creation_date)
-) WITH CLUSTERING ORDER BY (mail_creation_date DESC)
-    AND bloom_filter_fp_chance = 0.01
-    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = ''
-    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
-    AND compression = {'sstable_compression': ''}
-    AND dclocal_read_repair_chance = 0.1
-    AND default_time_to_live = 0
-    AND gc_grace_seconds = 864000
-    AND max_index_interval = 2048
-    AND memtable_flush_period_in_ms = 0
-    AND min_index_interval = 128
-    AND read_repair_chance = 0.0
-    AND speculative_retry = '99.0PERCENTILE';
-
-CREATE TABLE IF NOT EXISTS core_mail_creation_desc_idx_by_day (
-    year int,
-    month int,
-    day int,
-    mail_creation_date timestamp,
-    mail_id text,
-    PRIMARY KEY ((year, month, day), mail_creation_date, mail_id)
-) WITH CLUSTERING ORDER BY (mail_creation_date DESC, mail_id ASC)
-    AND bloom_filter_fp_chance = 0.01
-    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = ''
-    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
-    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-    AND dclocal_read_repair_chance = 0.1
-    AND default_time_to_live = 0
-    AND gc_grace_seconds = 864000
-    AND max_index_interval = 2048
-    AND memtable_flush_period_in_ms = 0
-    AND min_index_interval = 128
-    AND read_repair_chance = 0.0
-    AND speculative_retry = '99.0PERCENTILE';
 
 CREATE TABLE IF NOT EXISTS core_conversation_secret (
     secret text PRIMARY KEY,
     conversation_id text
-) WITH bloom_filter_fp_chance = 0.01
-    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = ''
-    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
-    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-    AND dclocal_read_repair_chance = 0.1
-    AND default_time_to_live = 0
-    AND gc_grace_seconds = 864000
-    AND max_index_interval = 2048
-    AND memtable_flush_period_in_ms = 0
-    AND min_index_interval = 128
-    AND read_repair_chance = 0.0
-    AND speculative_retry = '99.0PERCENTILE';
-
-CREATE TABLE IF NOT EXISTS core_mail (
-    mail_id text PRIMARY KEY,
-    mail blob
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
     AND comment = ''

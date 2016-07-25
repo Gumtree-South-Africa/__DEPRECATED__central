@@ -6,9 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;

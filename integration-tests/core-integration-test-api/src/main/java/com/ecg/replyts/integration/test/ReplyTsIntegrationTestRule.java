@@ -121,6 +121,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
             cassandraEnabled = false;
         }
 
+        if (cassandraEnabled) {
+            testProperties.put("persistence.skip.mail.storage", true);
+        }
+
         this.testRunner = new IntegrationTestRunner(testProperties, configurationResourceDirectory != null ? configurationResourceDirectory : ReplytsRunner.DEFAULT_CONFIG_RESOURCE_DIRECTORY);
     }
 

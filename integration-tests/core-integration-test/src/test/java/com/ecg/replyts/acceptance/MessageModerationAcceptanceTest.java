@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -24,8 +25,13 @@ import static org.hamcrest.Matchers.is;
 
 public class MessageModerationAcceptanceTest {
 
+    private final Properties properties = new Properties() {{
+        put("persistence.strategy", "riak");
+    }};
+
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(properties, null, 20, ES_ENABLED);
+
     private ProcessedMail processedMail;
 
     private static int counter = 1;

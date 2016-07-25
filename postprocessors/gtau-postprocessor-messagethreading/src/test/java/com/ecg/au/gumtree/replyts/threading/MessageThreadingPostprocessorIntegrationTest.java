@@ -9,7 +9,9 @@ import javax.mail.internet.MimeMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -18,8 +20,13 @@ import static org.junit.Assert.assertTrue;
  * @author mdarapour
  */
 public class MessageThreadingPostprocessorIntegrationTest {
+
+    private final Properties properties = new Properties() {{
+        put("persistence.strategy", "riak");
+    }};
+
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(properties, null, 20, ES_ENABLED);
 
     @Test
     public void addsReferencesHeadersIfDoesNotExists() throws Exception {
