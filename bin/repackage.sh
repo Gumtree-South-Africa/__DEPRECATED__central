@@ -91,7 +91,6 @@ function repackage() {
         continue
       ;;
       mde)
-      # Repackaging for MDE
         repackage-mde-ebayk mde
         continue
       ;;
