@@ -381,16 +381,7 @@
         <sentry-version>7.1.0</sentry-version>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>spring-release</id>
-            <name>Spring Releases</name>
-            <url>https://repo.spring.io/libs-release</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+
 
     <dependencyManagement>
         <dependencies>
@@ -753,8 +744,8 @@
             <dependency>
                 <groupId>net.sf.json-lib</groupId>
                 <artifactId>json-lib</artifactId>
+                <classifier>jdk15</classifier>
                 <version>${json-lib.version}</version>
-                <!--classifier>jdk15</classifier-->
                 <exclusions>
                     <exclusion>
                         <artifactId>commons-logging</artifactId>

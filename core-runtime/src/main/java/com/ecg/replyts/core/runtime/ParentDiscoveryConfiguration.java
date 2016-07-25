@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.context.embedded.EmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
@@ -30,7 +31,7 @@ import java.util.stream.Stream;
 @PropertySource("file:${confDir}/replyts.properties")
 @PropertySource("discovery.properties")
 @EnableDiscoveryClient
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude=FreeMarkerAutoConfiguration.class)
 @Import(ConsulConfigBootstrapConfiguration.class)
 public class ParentDiscoveryConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(ParentDiscoveryConfiguration.class);
