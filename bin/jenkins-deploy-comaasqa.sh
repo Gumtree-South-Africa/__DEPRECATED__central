@@ -13,7 +13,7 @@ STAGGER=30000000000
 
 function usage() {
   cat <<- EOF
-  Usage: jenkins-deploy-comaasqa.sh <tenant> <build_dir> <artifact_name> <git_hash> 
+  Usage: jenkins-deploy-comaasqa.sh <tenant> <build_dir> <artifact_name> <git_hash>
 EOF
   exit
 }
@@ -62,14 +62,23 @@ function deploy() {
 
     # Try ATTEMPTS times to detect 'running' state on all nodes before failing
     for i in $(seq 1 $ATTEMPTS) ; do
-      sleep $i
+      echo Sleeping for ${i}s
+      sleep ${i}
+
+      evalstate=$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | \
+      jq -c ".[] | { state: (.TaskStates[\"comaas-${TENANT}\"].State), id: .ID, running: (.TaskStates[\"comaas-${TENANT}\"].State == \"running\") }")
+
+      if [ ! -z "$(echo ${evalstate} | grep "dead")" ]; then
+        echo "At least one of the nodes reported \"dead\" state, exiting."
+        echo ${evalstate}
+        exit 1
+      fi
 
       # All allocations on TENANT Nomad nodes should now be in the 'running' state (if not, fail)
-      if [ ! -z "$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID}/allocations | \
-           jq -c ".[] | { running: (.TaskStates[\"comaas-${TENANT}\"].State == \"running\"), id: .ID }" | \
-           grep ':false')" ] ; then
+      if [ ! -z "$(echo ${evalstate} | grep ':false')" ] ; then
         if [ $i -eq $ATTEMPTS ] ; then
           echo "Unable to get into the groove yo - waited a while but still non-running clients"
+          echo ${evalstate}
           exit 1
         fi
       else
@@ -113,14 +122,14 @@ function deploy() {
       fi
     done
 
-    # Sleep the number of seconds between staggered updates (rolling-update)
-    echo "Waiting $STAGGER_S seconds until next rolling update will have been triggered by Nomad"
-    sleep $STAGGER_S
-
-    # Extract the NextEval - stop if this is the last one)    
+    # Extract the NextEval - stop if this is the last one)
     EVALUATIONID="$(curl -s http://consul001:4646/v1/evaluation/${EVALUATIONID} | jq -r '.NextEval')"
 
     [[ -z "$EVALUATIONID" ]] && break
+
+    # Sleep the number of seconds between staggered updates (rolling-update)
+    echo "Waiting $STAGGER_S seconds until next rolling update will have been triggered by Nomad"
+    sleep $STAGGER_S
   done
 
   if [ ! $COUNT -eq $HEALTHY_HOSTS ] ; then

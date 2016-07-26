@@ -23,13 +23,7 @@
                         "Config": {
                             "command": "bin/comaas"
                         },
-                        "Constraints": [
-                            {
-                                "LTarget": "${attr.hostname}",
-                                "RTarget": "core*",
-                                "Operand": "distinct_hosts"
-                            }
-                        ],
+                        "Constraints": null,
                         "Env": null,
                         "Services": [
                             {
