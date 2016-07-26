@@ -11,10 +11,19 @@ readonly COMAAS_OUT="$PWD/comaas.out"
 readonly CASSANDRA_DIR="$PWD/../cassandra_tmp"
 readonly CASSANDRA_PID="$PWD/cassandra.pid"
 readonly CASSANDRA_HOME=$CASSANDRA_DIR
-readonly PORT=18081
+readonly BASEPORT=18081
 readonly ATTEMPTS=30
 readonly HEALTH_CHECK_DELAY=3
 readonly HOST='localhost'
+
+# tanant-> http port lookup
+declare -A HTTP_PORTS=(
+  ["ebayk"]=$BASEPORT
+  ["gtau"]=$((BASEPORT+1))
+  ["kjca"]=$((BASEPORT+2))
+  ["mde"]=$((BASEPORT+3))
+  ["mp"]=$((BASEPORT+4))
+)
 
 function parseCmd() {
   # check amount of args
@@ -111,11 +120,12 @@ function main() {
    startComaas
    sleep 10
 
+   PORT="${HTTP_PORTS[$TENANT]}"
+
    for i in $(seq 1 $ATTEMPTS) ; do
        sleep "$HEALTH_CHECK_DELAY"
+       log "Waiting for comaas to start. Listening on port $PORT for $(($HEALTH_CHECK_DELAY * $i))s"
        HEALTH=$(curl -s http://${HOST}:${PORT}/health)
-
-       log "Waiting for comaas to start. Waited for $(($HEALTH_CHECK_DELAY * $i))s"
 
        if [ ! -z "$HEALTH" ]; then
            echo "${HOST}'s health is $HEALTH"
