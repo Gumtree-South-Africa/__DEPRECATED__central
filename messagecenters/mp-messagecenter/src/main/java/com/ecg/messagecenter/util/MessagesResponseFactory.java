@@ -3,11 +3,7 @@ package com.ecg.messagecenter.util;
 import com.codahale.metrics.Histogram;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.webapi.responses.MessageResponse;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
@@ -17,16 +13,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.ecg.messagecenter.util.EmailHeaderFolder.unfold;
 
 public class MessagesResponseFactory {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MessagesResponseFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessagesResponseFactory.class);
 
     private static final Histogram TEXT_SIZE_CONVERSATIONS = TimingReports.newHistogram("message-box.text-size-conversations");
-
-    static final String BUYER_PHONE_FIELD = "buyer-phonenumber";
 
     private final UserIdentifierService userIdentifierService;
 
@@ -35,7 +30,6 @@ public class MessagesResponseFactory {
     }
 
     public Optional<MessageResponse> latestMessage(String id, Conversation conv) {
-
         List<Message> filtered = filterMessages(conv.getMessages(), conv, id);
 
         if (filtered.size() == 0) {
@@ -54,12 +48,11 @@ public class MessagesResponseFactory {
             int textSize = secondLast.getPlainTextBody().length() + last.getPlainTextBody().length();
             TEXT_SIZE_CONVERSATIONS.update(textSize);
             if (textSize > 200000) {
-                LOG.info("Large conversation text-set: KB '{}', conv #{} email '{}'", textSize, conv.getId(), conv.getBuyerId());
+                LOGGER.info("Large conversation text-set: KB '{}', conv #{} email '{}'", textSize, conv.getId(), conv.getBuyerId());
             }
 
             addReplyMessages(role, conv, Arrays.asList(secondLast, last), transformedMessages);
         }
-
 
         if (transformedMessages.size() == 0) {
             return Optional.empty();
@@ -90,14 +83,9 @@ public class MessagesResponseFactory {
     }
 
     public List<Message> filterMessages(List<Message> messageRts, Conversation conv, String id) {
-        List<Message> filtered = new ArrayList<>();
-        for (Message item : messageRts) {
-            if (item.getState() != MessageState.IGNORED && shouldBeIncluded(item, conv, id)) {
-                filtered.add(item);
-            }
-        }
-
-        return filtered;
+        return messageRts.stream()
+                .filter(item -> item.getState() != MessageState.IGNORED && shouldBeIncluded(item, conv, id))
+                .collect(Collectors.toList());
     }
 
     public String getCleanedMessage(Conversation conv, Message message) {
@@ -109,15 +97,11 @@ public class MessagesResponseFactory {
     }
 
     private void addIntialContactPosterMessage(Conversation conv, ConversationRole role, List<MessageResponse> transformedMessages, Message firstMessage) {
-        String phoneNumber = conv.getCustomValues().get(BUYER_PHONE_FIELD);
-
         transformedMessages.add(
                 new MessageResponse(
                         MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(firstMessage.getReceivedAt()),
-                        firstMessage.getHeaders().get("X-Offerid"),
                         ConversationBoundnessFinder.boundnessForRole(role, firstMessage.getMessageDirection()),
                         getUserMessage(firstMessage),
-                        Optional.ofNullable(phoneNumber),
                         MessageResponse.Attachment.transform(firstMessage),
                         conv.getBuyerId()));
     }
@@ -128,10 +112,8 @@ public class MessagesResponseFactory {
             transformedMessages.add(
                     new MessageResponse(
                             MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(messageRts.get(i).getReceivedAt()),
-                            messageRts.get(i).getHeaders().get("X-Offerid"),
                             ConversationBoundnessFinder.boundnessForRole(role, messageRts.get(i).getMessageDirection()),
                             getCleanedMessage(conv, messageRts.get(i)),
-                            Optional.empty(),
                             MessageResponse.Attachment.transform(messageRts.get(i)),
                             messageRts.get(i).getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? conv.getBuyerId() : conv.getSellerId()
                     )
@@ -180,13 +162,13 @@ public class MessagesResponseFactory {
     }
 
     private String getUserMessage(Message message) {
-        String userMessageFromHeader ="";
-        String userMessage = "";
-        if((userMessageFromHeader = message.getHeaders().get("X-Contact-Poster-User-Message")) != null){
+        String userMessageFromHeader;
+        String userMessage;
+        if ((userMessageFromHeader = message.getHeaders().get("X-Contact-Poster-User-Message")) != null) {
             userMessage = unfold(userMessageFromHeader);
-        }else if((userMessageFromHeader = message.getHeaders().get("X-User-Message"))!= null){
+        } else if ((userMessageFromHeader = message.getHeaders().get("X-User-Message")) != null) {
             userMessage = unfold(userMessageFromHeader);
-        }else{
+        } else {
             userMessage = message.getPlainTextBody();
         }
         return userMessage.trim();

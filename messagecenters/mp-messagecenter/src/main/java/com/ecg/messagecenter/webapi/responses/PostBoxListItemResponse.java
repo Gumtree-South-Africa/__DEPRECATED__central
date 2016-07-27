@@ -52,10 +52,8 @@ public class PostBoxListItemResponse {
 
         this.lastMessage = new MessageResponse(
                 MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(conversationThread.getLastMessageCreatedAt().orElse(conversationThread.getReceivedAt())),
-                null,
                 ConversationBoundnessFinder.boundnessForRole(this.role, conversationThread.getMessageDirection().get()),
                 conversationThread.getPreviewLastMessage().get(),
-                Optional.empty(),
                 Collections.emptyList());
     }
 

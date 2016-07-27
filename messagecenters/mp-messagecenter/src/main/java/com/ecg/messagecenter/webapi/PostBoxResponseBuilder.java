@@ -29,7 +29,7 @@ public class PostBoxResponseBuilder {
     public PostBoxResponse buildPostBoxResponse(String email, int size, int page, PostBox postBox) {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
-        postBoxResponse.initNumUnread(postBox.getNewRepliesCounter(), postBox.getLastModification());
+        postBoxResponse.initNumUnread(postBox.getNumUnreadMessages(), postBox.getLastModification());
 
         initConversationsPayload(email, postBox.getConversationThreadsCapTo(page, size), postBoxResponse);
 

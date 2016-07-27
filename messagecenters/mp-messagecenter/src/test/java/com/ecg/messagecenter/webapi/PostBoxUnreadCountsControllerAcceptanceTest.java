@@ -1,11 +1,8 @@
 package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.identifier.UserIdentifierType;
-import com.ecg.replyts.integration.test.IntegrationTestRunner;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -44,7 +41,7 @@ public class PostBoxUnreadCountsControllerAcceptanceTest {
                     aNewMail()
                             .from("buyer2@buyer.com")
                             .to("seller1@seller.com")
-                            .header("X-CUST-" + "user-id-buyer", "1")
+                            .header("X-CUST-" + "user-id-buyer", "3")
                             .header("X-CUST-" + "user-id-seller", "2")
                             .adId("424242")
                             .plainBody("Contact " + (i + 1) + " from second buyer.")

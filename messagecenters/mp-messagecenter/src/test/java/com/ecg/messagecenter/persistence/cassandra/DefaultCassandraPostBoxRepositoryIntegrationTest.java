@@ -54,8 +54,8 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     public void getByIdAlwaysReturnsNotNull() {
         PostBox nonExistent = postBoxRepository.getPostBox("nonexistent");
         assertNotNull(nonExistent);
-        assertNotNull(nonExistent.getNewRepliesCounter());
-        assertEquals(0, nonExistent.getNewRepliesCounter());
+        assertNotNull(nonExistent.getNumUnreadMessages());
+        assertEquals(0, nonExistent.getNumUnreadMessages());
         assertNotNull(nonExistent.getConversationThreads());
         assertTrue(nonExistent.getConversationThreads().isEmpty());
     }
@@ -112,7 +112,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
         PostBox reloadedPostBox = postBoxRepository.getPostBox(FOO_BAR_POST_BOX_ID);
         assertEquals(2, reloadedPostBox.getNumUnreadConversations());
-        assertEquals(4, reloadedPostBox.getNewRepliesCounter());
+        assertEquals(4, reloadedPostBox.getNumUnreadMessages());
 
         assertEquals(0, reloadedPostBox.getConversationThreads().get(0).getNumUnreadMessages());
         assertEquals(1, reloadedPostBox.getConversationThreads().get(1).getNumUnreadMessages());
@@ -139,7 +139,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
         reloadedPostBox = postBoxRepository.getPostBox(FOO_BAR_POST_BOX_ID);
         assertEquals(0, reloadedPostBox.getNumUnreadConversations());
-        assertEquals(0, reloadedPostBox.getNewRepliesCounter());
+        assertEquals(0, reloadedPostBox.getNumUnreadMessages());
 
         assertEquals(0, reloadedPostBox.getConversationThreads().get(0).getNumUnreadMessages());
         assertEquals(0, reloadedPostBox.getConversationThreads().get(1).getNumUnreadMessages());

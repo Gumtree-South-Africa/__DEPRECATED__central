@@ -44,7 +44,7 @@ public class PostBoxResponseBuilderTest {
 
     @Before
     public void before() {
-        when(postBox.getNewRepliesCounter()).thenReturn(10);
+        when(postBox.getNumUnreadMessages()).thenReturn(10);
     }
 
     @Test

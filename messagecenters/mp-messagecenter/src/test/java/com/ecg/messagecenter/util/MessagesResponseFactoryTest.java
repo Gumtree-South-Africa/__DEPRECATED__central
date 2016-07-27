@@ -31,7 +31,6 @@ import static org.mockito.Mockito.when;
 
 public class MessagesResponseFactoryTest {
 
-    private static final String PHONE_NUMBER = "123-123";
     private static final String BUYER = "id123";
     private static final String SELLER = "id456";
 
@@ -62,30 +61,6 @@ public class MessagesResponseFactoryTest {
 
         customValues.put(userIdentifierService.getSellerUserIdName(), SELLER);
         customValues.put(userIdentifierService.getBuyerUserIdName(), BUYER);
-    }
-
-    @Test
-    public void onlyAppendPhoneNumberIfAvailableOnFirstMessage() {
-        addMessage("firstMessage", BUYER_TO_SELLER);
-        addMessage("secondMessage", SELLER_TO_BUYER);
-        customValues.put(MessagesResponseFactory.BUYER_PHONE_FIELD, PHONE_NUMBER);
-
-        List<MessageResponse> transformedMessages = createMessagesList();
-
-        assertTrue(transformedMessages.get(0).getTextShort().contains(PHONE_NUMBER));
-        assertFalse(transformedMessages.get(1).getTextShort().contains(PHONE_NUMBER));
-    }
-
-    @Test
-    public void skipPhoneNumberIfNotAvailable() {
-        addMessage("firstMessage", BUYER_TO_SELLER);
-        addMessage("secondMessage", SELLER_TO_BUYER);
-        customValues.put(MessagesResponseFactory.BUYER_PHONE_FIELD, null);
-
-        List<MessageResponse> transformedMessages = createMessagesList();
-
-        assertFalse(transformedMessages.get(0).getTextShort().contains(PHONE_NUMBER));
-        assertFalse(transformedMessages.get(1).getTextShort().contains(PHONE_NUMBER));
     }
 
     @Test
@@ -281,7 +256,6 @@ public class MessagesResponseFactoryTest {
         List<MessageResponse> messages = createMessagesList();
 
         assertEquals("Message from **SellerName** :) to BuyerName.", messages.get(1).getTextShort());
-
     }
 
 
