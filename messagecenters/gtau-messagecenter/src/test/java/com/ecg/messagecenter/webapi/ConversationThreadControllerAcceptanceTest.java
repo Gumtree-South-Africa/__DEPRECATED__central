@@ -8,15 +8,22 @@ import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
 
+import java.util.Properties;
+
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.hamcrest.Matchers.equalTo;
 
 /**
  * Created by maotero on 6/10/2015.
  */
 public class ConversationThreadControllerAcceptanceTest {
+    private final Properties testProperties = new Properties() {{
+        put("persistence.strategy", "riak");
+    }};
+
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
 
     @Test
     public void readMessages() throws Exception {

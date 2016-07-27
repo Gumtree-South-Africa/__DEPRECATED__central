@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.filters;
 
-import com.ecg.messagecenter.persistence.ConversationBlock;
-import com.ecg.messagecenter.persistence.ConversationBlockRepository;
+import com.ecg.messagecenter.persistence.block.ConversationBlock;
+import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.mail.Mail;
@@ -33,7 +33,7 @@ public class UserBlockedConversationFilterTest {
     private ProcessingTimeGuard guard = new ProcessingTimeGuard(0);
 
     @Mock
-    private ConversationBlockRepository conversationBlockRepository;
+    private RiakConversationBlockRepository conversationBlockRepository;
     @Mock
     private MutableConversation conversation;
     @Mock

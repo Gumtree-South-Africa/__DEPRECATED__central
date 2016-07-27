@@ -714,8 +714,32 @@
                         <artifactId>servo-core</artifactId>
                     </exclusion>
                     <exclusion>
+                        <groupId>com.netflix.ribbon</groupId>
+                        <artifactId>ribbon-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.netflix.ribbon</groupId>
+                        <artifactId>ribbon-httpclient</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>commons-collections</groupId>
                         <artifactId>commons-collections</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpcore</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework.cloud</groupId>
+                        <artifactId>spring-cloud-starter-archaius</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework.cloud</groupId>
+                        <artifactId>spring-cloud-starter-validation</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework.security</groupId>
+                        <artifactId>spring-security-crypto</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

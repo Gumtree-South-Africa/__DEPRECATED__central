@@ -1,8 +1,8 @@
 package com.ecg.messagecenter.pushmessage;
 
 import com.codahale.metrics.Counter;
-import com.ecg.messagecenter.persistence.PostBox;
-import com.ecg.messagecenter.persistence.PostBoxInitializer;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.util.PushNotificationTextShortener;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -22,7 +22,7 @@ import static java.lang.String.format;
 /**
  * @author maldana@ebay-kleinanzeigen.de
  */
-public class PushMessageOnUnreadConversationCallback implements PostBoxInitializer.PostBoxWriteCallback {
+public class PushMessageOnUnreadConversationCallback implements SimplePostBoxInitializer.PostBoxWriteCallback {
 
     private static final Counter COUNTER_PUSH_SENT = TimingReports.newCounter("message-box.push-message-sent");
     private static final Counter COUNTER_PUSH_NO_DEVICE = TimingReports.newCounter("message-box.push-message-no-device");

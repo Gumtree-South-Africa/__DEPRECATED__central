@@ -6,7 +6,7 @@ import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.Configuration;
 import com.ecg.messagecenter.capi.UserInfoLookup;
-import com.ecg.messagecenter.persistence.PostBoxInitializer;
+import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.pushmessage.ActiveMQPushServiceImpl;
 import com.ecg.messagecenter.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.pushmessage.PushService;
@@ -39,7 +39,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
     private final UserNotificationRules userNotificationRules;
-    private final PostBoxInitializer postBoxInitializer;
+    private final SimplePostBoxInitializer postBoxInitializer;
     private final PushService amqPushService;
     private final PushService sendPushService;
     private final AdInfoLookup adInfoLookup;
@@ -47,7 +47,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final Integer pushServicePercentage;
 
     @Autowired
-    public PostBoxUpdateListener(PostBoxInitializer postBoxInitializer,
+    public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
                                  @Value("${push-mobile.enabled:true}") boolean pushEnabled,
                                  @Value("${capi.host:www.dev.kjdev.ca}") String capiHost,
                                  @Value("${capi.port:8081}") Integer capiPort,

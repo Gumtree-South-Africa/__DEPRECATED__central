@@ -2,7 +2,7 @@ package com.ecg.messagecenter.listeners;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.persistence.PostBoxInitializer;
+import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.pushmessage.AdImageLookup;
 import com.ecg.messagecenter.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.pushmessage.PushService;
@@ -42,13 +42,13 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
     private final UserNotificationRules userNotificationRules;
-    private final PostBoxInitializer postBoxInitializer;
+    private final SimplePostBoxInitializer postBoxInitializer;
     private final PushService pushService;
     private final AdImageLookup adImageLookup;
 
 
     @Autowired
-    public PostBoxUpdateListener(PostBoxInitializer postBoxInitializer,
+    public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
                                  @Value("${kapi.host:}") String kapiSpringProp,
                                  @Value("${kmobilepush.host:}") String kmobileSpringProp) {
         String kapiSysProp = System.getProperty("kapi.host");

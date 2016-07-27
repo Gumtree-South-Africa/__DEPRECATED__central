@@ -2,7 +2,7 @@ package com.ecg.messagecenter.listeners;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.persistence.PostBoxInitializer;
+import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.pushmessage.AdInfoLookup;
 import com.ecg.messagecenter.pushmessage.KmobilePushService;
 import com.ecg.messagecenter.pushmessage.PushMessageOnUnreadConversationCallback;
@@ -37,12 +37,12 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
     private final UserNotificationRules userNotificationRules;
-    private final PostBoxInitializer postBoxInitializer;
+    private final SimplePostBoxInitializer postBoxInitializer;
     private final PushService pushService;
     private final AdInfoLookup adInfoLookup;
 
     @Autowired
-    public PostBoxUpdateListener(PostBoxInitializer postBoxInitializer,
+    public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
                                  @Value("${push-mobile.enabled:true}") boolean pushEnabled,
                                  @Value("${push-mobile.host:}") String pushHost,
                                  @Value("${push-mobile.port:80}") Integer pushPort,

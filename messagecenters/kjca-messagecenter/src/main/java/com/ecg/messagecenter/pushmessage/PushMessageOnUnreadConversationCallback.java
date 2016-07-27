@@ -5,8 +5,8 @@ import ca.kijiji.tracing.TraceThreadLocal;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.cleanup.TextCleaner;
-import com.ecg.messagecenter.persistence.PostBox;
-import com.ecg.messagecenter.persistence.PostBoxInitializer;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.google.common.collect.ImmutableMap;
@@ -21,7 +21,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PushMessageOnUnreadConversationCallback implements PostBoxInitializer.PostBoxWriteCallback {
+public class PushMessageOnUnreadConversationCallback implements SimplePostBoxInitializer.PostBoxWriteCallback {
 
     private static final String FROM = "From";
     private static final String SOUND_FILE_NAME = "kijijica-push.caf";

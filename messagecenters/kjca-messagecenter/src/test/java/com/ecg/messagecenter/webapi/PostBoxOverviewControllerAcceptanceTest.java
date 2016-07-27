@@ -15,7 +15,6 @@ import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENA
 import static org.hamcrest.Matchers.equalTo;
 
 public class PostBoxOverviewControllerAcceptanceTest {
-
     private final Properties testProperties = new Properties() {{
         put("persistence.strategy", "riak");
     }};

@@ -1,18 +1,24 @@
 package com.ecg.messagecenter.persistence;
 
+import com.ecg.messagecenter.persistence.simple.AbstractJsonToPostBoxConverter;
+import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
 import static com.ecg.messagecenter.util.ConverterUtils.parseDate;
 
-class JsonToPostBoxConverter {
-
-    public PostBox toPostBox(String key, String jsonString) {
+@Component
+@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}' == 'hybrid'}")
+public class JsonToPostBoxConverter implements AbstractJsonToPostBoxConverter<ConversationThread> {
+    @Override
+    public PostBox<ConversationThread> toPostBox(String key, String jsonString, int maxAgeDays) {
         JsonNode json = JsonObjects.parse(jsonString);
         ArrayNode arrayNode = (ArrayNode) json.get("threads");
         List<ConversationThread> threadList = Lists.newArrayList();
@@ -33,7 +39,7 @@ class JsonToPostBoxConverter {
             );
         }
 
-        return new PostBox(key, lookupLongValue(json, "newRepliesCounter"), threadList);
+        return new PostBox<>(key, lookupLongValue(json, "newRepliesCounter"), threadList, maxAgeDays);
     }
 
     private Optional<String> lookupStringValue(JsonNode threadNode, String key) {

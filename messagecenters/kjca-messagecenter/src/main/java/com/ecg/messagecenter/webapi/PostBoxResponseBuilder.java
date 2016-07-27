@@ -1,9 +1,9 @@
 package com.ecg.messagecenter.webapi;
 
-import com.ecg.messagecenter.persistence.ConversationBlock;
-import com.ecg.messagecenter.persistence.ConversationBlockRepository;
+import com.ecg.messagecenter.persistence.block.ConversationBlock;
+import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
@@ -12,9 +12,9 @@ import java.util.List;
 
 public class PostBoxResponseBuilder {
 
-    private final ConversationBlockRepository conversationBlockRepository;
+    private final RiakConversationBlockRepository conversationBlockRepository;
 
-    public PostBoxResponseBuilder(ConversationBlockRepository conversationBlockRepository) {
+    public PostBoxResponseBuilder(RiakConversationBlockRepository conversationBlockRepository) {
         this.conversationBlockRepository = conversationBlockRepository;
     }
 

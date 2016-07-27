@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.webapi;
 
-import com.ecg.messagecenter.persistence.PostBox;
-import com.ecg.messagecenter.persistence.PostBoxRepository;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.IncreaseUnreadCountersCommand;
 import com.ecg.messagecenter.webapi.requests.IncreaseUnreadCountersCommand.Item;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
@@ -31,13 +31,13 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 class CounterIncrementController {
 
-    private final PostBoxRepository repository;
+    private final SimplePostBoxRepository repository;
 
     private static final Logger LOG = LoggerFactory.getLogger(CounterIncrementController.class);
 
 
     @Autowired
-    public CounterIncrementController(PostBoxRepository repository) {
+    public CounterIncrementController(SimplePostBoxRepository repository) {
         this.repository = repository;
     }
 

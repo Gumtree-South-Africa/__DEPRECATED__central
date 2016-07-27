@@ -3,8 +3,8 @@ package com.ecg.messagecenter.webapi;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.PostBox;
-import com.ecg.messagecenter.persistence.PostBoxRepository;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetAdConversationRecipientsCommand;
 import com.ecg.messagecenter.webapi.responses.AdConversationRecipientListResponse;
 import com.ecg.messagecenter.webapi.responses.BuyerContactResponse;
@@ -45,13 +45,13 @@ class AdConversationRecipientsController {
     private static final Histogram API_NUM_CONVERSATIONS_BY_AD = TimingReports.newHistogram("webapi-postbox-num-conversations-by-ad");
 
 
-    private final PostBoxRepository postBoxRepository;
+    private final RiakSimplePostBoxRepository postBoxRepository;
     private final ConversationRepository conversationRepository;
 
     @Autowired
     public AdConversationRecipientsController(
             ConversationRepository conversationRepository,
-            PostBoxRepository postBoxRepository) {
+            RiakSimplePostBoxRepository postBoxRepository) {
 
         this.conversationRepository = conversationRepository;
         this.postBoxRepository = postBoxRepository;
@@ -96,7 +96,7 @@ class AdConversationRecipientsController {
 
         try {
             final String sellerEmail = URLDecoder.decode(urlEncodedSellerEmail, StandardCharsets.UTF_8.name());
-            final PostBox postBox = postBoxRepository.byId(sellerEmail);
+            final PostBox<ConversationThread> postBox = postBoxRepository.byId(sellerEmail);
 
             final List<BuyerContactResponse> buyerContacts = new ArrayList<>();
 

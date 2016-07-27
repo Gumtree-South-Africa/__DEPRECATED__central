@@ -4,6 +4,10 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.*;
+import com.ecg.messagecenter.persistence.block.ConversationBlock;
+import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterBlockCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
@@ -19,6 +23,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -49,26 +54,17 @@ class ConversationThreadController {
     private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
     private static final Counter API_POSTBOX_EMPTY_CONVERSATION = TimingReports.newCounter("webapi-postbox-empty-conversation");
 
-
-    private final PostBoxRepository postBoxRepository;
-    private final ConversationRepository conversationRepository;
-    private final ConversationBlockRepository conversationBlockRepository;
-    private final MailCloakingService mailCloakingService;
-
     @Autowired
-    public ConversationThreadController(
-            ConversationRepository conversationRepository,
-            PostBoxRepository postBoxRepository,
-            ConversationBlockRepository conversationBlockRepository,
-            MailCloakingService mailCloakingService
-    ) {
+    private RiakSimplePostBoxRepository postBoxRepository;
+    @Autowired
+    private ConversationRepository conversationRepository;
+    @Autowired
+    private RiakConversationBlockRepository conversationBlockRepository;
+    @Autowired
+    private MailCloakingService mailCloakingService;
 
-        this.conversationRepository = conversationRepository;
-        this.postBoxRepository = postBoxRepository;
-        this.conversationBlockRepository = conversationBlockRepository;
-        this.mailCloakingService = mailCloakingService;
-    }
-
+    @Value("${replyts.maxConversationAgeDays}")
+    private int maxAgeDays;
 
     @InitBinder
     public void initBinderInternal(WebDataBinder binder) {
@@ -159,7 +155,7 @@ class ConversationThreadController {
 
     }
 
-    private long markConversationAsRead(String email, String conversationId, PostBox postBox) {
+    private long markConversationAsRead(String email, String conversationId, PostBox<ConversationThread> postBox) {
         List<ConversationThread> threadsToUpdate = new ArrayList<>();
 
         boolean needsUpdate = false;
@@ -192,7 +188,7 @@ class ConversationThreadController {
 
         //optimization to not cause too many write actions (potential for conflicts)
         if (needsUpdate) {
-            PostBox postBoxToUpdate = new PostBox(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate);
+            PostBox postBoxToUpdate = new PostBox(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate, maxAgeDays);
             postBoxRepository.write(postBoxToUpdate);
             numUnreadCounter = postBoxToUpdate.getUnreadConversationsCapped().size();
         } else {

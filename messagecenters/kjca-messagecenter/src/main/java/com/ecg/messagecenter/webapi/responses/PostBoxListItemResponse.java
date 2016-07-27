@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.webapi.responses;
 
-import com.ecg.messagecenter.persistence.ConversationBlock;
+import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.util.ConversationBoundnessFinder;
 import com.ecg.messagecenter.util.MessageCenterUtils;

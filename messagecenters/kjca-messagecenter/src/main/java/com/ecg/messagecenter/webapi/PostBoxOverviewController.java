@@ -2,9 +2,10 @@ package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.persistence.ConversationBlockRepository;
-import com.ecg.messagecenter.persistence.PostBox;
-import com.ecg.messagecenter.persistence.PostBoxRepository;
+import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterDeletePostBoxConversationCommandNew;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
@@ -22,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 
 import static org.joda.time.DateTime.now;
 import static org.joda.time.DateTimeZone.UTC;
@@ -34,19 +36,16 @@ class PostBoxOverviewController {
     private static final Timer API_POSTBOX_CONVERSATION_DELETE_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-delete");
     private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX = TimingReports.newHistogram("webapi-postbox-num-conversations-of-postbox");
 
-    private final PostBoxRepository postBoxRepository;
+    private final RiakSimplePostBoxRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
-    private final int maxConversationAgeDays;
 
     @Autowired
     public PostBoxOverviewController(
-            PostBoxRepository postBoxRepository,
-            ConversationBlockRepository conversationBlockRepository,
-            @Value("${replyts.maxConversationAgeDays:180}") int maxConversationAgeDays
+            RiakSimplePostBoxRepository postBoxRepository,
+            RiakConversationBlockRepository conversationBlockRepository
     ) {
         this.postBoxRepository = postBoxRepository;
         this.responseBuilder = new PostBoxResponseBuilder(conversationBlockRepository);
-        this.maxConversationAgeDays = maxConversationAgeDays;
     }
 
 
@@ -74,8 +73,7 @@ class PostBoxOverviewController {
         Timer.Context timerContext = API_POSTBOX_BY_EMAIL.time();
 
         try {
-            PostBox postBox = postBoxRepository.byId(email)
-                    .withoutThreadsCreatedBefore(now(UTC).minusDays(maxConversationAgeDays));
+            PostBox postBox = postBoxRepository.byId(email);
 
             API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
 
@@ -111,7 +109,7 @@ class PostBoxOverviewController {
                 postBox.removeConversation(id);
             }
 
-            postBoxRepository.write(postBox);
+            postBoxRepository.write(postBox, new SimplePostBoxRepository.DeletionContext(Arrays.asList(ids)));
 
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
 

@@ -1,6 +1,9 @@
 package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.persistence.*;
+import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
@@ -27,13 +30,13 @@ public class PostBoxOverviewControllerTest {
     private PostBoxOverviewController controller;
 
     @Mock
-    private PostBoxRepository postBoxRepository;
+    private RiakSimplePostBoxRepository postBoxRepository;
     @Mock
-    private ConversationBlockRepository conversationBlockRepository;
+    private RiakConversationBlockRepository conversationBlockRepository;
 
     @Before
     public void setUp() throws Exception {
-        controller = new PostBoxOverviewController(postBoxRepository, conversationBlockRepository, 180);
+        controller = new PostBoxOverviewController(postBoxRepository, conversationBlockRepository);
     }
 
     @Test
@@ -53,7 +56,7 @@ public class PostBoxOverviewControllerTest {
                 Optional.of("buyer@example.com"),
                 Optional.of(MessageDirection.BUYER_TO_SELLER.name()));
 
-        PostBox postbox = new PostBox(email, new Counter(), Lists.newArrayList(oldConversationThread));
+        PostBox postbox = new PostBox(email, new Counter(), Lists.newArrayList(oldConversationThread), 180);
         when(postBoxRepository.byId(email)).thenReturn(postbox);
 
         ResponseObject<PostBoxResponse> response = controller.getPostBoxByEmail(email, false, 100, 0, request);

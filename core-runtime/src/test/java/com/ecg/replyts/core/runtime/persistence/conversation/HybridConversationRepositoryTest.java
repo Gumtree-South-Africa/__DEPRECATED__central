@@ -34,16 +34,16 @@ public class HybridConversationRepositoryTest {
     @Test
     public void testGetByIdMigration() {
         ConversationCreatedEvent createdEvent = new ConversationCreatedEvent("123", null, null, null, null, null, DateTime.now(), ConversationState.ACTIVE, new HashMap<>());
-        MutableConversation conversation = new DefaultMutableConversation(ImmutableConversation.replay(Arrays.asList(new ConversationEvent[] { createdEvent })));
+        MutableConversation conversation = new DefaultMutableConversation(ImmutableConversation.replay(Arrays.asList(createdEvent)));
 
         when(cassandraRepository.getById(eq("123"))).thenReturn(null);
         when(riakRepository.getById(eq("123"))).thenReturn(conversation);
 
-        when(riakRepository.getConversationEvents(eq("123"))).thenReturn(Arrays.asList(new ConversationEvent[] { createdEvent }));
+        when(riakRepository.getConversationEvents(eq("123"))).thenReturn(Arrays.asList(createdEvent));
 
         assertEquals("Mocked conversation should be returned by getById call after Cassandra migration", conversation, repository.getById("123"));
 
-        verify(cassandraRepository).commit(eq("123"), eq(Arrays.asList(new ConversationEvent[] { createdEvent })));
+        verify(cassandraRepository).commit(eq("123"), eq(Arrays.asList(createdEvent)));
     }
 
     @Test
@@ -52,14 +52,14 @@ public class HybridConversationRepositoryTest {
         ConversationEvent newConversationEvent = new MessageAddedEvent("456", MessageDirection.BUYER_TO_SELLER, DateTime.now(), null, null, null, FilterResultState.OK, ModerationResultState.GOOD, null, null, null, null);
 
         when(cassandraRepository.getLastModifiedDate(eq("123"))).thenReturn(null);
-        when(riakRepository.getConversationEvents(eq("123"))).thenReturn(Arrays.asList(new ConversationEvent[] { existingConversationEvent }));
+        when(riakRepository.getConversationEvents(eq("123"))).thenReturn(Arrays.asList(existingConversationEvent));
 
-        List<ConversationEvent> expectedEventsForRiakCommit = Arrays.asList(new ConversationEvent[] { newConversationEvent });
-        List<ConversationEvent> expectedEventsForCassandraCommit = Arrays.asList(new ConversationEvent[] { existingConversationEvent, newConversationEvent });
+        List<ConversationEvent> expectedEventsForRiakCommit = Arrays.asList(newConversationEvent);
+        List<ConversationEvent> expectedEventsForCassandraCommit = Arrays.asList(existingConversationEvent, newConversationEvent);
 
         // Following a commit to a non-migrated conversation, call to Cassandra should contain both original and newly-committed events
 
-        repository.commit("123", Arrays.asList(new ConversationEvent[] { newConversationEvent }));
+        repository.commit("123", Arrays.asList(newConversationEvent));
 
         verify(riakRepository).commit(eq("123"), eq(expectedEventsForRiakCommit));
         verify(cassandraRepository).commit(eq("123"), eq(expectedEventsForCassandraCommit));
@@ -71,11 +71,11 @@ public class HybridConversationRepositoryTest {
 
         when(cassandraRepository.getLastModifiedDate(eq("123"))).thenReturn(DateTime.now());
 
-        List<ConversationEvent> expectedEventsForBoth = Arrays.asList(new ConversationEvent[] { newConversationEvent });
+        List<ConversationEvent> expectedEventsForBoth = Arrays.asList(newConversationEvent);
 
         // Following a commit to a previously migrated conversation, call to both should contain just the newly added events
 
-        repository.commit("123", Arrays.asList(new ConversationEvent[] { newConversationEvent }));
+        repository.commit("123", Arrays.asList(newConversationEvent));
 
         verify(riakRepository).commit(eq("123"), eq(expectedEventsForBoth));
         verify(cassandraRepository).commit(eq("123"), eq(expectedEventsForBoth));
@@ -88,11 +88,11 @@ public class HybridConversationRepositoryTest {
         when(cassandraRepository.getLastModifiedDate(eq("123"))).thenReturn(null);
         when(riakRepository.getConversationEvents(eq("123"))).thenReturn(null);
 
-        List<ConversationEvent> expectedEventsForBoth = Arrays.asList(new ConversationEvent[] { newConversationEvent });
+        List<ConversationEvent> expectedEventsForBoth = Arrays.asList(newConversationEvent);
 
         // Following a commit to a non-existing conversation, call to both should contain just the newly added events
 
-        repository.commit("123", Arrays.asList(new ConversationEvent[] { newConversationEvent }));
+        repository.commit("123", Arrays.asList(newConversationEvent));
 
         verify(riakRepository).commit(eq("123"), eq(expectedEventsForBoth));
         verify(cassandraRepository).commit(eq("123"), eq(expectedEventsForBoth));

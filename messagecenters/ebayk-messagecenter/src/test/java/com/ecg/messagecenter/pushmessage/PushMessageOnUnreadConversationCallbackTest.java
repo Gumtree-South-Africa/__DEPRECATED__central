@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.pushmessage;
 
 import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;

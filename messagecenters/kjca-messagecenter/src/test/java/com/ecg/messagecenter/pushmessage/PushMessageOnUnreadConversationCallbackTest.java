@@ -4,7 +4,7 @@ import ca.kijiji.replyts.BoxHeaders;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.pushmessage.send.SendPushService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;

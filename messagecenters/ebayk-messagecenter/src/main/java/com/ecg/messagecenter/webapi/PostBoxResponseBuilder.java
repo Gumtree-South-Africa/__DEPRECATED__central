@@ -2,7 +2,7 @@ package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Counter;
 import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;

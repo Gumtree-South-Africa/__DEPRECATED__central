@@ -1,0 +1,40 @@
+package com.ecg.messagecenter.persistence.simple;
+
+import com.ecg.messagecenter.cronjobs.PostBoxCleanupCronJob;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+
+@Configuration
+@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}' == 'hybrid'}")
+public class RiakSimplePostBoxConfiguration {
+    @Bean
+    public PostBoxCleanupCronJob cleanupCronJob() {
+        return new PostBoxCleanupCronJob();
+    }
+
+    @Bean
+    public RiakSimplePostBoxMerger postBoxMerger() {
+        return new RiakSimplePostBoxMerger();
+    }
+
+    @Bean
+    public RiakSimplePostBoxConflictResolver postBoxConflictResolver() {
+        return new RiakSimplePostBoxConflictResolver();
+    }
+
+    @Bean
+    public RiakSimplePostBoxConverter postBoxConverter() {
+        return new RiakSimplePostBoxConverter();
+    }
+
+    @Configuration
+    @ConditionalOnExpression("#{'${persistence.strategy}' == 'riak'}")
+    static class RiakOnlyConfiguration {
+        @Bean
+        public SimplePostBoxRepository postBoxRepository() {
+            return new RiakSimplePostBoxRepository();
+        }
+    }
+}

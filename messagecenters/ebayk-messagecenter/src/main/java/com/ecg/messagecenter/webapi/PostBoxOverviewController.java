@@ -2,8 +2,8 @@ package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.persistence.PostBox;
-import com.ecg.messagecenter.persistence.PostBoxRepository;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterDeletePostBoxConversationCommandNew;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
 
-
 /**
  * User: maldana
  * Date: 24.10.13
@@ -33,26 +32,21 @@ import java.util.Arrays;
  */
 @Controller
 class PostBoxOverviewController {
-
-
     private static final Timer API_POSTBOX_BY_EMAIL = TimingReports.newTimer("webapi-postbox-by-email");
     private static final Timer API_POSTBOX_CONVERSATION_DELETE_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-delete");
 
     private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX = TimingReports.newHistogram("webapi-postbox-num-conversations-of-postbox");
 
-
-
-    private final PostBoxRepository postBoxRepository;
+    private final SimplePostBoxRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
 
     @Autowired
     public PostBoxOverviewController(
             ConversationRepository conversationRepository,
-            PostBoxRepository postBoxRepository) {
+            SimplePostBoxRepository postBoxRepository) {
         this.postBoxRepository = postBoxRepository;
         this.responseBuilder = new PostBoxResponseBuilder(conversationRepository);
     }
-
 
     @InitBinder
     public void initBinderInternal(WebDataBinder binder) {
@@ -63,8 +57,6 @@ class PostBoxOverviewController {
     public void handleException(Throwable ex, HttpServletResponse response, Writer writer) throws IOException {
         new TopLevelExceptionHandler(ex, response, writer).handle();
     }
-
-
 
     @RequestMapping(value = MessageCenterGetPostBoxCommand.MAPPING,
             produces = MediaType.APPLICATION_JSON_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
@@ -94,8 +86,6 @@ class PostBoxOverviewController {
         }
     }
 
-
-
     @RequestMapping(value = MessageCenterDeletePostBoxConversationCommandNew.MAPPING,
             produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
     @ResponseBody
@@ -104,7 +94,6 @@ class PostBoxOverviewController {
             @RequestParam(value = "ids", defaultValue = "") String[] ids,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size) {
-
         Timer.Context timerContext = API_POSTBOX_CONVERSATION_DELETE_BY_ID.time();
 
         try {
@@ -114,7 +103,7 @@ class PostBoxOverviewController {
                 postBox.removeConversation(id);
             }
 
-            postBoxRepository.write(postBox, new PostBoxRepository.DeletionContext(Arrays.asList(ids)));
+            postBoxRepository.write(postBox, new SimplePostBoxRepository.DeletionContext(Arrays.asList(ids)));
 
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox);
 
@@ -123,11 +112,7 @@ class PostBoxOverviewController {
         }
     }
 
-
     private boolean markAsRead(HttpServletRequest request) {
         return request.getMethod().equals(RequestMethod.PUT.name());
     }
-
-
-
 }

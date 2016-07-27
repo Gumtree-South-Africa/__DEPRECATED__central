@@ -4,7 +4,7 @@ import com.codahale.metrics.Counter;
 import com.ecg.messagecenter.cleanup.TextCleaner;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.Header;
-import com.ecg.messagecenter.persistence.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;

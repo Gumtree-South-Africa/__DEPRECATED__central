@@ -1,23 +1,21 @@
 package com.ecg.messagecenter.persistence;
 
+import com.ecg.messagecenter.persistence.simple.AbstractPostBoxToJsonConverter;
+import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static com.ecg.messagecenter.util.ConverterUtils.nullSafeMillis;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 15:53
- *
- * @author maldana@ebay.de
- */
-public class PostBoxToJsonConverter {
-
-    public String toJson(PostBox p) {
-
+@Component
+@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}' == 'hybrid'}")
+public class PostBoxToJsonConverter implements AbstractPostBoxToJsonConverter<ConversationThread> {
+    @Override
+    public String toJson(PostBox<ConversationThread> p) {
         return JsonObjects.builder()
                 .attr("version", 1)
                 .attr("newRepliesCounter", p.getNewRepliesCounter().getValue())
@@ -29,7 +27,6 @@ public class PostBoxToJsonConverter {
         ArrayNode threads = JsonObjects.newJsonArray();
 
         for (ConversationThread thread : conversationThreads) {
-
             JsonObjects.Builder builder = JsonObjects.builder()
                     .attr("adId", thread.getAdId())
                     .attr("createdAt", nullSafeMillis(thread.getCreatedAt()))
@@ -62,5 +59,4 @@ public class PostBoxToJsonConverter {
 
         return threads;
     }
-
 }

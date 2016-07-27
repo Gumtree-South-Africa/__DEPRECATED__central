@@ -8,7 +8,6 @@ import org.joda.time.DateTime;
 import java.util.Optional;
 
 import static com.ecg.replyts.core.api.util.Pairwise.pairsAreEqual;
-import static org.joda.time.DateTimeZone.UTC;
 
 public abstract class AbstractConversationThread {
     protected final String adId;

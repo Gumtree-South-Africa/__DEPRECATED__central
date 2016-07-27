@@ -2,7 +2,7 @@ package com.ecg.messagecenter.listeners;
 
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
-import com.ecg.messagecenter.persistence.PostBoxInitializer;
+import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.pushmessage.PushService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
@@ -35,7 +35,7 @@ public class PostBoxUpdateListenerTest {
     private PostBoxUpdateListener listener;
 
     @Mock
-    private PostBoxInitializer postBoxInitializer;
+    private SimplePostBoxInitializer postBoxInitializer;
     @Mock
     private PushService pushService;
     @Mock
