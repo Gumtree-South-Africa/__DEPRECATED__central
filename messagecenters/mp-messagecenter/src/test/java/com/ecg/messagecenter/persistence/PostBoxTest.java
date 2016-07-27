@@ -1,8 +1,11 @@
 package com.ecg.messagecenter.persistence;
 
 import com.google.common.collect.Lists;
+import org.joda.time.DateTimeComparator;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,17 +34,18 @@ public class PostBoxTest {
     private static final PostBox POST_BOX = new PostBox("bla@blah.com", CONVERSATION_THREADS);
 
     @Test
-    public void cappingForPageZeroReturnsFirstResults() {
-        List<ConversationThread> conversationThreadsCapTo = POST_BOX.getConversationThreadsCapTo(0, 2);
+    public void capConversationThreads() {
+        List<ConversationThread> sortedConversations = new ArrayList<>(CONVERSATION_THREADS);
+        Collections.sort(sortedConversations, (c1, c2) ->
+                DateTimeComparator.getInstance().compare(
+                        c2.getLastMessageCreatedAt().orElse(c2.getReceivedAt()),
+                        c1.getLastMessageCreatedAt().orElse(c1.getReceivedAt())));
 
-        assertEquals(CONVERSATION_THREADS.subList(0, 2), conversationThreadsCapTo);
-    }
+        List<ConversationThread> firstPage = POST_BOX.getConversationThreadsCapTo(0, 2);
+        assertEquals(sortedConversations.subList(0, 2), firstPage);
 
-    @Test
-    public void cappingForPage1ReturnsNextResults() {
-        List<ConversationThread> conversationThreadsCapTo = POST_BOX.getConversationThreadsCapTo(1, 2);
-
-        assertEquals(CONVERSATION_THREADS.subList(2, 4), conversationThreadsCapTo);
+        List<ConversationThread> secondPage = POST_BOX.getConversationThreadsCapTo(1, 2);
+        assertEquals(sortedConversations.subList(2, 4), secondPage);
     }
 
     @Test
