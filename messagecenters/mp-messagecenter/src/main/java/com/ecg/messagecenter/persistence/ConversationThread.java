@@ -56,17 +56,13 @@ public class ConversationThread extends AbstractConversationThread {
         this.numUnreadMessages = numUnreadMessages;
         this.userIdBuyer = userIdBuyer;
         this.userIdSeller = userIdSeller;
-        this.lastMessageCreatedAt = lastMessageCreatedAt.isPresent() ? lastMessageCreatedAt : receivedAt != null ? Optional.of(receivedAt) : Optional.<DateTime>empty();
+        this.lastMessageCreatedAt = lastMessageCreatedAt.isPresent() ? lastMessageCreatedAt : receivedAt != null ? Optional.of(receivedAt) : Optional.empty();
     }
 
     @Override
     public ConversationThread sameButUnread(String message) {
         Optional<String> actualMessage = message == null ? previewLastMessage : Optional.of(message);
         return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), numUnreadMessages + 1, actualMessage, buyerName, sellerName, buyerId, messageDirection, userIdBuyer, userIdSeller, lastMessageCreatedAt);
-    }
-
-    public ConversationThread sameButRead() {
-        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), 0, previewLastMessage, buyerName, sellerName, buyerId, messageDirection, userIdBuyer, userIdSeller, lastMessageCreatedAt);
     }
 
     @JsonIgnore

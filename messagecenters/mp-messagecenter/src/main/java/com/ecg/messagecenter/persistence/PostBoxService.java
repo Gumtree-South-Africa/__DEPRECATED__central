@@ -15,14 +15,11 @@ public interface PostBoxService {
                            Conversation conversation,
                            Message message,
                            ConversationRole conversationRole,
-                           boolean newReplyArrived,
-                           Optional<NewMessageListener> newMessageListener);
+                           boolean newReplyArrived);
 
     Optional<ConversationResponse> getConversation(String postBoxId, String conversationId);
 
     Optional<ConversationResponse> markConversationAsRead(String postBoxId, String conversationId);
-
-    PostBoxResponse markConversationsAsRead(String postBoxId, Integer size, Integer page);
 
     PostBoxResponse getConversations(String postBoxId, Integer size, Integer page);
 
@@ -39,11 +36,11 @@ public interface PostBoxService {
      *
      * @param postBoxId       id of postbox containing the conversations
      * @param conversationIds ids of conversations
-     * @param page            page
      * @param size            size
+     * @param page            page
      * @return the new postbox or null if size is 0
      */
-    PostBoxResponse deleteConversations(String postBoxId, List<String> conversationIds, Integer page, Integer size);
+    PostBoxResponse deleteConversations(String postBoxId, List<String> conversationIds, Integer size, Integer page);
 
     /**
      * @param postBoxId id of postbox
@@ -53,6 +50,7 @@ public interface PostBoxService {
 
     /**
      * Return the list with response data per conversation for the user.
+     *
      * @param userId the user id
      * @return the list with response data
      */

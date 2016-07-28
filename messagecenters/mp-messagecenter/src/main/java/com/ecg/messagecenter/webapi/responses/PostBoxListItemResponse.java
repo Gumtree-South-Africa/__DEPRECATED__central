@@ -8,28 +8,22 @@ import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class PostBoxListItemResponse {
 
-    private String email;
-    private String userId;
     private String id;
     private String buyerName;
     private String sellerName;
     private Long userIdBuyer;
     private Long userIdSeller;
     private String adId;
-
     private ConversationRole role;
     private int numUnreadMessages;
-    private boolean unread;
-    private final List<String> attachments = Collections.emptyList();
-
     private MessageResponse lastMessage;
 
     private PostBoxListItemResponse() {
@@ -38,23 +32,32 @@ public class PostBoxListItemResponse {
     public PostBoxListItemResponse(String userId, ConversationThread conversationThread, UserIdentifierService userIdentifierService) {
         Preconditions.checkArgument(conversationThread.containsNewListAggregateData(), "Only supported for data stored as list-aggregate");
 
-        this.email = userId;
-        this.userId = userId;
-        this.unread = conversationThread.isContainsUnreadMessages();
-        this.numUnreadMessages = conversationThread.getNumUnreadMessages();
         this.id = conversationThread.getConversationId();
-        this.buyerName = conversationThread.getBuyerName().isPresent() ? conversationThread.getBuyerName().get() : "";
-        this.sellerName = conversationThread.getSellerName().isPresent() ? conversationThread.getSellerName().get() : "";
-        this.adId = conversationThread.getAdId();
-        this.role = userIdentifierService.getRoleFromConversation(userId, conversationThread);
+        this.buyerName = conversationThread.getBuyerName().orElse("");
+        this.sellerName = conversationThread.getSellerName().orElse("");
         this.userIdBuyer = conversationThread.getUserIdBuyer().orElse(null);
         this.userIdSeller = conversationThread.getUserIdSeller().orElse(null);
+        this.adId = conversationThread.getAdId();
+        this.role = userIdentifierService.getRoleFromConversation(userId, conversationThread);
+        this.numUnreadMessages = conversationThread.getNumUnreadMessages();
 
         this.lastMessage = new MessageResponse(
                 MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(conversationThread.getLastMessageCreatedAt().orElse(conversationThread.getReceivedAt())),
-                ConversationBoundnessFinder.boundnessForRole(this.role, conversationThread.getMessageDirection().get()),
-                conversationThread.getPreviewLastMessage().get(),
-                Collections.emptyList());
+                ConversationBoundnessFinder.boundnessForRole(role, conversationThread.getMessageDirection().get()),
+                conversationThread.getPreviewLastMessage().get());
+    }
+
+    public PostBoxListItemResponse(String conversationId, String buyerName, String sellerName, Long buyerUserId, Long sellerUserId,
+                                   String adId, ConversationRole conversationRole, int numUnreadMessages, MessageResponse lastMsgResp) {
+        this.id = conversationId;
+        this.buyerName = buyerName;
+        this.sellerName = sellerName;
+        this.userIdBuyer = buyerUserId;
+        this.userIdSeller = sellerUserId;
+        this.adId = adId;
+        this.role = conversationRole;
+        this.numUnreadMessages = numUnreadMessages;
+        this.lastMessage = lastMsgResp;
     }
 
     // old style lookup when we didn't have a complete search aggregate on the list-view
@@ -62,9 +65,6 @@ public class PostBoxListItemResponse {
     @Deprecated
     public static Optional<PostBoxListItemResponse> createNonAggregateListViewItem(String userId, int numUnreadMessages, Conversation conversationRts, UserIdentifierService userIdentifierService) {
         PostBoxListItemResponse response = new PostBoxListItemResponse();
-        response.email = userId;
-        response.userId = userId;
-        response.unread = numUnreadMessages > 0;
         response.numUnreadMessages = numUnreadMessages;
         response.id = conversationRts.getId();
         response.buyerName = conversationRts.getCustomValues().get("buyer-name") == null ? "" : conversationRts.getCustomValues().get("buyer-name");
@@ -80,22 +80,9 @@ public class PostBoxListItemResponse {
         if (messageResponse.isPresent()) {
             response.lastMessage = messageResponse.get();
             return Optional.of(response);
-
         } else {
             return Optional.empty();
         }
-    }
-
-    /**
-     * May contain user id instead of e-mail address
-     */
-    @Deprecated
-    public String getEmail() {
-        return email;
-    }
-
-    public String getUserId() {
-        return userId;
     }
 
     public String getId() {
@@ -106,8 +93,28 @@ public class PostBoxListItemResponse {
         return buyerName;
     }
 
+    public String getSellerName() {
+        return sellerName;
+    }
+
+    public Long getUserIdBuyer() {
+        return userIdBuyer;
+    }
+
+    public Long getUserIdSeller() {
+        return userIdSeller;
+    }
+
     public String getAdId() {
         return adId;
+    }
+
+    public ConversationRole getRole() {
+        return role;
+    }
+
+    public int getNumUnreadMessages() {
+        return numUnreadMessages;
     }
 
     public String getReceivedDate() {
@@ -118,39 +125,48 @@ public class PostBoxListItemResponse {
         return lastMessage.getSenderEmail();
     }
 
-    public ConversationRole getRole() {
-        return role;
-    }
-
     public MailTypeRts getBoundness() {
         return lastMessage.getBoundness();
-    }
-
-    public String getSellerName() {
-        return sellerName;
     }
 
     public String getTextShortTrimmed() {
         return lastMessage.getTextShortTrimmed();
     }
 
-    public boolean isUnread() {
-        return unread;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PostBoxListItemResponse that = (PostBoxListItemResponse) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(buyerName, that.buyerName)
+                && Objects.equals(sellerName, that.sellerName)
+                && Objects.equals(userIdBuyer, that.userIdBuyer)
+                && Objects.equals(userIdSeller, that.userIdSeller)
+                && Objects.equals(adId, that.adId)
+                && role == that.role
+                && numUnreadMessages == that.numUnreadMessages
+                && Objects.equals(lastMessage, that.lastMessage);
     }
 
-    public int getNumUnreadMessages() {
-        return numUnreadMessages;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, buyerName, sellerName, userIdBuyer, userIdSeller,
+                adId, role, numUnreadMessages, lastMessage);
     }
 
-    public List<String> getAttachments() {
-        return attachments == null ? Collections.<String>emptyList() : attachments;
-    }
-
-    public Long getUserIdBuyer() {
-        return userIdBuyer;
-    }
-
-    public Long getUserIdSeller() {
-        return userIdSeller;
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id)
+                .add("buyerName", buyerName)
+                .add("sellerName", sellerName)
+                .add("userIdBuyer", userIdBuyer)
+                .add("userIdSeller", userIdSeller)
+                .add("adId", adId)
+                .add("role", role)
+                .add("numUnreadMessages", numUnreadMessages)
+                .add("lastMessage", lastMessage)
+                .toString();
     }
 }

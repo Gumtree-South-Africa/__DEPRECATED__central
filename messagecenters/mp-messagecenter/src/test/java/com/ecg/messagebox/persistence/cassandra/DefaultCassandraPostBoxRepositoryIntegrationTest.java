@@ -2,7 +2,9 @@ package com.ecg.messagebox.persistence.cassandra;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
+import com.ecg.messagebox.json.JsonConverter;
 import com.ecg.messagebox.model.*;
+import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -20,7 +22,6 @@ import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
 import static com.ecg.messagebox.model.Visibility.ACTIVE;
 import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 
 public class DefaultCassandraPostBoxRepositoryIntegrationTest {
@@ -43,7 +44,8 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        conversationsRepo = new DefaultCassandraPostBoxRepository(keyspace, session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, 250, true);
+        JsonConverter jsonConverter = new JsonConverter(new JacksonAwareObjectMapperConfigurer());
+        conversationsRepo = new DefaultCassandraPostBoxRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, true, jsonConverter);
     }
 
     @After
@@ -55,7 +57,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     public void getConversationsAlwaysReturnsNotNull() {
         PostBox nonExistent = conversationsRepo.getPostBox("nonexistent", ACTIVE, 0, 10);
         assertNotNull(nonExistent);
-        assertTrue("nonexistent".equals(nonExistent.getId()));
+        assertTrue("nonexistent".equals(nonExistent.getUserId()));
         assertNotNull(nonExistent.getConversations());
         assertTrue(nonExistent.getConversations().isEmpty());
     }
@@ -185,16 +187,6 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         assertEquals(Visibility.ARCHIVED, conversationsRepo.getConversation(UID1, CID).get().getVisibility());
     }
 
-    @Test
-    public void getConversationIds() throws Exception {
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 1);
-        insertConversationWithMessages(UID1, "u3", "c2", "a2", 1);
-        insertConversationWithMessages(UID1, "u4", "c3", "a3", 1);
-
-        assertEquals(newArrayList(CID, "c2", "c3"), conversationsRepo.getConversationIds(UID1));
-        assertEquals(emptyList(), conversationsRepo.getConversationIds(UID2));
-    }
-
     private ConversationThread insertConversationWithMessages(String userId1, String userId2,
                                                               String convId, String adId, int numMessages)
             throws Exception {
@@ -203,14 +195,20 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
                 .range(0, numMessages)
                 .mapToObj(i -> {
                     String senderUserId = i % 2 == 0 ? userId1 : userId2;
-                    return new Message(timeBased(), "message-" + (i + 1), senderUserId, CHAT);
+                    return new Message(timeBased(),
+                            CHAT,
+                            new MessageMetadata("message-" + (i + 1), senderUserId, "custom-" + (i + 1))
+                    );
                 })
                 .collect(Collectors.toList());
 
-        ConversationThread conversation = new ConversationThread(convId, adId, ACTIVE, RECEIVE,
-                new Participant(userId1, "user name 1", "u1@test.nl", BUYER),
-                new Participant(userId2, "user name 2", "u2@test.nl", SELLER),
-                messages.get(numMessages - 1));
+        ConversationThread conversation = new ConversationThread(
+                convId, adId, ACTIVE, RECEIVE,
+                newArrayList(
+                        new Participant(userId1, "user name 1", "u1@test.nl", BUYER),
+                        new Participant(userId2, "user name 2", "u2@test.nl", SELLER)
+                ),
+                messages.get(numMessages - 1), new ConversationMetadata("email subject"));
 
         conversation.addNumUnreadMessages(numMessages);
 

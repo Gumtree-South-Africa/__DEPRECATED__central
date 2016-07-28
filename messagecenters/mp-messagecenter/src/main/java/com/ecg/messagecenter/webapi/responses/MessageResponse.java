@@ -1,119 +1,79 @@
 package com.ecg.messagecenter.webapi.responses;
 
-import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.net.MediaType;
+import com.google.common.base.MoreObjects;
 
-import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
-
-import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 
 public class MessageResponse {
 
     private static final Pattern REMOVE_DOUBLE_WHITESPACES = Pattern.compile("\\s+");
 
-    private final String receivedDate;
+    private final String senderEmail;
     private final MailTypeRts boundness;
     private final String textShort;
     private final String textShortTrimmed;
-    private final List<Attachment> attachments;
-    private final String senderEmail;
+    private final String receivedDate;
 
-    public MessageResponse(String receivedDate, MailTypeRts boundness, String textShort, List<Attachment> attachments) {
-        this(receivedDate, boundness, textShort, attachments, null);
+    public MessageResponse(String receivedDate, MailTypeRts boundness, String textShort) {
+        this(receivedDate, boundness, textShort, null);
     }
 
-    public MessageResponse(String receivedDate, MailTypeRts boundness, String textShort, List<Attachment> attachments, String senderEmail) {
-        this.receivedDate = receivedDate;
+    public MessageResponse(String receivedDate, MailTypeRts boundness, String textShort, String senderEmail) {
+        this.senderEmail = senderEmail;
         this.boundness = boundness;
         this.textShort = textShort;
-        this.attachments = attachments;
-        this.senderEmail = senderEmail;
         this.textShortTrimmed = REMOVE_DOUBLE_WHITESPACES.matcher(textShort).replaceAll(" ");
+        this.receivedDate = receivedDate;
     }
 
     public String getSenderEmail() {
         return senderEmail;
     }
 
-    public String getReceivedDate() {
-        return receivedDate;
-    }
-
     public MailTypeRts getBoundness() {
         return boundness;
-    }
-
-    public String getTextShortTrimmed() {
-        return textShortTrimmed;
-    }
-
-    public List<Attachment> getAttachments() {
-        return attachments;
     }
 
     public String getTextShort() {
         return textShort;
     }
 
-    public static class Attachment {
+    public String getTextShortTrimmed() {
+        return textShortTrimmed;
+    }
 
-        private final String filename;
-        private final String url;
+    public String getReceivedDate() {
+        return receivedDate;
+    }
 
-        public Attachment(String filename, String messageId) {
-            this.filename = filename;
-            this.url = String.format("/screeningv2/mail/%s/INBOUND/parts/%s",
-                    messageId,
-                    urlPathSegmentEscaper().escape(filename)
-            );
-        }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-        public String getTitle() {
-            return filename;
-        }
+        MessageResponse messageResponse = (MessageResponse) o;
 
-        public String getFormat() {
-            List<String> items = Splitter.on('.').splitToList(filename);
-            String mime = items.get(items.size() - 1).toLowerCase();
-            switch (mime) {
-                case "jpg":
-                    return MediaType.JPEG.toString();
-                case "gif":
-                    return MediaType.GIF.toString();
-                case "png":
-                    return MediaType.PNG.toString();
-                case "bmp":
-                    return MediaType.BMP.toString();
-                case "tif":
-                    return MediaType.TIFF.toString();
-                case "pdf":
-                    return MediaType.PDF.toString();
-                case "doc":
-                    return MediaType.MICROSOFT_WORD.toString();
-                case "docx":
-                    return MediaType.MICROSOFT_WORD.toString();
-                case "zip":
-                    return MediaType.ZIP.toString();
-                default:
-                    return MediaType.APPLICATION_BINARY.toString();
-            }
-        }
+        return Objects.equals(senderEmail, messageResponse.senderEmail)
+                && boundness == messageResponse.boundness
+                && Objects.equals(textShort, messageResponse.textShort)
+                && Objects.equals(receivedDate, messageResponse.receivedDate);
+    }
 
-        public String getUrl() {
-            return url;
-        }
+    @Override
+    public int hashCode() {
+        return Objects.hash(senderEmail, boundness, textShort, receivedDate);
+    }
 
-        public static List<Attachment> transform(Message message) {
-            List<MessageResponse.Attachment> attachments = Lists.newArrayList();
-            for (String filename : message.getAttachmentFilenames()) {
-                attachments.add(new MessageResponse.Attachment(filename, message.getId()));
-            }
-            return ImmutableList.copyOf(attachments);
-        }
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("senderEmail", senderEmail)
+                .add("boundness", boundness)
+                .add("textShort", textShort)
+                .add("textShortTrimmed", textShortTrimmed)
+                .add("receivedDate", receivedDate)
+                .toString();
     }
 }

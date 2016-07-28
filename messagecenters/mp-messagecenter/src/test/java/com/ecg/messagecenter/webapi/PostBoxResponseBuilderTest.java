@@ -80,7 +80,6 @@ public class PostBoxResponseBuilderTest {
         assertEquals(3, postBoxResponse.get_meta().getPageNum());
         assertEquals(5, postBoxResponse.get_meta().getPageSize());
         assertEquals(1, postBoxResponse.getConversations().size());
-        assertEquals(USER_ID, postBoxResponse.getConversations().get(0).getUserId());
         assertEquals(RECEIVED_DATE.toString(), postBoxResponse.getConversations().get(0).getReceivedDate());
     }
 }

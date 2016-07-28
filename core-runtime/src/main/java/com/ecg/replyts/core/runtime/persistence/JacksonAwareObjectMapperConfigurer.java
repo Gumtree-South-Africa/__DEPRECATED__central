@@ -12,9 +12,9 @@ public class JacksonAwareObjectMapperConfigurer {
 
     public JacksonAwareObjectMapperConfigurer() {
         this.objectMapper = new ObjectMapper()
-          .registerModule(new JodaModule())
-          .registerModule(new GuavaModule())
-          .registerModule(new Jdk8Module());
+                .registerModule(new JodaModule())
+                .registerModule(new GuavaModule())
+                .registerModule(new Jdk8Module());
     }
 
     public ObjectMapper getObjectMapper() {

@@ -19,6 +19,6 @@ class MessageCenterApiConfiguration {
 
     @PostConstruct
     public void context() {
-        webserver.context(new SpringContextProvider("/msgcenter", new String[] { "classpath:msgcenter-context.xml" }, context));
+        webserver.context(new SpringContextProvider("/msgcenter", new String[]{"classpath:msgcenter-context.xml"}, context));
     }
 }

@@ -7,12 +7,12 @@ import com.google.common.base.Optional;
 public class GetPostBoxCommand implements TypedCommand {
 
     // aargh: regex matching to bypass trailing email problem: http://stackoverflow.com/questions/16332092/spring-mvc-pathvariable-with-dot-is-getting-truncated
-    public static final String MAPPING = "/postboxes/{postBoxId:.+}";
+    public static final String MAPPING = "/postboxes/{userId:.+}";
 
-    private final String postBoxId;
+    private final String userId;
 
-    public GetPostBoxCommand(String postBoxId) {
-        this.postBoxId = postBoxId;
+    public GetPostBoxCommand(String userId) {
+        this.userId = userId;
     }
 
     @Override
@@ -22,7 +22,7 @@ public class GetPostBoxCommand implements TypedCommand {
 
     @Override
     public String url() {
-        return "/postboxes/" + postBoxId;
+        return "/postboxes/" + userId;
     }
 
     @Override

@@ -16,10 +16,6 @@ public enum ConversationRole {
         return roleName != null && roleName.equalsIgnoreCase(this.roleStringRepresentation);
     }
 
-    public ConversationRole otherRole() {
-        return this == Buyer ? Seller : Buyer;
-    }
-
     public static ConversationRole getRole(String mail, Conversation conv) {
         return conv.getBuyerId().equalsIgnoreCase(mail) ? Buyer : Seller;
     }

@@ -9,39 +9,35 @@ public class ConversationThread {
 
     private String id;
     private String adId;
-
     private Visibility visibility;
     private MessageNotification messageNotification;
-
-    private Participant meParticipant;
-    private Participant otherParticipant;
-
-    private Message latestMessagePreview;
+    private List<Participant> participants;
+    private Message latestMessage;
+    private ConversationMetadata metadata;
 
     private int numUnreadMessages;
-
     private BlockedUserInfo blockedUserInfo;
-
     private List<Message> messages = new ArrayList<>();
 
     public ConversationThread(String id, String adId,
                               Visibility visibility, MessageNotification messageNotification,
-                              Participant meParticipant, Participant otherParticipant,
-                              Message latestMessagePreview) {
+                              List<Participant> participants,
+                              Message latestMessage, ConversationMetadata metadata) {
         this.id = id;
         this.adId = adId;
         this.visibility = visibility;
         this.messageNotification = messageNotification;
-        this.meParticipant = meParticipant;
-        this.otherParticipant = otherParticipant;
-        this.latestMessagePreview = latestMessagePreview;
+        this.participants = participants;
+        this.latestMessage = latestMessage;
+        this.metadata = metadata;
     }
 
     public ConversationThread(ConversationThread conversation) {
         this(conversation.getId(), conversation.getAdId(),
                 conversation.getVisibility(), conversation.getMessageNotification(),
-                conversation.getMeParticipant(), conversation.getOtherParticipant(),
-                conversation.getLatestMessagePreview());
+                conversation.getParticipants(),
+                conversation.getLatestMessage(),
+                conversation.getMetadata());
         this.numUnreadMessages = conversation.numUnreadMessages;
         this.blockedUserInfo = conversation.blockedUserInfo;
         this.messages = conversation.messages;
@@ -73,16 +69,16 @@ public class ConversationThread {
         return this;
     }
 
-    public Participant getMeParticipant() {
-        return meParticipant;
+    public List<Participant> getParticipants() {
+        return participants;
     }
 
-    public Participant getOtherParticipant() {
-        return otherParticipant;
+    public Message getLatestMessage() {
+        return latestMessage;
     }
 
-    public Message getLatestMessagePreview() {
-        return latestMessagePreview;
+    public ConversationMetadata getMetadata() {
+        return metadata;
     }
 
     public int getNumUnreadMessages() {
@@ -122,16 +118,16 @@ public class ConversationThread {
                 Objects.equals(adId, that.adId) &&
                 visibility == that.visibility &&
                 messageNotification == that.messageNotification &&
-                Objects.equals(meParticipant, that.meParticipant) &&
-                Objects.equals(otherParticipant, that.otherParticipant) &&
-                Objects.equals(latestMessagePreview, that.latestMessagePreview) &&
+                Objects.equals(participants, that.participants) &&
+                Objects.equals(latestMessage, that.latestMessage) &&
+                Objects.equals(metadata, that.metadata) &&
                 Objects.equals(blockedUserInfo, that.blockedUserInfo) &&
                 Objects.equals(messages, that.messages);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, adId, visibility, messageNotification, meParticipant, otherParticipant,
-                latestMessagePreview, numUnreadMessages, blockedUserInfo, messages);
+        return Objects.hash(id, adId, visibility, messageNotification, participants,
+                latestMessage, metadata, numUnreadMessages, blockedUserInfo, messages);
     }
 }

@@ -1,0 +1,316 @@
+package com.ecg.messagebox.service;
+
+import com.codahale.metrics.Timer;
+import com.ecg.messagebox.configuration.DiffConfiguration;
+import com.ecg.messagebox.configuration.NewModelConfiguration;
+import com.ecg.messagebox.converters.ConversationResponseConverter;
+import com.ecg.messagebox.converters.PostBoxResponseConverter;
+import com.ecg.messagebox.converters.UnreadCountsConverter;
+import com.ecg.messagebox.diff.Diff;
+import com.ecg.messagebox.model.Visibility;
+import com.ecg.messagecenter.persistence.PostBoxService;
+import com.ecg.messagecenter.persistence.PostBoxUnreadCounts;
+import com.ecg.messagecenter.persistence.ResponseData;
+import com.ecg.messagecenter.webapi.responses.ConversationResponse;
+import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.runtime.TimingReports;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Supplier;
+
+@Component("postBoxServiceDelegator")
+public class PostBoxServiceDelegator implements PostBoxService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxServiceDelegator.class);
+
+    private static final Logger DIFF_LOGGER = LoggerFactory.getLogger("diffLogger");
+
+    private final Timer processNewMessageTimer = TimingReports.newTimer("postBoxServiceDelegator.processNewMessage");
+    private final Timer getConversationTimer = TimingReports.newTimer("postBoxServiceDelegator.getConversation");
+    private final Timer markConversationAsReadTimer = TimingReports.newTimer("postBoxServiceDelegator.markConversationAsRead");
+    private final Timer getConversationsTimer = TimingReports.newTimer("postBoxServiceDelegator.getConversations");
+    private final Timer deleteConversationsTimer = TimingReports.newTimer("postBoxServiceDelegator.deleteConversations");
+    private final Timer getUnreadCountsTimer = TimingReports.newTimer("postBoxServiceDelegator.getUnreadCounts");
+    private final Timer getResponseDataTimer = TimingReports.newTimer("postBoxServiceDelegator.getResponseData");
+
+    private final PostBoxService oldPostBoxService;
+    private final com.ecg.messagebox.service.PostBoxService newPostBoxService;
+
+    // use separate execution services for the old model, new model and diff tool calls
+    private final ExecutorService execSrvForOldModel;
+    private final ExecutorService execSrvForNewModel;
+    private final ExecutorService execSrvForDiff;
+
+    private final boolean oldModelEnabled;
+    private final NewModelConfiguration newModelConfig;
+
+    private final ConversationResponseConverter conversationResponseConverter;
+    private final PostBoxResponseConverter postBoxResponseConverter;
+    private final UnreadCountsConverter unreadCountsConverter;
+
+    private final DiffConfiguration diffConfig;
+    private final Diff diff;
+
+    // the old model is restricted to a hard limit of 500 total messages per conversation
+    // (see ProcessingFinalizer#MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION),
+    // so keeping it until we migrate to the new data model
+    private final int messagesLimit;
+
+    @Autowired
+    public PostBoxServiceDelegator(@Qualifier("oldCassandraPostBoxService") PostBoxService oldPostBoxService,
+                                   @Qualifier("newCassandraPostBoxService") com.ecg.messagebox.service.PostBoxService newPostBoxService,
+                                   PostBoxResponseConverter postBoxResponseConverter,
+                                   ConversationResponseConverter conversationResponseConverter,
+                                   UnreadCountsConverter unreadCountsConverter,
+                                   Diff diff,
+                                   NewModelConfiguration newModelConfig,
+                                   DiffConfiguration diffConfig,
+                                   @Value("${messagebox.oldModel.enabled:true}") boolean oldModelEnabled,
+                                   @Value("${messagebox.messagesLimit:500}") int messagesLimit) {
+
+        this.oldPostBoxService = oldPostBoxService;
+        this.newPostBoxService = newPostBoxService;
+
+        this.oldModelEnabled = oldModelEnabled;
+        this.newModelConfig = newModelConfig;
+
+        this.conversationResponseConverter = conversationResponseConverter;
+        this.postBoxResponseConverter = postBoxResponseConverter;
+        this.unreadCountsConverter = unreadCountsConverter;
+
+        this.messagesLimit = messagesLimit;
+
+        this.diffConfig = diffConfig;
+        this.diff = diff;
+
+        execSrvForOldModel = newExecutorService();
+        execSrvForNewModel = newExecutorService();
+        execSrvForDiff = newExecutorService();
+    }
+
+    @Override
+    public void processNewMessage(String userId, Conversation rtsConversation, Message rtsMessage,
+                                  ConversationRole conversationRole, boolean newReplyArrived) {
+        try (Timer.Context ignored = processNewMessageTimer.time()) {
+
+            CompletableFuture newModelFuture = runAsync(
+                    newModelConfig.newModelEnabled(userId),
+                    () -> newPostBoxService.processNewMessage(userId, rtsConversation, rtsMessage, newReplyArrived),
+                    String.format("NewModel processNewMessage - Could not process new message for userId %s, conversationId %s and messageId %s",
+                            userId, rtsConversation.getId(), rtsMessage.getId()),
+                    execSrvForNewModel
+            );
+
+            CompletableFuture oldModelFuture = runAsync(
+                    oldModelEnabled,
+                    () -> oldPostBoxService.processNewMessage(userId, rtsConversation, rtsMessage, conversationRole, newReplyArrived),
+                    String.format("OldModel processNewMessage - Could not process new message for userId %s, conversationId %s and messageId %s",
+                            userId, rtsConversation.getId(), rtsMessage.getId()),
+                    execSrvForOldModel
+            );
+
+            (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
+        }
+    }
+
+    @Override
+    public Optional<ConversationResponse> getConversation(String userId, String conversationId) {
+        try (Timer.Context ignored = getConversationTimer.time()) {
+
+            CompletableFuture<Optional<ConversationResponse>> newModelFuture = supplyAsync(
+                    newModelConfig.newModelEnabled(userId),
+                    () -> newPostBoxService.getConversation(userId, conversationId, Optional.empty(), messagesLimit)
+                            .map(conv -> conversationResponseConverter.toConversationResponse(conv, userId)),
+                    String.format("NewModel getConversation - Could not get conversation for userId %s and conversationId %s",
+                            userId, conversationId),
+                    execSrvForNewModel
+            );
+
+            CompletableFuture<Optional<ConversationResponse>> oldModelFuture = supplyAsync(
+                    oldModelEnabled,
+                    () -> oldPostBoxService.getConversation(userId, conversationId),
+                    String.format("OldModel getConversation - Could not get conversation for userId %s and conversationId %s",
+                            userId, conversationId),
+                    execSrvForOldModel
+            );
+
+            doDiff(diffConfig.useDiff(userId),
+                    () -> diff.conversationResponseDiff(userId, conversationId, newModelFuture, oldModelFuture),
+                    "Error diff-ing conversation responses");
+
+            return (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
+        }
+    }
+
+    @Override
+    public Optional<ConversationResponse> markConversationAsRead(String userId, String conversationId) {
+        try (Timer.Context ignored = markConversationAsReadTimer.time()) {
+
+            CompletableFuture<Optional<ConversationResponse>> newModelFuture = supplyAsync(
+                    newModelConfig.newModelEnabled(userId),
+                    () -> newPostBoxService.markConversationAsRead(userId, conversationId, Optional.empty(), messagesLimit)
+                            .map(conv -> conversationResponseConverter.toConversationResponse(conv, userId)),
+                    String.format("NewModel markConversationAsRead - Could not mark conversation as read for userId %s and conversationId %s",
+                            userId, conversationId),
+                    execSrvForNewModel
+            );
+
+            CompletableFuture<Optional<ConversationResponse>> oldModelFuture = supplyAsync(
+                    oldModelEnabled,
+                    () -> oldPostBoxService.markConversationAsRead(userId, conversationId),
+                    String.format("OldModel markConversationAsRead - Could not mark conversation as read for userId %s and conversationId %s",
+                            userId, conversationId),
+                    execSrvForOldModel
+            );
+
+            doDiff(diffConfig.useDiff(userId),
+                    () -> diff.conversationResponseDiff(userId, conversationId, newModelFuture, oldModelFuture),
+                    "Error diff-ing conversation responses");
+
+            return (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
+        }
+    }
+
+    @Override
+    public PostBoxResponse getConversations(String userId, Integer size, Integer page) {
+        try (Timer.Context ignored = getConversationsTimer.time()) {
+
+            CompletableFuture<PostBoxResponse> newModelFuture = supplyAsync(
+                    newModelConfig.newModelEnabled(userId),
+                    () -> postBoxResponseConverter.toPostBoxResponse(
+                            newPostBoxService.getConversations(userId, Visibility.ACTIVE, page, size), page, size),
+                    String.format("NewModel getConversations - Could not get conversations for userId %s, visibility %s, page %d and size %d",
+                            userId, Visibility.ACTIVE.name(), page, size),
+                    execSrvForNewModel
+            );
+
+            CompletableFuture<PostBoxResponse> oldModelFuture = supplyAsync(
+                    oldModelEnabled,
+                    () -> oldPostBoxService.getConversations(userId, size, page),
+                    String.format("OldModel getConversations - Could not get conversations for userId %s, visibility %s, page %d and size %d",
+                            userId, Visibility.ACTIVE.name(), page, size),
+                    execSrvForOldModel
+            );
+
+            doDiff(diffConfig.useDiff(userId),
+                    () -> diff.postBoxResponseDiff(userId, newModelFuture, oldModelFuture),
+                    "Error diff-ing postbox responses");
+
+            return (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
+        }
+    }
+
+    @Override
+    public PostBoxResponse deleteConversations(String userId, List<String> conversationIds, Integer size, Integer page) {
+        try (Timer.Context ignored = deleteConversationsTimer.time()) {
+
+            CompletableFuture<PostBoxResponse> newModelFuture = supplyAsync(
+                    newModelConfig.newModelEnabled(userId),
+                    () -> postBoxResponseConverter.toPostBoxResponse(
+                            newPostBoxService.changeConversationVisibilities(userId, conversationIds, Visibility.ARCHIVED, page, size), page, size),
+                    String.format("NewModel deleteConversations - Could not delete conversations for userId %s, conversationIds %s, page %d and size %d",
+                            userId, StringUtils.join(conversationIds, ", "), page, size),
+                    execSrvForNewModel
+            );
+
+            CompletableFuture<PostBoxResponse> oldModelFuture = supplyAsync(
+                    oldModelEnabled,
+                    () -> oldPostBoxService.deleteConversations(userId, conversationIds, size, page),
+                    String.format("OldModel deleteConversations - Could not delete conversations for userId %s and conversationIds %s, page %d and size %d",
+                            userId, StringUtils.join(conversationIds, ", "), page, size),
+                    execSrvForOldModel
+            );
+
+            doDiff(diffConfig.useDiff(userId),
+                    () -> diff.postBoxResponseDiff(userId, newModelFuture, oldModelFuture),
+                    "Error diff-ing postbox responses");
+
+            return (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
+        }
+    }
+
+    @Override
+    public PostBoxUnreadCounts getUnreadCounts(String userId) {
+        try (Timer.Context ignored = getUnreadCountsTimer.time()) {
+
+            CompletableFuture<PostBoxUnreadCounts> newModelFuture = supplyAsync(
+                    newModelConfig.newModelEnabled(userId),
+                    () -> unreadCountsConverter.toOldUnreadCounts(newPostBoxService.getUnreadCounts(userId)),
+                    String.format("NewModel getUnreadCounts - Could not get unread counts for userId %s", userId),
+                    execSrvForNewModel
+            );
+
+            CompletableFuture<PostBoxUnreadCounts> oldModelFuture = supplyAsync(
+                    oldModelEnabled,
+                    () -> oldPostBoxService.getUnreadCounts(userId),
+                    String.format("NewModel getUnreadCounts - Could not get unread counts for userId %s", userId),
+                    execSrvForOldModel
+            );
+
+            doDiff(diffConfig.useDiff(userId),
+                    () -> diff.postBoxUnreadCountsDiff(userId, newModelFuture, oldModelFuture),
+                    "Error diff-ing unread counts");
+
+            return (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
+        }
+    }
+
+    @Override
+    public List<ResponseData> getResponseData(String userId) {
+        try (Timer.Context ignored = getResponseDataTimer.time()) {
+            return oldPostBoxService.getResponseData(userId);
+        }
+    }
+
+    private void doDiff(boolean useDiff, Runnable runnable, String errorMessage) {
+        if (useDiff) {
+            CompletableFuture
+                    .runAsync(runnable, execSrvForDiff)
+                    .exceptionally(ex -> {
+                        DIFF_LOGGER.error(errorMessage, ex);
+                        return null;
+                    });
+        }
+    }
+
+    private <T> CompletableFuture<T> supplyAsync(boolean condition, Supplier<T> supplier, String errorMessage, ExecutorService execSrv) {
+        Supplier<T> _supplier = condition ? supplier : () -> null;
+
+        return CompletableFuture
+                .supplyAsync(_supplier, execSrv)
+                .exceptionally(ex -> {
+                    LOGGER.error(errorMessage, ex);
+                    throw new RuntimeException(ex);
+                });
+    }
+
+    private CompletableFuture runAsync(boolean condition, Runnable runnable, String errorMessage, ExecutorService execSrv) {
+        Runnable _runnable = condition ? runnable : () -> {
+        };
+
+        return CompletableFuture
+                .runAsync(_runnable, execSrv)
+                .exceptionally(ex -> {
+                    LOGGER.error(errorMessage, ex);
+                    throw new RuntimeException(ex);
+                });
+    }
+
+    private ExecutorService newExecutorService() {
+        return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    }
+}

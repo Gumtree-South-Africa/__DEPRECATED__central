@@ -102,7 +102,6 @@ public class MessagesResponseFactory {
                         MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(firstMessage.getReceivedAt()),
                         ConversationBoundnessFinder.boundnessForRole(role, firstMessage.getMessageDirection()),
                         getUserMessage(firstMessage),
-                        MessageResponse.Attachment.transform(firstMessage),
                         conv.getBuyerId()));
     }
 
@@ -114,7 +113,6 @@ public class MessagesResponseFactory {
                             MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(messageRts.get(i).getReceivedAt()),
                             ConversationBoundnessFinder.boundnessForRole(role, messageRts.get(i).getMessageDirection()),
                             getCleanedMessage(conv, messageRts.get(i)),
-                            MessageResponse.Attachment.transform(messageRts.get(i)),
                             messageRts.get(i).getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? conv.getBuyerId() : conv.getSellerId()
                     )
             );

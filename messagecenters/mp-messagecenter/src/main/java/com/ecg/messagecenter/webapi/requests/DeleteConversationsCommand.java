@@ -6,12 +6,12 @@ import com.google.common.base.Optional;
 
 public class DeleteConversationsCommand implements TypedCommand {
 
-    public static final String MAPPING = "/postboxes/{postBoxId}/conversations";
+    public static final String MAPPING = "/postboxes/{userId}/conversations";
 
-    private final String postBoxId;
+    private final String userId;
 
-    public DeleteConversationsCommand(String postBoxId) {
-        this.postBoxId = postBoxId;
+    public DeleteConversationsCommand(String userId) {
+        this.userId = userId;
     }
 
     @Override
@@ -21,7 +21,7 @@ public class DeleteConversationsCommand implements TypedCommand {
 
     @Override
     public String url() {
-        return "/postboxes/" + postBoxId + "/conversations";
+        return "/postboxes/" + userId + "/conversations";
     }
 
     @Override

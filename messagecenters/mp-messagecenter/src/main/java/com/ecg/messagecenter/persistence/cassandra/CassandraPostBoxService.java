@@ -9,22 +9,23 @@ import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.messagecenter.webapi.PostBoxResponseBuilder;
 import com.ecg.messagecenter.webapi.responses.ConversationResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
-import com.ecg.messagecenter.persistence.ResponseData;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
-import org.joda.time.Minutes;
 import org.joda.time.DateTime;
+import org.joda.time.Minutes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.joda.time.DateTime.now;
 
+@Component("oldCassandraPostBoxService")
 public class CassandraPostBoxService implements PostBoxService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraPostBoxService.class);
@@ -43,7 +44,6 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer processNewMessageTimer = TimingReports.newTimer("postBoxService.processNewMessage");
     private final Timer getConversationTimer = TimingReports.newTimer("postBoxService.getConversation");
     private final Timer markConversationAsReadTimer = TimingReports.newTimer("postBoxService.markConversationAsRead");
-    private final Timer markConversationsAsReadTimer = TimingReports.newTimer("postBoxService.markConversationsAsRead");
     private final Timer getConversationsTimer = TimingReports.newTimer("postBoxService.getConversations");
     private final Timer deleteConversationsTimer = TimingReports.newTimer("postBoxService.deleteConversations");
     private final Timer getUnreadCountsTimer = TimingReports.newTimer("postBoxService.getUnreadCounts");
@@ -57,14 +57,14 @@ public class CassandraPostBoxService implements PostBoxService {
         this.postBoxRepository = postBoxRepository;
         this.conversationRepository = conversationRepository;
         this.userIdentifierService = userIdentifierService;
+        this.postBoxResponseBuilder = new PostBoxResponseBuilder(conversationRepository, userIdentifierService);
         this.messageResponseFactory = new MessagesResponseFactory(userIdentifierService);
         this.previewLastMessageMaxChars = previewLastMessageMaxChars;
-        this.postBoxResponseBuilder = new PostBoxResponseBuilder(conversationRepository, userIdentifierService);
     }
 
     @Override
     public void processNewMessage(String postBoxId, Conversation conversation, Message newMessage, ConversationRole conversationRole,
-                                  boolean newReplyArrived, Optional<NewMessageListener> newMessageListener) {
+                                  boolean newReplyArrived) {
 
         try (Timer.Context ignored = processNewMessageTimer.time()) {
 
@@ -102,11 +102,6 @@ public class CassandraPostBoxService implements PostBoxService {
             }
 
             handleResponseData(postBoxId, conversation, newMessage, conversationRole);
-
-            if (newMessageListener.isPresent()) {
-                long postBoxUnreadMessagesCount = postBoxRepository.getUnreadCounts(postBoxId).getNumUnreadMessages();
-                newMessageListener.get().success(postBoxId, postBoxUnreadMessagesCount, newReplyArrived);
-            }
         }
     }
 
@@ -141,27 +136,6 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public PostBoxResponse markConversationsAsRead(String postBoxId, Integer size, Integer page) {
-        try (Timer.Context ignored = markConversationsAsReadTimer.time()) {
-
-            List<String> conversationThreadIds = postBoxRepository.getConversationThreadIds(postBoxId);
-            conversationThreadIds.forEach(conversationId -> postBoxRepository.resetConversationUnreadMessagesCountAsync(postBoxId, conversationId));
-
-            // performance optimization, in case the client is not interested in the new postbox
-            if (size == 0) return null;
-
-            PostBox postBox = postBoxRepository.getPostBox(postBoxId);
-
-            API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
-
-            // Reset is asynchronous, we probably will not see the change yet. This makes sure we don't return unread conversations:
-            PostBox newPostBox = postBox.markAllAsRead();
-
-            return postBoxResponseBuilder.buildPostBoxResponse(postBoxId, size, page, newPostBox);
-        }
-    }
-
-    @Override
     public PostBoxResponse getConversations(String postBoxId, Integer size, Integer page) {
         try (Timer.Context ignored = getConversationsTimer.time()) {
 
@@ -174,7 +148,7 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public PostBoxResponse deleteConversations(String postBoxId, List<String> conversationIds, Integer page, Integer size) {
+    public PostBoxResponse deleteConversations(String postBoxId, List<String> conversationIds, Integer size, Integer page) {
         try (Timer.Context ignored = deleteConversationsTimer.time()) {
 
             postBoxRepository.deleteConversationThreadsAsync(postBoxId, conversationIds);

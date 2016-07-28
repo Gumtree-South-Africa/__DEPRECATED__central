@@ -33,7 +33,6 @@ public class UserIdentifierServiceByUserIdHeaders implements UserIdentifierServi
         Optional<String> buyerId = Optional.ofNullable(conversation.getCustomValues().get(getBuyerUserIdName()));
         Optional<String> sellerId = Optional.ofNullable(conversation.getCustomValues().get(getSellerUserIdName()));
 
-
         if (buyerId.isPresent() && buyerId.get().equals(id)) {
             return ConversationRole.Buyer;
         } else if (sellerId.isPresent() && sellerId.get().equals(id)) {

@@ -1,5 +1,7 @@
 package com.ecg.messagebox.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +26,7 @@ public enum ParticipantRole {
         this.value = value;
     }
 
+    @JsonValue
     public String getValue() {
         return value;
     }

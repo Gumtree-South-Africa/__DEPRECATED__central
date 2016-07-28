@@ -5,11 +5,7 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
-/**
- * Created by beckart on 15.10.15.
- */
 public class UserIdentifierServiceFactoryTest {
-
 
     @Test
     public void testCreateUserIdentifierServiceByMailAddress() throws Exception {

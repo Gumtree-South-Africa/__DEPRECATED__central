@@ -3,30 +3,30 @@ package com.ecg.messagebox.model;
 import java.util.Objects;
 
 /**
- * Keeps the number of unread messages and conversations for a postbox.
+ * Keeps the number of unread messages and conversations for a user.
  */
 public class PostBoxUnreadCounts {
 
-    private String postBoxId;
-    private int numUnreadMessages;
+    private String userId;
     private int numUnreadConversations;
+    private int numUnreadMessages;
 
-    public PostBoxUnreadCounts(String postBoxId, int numUnreadConversations, int numUnreadMessages) {
-        this.postBoxId = postBoxId;
-        this.numUnreadMessages = numUnreadMessages;
+    public PostBoxUnreadCounts(String userId, int numUnreadConversations, int numUnreadMessages) {
+        this.userId = userId;
         this.numUnreadConversations = numUnreadConversations;
+        this.numUnreadMessages = numUnreadMessages;
     }
 
-    public String getPostBoxId() {
-        return postBoxId;
-    }
-
-    public int getNumUnreadMessages() {
-        return numUnreadMessages;
+    public String getUserId() {
+        return userId;
     }
 
     public int getNumUnreadConversations() {
         return numUnreadConversations;
+    }
+
+    public int getNumUnreadMessages() {
+        return numUnreadMessages;
     }
 
     @Override
@@ -34,13 +34,13 @@ public class PostBoxUnreadCounts {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PostBoxUnreadCounts that = (PostBoxUnreadCounts) o;
-        return Objects.equals(postBoxId, that.postBoxId)
-                && numUnreadMessages == that.numUnreadMessages
-                && numUnreadConversations == that.numUnreadConversations;
+        return Objects.equals(userId, that.userId)
+                && numUnreadConversations == that.numUnreadConversations
+                && numUnreadMessages == that.numUnreadMessages;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(postBoxId, numUnreadMessages, numUnreadConversations);
+        return Objects.hash(userId, numUnreadConversations, numUnreadMessages);
     }
 }

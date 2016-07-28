@@ -14,11 +14,8 @@ import org.junit.Test;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
@@ -44,7 +41,6 @@ public class MessagesResponseFactoryTest {
 
     private List<Message> messages;
     private Map<String, String> customValues;
-    private List<String> attachments = new ArrayList<>();
 
     @Before
     public void setUp() throws Exception {
@@ -492,8 +488,6 @@ public class MessagesResponseFactoryTest {
         when(message.getState()).thenReturn(state);
 
         when(message.getHeaders()).thenReturn(headers);
-
-        when(message.getAttachmentFilenames()).thenReturn(attachments);
 
         addMessage(message);
     }

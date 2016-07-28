@@ -5,15 +5,15 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
-import com.ecg.messagecenter.persistence.NewMessageListener;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,6 +21,7 @@ import java.util.concurrent.*;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 
+@Component("newCassandraPostBoxService")
 public class CassandraPostBoxService implements PostBoxService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraPostBoxService.class);
@@ -36,7 +37,6 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer processNewMessageTimer = TimingReports.newTimer("postBoxService.v2.processNewMessage");
     private final Timer getConversationTimer = TimingReports.newTimer("postBoxService.v2.getConversation");
     private final Timer markConversationAsReadTimer = TimingReports.newTimer("postBoxService.v2.markConversationAsRead");
-    private final Timer markConversationsAsReadTimer = TimingReports.newTimer("postBoxService.v2.markConversationsAsRead");
     private final Timer getConversationsTimer = TimingReports.newTimer("postBoxService.v2.getConversations");
     private final Timer changeConversationVisibilitiesTimer = TimingReports.newTimer("postBoxService.v2.changeConversationVisibilities");
     private final Timer getUnreadCountsTimer = TimingReports.newTimer("postBoxService.v2.getUnreadCounts");
@@ -51,12 +51,10 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public void processNewMessage(String postBoxId,
+    public void processNewMessage(String userId,
                                   com.ecg.replyts.core.api.model.conversation.Conversation rtsConversation,
                                   com.ecg.replyts.core.api.model.conversation.Message rtsMessage,
-                                  ConversationRole conversationRole,
-                                  boolean newReplyArrived,
-                                  Optional<NewMessageListener> newMessageListener) {
+                                  boolean newReplyArrived) {
 
         try (Timer.Context ignored = processNewMessageTimer.time()) {
 
@@ -64,11 +62,11 @@ public class CassandraPostBoxService implements PostBoxService {
             String receiverUserId = getMessageReceiverUserId(rtsConversation, rtsMessage);
 
             Future<Boolean> areUsersBlockedFuture = executorService.submit(() -> postBoxRepository.areUsersBlocked(senderUserId, receiverUserId));
-            Future<Optional<ConversationThread>> conversationFuture = executorService.submit(() -> postBoxRepository.getConversation(postBoxId, rtsConversation.getId()));
+            Future<Optional<ConversationThread>> conversationFuture = executorService.submit(() -> postBoxRepository.getConversation(userId, rtsConversation.getId()));
 
             try {
                 if (areUsersBlockedFuture.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
-                    // there is a blocking between the two users, so no new messages will be added to this user's conversation
+                    // there is a blocking between the two users, so no new messages will be added to this user's conversation projection
                     return;
                 }
 
@@ -83,50 +81,47 @@ public class CassandraPostBoxService implements PostBoxService {
 
                     boolean notifyAboutNewMessage = newReplyArrived && conversation.getMessageNotification() == MessageNotification.RECEIVE;
 
-                    postBoxRepository.addMessage(postBoxId, rtsConversation.getId(), rtsConversation.getAdId(), newMessage, notifyAboutNewMessage);
+                    postBoxRepository.addMessage(userId, rtsConversation.getId(), rtsConversation.getAdId(), newMessage, notifyAboutNewMessage);
                 } else {
                     ConversationThread newConversation = new ConversationThread(
-                            rtsConversation.getId(), rtsConversation.getAdId(),
-                            Visibility.ACTIVE, MessageNotification.RECEIVE,
-                            getThisParticipant(rtsConversation, conversationRole), getOtherParticipant(rtsConversation, conversationRole),
-                            newMessage);
+                            rtsConversation.getId(),
+                            rtsConversation.getAdId(),
+                            Visibility.ACTIVE,
+                            MessageNotification.RECEIVE,
+                            getParticipants(rtsConversation),
+                            newMessage,
+                            new ConversationMetadata(rtsMessage.getHeaders().get("Subject")));
 
-                    postBoxRepository.createConversation(postBoxId, newConversation, newMessage, newReplyArrived);
+                    postBoxRepository.createConversation(userId, newConversation, newMessage, newReplyArrived);
                 }
-
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 if (e instanceof InterruptedException) {
                     Thread.currentThread().interrupt();
                 }
                 areUsersBlockedFuture.cancel(true);
                 conversationFuture.cancel(true);
-                LOGGER.error("Could not process new conversation message for postbox id {}, conversation id {} and RTS message id {}", postBoxId, rtsConversation.getId(), rtsMessage.getId(), e);
+                LOGGER.error("Could not process new conversation message for postbox id {}, conversation id {} and RTS message id {}", userId, rtsConversation.getId(), rtsMessage.getId(), e);
                 throw new RuntimeException(e);
             }
-
-            if (newMessageListener.isPresent()) {
-                long userUnreadMessagesCount = postBoxRepository.getPostBoxUnreadCounts(postBoxId).getNumUnreadMessages();
-                newMessageListener.get().success(postBoxId, userUnreadMessagesCount, newReplyArrived);
-            }
         }
     }
 
     @Override
-    public Optional<ConversationThread> getConversation(String postBoxId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit) {
+    public Optional<ConversationThread> getConversation(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit) {
         try (Timer.Context ignored = getConversationTimer.time()) {
 
-            return postBoxRepository.getConversationWithMessages(postBoxId, conversationId, messageIdCursorOpt, messagesLimit);
+            return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursorOpt, messagesLimit);
         }
     }
 
     @Override
-    public Optional<ConversationThread> markConversationAsRead(String postBoxId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit) {
+    public Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit) {
         try (Timer.Context ignored = markConversationAsReadTimer.time()) {
 
-            Optional<ConversationThread> conversationOpt = getConversation(postBoxId, conversationId, messageIdCursorOpt, messagesLimit);
+            Optional<ConversationThread> conversationOpt = getConversation(userId, conversationId, messageIdCursorOpt, messagesLimit);
             if (conversationOpt.isPresent()) {
                 ConversationThread conversation = conversationOpt.get();
-                postBoxRepository.resetConversationUnreadCount(postBoxId, conversationId, conversation.getAdId());
+                postBoxRepository.resetConversationUnreadCount(userId, conversationId, conversation.getAdId());
                 return Optional.of(new ConversationThread(conversation).addNumUnreadMessages(0));
             } else {
                 return Optional.empty();
@@ -135,66 +130,51 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public PostBox markConversationsAsRead(String postBoxId, Visibility visibility, int conversationsOffset, int conversationsLimit) {
-        try (Timer.Context ignored = markConversationsAsReadTimer.time()) {
-            // TODO
-            return null;
-        }
-    }
-
-    @Override
-    public PostBox getConversations(String postBoxId, Visibility visibility, int conversationsOffset, int conversationsLimit) {
+    public PostBox getConversations(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit) {
         try (Timer.Context ignored = getConversationsTimer.time()) {
 
-            return postBoxRepository.getPostBox(postBoxId, visibility, conversationsOffset, conversationsLimit);
+            return postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
         }
     }
 
     @Override
-    public PostBox changeConversationVisibilities(String postBoxId, List<String> conversationIds, Visibility visibility, int conversationsOffset, int conversationsLimit) {
+    public PostBox changeConversationVisibilities(String userId, List<String> conversationIds, Visibility visibility, int conversationsOffset, int conversationsLimit) {
         try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
 
-            Map<String, String> adConversationIdsMap = postBoxRepository.getAdConversationIdsMap(postBoxId, conversationIds);
+            Map<String, String> adConversationIdsMap = postBoxRepository.getAdConversationIdsMap(userId, conversationIds);
 
-            postBoxRepository.changeConversationVisibilities(postBoxId, adConversationIdsMap, visibility);
+            postBoxRepository.changeConversationVisibilities(userId, adConversationIdsMap, visibility);
 
             // TODO: This feels kinda stupid. requesting the whole thing. this should be done client side. slows down stuff !!! Talk to frontend and app guys !!!
 
             // TODO: Filter out the updated conversations !!!
-            return postBoxRepository.getPostBox(postBoxId, visibility, conversationsOffset, conversationsLimit);
+            return postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
         }
     }
 
     @Override
-    public PostBoxUnreadCounts getUnreadCounts(String postBoxId) {
+    public PostBoxUnreadCounts getUnreadCounts(String userId) {
         try (Timer.Context ignored = getUnreadCountsTimer.time()) {
 
-            return postBoxRepository.getPostBoxUnreadCounts(postBoxId);
+            return postBoxRepository.getPostBoxUnreadCounts(userId);
         }
     }
 
-    private Participant getThisParticipant(Conversation rtsConversation, ConversationRole conversationRole) {
-        return conversationRole == ConversationRole.Buyer ? getBuyerParticipant(rtsConversation) : getSellerParticipant(rtsConversation);
-    }
-
-    private Participant getOtherParticipant(Conversation rtsConversation, ConversationRole conversationRole) {
-        return conversationRole == ConversationRole.Buyer ? getSellerParticipant(rtsConversation) : getBuyerParticipant(rtsConversation);
-    }
-
-    private Participant getBuyerParticipant(Conversation rtsConversation) {
-        return new Participant(
-                getBuyerUserId(rtsConversation),
-                customValue(rtsConversation, "buyer-name"),
-                rtsConversation.getBuyerId(),
-                ParticipantRole.BUYER);
-    }
-
-    private Participant getSellerParticipant(Conversation rtsConversation) {
-        return new Participant(
-                getSellerUserId(rtsConversation),
-                customValue(rtsConversation, "seller-name"),
-                rtsConversation.getSellerId(),
-                ParticipantRole.SELLER);
+    private List<Participant> getParticipants(Conversation rtsConversation) {
+        List<Participant> participants = new ArrayList<>(2);
+        participants.add(
+                new Participant(
+                        getBuyerUserId(rtsConversation),
+                        customValue(rtsConversation, "buyer-name"),
+                        rtsConversation.getBuyerId(),
+                        ParticipantRole.BUYER));
+        participants.add(
+                new Participant(
+                        getSellerUserId(rtsConversation),
+                        customValue(rtsConversation, "seller-name"),
+                        rtsConversation.getSellerId(),
+                        ParticipantRole.SELLER));
+        return participants;
     }
 
     private String getMessageSenderUserId(Conversation rtsConversation, com.ecg.replyts.core.api.model.conversation.Message rtsMessage) {

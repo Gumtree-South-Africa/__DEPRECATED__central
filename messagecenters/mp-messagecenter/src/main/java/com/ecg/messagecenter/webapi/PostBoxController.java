@@ -14,13 +14,7 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -34,11 +28,11 @@ class PostBoxController {
     private static final Timer GET_POSTBOX_TIMER = TimingReports.newTimer("webapi-postbox-by-email");
     private static final Timer DELETE_CONVERSATIONS_TIMER = TimingReports.newTimer("webapi-postbox-conversation-delete");
 
-    private final PostBoxService postBoxDelegatorService;
+    private final PostBoxService postBoxServiceDelegator;
 
     @Autowired
-    public PostBoxController(@Qualifier("postBoxDelegatorService") PostBoxService postBoxDelegatorService) {
-        this.postBoxDelegatorService = postBoxDelegatorService;
+    public PostBoxController(@Qualifier("postBoxServiceDelegator") PostBoxService postBoxServiceDelegator) {
+        this.postBoxServiceDelegator = postBoxServiceDelegator;
     }
 
     @InitBinder
@@ -55,30 +49,13 @@ class PostBoxController {
             produces = MediaType.APPLICATION_JSON_VALUE, method = {RequestMethod.GET})
     @ResponseBody
     ResponseObject<PostBoxResponse> getPostBox(
-            @PathVariable String postBoxId,
+            @PathVariable("userId") String userId,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page) {
 
         Timer.Context timerContext = GET_POSTBOX_TIMER.time();
         try {
-            return ResponseObject.of(postBoxDelegatorService.getConversations(postBoxId, size, page));
-        } finally {
-            timerContext.stop();
-        }
-    }
-
-    @RequestMapping(value = GetPostBoxCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_VALUE, method = {RequestMethod.PUT})
-    @ResponseBody
-    ResponseObject<?> markConversationsAsRead(
-            @PathVariable String postBoxId,
-            @RequestParam(value = "size", defaultValue = "50", required = false) Integer size,
-            @RequestParam(value = "page", defaultValue = "0", required = false) Integer page) {
-
-        Timer.Context timerContext = GET_POSTBOX_TIMER.time();
-        try {
-            PostBoxResponse postBoxResponse = postBoxDelegatorService.markConversationsAsRead(postBoxId, size, page);
-            return postBoxResponse == null ? ResponseObject.of(RequestState.OK) : ResponseObject.of(postBoxResponse);
+            return ResponseObject.of(postBoxServiceDelegator.getConversations(userId, size, page));
         } finally {
             timerContext.stop();
         }
@@ -88,14 +65,14 @@ class PostBoxController {
             produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
     @ResponseBody
     ResponseObject<?> deleteConversations(
-            @PathVariable("postBoxId") String postBoxId,
+            @PathVariable("userId") String userId,
             @RequestParam(value = "ids", defaultValue = "") String[] conversationIds,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size) {
 
         Timer.Context timerContext = DELETE_CONVERSATIONS_TIMER.time();
         try {
-            PostBoxResponse postBoxResponse = postBoxDelegatorService.deleteConversations(postBoxId, asList(conversationIds), page, size);
+            PostBoxResponse postBoxResponse = postBoxServiceDelegator.deleteConversations(userId, asList(conversationIds), size, page);
             return postBoxResponse == null ? ResponseObject.of(RequestState.OK) : ResponseObject.of(postBoxResponse);
         } finally {
             timerContext.stop();

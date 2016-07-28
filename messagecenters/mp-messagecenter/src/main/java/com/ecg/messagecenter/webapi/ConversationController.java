@@ -13,12 +13,7 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -30,11 +25,11 @@ class ConversationController {
 
     private static final Timer API_POSTBOX_CONVERSATION_TIMER = TimingReports.newTimer("webapi-postbox-conversation-by-id");
 
-    private final PostBoxService postBoxDelegatorService;
+    private final PostBoxService postBoxServiceDelegator;
 
     @Autowired
-    public ConversationController(@Qualifier("postBoxDelegatorService") PostBoxService postBoxDelegatorService) {
-        this.postBoxDelegatorService = postBoxDelegatorService;
+    public ConversationController(@Qualifier("postBoxServiceDelegator") PostBoxService postBoxServiceDelegator) {
+        this.postBoxServiceDelegator = postBoxServiceDelegator;
     }
 
     @InitBinder
@@ -55,7 +50,7 @@ class ConversationController {
             @PathVariable("conversationId") String conversationId,
             HttpServletResponse response) {
 
-        return wrapResponse(postBoxDelegatorService.getConversation(userId, conversationId), response);
+        return wrapResponse(postBoxServiceDelegator.getConversation(userId, conversationId), response);
     }
 
     @RequestMapping(value = PostBoxConversationCommand.MAPPING,
@@ -66,7 +61,7 @@ class ConversationController {
             @PathVariable("conversationId") String conversationId,
             HttpServletResponse response) {
 
-        return wrapResponse(postBoxDelegatorService.markConversationAsRead(userId, conversationId), response);
+        return wrapResponse(postBoxServiceDelegator.markConversationAsRead(userId, conversationId), response);
     }
 
     private ResponseObject<?> wrapResponse(Optional<ConversationResponse> conversationResponseOpt, HttpServletResponse response) {

@@ -2,8 +2,8 @@ package com.ecg.messagecenter.persistence.cassandra;
 
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
-import com.ecg.messagecenter.persistence.*;
 import com.ecg.messagebox.utils.StreamUtils;
+import com.ecg.messagecenter.persistence.*;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,11 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
@@ -89,7 +85,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     private final Timer getPostBoxTimer = TimingReports.newTimer("cassandra.postBoxRepo.findById");
     private final Timer getUnreadCountsTimer = TimingReports.newTimer("cassandra.postBoxRepo.getUnreadCounts");
-    private final Timer selectConversationThreadIdsTimer = TimingReports.newTimer("cassandra.postBoxRepo.selectConversationThreadIds");
     private final Timer getConversationThreadTimer = TimingReports.newTimer("cassandra.postBoxRepo.getConversationThread");
     private final Timer addReplaceConversationThreadTimer = TimingReports.newTimer("cassandra.postBoxRepo.addReplaceConversationThread");
     private final Timer selectConversationUnreadMessagesCountTimer = TimingReports.newTimer("cassandra.postBoxRepo.selectConversationUnreadMessagesCount");
@@ -142,7 +137,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             ResultSet result = session.execute(Statements.SELECT_POSTBOX_UNREAD_COUNTS.bind(this, postBoxId));
             CountersConsumer counters = StreamUtils.toStream(result)
                     .collect(CountersConsumer::new, CountersConsumer::add, CountersConsumer::reduce);
-            return new PostBoxUnreadCounts(counters.numUnreadConversations, counters.numUnreadMessages);
+            return new PostBoxUnreadCounts(postBoxId, counters.numUnreadConversations, counters.numUnreadMessages);
         }
     }
 
@@ -230,16 +225,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public List<String> getConversationThreadIds(String postBoxId) {
-        try (Timer.Context ignored = selectConversationThreadIdsTimer.time()) {
-            ResultSet result = session.execute(Statements.SELECT_CONVERSATION_THREAD_IDS.bind(this, postBoxId));
-            return StreamUtils.toStream(result)
-                    .map(row -> row.getString("conversation_id"))
-                    .collect(Collectors.toList());
-        }
-    }
-
-    @Override
     public List<ResponseData> getResponseData(String userId) {
         try (Timer.Context ignored = selectResponseDataTimer.time()) {
             ResultSet result = session.execute(Statements.SELECT_RESPONSE_DATA.bind(this, userId));
@@ -300,14 +285,11 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         DELETE_CONVERSATION_THREAD("DELETE FROM mb_postbox WHERE postbox_id=? AND conversation_id=?", true),
         SELECT_CONVERSATION_THREAD("SELECT conversation_id, json_value FROM mb_postbox WHERE postbox_id=? AND conversation_id=?"),
         UPDATE_CONVERSATION_THREAD("UPDATE mb_postbox SET json_value=? WHERE postbox_id=? AND conversation_id=?", true),
-        SELECT_CONVERSATION_THREAD_IDS("SELECT conversation_id FROM mb_postbox WHERE postbox_id=?"),
         UPDATE_CONVERSATION_UNREAD_COUNT("UPDATE mb_unread_counters SET num_unread=? WHERE postbox_id=? and conversation_id=?", true),
         SELECT_CONVERSATION_UNREAD_COUNT("SELECT num_unread FROM mb_unread_counters WHERE postbox_id=? and conversation_id=?"),
         SELECT_POSTBOX_UNREAD_COUNTS("SELECT num_unread FROM mb_unread_counters WHERE postbox_id=?"),
         SELECT_POSTBOX_CONVERSATION_UNREAD_COUNTS("SELECT conversation_id, num_unread FROM mb_unread_counters WHERE postbox_id=?"),
-        // TODO: use following two statements in postbox/conversation thread cleanup job (which is not yet written)
         DELETE_CONVERSATION_UNREAD_COUNT("DELETE FROM mb_unread_counters WHERE postbox_id=? and conversation_id=?", true),
-        DELETE_POSTBOX_UNREAD_COUNTS("DELETE FROM mb_unread_counters WHERE postbox_id=?", true),
 
         // response rate and speed
         SELECT_RESPONSE_DATA("SELECT userid, convid, convtype, createdate, responsespeed FROM mb_response_data WHERE userid=? LIMIT 100"),

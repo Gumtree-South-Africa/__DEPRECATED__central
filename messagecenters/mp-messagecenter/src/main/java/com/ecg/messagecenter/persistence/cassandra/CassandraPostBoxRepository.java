@@ -85,13 +85,6 @@ public interface CassandraPostBoxRepository {
     void deleteConversationThreadsAsync(String postBoxId, List<String> conversationIds);
 
     /**
-     * Return the list of conversation thread ids belonging to a postbox.
-     *
-     * @param postBoxId id of postbox
-     */
-    List<String> getConversationThreadIds(String postBoxId);
-
-    /**
      * Return the list with response data per conversation for the user.
      * @param userId the user id
      * @return the list with response data

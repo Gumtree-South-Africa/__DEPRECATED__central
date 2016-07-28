@@ -1,5 +1,9 @@
 package com.ecg.messagebox.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 public class Participant {
@@ -9,7 +13,11 @@ public class Participant {
     private String email;
     private ParticipantRole role;
 
-    public Participant(String userId, String name, String email, ParticipantRole role) {
+    @JsonCreator
+    public Participant(@JsonProperty("userId") String userId,
+                       @JsonProperty("name") String name,
+                       @JsonProperty("email") String email,
+                       @JsonProperty("role") ParticipantRole role) {
         this.userId = userId;
         this.name = name;
         this.email = email;
@@ -46,5 +54,14 @@ public class Participant {
     @Override
     public int hashCode() {
         return Objects.hash(userId, name, email, role);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("userId", userId)
+                .add("name", name)
+                .add("email", email)
+                .add("role", role).toString();
     }
 }

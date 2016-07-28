@@ -1,11 +1,11 @@
 CREATE TABLE IF NOT EXISTS mb_conversation_unread_counts (
-    pbid text,
+    usrid text,
     convid text,
     unread int,
-    PRIMARY KEY (pbid, convid)
+    PRIMARY KEY (usrid, convid)
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = 'Contains conversation unread messages counts. Columns: postbox id, conversation id, number of unread conversation messages'
+    AND comment = 'Contains conversation unread messages counts. Columns: user id, conversation id, number of unread conversation messages'
     AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
     AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
     AND dclocal_read_repair_chance = 0.1
@@ -18,14 +18,14 @@ CREATE TABLE IF NOT EXISTS mb_conversation_unread_counts (
     AND speculative_retry = '99.0PERCENTILE';
 
 CREATE TABLE IF NOT EXISTS mb_ad_conversation_unread_counts (
-    pbid text,
+    usrid text,
     adid text,
     convid text,
     unread int,
-    PRIMARY KEY (pbid, adid, convid)
+    PRIMARY KEY (usrid, adid, convid)
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = 'Contains conversation unread messages counts clustered by ad id. Columns: postbox id, ad id, conversation id, number of unread conversation messages'
+    AND comment = 'Contains conversation unread messages counts clustered by ad id. Columns: user id, ad id, conversation id, number of unread conversation messages'
     AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy'}
     AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
     AND dclocal_read_repair_chance = 0.1
@@ -38,15 +38,15 @@ CREATE TABLE IF NOT EXISTS mb_ad_conversation_unread_counts (
     AND speculative_retry = '99.0PERCENTILE';
 
 CREATE TABLE IF NOT EXISTS mb_ad_conversation_idx (
-    pbid text,
+    usrid text,
     adid text,
     convid text,
-    visibility int,
+    vis int,
     latestmsgid timeuuid,
-    PRIMARY KEY (pbid, adid, convid)
+    PRIMARY KEY (usrid, adid, convid)
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = 'Used for paginating conversations. Columns: postbox id, ad id, conversation id, visibility (1 - Active, 2 - Archived), latest message id'
+    AND comment = 'Used for paginating conversations. Columns: user id, ad id, conversation id, visibility (1 - Active, 2 - Archived), latest message id'
     AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
     AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
     AND dclocal_read_repair_chance = 0.1
@@ -58,33 +58,19 @@ CREATE TABLE IF NOT EXISTS mb_ad_conversation_idx (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TYPE IF NOT EXISTS conversation_participant (
-    participantid text,
-    name text,
-    email text,
-    role text
-);
-
-CREATE TYPE IF NOT EXISTS conversation_message (
-    msgid timeuuid,
-    msg text,
-    senderid text,
-    type text
-);
-
 CREATE TABLE IF NOT EXISTS mb_conversations (
-    pbid text,
+    usrid text,
     convid text,
     adid text,
-    visibility int,
-    notifynew int,
-    meparticipant frozen<conversation_participant> STATIC,
-    otherparticipant frozen<conversation_participant>,
-    latestmsgprev frozen<conversation_message>,
-    PRIMARY KEY (pbid, convid)
+    vis int,
+    ntfynew int,
+    participants text,
+    latestmsg text,
+    metadata text,
+    PRIMARY KEY (usrid, convid)
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = 'Stores ad conversations. Columns: postbox id, conversation id, ad id, visibility (1 - Active, 2 - Archived), notify on new messages (1 - Notify, 2 - Mute), me participant, other participant, latest message preview'
+    AND comment = 'Stores ad conversations. Columns: user id, conversation id, ad id, visibility (1 - Active, 2 - Archived), notify on new messages (1 - Notify, 2 - Mute), latest message, participants, conversation metadata in json format'
     AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
     AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
     AND dclocal_read_repair_chance = 0.1
@@ -116,17 +102,16 @@ CREATE TABLE IF NOT EXISTS mb_blocked_users (
     AND speculative_retry = '99.0PERCENTILE';
 
 CREATE TABLE IF NOT EXISTS mb_messages (
-    pbid text,
+    usrid text,
     convid text,
     msgid timeuuid,
-    msg text,
-    senderid text,
     type text,
-    PRIMARY KEY ((pbid, convid), msgid)
+    metadata text,
+    PRIMARY KEY ((usrid, convid), msgid)
 ) WITH CLUSTERING ORDER BY (msgid DESC)
     AND bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = 'Stores conversation messages. Supports cursor-based pagination. Columns: postbox id, conversation id, message id, message text, message type (asq, abq, bid, chat, email), sender user id, message type, attachments urls (they will be stored in an external object store)'
+    AND comment = 'Stores conversation messages. Supports cursor-based pagination. Columns: user id, conversation id, message id, message type, message data in json format (e.g. message text, message type (asq, abq, bid, chat, email), sender user id, attachments urls (they will be stored in an external object store), custom data)'
     AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
     AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
     AND dclocal_read_repair_chance = 0.1
@@ -139,15 +124,15 @@ CREATE TABLE IF NOT EXISTS mb_messages (
     AND speculative_retry = '99.0PERCENTILE';
 
 CREATE TABLE IF NOT EXISTS mb_ad_conversation_modification_idx (
-    pbid text,
+    usrid text,
     convid text,
     msgid timeuuid,
     adid text,
-    PRIMARY KEY ((pbid, convid), msgid)
+    PRIMARY KEY ((usrid, convid), msgid)
 ) WITH CLUSTERING ORDER BY (msgid DESC)
     AND bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = 'Used for cleanup of old conversations. Columns: postbox id, conversation id, message id, ad id'
+    AND comment = 'Used for cleanup of old conversations. Columns: user id, conversation id, message id, ad id'
     AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
     AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
     AND dclocal_read_repair_chance = 0.1
@@ -162,13 +147,13 @@ CREATE TABLE IF NOT EXISTS mb_ad_conversation_modification_idx (
 CREATE TABLE IF NOT EXISTS mb_conversation_modification_idx_by_date (
     modifdate timestamp,
     msgid timeuuid,
-    pbid text,
+    usrid text,
     convid text,
-    PRIMARY KEY (modifdate, msgid, pbid, convid)
-) WITH CLUSTERING ORDER BY (msgid DESC, pbid ASC, convid ASC)
+    PRIMARY KEY (modifdate, msgid, usrid, convid)
+) WITH CLUSTERING ORDER BY (msgid DESC, usrid ASC, convid ASC)
     AND bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = 'Used for cleanup of old conversations. Columns: year, month, day, message id, postbox id, conversation id'
+    AND comment = 'Used for cleanup of old conversations. Columns: year, month, day, message id, user id, conversation id'
     AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
     AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
     AND dclocal_read_repair_chance = 0.1

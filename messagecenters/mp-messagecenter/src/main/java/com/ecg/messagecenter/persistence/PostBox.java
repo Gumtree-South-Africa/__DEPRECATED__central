@@ -4,16 +4,12 @@ import com.ecg.replyts.core.api.util.Pairwise;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
-import static org.joda.time.DateTime.now;
 
 public class PostBox {
 
@@ -55,35 +51,6 @@ public class PostBox {
 
     public List<ConversationThread> getConversationThreadsCapTo(int page, int maxSize) {
         return conversationThreads.stream().skip(page * maxSize).limit(maxSize).collect(Collectors.toList());
-    }
-
-    public DateTime getLastModification() {
-        if (conversationThreads.isEmpty()) {
-            return now();
-        }
-        DateTime last = now().minusYears(1000);
-        for (ConversationThread conversationThread : conversationThreads) {
-            if (conversationThread.getModifiedAt().isAfter(last)) {
-                last = conversationThread.getModifiedAt();
-            }
-        }
-        return last;
-    }
-
-    /**
-     * @return The new post box if it was changed or the original one if there were no unread messages
-     */
-    public PostBox markAllAsRead() {
-        AtomicBoolean changed = new AtomicBoolean(false);
-        List<ConversationThread> newList = this.conversationThreads.stream().map(ct -> {
-            if (ct.isContainsUnreadMessages()) {
-                changed.set(true);
-                return ct.sameButRead();
-            } else {
-                return ct;
-            }
-        }).collect(Collectors.toList());
-        return changed.get() ? new PostBox(this.userId, newList) : this;
     }
 
     @Override

@@ -1,11 +1,6 @@
 package com.ecg.messagebox.persistence;
 
-import com.ecg.messagebox.model.BlockedUserInfo;
-import com.ecg.messagebox.model.ConversationThread;
-import com.ecg.messagebox.model.Message;
-import com.ecg.messagebox.model.PostBox;
-import com.ecg.messagebox.model.PostBoxUnreadCounts;
-import com.ecg.messagebox.model.Visibility;
+import com.ecg.messagebox.model.*;
 
 import java.util.List;
 import java.util.Map;
@@ -24,10 +19,10 @@ public interface CassandraPostBoxRepository {
     /**
      * Returns a paginated list of conversations for the specified postbox id and visibility.
      *
-     * @param postBoxId id of postbox
+     * @param userId id of postbox
      * @return a postbox object, even if it's a new postbox
      */
-    PostBox getPostBox(String postBoxId, Visibility visibility, int conversationsOffset, int conversationsLimit);
+    PostBox getPostBox(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit);
 
     /**
      * Fetches a conversation.
@@ -36,86 +31,79 @@ public interface CassandraPostBoxRepository {
      * For that use the {@link #getConversationWithMessages(String, String, Optional, int)} method.
      * </p>
      *
-     * @param postBoxId      user identifier
+     * @param userId      user identifier
      * @param conversationId id of conversation
      * @return absent if the conversation does not exist, else returns the conversation
      */
-    Optional<ConversationThread> getConversation(String postBoxId, String conversationId);
+    Optional<ConversationThread> getConversation(String userId, String conversationId);
 
     /**
      * Fetches a conversation with its unread messages count and a cursor-based paginated list of its messages.
      *
-     * @param postBoxId          id of postbox
+     * @param userId          id of postbox
      * @param conversationId     id of conversation
      * @param messageIdCursorOpt message id cursor optional, used in cursor-based pagination of messages
      * @param messagesLimit      maximum number of returned messages
      * @return absent if the conversation does not exist, else returns the conversation, the unread messages count and a paginated list of its messages
      */
-    Optional<ConversationThread> getConversationWithMessages(String postBoxId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit);
+    Optional<ConversationThread> getConversationWithMessages(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit);
 
     /**
-     * @param postBoxId id of postbox
+     * @param userId id of postbox
      * @return unread messages and unread conversation counts for postbox, both are 0 when postbox is unknown
      */
-    PostBoxUnreadCounts getPostBoxUnreadCounts(String postBoxId);
+    PostBoxUnreadCounts getPostBoxUnreadCounts(String userId);
 
     /**
-     * @param postBoxId      id of postbox containing the conversation
+     * @param userId      id of postbox containing the conversation
      * @param conversationId id of conversation
      * @return the number of unread messages for the given conversation, or 0 when the conversation does not exist
      */
-    int getConversationUnreadCount(String postBoxId, String conversationId);
+    int getConversationUnreadCount(String userId, String conversationId);
 
     /**
      * Resets the message unread count to 0 for the given user/conversation/ad.
      *
-     * @param postBoxId      id of postbox containing the conversation
+     * @param userId      id of postbox containing the conversation
      * @param conversationId id of conversation
      * @param adId           id of ad
      */
-    void resetConversationUnreadCount(String postBoxId, String conversationId, String adId);
+    void resetConversationUnreadCount(String userId, String conversationId, String adId);
 
     /**
      * Creates a new conversation with the passed message.
      *
-     * @param postBoxId            identifier of user that this conversation belongs to
+     * @param userId            identifier of user that this conversation belongs to
      * @param conversation         the conversation to add or replace
      * @param message              the new message to be added
      * @param incrementUnreadCount if true, the conversation's unread count will be incremented, otherwise not
      */
-    void createConversation(String postBoxId, ConversationThread conversation, Message message, boolean incrementUnreadCount);
+    void createConversation(String userId, ConversationThread conversation, Message message, boolean incrementUnreadCount);
 
     /**
      * Adds a new message to an existing conversation.
      *
-     * @param postBoxId            identifier of user that this conversation belongs to
+     * @param userId            identifier of user that this conversation belongs to
      * @param conversationId       id of the conversation to add the message to
      * @param message              the new message to be added
      * @param incrementUnreadCount if true, the conversation's unread count will be incremented, otherwise not
      */
-    void addMessage(String postBoxId, String conversationId, String adId, Message message, boolean incrementUnreadCount);
+    void addMessage(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount);
 
     /**
      * Change conversation visibilities for a postbox.
      *
-     * @param postBoxId            id of postbox containing the conversations
+     * @param userId            id of postbox containing the conversations
      * @param adConversationIdsMap map of ad id to conversation id
      * @param visibility           the new visibility
      */
-    void changeConversationVisibilities(String postBoxId, Map<String, String> adConversationIdsMap, Visibility visibility);
+    void changeConversationVisibilities(String userId, Map<String, String> adConversationIdsMap, Visibility visibility);
 
-    void deleteConversations(String postBoxId, Map<String, String> adConversationIdsMap);
+    void deleteConversations(String userId, Map<String, String> adConversationIdsMap);
 
-    void deleteConversation(String postBoxId, String adId, String conversationId);
+    void deleteConversation(String userId, String adId, String conversationId);
 
-    Map<String, String> getAdConversationIdsMap(String postBoxId, List<String> conversationIds);
-
-    /**
-     * Return the list of conversation ids belonging to a postbox.
-     *
-     * @param postBoxId id of postbox
-     */
-    List<String> getConversationIds(String postBoxId);
+    Map<String, String> getAdConversationIdsMap(String userId, List<String> conversationIds);
 
     void blockUser(String reporterUserId, String blockedUserId);
 

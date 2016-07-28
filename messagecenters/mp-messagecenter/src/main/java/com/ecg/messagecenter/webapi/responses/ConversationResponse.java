@@ -4,9 +4,12 @@ import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.util.Pairwise;
+import com.google.common.base.MoreObjects;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ConversationResponse {
@@ -21,10 +24,27 @@ public class ConversationResponse {
     private Long userIdSeller;
     private String adId;
     private String subject;
-    private List<MessageResponse> messages = new ArrayList<>();
     private long numUnread;
+    private List<MessageResponse> messages = new ArrayList<>();
 
     private ConversationResponse() {
+    }
+
+    public ConversationResponse(String conversationId, ConversationRole role, String buyerEmail, String sellerEmail, String buyerName,
+                                String sellerName, Long userIdBuyer, Long userIdSeller, String adId, String emailSubject,
+                                List<MessageResponse> messages, long numUnreadMessages) {
+        this.id = conversationId;
+        this.role = role;
+        this.buyerEmail = buyerEmail;
+        this.sellerEmail = sellerEmail;
+        this.buyerName = buyerName;
+        this.sellerName = sellerName;
+        this.userIdBuyer = userIdBuyer;
+        this.userIdSeller = userIdSeller;
+        this.adId = adId;
+        this.subject = emailSubject;
+        this.numUnread = numUnreadMessages;
+        this.messages = messages;
     }
 
     public static Optional<ConversationResponse> create(long numUnread, String userId, Conversation conversationRts, UserIdentifierService userIdentifierService) {
@@ -39,6 +59,7 @@ public class ConversationResponse {
         response.buyerEmail = conversationRts.getBuyerId();
         response.sellerEmail = conversationRts.getSellerId();
         String buyerUserIdName = userIdentifierService.getBuyerUserIdName();
+
         response.userIdBuyer = nullSafeParseLong(conversationRts.getCustomValues().get(buyerUserIdName));
         String sellerUserIdName = userIdentifierService.getSellerUserIdName();
         response.userIdSeller = nullSafeParseLong(conversationRts.getCustomValues().get(sellerUserIdName));
@@ -53,16 +74,16 @@ public class ConversationResponse {
         }
     }
 
+    public String getId() {
+        return id;
+    }
+
     public long getNumUnread() {
         return numUnread;
     }
 
     public String getSellerName() {
         return sellerName;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public ConversationRole getRole() {
@@ -107,5 +128,52 @@ public class ConversationResponse {
 
     private static Long nullSafeParseLong(String s) {
         return s == null ? null : Long.parseLong(s);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ConversationResponse conversationResponse = (ConversationResponse) o;
+
+        return Pairwise.pairsAreEqual(
+                id, conversationResponse.id,
+                role, conversationResponse.role,
+                buyerEmail, conversationResponse.buyerEmail,
+                sellerEmail, conversationResponse.sellerEmail,
+                buyerName, conversationResponse.buyerName,
+                sellerName, conversationResponse.sellerName,
+                userIdBuyer, conversationResponse.userIdBuyer,
+                userIdSeller, conversationResponse.userIdSeller,
+                adId, conversationResponse.adId,
+                subject, conversationResponse.subject,
+                numUnread, conversationResponse.numUnread,
+                messages, conversationResponse.messages
+        );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, role, buyerEmail, sellerEmail, buyerName, sellerName, userIdBuyer, userIdSeller,
+                adId, subject, numUnread, messages);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id)
+                .add("role", role)
+                .add("buyerEmail", buyerEmail)
+                .add("sellerEmail", sellerEmail)
+                .add("buyerName", buyerName)
+                .add("sellerName", sellerName)
+                .add("userIdBuyer", userIdBuyer)
+                .add("userIdSeller", userIdSeller)
+                .add("adId", adId)
+                .add("subject", subject)
+                .add("numUnread", numUnread)
+                .add("messages", messages)
+                .toString();
     }
 }

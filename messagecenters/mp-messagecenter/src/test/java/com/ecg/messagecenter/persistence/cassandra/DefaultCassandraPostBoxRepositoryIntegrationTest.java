@@ -120,8 +120,6 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
         postBoxUnreadCounts = postBoxRepository.getUnreadCounts(BAR_FOO_POST_BOX_ID);
 
-        postBoxRepository.getConversationThreadIds(BAR_FOO_POST_BOX_ID);
-
         assertEquals(0, postBoxUnreadCounts.getNumUnreadConversations());
         assertEquals(0, postBoxUnreadCounts.getNumUnreadMessages());
 
@@ -178,5 +176,4 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         }
         return new PostBox(postBoxId, conversations);
     }
-
 }
