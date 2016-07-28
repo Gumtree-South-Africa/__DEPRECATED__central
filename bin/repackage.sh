@@ -46,10 +46,9 @@ function repackage() {
   tar xfz ${ARTIFACT} -C tmp/
 
   for prop in distribution/conf/${TENANT}/*; do
-    if [[ -f "$prop" || "$prop" == *comaasqa || "$prop" == *local ]]; then
+    if [[ -f "$prop" || "$prop" == *comaasqa || "$prop" == *local ||  "$prop" == *bare ]]; then
       continue
     fi
-
 
     PACKAGE_BASE=${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}-${TIMESTAMP}
     PACKAGE_NAME=comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}-${TIMESTAMP}
@@ -77,8 +76,12 @@ function repackage() {
         cd .. && rm -rf lib && zip -r ${PACKAGE_BASE}.jar . && cd ..
         echo "Created ${PACKAGE_BASE}.jar"
         ;;
+      mde)
+        repackage-mde-ebayk mde
+        continue
+        ;;
       mp)
-      # Repackaging for MP
+        # Repackaging for MP
         DISTRIB_ARTIFACT=nl.marktplaats.mp-replyts2_comaas-$(basename "$prop")-${GIT_HASH_FULL}-${TIMESTAMP}
         rm -rf tmp2
         mkdir -p tmp2/${DISTRIB_ARTIFACT}
@@ -89,11 +92,7 @@ function repackage() {
         tar cfz ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz . && cd ..
         echo "Created ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz"
         continue
-      ;;
-      mde)
-        repackage-mde-ebayk mde
-        continue
-      ;;
+        ;;
       *)
         rm -f tmp/conf/* && cp "$prop"/* tmp/conf/
         cd tmp && tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
