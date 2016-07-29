@@ -77,7 +77,8 @@ class ConfigurationJsonSerializer {
 
     private ConfigurationId extractConfigurationId(JsonNode node) {
         String instanceId = node.get("instanceId").asText();
-        String pluginFactoryType = node.get("pluginFactory").asText();
+        String pluginFactoryType = node.get("pluginFactory").asText()
+                .replace("com.ecg.de.ebayk.messagecenter.filters", "com.ecg.messagecenter.filters");
         try {
             Class<? extends BasePluginFactory<?>> pluginFactory = (Class<? extends BasePluginFactory<?>>) Class.forName(pluginFactoryType);
             return new ConfigurationId(pluginFactory, instanceId);
