@@ -1,6 +1,7 @@
 package com.ecg.messagecenter.pushmessage;
 
 import ca.kijiji.replyts.BoxHeaders;
+import ca.kijiji.replyts.TextAnonymizer;
 import ca.kijiji.tracing.TraceThreadLocal;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
@@ -13,11 +14,7 @@ import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,6 +29,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
 
     private final PushService amqPushService;
     private final PushService sendPushService;
+    private final TextAnonymizer textAnonymizer;
     private final AdInfoLookup adInfoLookup;
     private final UserInfoLookup userInfoLookup;
     private final Conversation conversation;
@@ -42,6 +40,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             Integer sendPushPercentage,
             PushService amqPushService,
             PushService sendPushService,
+            TextAnonymizer textAnonymizer,
             AdInfoLookup adInfoLookup,
             UserInfoLookup userInfoLookup,
             Conversation conversation,
@@ -49,6 +48,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
         this.sendPushPercentage = sendPushPercentage;
         this.amqPushService = amqPushService;
         this.sendPushService = sendPushService;
+        this.textAnonymizer = textAnonymizer;
         this.adInfoLookup = adInfoLookup;
         this.userInfoLookup = userInfoLookup;
         this.conversation = conversation;
@@ -213,7 +213,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     }
 
     private String messageShort(Message message) {
-        String shortText = TextCleaner.cleanupText(message.getPlainTextBody());
+        String shortText = TextCleaner.cleanupText(textAnonymizer.anonymizeText(conversation, message.getPlainTextBody()));
 
         if (shortText != null) {
             return shortText;

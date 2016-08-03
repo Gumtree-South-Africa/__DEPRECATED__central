@@ -3,13 +3,13 @@ package com.ecg.messagecenter.pushmessage.send.client;
 import ca.kijiji.discovery.DiscoveryFailedException;
 import ca.kijiji.discovery.ServiceEndpoint;
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.pushmessage.send.discovery.ServiceDiscoveryConfig;
 import com.ecg.messagecenter.pushmessage.send.discovery.ServiceEndpointProvider;
 import com.ecg.messagecenter.pushmessage.send.discovery.ServiceName;
 import com.ecg.messagecenter.pushmessage.send.model.SendMessage;
 import com.ecg.messagecenter.pushmessage.send.model.Subscription;
+import com.ecg.replyts.core.runtime.TimingReports;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
@@ -31,20 +31,22 @@ import static com.ecg.messagecenter.pushmessage.send.client.CloseableHttpClientB
 public class SendClient {
     private static final Logger LOG = LoggerFactory.getLogger(SendClient.class);
     private static final int MAX_DISCOVERY_TRIES = 3;
+    private static final String ACTION_SEND_MESSAGE = "send.client.send-message";
+    private static final String ACTION_HAS_SUBSCRIPTION = "send.client.check-subscription";
 
     //TODO will need to hook this in once we have some real traffic.
     private final int hystrixTimeout;
     private final HttpClient httpClient;
-    private final MetricRegistry metricRegistry;
     private final ServiceDiscoveryConfig serviceDiscoveryConfig;
+
+    private final Counter discoveryFailuresCounter;
+    private final Timer sendMessageTimer;
+    private final Timer checkSubscriptionTimer;
+
     private ServiceEndpointProvider serviceEndpointProvider;
 
-    private static final String ACTION_SEND_MESSAGE = "send.client.send-message";
-    private static final String ACTION_HAS_SUBSCRIPTION = "send.client.check-subscription";
-
     @Autowired
-    public SendClient(MetricRegistry metricRegistry,
-                      ServiceDiscoveryConfig serviceDiscoveryConfig,
+    public SendClient(ServiceDiscoveryConfig serviceDiscoveryConfig,
                       @Value("${send.client.max.retries:0}") final Integer maxRetries,
                       @Value("${send.client.max.connections:16}") final Integer maxConnections,
                       @Value("${send.client.timeout.hystrix.ms:1000}") final Integer hystrixTimeout,
@@ -52,16 +54,23 @@ public class SendClient {
                       @Value("${send.client.timeout.connect.millis:1000}") final Integer connectTimeout,
                       @Value("${send.client.timeout.connectionRequest.millis:1000}") final Integer connectionRequestTimeout) {
         this.hystrixTimeout = hystrixTimeout;
-        this.metricRegistry = metricRegistry;
         this.serviceDiscoveryConfig = serviceDiscoveryConfig;
-        this.httpClient = createPooledHttpClient(maxRetries, metricRegistry.counter("send.client.general.retries"), maxConnections, socketTimeout, connectTimeout, connectionRequestTimeout);
+        this.httpClient = createPooledHttpClient(maxRetries, TimingReports.newCounter("send.client.general.retries"), maxConnections, socketTimeout, connectTimeout, connectionRequestTimeout);
         this.serviceEndpointProvider = setupDiscovery();
+
+        discoveryFailuresCounter = TimingReports.newCounter("send.client.discovery.failures");
+        sendMessageTimer = TimingReports.newTimer(ACTION_SEND_MESSAGE);
+        checkSubscriptionTimer = TimingReports.newTimer(ACTION_HAS_SUBSCRIPTION);
     }
 
     private CloseableHttpClient createPooledHttpClient(int maxRetries, Counter retryCounter, int maxConnections, int socketTimeout, int connectTimeout, int connectionRequestTimeout) {
         final PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
         poolingHttpClientConnectionManager.setMaxTotal(maxConnections);
         poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxConnections);
+
+        TimingReports.newGauge("send.client.conn-available", () -> poolingHttpClientConnectionManager.getTotalStats().getAvailable());
+        TimingReports.newGauge("send.client.conn-leased", () -> poolingHttpClientConnectionManager.getTotalStats().getLeased());
+        TimingReports.newGauge("send.client.conn-max", () -> poolingHttpClientConnectionManager.getTotalStats().getMax());
 
         final DefaultHttpRequestRetryHandler retryHandler = new ZealousHttpRequestRetryHandler(maxRetries, retryCounter);
 
@@ -91,7 +100,7 @@ public class SendClient {
                 return provider.getServiceEndpoints(ServiceName.SEND_API);
             } catch (DiscoveryFailedException e) {
                 exception = e;
-                metricRegistry.counter("send.client.discovery.failures").inc();
+                discoveryFailuresCounter.inc();
                 LOG.warn("Unable to get service catalog. Conversation Service will continue to fail until this is resolved. Retrying " + (i - 1) + " more time(s).", e);
             }
         }
@@ -110,7 +119,7 @@ public class SendClient {
     }
 
     public SendMessage sendMessage(@Nonnull SendMessage messageRequest) {
-        try (Timer.Context ignored = metricRegistry.timer(ACTION_SEND_MESSAGE).time()) {
+        try (Timer.Context ignored = sendMessageTimer.time()) {
             SendMessageCommand command = new SendMessageCommand(httpClient, sendEndpoints(), messageRequest);
             final SendMessage response = command.execute();
             if (response != null) {
@@ -129,7 +138,7 @@ public class SendClient {
      */
     public boolean hasSubscription(SendMessage messageRequest) {
         LookupSubscriptionCommand command = null;
-        try (Timer.Context ignored = metricRegistry.timer(ACTION_HAS_SUBSCRIPTION).time()) {
+        try (Timer.Context ignored = checkSubscriptionTimer.time()) {
             command = new LookupSubscriptionCommand.Builder(httpClient, sendEndpoints())
                     .setUserId(messageRequest.getUserId())
                     .setType(NotificationType.CHATMESSAGE)
@@ -144,7 +153,7 @@ public class SendClient {
     }
 
     private SendException handleFailure(FailureAwareCommand command, String meterName) {
-        metricRegistry.meter(meterName + ".exceptions").mark();
+        TimingReports.newCounter(meterName + ".exceptions").inc();
         if (command.getFailure() != null) {
             return command.getFailure();
         }

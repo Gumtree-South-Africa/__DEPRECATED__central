@@ -1,16 +1,11 @@
 package com.ecg.messagecenter.listeners;
 
+import ca.kijiji.replyts.TextAnonymizer;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.pushmessage.PushService;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationState;
-import com.ecg.replyts.core.api.model.conversation.FilterResultState;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.google.common.base.Optional;
@@ -24,11 +19,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.joda.time.DateTime.now;
 import static org.joda.time.DateTimeZone.UTC;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PostBoxUpdateListenerTest {
@@ -44,13 +35,15 @@ public class PostBoxUpdateListenerTest {
     private AdInfoLookup adInfoLookup;
     @Mock
     private UserInfoLookup userInfoLookup;
+    @Mock
+    private TextAnonymizer textAnonymizer;
 
     private ImmutableConversation.Builder convoBuilder;
     private ImmutableMessage.Builder msgBuilder;
 
     @Before
     public void setUp() throws Exception {
-        listener = new PostBoxUpdateListener(postBoxInitializer, false, "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, 0, null, sendPushService);
+        listener = new PostBoxUpdateListener(postBoxInitializer, false, "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, 0, null, sendPushService, textAnonymizer);
 
         convoBuilder = ImmutableConversation.Builder
                 .aConversation()

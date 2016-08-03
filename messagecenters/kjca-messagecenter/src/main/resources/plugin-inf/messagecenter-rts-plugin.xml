@@ -9,6 +9,8 @@
     <import resource="classpath:/message-center-jms-context.xml"/>
     <import resource="classpath:/send-context.xml"/>
 
+    <bean class="ca.kijiji.replyts.TextAnonymizer" id="textAnonymizer"/>
+
     <context:component-scan base-package="com.ecg.messagecenter.persistence" />
 
     <bean class="com.ecg.messagecenter.listeners.PostBoxUpdateListener" />

@@ -8,11 +8,7 @@ import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixThreadPoolKey;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ClosedInputStream;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
+import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.HttpClientUtils;
@@ -95,9 +91,12 @@ abstract class FailureAwareCommand<T> extends HystrixCommand<T> {
             try {
                 final HttpHost host = new HttpHost(endpoint.address(), endpoint.port());
                 final HttpResponse response = httpClient.execute(host, this.request);
+
                 if (response.getStatusLine().getStatusCode() < 500) {
                     return response;
                 }
+
+                HttpClientUtils.closeQuietly(response);
             } catch (IOException e) {
                 LOG.warn("Unable to process {} due to IOException. This is retryable.", request.getMethod(), e);
             }

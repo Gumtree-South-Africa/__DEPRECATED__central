@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.webapi;
 
+import ca.kijiji.replyts.TextAnonymizer;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
@@ -62,6 +63,8 @@ class ConversationThreadController {
     private RiakConversationBlockRepository conversationBlockRepository;
     @Autowired
     private MailCloakingService mailCloakingService;
+    @Autowired
+    private TextAnonymizer textAnonymizer;
 
     @Value("${replyts.maxConversationAgeDays}")
     private int maxAgeDays;
@@ -142,8 +145,8 @@ class ConversationThreadController {
         final String sellerAnonymousEmail = mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conversation).getAddress();
         final String buyerAnonymousEmail = mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation).getAddress();
         Optional<PostBoxSingleConversationThreadResponse> created = PostBoxSingleConversationThreadResponse.create(
-                numUnread, email, conversation, buyerAnonymousEmail, sellerAnonymousEmail, blockedByBuyer, blockedBySeller
-        );
+                numUnread, email, conversation, buyerAnonymousEmail, sellerAnonymousEmail, blockedByBuyer, blockedBySeller,
+                textAnonymizer);
         if (created.isPresent()) {
             API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
             return ResponseObject.of(created.get());

@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.persistence;
 
+import ca.kijiji.replyts.TextAnonymizer;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.ConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
@@ -41,13 +42,13 @@ import static org.mockito.Mockito.*;
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class SimplePostBoxInitializerTest {
-    public static final String SELLER_EMAIL = "seller@example.com";
-    public static final String AD_ID = "adid";
-    public static final String CONV_ID = "convId";
-    public static final String BUYER_EMAIL = "buyer@example.com";
-    public static final String BUYER_SECRET = "buyer_secret";
-    public static final String SELLER_SECRET = "seller_secret";
-    public static final String MSG_TEXT = "text";
+    private static final String SELLER_EMAIL = "seller@example.com";
+    private static final String AD_ID = "adid";
+    private static final String CONV_ID = "convId";
+    private static final String BUYER_EMAIL = "buyer@example.com";
+    private static final String BUYER_SECRET = "buyer_secret";
+    private static final String SELLER_SECRET = "seller_secret";
+    private static final String MSG_TEXT = "text";
 
     @Autowired
     private SimplePostBoxRepository postBoxRepository;
@@ -57,6 +58,9 @@ public class SimplePostBoxInitializerTest {
 
     @Autowired
     private SimplePostBoxInitializer postBoxInitializer;
+
+    @Autowired
+    private TextAnonymizer textAnonymizer;
 
     private SimplePostBoxInitializer.PostBoxWriteCallback postBoxWriteCallback = mock(SimplePostBoxInitializer.PostBoxWriteCallback.class);
 
@@ -96,6 +100,7 @@ public class SimplePostBoxInitializerTest {
         PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(), 180);
 
         when(postBoxRepository.byId(SELLER_EMAIL)).thenReturn(postbox);
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 
@@ -132,6 +137,7 @@ public class SimplePostBoxInitializerTest {
         PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(oldConversationThread), 180);
 
         when(postBoxRepository.byId(SELLER_EMAIL)).thenReturn(postbox);
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 
@@ -164,6 +170,7 @@ public class SimplePostBoxInitializerTest {
         PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(), 180);
 
         when(postBoxRepository.byId(SELLER_EMAIL)).thenReturn(postbox);
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 
@@ -202,6 +209,7 @@ public class SimplePostBoxInitializerTest {
         PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(existingThread), 180);
 
         when(postBoxRepository.byId(SELLER_EMAIL)).thenReturn(postbox);
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 
@@ -240,6 +248,7 @@ public class SimplePostBoxInitializerTest {
 
         PostBox postbox = new PostBox(BUYER_EMAIL, new Counter(), Lists.newArrayList(existingThread), 180);
         when(postBoxRepository.byId(BUYER_EMAIL)).thenReturn(postbox);
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         when(conversationBlockRepository.byConversationId(CONV_ID)).thenReturn(new ConversationBlock(CONV_ID, 1, Optional.of(new DateTime(DateTimeZone.UTC)), Optional.empty()));
 
@@ -276,6 +285,7 @@ public class SimplePostBoxInitializerTest {
 
         PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(existingThread), 180);
         when(postBoxRepository.byId(SELLER_EMAIL)).thenReturn(postbox);
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         when(conversationBlockRepository.byConversationId(CONV_ID)).thenReturn(new ConversationBlock(CONV_ID, 1, Optional.empty(), Optional.of(new DateTime(DateTimeZone.UTC))));
 
@@ -300,6 +310,11 @@ public class SimplePostBoxInitializerTest {
         @Bean
         public SimplePostBoxInitializer postBoxInitializer() {
             return new SimplePostBoxInitializer();
+        }
+
+        @Bean
+        public TextAnonymizer textAnonymizer() {
+            return mock(TextAnonymizer.class);
         }
 
         @Bean

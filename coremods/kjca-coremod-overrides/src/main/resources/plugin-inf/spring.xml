@@ -6,6 +6,8 @@
         http://www.springframework.org/schema/util
         http://www.springframework.org/schema/util/spring-util.xsd">
 
+    <bean class="ca.kijiji.replyts.TextAnonymizer" id="textAnonymizer"/>
+
     <bean id="postProcessorChain" class="com.ecg.replyts.app.postprocessorchain.PostProcessorChain">
         <property name="postProcessors">
             <list value-type="com.ecg.replyts.app.postprocessorchain.PostProcessor">

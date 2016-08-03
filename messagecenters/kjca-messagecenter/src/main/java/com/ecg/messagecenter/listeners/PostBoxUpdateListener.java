@@ -1,6 +1,7 @@
 package com.ecg.messagecenter.listeners;
 
 import ca.kijiji.replyts.AddresserUtil;
+import ca.kijiji.replyts.TextAnonymizer;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.capi.AdInfoLookup;
@@ -45,6 +46,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final AdInfoLookup adInfoLookup;
     private final UserInfoLookup userInfoLookup;
     private final Integer pushServicePercentage;
+    private final TextAnonymizer textAnonymizer;
 
     @Autowired
     public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
@@ -60,8 +62,10 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                                  @Value("${capi.retryCount:1}") Integer retryCount,
                                  @Value("${send.push.percentage:0}") Integer pushServicePercentage,
                                  @Qualifier("pushMessageJmsTemplate") JmsTemplate jmsTemplate,
-                                 @Qualifier("sendPushService") PushService sendPushService) {
+                                 @Qualifier("sendPushService") PushService sendPushService,
+                                 TextAnonymizer textAnonymizer) {
         this.postBoxInitializer = postBoxInitializer;
+        this.textAnonymizer = textAnonymizer;
 
         final Configuration configuration = new Configuration(capiHost, capiPort, capiUsername, capiPassword, connectionTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, retryCount);
         this.adInfoLookup = new AdInfoLookup(configuration);
@@ -103,7 +107,6 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         }
 
         try (Timer.Context ignored = PROCESSING_TIMER.time()) {
-
             updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message));
             updateMessageCenter(conversation.getBuyerId(), conversation, message, userNotificationRules.buyerShouldBeNotified(message));
 
@@ -125,6 +128,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                         pushServicePercentage,
                         amqPushService,
                         sendPushService,
+                        textAnonymizer,
                         adInfoLookup,
                         userInfoLookup,
                         conversation,

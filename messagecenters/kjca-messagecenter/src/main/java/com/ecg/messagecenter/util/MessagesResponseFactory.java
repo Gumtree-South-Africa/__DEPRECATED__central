@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.util;
 
+import ca.kijiji.replyts.TextAnonymizer;
 import com.codahale.metrics.Counter;
 import com.ecg.messagecenter.webapi.responses.MessageResponse;
 import com.ecg.replyts.core.api.model.conversation.*;
@@ -14,9 +15,11 @@ public class MessagesResponseFactory {
     private static final Counter EMPTY_MSG_COUNTER = TimingReports.newCounter("message-box.removed-empty-msg");
 
     private MessagesDiffer differ;
+    private TextAnonymizer textAnonymizer;
 
-    public MessagesResponseFactory(MessagesDiffer differ) {
+    public MessagesResponseFactory(MessagesDiffer differ, TextAnonymizer textAnonymizer) {
         this.differ = differ;
+        this.textAnonymizer = textAnonymizer;
     }
 
     public Optional<MessageResponse> latestMessage(String email, Conversation conv) {
@@ -45,11 +48,12 @@ public class MessagesResponseFactory {
             return null;
         }
 
+        String anonymizedText = textAnonymizer.anonymizeText(conv, cleanedUpText);
         return new MessageResponse(
                 message.getId(),
                 MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(message.getReceivedAt()),
                 ConversationBoundnessFinder.boundnessForRole(role, message.getMessageDirection()),
-                cleanedUpText,
+                anonymizedText,
                 Optional.empty(),
                 MessageResponse.Attachment.transform(message),
                 message.getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? conv.getBuyerId() : conv.getSellerId()

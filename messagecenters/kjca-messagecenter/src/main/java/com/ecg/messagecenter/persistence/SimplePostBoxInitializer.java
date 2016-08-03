@@ -1,8 +1,8 @@
 package com.ecg.messagecenter.persistence;
 
+import ca.kijiji.replyts.TextAnonymizer;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.ConversationBlockRepository;
-import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.util.MessageCenterUtils;
@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,13 +33,21 @@ public class SimplePostBoxInitializer {
     @Autowired
     private ConversationBlockRepository conversationBlockRepository;
 
+    @Autowired
+    private TextAnonymizer textAnonymizer;
+
     @Value("${replyts.maxPreviewMessageCharacters:250}")
     private int maxChars;
 
     @Value("${replyts.maxConversationAgeDays:180}")
     private int maxConversationAgeDays;
 
-    private MessagesResponseFactory messageResponseFactory = new MessagesResponseFactory(new MessagesDiffer());
+    private MessagesResponseFactory messageResponseFactory;
+
+    @PostConstruct
+    private void createMessagesResponseFactory() {
+        messageResponseFactory = new MessagesResponseFactory(new MessagesDiffer(), textAnonymizer);
+    }
 
     public void moveConversationToPostBox(
             String email,
@@ -123,7 +132,8 @@ public class SimplePostBoxInitializer {
     private Optional<String> extractPreviewLastMessage(Conversation conversation, String email) {
         Optional<MessageResponse> latestMessage = messageResponseFactory.latestMessage(email, conversation);
         if (latestMessage.isPresent()) {
-            return Optional.of(MessageCenterUtils.truncateText(latestMessage.get().getTextShortTrimmed(), maxChars));
+            final String truncatedMessage = MessageCenterUtils.truncateText(latestMessage.get().getTextShortTrimmed(), maxChars);
+            return Optional.of(textAnonymizer.anonymizeText(conversation, truncatedMessage));
         }
         return Optional.empty();
     }

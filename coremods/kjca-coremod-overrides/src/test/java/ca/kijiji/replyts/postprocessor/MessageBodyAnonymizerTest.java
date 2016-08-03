@@ -1,16 +1,14 @@
 package ca.kijiji.replyts.postprocessor;
 
-import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import ca.kijiji.replyts.TextAnonymizer;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
-import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
 import com.ecg.replyts.core.runtime.mailparser.StringTypedContentMime4J;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
@@ -54,7 +52,7 @@ public class MessageBodyAnonymizerTest {
     private MutableMail outgoingMail;
 
     @Mock
-    private MultiTennantMailCloakingService mailCloakingService;
+    private TextAnonymizer textAnonymizer;
 
     @Mock
     private MutableMail incomingMail;
@@ -90,7 +88,7 @@ public class MessageBodyAnonymizerTest {
 
         when(context.getMail()).thenReturn(incomingMail);
 
-        messageBodyAnonymizer = new MessageBodyAnonymizer(mailCloakingService);
+        messageBodyAnonymizer = new MessageBodyAnonymizer(textAnonymizer);
     }
 
     @Test
@@ -101,7 +99,7 @@ public class MessageBodyAnonymizerTest {
         messageBodyAnonymizer.postProcess(context);
 
         verify(context).getConversation();
-        verifyNoMoreInteractions(outgoingMail, context, mailCloakingService);
+        verifyNoMoreInteractions(outgoingMail, context, textAnonymizer);
     }
 
     @Test
@@ -116,7 +114,7 @@ public class MessageBodyAnonymizerTest {
         ImmutableConversation conversation = conversationBuilder.build();
         when(context.getConversation()).thenReturn(conversation);
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation)).thenReturn(new MailAddress(BUYER_EMAIL_ANON));
+        when(textAnonymizer.anonymizeText(conversation, part1String)).thenReturn(part1String);
 
         messageBodyAnonymizer.postProcess(context);
 
@@ -135,7 +133,7 @@ public class MessageBodyAnonymizerTest {
         ImmutableConversation conversation = conversationBuilder.build();
         when(context.getConversation()).thenReturn(conversation);
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation)).thenReturn(new MailAddress(BUYER_EMAIL_ANON));
+        when(textAnonymizer.anonymizeText(conversation, part1String)).thenReturn("Email me at " + BUYER_EMAIL_ANON);
 
         messageBodyAnonymizer.postProcess(context);
 
@@ -154,7 +152,7 @@ public class MessageBodyAnonymizerTest {
         ImmutableConversation conversation = conversationBuilder.build();
         when(context.getConversation()).thenReturn(conversation);
         when(context.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
-        when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conversation)).thenReturn(new MailAddress(SELLER_EMAIL_ANON));
+        when(textAnonymizer.anonymizeText(conversation, part1String)).thenReturn("Email me at " + SELLER_EMAIL_ANON);
 
         messageBodyAnonymizer.postProcess(context);
 
@@ -182,7 +180,8 @@ public class MessageBodyAnonymizerTest {
         ImmutableConversation conversation = conversationBuilder.build();
         when(context.getConversation()).thenReturn(conversation);
         when(context.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
-        when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conversation)).thenReturn(new MailAddress(SELLER_EMAIL_ANON));
+        when(textAnonymizer.anonymizeText(conversation, part1String)).thenReturn("Email me at " + SELLER_EMAIL_ANON);
+        when(textAnonymizer.anonymizeText(conversation, part2String)).thenReturn(String.format("Email me at <a href='mailto:%s'>%s</a>", SELLER_EMAIL_ANON, SELLER_EMAIL_ANON));
 
         messageBodyAnonymizer.postProcess(context);
 

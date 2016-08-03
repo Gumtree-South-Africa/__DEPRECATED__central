@@ -1,11 +1,9 @@
 package ca.kijiji.replyts.postprocessor;
 
 import ca.kijiji.replyts.AddresserUtil;
+import ca.kijiji.replyts.TextAnonymizer;
 import com.ecg.replyts.app.postprocessorchain.PostProcessor;
-import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -13,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -28,11 +25,11 @@ import java.util.List;
 public class MessageBodyAnonymizer implements PostProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(MessageBodyAnonymizer.class);
 
-    private final MailCloakingService mailCloakingService;
+    private final TextAnonymizer textAnonymizer;
 
     @Autowired
-    public MessageBodyAnonymizer(MailCloakingService mailCloakingService) {
-        this.mailCloakingService = mailCloakingService;
+    public MessageBodyAnonymizer(TextAnonymizer textAnonymizer) {
+        this.textAnonymizer = textAnonymizer;
     }
 
     @Override
@@ -46,23 +43,7 @@ public class MessageBodyAnonymizer implements PostProcessor {
         MutableMail outgoingMail = context.getOutgoingMail();
         List<TypedContent<String>> textParts = outgoingMail.getTextParts(false); // grabs both text/plain and text/html
         for (TypedContent<String> part : textParts) {
-            String content = part.getContent();
-            MailAddress mailAddress;
-            switch (context.getMessageDirection()) {
-                case BUYER_TO_SELLER:
-                    mailAddress = mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation);
-                    content = StringUtils.replace(content, conversation.getBuyerId(), mailAddress.getAddress());
-                    LOG.debug("Replaced buyer's real email with anonymous");
-                    break;
-                case SELLER_TO_BUYER:
-                    mailAddress = mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conversation);
-                    content = StringUtils.replace(content, conversation.getSellerId(), mailAddress.getAddress());
-                    LOG.debug("Replaced seller's real email with anonymous");
-                    break;
-                default:
-                    return;
-            }
-            part.overrideContent(content);
+            part.overrideContent(textAnonymizer.anonymizeText(conversation, part.getContent()));
         }
     }
 

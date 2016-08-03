@@ -1,6 +1,7 @@
 package com.ecg.messagecenter.pushmessage;
 
 import ca.kijiji.replyts.BoxHeaders;
+import ca.kijiji.replyts.TextAnonymizer;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.persistence.ConversationThread;
@@ -21,14 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class PushMessageOnUnreadConversationCallbackTest {
 
@@ -40,6 +34,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     private Message message;
     private PushService amqPushService;
     private PushService sendPushService;
+    private TextAnonymizer textAnonymizer;
     private PostBox postBox;
     private Conversation conversation;
     private AdInfoLookup adInfoLookup;
@@ -52,6 +47,8 @@ public class PushMessageOnUnreadConversationCallbackTest {
         PushService.Result result = mock(PushService.Result.class);
         when(amqPushService.sendPushMessage(any(PushMessagePayload.class))).thenReturn(result);
         when(sendPushService.sendPushMessage(any(PushMessagePayload.class))).thenReturn(result);
+
+        textAnonymizer = mock(TextAnonymizer.class);
 
         Map<String, ConversationThread> unreadConvs = mock(Map.class);
         when(unreadConvs.size()).thenReturn(10);
@@ -80,7 +77,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         userInfoLookup = mock(UserInfoLookup.class);
         when(userInfoLookup.lookupUserInfo(anyString())).thenReturn(Optional.of(new UserInfoLookup.UserInfo("123")));
 
-        listener = new PushMessageOnUnreadConversationCallback(0, amqPushService, sendPushService, adInfoLookup, userInfoLookup, conversation, message);
+        listener = new PushMessageOnUnreadConversationCallback(0, amqPushService, sendPushService, textAnonymizer, adInfoLookup, userInfoLookup, conversation, message);
     }
 
     @Test
@@ -92,9 +89,10 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
     @Test
     public void canSwitchToSendService() throws Exception {
-        listener = new PushMessageOnUnreadConversationCallback(100, amqPushService, sendPushService, adInfoLookup, userInfoLookup, conversation, message);
+        listener = new PushMessageOnUnreadConversationCallback(100, amqPushService, sendPushService, textAnonymizer, adInfoLookup, userInfoLookup, conversation, message);
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", SELLER_MAIL));
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
         listener.success(postBox, true);
         verify(sendPushService).sendPushMessage(any(PushMessagePayload.class));
         verify(amqPushService, never()).sendPushMessage(any(PushMessagePayload.class));
@@ -104,6 +102,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     public void sendPushMessageToBuyer() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "Poster display name <" + SELLER_MAIL + ">"));
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
         listener.success(postBox, true);
 
         verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
@@ -122,6 +121,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     public void senderFromHasOnlyEmail_englishAd_useEnglishDefaultName() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", SELLER_MAIL));
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
 
         listener.success(postBox, true);
 
@@ -141,6 +141,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     public void senderFromHasOnlyEmail_frenchAd_useFrenchDefaultName() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", SELLER_MAIL, BoxHeaders.LOCALE.getHeaderName(), "fr_CA"));
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
 
         listener.success(postBox, true);
 
@@ -160,6 +161,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     public void sendPushMessageToSeller() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "Replier display name <" + BUYER_MAIL + ">"));
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
 
         listener.success(postBox, true);
 
@@ -179,6 +181,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     public void quotesInSenderDisplayName_noQuotesInPushMessage() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "\"Replier display name\" <" + BUYER_MAIL + ">"));
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
 
         listener.success(postBox, true);
 
@@ -198,6 +201,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     public void indicateUnreadConversationsInBase() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "Replier display name <" + BUYER_MAIL + ">"));
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
 
         listener.success(postBox, true);
 
@@ -217,6 +221,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getPlainTextBody()).thenReturn(unnecessarilyLongMessage);
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "Poster display name <" + BUYER_MAIL + ">"));
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(unnecessarilyLongMessage);
 
         listener.success(postBox, true);
 
@@ -244,6 +249,8 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getPlainTextBody()).thenReturn(unnecessarilyLongMessage);
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "Poster display name <" + BUYER_MAIL + ">"));
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(unnecessarilyLongMessage);
+
 
         listener.success(postBox, true);
 

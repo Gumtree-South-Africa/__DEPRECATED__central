@@ -1,7 +1,7 @@
 # kjca-messagecenter
 
 Originally taken from https://github.corp.ebay.com/ecg-kijiji-ca/replyts2-ca-message-center
-(original git hash: 2e637279bf76e2790b15f85897a070a93711a407)
+(original git hash: 3c9f99d802171fda36acbefa250d72b47e2d7c24)
 
 # Description
 

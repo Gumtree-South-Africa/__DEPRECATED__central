@@ -1,10 +1,13 @@
 package com.ecg.messagecenter.util;
 
+import ca.kijiji.replyts.TextAnonymizer;
 import com.ecg.messagecenter.webapi.responses.MessageResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
+import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +38,7 @@ public class MessagesResponseFactoryTest {
     private List<Message> messages;
     private MessagesDiffer differ;
     private Map<String, String> customValues;
+    private TextAnonymizer textAnonymizer;
 
 
     @Before
@@ -45,6 +49,8 @@ public class MessagesResponseFactoryTest {
         when(differ.cleanupFirstMessage(anyString())).thenReturn("cleanedUpFirstMessage");
         when(differ.diff(any(MessagesDiffer.DiffInput.class), any(MessagesDiffer.DiffInput.class))).thenReturn(new TextDiffer.TextCleanerResult("diffed"));
 
+        textAnonymizer = mock(TextAnonymizer.class);
+
         conv = mock(Conversation.class);
         customValues = new HashMap<>();
         when(conv.getCustomValues()).thenReturn(customValues);
@@ -52,12 +58,13 @@ public class MessagesResponseFactoryTest {
         when(conv.getSellerId()).thenReturn(SELLER);
         when(conv.getMessages()).thenReturn(messages);
 
-        messagesResponseFactory = new MessagesResponseFactory(differ);
+        messagesResponseFactory = new MessagesResponseFactory(differ, textAnonymizer);
     }
 
     @Test
     public void cleanOnlyOnFirstMessage() {
         addMessage("firstMessage", BUYER_TO_SELLER);
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
 
         List<MessageResponse> transformedMessages = createMessagesList().collect(Collectors.toList());
 
@@ -71,6 +78,8 @@ public class MessagesResponseFactoryTest {
         addMessage("firstMessage", BUYER_TO_SELLER);
         addMessage("secondMessage", SELLER_TO_BUYER);
 
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
+
         List<MessageResponse> response = createMessagesList(BUYER).collect(Collectors.toList());
 
         assertEquals(2, response.size());
@@ -80,6 +89,8 @@ public class MessagesResponseFactoryTest {
     public void doNotIncludeUNSENTMessagesIfNotOwnMessage() {
         addMessage("firstMessage", MessageState.HELD, BUYER_TO_SELLER);
         addMessage("secondMessage", MessageState.HELD, SELLER_TO_BUYER);
+
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
 
         List<MessageResponse> response = createMessagesList(SELLER).collect(Collectors.toList());
 
@@ -92,6 +103,8 @@ public class MessagesResponseFactoryTest {
         addMessage("secondMessage", MessageState.SENT, SELLER_TO_BUYER);
         addMessage("thirdMessage", MessageState.HELD, BUYER_TO_SELLER);
 
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
+
         List<MessageResponse> response = createMessagesList(SELLER).collect(Collectors.toList());
 
         assertEquals(2, response.size());
@@ -102,7 +115,9 @@ public class MessagesResponseFactoryTest {
         addMessage("firstMessage", MessageState.SENT, BUYER_TO_SELLER);
         addMessage("secondMessage", MessageState.SENT, SELLER_TO_BUYER);
         addMessage("thirdMessage", MessageState.HELD, BUYER_TO_SELLER);
-        addMessage("forthMessage", MessageState.DISCARDED, SELLER_TO_BUYER);
+        addMessage("fourthMessage", MessageState.DISCARDED, SELLER_TO_BUYER);
+
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
 
         List<MessageResponse> response = createMessagesList(BUYER).collect(Collectors.toList());
 
@@ -113,6 +128,8 @@ public class MessagesResponseFactoryTest {
     public void alwaysIncludeAllMessagesStatesIfOwnMessageSellerSide() {
         addMessage("firstMessage", SELLER_TO_BUYER);
         addMessage("secondMessage", MessageState.HELD, SELLER_TO_BUYER);
+
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
 
         List<MessageResponse> response = createMessagesList(SELLER).collect(Collectors.toList());
 
@@ -125,6 +142,8 @@ public class MessagesResponseFactoryTest {
         addMessage("secondMessage", MessageState.HELD, BUYER_TO_SELLER);
         addMessage("thirdMessage", MessageState.DISCARDED, BUYER_TO_SELLER);
 
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
+
         List<MessageResponse> response = createMessagesList(BUYER).collect(Collectors.toList());
 
         assertEquals(3, response.size());
@@ -135,6 +154,8 @@ public class MessagesResponseFactoryTest {
         addMessage("firstMessage", BUYER_TO_SELLER);
         addMessage("secondMessage", MessageState.IGNORED, BUYER_TO_SELLER);
 
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
+
         List<MessageResponse> response = createMessagesList(BUYER).collect(Collectors.toList());
 
         assertEquals(1, response.size());
@@ -144,12 +165,15 @@ public class MessagesResponseFactoryTest {
     public void absentValueIfNoMessagesProvided() {
         addMessage("firstMessage", MessageState.HELD, BUYER_TO_SELLER);
 
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
+
         assertFalse(messagesResponseFactory.create(SELLER, conv).findAny().isPresent());
     }
 
     @Test
     public void lastItemForIntialContactPosterWhenNoReplies() {
         addMessage("firstMessage", BUYER_TO_SELLER);
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("cleanedUpFirstMessage");
 
         assertEquals("cleanedUpFirstMessage", messagesResponseFactory.latestMessage(BUYER, conv).get().getTextShort());
     }
@@ -160,6 +184,8 @@ public class MessagesResponseFactoryTest {
         addMessage("secondMessage", SELLER_TO_BUYER);
         addMessage("thirdMessage", MessageState.HELD, BUYER_TO_SELLER);
 
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
+
         assertTrue(messagesResponseFactory.latestMessage(SELLER, conv).isPresent());
     }
 
@@ -169,6 +195,8 @@ public class MessagesResponseFactoryTest {
         addMessage("secondMessage", SELLER_TO_BUYER);
         addMessage("thirdMessage", MessageState.HELD, BUYER_TO_SELLER);
 
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
+        when(textAnonymizer.anonymizeText(any(Conversation.class), eq("thirdMessage"))).thenReturn("thirdMessage");
         when(differ.cleanupFirstMessage("thirdMessage")).thenReturn("thirdMessage");
 
         Optional<MessageResponse> buyersLatestMsg = messagesResponseFactory.latestMessage(BUYER, conv);
@@ -181,6 +209,8 @@ public class MessagesResponseFactoryTest {
         addMessage("firstMessage", MessageState.SENT, SELLER_TO_BUYER);
         addMessage("secondMessage", MessageState.SENT, SELLER_TO_BUYER);
 
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
+
         createMessagesList().collect(Collectors.toList());
 
         verify(differ, times(2)).cleanupFirstMessage(anyString());
@@ -191,6 +221,8 @@ public class MessagesResponseFactoryTest {
     public void includeSenderMailToMessage() {
         addMessage("firstMessage", MessageState.SENT, BUYER_TO_SELLER);
         addMessage("secondMessage", MessageState.SENT, SELLER_TO_BUYER);
+
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
 
         List<MessageResponse> response = createMessagesList().collect(Collectors.toList());
 
@@ -219,6 +251,8 @@ public class MessagesResponseFactoryTest {
         addMessage("", MessageState.SENT, BUYER_TO_SELLER);
         addMessage("sixthMessage", MessageState.SENT, BUYER_TO_SELLER);
 
+        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("firstMessage");
+
         List<MessageResponse> buyerVisibleMessages = createMessagesList(BUYER).collect(Collectors.toList());
         assertEquals(4, buyerVisibleMessages.size());
 
@@ -231,14 +265,13 @@ public class MessagesResponseFactoryTest {
     }
 
     private void addMessage(String text, MessageState state, MessageDirection messageDirection) {
-        Message message = mock(Message.class);
-        when(message.getReceivedAt()).thenReturn(new DateTime());
-        when(message.getMessageDirection()).thenReturn(messageDirection);
-        when(message.getPlainTextBody()).thenReturn(text);
-        when(message.getState()).thenReturn(state);
-
-        Map<String, String> map = new LinkedHashMap<>();
-        when(message.getHeaders()).thenReturn(map);
+        final Message message = ImmutableMessage.Builder.aMessage()
+                .withReceivedAt(new DateTime())
+                .withLastModifiedAt(new DateTime())
+                .withMessageDirection(messageDirection)
+                .withTextParts(Lists.newArrayList(text))
+                .withState(state)
+                .build();
 
         addMessage(message);
     }

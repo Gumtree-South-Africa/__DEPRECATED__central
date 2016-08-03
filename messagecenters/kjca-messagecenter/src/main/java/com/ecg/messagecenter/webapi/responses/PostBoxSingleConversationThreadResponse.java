@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.webapi.responses;
 
+import ca.kijiji.replyts.TextAnonymizer;
 import com.ecg.messagecenter.util.ConversationBoundnessFinder;
 import com.ecg.messagecenter.util.MessagesDiffer;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
@@ -37,8 +38,8 @@ public class PostBoxSingleConversationThreadResponse {
             String buyerAnonymousEmail,
             String sellerAnonymousEmail,
             boolean blockedByBuyer,
-            boolean blockedBySeller
-    ) {
+            boolean blockedBySeller,
+            TextAnonymizer textAnonymizer) {
         PostBoxSingleConversationThreadResponse response = new PostBoxSingleConversationThreadResponse();
         response.id = conversation.getId();
         response.role = ConversationBoundnessFinder.lookupUsersRole(email, conversation);
@@ -53,7 +54,7 @@ public class PostBoxSingleConversationThreadResponse {
         response.blockedByBuyer = blockedByBuyer;
         response.blockedBySeller = blockedBySeller;
 
-        MessagesResponseFactory messagesFactory = new MessagesResponseFactory(new MessagesDiffer());
+        MessagesResponseFactory messagesFactory = new MessagesResponseFactory(new MessagesDiffer(), textAnonymizer);
         List<MessageResponse> builtResponse = messagesFactory.create(email, conversation).collect(Collectors.toList());
         response.messages = builtResponse;
 
