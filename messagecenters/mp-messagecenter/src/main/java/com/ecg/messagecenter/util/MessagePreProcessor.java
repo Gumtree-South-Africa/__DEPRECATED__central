@@ -30,6 +30,8 @@ class MessagePreProcessor {
             "Op.{10,25}schreef[^<]{5,60}<a[^>]+href=\"mailto:[^\">]+@[^\">]+\"[^>]*>[^<]*</a",
             "Op.{10,25}schreef[^<]{5,60}(<|&lt;)?\\s*[^<>\\s]+@[^<>\\s]+(>|&gt;)?"
     };
+  
+    private static final String cssPattern = "(#outlook a \\{.*?\\}.*?(\\n|\\r\\n))|( blockquote.+?!important; })";
 
     static String removeEmailClientReplyFragment(Conversation conversation, Message message) {
         String buyerName = nullToEmpty(conversation.getCustomValues().get("buyer-name"));
@@ -41,8 +43,10 @@ class MessagePreProcessor {
         for (String pattern : patterns) {
             msgSplit = msgSplit.split(pattern, 2)[0];
         }
+      
+      //comment for rebase 
 
-        return msgSplit.trim();
+        return msgSplit.replaceFirst(cssPattern, "").trim();
     }
 
     private static String nullToEmpty(String s) {

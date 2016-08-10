@@ -349,6 +349,9 @@ public class MessagesResponseFactoryTest {
                 "From: BuyerName", messages.get(1).getTextShort());
     }
 
+
+
+
     @Test
     public void removeEmailClientFragmentWhenItStartsWithSubject() {
         customValues.put("buyer-name", "BuyerName");
@@ -421,6 +424,51 @@ public class MessagesResponseFactoryTest {
 
         // just verify it does not hang for 30 mins ;-)
     }
+
+    @Test
+    public void removeOutlookCssFragment() {
+        customValues.put("buyer-name", "BuyerName :)");
+        customValues.put("seller-name", "**SellerName**");
+
+        addMessage("Message from BuyerName :) to **SellerName**.", BUYER_TO_SELLER);
+
+        addMessage("#outlook a {padding:0;}body {width:100% !important;max-width:640px;margin:0;padding:0;}" +
+                ".ExternalClass {width:100%;}.ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass" +
+                " font, .ExternalClass td, .ExternalClass div {line-height:100%;}#backgroundTable {margin:0;padding:0;" +
+                "width:100% !important;line-height:100% !important;}table td {border-collapse:collapse;}a:hover " +
+                "{text-decoration:underline;}@media screen and (max-width:600px){.content {width:100% !important;}." +
+                "hidebreak600 {display:none;}}td[class=\\\"logo-cell\\\"] {padding:10px 0;border-top:4px;width:50%;}" +
+                "@media screen and (max-width:480px){.logo-cell {padding:10px 0;border-top:4px;width:0%;}}td[class" +
+                "=\\\"links-cell\\\"] {font-size:13px;color:#21479c;padding:13px 0;width:50%;} \r\n" +
+                "Hi BuyerName :) via Marktplaats,\n" +
+                "Message from **SellerName** :) to BuyerName.",
+                SELLER_TO_BUYER);
+
+        List<MessageResponse> messages = createMessagesList();
+
+        assertEquals("Hi BuyerName :) via Marktplaats,\n" +
+                "Message from **SellerName** :) to BuyerName.", messages.get(1).getTextShort());
+    }
+
+    @Test
+    public void removeYahooCssFragment() {
+        customValues.put("buyer-name", "BuyerName :)");
+        customValues.put("seller-name", "**SellerName**");
+
+        addMessage("Message from BuyerName :) to **SellerName**.", BUYER_TO_SELLER);
+
+        addMessage(" blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA " +
+                "solid !important; padding-left:1ex !important; background-color:white !important; }" +
+                        "Hi BuyerName :) via Marktplaats,\n" +
+                        "Message from **SellerName** :) to BuyerName.",
+                SELLER_TO_BUYER);
+
+        List<MessageResponse> messages = createMessagesList();
+
+        assertEquals("Hi BuyerName :) via Marktplaats,\n" +
+                "Message from **SellerName** :) to BuyerName.", messages.get(1).getTextShort());
+    }
+
 
     private void addMessage(String text, MessageDirection messageDirection) {
         addMessage(text, MessageState.SENT, messageDirection, "mail");
