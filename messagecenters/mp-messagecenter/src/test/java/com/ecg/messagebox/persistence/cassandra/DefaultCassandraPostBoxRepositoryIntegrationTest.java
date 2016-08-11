@@ -45,7 +45,8 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
             throw new IllegalStateException(e);
         }
         JsonConverter jsonConverter = new JsonConverter(new JacksonAwareObjectMapperConfigurer());
-        conversationsRepo = new DefaultCassandraPostBoxRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, true, jsonConverter);
+        conversationsRepo = new DefaultCassandraPostBoxRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE,
+                true, 100, jsonConverter);
     }
 
     @After

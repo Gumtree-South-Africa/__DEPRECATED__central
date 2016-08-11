@@ -4,7 +4,6 @@ import com.ecg.messagebox.model.ConversationMetadata;
 import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.model.MessageMetadata;
 import com.ecg.messagebox.model.Participant;
-import com.ecg.messagebox.persistence.cassandra.DefaultCassandraPostBoxRepository;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,13 +11,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.List;
 
+@Component
 public class JsonConverter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCassandraPostBoxRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JsonConverter.class);
 
     private ObjectMapper objectMapper;
 

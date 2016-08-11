@@ -31,7 +31,7 @@ public interface CassandraPostBoxRepository {
     /**
      * Fetch a conversation thread.
      *
-     * @param postBoxId id of postbox
+     * @param postBoxId      id of postbox
      * @param conversationId id of conversation
      * @return absent if the thread does not exist, else the conversation thread
      */
@@ -86,6 +86,7 @@ public interface CassandraPostBoxRepository {
 
     /**
      * Return the list with response data per conversation for the user.
+     *
      * @param userId the user id
      * @return the list with response data
      */
@@ -93,6 +94,7 @@ public interface CassandraPostBoxRepository {
 
     /**
      * Add or update the response data for the conversation of the user.
+     *
      * @param responseData the response data
      */
     void addOrUpdateResponseDataAsync(ResponseData responseData);

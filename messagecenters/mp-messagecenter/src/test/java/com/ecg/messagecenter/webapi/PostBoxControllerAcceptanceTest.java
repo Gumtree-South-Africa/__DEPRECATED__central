@@ -75,6 +75,7 @@ public class PostBoxControllerAcceptanceTest {
         RestAssured.given()
                 .expect()
                 .statusCode(200)
+                .body("body.conversations.size()", equalTo(0))
                 .delete("http://localhost:" + testRule.getHttpPort() + "/msgcenter/postboxes/2/conversations?ids=" + convId1 + "," + convId2);
 
         RestAssured.given()

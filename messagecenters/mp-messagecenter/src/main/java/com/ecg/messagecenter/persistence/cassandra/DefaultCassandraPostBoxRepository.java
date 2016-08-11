@@ -4,7 +4,6 @@ import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.messagebox.utils.StreamUtils;
 import com.ecg.messagecenter.persistence.*;
-import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,12 +13,15 @@ import org.joda.time.Seconds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 
 /**
@@ -64,9 +66,8 @@ import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
  * TODO: rewrite the above now that we store counters separately
  * </p>
  */
+@Component("oldCassandraPostBoxRepo")
 public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
-
-    private final int ttlResponseData;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCassandraPostBoxRepository.class);
 
@@ -83,17 +84,21 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     private ObjectMapper objectMapper;
 
-    private final Timer getPostBoxTimer = TimingReports.newTimer("cassandra.postBoxRepo.findById");
-    private final Timer getUnreadCountsTimer = TimingReports.newTimer("cassandra.postBoxRepo.getUnreadCounts");
-    private final Timer getConversationThreadTimer = TimingReports.newTimer("cassandra.postBoxRepo.getConversationThread");
-    private final Timer addReplaceConversationThreadTimer = TimingReports.newTimer("cassandra.postBoxRepo.addReplaceConversationThread");
-    private final Timer selectConversationUnreadMessagesCountTimer = TimingReports.newTimer("cassandra.postBoxRepo.selectConversationUnreadMessagesCount");
-    private final Timer updateConversationUnreadMessagesCountTimer = TimingReports.newTimer("cassandra.postBoxRepo.updateConversationUnreadMessagesCount");
-    private final Timer selectResponseDataTimer = TimingReports.newTimer("cassandra.postBoxRepo.selectResponseData");
-    private final Timer updateResponseDataTimer = TimingReports.newTimer("cassandra.postBoxRepo.addOrUpdateResponseDataAsync");
+    private final int ttlResponseData;
+
+    private final Timer getPostBoxTimer = newTimer("cassandra.postBoxRepo.findById");
+    private final Timer getUnreadCountsTimer = newTimer("cassandra.postBoxRepo.getUnreadCounts");
+    private final Timer getConversationThreadTimer = newTimer("cassandra.postBoxRepo.getConversationThread");
+    private final Timer addReplaceConversationThreadTimer = newTimer("cassandra.postBoxRepo.addReplaceConversationThread");
+    private final Timer selectConversationUnreadMessagesCountTimer = newTimer("cassandra.postBoxRepo.selectConversationUnreadMessagesCount");
+    private final Timer updateConversationUnreadMessagesCountTimer = newTimer("cassandra.postBoxRepo.updateConversationUnreadMessagesCount");
+    private final Timer selectResponseDataTimer = newTimer("cassandra.postBoxRepo.selectResponseData");
+    private final Timer updateResponseDataTimer = newTimer("cassandra.postBoxRepo.addOrUpdateResponseDataAsync");
 
     @Autowired
-    public DefaultCassandraPostBoxRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency,
+    public DefaultCassandraPostBoxRepository(@Qualifier("cassandraSession") Session session,
+                                             @Qualifier("cassandraReadConsistency") ConsistencyLevel readConsistency,
+                                             @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency,
                                              @Value("${persistence.cassandra.ttl.response.data:31536000}") int ttlResponseData) {
         this.session = session;
         this.readConsistency = readConsistency;

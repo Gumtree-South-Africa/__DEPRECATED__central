@@ -8,13 +8,16 @@ import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.persistence.cassandra.model.ConversationIndex;
 import com.ecg.messagebox.utils.StreamUtils;
-import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -22,13 +25,13 @@ import java.util.stream.Collectors;
 
 import static com.datastax.driver.core.utils.UUIDs.unixTimestamp;
 import static com.ecg.messagebox.model.Visibility.get;
+import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static com.google.common.collect.Lists.newArrayList;
 
+@Component(("newCassandraPostBoxRepo"))
 public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCassandraPostBoxRepository.class);
-
-    private static final int TIMEOUT_IN_SECONDS = 5;
 
     private final Session session;
     private final ConsistencyLevel readConsistency;
@@ -40,28 +43,33 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     private final JsonConverter jsonConverter;
 
-    private final Timer getPaginatedConversationIdsTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getPaginatedConversationIds");
-    private final Timer getPostBoxTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getPostBox");
-    private final Timer getConversationTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getConversation");
-    private final Timer getConversationWithMessagesTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getConversationWithMessages");
-    private final Timer getConversationMessagesTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getConversationMessages");
-    private final Timer createConversationTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.createConversation");
-    private final Timer addMessageTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.addMessage");
-    private final Timer getAdConversationIdsMapTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getAdConversationIdsMap");
-    private final Timer resetConversationUnreadCountTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.resetConversationUnreadCount");
-    private final Timer changeConversationVisibilitiesTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.changeConversationVisibilities");
-    private final Timer getPostBoxUnreadCountsTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getPostBoxUnreadCounts");
-    private final Timer getConversationUnreadCountMapTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCountMap");
-    private final Timer getConversationUnreadCountTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCount");
-    private final Timer blockUserTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.blockUser");
-    private final Timer unblockUserTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.unblockUser");
-    private final Timer getBlockedUserInfoTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.getBlockedUserInfo");
-    private final Timer deleteConversationsTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.deleteConversations");
-    private final Timer deleteConversationTimer = TimingReports.newTimer("cassandra.postBoxRepo.v2.deleteConversation");
+    private final int timeoutInMs;
 
-    public DefaultCassandraPostBoxRepository(Session session,
-                                             ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency,
-                                             boolean newDataModelEnabled,
+    private final Timer getPaginatedConversationIdsTimer = newTimer("cassandra.postBoxRepo.v2.getPaginatedConversationIds");
+    private final Timer getPostBoxTimer = newTimer("cassandra.postBoxRepo.v2.getPostBox");
+    private final Timer getConversationTimer = newTimer("cassandra.postBoxRepo.v2.getConversation");
+    private final Timer getConversationWithMessagesTimer = newTimer("cassandra.postBoxRepo.v2.getConversationWithMessages");
+    private final Timer getConversationMessagesTimer = newTimer("cassandra.postBoxRepo.v2.getConversationMessages");
+    private final Timer createConversationTimer = newTimer("cassandra.postBoxRepo.v2.createConversation");
+    private final Timer addMessageTimer = newTimer("cassandra.postBoxRepo.v2.addMessage");
+    private final Timer getAdConversationIdsMapTimer = newTimer("cassandra.postBoxRepo.v2.getAdConversationIdsMap");
+    private final Timer resetConversationUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.resetConversationUnreadCount");
+    private final Timer changeConversationVisibilitiesTimer = newTimer("cassandra.postBoxRepo.v2.changeConversationVisibilities");
+    private final Timer getPostBoxUnreadCountsTimer = newTimer("cassandra.postBoxRepo.v2.getPostBoxUnreadCounts");
+    private final Timer getConversationUnreadCountMapTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCountMap");
+    private final Timer getConversationUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCount");
+    private final Timer blockUserTimer = newTimer("cassandra.postBoxRepo.v2.blockUser");
+    private final Timer unblockUserTimer = newTimer("cassandra.postBoxRepo.v2.unblockUser");
+    private final Timer getBlockedUserInfoTimer = newTimer("cassandra.postBoxRepo.v2.getBlockedUserInfo");
+    private final Timer deleteConversationsTimer = newTimer("cassandra.postBoxRepo.v2.deleteConversations");
+    private final Timer deleteConversationTimer = newTimer("cassandra.postBoxRepo.v2.deleteConversation");
+
+    @Autowired
+    public DefaultCassandraPostBoxRepository(@Qualifier("cassandraSession") Session session,
+                                             @Qualifier("cassandraReadConsistency") ConsistencyLevel readConsistency,
+                                             @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency,
+                                             @Value("${messagebox.newDataModel.enabled:false}") boolean newDataModelEnabled,
+                                             @Value("${messagebox.future.timeout.ms:5000}") int timeoutInMs,
                                              JsonConverter jsonConverter) {
         this.session = session;
         this.readConsistency = readConsistency;
@@ -70,6 +78,8 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
         this.jsonConverter = jsonConverter;
+
+        this.timeoutInMs = timeoutInMs;
 
         if (newDataModelEnabled) {
             preparedStatements = Statements.prepare(session);
@@ -86,10 +96,10 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                     executorService.submit(() -> getConversationUnreadCountMap(userId));
 
             try {
-                List<String> conversationIds = conversationIdsFuture.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                List<String> conversationIds = conversationIdsFuture.get(timeoutInMs, TimeUnit.SECONDS);
                 ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATIONS.bind(this, userId, conversationIds));
 
-                Map<String, Integer> conversationUnreadCountsMap = unreadCountsFuture.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                Map<String, Integer> conversationUnreadCountsMap = unreadCountsFuture.get(timeoutInMs, TimeUnit.SECONDS);
 
                 List<ConversationThread> conversations = StreamUtils.toStream(resultSet)
                         .map(row -> {
@@ -163,14 +173,14 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             Future<List<Message>> messagesFuture = executorService.submit(() -> getConversationMessages(userId, conversationId, messageIdCursorOpt, messagesLimit));
 
             try {
-                Row row = conversationFuture.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                Row row = conversationFuture.get(timeoutInMs, TimeUnit.SECONDS);
                 if (row != null) {
                     ConversationThread conversation = createConversation(userId, row);
 
-                    int unreadMessagesCount = unreadMessagesCountFuture.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                    int unreadMessagesCount = unreadMessagesCountFuture.get(timeoutInMs, TimeUnit.SECONDS);
                     conversation.addNumUnreadMessages(unreadMessagesCount);
 
-                    List<Message> messages = messagesFuture.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                    List<Message> messages = messagesFuture.get(timeoutInMs, TimeUnit.SECONDS);
                     conversation.addMessages(messages);
 
                     return Optional.of(conversation);
@@ -420,7 +430,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
             for (ListenableFuture<ResultSet> future : futures) {
                 try {
-                    Row row = future.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS).one();
+                    Row row = future.get(timeoutInMs, TimeUnit.SECONDS).one();
                     if (row != null) {
                         return Optional.of(new BlockedUserInfo(
                                 row.getString("blockerid"),

@@ -11,7 +11,6 @@ import com.ecg.messagecenter.webapi.responses.ConversationResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
-import com.ecg.replyts.core.runtime.TimingReports;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 import org.slf4j.Logger;
@@ -23,6 +22,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 
+import static com.ecg.replyts.core.runtime.TimingReports.newHistogram;
+import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static org.joda.time.DateTime.now;
 
 @Component("oldCassandraPostBoxService")
@@ -30,8 +31,8 @@ public class CassandraPostBoxService implements PostBoxService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraPostBoxService.class);
 
-    private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
-    private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX = TimingReports.newHistogram("webapi-postbox-num-conversations-of-postbox");
+    private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = newHistogram("webapi-postbox-num-messages-of-conversation");
+    private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX = newHistogram("webapi-postbox-num-conversations-of-postbox");
     private static final String X_MESSAGE_TYPE = "X-Message-Type";
 
     private final CassandraPostBoxRepository postBoxRepository;
@@ -41,13 +42,13 @@ public class CassandraPostBoxService implements PostBoxService {
     private final PostBoxResponseBuilder postBoxResponseBuilder;
     private final int previewLastMessageMaxChars;
 
-    private final Timer processNewMessageTimer = TimingReports.newTimer("postBoxService.processNewMessage");
-    private final Timer getConversationTimer = TimingReports.newTimer("postBoxService.getConversation");
-    private final Timer markConversationAsReadTimer = TimingReports.newTimer("postBoxService.markConversationAsRead");
-    private final Timer getConversationsTimer = TimingReports.newTimer("postBoxService.getConversations");
-    private final Timer deleteConversationsTimer = TimingReports.newTimer("postBoxService.deleteConversations");
-    private final Timer getUnreadCountsTimer = TimingReports.newTimer("postBoxService.getUnreadCounts");
-    private final Timer getResponseDataTimer = TimingReports.newTimer("postBoxService.getResponseData");
+    private final Timer processNewMessageTimer = newTimer("postBoxService.processNewMessage");
+    private final Timer getConversationTimer = newTimer("postBoxService.getConversation");
+    private final Timer markConversationAsReadTimer = newTimer("postBoxService.markConversationAsRead");
+    private final Timer getConversationsTimer = newTimer("postBoxService.getConversations");
+    private final Timer deleteConversationsTimer = newTimer("postBoxService.deleteConversations");
+    private final Timer getUnreadCountsTimer = newTimer("postBoxService.getUnreadCounts");
+    private final Timer getResponseDataTimer = newTimer("postBoxService.getResponseData");
 
     @Autowired
     public CassandraPostBoxService(CassandraPostBoxRepository postBoxRepository,

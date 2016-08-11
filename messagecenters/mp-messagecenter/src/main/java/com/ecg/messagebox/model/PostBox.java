@@ -29,6 +29,11 @@ public class PostBox {
         return unreadCounts;
     }
 
+    public PostBox filterConversations(List<String> conversationIds) {
+        conversations.removeIf(conv -> conversationIds.contains(conv.getId()));
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

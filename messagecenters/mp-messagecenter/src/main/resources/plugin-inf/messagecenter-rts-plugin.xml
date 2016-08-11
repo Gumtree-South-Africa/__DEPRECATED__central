@@ -2,35 +2,22 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
 
     <context:component-scan base-package="com.ecg.messagebox.configuration"/>
     <context:component-scan base-package="com.ecg.messagebox.converters"/>
     <context:component-scan base-package="com.ecg.messagebox.diff"/>
     <context:component-scan base-package="com.ecg.messagebox.service"/>
+    <context:component-scan base-package="com.ecg.messagebox.json"/>
+    <context:component-scan base-package="com.ecg.messagebox.persistence.cassandra"/>
+
     <context:component-scan base-package="com.ecg.messagecenter.persistence.cassandra"/>
-
-    <bean class="com.ecg.messagecenter.listeners.PostBoxUpdateListener"/>
-
-    <!-- Old Cassandra PostBox Repository -->
-    <bean class="com.ecg.messagecenter.persistence.cassandra.DefaultCassandraPostBoxRepository">
-        <constructor-arg name="session" ref="cassandraSession"/>
-        <constructor-arg name="readConsistency" ref="cassandraReadConsistency"/>
-        <constructor-arg name="writeConsistency" ref="cassandraWriteConsistency"/>
-    </bean>
-
-    <!-- New Cassandra PostBox Repository -->
-    <bean class="com.ecg.messagebox.persistence.cassandra.DefaultCassandraPostBoxRepository">
-        <constructor-arg name="session" ref="cassandraSession"/>
-        <constructor-arg name="readConsistency" ref="cassandraReadConsistency"/>
-        <constructor-arg name="writeConsistency" ref="cassandraWriteConsistency"/>
-        <constructor-arg name="newDataModelEnabled" value="${messagebox.newDataModel.enabled:false}"/>
-        <constructor-arg name="jsonConverter" ref="jsonConverter"/>
-    </bean>
-
-    <bean id="jsonConverter" class="com.ecg.messagebox.json.JsonConverter"/>
-
-    <bean class="com.ecg.messagecenter.webapi.MessageCenterApiConfiguration"/>
+    <context:component-scan base-package="com.ecg.messagecenter.listeners"/>
+    <context:component-scan base-package="com.ecg.messagecenter.webapi"/>
+    <context:component-scan base-package="com.ecg.messagecenter.identifier"/>
 
     <bean id="userIdentifierServiceFactory" class="com.ecg.messagecenter.identifier.UserIdentifierServiceFactory"/>
 

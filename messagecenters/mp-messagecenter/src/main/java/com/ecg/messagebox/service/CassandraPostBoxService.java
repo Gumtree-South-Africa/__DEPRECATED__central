@@ -7,10 +7,10 @@ import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.runtime.TimingReports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -20,13 +20,12 @@ import java.util.Optional;
 import java.util.concurrent.*;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
+import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 
 @Component("newCassandraPostBoxService")
 public class CassandraPostBoxService implements PostBoxService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraPostBoxService.class);
-
-    private static final int TIMEOUT_IN_SECONDS = 5;
 
     private final CassandraPostBoxRepository postBoxRepository;
     private final MessagesResponseFactory messageResponseFactory;
@@ -34,20 +33,24 @@ public class CassandraPostBoxService implements PostBoxService {
 
     private final ExecutorService executorService;
 
-    private final Timer processNewMessageTimer = TimingReports.newTimer("postBoxService.v2.processNewMessage");
-    private final Timer getConversationTimer = TimingReports.newTimer("postBoxService.v2.getConversation");
-    private final Timer markConversationAsReadTimer = TimingReports.newTimer("postBoxService.v2.markConversationAsRead");
-    private final Timer getConversationsTimer = TimingReports.newTimer("postBoxService.v2.getConversations");
-    private final Timer changeConversationVisibilitiesTimer = TimingReports.newTimer("postBoxService.v2.changeConversationVisibilities");
-    private final Timer getUnreadCountsTimer = TimingReports.newTimer("postBoxService.v2.getUnreadCounts");
+    private final int timeoutInMs;
+
+    private final Timer processNewMessageTimer = newTimer("postBoxService.v2.processNewMessage");
+    private final Timer getConversationTimer = newTimer("postBoxService.v2.getConversation");
+    private final Timer markConversationAsReadTimer = newTimer("postBoxService.v2.markConversationAsRead");
+    private final Timer getConversationsTimer = newTimer("postBoxService.v2.getConversations");
+    private final Timer changeConversationVisibilitiesTimer = newTimer("postBoxService.v2.changeConversationVisibilities");
+    private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
 
     @Autowired
     public CassandraPostBoxService(CassandraPostBoxRepository postBoxRepository,
-                                   UserIdentifierService userIdentifierService) {
+                                   UserIdentifierService userIdentifierService,
+                                   @Value("${messagebox.future.timeout.ms:5000}") int timeoutInMs) {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.messageResponseFactory = new MessagesResponseFactory(userIdentifierService);
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        this.timeoutInMs = timeoutInMs;
     }
 
     @Override
@@ -65,7 +68,7 @@ public class CassandraPostBoxService implements PostBoxService {
             Future<Optional<ConversationThread>> conversationFuture = executorService.submit(() -> postBoxRepository.getConversation(userId, rtsConversation.getId()));
 
             try {
-                if (areUsersBlockedFuture.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
+                if (areUsersBlockedFuture.get(timeoutInMs, TimeUnit.SECONDS)) {
                     // there is a blocking between the two users, so no new messages will be added to this user's conversation projection
                     return;
                 }
@@ -74,7 +77,7 @@ public class CassandraPostBoxService implements PostBoxService {
                 String messageText = messageResponseFactory.getCleanedMessage(rtsConversation, rtsMessage);
                 Message newMessage = new Message(UUIDs.timeBased(), messageText, senderUserId, messageType);
 
-                Optional<ConversationThread> conversationOpt = conversationFuture.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                Optional<ConversationThread> conversationOpt = conversationFuture.get(timeoutInMs, TimeUnit.SECONDS);
 
                 if (conversationOpt.isPresent()) {
                     ConversationThread conversation = conversationOpt.get();
@@ -100,7 +103,8 @@ public class CassandraPostBoxService implements PostBoxService {
                 }
                 areUsersBlockedFuture.cancel(true);
                 conversationFuture.cancel(true);
-                LOGGER.error("Could not process new conversation message for postbox id {}, conversation id {} and RTS message id {}", userId, rtsConversation.getId(), rtsMessage.getId(), e);
+                LOGGER.error("Could not process new conversation message for postbox id {}, conversation id {} and RTS message id {}",
+                        userId, rtsConversation.getId(), rtsMessage.getId(), e);
                 throw new RuntimeException(e);
             }
         }
@@ -138,17 +142,19 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public PostBox changeConversationVisibilities(String userId, List<String> conversationIds, Visibility visibility, int conversationsOffset, int conversationsLimit) {
+    public PostBox changeConversationVisibilities(String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis,
+                                                  int conversationsOffset, int conversationsLimit) {
         try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
 
             Map<String, String> adConversationIdsMap = postBoxRepository.getAdConversationIdsMap(userId, conversationIds);
 
-            postBoxRepository.changeConversationVisibilities(userId, adConversationIdsMap, visibility);
+            postBoxRepository.changeConversationVisibilities(userId, adConversationIdsMap, newVis);
 
-            // TODO: This feels kinda stupid. requesting the whole thing. this should be done client side. slows down stuff !!! Talk to frontend and app guys !!!
+            // TODO: This feels kinda stupid. requesting the whole thing. this should be done client side. slows down stuff !!!
+            // TODO: Talk to frontend and app guys !!!
 
-            // TODO: Filter out the updated conversations !!!
-            return postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
+            return postBoxRepository.getPostBox(userId, returnVis, conversationsOffset, conversationsLimit)
+                    .filterConversations(conversationIds);
         }
     }
 
