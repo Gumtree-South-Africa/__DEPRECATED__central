@@ -4,11 +4,12 @@ import ca.kijiji.replyts.TextAnonymizer;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.persistence.*;
+import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterBlockCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
@@ -20,6 +21,7 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -221,7 +223,7 @@ class ConversationThreadController {
             Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
             if (conversationThreadRequested.isPresent()) {
                 postBox.removeConversation(conversationId);
-                postBoxRepository.write(postBox);
+                postBoxRepository.write(postBox, new SimplePostBoxRepository.DeletionContext(ImmutableList.of(conversationId)));
             }
 
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);

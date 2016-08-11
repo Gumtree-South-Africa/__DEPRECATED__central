@@ -16,7 +16,7 @@ import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENA
 
 public class ConversationThreadControllerIntegrationTest {
 
-    public static final MailBuilder MAIL = aNewMail()
+    private static final MailBuilder MAIL = aNewMail()
             .from("buyer1@buyer.com")
             .to("seller1@seller.com")
             .adId("232323")
@@ -30,13 +30,31 @@ public class ConversationThreadControllerIntegrationTest {
     public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
 
     @Test
+    public void deleteConversation_removedFromPostbox() throws Exception {
+        Conversation conversation = testRule.deliver(MAIL).getConversation();
+
+        testRule.waitForMail();
+
+        String postboxEndpoint = "http://localhost:" + testRule.getHttpPort() + "/message-center/postboxes/seller1@seller.com";
+        String singleConvoURI = postboxEndpoint + "/conversations/" + conversation.getId();
+        RestAssured.expect()
+                .statusCode(HttpStatus.NO_CONTENT.value())
+                .delete(singleConvoURI);
+
+        RestAssured.expect()
+                .statusCode(HttpStatus.OK.value())
+                .body("status.state", Matchers.is("OK"))
+                .body("body.conversations", Matchers.empty())
+                .get(postboxEndpoint);
+    }
+
+    @Test
     public void existingConversation_sellerBlocksUnblocks() throws Exception {
         Conversation conversation = testRule.deliver(MAIL).getConversation();
 
         testRule.waitForMail();
 
-        RestAssured.given()
-                .expect()
+        RestAssured.expect()
                 .statusCode(HttpStatus.ACCEPTED.value())
                 .post("http://localhost:"
                         + testRule.getHttpPort()
@@ -44,8 +62,7 @@ public class ConversationThreadControllerIntegrationTest {
                         + conversation.getId()
                         + "/block");
 
-        RestAssured.given()
-                .expect()
+        RestAssured.expect()
                 .statusCode(HttpStatus.NO_CONTENT.value())
                 .delete("http://localhost:"
                         + testRule.getHttpPort()
@@ -61,8 +78,7 @@ public class ConversationThreadControllerIntegrationTest {
 
         testRule.waitForMail();
 
-        RestAssured.given()
-                .expect()
+        RestAssured.expect()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .post("http://localhost:"
                         + testRule.getHttpPort()
@@ -70,8 +86,7 @@ public class ConversationThreadControllerIntegrationTest {
                         + conversation.getId() + "WTB"
                         + "/block");
 
-        RestAssured.given()
-                .expect()
+        RestAssured.expect()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .delete("http://localhost:"
                         + testRule.getHttpPort()
@@ -86,8 +101,7 @@ public class ConversationThreadControllerIntegrationTest {
 
         testRule.waitForMail();
 
-        RestAssured.given()
-                .expect()
+        RestAssured.expect()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .post("http://localhost:"
                         + testRule.getHttpPort()
@@ -95,8 +109,7 @@ public class ConversationThreadControllerIntegrationTest {
                         + conversation.getId()
                         + "/block");
 
-        RestAssured.given()
-                .expect()
+        RestAssured.expect()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .delete("http://localhost:"
                         + testRule.getHttpPort()
@@ -112,8 +125,7 @@ public class ConversationThreadControllerIntegrationTest {
         testRule.waitForMail();
 
         // Assert that nothing's blocked initially
-        RestAssured.given()
-                .expect()
+        RestAssured.expect()
                 .statusCode(HttpStatus.OK.value())
                 .body("status.state", Matchers.is("OK"))
                 .body("body.blockedByBuyer", Matchers.is(false))
@@ -131,8 +143,7 @@ public class ConversationThreadControllerIntegrationTest {
                 + "/block");
 
         // Confirm that block is set + reported
-        RestAssured.given()
-                .expect()
+        RestAssured.expect()
                 .statusCode(HttpStatus.OK.value())
                 .body("status.state", Matchers.is("OK"))
                 .body("body.blockedByBuyer", Matchers.is(false))
@@ -150,8 +161,7 @@ public class ConversationThreadControllerIntegrationTest {
                 + "/block");
 
         // Confirm that block is no longer set
-        RestAssured.given()
-                .expect()
+        RestAssured.expect()
                 .statusCode(HttpStatus.OK.value())
                 .body("status.state", Matchers.is("OK"))
                 .body("body.blockedByBuyer", Matchers.is(false))
