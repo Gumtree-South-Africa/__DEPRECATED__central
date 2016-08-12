@@ -24,7 +24,7 @@ public class InstrumentedCallerRunsPolicy implements RejectedExecutionHandler {
     /**
      * Instrumented called runs policy with given metrics owner and name.
      */
-    public InstrumentedCallerRunsPolicy(Class owner, String name) {
+    public InstrumentedCallerRunsPolicy(String owner, String name) {
         this.callerRunsCounter = newCounter(MetricRegistry.name(owner, name, "callerRunCount"));
     }
 

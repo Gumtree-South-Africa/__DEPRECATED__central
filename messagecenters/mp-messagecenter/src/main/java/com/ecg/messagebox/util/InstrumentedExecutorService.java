@@ -21,7 +21,7 @@ import static com.ecg.replyts.core.runtime.TimingReports.*;
 public class InstrumentedExecutorService implements ExecutorService {
 
     private final ExecutorService delegate;
-    private final Class owner;
+    private final String owner;
     private final String name;
 
     private final Counter submitted;
@@ -36,7 +36,7 @@ public class InstrumentedExecutorService implements ExecutorService {
      * In case the executorService is a {@link java.util.concurrent.ThreadPoolExecutor},
      * consider configuring it with a {@link com.ecg.messagebox.util.InstrumentedCallerRunsPolicy}.
      */
-    public InstrumentedExecutorService(ExecutorService executorService, Class owner, String name) {
+    public InstrumentedExecutorService(ExecutorService executorService, String owner, String name) {
         this.delegate = executorService;
         this.owner = owner;
         this.name = name;

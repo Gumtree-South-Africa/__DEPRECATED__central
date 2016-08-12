@@ -34,6 +34,7 @@ import java.util.function.Supplier;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
+import static java.lang.Runtime.getRuntime;
 
 @Component("postBoxServiceDelegator")
 public class PostBoxServiceDelegator implements PostBoxService {
@@ -103,9 +104,9 @@ public class PostBoxServiceDelegator implements PostBoxService {
         this.diffConfig = diffConfig;
         this.diff = diff;
 
-        execSrvForOldModel = newExecutorService("oldModel");
-        execSrvForNewModel = newExecutorService("newModel");
-        execSrvForDiff = newExecutorService("diff");
+        execSrvForOldModel = newExecutorService("oldModelExecSrv");
+        execSrvForNewModel = newExecutorService("newModelExecSrv");
+        execSrvForDiff = newExecutorServiceForDiff();
     }
 
     @Override
@@ -335,8 +336,8 @@ public class PostBoxServiceDelegator implements PostBoxService {
     }
 
     private ExecutorService newExecutorService(String metricsName) {
-        Class metricsOwner = PostBoxServiceDelegator.class;
-        int corePoolSize = Runtime.getRuntime().availableProcessors();
+        String metricsOwner = "postBoxDelegatorService";
+        int corePoolSize = getRuntime().availableProcessors();
 
         return new InstrumentedExecutorService(
                 new ThreadPoolExecutor(
@@ -345,5 +346,13 @@ public class PostBoxServiceDelegator implements PostBoxService {
                         new SynchronousQueue<>(),
                         new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)),
                 metricsOwner, metricsName);
+    }
+
+    private ExecutorService newExecutorServiceForDiff() {
+        return new InstrumentedExecutorService(
+                Executors.newFixedThreadPool(getRuntime().availableProcessors()),
+                "postBoxDelegatorService",
+                "diffExecSrv"
+        );
     }
 }
