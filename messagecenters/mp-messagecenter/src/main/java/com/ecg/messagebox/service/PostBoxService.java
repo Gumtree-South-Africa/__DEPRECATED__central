@@ -2,7 +2,7 @@ package com.ecg.messagebox.service;
 
 import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
-import com.ecg.messagebox.model.PostBoxUnreadCounts;
+import com.ecg.messagebox.model.UserUnreadCounts;
 import com.ecg.messagebox.model.Visibility;
 
 import java.util.List;
@@ -24,5 +24,9 @@ public interface PostBoxService {
     PostBox changeConversationVisibilities(String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis,
                                            int conversationsOffset, int conversationsLimit);
 
-    PostBoxUnreadCounts getUnreadCounts(String userId);
+    UserUnreadCounts getUnreadCounts(String userId);
+
+    PostBox blockUser(String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit);
+
+    PostBox unblockUser(String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit);
 }

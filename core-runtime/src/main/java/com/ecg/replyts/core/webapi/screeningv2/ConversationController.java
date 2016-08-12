@@ -30,6 +30,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 
+import static org.springframework.http.MediaType.*;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+
 /**
  * returns all informations, ReplyTS has for a specific conversation.
  */
@@ -58,11 +62,9 @@ class ConversationController {
     /**
      * return metadata and all messages for a conversation identified by the given ID.
      */
-    @RequestMapping(value = GetConversationCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+    @RequestMapping(value = GetConversationCommand.MAPPING, produces = APPLICATION_JSON_VALUE, method = GET)
     @ResponseBody
     ResponseObject<?> loadConversation(@PathVariable String conversationId) {
-
         MutableConversation conversation = conversationRepository.getById(conversationId);
         ConversationRts conversationRts = converter.convertConversation(conversation);
 
@@ -71,11 +73,9 @@ class ConversationController {
                 ResponseObject.of(conversationRts);
     }
 
-    @RequestMapping(value = "/conversation/{conversationId}",
-            produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.PUT)
+    @RequestMapping(value = "/conversation/{conversationId}", produces = APPLICATION_JSON_VALUE, method = PUT)
     @ResponseBody
     ResponseObject<?> closeConversation(@PathVariable String conversationId, @RequestBody ChangeConversationStatePayload changeConversationStatePayload) {
-
         Preconditions.checkArgument(ConversationState.CLOSED.equals(changeConversationStatePayload.getState()));
 
         MutableConversation conversation = conversationRepository.getById(conversationId);
@@ -98,8 +98,7 @@ class ConversationController {
         return ResponseObject.of(RequestState.OK);
     }
 
-
-    @RequestMapping(value="/conversation/{conversationId}/customValue", method = RequestMethod.PUT)
+    @RequestMapping(value="/conversation/{conversationId}/customValue", method = PUT)
     @ResponseBody
     ResponseObject<?> addCustomValue(@PathVariable("conversationId") String convId, @RequestBody AddCustomValuePayload cmd) {
         MutableConversation byId = conversationRepository.getById(convId);
@@ -111,7 +110,7 @@ class ConversationController {
         return ResponseObject.of(converter.convertConversation(byId));
     }
 
-    @RequestMapping(value = "conversation/bymail", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+    @RequestMapping(value = "conversation/bymail", produces = APPLICATION_JSON_VALUE, method = GET)
     @ResponseBody
     ResponseObject<?> loadConversationByMail(@RequestParam("mail") String mailAddress) {
         MailAddress mail = new MailAddress(mailAddress);

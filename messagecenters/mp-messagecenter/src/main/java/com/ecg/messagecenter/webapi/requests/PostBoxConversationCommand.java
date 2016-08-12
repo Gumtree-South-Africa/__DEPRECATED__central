@@ -11,8 +11,8 @@ public class PostBoxConversationCommand implements TypedCommand {
     private final String userId;
     private String conversationId;
 
-    public PostBoxConversationCommand(String email, String conversationId) {
-        this.userId = email;
+    public PostBoxConversationCommand(String userId, String conversationId) {
+        this.userId = userId;
         this.conversationId = conversationId;
     }
 

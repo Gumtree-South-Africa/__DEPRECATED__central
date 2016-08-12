@@ -45,8 +45,7 @@ class PostBoxController {
         new TopLevelExceptionHandler(ex, response, writer).handle();
     }
 
-    @RequestMapping(value = GetPostBoxCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_VALUE, method = {RequestMethod.GET})
+    @RequestMapping(value = GetPostBoxCommand.MAPPING, produces = MediaType.APPLICATION_JSON_VALUE, method = {RequestMethod.GET})
     @ResponseBody
     ResponseObject<PostBoxResponse> getPostBox(
             @PathVariable("userId") String userId,
@@ -58,8 +57,7 @@ class PostBoxController {
         }
     }
 
-    @RequestMapping(value = DeleteConversationsCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
+    @RequestMapping(value = DeleteConversationsCommand.MAPPING, produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
     @ResponseBody
     ResponseObject<?> deleteConversations(
             @PathVariable("userId") String userId,

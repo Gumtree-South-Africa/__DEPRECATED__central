@@ -8,11 +8,13 @@
        http://www.springframework.org/schema/context/spring-context.xsd">
 
     <context:component-scan base-package="com.ecg.messagebox.configuration"/>
-    <context:component-scan base-package="com.ecg.messagebox.converters"/>
+    <context:component-scan base-package="com.ecg.messagebox.oldconverters"/>
     <context:component-scan base-package="com.ecg.messagebox.diff"/>
     <context:component-scan base-package="com.ecg.messagebox.service"/>
-    <context:component-scan base-package="com.ecg.messagebox.json"/>
-    <context:component-scan base-package="com.ecg.messagebox.persistence.cassandra"/>
+    <context:component-scan base-package="com.ecg.messagebox.persistence.jsonconverter"/>
+    <context:component-scan base-package="com.ecg.messagebox.persistence"/>
+    <context:component-scan base-package="com.ecg.messagebox.controllers"/>
+    <context:component-scan base-package="com.ecg.messagebox.controllers.responses.converters"/>
     <context:component-scan base-package="com.ecg.messagebox.cronjobs"/>
 
     <context:component-scan base-package="com.ecg.messagecenter.persistence.cassandra"/>

@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
 
-@Controller
+@Controller("oldUnreadCountsController")
 public class UnreadCountsController {
 
     private static final Timer API_POSTBOX_GET_UNREAD_COUNTS = TimingReports.newTimer("webapi-postbox-get-unread-counts");

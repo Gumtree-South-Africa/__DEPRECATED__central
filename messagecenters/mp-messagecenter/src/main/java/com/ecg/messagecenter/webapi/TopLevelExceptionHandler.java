@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 
-class TopLevelExceptionHandler {
+public class TopLevelExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopLevelExceptionHandler.class);
 
@@ -50,5 +50,4 @@ class TopLevelExceptionHandler {
         jsonObject.put("errors", array);
         return jsonObject;
     }
-
 }

@@ -2,9 +2,9 @@ package com.ecg.messagebox.service.delegator;
 
 import com.ecg.messagebox.configuration.DiffConfiguration;
 import com.ecg.messagebox.configuration.NewModelConfiguration;
-import com.ecg.messagebox.converters.ConversationResponseConverter;
-import com.ecg.messagebox.converters.PostBoxResponseConverter;
-import com.ecg.messagebox.converters.UnreadCountsConverter;
+import com.ecg.messagebox.oldconverters.OldConversationResponseConverter;
+import com.ecg.messagebox.oldconverters.OldPostBoxResponseConverter;
+import com.ecg.messagebox.oldconverters.OldUnreadCountsConverter;
 import com.ecg.messagebox.diff.Diff;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagecenter.persistence.PostBoxUnreadCounts;
@@ -28,9 +28,9 @@ public class BaseDelegatorTest {
     PostBoxService newPbService = mock(PostBoxService.class);
 
     // mocked converters
-    PostBoxResponseConverter pbRespConverter = mock(PostBoxResponseConverter.class);
-    UnreadCountsConverter unreadCountsConverter = mock(UnreadCountsConverter.class);
-    ConversationResponseConverter convRespConverter = mock(ConversationResponseConverter.class);
+    OldPostBoxResponseConverter pbRespConverter = mock(OldPostBoxResponseConverter.class);
+    OldUnreadCountsConverter unreadCountsConverter = mock(OldUnreadCountsConverter.class);
+    OldConversationResponseConverter convRespConverter = mock(OldConversationResponseConverter.class);
 
     // mocked diff tool
     Diff diff = mock(Diff.class);

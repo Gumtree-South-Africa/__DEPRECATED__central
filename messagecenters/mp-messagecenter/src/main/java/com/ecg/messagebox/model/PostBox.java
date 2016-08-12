@@ -9,12 +9,14 @@ public class PostBox {
 
     private String userId;
     private List<ConversationThread> conversations;
-    private PostBoxUnreadCounts unreadCounts;
+    private UserUnreadCounts unreadCounts;
+    private int conversationsTotalCount;
 
-    public PostBox(String userId, List<ConversationThread> conversations, PostBoxUnreadCounts unreadCounts) {
+    public PostBox(String userId, List<ConversationThread> conversations, UserUnreadCounts unreadCounts, int conversationsTotalCount) {
         this.userId = userId;
         this.conversations = conversations;
         this.unreadCounts = unreadCounts;
+        this.conversationsTotalCount = conversationsTotalCount;
     }
 
     public String getUserId() {
@@ -25,8 +27,12 @@ public class PostBox {
         return conversations;
     }
 
-    public PostBoxUnreadCounts getUnreadCounts() {
+    public UserUnreadCounts getUnreadCounts() {
         return unreadCounts;
+    }
+
+    public int getConversationsTotalCount() {
+        return conversationsTotalCount;
     }
 
     public PostBox removeConversations(List<String> conversationIds) {
@@ -41,12 +47,13 @@ public class PostBox {
         PostBox postBox = (PostBox) o;
         return Objects.equals(userId, postBox.userId)
                 && Objects.equals(conversations, postBox.conversations)
-                && Objects.equals(unreadCounts, postBox.unreadCounts);
+                && Objects.equals(unreadCounts, postBox.unreadCounts)
+                && conversationsTotalCount == postBox.conversationsTotalCount;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, conversations, unreadCounts);
+        return Objects.hash(userId, conversations, unreadCounts, conversationsTotalCount);
     }
 
     @Override
@@ -55,6 +62,7 @@ public class PostBox {
                 .add("userId", userId)
                 .add("conversations", conversations)
                 .add("unreadCounts", unreadCounts)
+                .add("conversationsTotalCount", conversationsTotalCount)
                 .toString();
     }
 }

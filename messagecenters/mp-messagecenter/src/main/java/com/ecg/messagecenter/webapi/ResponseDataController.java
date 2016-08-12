@@ -9,12 +9,17 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
+
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @Controller
 public class ResponseDataController {
@@ -35,7 +40,7 @@ public class ResponseDataController {
         new TopLevelExceptionHandler(ex, response, writer).handle();
     }
 
-    @RequestMapping(value = MAPPING, method = RequestMethod.GET)
+    @RequestMapping(value = MAPPING, method = GET)
     @ResponseBody
     public ResponseObject<ResponseDataResponse> getResponseData(@PathVariable String userId) {
 

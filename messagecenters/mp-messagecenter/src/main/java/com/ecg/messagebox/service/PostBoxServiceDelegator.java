@@ -5,9 +5,9 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.configuration.DiffConfiguration;
 import com.ecg.messagebox.configuration.NewModelConfiguration;
-import com.ecg.messagebox.converters.ConversationResponseConverter;
-import com.ecg.messagebox.converters.PostBoxResponseConverter;
-import com.ecg.messagebox.converters.UnreadCountsConverter;
+import com.ecg.messagebox.oldconverters.OldConversationResponseConverter;
+import com.ecg.messagebox.oldconverters.OldPostBoxResponseConverter;
+import com.ecg.messagebox.oldconverters.OldUnreadCountsConverter;
 import com.ecg.messagebox.diff.Diff;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.util.InstrumentedCallerRunsPolicy;
@@ -68,9 +68,9 @@ public class PostBoxServiceDelegator implements PostBoxService {
     private final boolean oldModelEnabled;
     private final NewModelConfiguration newModelConfig;
 
-    private final ConversationResponseConverter conversationResponseConverter;
-    private final PostBoxResponseConverter postBoxResponseConverter;
-    private final UnreadCountsConverter unreadCountsConverter;
+    private final OldConversationResponseConverter conversationResponseConverter;
+    private final OldPostBoxResponseConverter postBoxResponseConverter;
+    private final OldUnreadCountsConverter unreadCountsConverter;
 
     private final DiffConfiguration diffConfig;
     private final Diff diff;
@@ -86,9 +86,9 @@ public class PostBoxServiceDelegator implements PostBoxService {
     @Autowired
     public PostBoxServiceDelegator(@Qualifier("oldCassandraPostBoxService") PostBoxService oldPostBoxService,
                                    @Qualifier("newCassandraPostBoxService") com.ecg.messagebox.service.PostBoxService newPostBoxService,
-                                   PostBoxResponseConverter postBoxResponseConverter,
-                                   ConversationResponseConverter conversationResponseConverter,
-                                   UnreadCountsConverter unreadCountsConverter,
+                                   OldPostBoxResponseConverter postBoxResponseConverter,
+                                   OldConversationResponseConverter conversationResponseConverter,
+                                   OldUnreadCountsConverter unreadCountsConverter,
                                    Diff diff,
                                    NewModelConfiguration newModelConfig,
                                    DiffConfiguration diffConfig,

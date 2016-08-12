@@ -53,10 +53,10 @@ public interface CassandraPostBoxRepository {
     Optional<ConversationThread> getConversationWithMessages(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit);
 
     /**
-     * @param userId id of postbox
-     * @return unread messages and unread conversation counts for postbox, both are 0 when postbox is unknown
+     * @param userId id of user
+     * @return unread messages and unread conversation counts for user id, both are 0 when user id is unknown
      */
-    PostBoxUnreadCounts getPostBoxUnreadCounts(String userId);
+    UserUnreadCounts getUserUnreadCounts(String userId);
 
     /**
      * @param userId      id of postbox containing the conversation

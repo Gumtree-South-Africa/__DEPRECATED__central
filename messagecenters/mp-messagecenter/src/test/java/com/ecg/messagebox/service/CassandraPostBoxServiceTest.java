@@ -4,7 +4,7 @@ import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.MessageNotification;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
-import com.ecg.messagebox.persistence.cassandra.DefaultCassandraPostBoxRepository;
+import com.ecg.messagebox.persistence.DefaultCassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;

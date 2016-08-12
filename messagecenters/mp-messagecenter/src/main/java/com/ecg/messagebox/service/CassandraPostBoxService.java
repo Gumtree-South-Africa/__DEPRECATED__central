@@ -22,7 +22,6 @@ import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 
 @Component("newCassandraPostBoxService")
 public class CassandraPostBoxService implements PostBoxService {
-
     private final CassandraPostBoxRepository postBoxRepository;
     private final MessagesResponseFactory messageResponseFactory;
     private final UserIdentifierService userIdentifierService;
@@ -33,12 +32,13 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer getConversationsTimer = newTimer("postBoxService.v2.getConversations");
     private final Timer changeConversationVisibilitiesTimer = newTimer("postBoxService.v2.changeConversationVisibilities");
     private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
+    private final Timer blockUserTimer = newTimer("postBoxService.v2.blockUser");
+    private final Timer unblockUserTimer = newTimer("postBoxService.v2.unblockUser");
 
     private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
 
     @Autowired
-    public CassandraPostBoxService(CassandraPostBoxRepository postBoxRepository,
-                                   UserIdentifierService userIdentifierService) {
+    public CassandraPostBoxService(CassandraPostBoxRepository postBoxRepository, UserIdentifierService userIdentifierService) {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.messageResponseFactory = new MessagesResponseFactory(userIdentifierService);
@@ -48,7 +48,8 @@ public class CassandraPostBoxService implements PostBoxService {
     public void processNewMessage(String userId,
                                   com.ecg.replyts.core.api.model.conversation.Conversation rtsConversation,
                                   com.ecg.replyts.core.api.model.conversation.Message rtsMessage,
-                                  boolean newReplyArrived) {
+                                  boolean newReplyArrived
+    ) {
         try (Timer.Context ignored = processNewMessageTimer.time()) {
 
             String senderUserId = getMessageSenderUserId(rtsConversation, rtsMessage);
@@ -66,9 +67,7 @@ public class CassandraPostBoxService implements PostBoxService {
 
                 if (conversationOpt.isPresent()) {
                     ConversationThread conversation = conversationOpt.get();
-
                     boolean notifyAboutNewMessage = newReplyArrived && conversation.getMessageNotification() == MessageNotification.RECEIVE;
-
                     postBoxRepository.addMessage(userId, rtsConversation.getId(), rtsConversation.getAdId(), newMessage, notifyAboutNewMessage);
                 } else {
                     ConversationThread newConversation = new ConversationThread(
@@ -99,11 +98,10 @@ public class CassandraPostBoxService implements PostBoxService {
     public Optional<ConversationThread> markConversationAsRead(String userId, String conversationId,
                                                                Optional<String> messageIdCursorOpt, int messagesLimit) {
         try (Timer.Context ignored = markConversationAsReadTimer.time()) {
-            return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursorOpt, messagesLimit)
-                    .map(conversation -> {
-                        postBoxRepository.resetConversationUnreadCount(userId, conversationId, conversation.getAdId());
-                        return new ConversationThread(conversation).addNumUnreadMessages(0);
-                    });
+            return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursorOpt, messagesLimit).map(conversation -> {
+                postBoxRepository.resetConversationUnreadCount(userId, conversationId, conversation.getAdId());
+                return new ConversationThread(conversation).addNumUnreadMessages(0);
+            });
         }
     }
 
@@ -115,21 +113,39 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public PostBox changeConversationVisibilities(String userId, List<String> conversationIds, Visibility newVis,
-                                                  Visibility returnVis, int conversationsOffset, int conversationsLimit) {
+    public PostBox changeConversationVisibilities(
+        String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis, int conversationsOffset, int conversationsLimit
+    ) {
         try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
             Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
-
             postBoxRepository.changeConversationVisibilities(userId, conversationAdIdsMap, newVis);
-            return postBoxRepository.getPostBox(userId, returnVis, conversationsOffset, conversationsLimit)
-                    .removeConversations(conversationIds);
+            return postBoxRepository.getPostBox(userId, returnVis, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
         }
     }
 
     @Override
-    public PostBoxUnreadCounts getUnreadCounts(String userId) {
+    public PostBox blockUser(
+        String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit
+    ) {
+        try (Timer.Context ignored = blockUserTimer.time()) {
+            postBoxRepository.blockUser(userId, blockedUserId);
+            return postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
+        }
+    }
+    @Override
+    public PostBox unblockUser(
+        String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit
+    ) {
+        try (Timer.Context ignored = unblockUserTimer.time()) {
+            postBoxRepository.unblockUser(userId, blockedUserId);
+            return postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
+        }
+    }
+
+    @Override
+    public UserUnreadCounts getUnreadCounts(String userId) {
         try (Timer.Context ignored = getUnreadCountsTimer.time()) {
-            return postBoxRepository.getPostBoxUnreadCounts(userId);
+            return postBoxRepository.getUserUnreadCounts(userId);
         }
     }
 
