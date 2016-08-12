@@ -1,4 +1,4 @@
-package com.ecg.messagebox.utils;
+package com.ecg.messagebox.util;
 
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;

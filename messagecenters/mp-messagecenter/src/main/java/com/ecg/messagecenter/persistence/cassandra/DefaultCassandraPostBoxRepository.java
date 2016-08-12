@@ -2,7 +2,7 @@ package com.ecg.messagecenter.persistence.cassandra;
 
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
-import com.ecg.messagebox.utils.StreamUtils;
+import com.ecg.messagebox.util.StreamUtils;
 import com.ecg.messagecenter.persistence.*;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.fasterxml.jackson.core.JsonProcessingException;

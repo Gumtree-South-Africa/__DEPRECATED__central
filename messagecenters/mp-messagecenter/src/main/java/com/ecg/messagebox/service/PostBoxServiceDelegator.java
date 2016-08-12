@@ -9,6 +9,8 @@ import com.ecg.messagebox.converters.PostBoxResponseConverter;
 import com.ecg.messagebox.converters.UnreadCountsConverter;
 import com.ecg.messagebox.diff.Diff;
 import com.ecg.messagebox.model.Visibility;
+import com.ecg.messagebox.util.InstrumentedCallerRunsPolicy;
+import com.ecg.messagebox.util.InstrumentedExecutorService;
 import com.ecg.messagecenter.persistence.PostBoxService;
 import com.ecg.messagecenter.persistence.PostBoxUnreadCounts;
 import com.ecg.messagecenter.persistence.ResponseData;
@@ -27,9 +29,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
@@ -103,9 +103,9 @@ public class PostBoxServiceDelegator implements PostBoxService {
         this.diffConfig = diffConfig;
         this.diff = diff;
 
-        execSrvForOldModel = newExecutorService();
-        execSrvForNewModel = newExecutorService();
-        execSrvForDiff = newExecutorService();
+        execSrvForOldModel = newExecutorService("oldModel");
+        execSrvForNewModel = newExecutorService("newModel");
+        execSrvForDiff = newExecutorService("diff");
     }
 
     @Override
@@ -334,7 +334,16 @@ public class PostBoxServiceDelegator implements PostBoxService {
                 });
     }
 
-    private ExecutorService newExecutorService() {
-        return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private ExecutorService newExecutorService(String metricsName) {
+        Class metricsOwner = PostBoxServiceDelegator.class;
+        int corePoolSize = Runtime.getRuntime().availableProcessors();
+
+        return new InstrumentedExecutorService(
+                new ThreadPoolExecutor(
+                        corePoolSize, corePoolSize * 2,
+                        60L, TimeUnit.SECONDS,
+                        new SynchronousQueue<>(),
+                        new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)),
+                metricsOwner, metricsName);
     }
 }

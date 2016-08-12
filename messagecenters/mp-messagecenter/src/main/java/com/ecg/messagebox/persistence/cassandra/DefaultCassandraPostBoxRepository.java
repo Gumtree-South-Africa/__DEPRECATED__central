@@ -7,7 +7,7 @@ import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.persistence.cassandra.model.ConversationIndex;
-import com.ecg.messagebox.utils.StreamUtils;
+import com.ecg.messagebox.util.StreamUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
