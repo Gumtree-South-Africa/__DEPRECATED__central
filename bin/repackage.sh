@@ -50,12 +50,11 @@ function repackage() {
       continue
     fi
 
-    PACKAGE_BASE=${BUILDDIR}/comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}-${TIMESTAMP}
-    PACKAGE_NAME=comaas-${TENANT}-$(basename "$prop")-${GIT_HASH}-${TIMESTAMP}
+    PACKAGE_NAME=comaas-${TENANT}-$(basename "$prop")-${TIMESTAMP}-${GIT_HASH}
     if [[ "$prop" == *noenv ]]; then
-      PACKAGE_BASE=${BUILDDIR}/comaas-${TENANT}-${GIT_HASH}-${TIMESTAMP}
-      PACKAGE_NAME=comaas-${TENANT}-${GIT_HASH}-${TIMESTAMP}
+      PACKAGE_NAME=comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
     fi
+    PACKAGE_BASE=${BUILDDIR}/${PACKAGE_NAME}
 
     case "$TENANT" in
       ebayk)
@@ -82,7 +81,7 @@ function repackage() {
         ;;
       mp)
         # Repackaging for MP
-        DISTRIB_ARTIFACT=nl.marktplaats.mp-replyts2_comaas-$(basename "$prop")-${GIT_HASH_FULL}-${TIMESTAMP}
+        DISTRIB_ARTIFACT=nl.marktplaats.mp-replyts2_comaas-$(basename "$prop")-${TIMESTAMP}-${GIT_HASH_FULL}
         rm -rf tmp2
         mkdir -p tmp2/${DISTRIB_ARTIFACT}
         cp -r tmp/* tmp2/${DISTRIB_ARTIFACT}/

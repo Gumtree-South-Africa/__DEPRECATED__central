@@ -57,9 +57,9 @@ function upload() {
   readonly start=$(date +"%s")
 
   case ${METHOD} in
-    curl) 
+    curl)
       # host to upload to
-      readonly HOST=${HOST_VALUE}${GIT_HASH}-${TIMESTAMP}/
+      readonly HOST=${HOST_VALUE}${TIMESTAMP}-${GIT_HASH}/
       readonly URL=$(echo ${HOST} | cut -d'@' -f2)
 
       echo "Uploading $PACKAGE to $URL"

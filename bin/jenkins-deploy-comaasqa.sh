@@ -26,11 +26,11 @@ function parseArgs() {
   BUILD_DIR=$2
   ARTIFACT_NAME=$3
   GIT_HASH=$4
+  TIMESTAMP=$5
 }
 
 function deploy() {
   # Send the job to Nomad
-  TIMESTAMP=(${BUILD_DIR:(-13)})
   MD5=($(md5sum -b ${BUILD_DIR}/${ARTIFACT_NAME}))
   PORT=$(tar -xzf ${BUILD_DIR}/${ARTIFACT_NAME} --to-command="grep ^replyts.http.port=" ./conf/replyts.properties | cut -d'=' -f2)
 

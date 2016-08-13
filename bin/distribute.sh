@@ -15,12 +15,12 @@ EOF
 
 readonly TENANT=$1
 readonly GIT_HASH=$2
-readonly ARTIFACT=$3
+readonly ARTIFACT_NAME=$3
 readonly TIMESTAMP=$4
 readonly BUILD_DIR=$5
 
 # Repackage into packages for each TENANT environment
-`dirname $0`/repackage.sh ${TENANT} ${GIT_HASH} ${ARTIFACT} ${TIMESTAMP}
+`dirname $0`/repackage.sh ${TENANT} ${GIT_HASH} ${BUILD_DIR}/${ARTIFACT_NAME} ${TIMESTAMP}
 
 case "${TENANT}" in
   "mp")
@@ -49,41 +49,15 @@ case "${TENANT}" in
     done
 
     ;;
-  "mde")
-    PACKAGE_REGEX=".*/comaas-$TENANT-([0-9a-zA-Z]+)-[0-9a-z]+-[0-9]{8}.*"
+  *)
     for PKG in $(ls ${BUILD_DIR}/comaas-${TENANT}*); do
-
-      if [[ ${PKG} =~ ${PACKAGE_REGEX} ]]; then
-        DESTINATION="${BASH_REMATCH[1]}"
-      else
-        DESTINATION=""
-      fi
-
-      if [[ "$DESTINATION" == "comaasqa" || "$DESTINATION" == "local" ]] ; then
-        continue
-      fi
+      PACKAGE_REGEX=".*/comaas-${TENANT}-(comaasqa|local).*"
+      [[ ${PKG} =~ ${PACKAGE_REGEX} ]] && continue
 
       `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP}
-      `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} prod
-    done
-
-    ;;
-  *)
-    PACKAGE_REGEX=".*/comaas-$TENANT-([0-9a-zA-Z]+)-[0-9a-z]+-[0-9]{8}.*"
-    # Upload or deploy
-    for PKG in $(ls ${BUILD_DIR}/comaas-${TENANT}*); do
-
-      if [[ ${PKG} =~ ${PACKAGE_REGEX} ]]; then
-        DESTINATION="${BASH_REMATCH[1]}"
-      else
-        DESTINATION=""
+      if [[ "${TENANT}" == "mde" ]]; then
+        `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} prod
       fi
-
-      if [[ "$DESTINATION" == "comaasqa" || "$DESTINATION" == "local" ]] ; then
-        continue
-      fi
-
-      `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} ${DESTINATION}
     done
 
     ;;

@@ -77,7 +77,7 @@
                         },
                         "Artifacts": [
                             {
-                                "GetterSource": "http://buildmaster001/job/repo-server/ws/GIT_HASH-TIMESTAMP/ARTIFACT",
+                                "GetterSource": "http://buildmaster001/job/repo-server/ws/TIMESTAMP-GIT_HASH/ARTIFACT",
                                 "GetterOptions": {
                                     "checksum": "md5"
                                 },
