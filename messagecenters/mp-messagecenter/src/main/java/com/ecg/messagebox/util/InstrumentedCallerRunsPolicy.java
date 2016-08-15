@@ -1,12 +1,12 @@
 package com.ecg.messagebox.util;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.MetricRegistry;
 
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static com.codahale.metrics.MetricRegistry.name;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 
 /**
@@ -25,7 +25,7 @@ public class InstrumentedCallerRunsPolicy implements RejectedExecutionHandler {
      * Instrumented called runs policy with given metrics owner and name.
      */
     public InstrumentedCallerRunsPolicy(String owner, String name) {
-        this.callerRunsCounter = newCounter(MetricRegistry.name(owner, name, "callerRunCount"));
+        this.callerRunsCounter = newCounter(name(owner, name, "callerRunCount"));
     }
 
     @Override

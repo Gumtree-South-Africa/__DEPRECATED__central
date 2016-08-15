@@ -19,6 +19,7 @@ import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.runtime.MetricsService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,6 +108,8 @@ public class PostBoxServiceDelegator implements PostBoxService {
         execSrvForOldModel = newExecutorService("oldModelExecSrv");
         execSrvForNewModel = newExecutorService("newModelExecSrv");
         execSrvForDiff = newExecutorServiceForDiff();
+
+        logMetrics();
     }
 
     @Override
@@ -312,13 +315,17 @@ public class PostBoxServiceDelegator implements PostBoxService {
                                                  String errorMessage, Counter failureCounter) {
         Supplier<T> _supplier = condition ? supplier : () -> null;
 
-        return CompletableFuture
+        CompletableFuture<T> returnFuture = CompletableFuture
                 .supplyAsync(_supplier, execSrv)
                 .exceptionally(ex -> {
                     failureCounter.inc();
                     LOGGER.error(errorMessage, ex);
                     throw new RuntimeException(ex);
                 });
+
+        logMetrics();
+
+        return returnFuture;
     }
 
     private CompletableFuture runAsync(boolean condition, Runnable runnable, ExecutorService execSrv,
@@ -344,8 +351,10 @@ public class PostBoxServiceDelegator implements PostBoxService {
                         corePoolSize, corePoolSize * 2,
                         60L, TimeUnit.SECONDS,
                         new SynchronousQueue<>(),
-                        new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)),
-                metricsOwner, metricsName);
+                        new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)
+                ),
+                metricsOwner,
+                metricsName);
     }
 
     private ExecutorService newExecutorServiceForDiff() {
@@ -354,5 +363,12 @@ public class PostBoxServiceDelegator implements PostBoxService {
                 "postBoxDelegatorService",
                 "diffExecSrv"
         );
+    }
+
+    private void logMetrics() {
+        MetricsService.getInstance().getRegistry().getCounters().forEach((name, counter) ->
+                LOGGER.info("Counter with name: {} has value: ", name, counter.getCount()));
+        MetricsService.getInstance().getRegistry().getGauges().forEach((name, gauge) ->
+                LOGGER.info("Gauge with name: {} has value: ", name, gauge.getValue()));
     }
 }
