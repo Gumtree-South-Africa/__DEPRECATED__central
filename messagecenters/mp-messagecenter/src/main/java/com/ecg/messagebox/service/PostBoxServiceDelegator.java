@@ -366,8 +366,15 @@ public class PostBoxServiceDelegator implements PostBoxService {
     }
 
     private void logMetrics() {
+        LOGGER.info("Number of timers: {}", MetricsService.getInstance().getRegistry().getTimers().size());
+        MetricsService.getInstance().getRegistry().getTimers().forEach((name, timer) ->
+                LOGGER.info("Timer with name: {} has value: ", name, timer.getCount()));
+
+        LOGGER.info("Number of counters: {}", MetricsService.getInstance().getRegistry().getCounters().size());
         MetricsService.getInstance().getRegistry().getCounters().forEach((name, counter) ->
                 LOGGER.info("Counter with name: {} has value: ", name, counter.getCount()));
+
+        LOGGER.info("Number of gauges: {}", MetricsService.getInstance().getRegistry().getGauges().size());
         MetricsService.getInstance().getRegistry().getGauges().forEach((name, gauge) ->
                 LOGGER.info("Gauge with name: {} has value: ", name, gauge.getValue()));
     }
