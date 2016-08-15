@@ -19,7 +19,6 @@ import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.runtime.MetricsService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,8 +107,6 @@ public class PostBoxServiceDelegator implements PostBoxService {
         execSrvForOldModel = newExecutorService("oldModelExecSrv");
         execSrvForNewModel = newExecutorService("newModelExecSrv");
         execSrvForDiff = newExecutorServiceForDiff();
-
-        logMetrics();
     }
 
     @Override
@@ -315,17 +312,13 @@ public class PostBoxServiceDelegator implements PostBoxService {
                                                  String errorMessage, Counter failureCounter) {
         Supplier<T> _supplier = condition ? supplier : () -> null;
 
-        CompletableFuture<T> returnFuture = CompletableFuture
+        return CompletableFuture
                 .supplyAsync(_supplier, execSrv)
                 .exceptionally(ex -> {
                     failureCounter.inc();
                     LOGGER.error(errorMessage, ex);
                     throw new RuntimeException(ex);
                 });
-
-        logMetrics();
-
-        return returnFuture;
     }
 
     private CompletableFuture runAsync(boolean condition, Runnable runnable, ExecutorService execSrv,
@@ -344,11 +337,9 @@ public class PostBoxServiceDelegator implements PostBoxService {
 
     private ExecutorService newExecutorService(String metricsName) {
         String metricsOwner = "postBoxDelegatorService";
-        int corePoolSize = getRuntime().availableProcessors();
-
         return new InstrumentedExecutorService(
                 new ThreadPoolExecutor(
-                        corePoolSize, corePoolSize * 2,
+                        0, getRuntime().availableProcessors() * 2,
                         60L, TimeUnit.SECONDS,
                         new SynchronousQueue<>(),
                         new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)
@@ -363,19 +354,5 @@ public class PostBoxServiceDelegator implements PostBoxService {
                 "postBoxDelegatorService",
                 "diffExecSrv"
         );
-    }
-
-    private void logMetrics() {
-        LOGGER.info("Number of timers: {}", MetricsService.getInstance().getRegistry().getTimers().size());
-        MetricsService.getInstance().getRegistry().getTimers().forEach((name, timer) ->
-                LOGGER.info("Timer with name: {} has value: ", name, timer.getCount()));
-
-        LOGGER.info("Number of counters: {}", MetricsService.getInstance().getRegistry().getCounters().size());
-        MetricsService.getInstance().getRegistry().getCounters().forEach((name, counter) ->
-                LOGGER.info("Counter with name: {} has value: ", name, counter.getCount()));
-
-        LOGGER.info("Number of gauges: {}", MetricsService.getInstance().getRegistry().getGauges().size());
-        MetricsService.getInstance().getRegistry().getGauges().forEach((name, gauge) ->
-                LOGGER.info("Gauge with name: {} has value: ", name, gauge.getValue()));
     }
 }

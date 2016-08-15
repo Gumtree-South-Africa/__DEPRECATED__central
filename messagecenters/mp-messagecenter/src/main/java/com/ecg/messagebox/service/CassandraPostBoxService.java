@@ -4,6 +4,8 @@ import com.codahale.metrics.Timer;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
+import com.ecg.messagebox.util.InstrumentedCallerRunsPolicy;
+import com.ecg.messagebox.util.InstrumentedExecutorService;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -21,6 +23,7 @@ import java.util.concurrent.*;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
+import static java.lang.Runtime.getRuntime;
 
 @Component("newCassandraPostBoxService")
 public class CassandraPostBoxService implements PostBoxService {
@@ -49,8 +52,19 @@ public class CassandraPostBoxService implements PostBoxService {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.messageResponseFactory = new MessagesResponseFactory(userIdentifierService);
-        this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.timeoutInMs = timeoutInMs;
+
+        String metricsOwner = "newCassandraPostBoxService";
+        String metricsName = "execSrv";
+        this.executorService = new InstrumentedExecutorService(
+                new ThreadPoolExecutor(
+                        0, getRuntime().availableProcessors() * 2,
+                        60L, TimeUnit.SECONDS,
+                        new SynchronousQueue<>(),
+                        new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)
+                ),
+                metricsOwner,
+                metricsName);
     }
 
     @Override
@@ -149,9 +163,6 @@ public class CassandraPostBoxService implements PostBoxService {
             Map<String, String> adConversationIdsMap = postBoxRepository.getAdConversationIdsMap(userId, conversationIds);
 
             postBoxRepository.changeConversationVisibilities(userId, adConversationIdsMap, newVis);
-
-            // TODO: This feels kinda stupid. requesting the whole thing. this should be done client side. slows down stuff !!!
-            // TODO: Talk to frontend and app guys !!!
 
             return postBoxRepository.getPostBox(userId, returnVis, conversationsOffset, conversationsLimit)
                     .filterConversations(conversationIds);

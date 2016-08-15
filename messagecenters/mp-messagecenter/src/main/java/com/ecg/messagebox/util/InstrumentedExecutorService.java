@@ -3,9 +3,6 @@ package com.ecg.messagebox.util;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
-import com.ecg.messagebox.service.PostBoxServiceDelegator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,8 +19,6 @@ import static com.ecg.replyts.core.runtime.TimingReports.*;
  * consider configuring it with a {@link com.ecg.messagebox.util.InstrumentedCallerRunsPolicy}.
  */
 public class InstrumentedExecutorService implements ExecutorService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentedExecutorService.class);
 
     private final ExecutorService delegate;
     private final String owner;
@@ -83,59 +78,45 @@ public class InstrumentedExecutorService implements ExecutorService {
 
     @Override
     public void execute(Runnable runnable) {
-        LOGGER.info("Call to InstrumentedExecutorService#execute(runnable)");
         submitted.inc();
-        LOGGER.info("Counter submitted value: {}", submitted.getCount());
         delegate.execute(wrap(runnable));
     }
 
     @Override
     public Future<?> submit(Runnable runnable) {
-        LOGGER.info("Call to InstrumentedExecutorService#submit(runnable)");
         submitted.inc();
-        LOGGER.info("Counter submitted value: {}", submitted.getCount());
         return delegate.submit(wrap(runnable));
     }
 
     @Override
     public <T> Future<T> submit(Runnable runnable, T result) {
-        LOGGER.info("Call to InstrumentedExecutorService#submit(runnable,result)");
         submitted.inc();
-        LOGGER.info("Counter submitted value: {}", submitted.getCount());
         return delegate.submit(wrap(runnable), result);
     }
 
     @Override
     public <T> Future<T> submit(Callable<T> task) {
-        LOGGER.info("Call to InstrumentedExecutorService#submit(task)");
         submitted.inc();
-        LOGGER.info("Counter submitted value: {}", submitted.getCount());
         return delegate.submit(wrap(task));
     }
 
     @Override
     public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
-        LOGGER.info("Call to InstrumentedExecutorService#invokeAll(tasks)");
         submitted.inc(tasks.size());
-        LOGGER.info("Counter submitted value: {}", submitted.getCount());
         Collection<? extends Callable<T>> instrumented = instrument(tasks);
         return delegate.invokeAll(instrumented);
     }
 
     @Override
     public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
-        LOGGER.info("Call to InstrumentedExecutorService#invokeAll(tasks,timeout,unit)");
         submitted.inc(tasks.size());
-        LOGGER.info("Counter submitted value: {}", submitted.getCount());
         Collection<? extends Callable<T>> instrumented = instrument(tasks);
         return delegate.invokeAll(instrumented, timeout, unit);
     }
 
     @Override
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws ExecutionException, InterruptedException {
-        LOGGER.info("Call to InstrumentedExecutorService#invokeAny(tasks)");
         submitted.inc(tasks.size());
-        LOGGER.info("Counter submitted value: {}", submitted.getCount());
         Collection<? extends Callable<T>> instrumented = instrument(tasks);
         return delegate.invokeAny(instrumented);
     }
@@ -143,9 +124,7 @@ public class InstrumentedExecutorService implements ExecutorService {
     @Override
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws ExecutionException, InterruptedException, TimeoutException {
-        LOGGER.info("Call to InstrumentedExecutorService#invokeAny(tasks,timeout,unit)");
         submitted.inc(tasks.size());
-        LOGGER.info("Counter submitted value: {}", submitted.getCount());
         Collection<? extends Callable<T>> instrumented = instrument(tasks);
         return delegate.invokeAny(instrumented, timeout, unit);
     }
@@ -205,7 +184,6 @@ public class InstrumentedExecutorService implements ExecutorService {
         public void run() {
             runDelay.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
             running.inc();
-            LOGGER.info("InstrumentedRunnable - Counter running value: {}", running.getCount());
             final Timer.Context context = duration.time();
             try {
                 task.run();
@@ -213,7 +191,6 @@ public class InstrumentedExecutorService implements ExecutorService {
                 context.stop();
                 running.dec();
                 completed.inc();
-                LOGGER.info("InstrumentedRunnable - Counter completed value: {}", completed.getCount());
             }
         }
     }
@@ -236,7 +213,6 @@ public class InstrumentedExecutorService implements ExecutorService {
         public T call() throws Exception {
             runDelay.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
             running.inc();
-            LOGGER.info("InstrumentedCallable - Counter running value: {}", running.getCount());
             final Timer.Context context = duration.time();
             try {
                 return callable.call();
@@ -244,7 +220,6 @@ public class InstrumentedExecutorService implements ExecutorService {
                 context.stop();
                 running.dec();
                 completed.inc();
-                LOGGER.info("InstrumentedCallable - Counter completed value: {}", completed.getCount());
             }
         }
     }

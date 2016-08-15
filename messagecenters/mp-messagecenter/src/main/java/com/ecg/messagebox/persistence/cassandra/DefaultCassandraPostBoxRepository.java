@@ -7,6 +7,8 @@ import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.persistence.cassandra.model.ConversationIndex;
+import com.ecg.messagebox.util.InstrumentedCallerRunsPolicy;
+import com.ecg.messagebox.util.InstrumentedExecutorService;
 import com.ecg.messagebox.util.StreamUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
@@ -27,6 +29,7 @@ import static com.datastax.driver.core.utils.UUIDs.unixTimestamp;
 import static com.ecg.messagebox.model.Visibility.get;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static com.google.common.collect.Lists.newArrayList;
+import static java.lang.Runtime.getRuntime;
 
 @Component(("newCassandraPostBoxRepo"))
 public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
@@ -75,11 +78,21 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
 
-        this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-
-        this.jsonConverter = jsonConverter;
+        String metricsOwner = "newCassandraPostBoxRepo";
+        String metricsName = "execSrv";
+        this.executorService = new InstrumentedExecutorService(
+                new ThreadPoolExecutor(
+                        0, getRuntime().availableProcessors() * 2,
+                        60L, TimeUnit.SECONDS,
+                        new SynchronousQueue<>(),
+                        new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)
+                ),
+                metricsOwner,
+                metricsName);
 
         this.timeoutInMs = timeoutInMs;
+
+        this.jsonConverter = jsonConverter;
 
         if (newDataModelEnabled) {
             preparedStatements = Statements.prepare(session);
