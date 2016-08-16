@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # If necessary, download Cassandra from http://archive.apache.org/dist/cassandra/2.1.13/
 
