@@ -55,7 +55,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer getConversationMessagesTimer = newTimer("cassandra.postBoxRepo.v2.getConversationMessages");
     private final Timer createConversationTimer = newTimer("cassandra.postBoxRepo.v2.createConversation");
     private final Timer addMessageTimer = newTimer("cassandra.postBoxRepo.v2.addMessage");
-    private final Timer getAdConversationIdsMapTimer = newTimer("cassandra.postBoxRepo.v2.getAdConversationIdsMap");
+    private final Timer getConversationAdIdsMapTimer = newTimer("cassandra.postBoxRepo.v2.getConversationAdIdsMap");
     private final Timer resetConversationUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.resetConversationUnreadCount");
     private final Timer changeConversationVisibilitiesTimer = newTimer("cassandra.postBoxRepo.v2.changeConversationVisibilities");
     private final Timer getPostBoxUnreadCountsTimer = newTimer("cassandra.postBoxRepo.v2.getPostBoxUnreadCounts");
@@ -71,7 +71,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     public DefaultCassandraPostBoxRepository(@Qualifier("cassandraSession") Session session,
                                              @Qualifier("cassandraReadConsistency") ConsistencyLevel readConsistency,
                                              @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency,
-                                             @Value("${messagebox.newDataModel.enabled:false}") boolean newDataModelEnabled,
                                              @Value("${messagebox.future.timeout.ms:5000}") int timeoutInMs,
                                              JsonConverter jsonConverter) {
         this.session = session;
@@ -94,9 +93,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         this.jsonConverter = jsonConverter;
 
-        if (newDataModelEnabled) {
-            preparedStatements = Statements.prepare(session);
-        }
+        preparedStatements = Statements.prepare(session);
     }
 
     @Override
@@ -120,6 +117,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                             conversation.addNumUnreadMessages(conversationUnreadCountsMap.getOrDefault(row.getString("convid"), 0));
                             return conversation;
                         })
+                        .sorted((c1, c2) -> c2.getLatestMessage().getId().compareTo(c1.getLatestMessage().getId()))
                         .collect(Collectors.toList());
 
                 PostBoxUnreadCounts postBoxUnreadCounts = createPostBoxUnreadCounts(userId, conversationUnreadCountsMap.values());
@@ -362,11 +360,11 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public void changeConversationVisibilities(String userId, Map<String, String> adConversationIdsMap, Visibility visibility) {
+    public void changeConversationVisibilities(String userId, Map<String, String> conversationAdIdsMap, Visibility visibility) {
         try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
 
             BatchStatement batch = new BatchStatement();
-            adConversationIdsMap.forEach((adId, conversationId) -> {
+            conversationAdIdsMap.forEach((conversationId, adId) -> {
                 batch.add(Statements.CHANGE_CONVERSATION_VISIBILITY.bind(this, visibility.getCode(), userId, conversationId));
                 batch.add(Statements.CHANGE_CONVERSATION_IDX_VISIBILITY.bind(this, visibility.getCode(), userId, adId, conversationId));
             });
@@ -409,12 +407,12 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public Map<String, String> getAdConversationIdsMap(String userId, List<String> conversationIds) {
-        try (Timer.Context ignored = getAdConversationIdsMapTimer.time()) {
+    public Map<String, String> getConversationAdIdsMap(String userId, List<String> conversationIds) {
+        try (Timer.Context ignored = getConversationAdIdsMapTimer.time()) {
 
             ResultSet resultSet = session.execute(Statements.SELECT_AD_IDS.bind(this, userId, conversationIds));
             return StreamUtils.toStream(resultSet)
-                    .collect(Collectors.toMap(row -> row.getString("adid"), row -> row.getString("convid")));
+                    .collect(Collectors.toMap(row -> row.getString("convid"), row -> row.getString("adid")));
         }
     }
 

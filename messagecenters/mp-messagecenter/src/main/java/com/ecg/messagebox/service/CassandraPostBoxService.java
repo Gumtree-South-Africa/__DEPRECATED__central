@@ -160,9 +160,9 @@ public class CassandraPostBoxService implements PostBoxService {
                                                   int conversationsOffset, int conversationsLimit) {
         try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
 
-            Map<String, String> adConversationIdsMap = postBoxRepository.getAdConversationIdsMap(userId, conversationIds);
+            Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
 
-            postBoxRepository.changeConversationVisibilities(userId, adConversationIdsMap, newVis);
+            postBoxRepository.changeConversationVisibilities(userId, conversationAdIdsMap, newVis);
 
             return postBoxRepository.getPostBox(userId, returnVis, conversationsOffset, conversationsLimit)
                     .filterConversations(conversationIds);

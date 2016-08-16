@@ -103,7 +103,7 @@ public interface CassandraPostBoxRepository {
 
     void deleteConversation(String userId, String adId, String conversationId);
 
-    Map<String, String> getAdConversationIdsMap(String userId, List<String> conversationIds);
+    Map<String, String> getConversationAdIdsMap(String userId, List<String> conversationIds);
 
     void blockUser(String reporterUserId, String blockedUserId);
 

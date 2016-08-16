@@ -45,8 +45,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
             throw new IllegalStateException(e);
         }
         JsonConverter jsonConverter = new JsonConverter(new JacksonAwareObjectMapperConfigurer());
-        conversationsRepo = new DefaultCassandraPostBoxRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE,
-                true, 100, jsonConverter);
+        conversationsRepo = new DefaultCassandraPostBoxRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, 100, jsonConverter);
     }
 
     @After
@@ -69,7 +68,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
         insertConversationWithMessages(UID1, "u3", "c2", "a2", 3);
         conversationsRepo.changeConversationVisibilities(UID1,
-                ImmutableMap.<String, String>builder().put("a2", "c2").build(),
+                ImmutableMap.<String, String>builder().put("c2", "a2").build(),
                 Visibility.ARCHIVED);
 
         ConversationThread c3 = insertConversationWithMessages(UID1, "u4", "c3", "a3", 15);
@@ -182,7 +181,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         assertEquals(Visibility.ACTIVE, conversationsRepo.getConversation(UID1, CID).get().getVisibility());
 
         conversationsRepo.changeConversationVisibilities(UID1,
-                ImmutableMap.<String, String>builder().put(ADID, CID).build(),
+                ImmutableMap.<String, String>builder().put(CID, ADID).build(),
                 Visibility.ARCHIVED);
 
         assertEquals(Visibility.ARCHIVED, conversationsRepo.getConversation(UID1, CID).get().getVisibility());
