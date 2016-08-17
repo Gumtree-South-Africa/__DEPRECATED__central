@@ -11,7 +11,10 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -120,9 +123,9 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         ConversationThread newConversation = insertConversationWithMessages(UID1, UID2, CID, ADID, 50);
 
         ConversationThread expected = new ConversationThread(newConversation)
-                .addMessages(newConversation.getMessages().subList(2, 12));
+                .addMessages(newConversation.getMessages().subList(30, 40));
 
-        UUID uuid = newConversation.getMessages().get(1).getId();
+        UUID uuid = newConversation.getMessages().get(40).getId();
         Optional<ConversationThread> actual = conversationsRepo.getConversationWithMessages(UID1, CID, Optional.of(uuid.toString()), 10);
 
         assertEquals(true, actual.isPresent());
@@ -208,12 +211,8 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
                         new Participant(userId2, "user name 2", "u2@test.nl", SELLER)
                 ),
                 messages.get(numMessages - 1), new ConversationMetadata("email subject"));
-
         conversation.addNumUnreadMessages(numMessages);
-
-        List<Message> conversationMessages = new ArrayList<>(messages);
-        Collections.reverse(conversationMessages);
-        conversation.addMessages(conversationMessages);
+        conversation.addMessages(messages);
 
         conversationsRepo.createConversation(userId1, conversation, messages.get(0), true);
         messages.subList(1, numMessages).forEach(message -> conversationsRepo.addMessage(userId1, convId, adId, message, true));

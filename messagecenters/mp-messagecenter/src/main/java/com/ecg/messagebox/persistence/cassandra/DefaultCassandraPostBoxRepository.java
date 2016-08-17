@@ -227,6 +227,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                                 MessageType.get(row.getString("type")),
                                 metadata);
                     })
+                    .sorted((m1, m2) -> m1.getId().compareTo(m2.getId()))
                     .collect(Collectors.toList());
         }
     }
