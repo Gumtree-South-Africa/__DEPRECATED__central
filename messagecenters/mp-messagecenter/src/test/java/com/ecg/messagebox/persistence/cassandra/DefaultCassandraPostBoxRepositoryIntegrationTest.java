@@ -81,10 +81,9 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         PostBox actualPostBox = conversationsRepo.getPostBox(UID1, Visibility.ACTIVE, 0, 50);
 
         List<ConversationThread> expectedConversations = newArrayList(
-                new ConversationThread(c1).addMessages(Collections.emptyList()),
+                new ConversationThread(c4).addNumUnreadMessages(0).addMessages(Collections.emptyList()),
                 new ConversationThread(c3).addMessages(Collections.emptyList()),
-                new ConversationThread(c4).addNumUnreadMessages(0).addMessages(Collections.emptyList())
-        );
+                new ConversationThread(c1).addMessages(Collections.emptyList()));
         PostBox expectedPostBox = new PostBox(UID1, expectedConversations, new PostBoxUnreadCounts(UID1, 3, 20));
 
         assertEquals(expectedPostBox, actualPostBox);
