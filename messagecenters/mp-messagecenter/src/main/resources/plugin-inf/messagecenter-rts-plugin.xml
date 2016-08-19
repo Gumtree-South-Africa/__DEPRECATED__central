@@ -13,6 +13,7 @@
     <context:component-scan base-package="com.ecg.messagebox.service"/>
     <context:component-scan base-package="com.ecg.messagebox.json"/>
     <context:component-scan base-package="com.ecg.messagebox.persistence.cassandra"/>
+    <context:component-scan base-package="com.ecg.messagebox.cronjobs"/>
 
     <context:component-scan base-package="com.ecg.messagecenter.persistence.cassandra"/>
     <context:component-scan base-package="com.ecg.messagecenter.listeners"/>

@@ -1,10 +1,14 @@
 package com.ecg.messagebox.persistence;
 
+import com.ecg.messagebox.model.ConversationModification;
 import com.ecg.messagebox.model.*;
+import org.joda.time.DateTime;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * The user's conversations repository for Cassandra.
@@ -105,6 +109,10 @@ public interface CassandraPostBoxRepository {
 
     Map<String, String> getConversationAdIdsMap(String userId, List<String> conversationIds);
 
+    Stream<ConversationModification> getConversationModificationsByHour(DateTime date);
+    
+    void deleteModificationIndexByDate(DateTime modifiedDate, UUID messageId, String userId, String conversationId);
+
     void blockUser(String reporterUserId, String blockedUserId);
 
     void unblockUser(String reporterUserId, String blockedUserId);
@@ -112,4 +120,10 @@ public interface CassandraPostBoxRepository {
     Optional<BlockedUserInfo> getBlockedUserInfo(String userId1, String userId12);
 
     boolean areUsersBlocked(String userId1, String userId2);
+
+    ConversationModification getLastConversationModification(String userId, String convId);
+
+    DateTime getCronjobLastProcessedDate(String jobName);
+
+    void setCronjobLastProcessedDate(String jobName, DateTime lastProcessed);
 }
