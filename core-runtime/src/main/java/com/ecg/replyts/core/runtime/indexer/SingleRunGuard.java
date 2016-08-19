@@ -18,7 +18,7 @@ class SingleRunGuard {
         ILock lock = hazelcast.getLock(mode.name());
         boolean tryLock;
         try {
-            tryLock = lock.tryLock(1l, TimeUnit.SECONDS);
+            tryLock = lock.tryLock(1L, TimeUnit.SECONDS);
             if (tryLock) {
                 runnable.run();
                 return true;
@@ -28,7 +28,9 @@ class SingleRunGuard {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
-            lock.unlock();
+            if (lock.isLockedByCurrentThread()) {
+                lock.unlock();
+            }
         }
     }
 
