@@ -71,14 +71,9 @@ public class RiakPersistenceConfiguration {
         return new ConversationMigrator(conversationRepository, riakClient);
     }
 
-    @PreDestroy
-    void shutdown() {
-        riakClient.shutdown();
-    }
-
     @Configuration
     @Profile(ReplyTS.PRODUCTIVE_PROFILE)
-    static class RiakClientConfiguration {
+    public static class RiakClientConfiguration {
         @Value("${persistence.riak.idleConnectionTimeoutMs}")
         private int idleConnectionTtlMs;
 
@@ -97,6 +92,8 @@ public class RiakPersistenceConfiguration {
         @Autowired
         private RiakHostConfig hostConfig;
 
+        private IRiakClient riakClient;
+
         @Bean
         public IRiakClient createPrimaryRiakClusterClient () throws RiakException {
             LOG.info("Riak Hosts in primary datacenter: {}", hostConfig.getHostList());
@@ -113,7 +110,7 @@ public class RiakPersistenceConfiguration {
 
             config.addHosts(clientConfig, primaryHostListAsStringArray());
 
-            return RiakFactory.newClient(config);
+            return (riakClient = RiakFactory.newClient(config));
         }
 
         private String[] primaryHostListAsStringArray() {
@@ -135,5 +132,9 @@ public class RiakPersistenceConfiguration {
                     .withPort(hostConfig.getProtobufPort());
         }
 
+        @PreDestroy
+        public void shutdown() {
+            riakClient.shutdown();
+        }
     }
 }

@@ -77,7 +77,7 @@ public class CassandraPersistenceConfiguration {
 
     @Configuration
     @ConditionalOnExpression("#{'${persistence.strategy}' == 'cassandra' || '${persistence.strategy}' == 'hybrid'}")
-    static class CassandraClientConfiguration {
+    public static class CassandraClientConfiguration {
         @Value("${persistence.cassandra.dc:#{null}}")
         private String cassandraDataCenter;
 
