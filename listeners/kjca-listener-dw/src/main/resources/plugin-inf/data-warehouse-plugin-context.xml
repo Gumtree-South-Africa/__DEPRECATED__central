@@ -6,7 +6,7 @@
     <context:component-scan base-package="ca.kijiji.replyts"/>
 
     <bean id="amqConnArgs" class="java.lang.String">
-        <constructor-arg value="wireFormat.maxInactivityDurationInitalDelay=5000&amp;wireFormat.maxInactivityDuration=10000&amp;wireFormat.stackTraceEnabled=true&amp;keepAlive=true&amp;soTimeout=3000&amp;connectionTimeout=3000"/>
+        <constructor-arg value="wireFormat.maxInactivityDurationInitalDelay=5000&amp;wireFormat.maxInactivityDuration=10000&amp;wireFormat.stackTraceEnabled=true&amp;keepAlive=true&amp;soTimeout=3000&amp;soWriteTimeout=3000&amp;connectionTimeout=3000"/>
     </bean>
     <bean id="amqPrimary" class="java.lang.String">
         <constructor-arg value="${activemq.broker.protocol:tcp}://${activemq.broker.host:vm.dev.kjdev.ca}:${activemq.broker.port:61616}?#{amqConnArgs}"/>
@@ -15,7 +15,7 @@
         <constructor-arg value="${activemq.broker.protocol:tcp}://${activemq.standby.broker.host:vm.dev.kjdev.ca}:${activemq.broker.port:61616}?#{amqConnArgs}"/>
     </bean>
     <bean id="amqFailover" class="java.lang.String">
-        <constructor-arg value="failover://(#{amqPrimary},#{amqStandby})?randomize=false&amp;initialReconnectDelay=100&amp;maxReconnectDelay=2000&amp;maxReconnectAttempts=6&amp;timeout=1000" />
+        <constructor-arg value="failover://(#{amqPrimary},#{amqStandby})?randomize=false&amp;initialReconnectDelay=100&amp;maxReconnectDelay=2000&amp;timeout=1&amp;priorityBackup=true" />
     </bean>
 
     <!-- Pools JMS connections, this is most likely the ideal way to connect to JMS -->
