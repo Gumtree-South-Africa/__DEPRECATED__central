@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * A very simple pojo wrapper for a list of {@link ConversationEvent}s.
  */
-class ConversationEvents {
+public class ConversationEvents {
     private final List<ConversationEvent> events;
     private final int siblingCount;
 

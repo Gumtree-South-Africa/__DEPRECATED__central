@@ -60,7 +60,6 @@ public abstract class ConversationEvent {
         return String.format("%s-%s-%d", eventType.getSimpleName(), messageId, conversationModifiedAt.getMillis());
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -68,7 +67,7 @@ public abstract class ConversationEvent {
 
         ConversationEvent that = (ConversationEvent) o;
 
-        if (!conversationModifiedAt.equals(that.conversationModifiedAt)) return false;
+        if(this.conversationModifiedAt.getMillis() != that.conversationModifiedAt.getMillis()) return false;
         if (!eventId.equals(that.eventId)) return false;
 
         return true;

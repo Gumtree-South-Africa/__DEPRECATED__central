@@ -1,0 +1,33 @@
+<!--
+    This is a logback logging configuration file.
+    It is automatically refreshed every 60s - therefore no need to restart RTS when modifying the settings here
+-->
+<!--
+
+LOOKS LIKE A BROKEN CONFIG? It's not, this is just a fragment that will be included
+from logback.xml.
+
+-->
+<included>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d %-5level [%thread] %-35logger{35}: %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${logDir}/replyts.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %-35logger{35}: %msg %n</pattern>
+            <outputPatternAsPresentationHeader>false</outputPatternAsPresentationHeader>
+        </encoder>
+    </appender>
+
+    <logger name="com.ecg" level="DEBUG" />
+
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</included>

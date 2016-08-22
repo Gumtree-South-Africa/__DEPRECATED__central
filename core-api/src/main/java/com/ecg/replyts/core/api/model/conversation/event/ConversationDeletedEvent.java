@@ -23,11 +23,11 @@ public class ConversationDeletedEvent extends ConversationEvent {
 
         ConversationDeletedEvent that = (ConversationDeletedEvent) o;
 
-        return Pairwise.pairsAreEqual(this.getConversationModifiedAt(), that.getConversationModifiedAt());
+        return Pairwise.pairsAreEqual(this.getConversationModifiedAt().getMillis(), that.getConversationModifiedAt().getMillis());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getConversationModifiedAt());
+        return Objects.hashCode(getConversationModifiedAt().getMillis());
     }
 }

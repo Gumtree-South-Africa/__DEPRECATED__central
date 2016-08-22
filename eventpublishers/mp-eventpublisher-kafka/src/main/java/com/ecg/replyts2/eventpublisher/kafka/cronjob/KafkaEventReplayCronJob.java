@@ -10,7 +10,6 @@ import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversati
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.app.eventpublisher.EventConverter;
 import com.ecg.replyts.app.eventpublisher.EventPublisher;
-import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationRepository;
 import com.google.common.collect.Iterators;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;

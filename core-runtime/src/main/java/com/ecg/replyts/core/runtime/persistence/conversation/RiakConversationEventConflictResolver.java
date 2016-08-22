@@ -21,7 +21,7 @@ import static com.ecg.replyts.core.runtime.persistence.conversation.Conversation
 /**
  * Merges concurrently written conversation event lists to a single list.
  */
-class RiakConversationEventConflictResolver implements ConflictResolver<ConversationEvents> {
+public class RiakConversationEventConflictResolver implements ConflictResolver<ConversationEvents> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RiakConversationEventConflictResolver.class);
 

@@ -23,7 +23,7 @@ import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.times
 import static com.ecg.replyts.core.runtime.persistence.conversation.GzipAwareContentFilter.unpackIfGzipped;
 import static java.lang.String.format;
 
-class ConversationEventsConverter implements Converter<ConversationEvents> {
+public class ConversationEventsConverter implements Converter<ConversationEvents> {
 
 
     private static final Histogram CONVERSATION_SIZE_HISTOGRAM = TimingReports.newHistogram("riak-conversation-sizes.bytes");

@@ -31,12 +31,12 @@ public class ConversationClosedEvent extends ConversationEvent {
 
         ConversationClosedEvent that = (ConversationClosedEvent) o;
 
-        return Pairwise.pairsAreEqual(this.getConversationModifiedAt(), that.getConversationModifiedAt(),
+        return Pairwise.pairsAreEqual(this.getConversationModifiedAt().getMillis(), that.getConversationModifiedAt().getMillis(),
                 this.getCloseIssuer(), that.getCloseIssuer());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getConversationModifiedAt(),getCloseIssuer());
+        return Objects.hashCode(getConversationModifiedAt().getMillis(),getCloseIssuer());
     }
 }

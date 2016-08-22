@@ -12,7 +12,7 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import java.io.IOException;
 import java.util.List;
 
-class ConversationJsonSerializer {
+public class ConversationJsonSerializer {
 
     private final ObjectWriter jsonWriter;
     private final ObjectReader jsonReader;

@@ -65,13 +65,13 @@ public class MessageModeratedEvent extends ConversationEvent {
                 humanResultState, that.humanResultState,
                 messageId, that.messageId,
                 getEventId(), that.getEventId(),
-                getConversationModifiedAt(), that.getConversationModifiedAt()
+                getConversationModifiedAt().getMillis(), that.getConversationModifiedAt().getMillis()
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(messageId, humanResultState, getEventId(), getConversationModifiedAt());
+        return Objects.hashCode(messageId, humanResultState, getEventId(), getConversationModifiedAt().getMillis());
     }
 
     public String getEditor() {

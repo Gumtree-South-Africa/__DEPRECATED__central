@@ -143,22 +143,21 @@ public class MessageAddedEvent extends ConversationEvent {
                 humanResultState, that.humanResultState,
                 messageDirection, that.messageDirection,
                 messageId, that.messageId,
-                receivedAt, that.receivedAt,
+                receivedAt.getMillis(), that.receivedAt.getMillis(),
                 state, that.state,
                 senderMessageIdHeader, that.senderMessageIdHeader,
                 inResponseToMessageId, that.inResponseToMessageId,
                 getEventId(), that.getEventId(),
-                getConversationModifiedAt(), that.getConversationModifiedAt(),
+                getConversationModifiedAt().getMillis(), that.getConversationModifiedAt().getMillis(),
                 textParts, that.textParts
         );
-
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(
             messageId, messageDirection, receivedAt, filterResultState, humanResultState, headers,
-            state, senderMessageIdHeader, inResponseToMessageId, getEventId(), getConversationModifiedAt(), textParts
+            state, senderMessageIdHeader, inResponseToMessageId, getEventId(), getConversationModifiedAt().getMillis(), textParts
         );
     }
 

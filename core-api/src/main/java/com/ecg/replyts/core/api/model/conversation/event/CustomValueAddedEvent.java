@@ -33,12 +33,12 @@ public class CustomValueAddedEvent extends ConversationEvent {
         return Pairwise.pairsAreEqual(
                 key, that.key,
                 value, that.value,
-                getConversationModifiedAt(), that.getConversationModifiedAt()
+                getConversationModifiedAt().getMillis(), that.getConversationModifiedAt().getMillis()
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(key, value, getConversationModifiedAt());
+        return Objects.hashCode(key, value, getConversationModifiedAt().getMillis());
     }
 }

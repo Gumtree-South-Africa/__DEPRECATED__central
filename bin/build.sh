@@ -21,7 +21,7 @@ echo "Building revision $REVISION"
 
 # Import a few certificates if we haven't already
 
-MVN_ARGS="-Drevision=$REVISION -Djavax.net.ssl.trustStore=comaas.jks -Djavax.net.ssl.trustStorePassword=comaas"
+MVN_ARGS="-Drevision=$REVISION -Djavax.net.ssl.trustStore=comaas.jks -Djavax.net.ssl.trustStorePassword=comaas -U"
 
 if [ ! -f comaas.jks ] ; then
     keytool -genkey -alias comaas -keyalg RSA -keystore comaas.jks -keysize 2048 \

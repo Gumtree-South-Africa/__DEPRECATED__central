@@ -26,9 +26,9 @@ public class RiakConversationRepository implements MutableConversationRepository
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RiakConversationRepository.class);
 
-    private static final String DEFAULT_BUCKET_NAME = "conversation";
-    private static final String DEFAULT_SECRET_BUCKET_NAME = "conversation_secrets";
-    private static final String DEFAULT_INDEX_BUCKET_NAME = "conversation_index";
+    static final String DEFAULT_BUCKET_NAME = "conversation";
+    static final String DEFAULT_SECRET_BUCKET_NAME = "conversation_secrets";
+    static final String DEFAULT_INDEX_BUCKET_NAME = "conversation_index";
 
 
     private final ConversationBucket conversationBucket;

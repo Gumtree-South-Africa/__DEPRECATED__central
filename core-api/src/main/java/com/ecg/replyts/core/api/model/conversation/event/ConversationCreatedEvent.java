@@ -127,7 +127,7 @@ public class ConversationCreatedEvent extends ConversationEvent {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(conversationId, adId, buyerId, sellerId, buyerSecret, sellerSecret, createdAt, state, customValues, getEventId(), getConversationModifiedAt());
+        return Objects.hashCode(conversationId, adId, buyerId, sellerId, buyerSecret, sellerSecret, createdAt.getMillis(), state, customValues, getEventId(), getConversationModifiedAt().getMillis());
     }
 
     @Override

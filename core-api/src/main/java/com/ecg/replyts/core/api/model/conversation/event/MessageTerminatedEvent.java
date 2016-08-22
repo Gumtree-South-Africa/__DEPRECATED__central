@@ -68,11 +68,11 @@ public class MessageTerminatedEvent extends ConversationEvent {
                 issuer, that.issuer,
                 terminationState, that.terminationState,
                 getEventId(), that.getEventId(),
-                getConversationModifiedAt(), that.getConversationModifiedAt());
+                getConversationModifiedAt().getMillis(), that.getConversationModifiedAt().getMillis());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(messageId, reason, issuer, terminationState, getEventId(), getConversationModifiedAt());
+        return Objects.hashCode(messageId, reason, issuer, terminationState, getEventId(), getConversationModifiedAt().getMillis());
     }
 }

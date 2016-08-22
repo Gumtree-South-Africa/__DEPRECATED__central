@@ -1,0 +1,3 @@
+batch.indexer.chunksize.minutes=1000
+replyts.maxConversationAgeDays=1800
+persistence.riak.datacenter.primary.hosts=10.41.60.53,10.41.60.11,10.41.60.51,10.41.60.4,10.41.60.35

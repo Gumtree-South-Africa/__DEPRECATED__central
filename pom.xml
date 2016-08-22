@@ -79,6 +79,13 @@
         </profile>
 
         <profile>
+            <id>migration</id>
+            <modules>
+                <module>migration/difftool</module>
+            </modules>
+        </profile>
+
+        <profile>
             <id>default</id>
             <modules>
                 <module>core-api</module>

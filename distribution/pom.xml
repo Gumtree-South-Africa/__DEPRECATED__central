@@ -192,8 +192,8 @@
             <id>ebayk</id>
 
             <properties>
-               <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
-               <profile-classifier>ebayk</profile-classifier>
+                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                <profile-classifier>ebayk</profile-classifier>
             </properties>
 
             <dependencies>
@@ -295,7 +295,7 @@
                     <version>${project.version}</version>
                 </dependency>
 
-                <dependency>
+                <!-- dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>ebayk-messagecenter</artifactId>
                     <version>${project.version}</version>
@@ -305,7 +305,7 @@
                             <artifactId>commons-logging</artifactId>
                         </exclusion>
                     </exclusions>
-                </dependency>
+                </dependency -->
 
                 <dependency>
                     <groupId>org.jolokia</groupId>
@@ -327,8 +327,8 @@
             <id>mde</id>
 
             <properties>
-               <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
-               <profile-classifier>mde</profile-classifier>
+                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                <profile-classifier>mde</profile-classifier>
             </properties>
 
             <dependencies>
@@ -395,8 +395,8 @@
             <id>kjca</id>
 
             <properties>
-               <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
-               <profile-classifier>kjca</profile-classifier>
+                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                <profile-classifier>kjca</profile-classifier>
             </properties>
 
             <dependencies>
@@ -474,6 +474,24 @@
                 </dependency>
             </dependencies>
         </profile>
+
+
+        <profile>
+            <id>migration</id>
+
+            <properties>
+                <mainClass>com.ecg.comaas.r2cmigration.difftool</mainClass>
+                <profile-classifier>migration</profile-classifier>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>difftool</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
     <dependencies>
@@ -492,7 +510,9 @@
     </dependencies>
 
     <build>
-        <finalName>${project.groupId}.${project.parent.artifactId}-${project.parent.version}-${profile-classifier}-${env-name}</finalName>
+        <finalName>
+            ${project.groupId}.${project.parent.artifactId}-${project.parent.version}-${profile-classifier}-${env-name}
+        </finalName>
 
         <plugins>
             <plugin>
@@ -600,7 +620,7 @@
                         <configuration>
                             <rules>
                                 <requireActiveProfile>
-                                    <profiles>mp,ebayk,mde,kjca,gtau</profiles>
+                                    <profiles>mp,ebayk,mde,kjca,gtau,migration</profiles>
                                     <all>false</all>
                                 </requireActiveProfile>
                             </rules>

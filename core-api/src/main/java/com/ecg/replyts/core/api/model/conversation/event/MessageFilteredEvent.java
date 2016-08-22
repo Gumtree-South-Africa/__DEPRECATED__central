@@ -70,12 +70,12 @@ public class MessageFilteredEvent extends ConversationEvent {
                 messageId, that.messageId,
                 processingFeedback, that.processingFeedback,
                 getEventId(), that.getEventId(),
-                getConversationModifiedAt(), that.getConversationModifiedAt()
+                getConversationModifiedAt().getMillis(), that.getConversationModifiedAt().getMillis()
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(filterResultState, messageId, processingFeedback, getEventId(), getConversationModifiedAt());
+        return Objects.hashCode(filterResultState, messageId, processingFeedback, getEventId(), getConversationModifiedAt().getMillis());
     }
 }
