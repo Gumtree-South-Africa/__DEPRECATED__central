@@ -160,7 +160,7 @@ public class Diff {
                     MessageResponse oldMsgResp = oldMessages.get(i);
 
                     if (!newMsgResp.equals(oldMsgResp)) {
-                        logDiffForConvResp(userId, "messages(" + i + ")", newMsgResp.toString(), oldMsgResp.toString());
+                        logDiffForConvResp(params, "messages(" + i + ")", newMsgResp.toString(), oldMsgResp.toString());
                     }
                 }
             }
