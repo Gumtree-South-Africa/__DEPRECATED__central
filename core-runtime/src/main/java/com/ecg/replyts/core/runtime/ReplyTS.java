@@ -29,6 +29,10 @@ public class ReplyTS {
      * Spring profile which instantiates embedded/test beans.
      */
     public static final String EMBEDDED_PROFILE = "embedded";
+    /**
+     * Spring profile which instantiates migration related beans.
+     */
+    public static final String MIGRATION_PROFILE = "migration";
 
     @Bean
     public Config hazelcastConfiguration(@Value("${confDir}/hazelcast.xml") String location) throws IOException {

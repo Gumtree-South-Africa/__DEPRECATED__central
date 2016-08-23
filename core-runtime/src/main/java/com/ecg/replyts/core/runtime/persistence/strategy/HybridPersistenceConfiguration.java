@@ -13,7 +13,6 @@ import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigur
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
-import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;

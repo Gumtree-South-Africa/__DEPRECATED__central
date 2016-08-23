@@ -1,21 +1,31 @@
 package com.ecg.replyts.core.runtime.indexer;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.DateSliceIterator;
+import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.workers.BlockingBatchExecutor;
 import com.google.common.base.Function;
 import com.google.common.collect.Range;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static com.ecg.replyts.core.runtime.TimingReports.*;
 
 class ChunkedIndexerAction implements IndexerAction {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ChunkedIndexerAction.class);
     // Setup here a quite long time before job will be stopped because full index will also done with this indexer and might take some time.
     private static final int MAX_PROCESSING_TIME_DAYS = 20;
+
+    private Counter submittedConvCounter = newCounter("indexer.chunked-submittedConvCounter");
+    private final Timer TIMER = TimingReports.newTimer("indexer.chunked-indexConversations");
 
     private final IndexerChunkHandler indexerChunkHandler;
     private final ConversationRepository conversationRepository;
@@ -46,7 +56,9 @@ class ChunkedIndexerAction implements IndexerAction {
                 return new IndexChunkRunnable(slice, journal);
             }
         }, indexingMode.errorHandlingPolicy());
+        LOG.debug("Full indexing complete, indexed {} conversations", submittedConvCounter.getCount());
     }
+
 
     private class IndexChunkRunnable implements Runnable {
         private final Range<DateTime> slice;
@@ -59,9 +71,17 @@ class ChunkedIndexerAction implements IndexerAction {
 
         @Override
         public void run() {
-            List<String> conversationIds = conversationRepository.listConversationsModifiedBetween(slice.lowerEndpoint(), slice.upperEndpoint());
-            journal.completedChunk();
-            indexerChunkHandler.indexChunk(conversationIds);
+            try (Timer.Context ignored = TIMER.time()) {
+                List<String> conversationIds = conversationRepository.listConversationsModifiedBetween(slice.lowerEndpoint(), slice.upperEndpoint());
+                if (!conversationIds.isEmpty()) {
+                    submittedConvCounter.inc(conversationIds.size());
+                    LOG.debug("Indexing conversations from {}, to {}", slice.lowerEndpoint(), slice.upperEndpoint());
+                    LOG.debug("Indexing conversation ids: {}", conversationIds.toString());
+                    LOG.debug("Indexing {} conversation, total indexed so far {}", conversationIds.size(), submittedConvCounter.getCount());
+                    journal.completedChunk();
+                    indexerChunkHandler.indexChunk(conversationIds);
+                }
+            }
         }
     }
 }

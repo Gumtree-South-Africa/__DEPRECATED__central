@@ -72,7 +72,7 @@ public class RiakPersistenceConfiguration {
     }
 
     @Configuration
-    @Profile(ReplyTS.PRODUCTIVE_PROFILE)
+    @Profile({ ReplyTS.PRODUCTIVE_PROFILE, ReplyTS.MIGRATION_PROFILE })
     public static class RiakClientConfiguration {
         @Value("${persistence.riak.idleConnectionTimeoutMs}")
         private int idleConnectionTtlMs;
@@ -133,7 +133,7 @@ public class RiakPersistenceConfiguration {
         }
 
         @PreDestroy
-        public void shutdown() {
+        private void shutdown() {
             riakClient.shutdown();
         }
     }
