@@ -27,6 +27,8 @@ public class GraphiteExporter {
     private final int timePeriod;
     private final String prefix;
 
+    private Graphite graphite;
+
     public GraphiteExporter(boolean enabled, String hostname, int port, int timePeriod, String prefix) throws UnknownHostException {
         this.hostname = hostname;
         this.port = port;
@@ -37,19 +39,27 @@ public class GraphiteExporter {
             LOG.info("Graphite reporting disabled via config.");
             return;
         }
-
         Assert.notNull(hostname);
+        this.graphite = init(MetricsService.getInstance());
 
-        init(MetricsService.getInstance());
+        Runtime.getRuntime().addShutdownHook( new Thread( ()->{
+            try {
+                this.graphite.flush();
+                this.graphite.close();
+            } catch (Exception ignored) {
+                LOG.debug("Exception caught trying to flush the Graphite, some events could be missing");
+            }
+        } ));
     }
 
-    private void init(MetricsService metricsService) throws UnknownHostException {
-        GraphiteReporter reporter = createReporter(metricsService.getRegistry(), graphiteEndpoint());
+    private Graphite init(MetricsService metricsService) throws UnknownHostException {
+        Graphite endpoint = graphiteEndpoint();
+        GraphiteReporter reporter = createReporter(metricsService.getRegistry(), endpoint);
 
         reporter.start(timePeriod, TIME_UNIT);
 
         LOG.info("Graphite reporter started and send statistics every {} {}", timePeriod, TIME_UNIT);
-
+        return endpoint;
     }
 
     private Graphite graphiteEndpoint() throws UnknownHostException {
