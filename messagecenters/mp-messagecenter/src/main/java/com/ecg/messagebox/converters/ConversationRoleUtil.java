@@ -6,7 +6,7 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 
 import java.util.List;
 
-class Utils {
+class ConversationRoleUtil {
 
     static ConversationRole getConversationRole(String projectionOwnerUserId, List<Participant> conversationParticipants) {
         Participant projectionOwnerParticipant = conversationParticipants.stream()

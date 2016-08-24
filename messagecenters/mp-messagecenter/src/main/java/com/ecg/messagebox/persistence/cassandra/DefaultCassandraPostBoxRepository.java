@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import static com.datastax.driver.core.utils.UUIDs.unixTimestamp;
 import static com.ecg.messagebox.model.Visibility.get;
+import static com.ecg.messagebox.util.uuid.UUIDComparator.staticCompare;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Runtime.getRuntime;
@@ -117,7 +118,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                             conversation.addNumUnreadMessages(conversationUnreadCountsMap.getOrDefault(row.getString("convid"), 0));
                             return conversation;
                         })
-                        .sorted((c1, c2) -> c2.getLatestMessage().getId().compareTo(c1.getLatestMessage().getId()))
+                        .sorted((c1, c2) -> staticCompare(c2.getLatestMessage().getId(), c1.getLatestMessage().getId()))
                         .collect(Collectors.toList());
 
                 PostBoxUnreadCounts postBoxUnreadCounts = createPostBoxUnreadCounts(userId, conversationUnreadCountsMap.values());
@@ -147,7 +148,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                             get(row.getInt("vis")),
                             row.getUUID("latestmsgid")))
                     .filter(ci -> ci.getVisibility() == visibility)
-                    .sorted((ci1, ci2) -> ci2.getLatestMessageId().compareTo(ci1.getLatestMessageId()))
+                    .sorted((ci1, ci2) -> staticCompare(ci2.getLatestMessageId(), ci1.getLatestMessageId()))
                     .skip(offset * limit)
                     .limit(limit)
                     .map(ConversationIndex::getConversationId)
@@ -227,7 +228,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                                 MessageType.get(row.getString("type")),
                                 metadata);
                     })
-                    .sorted((m1, m2) -> m1.getId().compareTo(m2.getId()))
+                    .sorted((m1, m2) -> staticCompare(m1.getId(), m2.getId()))
                     .collect(Collectors.toList());
         }
     }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.ecg.messagebox.converters.Utils.getConversationRole;
+import static com.ecg.messagebox.converters.ConversationRoleUtil.getConversationRole;
 
 @Component
 public class ConversationResponseConverter {
