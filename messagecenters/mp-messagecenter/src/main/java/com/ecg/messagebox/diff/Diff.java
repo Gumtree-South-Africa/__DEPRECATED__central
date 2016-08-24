@@ -73,8 +73,43 @@ public class Diff {
                     PostBoxListItemResponse newConv = newConversations.get(i);
                     PostBoxListItemResponse oldConv = oldConversations.get(i);
 
-                    if (!newConv.equals(oldConv)) {
-                        logDiffForPbResp(userId, "conversations(" + i + ")", newConv.toString(), oldConv.toString());
+                    if (!newConv.getId().equals(oldConv.getId())) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").id", newConv.getId(), oldConv.getId());
+                    }
+                    if (!newConv.getBuyerName().equals(oldConv.getBuyerName())) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").buyerName", newConv.getBuyerName(), oldConv.getBuyerName());
+                    }
+                    if (!newConv.getSellerName().equals(oldConv.getSellerName())) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").sellerName", newConv.getSellerName(), oldConv.getSellerName());
+                    }
+                    if (!newConv.getUserIdBuyer().equals(oldConv.getUserIdBuyer())) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").userIdBuyer", newConv.getUserIdBuyer().toString(), oldConv.getUserIdBuyer().toString());
+                    }
+                    if (!newConv.getUserIdSeller().equals(oldConv.getUserIdSeller())) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").userIdSeller", newConv.getUserIdSeller().toString(), oldConv.getUserIdSeller().toString());
+                    }
+                    if (!newConv.getAdId().equals(oldConv.getAdId())) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").adId", newConv.getAdId(), oldConv.getAdId());
+                    }
+                    if (newConv.getRole() != oldConv.getRole()) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").role", newConv.getRole().name(), oldConv.getRole().name());
+                    }
+                    if (newConv.getNumUnreadMessages() != oldConv.getNumUnreadMessages()) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").numUnreadMessages", Integer.toString(newConv.getNumUnreadMessages()), Integer.toString(oldConv.getNumUnreadMessages()));
+                    }
+                    // conversation's latest message
+                    if (!newConv.getSenderEmail().equals(oldConv.getSenderEmail())) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").senderEmail", newConv.getSenderEmail(), oldConv.getSenderEmail());
+                    }
+                    if (newConv.getBoundness() != oldConv.getBoundness()) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").boundness", newConv.getBoundness().name(), oldConv.getBoundness().name());
+                    }
+                    if (!newConv.getTextShortTrimmed().equals(oldConv.getTextShortTrimmed())) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").textShortTrimmed", newConv.getTextShortTrimmed(), oldConv.getTextShortTrimmed());
+                    }
+                    // comparing at minute level only, due to different timestamps inserted in old and new model, so they are a couple of ms apart
+                    if (!newConv.getReceivedDate().substring(0, 17).equals(oldConv.getReceivedDate().substring(0, 17))) {
+                        logDiffForPbResp(userId, "conversations(" + i + ").receivedDate", newConv.getReceivedDate(), oldConv.getReceivedDate());
                     }
                 }
             }
@@ -159,8 +194,18 @@ public class Diff {
                     MessageResponse newMsgResp = newMessages.get(i);
                     MessageResponse oldMsgResp = oldMessages.get(i);
 
-                    if (!newMsgResp.equals(oldMsgResp)) {
-                        logDiffForConvResp(params, "messages(" + i + ")", newMsgResp.toString(), oldMsgResp.toString());
+                    if (!newMsgResp.getSenderEmail().equals(oldMsgResp.getSenderEmail())) {
+                        logDiffForConvResp(params, "messages(" + i + ").senderEmail", newMsgResp.getSenderEmail(), oldMsgResp.getSenderEmail());
+                    }
+                    if (newMsgResp.getBoundness() != oldMsgResp.getBoundness()) {
+                        logDiffForConvResp(params, "messages(" + i + ").boundness", newMsgResp.getBoundness().name(), oldMsgResp.getBoundness().name());
+                    }
+                    if (!newMsgResp.getTextShort().equals(oldMsgResp.getTextShort())) {
+                        logDiffForConvResp(params, "messages(" + i + ").textShort", newMsgResp.getTextShort(), oldMsgResp.getTextShort());
+                    }
+                    // comparing at minute level only, due to different timestamps inserted in old and new model, so they are a couple of ms apart
+                    if (!newMsgResp.getReceivedDate().substring(0, 17).equals(oldMsgResp.getReceivedDate().substring(0, 17))) {
+                        logDiffForConvResp(params, "messages(" + i + ").receivedDate", newMsgResp.getReceivedDate(), oldMsgResp.getReceivedDate());
                     }
                 }
             }
