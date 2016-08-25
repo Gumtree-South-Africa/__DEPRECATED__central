@@ -89,12 +89,13 @@ class ConversationBucket {
     }
 
     public List<String> modifiedBetween(DateTime start, DateTime end) {
+        long startMin = timestampInMinutes(start);
+        long endMin = timestampInMinutes(end);
         try {
             return bucket.fetchIndex(
-                    IntIndex.named(SECONDARY_INDEX_MODIFIED_AT)).from(timestampInMinutes(start)).to(timestampInMinutes(end)
-            ).execute();
+                    IntIndex.named(SECONDARY_INDEX_MODIFIED_AT)).from(startMin).to(endMin).execute();
         } catch (RiakException e) {
-            throw new RuntimeException("ConversationBucket: modified between '" + start + "' and '" + end + "' search failed", e);
+            throw new RuntimeException("ConversationBucket: modified between '" + startMin + "' and '" + endMin + "' search failed", e);
         }
     }
 

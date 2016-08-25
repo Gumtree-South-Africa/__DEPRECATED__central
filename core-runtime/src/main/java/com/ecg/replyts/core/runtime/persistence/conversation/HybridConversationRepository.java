@@ -31,28 +31,33 @@ public class HybridConversationRepository implements MutableConversationReposito
 
     @Override
     public MutableConversation getById(String conversationId) {
-        MutableConversation conversation = cassandraConversationRepository.getById(conversationId);
+        MutableConversation conversation = null;
+        synchronized (cassandraConversationRepository) {
+            conversation = cassandraConversationRepository.getById(conversationId);
 
-        if (conversation == null) {
-            conversation = riakConversationRepository.getById(conversationId);
+            if (conversation == null) {
+                conversation = riakConversationRepository.getById(conversationId);
 
-            if (conversation != null) {
-                migrateEventsToCassandra(conversationId);
+                if (conversation != null) {
+                    migrateEventsToCassandra(conversationId);
+                }
             }
         }
-
         return conversation;
     }
 
     @Override
     public MutableConversation getBySecret(String secret) {
-        MutableConversation conversation = cassandraConversationRepository.getBySecret(secret);
+        MutableConversation conversation = null;
+        synchronized (cassandraConversationRepository) {
+            conversation = cassandraConversationRepository.getBySecret(secret);
 
-        if (conversation == null) {
-            conversation = riakConversationRepository.getBySecret(secret);
+            if (conversation == null) {
+                conversation = riakConversationRepository.getBySecret(secret);
 
-            if (conversation != null) {
-                migrateEventsToCassandra(conversation.getId());
+                if (conversation != null) {
+                    migrateEventsToCassandra(conversation.getId());
+                }
             }
         }
 
@@ -90,42 +95,48 @@ public class HybridConversationRepository implements MutableConversationReposito
 
     @Override
     public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
-        Optional<Conversation> conversation = cassandraConversationRepository.findExistingConversationFor(key);
+        Optional<Conversation> conversation = Optional.absent();
+        synchronized (cassandraConversationRepository) {
+            conversation = cassandraConversationRepository.findExistingConversationFor(key);
 
-        if (!conversation.isPresent()) {
-            conversation = riakConversationRepository.findExistingConversationFor(key);
+            if (!conversation.isPresent()) {
+                conversation = riakConversationRepository.findExistingConversationFor(key);
 
-            if (conversation.isPresent()) {
-                migrateEventsToCassandra(conversation.get().getId());
+                if (conversation.isPresent()) {
+                    migrateEventsToCassandra(conversation.get().getId());
+                }
             }
         }
-
         return conversation;
     }
 
     @Override
     public void commit(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
+
         List<ConversationEvent> cassandraToBeCommittedEvents = toBeCommittedEvents;
+        synchronized (cassandraConversationRepository) {
+            if (cassandraConversationRepository.getLastModifiedDate(conversationId) == null) {
+                List<ConversationEvent> events = riakConversationRepository.getConversationEvents(conversationId);
 
-        if (cassandraConversationRepository.getLastModifiedDate(conversationId) == null) {
-            List<ConversationEvent> events = riakConversationRepository.getConversationEvents(conversationId);
+                if (events != null && events.size() > 0) {
+                    cassandraToBeCommittedEvents = new ArrayList<>(events);
 
-            if (events != null && events.size() > 0) {
-                cassandraToBeCommittedEvents = new ArrayList<>(events);
-
-                cassandraToBeCommittedEvents.addAll(toBeCommittedEvents);
+                    cassandraToBeCommittedEvents.addAll(toBeCommittedEvents);
+                }
             }
+
+            riakConversationRepository.commit(conversationId, toBeCommittedEvents);
+
+            migrateEventsToCassandra(conversationId, cassandraToBeCommittedEvents);
         }
-
-        riakConversationRepository.commit(conversationId, toBeCommittedEvents);
-
-        migrateEventsToCassandra(conversationId, cassandraToBeCommittedEvents);
     }
 
     @Override
     public void deleteConversation(Conversation c) {
-        riakConversationRepository.deleteConversation(c);
-        cassandraConversationRepository.deleteConversation(c);
+        synchronized (cassandraConversationRepository) {
+            riakConversationRepository.deleteConversation(c);
+            cassandraConversationRepository.deleteConversation(c);
+        }
     }
 
     private void migrateEventsToCassandra(String conversationId) {
@@ -133,21 +144,23 @@ public class HybridConversationRepository implements MutableConversationReposito
     }
 
     private void migrateEventsToCassandra(String conversationId, List<ConversationEvent> events) {
-        StopWatch watch = new StopWatch();
+        synchronized (cassandraConversationRepository) {
+            StopWatch watch = new StopWatch();
+            try {
+                watch.start();
 
-        try {
-            watch.start();
+                if (events == null) {
+                    events = riakConversationRepository.getConversationEvents(conversationId);
+                }
 
-            if (events == null) {
-                events = riakConversationRepository.getConversationEvents(conversationId);
+                cassandraConversationRepository.commit(conversationId, events);
+
+                watch.stop();
+            } finally {
+                MIGRATION_CONVERSATION_COUNTER.inc();
+                MIGRATION_CONVERSATION_TIME_LAG.update(watch.getTotalTimeMillis(), TimeUnit.MILLISECONDS);
             }
-
-            cassandraConversationRepository.commit(conversationId, events);
-
-            watch.stop();
-        } finally {
-            MIGRATION_CONVERSATION_COUNTER.inc();
-            MIGRATION_CONVERSATION_TIME_LAG.update(watch.getTotalTimeMillis(), TimeUnit.MILLISECONDS);
         }
     }
+
 }
