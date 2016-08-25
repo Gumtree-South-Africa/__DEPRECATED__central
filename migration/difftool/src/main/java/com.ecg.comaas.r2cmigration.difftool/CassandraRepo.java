@@ -5,17 +5,13 @@ import com.datastax.driver.core.*;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
-import com.ecg.replyts.core.runtime.persistence.strategy.CassandraPersistenceConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
+
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.util.AbstractMap;
@@ -43,8 +39,8 @@ public class CassandraRepo {
     private static final String SELECT_EVENTS_WHERE_CREATE_BETWEEN = "SELECT * FROM core_conversation_events WHERE event_id > minTimeuuid(?) AND event_id < maxTimeuuid(?) ALLOW FILTERING";
 
     private final ObjectMapper objectMapper;
-    private final PreparedStatement getByConvID ;
-    private final PreparedStatement getByDate ;
+    private final PreparedStatement getByConvID;
+    private final PreparedStatement getByDate;
 
     private Session session;
 

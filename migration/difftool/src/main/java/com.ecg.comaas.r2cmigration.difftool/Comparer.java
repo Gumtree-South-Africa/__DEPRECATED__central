@@ -2,23 +2,20 @@ package com.ecg.comaas.r2cmigration.difftool;
 
 import com.basho.riak.client.RiakException;
 import com.google.common.base.Stopwatch;
+import org.joda.time.DateTime;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 
 public class Comparer {
@@ -33,6 +30,9 @@ public class Comparer {
 
         @Option(name = "-c2r", usage = "Perform Cassandra to Riak Validation")
         boolean cassandraToRiak = false;
+
+        @Option(name = "-endDate", handler = DateTimeOptionHandler.class, usage = "End validation at DateTime (defaults to current DateTime)")
+        DateTime endDateTime;
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(Comparer.class);
@@ -50,7 +50,7 @@ public class Comparer {
         });
     }
 
-    static boolean compareRiakToCassandra(RiakCassandraDiffTool diffTool) throws RiakException {
+    static boolean compareRiakToCassandra(R2CCoreConversationDiffTool diffTool) throws RiakException {
         Stopwatch timerStage = Stopwatch.createStarted();
         List<Future> tasks = diffTool.compareRiakToCassandra();
         waitForCompletion(tasks);
@@ -68,7 +68,7 @@ public class Comparer {
         return diffTool.isRiakMatchesCassandra;
     }
 
-    static boolean compareCassToRiak(RiakCassandraDiffTool diffTool) throws RiakException {
+    static boolean compareCassToRiak(R2CCoreConversationDiffTool diffTool) throws RiakException {
         Stopwatch timerStage = Stopwatch.createStarted();
         List<Future> tasks = diffTool.compareCassandraToRiak();
         waitForCompletion(tasks);
@@ -89,7 +89,7 @@ public class Comparer {
         Stopwatch timerTotal = Stopwatch.createStarted();
         // To avoid confusing warn message
         System.setProperty("com.datastax.driver.FORCE_NIO", "true");
-        RiakCassandraDiffTool diffTool = null;
+        R2CCoreConversationDiffTool diffTool = null;
 
         try (ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(DiffToolConfiguration.class)) {
 
@@ -104,7 +104,8 @@ public class Comparer {
                 System.exit(0);
             }
 
-            diffTool = context.getBean(RiakCassandraDiffTool.class);
+            diffTool = context.getBean(R2CCoreConversationDiffTool.class);
+            diffTool.setEndDate(diffToolOpts.endDateTime);
 
             LOG.info("Comparing Riak data to Cassandra");
             if (diffToolOpts.fetchRecordCount) {
@@ -116,7 +117,7 @@ public class Comparer {
             if (diffToolOpts.riakToCassandra) {
                 success = compareRiakToCassandra(diffTool);
             }
-            if(!success) {
+            if (!success) {
                 LOG.info("Number of conversation events that do not match after riak to cass comparison {}", diffTool.RIAK_TO_CASS_EVENT_MISMATCH_COUNTER.getCount());
             }
 
@@ -127,7 +128,7 @@ public class Comparer {
             } else {
                 LOG.info("Skipping Cassandra to Riak comparison due to previous differences or selected options");
             }
-            if(!success) {
+            if (!success) {
                 LOG.info("Number of conversation events that do not match after cass to riak comparison {}", diffTool.CASS_TO_RIAK_EVENT_MISMATCH_COUNTER.getCount());
             }
 

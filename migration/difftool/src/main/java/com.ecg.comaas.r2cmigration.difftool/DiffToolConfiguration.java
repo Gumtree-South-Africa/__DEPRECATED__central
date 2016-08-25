@@ -30,11 +30,16 @@ public class DiffToolConfiguration {
 
     static final String RIAK_SECONDARY_INDEX_MODIFIED_AT = "modifiedAt";
 
-    @Value("${graphite.enabled:true}") boolean isEnabled;
-    @Value("${graphite.endpoint.hostname:graph001}") String hostname;
-    @Value("${graphite.endpoint.port:2003}") int port;
-    @Value("${graphite.timeperiod.sec:10}") int timeout;
-    @Value("${graphite.prefix:difftool}") String prefix;
+    @Value("${graphite.enabled:true}")
+    boolean isEnabled;
+    @Value("${graphite.endpoint.hostname:graph001}")
+    String hostname;
+    @Value("${graphite.endpoint.port:2003}")
+    int port;
+    @Value("${graphite.timeperiod.sec:10}")
+    int timeout;
+    @Value("${graphite.prefix:difftool}")
+    String prefix;
 
     @Bean
     GraphiteExporter graphiteExporter() {

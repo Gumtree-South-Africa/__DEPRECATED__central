@@ -10,6 +10,8 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.persistence.conversation.ConversationEvents;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 
 import org.joda.time.DateTime;
@@ -22,17 +24,15 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import static com.codahale.metrics.MetricRegistry.name;
 import static com.ecg.replyts.core.runtime.TimingReports.*;
 
 @Component
-public class RiakCassandraDiffTool {
+public class R2CCoreConversationDiffTool {
 
 
-    private static final Logger LOG = LoggerFactory.getLogger(RiakCassandraDiffTool.class);
+    private static final Logger LOG = LoggerFactory.getLogger(R2CCoreConversationDiffTool.class);
     private static final Logger MISMATCH_LOG = LoggerFactory.getLogger("difftool.mismatch");
 
     final static Counter RIAK_TO_CASS_EVENT_MISMATCH_COUNTER = TimingReports.newCounter("difftool.riak-mismatch-counter");
@@ -64,41 +64,33 @@ public class RiakCassandraDiffTool {
     private DateTime endDate;
     private DateTime startDate;
 
+    @Value("${replyts.maxConversationAgeDays:180}")
+    int compareNumberOfDays;
 
-    /*
-https://gerrit.ecg.so/#/c/40177/2/messagecenters/mp-messagecenter/src/main/java/com/ecg/messagebox/persistence/cassandra/DefaultCassandraPostBoxRepository.java
-      this.executorService = new InstrumentedExecutorService(
-                new ThreadPoolExecutor(
-                        0, getRuntime().availableProcessors() * 2,
-                        60L, TimeUnit.SECONDS,
-                        new SynchronousQueue<>(),
-                        new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)
-                ),
-
-     */
-
-    public RiakCassandraDiffTool(@Value("${replyts.maxConversationAgeDays:180}") int compareNumberOfDays,
-                                 @Value("${threadcount:6}") int threadCount,
-                                 @Value("${queue.size:100}") int workQueueSize,
-                                 @Value("${conversationid.batch.size:1000}") int conversationIdBatchSize) {
+    public R2CCoreConversationDiffTool(@Value("${threadcount:6}") int threadCount,
+                                       @Value("${queue.size:100}") int workQueueSize,
+                                       @Value("${conversationid.batch.size:1000}") int conversationIdBatchSize) {
         this.conversationIdBatchSize = conversationIdBatchSize;
-        this.endDate = new DateTime(DateTimeZone.UTC);
-        this.startDate = endDate.minusDays(compareNumberOfDays);
         this.workQueue = new ArrayBlockingQueue<>(workQueueSize);
-        this.rejectionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
+        this.rejectionHandler = new InstrumentedCallerRunsPolicy("difftool", "");
         this.threadPoolExecutor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
-        LOG.info("Comparing last {} days", compareNumberOfDays);
 
         cassConversationCounter = newCounter("difftool.cassConversationCounter");
         cassEventCounter = newCounter("difftool.cassEventCounter");
         riakEventCounter = newCounter("difftool.riakEventCounter");
         riakConversationCounter = newCounter("difftool.riakConversationCounter");
-        /*
-        newGauge("difftool.riakConversationCounter", () -> riakConversationCounter.get());
-        newGauge("difftool.riakEventCounter", () -> riakEventCounter.get());
-        newGauge("difftool.cassEventCounter", () -> cassEventCounter.get());
-        newGauge("difftool.cassEventCounter", () -> cassEventCounter.get());
-        */
+
+    }
+
+    public void setEndDate(DateTime endDate) {
+        if (endDate != null) {
+            Preconditions.checkArgument(endDate.isBeforeNow());
+            this.endDate = endDate;
+        } else {
+            this.endDate = new DateTime(DateTimeZone.UTC);
+        }
+        this.startDate = this.endDate.minusDays(compareNumberOfDays);
+        LOG.info("Comparing last {} days, ending on {}", compareNumberOfDays, this.endDate);
     }
 
     public long getConversationsToBeMigratedCount() throws RiakException {
@@ -184,19 +176,20 @@ https://gerrit.ecg.so/#/c/40177/2/messagecenters/mp-messagecenter/src/main/java/
                 cassEventCounter.inc(cassConvEvents.getValue().size());
 
                 LOG.debug("Next cassandra convId = " + convId);
-                List<ConversationEvent> riakEvents = riakRepo.fetchConversation(convId, convBucket).getEvents();
 
+                ConversationEvents riakConvEvent = riakRepo.fetchConversation(convId, convBucket);
+                List<ConversationEvent> riakEvents = riakConvEvent != null ? riakConvEvent.getEvents() : null;
+
+                if (riakEvents == null || cassConvEvents == null) {
+                    logC2RMismatch(convId, null, riakEvents);
+                    continue;
+                }
                 if (cassConvEvents.getValue().size() != riakEvents.size()) {
                     logConvEventDifference(convId, cassConvEvents.getValue(), riakEvents, false);
                 } else {
                     cassConvEvents.getValue().stream().forEach(cassEvent -> {
                         if (!riakEvents.contains(cassEvent)) {
-                            MISMATCH_LOG.info("convid: {}, eventid: {}", convId, cassEvent.getEventId());
-                            LOG.info("Fails to find cassandra conversation event {}", cassEvent);
-                            LOG.info("in riak events {}", riakEvents);
-                            LOG.info("---------------------------------------------------------------");
-                            isCassandraMatchesRiak = false;
-                            CASS_TO_RIAK_EVENT_MISMATCH_COUNTER.inc();
+                            logC2RMismatch(convId, cassEvent, riakEvents);
                         }
                     });
                 }
@@ -206,11 +199,22 @@ https://gerrit.ecg.so/#/c/40177/2/messagecenters/mp-messagecenter/src/main/java/
         }
     }
 
+    private void logC2RMismatch(String convId, ConversationEvent cassEvent, List<ConversationEvent> riakEvents) {
+        String nullVal = "NOT KNOWN";
+        String cassEventId = cassEvent == null ? nullVal : cassEvent.getEventId();
+        MISMATCH_LOG.info("convid: {}, eventid: {}", convId, cassEventId);
+        LOG.info("Fails to find cassandra conversation event {}", cassEvent == null ? nullVal : cassEvent);
+        LOG.info("in riak events {}", riakEvents == null ? nullVal : riakEvents);
+        LOG.info("---------------------------------------------------------------");
+        isCassandraMatchesRiak = false;
+        CASS_TO_RIAK_EVENT_MISMATCH_COUNTER.inc();
+    }
+
     private void logConvEventDifference(String convId, List<ConversationEvent> cassConvEvents,
                                         List<ConversationEvent> riakEvents, boolean riakToCassandra) {
 
         LOG.warn("Riak {} and Cassandra {} number of conversationEvents mismatch for conversationId {}: ",
-                 riakEvents.size(), cassConvEvents.size(), convId);
+                riakEvents.size(), cassConvEvents.size(), convId);
         MISMATCH_LOG.info("Cassandra Events Size {}, events: {} ", cassConvEvents.size(), cassConvEvents);
         MISMATCH_LOG.info("Riak Events Size {}, events: {}\n", riakEvents.size(), riakEvents);
 

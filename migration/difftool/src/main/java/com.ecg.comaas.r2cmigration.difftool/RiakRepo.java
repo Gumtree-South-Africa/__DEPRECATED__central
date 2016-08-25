@@ -5,24 +5,22 @@ import com.basho.riak.client.bucket.Bucket;
 import com.basho.riak.client.cap.DefaultRetrier;
 import com.basho.riak.client.query.StreamingOperation;
 import com.basho.riak.client.query.indexes.IntIndex;
-import com.basho.riak.client.raw.pbc.PBClientConfig;
-import com.basho.riak.client.raw.pbc.PBClusterConfig;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.conversation.ConversationEvents;
 import com.ecg.replyts.core.runtime.persistence.conversation.ConversationEventsConverter;
 import com.ecg.replyts.core.runtime.persistence.conversation.ConversationJsonSerializer;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationEventConflictResolver;
-import com.ecg.replyts.core.runtime.persistence.strategy.RiakPersistenceConfiguration;
-import com.google.common.collect.FluentIterable;
+
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.stereotype.Repository;
 
 
+import javax.annotation.PreDestroy;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.timestampInMinutes;
@@ -51,7 +49,7 @@ public class RiakRepo {
     }
 
     public ConversationEvents fetchConversation(String convId, Bucket bucket) throws RiakRetryFailedException {
-        try(Timer.Context ignored = GET_BY_ID_RIAK_TIMER.time()) {
+        try (Timer.Context ignored = GET_BY_ID_RIAK_TIMER.time()) {
             return bucket.fetch(convId, ConversationEvents.class).
                     withConverter(converter).
                     withResolver(resolver).
@@ -66,7 +64,7 @@ public class RiakRepo {
             return bucket.fetchIndex(
                     IntIndex.named(DiffToolConfiguration.RIAK_SECONDARY_INDEX_MODIFIED_AT)).
                     from(timestampInMinutes(start)).
-                    to(timestampInMinutes(end) ).executeStreaming();
+                    to(timestampInMinutes(end)).executeStreaming();
         } catch (RiakException e) {
             String errMess = bucket.getName() + ": modified between '" + start + "' and '" + end + "' search failed";
             LOG.error(errMess, e);
@@ -76,8 +74,12 @@ public class RiakRepo {
 
     public long getConversationCount(DateTime start, DateTime end, String bucketName) throws RiakRetryFailedException {
         AtomicLong counter = new AtomicLong();
-        modifiedBetween(start,end,getBucket(bucketName)).forEach(c -> counter.getAndIncrement() );
+        modifiedBetween(start, end, getBucket(bucketName)).forEach(c -> counter.getAndIncrement());
         return counter.get();
     }
 
+    @PreDestroy
+    void close() {
+        riakClient.shutdown();
+    }
 }
