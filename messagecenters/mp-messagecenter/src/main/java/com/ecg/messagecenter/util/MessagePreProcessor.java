@@ -42,7 +42,7 @@ class MessagePreProcessor {
         String buyerName = nullToEmpty(conversation.getCustomValues().get("buyer-name"));
         String sellerName = nullToEmpty(conversation.getCustomValues().get("seller-name"));
         String replyToUserName = MessageDirection.BUYER_TO_SELLER.equals(message.getMessageDirection()) ? sellerName : buyerName;
-        String regexViaMarktplaats = "\\n.*?" + Pattern.quote(replyToUserName) + " via Marktplaats(\\s|\").*\\n";
+        String regexViaMarktplaats = "\\n.*?" + Pattern.quote(replyToUserName) + " via Marktplaats(\\s|\").*\\r?\\n";
         String msgStripped = unescapeNewLines(message.getPlainTextBody()).split(regexViaMarktplaats, 2)[0];
 
         for (Pattern pattern : PATTERNS) {
