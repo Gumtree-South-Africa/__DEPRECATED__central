@@ -9,22 +9,7 @@ public interface SimplePostBoxRepository {
 
     void write(PostBox postBox);
 
-    // ugly but easier instead of changing PostBox model and persistence
-    // we need to pass deletion-context so mutator works correctly, we need deleted-ids so that merging works
-    void write(PostBox postBox, DeletionContext deletionContext);
+    void write(PostBox postBox, List<String> deletedIds);
 
-    void cleanupLongTimeUntouchedPostBoxes(DateTime time);
-
-    class DeletionContext {
-        List<String> deletedIds;
-
-        public DeletionContext(List<String> deletedIds) {
-            this.deletedIds = deletedIds;
-        }
-
-        public List<String> getDeletedIds() {
-            return deletedIds;
-        }
-    }
+    void cleanup(DateTime time);
 }
-

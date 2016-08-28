@@ -1,27 +1,32 @@
 package com.ecg.messagecenter.persistence;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.joda.time.DateTime;
 
 import java.util.Optional;
 
+@JsonIgnoreProperties(ignoreUnknown = true, value = "containsUnreadMessages")
 public class ConversationThread extends AbstractConversationThread {
     private final Optional<Long> userIdBuyer;
     private final Optional<Long> userIdSeller;
 
+    @JsonCreator
     public ConversationThread(
-            String adId,
-            String conversationId,
-            DateTime createdAt,
-            DateTime modifiedAt,
-            DateTime receivedAt,
-            boolean containsUnreadMessages,
-            Optional<String> previewLastMessage,
-            Optional<String> buyerName,
-            Optional<String> sellerName,
-            Optional<String> buyerId,
-            Optional<String> messageDirection,
-            Optional<Long> userIdBuyer,
-            Optional<Long> userIdSeller) {
+            @JsonProperty("adId") String adId,
+            @JsonProperty("conversationId") String conversationId,
+            @JsonProperty("createdAt") DateTime createdAt,
+            @JsonProperty("modifiedAt") DateTime modifiedAt,
+            @JsonProperty("receivedAt") DateTime receivedAt,
+            @JsonProperty("containsUnreadMessages") boolean containsUnreadMessages,
+            @JsonProperty("previewLastMessage") Optional<String> previewLastMessage,
+            @JsonProperty("buyerName") Optional<String> buyerName,
+            @JsonProperty("sellerName") Optional<String> sellerName,
+            @JsonProperty("buyerId") Optional<String> buyerId,
+            @JsonProperty("messageDirection") Optional<String> messageDirection,
+            @JsonProperty("userIdBuyer") Optional<Long> userIdBuyer,
+            @JsonProperty("userIdSeller") Optional<Long> userIdSeller) {
         super(
                 adId,
                 conversationId,

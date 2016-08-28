@@ -110,7 +110,7 @@ class PostBoxOverviewController {
                 postBox.removeConversation(id);
             }
 
-            postBoxRepository.write(postBox, new SimplePostBoxRepository.DeletionContext(Arrays.asList(ids)));
+            postBoxRepository.write(postBox, Arrays.asList(ids));
 
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
 

@@ -1,6 +1,9 @@
 package com.ecg.messagecenter.persistence.simple;
 
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -102,19 +105,21 @@ public class PostBoxTest {
         assertEquals(POST_BOX.getConversationThreads().subList(2, 4), conversationThreadsCapTo);
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true, value = "containsUnreadMessages")
     public static class ConversationThread extends AbstractConversationThread {
+        @JsonCreator
         public ConversationThread(
-          String adId,
-          String conversationId,
-          DateTime createdAt,
-          DateTime modifiedAt,
-          DateTime receivedAt,
-          boolean containsUnreadMessages,
-          Optional<String> previewLastMessage,
-          Optional<String> buyerName,
-          Optional<String> sellerName,
-          Optional<String> buyerId,
-          Optional<String> messageDirection) {
+          @JsonProperty("adId") String adId,
+          @JsonProperty("conversationId") String conversationId,
+          @JsonProperty("createdAt") DateTime createdAt,
+          @JsonProperty("modifiedAt") DateTime modifiedAt,
+          @JsonProperty("receivedAt") DateTime receivedAt,
+          @JsonProperty("containsUnreadMessages") boolean containsUnreadMessages,
+          @JsonProperty("previewLastMessage") Optional<String> previewLastMessage,
+          @JsonProperty("buyerName") Optional<String> buyerName,
+          @JsonProperty("sellerName") Optional<String> sellerName,
+          @JsonProperty("buyerId") Optional<String> buyerId,
+          @JsonProperty("messageDirection") Optional<String> messageDirection) {
             super(
               adId,
               conversationId,

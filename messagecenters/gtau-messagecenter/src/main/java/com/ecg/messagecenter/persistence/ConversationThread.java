@@ -1,5 +1,7 @@
 package com.ecg.messagecenter.persistence;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.joda.time.DateTime;
@@ -8,24 +10,25 @@ import java.util.Optional;
 
 import static com.ecg.replyts.core.api.util.Pairwise.pairsAreEqual;
 
+@JsonIgnoreProperties(ignoreUnknown = true, value = "containsUnreadMessages")
 public class ConversationThread extends AbstractConversationThread {
     private Optional<String> robot;
     private Optional<String> offerId;
 
     public ConversationThread(
-            String adId,
-            String conversationId,
-            DateTime createdAt,
-            DateTime modifiedAt,
-            DateTime receivedAt,
-            boolean containsUnreadMessages,
-            Optional<String> previewLastMessage,
-            Optional<String> buyerName,
-            Optional<String> sellerName,
-            Optional<String> buyerId,
-            Optional<String> messageDirection,
-            Optional<String> robot,
-            Optional<String> offerId) {
+            @JsonProperty("adId") String adId,
+            @JsonProperty("conversationId") String conversationId,
+            @JsonProperty("createdAt") DateTime createdAt,
+            @JsonProperty("modifiedAt") DateTime modifiedAt,
+            @JsonProperty("receivedAt") DateTime receivedAt,
+            @JsonProperty("containsUnreadMessages") boolean containsUnreadMessages,
+            @JsonProperty("previewLastMessage") Optional<String> previewLastMessage,
+            @JsonProperty("buyerName") Optional<String> buyerName,
+            @JsonProperty("sellerName") Optional<String> sellerName,
+            @JsonProperty("buyerId") Optional<String> buyerId,
+            @JsonProperty("messageDirection") Optional<String> messageDirection,
+            @JsonProperty("robot") Optional<String> robot,
+            @JsonProperty("offerId") Optional<String> offerId) {
         super(
                 adId,
                 conversationId,

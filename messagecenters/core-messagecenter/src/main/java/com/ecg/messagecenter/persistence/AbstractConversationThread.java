@@ -14,10 +14,12 @@ public abstract class AbstractConversationThread {
     protected final String conversationId;
     protected final DateTime createdAt;
     protected final DateTime modifiedAt;
-    protected final boolean containsUnreadMessages;
     protected final DateTime receivedAt;
 
-    //introduced later therefore Option to be compatible with persistent data
+    // Must be modifiable for implementations which store the unread count separate from the threads
+    protected boolean containsUnreadMessages;
+
+    // Introduced later and thus Optional to be compatible with persistent data
     protected Optional<String> previewLastMessage;
     protected Optional<String> buyerName;
     protected Optional<String> sellerName;
@@ -95,6 +97,10 @@ public abstract class AbstractConversationThread {
 
     public boolean isContainsUnreadMessages() {
         return containsUnreadMessages;
+    }
+
+    public void setContainsUnreadMessages(boolean containsUnreadMessages) {
+        this.containsUnreadMessages = containsUnreadMessages;
     }
 
     public DateTime getReceivedAt() {

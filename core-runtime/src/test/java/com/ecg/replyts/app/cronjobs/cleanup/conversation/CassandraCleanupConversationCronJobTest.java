@@ -8,9 +8,14 @@ import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversati
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,39 +24,40 @@ import java.util.stream.Stream;
 import static org.joda.time.DateTime.now;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = CassandraCleanupConversationCronJobTest.TestContext.class)
+@TestPropertySource(properties = {
+  "replyts.maxConversationAgeDays = 15",
+  "replyts.cleanup.conversation.streaming.queue.size = 1",
+  "replyts.cleanup.conversation.streaming.threadcount = 1",
+  "replyts.cleanup.conversation.streaming.batch.size = 1",
+  "replyts.cleanup.conversation.schedule.expression = 0 0 0 * * ? *"
+})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class CassandraCleanupConversationCronJobTest {
-
-    private static final int WORK_QUEUE_SIZE = 1;
-    private static final int THREAD_COUNT = 1;
     private static final int MAX_CONVERSATION_AGE_DAYS = 15;
-    private static final int BATCH_SIZE = 1;
-    private static final String CRON_JOB_EXPRESSION = "test";
     private static final String CONVERSATION_ID1 = "conversationId1";
+    private static final String JOB_NAME = "cleanupConversationJob";
 
-    @Mock
+    @Autowired
     private CassandraConversationRepository conversationRepository;
-    @Mock
+
+    @Autowired
     private CronJobClockRepository cronJobClockRepository;
-    @Mock
+
+    @Autowired
     private ConversationEventListeners conversationEventListeners;
-    @Mock
+
+    @Autowired
     private CleanupDateCalculator cleanupDateCalculator;
 
-    @InjectMocks
-    private CassandraCleanupConversationCronJob testObject = new CassandraCleanupConversationCronJob(WORK_QUEUE_SIZE, THREAD_COUNT,
-            MAX_CONVERSATION_AGE_DAYS, BATCH_SIZE, CRON_JOB_EXPRESSION) {
-
-        @Override
-        protected CleanupDateCalculator createCleanupDateCalculator() {
-            return cleanupDateCalculator;
-        }
-    };
+    @Autowired
+    private CassandraCleanupConversationCronJob cronJob;
 
     @Test
     public void shouldDeleteConversationWhenLastModifiedDateIsBeforeCleanup() throws Exception {
-        DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS);
-        when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, CassandraCleanupConversationCronJob.CLEANUP_CONVERSATION_JOB_NAME))
+        DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).dayOfMonth().roundFloorCopy().toDateTime();
+        when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
         ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed);
         List<ConversationModificationDate> modificationDates = Arrays.asList(modificationDate);
@@ -63,17 +69,17 @@ public class CassandraCleanupConversationCronJobTest {
         DateTime lastModifiedDate = now().minusDays(MAX_CONVERSATION_AGE_DAYS + 1);
         when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate);
 
-        testObject.execute();
+        cronJob.execute();
 
         verify(conversationRepository).getById(CONVERSATION_ID1);
         verify(conversationRepository, never()).deleteOldConversationModificationDate(modificationDate);
-        verify(cronJobClockRepository).set(eq(CassandraCleanupConversationCronJob.CLEANUP_CONVERSATION_JOB_NAME), any(DateTime.class), any(DateTime.class));
+        verify(cronJobClockRepository).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
 
     @Test
     public void shouldDeleteModificationIdxWhenLastModifiedDateIsAfterCleanup() throws Exception {
-        DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS);
-        when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, CassandraCleanupConversationCronJob.CLEANUP_CONVERSATION_JOB_NAME))
+        DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).dayOfMonth().roundFloorCopy().toDateTime();
+        when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
         ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed);
         List<ConversationModificationDate> modificationDates = Arrays.asList(modificationDate);
@@ -85,18 +91,18 @@ public class CassandraCleanupConversationCronJobTest {
         DateTime lastModifiedDate = now();
         when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate);
 
-        testObject.execute();
+        cronJob.execute();
 
         verify(conversationRepository, never()).getById(CONVERSATION_ID1);
         verify(conversationRepository).deleteOldConversationModificationDate(modificationDate);
-        verify(cronJobClockRepository).set(eq(CassandraCleanupConversationCronJob.CLEANUP_CONVERSATION_JOB_NAME), any(DateTime.class), any(DateTime.class));
+        verify(cronJobClockRepository).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
 
     @Test
     public void shouldDeleteConversationWhenLastModifiedDateIsEqualCleanup() throws Exception {
         // last processed date exists and before the date to be processed
-        DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS);
-        when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, CassandraCleanupConversationCronJob.CLEANUP_CONVERSATION_JOB_NAME))
+        DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).dayOfMonth().roundFloorCopy().toDateTime();
+        when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
         ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed);
         List<ConversationModificationDate> modificationDates = Arrays.asList(modificationDate);
@@ -108,23 +114,60 @@ public class CassandraCleanupConversationCronJobTest {
         DateTime lastModifiedDate = dateToBeProcessed;
         when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate);
 
-        testObject.execute();
+        cronJob.execute();
 
         verify(conversationRepository).getById(CONVERSATION_ID1);
         verify(conversationRepository, never()).deleteOldConversationModificationDate(modificationDate);
-        verify(cronJobClockRepository).set(eq(CassandraCleanupConversationCronJob.CLEANUP_CONVERSATION_JOB_NAME), any(DateTime.class), any(DateTime.class));
+        verify(cronJobClockRepository).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
 
     @Test
     public void shouldReturnWhenNoCleanupDate() throws Exception {
-        when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, CassandraCleanupConversationCronJob.CLEANUP_CONVERSATION_JOB_NAME))
+        when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(null);
 
-        testObject.execute();
+        cronJob.execute();
 
         verify(conversationRepository, never()).streamConversationModificationsByDay(anyInt(), anyInt(), anyInt());
         verify(conversationRepository, never()).getById(CONVERSATION_ID1);
         verify(conversationRepository, never()).deleteOldConversationModificationDate(any(ConversationModificationDate.class));
-        verify(cronJobClockRepository, never()).set(eq(CassandraCleanupConversationCronJob.CLEANUP_CONVERSATION_JOB_NAME), any(DateTime.class), any(DateTime.class));
+        verify(cronJobClockRepository, never()).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
+    }
+
+    @Configuration
+    static class TestContext {
+        @Bean
+        public CassandraConversationRepository conversationRepository() {
+            return mock(CassandraConversationRepository.class);
+        }
+
+        @Bean
+        public CronJobClockRepository cronJobClockRepository() {
+            return mock(CronJobClockRepository.class);
+        }
+
+        @Bean
+        public ConversationEventListeners conversationEventListeners() {
+            return mock(ConversationEventListeners.class);
+        }
+
+        @Bean
+        public CleanupDateCalculator cleanupDateCalculator() {
+            return mock(CleanupDateCalculator.class);
+        }
+
+        @Bean
+        public CassandraCleanupConversationCronJob cleanupCronJob() {
+            return new CassandraCleanupConversationCronJob();
+        }
+
+        @Bean
+        public PropertySourcesPlaceholderConfigurer configurer() {
+            PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+
+            configurer.setNullValue("null");
+
+            return configurer;
+        }
     }
 }

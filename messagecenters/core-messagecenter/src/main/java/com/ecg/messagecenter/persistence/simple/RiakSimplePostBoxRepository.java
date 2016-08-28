@@ -22,6 +22,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 public class RiakSimplePostBoxRepository implements SimplePostBoxRepository {
@@ -91,18 +93,18 @@ public class RiakSimplePostBoxRepository implements SimplePostBoxRepository {
 
     @Override
     public void write(PostBox postBox) {
-        write(postBox, new DeletionContext(Arrays.<String>asList()));
+        write(postBox, Collections.emptyList());
     }
 
     @Override
-    public void write(PostBox postBox, DeletionContext deletionContext) {
+    public void write(PostBox postBox, List<String> deletedIds) {
         Timer.Context timerContext = COMMIT_TIMER.time();
 
         try {
             postBoxBucket.store(postBox.getEmail(), postBox)
               .withConverter(converter)
               .withResolver(resolver)
-              .withMutator(new RiakSimplePostBoxMutator(postBoxMerger, postBox, deletionContext.getDeletedIds()))
+              .withMutator(new RiakSimplePostBoxMutator(postBoxMerger, postBox, deletedIds))
               .returnBody(false)
               .w(Quora.QUORUM)
               .execute();
@@ -114,7 +116,7 @@ public class RiakSimplePostBoxRepository implements SimplePostBoxRepository {
     }
 
     @Override
-    public void cleanupLongTimeUntouchedPostBoxes(DateTime time) {
+    public void cleanup(DateTime time) {
         try {
             StreamingOperation<IndexEntry> keyStream = postBoxBucket.fetchIndex(IntIndex.named(UPDATED_INDEX))
               .from(0)

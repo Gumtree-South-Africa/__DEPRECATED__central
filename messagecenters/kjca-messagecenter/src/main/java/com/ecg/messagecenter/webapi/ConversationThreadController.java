@@ -223,7 +223,7 @@ class ConversationThreadController {
             Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
             if (conversationThreadRequested.isPresent()) {
                 postBox.removeConversation(conversationId);
-                postBoxRepository.write(postBox, new SimplePostBoxRepository.DeletionContext(ImmutableList.of(conversationId)));
+                postBoxRepository.write(postBox, ImmutableList.of(conversationId));
             }
 
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);

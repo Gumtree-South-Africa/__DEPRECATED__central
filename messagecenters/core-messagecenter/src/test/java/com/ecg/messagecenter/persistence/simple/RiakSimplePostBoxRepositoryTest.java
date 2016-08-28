@@ -52,7 +52,7 @@ public class RiakSimplePostBoxRepositoryTest {
         PostBox box = new PostBox("foo@bar.com", Optional.empty(), Collections.<AbstractConversationThread>emptyList(), 25);
         postBoxRepository.write(box);
 
-        postBoxRepository.cleanupLongTimeUntouchedPostBoxes(now());
+        postBoxRepository.cleanup(now());
 
         IRiakObject postbox = riakClient.fetchBucket("postbox").execute().fetch("foo@bar.com").execute();
 
@@ -64,7 +64,7 @@ public class RiakSimplePostBoxRepositoryTest {
         PostBox box = new PostBox("foo@bar.com", Optional.empty(), Collections.<AbstractConversationThread>emptyList(), 25);
         postBoxRepository.write(box);
 
-        postBoxRepository.cleanupLongTimeUntouchedPostBoxes(now().minusSeconds(1));
+        postBoxRepository.cleanup(now().minusSeconds(1));
 
         IRiakObject postbox = riakClient.fetchBucket("postbox").execute().fetch("foo@bar.com").execute();
 

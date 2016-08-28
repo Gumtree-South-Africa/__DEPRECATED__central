@@ -26,15 +26,16 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RiakConversationRepositoryTest {
-
     private RiakConversationRepository repo;
+
     @Mock
     private ConversationBucket conversationBucket;
+
     @Mock
     private ConversationIndexBucket conversationIndexBucket;
+
     @Mock
     private ConversationSecretBucket secretRepo;
-
 
     @Mock
     private Conversation convToDelete;
@@ -105,6 +106,5 @@ public class RiakConversationRepositoryTest {
             // expected behaviour
         }
         verifyZeroInteractions(conversationBucket);
-
     }
 }

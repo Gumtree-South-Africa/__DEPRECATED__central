@@ -397,7 +397,6 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
     }
 
     private enum Statements {
-
         SELECT_FROM_CONVERSATION_EVENTS("SELECT * FROM core_conversation_events WHERE conversation_id=? ORDER BY event_id ASC"),
         SELECT_CONVERSATION_EVENTS_BY_DATE("SELECT conversation_id, event_id FROM core_conversation_events_by_date WHERE creatdate = ?"),
         SELECT_CONVERSATION_ID_FROM_SECRET("SELECT conversation_id FROM core_conversation_secret WHERE secret=? LIMIT 1"),

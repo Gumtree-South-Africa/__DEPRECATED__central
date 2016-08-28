@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -26,70 +27,77 @@ import java.util.stream.Stream;
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnExpression("'${persistence.strategy}$-${replyts2.cleanup.conversation.enabled}' == 'cassandra-true'")
+@ConditionalOnExpression("#{('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid')) && '${replyts2.cleanup.conversation.enabled}' == 'true'}")
 public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraCleanupConversationCronJob.class);
 
-    protected static final String CLEANUP_CONVERSATION_JOB_NAME = "cleanupConversationJob";
+    private static final String CLEANUP_CONVERSATION_JOB_NAME = "cleanupConversationJob";
 
     @Autowired
     private CassandraConversationRepository conversationRepository;
-    @Autowired
-    private CronJobClockRepository cronJobClockRepository;
+
     @Autowired
     private ConversationEventListeners conversationEventListeners;
 
-    private String cronJobExpression;
-    private int maxConversationAgeDays;
+    @Autowired
+    private CronJobClockRepository cronJobClockRepository;
+
+    @Autowired
+    private CleanupDateCalculator cleanupDateCalculator;
+
+    @Value("${replyts.maxConversationAgeDays:120}")
+    private int maxAgeDays;
+
+    @Value("${replyts.cleanup.conversation.streaming.queue.size:100000}")
+    private int workQueueSize;
+
+    @Value("${replyts.cleanup.conversation.streaming.threadcount:4}")
+    private int threadCount;
+
+    @Value("${replyts.cleanup.conversation.streaming.batch.size:3000}")
     private int batchSize;
+
+    @Value("${replyts.cleanup.conversation.schedule.expression:0 0 0 * * ? *}")
+    private String cronJobExpression;
 
     private ThreadPoolExecutor threadPoolExecutor;
 
-    @Autowired
-    public CassandraCleanupConversationCronJob(
-            @Value("${replyts.cleanup.conversation.streaming.queue.size:100000}")
-            int workQueueSize,
-            @Value("${replyts.cleanup.conversation.streaming.threadcount:4}")
-            int threadCount,
-            @Value("${replyts.cleanup.conversation.maxagedays:120}")
-            int maxConversationAgeDays,
-            @Value("${replyts.cleanup.conversation.streaming.batch.size:3000}")
-            int batchSize,
-            @Value("${replyts.cleanup.conversation.schedule.expression:0 0 0 * * ? *}")
-            String cronJobExpression) {
+    @PostConstruct
+    public void createThreadPoolExecutor() {
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(workQueueSize);
         RejectedExecutionHandler rejectionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
 
         this.threadPoolExecutor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
-
-        this.maxConversationAgeDays = maxConversationAgeDays;
-        this.batchSize = batchSize;
-        this.cronJobExpression = cronJobExpression;
     }
 
     @Override
     public void execute() throws Exception {
-        final DateTime cleanupDate = createCleanupDateCalculator().getCleanupDate(maxConversationAgeDays, CLEANUP_CONVERSATION_JOB_NAME);
+        DateTime cleanupDate = cleanupDateCalculator.getCleanupDate(maxAgeDays, CLEANUP_CONVERSATION_JOB_NAME);
+
         if (cleanupDate == null) {
             return;
         }
 
         LOG.info("Cleanup: Deleting conversations for the date '{}'", cleanupDate);
 
-        Stream<ConversationModificationDate> conversationModificationsToDelete = conversationRepository.streamConversationModificationsByDay(cleanupDate.getYear(),
-                cleanupDate.getMonthOfYear(), cleanupDate.getDayOfMonth());
+        Stream<ConversationModificationDate> conversationModificationsToDelete = conversationRepository.streamConversationModificationsByDay(
+          cleanupDate.getYear(), cleanupDate.getMonthOfYear(), cleanupDate.getDayOfMonth());
 
         List<Future<?>> cleanUpTasks = new ArrayList<>();
 
         Iterators.partition(conversationModificationsToDelete.iterator(), batchSize).forEachRemaining(idxs -> {
             cleanUpTasks.add(threadPoolExecutor.submit(() -> {
                 LOG.info("Cleanup: Deleting data related to {} conversation modification dates", idxs.size());
+
                 idxs.forEach(conversationModificationDate -> {
                     String conversationId = conversationModificationDate.getConversationId();
                     DateTime lastModifiedDate = conversationRepository.getLastModifiedDate(conversationId);
-                    // it is necessary to compare dates without a time part
-                    if ((lastModifiedDate != null) && (lastModifiedDate.toLocalDate().isBefore(cleanupDate.toLocalDate())
-                                                        || lastModifiedDate.toLocalDate().equals(cleanupDate.toLocalDate()))) {
+
+                    // Round the lastModifiedDate to the day, then compare to the (already rounded) cleanup date
+
+                    DateTime roundedLastModifiedDate = lastModifiedDate != null ? lastModifiedDate.dayOfMonth().roundFloorCopy().toDateTime() : null;
+
+                    if (lastModifiedDate != null && (roundedLastModifiedDate.isBefore(cleanupDate) || roundedLastModifiedDate.equals(cleanupDate))) {
                         try {
                             deleteConversationWithModificationIdx(conversationId);
 
@@ -133,9 +141,5 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
             conversation.applyCommand(new ConversationDeletedCommand(conversation.getId(), now()));
             ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
         }
-    }
-
-    protected CleanupDateCalculator createCleanupDateCalculator() {
-        return new CleanupDateCalculator(cronJobClockRepository);
     }
 }
