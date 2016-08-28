@@ -1,5 +1,6 @@
 package com.ecg.messagebox.service;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.model.*;
@@ -22,6 +23,7 @@ import java.util.Optional;
 import java.util.concurrent.*;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
+import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static java.lang.Runtime.getRuntime;
 
@@ -44,6 +46,8 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer getConversationsTimer = newTimer("postBoxService.v2.getConversations");
     private final Timer changeConversationVisibilitiesTimer = newTimer("postBoxService.v2.changeConversationVisibilities");
     private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
+
+    private final Counter processNewMessageFutureFailures = newCounter("postBoxService.v2.processNewMessage-futureFailures");
 
     @Autowired
     public CassandraPostBoxService(CassandraPostBoxRepository postBoxRepository,
@@ -117,6 +121,7 @@ public class CassandraPostBoxService implements PostBoxService {
                 }
                 areUsersBlockedFuture.cancel(true);
                 conversationFuture.cancel(true);
+                processNewMessageFutureFailures.inc();
                 LOGGER.error("Could not process new conversation message for postbox id {}, conversation id {} and RTS message id {}",
                         userId, rtsConversation.getId(), rtsMessage.getId(), e);
                 throw new RuntimeException(e);

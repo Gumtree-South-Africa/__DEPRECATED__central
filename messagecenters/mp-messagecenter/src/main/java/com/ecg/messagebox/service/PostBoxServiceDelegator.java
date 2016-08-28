@@ -339,7 +339,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
         String metricsOwner = "postBoxDelegatorService";
         return new InstrumentedExecutorService(
                 new ThreadPoolExecutor(
-                        0, getRuntime().availableProcessors() * 2,
+                        0, getRuntime().availableProcessors() * 3,
                         60L, TimeUnit.SECONDS,
                         new SynchronousQueue<>(),
                         new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)

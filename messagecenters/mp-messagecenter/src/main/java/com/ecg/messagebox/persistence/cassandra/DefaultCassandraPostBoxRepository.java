@@ -1,5 +1,6 @@
 package com.ecg.messagebox.persistence.cassandra;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.messagebox.json.JsonConverter;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 import static com.datastax.driver.core.utils.UUIDs.unixTimestamp;
 import static com.ecg.messagebox.model.Visibility.get;
 import static com.ecg.messagebox.util.uuid.UUIDComparator.staticCompare;
+import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Runtime.getRuntime;
@@ -68,6 +70,10 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer deleteConversationsTimer = newTimer("cassandra.postBoxRepo.v2.deleteConversations");
     private final Timer deleteConversationTimer = newTimer("cassandra.postBoxRepo.v2.deleteConversation");
 
+    private final Counter postBoxFutureFailures = newCounter("cassandra.postBoxRepo.v2.getPostBox-futureFailures");
+    private final Counter conversationFutureFailures = newCounter("cassandra.postBoxRepo.v2.getConversationWithMessages-futureFailures");
+    private final Counter blockedUsersFutureFailures = newCounter("cassandra.postBoxRepo.v2.getBlockedUserInfo-futureFailures");
+
     @Autowired
     public DefaultCassandraPostBoxRepository(@Qualifier("cassandraSession") Session session,
                                              @Qualifier("cassandraReadConsistency") ConsistencyLevel readConsistency,
@@ -82,7 +88,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         String metricsName = "execSrv";
         this.executorService = new InstrumentedExecutorService(
                 new ThreadPoolExecutor(
-                        0, getRuntime().availableProcessors() * 2,
+                        0, getRuntime().availableProcessors() * 3,
                         60L, TimeUnit.SECONDS,
                         new SynchronousQueue<>(),
                         new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)
@@ -131,6 +137,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                 }
                 conversationIdsFuture.cancel(true);
                 unreadCountsFuture.cancel(true);
+                postBoxFutureFailures.inc();
                 LOGGER.error("Could not fetch conversation indices for user id {} and visibility {}", userId, visibility.name(), e);
                 throw new RuntimeException(e);
             }
@@ -207,6 +214,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                 unreadMessagesCountFuture.cancel(true);
                 conversationFuture.cancel(true);
                 messagesFuture.cancel(true);
+                conversationFutureFailures.inc();
                 LOGGER.error("Could not fetch conversation for user identifier {} and conversation id {}", userId, conversationId, e);
                 throw new RuntimeException(e);
             }
@@ -455,6 +463,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                         Thread.currentThread().interrupt();
                     }
                     futures.forEach(f -> f.cancel(true));
+                    blockedUsersFutureFailures.inc();
                     LOGGER.error("Could not get blocked user information for user id {} and user id {}", userId1, userId2, e);
                     throw new RuntimeException(e);
                 }
