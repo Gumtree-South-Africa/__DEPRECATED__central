@@ -11,7 +11,7 @@ class MessageToEventName {
 
     public String jsonLogEntry(Message message) {
         Builder bdr = JsonObjects.builder().attr("event", describeState(message));
-        bdr.attr("agent", message.getLastEditor().orNull());
+        bdr.attr("agent", message.getLastEditor().orElse(null));
         return bdr.toJson();
     }
 
