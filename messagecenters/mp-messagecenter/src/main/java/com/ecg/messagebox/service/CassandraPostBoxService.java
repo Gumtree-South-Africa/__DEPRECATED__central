@@ -2,7 +2,6 @@ package com.ecg.messagebox.service;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.util.InstrumentedCallerRunsPolicy;
@@ -93,7 +92,7 @@ public class CassandraPostBoxService implements PostBoxService {
 
                 MessageType messageType = MessageType.get(rtsMessage.getHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase());
                 String messageText = messageResponseFactory.getCleanedMessage(rtsConversation, rtsMessage);
-                Message newMessage = new Message(UUIDs.timeBased(), messageText, senderUserId, messageType);
+                Message newMessage = new Message(rtsMessage.getEventTimeUUID().get(), messageText, senderUserId, messageType);
 
                 Optional<ConversationThread> conversationOpt = conversationFuture.get(timeoutInMs, TimeUnit.SECONDS);
 

@@ -85,14 +85,16 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
     }
 
     private ConversationEvent rowToConversationEvent(Row row) {
+        UUID eventId = row.getUUID(FIELD_EVENT_ID);
         String eventJsonWithClass = row.getString(FIELD_EVENT_JSON);
         String className = eventJsonWithClass.substring(0, eventJsonWithClass.indexOf("@@"));
         String eventJson = eventJsonWithClass.substring(eventJsonWithClass.indexOf("@@") + 2);
         try {
-            return objectMapper.readValue(eventJson, (Class<? extends ConversationEvent>) Class.forName(className));
+            ConversationEvent conversationEvent = objectMapper.readValue(eventJson, (Class<? extends ConversationEvent>) Class.forName(className));
+            conversationEvent.setEventTimeUUID(eventId);
+            return conversationEvent;
         } catch (Exception e) {
             String conversationId = row.getString(FIELD_CONVERSATION_ID);
-            UUID eventId = row.getUUID(FIELD_EVENT_ID);
             throw new RuntimeException("Couldn't parse conversation event " + eventId + " in conversation " + conversationId, e);
         }
     }
@@ -223,7 +225,7 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
             BatchStatement batch = new BatchStatement();
             for (ConversationEvent conversationEvent : toBeCommittedEvents) {
                 try {
-                    UUID eventId = UUIDs.timeBased();
+                    UUID eventId = conversationEvent.getEventTimeUUID().get();
                     DateTime currentTime = new DateTime(UUIDs.unixTimestamp(eventId));
                     String jsonEventStr = objectMapper.writeValueAsString(conversationEvent);
                     batch.add(Statements.INSERT_CONVERSATION_EVENTS.bind(

@@ -1,14 +1,7 @@
 package com.ecg.replyts.core.runtime.model.conversation;
 
 import com.ecg.replyts.app.textcleanup.ExtractedText;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.FilterResultState;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
-import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
-import com.google.common.base.Optional;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -35,6 +28,8 @@ public class ImmutableMessage implements Message {
 
     private final Optional<String> lastEditor;
     private final int version;
+
+    private Optional<UUID> eventTimeUUID;
 
     ImmutableMessage(Builder bdr) {
         Preconditions.checkNotNull(bdr.messageDirection);
@@ -63,6 +58,7 @@ public class ImmutableMessage implements Message {
         this.attachments = bdr.attachments != null ? ImmutableList.copyOf(bdr.attachments) : Collections.emptyList();
         this.textParts = bdr.textParts != null ? ImmutableList.copyOf(bdr.textParts) : Collections.emptyList();
         this.plainTextBody = this.textParts.isEmpty() ? "" : this.textParts.get(0);
+        this.eventTimeUUID = bdr.eventTimeUUID;
     }
 
     @Override
@@ -147,11 +143,17 @@ public class ImmutableMessage implements Message {
     }
 
     @Override
+    public Optional<UUID> getEventTimeUUID() {
+        return eventTimeUUID;
+    }
+
+    @Override
     public List<String> getTextParts() {
         return textParts;
     }
 
     public static final class Builder {
+
         private int version = 0;
         private String id;
         private MessageDirection messageDirection;
@@ -162,7 +164,8 @@ public class ImmutableMessage implements Message {
         private ModerationResultState humanResultState = ModerationResultState.UNCHECKED;
         private Map<String, String> headers = new HashMap<>();
         private List<ProcessingFeedback> processingFeedback = new ArrayList<>();
-        private Optional<String> lastEditor = Optional.absent();
+        private Optional<String> lastEditor = Optional.empty();
+        private Optional<UUID> eventTimeUUID = Optional.empty();
         private String senderMessageIdHeader;
         private String inResponseToMessageId;
         public List<String> attachments;
@@ -189,9 +192,10 @@ public class ImmutableMessage implements Message {
                     withInResponseToMessageId(message.getInResponseToMessageId()).
                     withSenderMessageIdHeader(message.getSenderMessageIdHeader()).
                     withAttachments(message.getAttachmentFilenames()).
-                    withProcessingFeedback(message.getProcessingFeedback());
+                    withProcessingFeedback(message.getProcessingFeedback()).
+                    withEventTimeUUID(message.getEventTimeUUID());
 
-            builder.version= message.getVersion()+1;
+            builder.version = message.getVersion() + 1;
             return builder;
         }
 
@@ -284,6 +288,11 @@ public class ImmutableMessage implements Message {
 
         public Builder withTextParts(List<String> textParts) {
             this.textParts = textParts;
+            return this;
+        }
+
+        public Builder withEventTimeUUID(Optional<UUID> eventTimeUUID) {
+            this.eventTimeUUID = eventTimeUUID;
             return this;
         }
 

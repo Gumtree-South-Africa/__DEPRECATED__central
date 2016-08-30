@@ -12,7 +12,6 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.mailparser.StringTypedContentMime4J;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
@@ -27,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.FilterResultState.OK;
 import static org.hamcrest.CoreMatchers.is;
@@ -75,7 +75,7 @@ public class MessageBodyAnonymizerTest {
                 .withHeaders(ImmutableMap.<String, String>of())
                 .withTextParts(ImmutableList.of(""))
                 .withProcessingFeedback(ImmutableList.<ProcessingFeedback>of())
-                .withLastEditor(Optional.<String>absent());
+                .withLastEditor(Optional.empty());
 
         conversationBuilder = ImmutableConversation.Builder
                 .aConversation()

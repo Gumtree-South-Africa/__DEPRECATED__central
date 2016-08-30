@@ -115,7 +115,7 @@ public class DomainObjectConverter {
         messageRts.setId(message.getId());
         messageRts.setMailHeaders(message.getHeaders());
         messageRts.setText(message.getPlainTextBody());
-        messageRts.setLastEditor(message.getLastEditor().orNull());
+        messageRts.setLastEditor(message.getLastEditor().orElse(null));
 
         if (withBasicConversationFields) {
             ConversationRts conversationRts = convertConversationInternal(conversation, false);
