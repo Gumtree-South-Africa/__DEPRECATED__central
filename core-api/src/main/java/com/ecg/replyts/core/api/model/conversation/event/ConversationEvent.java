@@ -1,12 +1,12 @@
 package com.ecg.replyts.core.api.model.conversation.event;
 
 import com.ecg.replyts.core.api.util.Assert;
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.MoreObjects;
 import org.joda.time.DateTime;
-
-import java.util.Optional;
-import java.util.UUID;
 
 import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY;
@@ -31,8 +31,6 @@ public abstract class ConversationEvent {
 
     private final String eventId;
     private final DateTime conversationModifiedAt;
-
-    private Optional<UUID> eventTimeUUID;
 
     /**
      * marks the version of this data format. can be used in future to handle old and new data formats.
@@ -62,15 +60,6 @@ public abstract class ConversationEvent {
         return String.format("%s-%s-%d", eventType.getSimpleName(), messageId, conversationModifiedAt.getMillis());
     }
 
-    @JsonIgnore
-    public Optional<UUID> getEventTimeUUID() {
-        return eventTimeUUID;
-    }
-
-    public void setEventTimeUUID(UUID eventTimeUUID) {
-        this.eventTimeUUID = Optional.of(eventTimeUUID);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -78,7 +67,7 @@ public abstract class ConversationEvent {
 
         ConversationEvent that = (ConversationEvent) o;
 
-        if (this.conversationModifiedAt.getMillis() != that.conversationModifiedAt.getMillis()) return false;
+        if(this.conversationModifiedAt.getMillis() != that.conversationModifiedAt.getMillis()) return false;
         if (!eventId.equals(that.eventId)) return false;
 
         return true;

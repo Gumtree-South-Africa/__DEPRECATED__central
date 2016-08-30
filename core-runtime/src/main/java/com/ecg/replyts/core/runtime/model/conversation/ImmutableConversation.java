@@ -3,6 +3,7 @@ package com.ecg.replyts.core.runtime.model.conversation;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.command.*;
 import com.ecg.replyts.core.api.model.conversation.event.*;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -79,7 +80,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
      * @param command the command
      * @return the events that are needed to replay this command
      * @throws IllegalArgumentException when invalid
-     * @throws IllegalStateException    when a command is issued after a ConversationDeletedCommand has been processed
+     * @throws IllegalStateException when a command is issued after a ConversationDeletedCommand has been processed
      */
     public List<ConversationEvent> apply(ConversationCommand command) {
         if (deleted) {
@@ -97,14 +98,14 @@ public class ImmutableConversation implements Conversation { // NOSONAR
         if (command instanceof MessageTerminatedCommand) {
             return applyInternal((MessageTerminatedCommand) command);
         }
-        if (command instanceof ConversationClosedCommand) {
+        if(command instanceof ConversationClosedCommand) {
             return applyInternal((ConversationClosedCommand) command);
         }
-        if (command instanceof AddCustomValueCommand) {
-            return applyInternal((AddCustomValueCommand) command);
+        if(command instanceof AddCustomValueCommand) {
+            return applyInternal((AddCustomValueCommand)command);
         }
-        if (command instanceof ConversationDeletedCommand) {
-            return applyInternal((ConversationDeletedCommand) command);
+        if(command instanceof ConversationDeletedCommand) {
+            return applyInternal((ConversationDeletedCommand)command);
         }
         throw new IllegalArgumentException("unknown command of type " + command.getClass().getName() + ": " + command);
     }
@@ -146,8 +147,9 @@ public class ImmutableConversation implements Conversation { // NOSONAR
     private List<ConversationEvent> applyInternal(AddCustomValueCommand cmd) {
         Preconditions.checkNotNull(cmd.getKey());
         Preconditions.checkNotNull(cmd.getValue());
-        return Collections.singletonList(new CustomValueAddedEvent(cmd.getKey(), cmd.getValue()));
+        return Collections.singletonList((ConversationEvent)new CustomValueAddedEvent(cmd.getKey(), cmd.getValue()));
     }
+
 
     private List<ConversationEvent> applyInternal(ConversationClosedCommand command) {
 
@@ -221,14 +223,14 @@ public class ImmutableConversation implements Conversation { // NOSONAR
         if (event instanceof MessageTerminatedEvent) {
             return updateInternal((MessageTerminatedEvent) event);
         }
-        if (event instanceof ConversationClosedEvent) {
-            return updateInternal((ConversationClosedEvent) event);
+        if(event instanceof ConversationClosedEvent) {
+            return updateInternal((ConversationClosedEvent)event);
         }
-        if (event instanceof CustomValueAddedEvent) {
-            return updateInternal((CustomValueAddedEvent) event);
+        if(event instanceof CustomValueAddedEvent) {
+            return updateInternal((CustomValueAddedEvent)event);
         }
-        if (event instanceof ConversationDeletedEvent) {
-            return updateInternal((ConversationDeletedEvent) event);
+        if(event instanceof ConversationDeletedEvent) {
+            return updateInternal((ConversationDeletedEvent)event);
         }
         LOG.info("Ignoring unknown event of type {}: {}", event.getClass().getName(), event);
         return this;
@@ -256,20 +258,21 @@ public class ImmutableConversation implements Conversation { // NOSONAR
     private ImmutableConversation updateInternal(MessageAddedEvent event) {
         return aConversation(this)
                 .withMessage(ImmutableMessage.Builder.aMessage()
-                        .withState(event.getState())
-                        .withId(event.getMessageId())
-                        .withMessageDirection(event.getMessageDirection())
-                        .withReceivedAt(event.getReceivedAt())
-                        .withHeaders(event.getHeaders())
-                        .withLastModifiedAt(event.getReceivedAt())
-                        .withAttachments(event.getAttachments())
-                        .withTextParts(event.getTextParts())
-                        .withSenderMessageIdHeader(event.getSenderMessageIdHeader())
-                        .withInResponseToMessageId(event.getInResponseToMessageId())
-                        .withEventTimeUUID(event.getEventTimeUUID()))
-                .withLastModifiedAt(event.getConversationModifiedAt())
-                .build();
+                                .withState(event.getState())
+                                .withId(event.getMessageId())
+                                .withMessageDirection(event.getMessageDirection())
+                                .withReceivedAt(event.getReceivedAt())
+                                .withHeaders(event.getHeaders())
+                                .withLastModifiedAt(event.getReceivedAt())
+                                .withAttachments(event.getAttachments())
+                                .withTextParts(event.getTextParts())
+                                .withSenderMessageIdHeader(event.getSenderMessageIdHeader())
+                                .withInResponseToMessageId(event.getInResponseToMessageId())
+                ).
+                        withLastModifiedAt(event.getConversationModifiedAt()).
+                        build();
     }
+
 
     private ImmutableConversation updateInternal(CustomValueAddedEvent event) {
         return aConversation(this)
@@ -301,6 +304,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
 
         MessageState newMessageState = humanResultState.allowsSending() ? MessageState.SENT : MessageState.BLOCKED;
 
+
         return aConversation(this)
                 .updateOrAddMessage(
                         ImmutableMessage.Builder.aMessage(message).
@@ -309,9 +313,10 @@ public class ImmutableConversation implements Conversation { // NOSONAR
                                 withLastModifiedAt(event.getConversationModifiedAt()).
                                 withState(newMessageState).
                                 withTextParts(message.getTextParts()).
-                                withLastEditor(Optional.ofNullable(event.getEditor()))
+                                withLastEditor(Optional.fromNullable(event.getEditor()))
                 ).withLastModifiedAt(event.getConversationModifiedAt()).build();
     }
+
 
     private ImmutableConversation updateInternal(ConversationClosedEvent event) {
         return aConversation(this)
@@ -323,6 +328,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
 
     private ImmutableConversation updateInternal(MessageTerminatedEvent event) {
         Message message = getMessageById(event.getMessageId());
+
 
         ImmutableMessage.Builder messageToUpdate = ImmutableMessage.Builder.aMessage(message).
                 withLastModifiedAt(event.getConversationModifiedAt()).
@@ -399,6 +405,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
         return role == ConversationRole.Buyer ? buyerSecret : sellerSecret;
     }
 
+
     /**
      * {@inheritDoc}
      */
@@ -473,7 +480,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
 
     @Override
     public boolean isClosedBy(ConversationRole role) {
-        return (role == ConversationRole.Seller && closedBySeller) || (role == ConversationRole.Buyer && closedByBuyer);
+        return ( role == ConversationRole.Seller && closedBySeller ) || (role == ConversationRole.Buyer && closedByBuyer);
     }
 
     /**
@@ -497,6 +504,9 @@ public class ImmutableConversation implements Conversation { // NOSONAR
         return id;
     }
 
+    /**
+     *
+     */
     public static final class Builder {
 
         // private static final transient Logger LOG = LoggerFactory.getLogger(Builder.class);
@@ -547,9 +557,9 @@ public class ImmutableConversation implements Conversation { // NOSONAR
         }
 
         public Builder closedBy(ConversationRole role) {
-            if (role == ConversationRole.Buyer) {
+            if(role == ConversationRole.Buyer) {
                 closedByBuyer = true;
-            } else if (role == ConversationRole.Seller) {
+            } else if(role == ConversationRole.Seller) {
                 closedBySeller = true;
             }
             return this;
@@ -632,5 +642,6 @@ public class ImmutableConversation implements Conversation { // NOSONAR
             }
             return new ImmutableConversation(this);
         }
+
     }
 }

@@ -4,13 +4,12 @@ import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -31,7 +30,7 @@ public class MessageToEventNameTest {
         when(message.getFilterResultState()).thenReturn(FilterResultState.OK);
         when(message.getHumanResultState()).thenReturn(ModerationResultState.UNCHECKED);
         when(message.getState()).thenReturn(MessageState.SENT);
-        when(message.getLastEditor()).thenReturn(Optional.empty());
+        when(message.getLastEditor()).thenReturn(Optional.<String>absent());
     }
 
     @Test

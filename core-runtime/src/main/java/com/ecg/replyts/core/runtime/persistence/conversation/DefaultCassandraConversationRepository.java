@@ -85,16 +85,14 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
     }
 
     private ConversationEvent rowToConversationEvent(Row row) {
-        UUID eventId = row.getUUID(FIELD_EVENT_ID);
         String eventJsonWithClass = row.getString(FIELD_EVENT_JSON);
         String className = eventJsonWithClass.substring(0, eventJsonWithClass.indexOf("@@"));
         String eventJson = eventJsonWithClass.substring(eventJsonWithClass.indexOf("@@") + 2);
         try {
-            ConversationEvent conversationEvent = objectMapper.readValue(eventJson, (Class<? extends ConversationEvent>) Class.forName(className));
-            conversationEvent.setEventTimeUUID(eventId);
-            return conversationEvent;
+            return objectMapper.readValue(eventJson, (Class<? extends ConversationEvent>) Class.forName(className));
         } catch (Exception e) {
             String conversationId = row.getString(FIELD_CONVERSATION_ID);
+            UUID eventId = row.getUUID(FIELD_EVENT_ID);
             throw new RuntimeException("Couldn't parse conversation event " + eventId + " in conversation " + conversationId, e);
         }
     }

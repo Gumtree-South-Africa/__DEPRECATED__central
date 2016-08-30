@@ -20,12 +20,17 @@ import com.ecg.replyts.core.api.webapi.model.MessageRts;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsDirection;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
 import com.ecg.replyts.core.api.webapi.model.ProcessingFeedbackRts;
+import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertNotNull;
@@ -226,7 +231,7 @@ public class DomainObjectConverterTest {
             when(message.getHeaders()).thenReturn(dummyHeaderMap);
             when(message.getPlainTextBody()).thenReturn("some message text");
             when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-            when(message.getLastEditor()).thenReturn(Optional.empty());
+            when(message.getLastEditor()).thenReturn(Optional.<String>absent());
 
             // 2 feedbacks
             ProcessingFeedback feedback1 = makeFeedback();

@@ -8,6 +8,7 @@ import com.ecg.messagecenter.pushmessage.PushService;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
@@ -15,8 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.Optional;
 
 import static org.joda.time.DateTime.now;
 import static org.joda.time.DateTimeZone.UTC;
@@ -61,7 +60,7 @@ public class PostBoxUpdateListenerTest {
                 .withHeaders(ImmutableMap.of())
                 .withTextParts(ImmutableList.of(""))
                 .withProcessingFeedback(ImmutableList.of())
-                .withLastEditor(Optional.empty());
+                .withLastEditor(Optional.absent());
     }
 
     @Test

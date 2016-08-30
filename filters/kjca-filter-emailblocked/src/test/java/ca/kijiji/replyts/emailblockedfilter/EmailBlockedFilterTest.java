@@ -13,6 +13,7 @@ import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import mockit.Deencapsulation;
@@ -28,9 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static ca.kijiji.replyts.emailblockedfilter.EmailBlockedFilter.IS_BLOCKED_KEY;
 import static com.ecg.replyts.core.api.model.conversation.FilterResultState.DROPPED;
@@ -71,9 +70,9 @@ public class EmailBlockedFilterTest {
                 .withFilterResultState(OK)
                 .withHumanResultState(ModerationResultState.UNCHECKED)
                 .withHeaders(ImmutableMap.<String, String>of())
-                .withTextParts(Collections.singletonList(""))
+                .withTextParts(Arrays.asList(""))
                 .withProcessingFeedback(ImmutableList.<ProcessingFeedback>of())
-                .withLastEditor(Optional.empty());
+                .withLastEditor(Optional.<String>absent());
 
         conversationBuilder = ImmutableConversation.Builder
                 .aConversation()

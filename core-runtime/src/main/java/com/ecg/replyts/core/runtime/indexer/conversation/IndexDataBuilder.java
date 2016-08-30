@@ -65,7 +65,7 @@ class IndexDataBuilder {
                 .field("messageText", message.getPlainTextBody())
                 .field("adId", conversation.getAdId())
                 .field("attachments", attachmentFilenames.toArray(new String[attachmentFilenames.size()]))
-                .field("lastEditor", message.getLastEditor().orElse(null))
+                .field("lastEditor", message.getLastEditor().orNull())
 
                 .startObject("customHeaders");
         for (Map.Entry<String, String> h : conversation.getCustomValues().entrySet()) {

@@ -1,11 +1,10 @@
 package com.ecg.replyts.core.api.model.conversation;
 
+import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Unit of exchange inside a {@link Conversation}.
@@ -104,5 +103,4 @@ public interface Message {
 
     Optional<String> getLastEditor();
 
-    Optional<UUID> getEventTimeUUID();
 }
