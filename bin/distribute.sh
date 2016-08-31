@@ -51,7 +51,7 @@ case "${TENANT}" in
     ;;
   *)
     for PKG in $(ls ${BUILD_DIR}/comaas-${TENANT}*); do
-      PACKAGE_REGEX=".*/comaas-${TENANT}-(comaasqa|local).*"
+      PACKAGE_REGEX=".*/comaas-${TENANT}-(comaasqa|local|sandbox).*"
       [[ ${PKG} =~ ${PACKAGE_REGEX} ]] && continue
 
       `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP}

@@ -6,45 +6,52 @@ set -o nounset
 set -o errexit
 
 function usage() {
-  cat <<- EOF
-  Usage: package.sh <tenant> <environment> <artifact_name> <builddir:'builds'>
+    cat <<- EOF
+    Usage: package.sh <tenant> <git hash> <timestamp> <build dir:'builds'>
 EOF
-  exit
+    exit
 }
 
 function parseArgs() {
-  # check amount of args
-  [[ $# == 0 ]] && usage
+    [[ $# == 0 ]] && usage
 
-  WORKDIR=$PWD
-  TENANT=$1
-  ENVIRONMENT=$2
-  ARTIFACT_NAME=$3
+    TENANT="$1"
+    GIT_HASH="$2"
+    TIMESTAMP="$3"
 
-  if [ $# -eq 4 ]; then
-    DESTINATION=$4
-  else
-    DESTINATION=builds/
-  fi
-  mkdir -p ${DESTINATION}
+    if [ $# -eq 4 ]; then
+        DESTINATION=${4}
+    else
+        DESTINATION="builds"
+    fi
+    mkdir -p ${DESTINATION}
 }
 
 function package() {
-  ./bin/build.sh -T ${TENANT} -P ${ENVIRONMENT}
+    # Create the artifact with the comaasqa properties. This will be used for a Nomad deploy on comaasqa
+    # and for repackaging and distribution to the tenants' legacy environments.
+    ./bin/build.sh -T ${TENANT} -P comaasqa
 
-  # some manual hassling is necessary since mvn doesn't create the package we want
-  echo "Creating ${ARTIFACT_NAME}"
-  cd distribution/target
-  tar xfz distribution-${TENANT}-${ENVIRONMENT}.tar.gz
-  cd distribution
-  tar cfz ${WORKDIR}/${ARTIFACT_NAME} .
-  cd ${WORKDIR}
+    # Some manual hassling is necessary since mvn doesn't create the package we want
+    ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}.tar.gz"
+    echo "Creating ${ARTIFACT_NAME}"
+    tar xf distribution/target/distribution-${TENANT}-comaasqa.tar.gz -C distribution/target
+    tar cf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/target/distribution .
+    echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
 
-  mv ${ARTIFACT_NAME} ${DESTINATION}
-  rm -rf distribution/target/distribution
+    # Now create a package with cloud sandbox properties that will be deployed using deploy.py
+    ARTIFACT_NAME="comaas-${TENANT}-sandbox-${TIMESTAMP}-${GIT_HASH}.tar.gz"
+    echo "Creating ${ARTIFACT_NAME}"
+    rm -f distribution/target/distribution/conf/*
+    cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
+    mv distribution/target/distribution distribution/target/comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
+    tar cf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/target/ comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
+    echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
 
-  echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
+    rm -rf distribution/target/comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
+
+    # Insert here: package for cloud prod, similar to sandbox above
 }
 
-parseArgs $@
+parseArgs "$@"
 package
