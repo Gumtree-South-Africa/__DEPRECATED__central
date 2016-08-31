@@ -36,7 +36,7 @@ function package() {
     ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}.tar.gz"
     echo "Creating ${ARTIFACT_NAME}"
     tar xf distribution/target/distribution-${TENANT}-comaasqa.tar.gz -C distribution/target
-    tar cf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/target/distribution .
+    tar czf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/target/distribution .
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
 
     # Now create a package with cloud sandbox properties that will be deployed using deploy.py
@@ -45,7 +45,7 @@ function package() {
     rm -f distribution/target/distribution/conf/*
     cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
     mv distribution/target/distribution distribution/target/comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
-    tar cf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/target/ comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
+    tar czf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/target/ comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
 
     rm -rf distribution/target/comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
