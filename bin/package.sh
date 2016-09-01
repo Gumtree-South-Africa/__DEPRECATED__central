@@ -33,22 +33,22 @@ function package() {
     ./bin/build.sh -T ${TENANT} -P comaasqa
 
     # Some manual hassling is necessary since mvn doesn't create the package we want
-    ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}.tar.gz"
-    echo "Creating ${ARTIFACT_NAME}"
+    ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}"
+    echo "Creating ${ARTIFACT_NAME}.tar.gz"
     tar xf distribution/target/distribution-${TENANT}-comaasqa.tar.gz -C distribution/target
-    tar czf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/target/distribution .
-    echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
+    tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
+    echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
 
     # Now create a package with cloud sandbox properties that will be deployed using deploy.py
-    ARTIFACT_NAME="comaas-${TENANT}-sandbox-${TIMESTAMP}-${GIT_HASH}.tar.gz"
-    echo "Creating ${ARTIFACT_NAME}"
+    ARTIFACT_NAME="comaas-${TENANT}_comaas-${TENANT}-sandbox-${TIMESTAMP}-${GIT_HASH}"
+    echo "Creating ${ARTIFACT_NAME}.tar.gz"
     rm -f distribution/target/distribution/conf/*
     cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
-    mv distribution/target/distribution distribution/target/comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
-    tar czf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/target/ comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
-    echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
+    mv distribution/target/distribution distribution/target/${ARTIFACT_NAME}
+    tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/ ${ARTIFACT_NAME}
+    echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
 
-    rm -rf distribution/target/comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
+    rm -rf distribution/target/${ARTIFACT_NAME}
 
     # Insert here: package for cloud prod, similar to sandbox above
 }
