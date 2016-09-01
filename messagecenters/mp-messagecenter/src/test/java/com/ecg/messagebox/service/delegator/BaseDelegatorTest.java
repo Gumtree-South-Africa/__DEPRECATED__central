@@ -45,6 +45,10 @@ public class BaseDelegatorTest {
     PostBoxResponse pbResponse = mock(PostBoxResponse.class);
     PostBoxUnreadCounts oldPbUnreadCounts = mock(PostBoxUnreadCounts.class);
 
+    static final int CORE_POOL_SIZE = 0;
+    static final int MAX_POOL_SIZE = 1;
+    static final int DIFF_POOL_SIZE = 1;
+
     static final int MESSAGES_LIMIT = 500;
     static final String USER_ID = "123";
     static final String CONV_ID = "c1";

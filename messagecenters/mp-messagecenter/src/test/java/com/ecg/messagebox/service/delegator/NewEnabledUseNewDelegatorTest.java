@@ -20,7 +20,8 @@ import static org.mockito.Mockito.when;
 public class NewEnabledUseNewDelegatorTest extends BaseDelegatorTest {
 
     private PostBoxServiceDelegator delegator = new PostBoxServiceDelegator(oldPbService, newPbService,
-            pbRespConverter, convRespConverter, unreadCountsConverter, diff, newModelConfig, diffConfig, false, MESSAGES_LIMIT);
+            pbRespConverter, convRespConverter, unreadCountsConverter, diff, newModelConfig, diffConfig, false, MESSAGES_LIMIT,
+            CORE_POOL_SIZE, MAX_POOL_SIZE, DIFF_POOL_SIZE);
 
     @Before
     public void setup() {

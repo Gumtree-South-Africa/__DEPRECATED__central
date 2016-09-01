@@ -34,7 +34,6 @@ import java.util.function.Supplier;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
-import static java.lang.Runtime.getRuntime;
 
 @Component("postBoxServiceDelegator")
 public class PostBoxServiceDelegator implements PostBoxService {
@@ -62,6 +61,9 @@ public class PostBoxServiceDelegator implements PostBoxService {
     private final ExecutorService execSrvForNewModel;
     private final ExecutorService execSrvForDiff;
 
+    private final int corePoolSize;
+    private final int maxPoolSize;
+
     private final boolean oldModelEnabled;
     private final NewModelConfiguration newModelConfig;
 
@@ -71,6 +73,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
 
     private final DiffConfiguration diffConfig;
     private final Diff diff;
+    private final int diffPoolSize;
 
     // the old model is restricted to a hard limit of 500 total messages per conversation
     // (see ProcessingFinalizer#MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION),
@@ -87,7 +90,10 @@ public class PostBoxServiceDelegator implements PostBoxService {
                                    NewModelConfiguration newModelConfig,
                                    DiffConfiguration diffConfig,
                                    @Value("${messagebox.oldModel.enabled:true}") boolean oldModelEnabled,
-                                   @Value("${messagebox.messagesLimit:500}") int messagesLimit) {
+                                   @Value("${messagebox.messagesLimit:500}") int messagesLimit,
+                                   @Value("${messagebox.delegatorService.execSrv.corePoolSize:10}") int corePoolSize,
+                                   @Value("${messagebox.delegatorService.execSrv.maxPoolSize:100}") int maxPoolSize,
+                                   @Value("${messagebox.delegatorService.diff.execSrv.poolSize:10}") int diffPoolSize) {
 
         this.oldPostBoxService = oldPostBoxService;
         this.newPostBoxService = newPostBoxService;
@@ -103,6 +109,10 @@ public class PostBoxServiceDelegator implements PostBoxService {
 
         this.diffConfig = diffConfig;
         this.diff = diff;
+
+        this.corePoolSize = corePoolSize;
+        this.maxPoolSize = maxPoolSize;
+        this.diffPoolSize = diffPoolSize;
 
         execSrvForOldModel = newExecutorService("oldModelExecSrv");
         execSrvForNewModel = newExecutorService("newModelExecSrv");
@@ -339,7 +349,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
         String metricsOwner = "postBoxDelegatorService";
         return new InstrumentedExecutorService(
                 new ThreadPoolExecutor(
-                        0, getRuntime().availableProcessors() * 3,
+                        corePoolSize, maxPoolSize,
                         60L, TimeUnit.SECONDS,
                         new SynchronousQueue<>(),
                         new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)
@@ -350,7 +360,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
 
     private ExecutorService newExecutorServiceForDiff() {
         return new InstrumentedExecutorService(
-                Executors.newFixedThreadPool(getRuntime().availableProcessors()),
+                Executors.newFixedThreadPool(diffPoolSize),
                 "postBoxDelegatorService",
                 "diffExecSrv"
         );

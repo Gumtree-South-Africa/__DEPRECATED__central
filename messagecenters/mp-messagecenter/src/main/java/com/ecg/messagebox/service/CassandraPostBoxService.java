@@ -24,7 +24,6 @@ import java.util.concurrent.*;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
-import static java.lang.Runtime.getRuntime;
 
 @Component("newCassandraPostBoxService")
 public class CassandraPostBoxService implements PostBoxService {
@@ -51,7 +50,9 @@ public class CassandraPostBoxService implements PostBoxService {
     @Autowired
     public CassandraPostBoxService(CassandraPostBoxRepository postBoxRepository,
                                    UserIdentifierService userIdentifierService,
-                                   @Value("${messagebox.future.timeout.ms:5000}") int timeoutInMs) {
+                                   @Value("${messagebox.future.timeout.ms:5000}") int timeoutInMs,
+                                   @Value("${messagebox.convService.execSrv.corePoolSize:10}") int corePoolSize,
+                                   @Value("${messagebox.convService.execSrv.maxPoolSize:100}") int maxPoolSize) {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.messageResponseFactory = new MessagesResponseFactory(userIdentifierService);
@@ -61,7 +62,7 @@ public class CassandraPostBoxService implements PostBoxService {
         String metricsName = "execSrv";
         this.executorService = new InstrumentedExecutorService(
                 new ThreadPoolExecutor(
-                        0, getRuntime().availableProcessors() * 2,
+                        corePoolSize, maxPoolSize,
                         60L, TimeUnit.SECONDS,
                         new SynchronousQueue<>(),
                         new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)

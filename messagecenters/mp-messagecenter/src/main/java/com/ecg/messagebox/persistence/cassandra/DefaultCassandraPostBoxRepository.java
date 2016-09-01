@@ -32,7 +32,6 @@ import static com.ecg.messagebox.util.uuid.UUIDComparator.staticCompare;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static com.google.common.collect.Lists.newArrayList;
-import static java.lang.Runtime.getRuntime;
 
 @Component(("newCassandraPostBoxRepo"))
 public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
@@ -78,8 +77,10 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     public DefaultCassandraPostBoxRepository(@Qualifier("cassandraSession") Session session,
                                              @Qualifier("cassandraReadConsistency") ConsistencyLevel readConsistency,
                                              @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency,
+                                             JsonConverter jsonConverter,
                                              @Value("${messagebox.future.timeout.ms:5000}") int timeoutInMs,
-                                             JsonConverter jsonConverter) {
+                                             @Value("${messagebox.convRepo.execSrv.corePoolSize:10}") int corePoolSize,
+                                             @Value("${messagebox.convRepo.execSrv.maxPoolSize:100}") int maxPoolSize) {
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
@@ -88,7 +89,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         String metricsName = "execSrv";
         this.executorService = new InstrumentedExecutorService(
                 new ThreadPoolExecutor(
-                        0, getRuntime().availableProcessors() * 3,
+                        corePoolSize, maxPoolSize,
                         60L, TimeUnit.SECONDS,
                         new SynchronousQueue<>(),
                         new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)
