@@ -1,5 +1,7 @@
 package com.ecg.replyts.core.webapi;
 
+import com.codahale.metrics.jetty9.InstrumentedQueuedThreadPool;
+import com.ecg.replyts.core.runtime.MetricsService;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
@@ -21,6 +23,7 @@ public class ThreadPoolBuilder {
 
     private Optional<Integer> maxThreads;
     private Optional<Integer> maxThreadQueueSize;
+    private boolean instrumented;
 
     /**
      * The maximum processing threads
@@ -38,17 +41,31 @@ public class ThreadPoolBuilder {
         return this;
     }
 
+    public ThreadPoolBuilder withInstrumentation(boolean instrumented) {
+        this.instrumented = instrumented;
+        return this;
+    }
+
     /**
      * @return The thread pool configured with the given values.
      */
     public QueuedThreadPool build() {
-
         checkNotNull(maxThreads);
         checkNotNull(maxThreadQueueSize);
 
-        BlockingArrayQueue<Runnable> queue = maxThreadQueueSize.isPresent() ? new BlockingArrayQueue<>(maxThreadQueueSize.get()) : new BlockingArrayQueue<>();
+        BlockingArrayQueue<Runnable> queue = maxThreadQueueSize.isPresent() ?
+                new BlockingArrayQueue<>(maxThreadQueueSize.get()) : new BlockingArrayQueue<>();
+
         int maxThreads = this.maxThreads.orElse(MAX_THREADS_JETTY_DEFAULT);
 
-        return new QueuedThreadPool(maxThreads, MIN_THREADS_JETTY_DEFAULT, IDLE_TIMEOUT_JETTY_DEFAULT, queue);
+        QueuedThreadPool threadPool;
+        if (instrumented) {
+            threadPool = new InstrumentedQueuedThreadPool(MetricsService.getInstance().getRegistry(),
+                    maxThreads, MIN_THREADS_JETTY_DEFAULT, IDLE_TIMEOUT_JETTY_DEFAULT, queue);
+        } else {
+            threadPool = new QueuedThreadPool(maxThreads, MIN_THREADS_JETTY_DEFAULT, IDLE_TIMEOUT_JETTY_DEFAULT, queue);
+        }
+        threadPool.setName("ThreadPool");
+        return threadPool;
     }
 }

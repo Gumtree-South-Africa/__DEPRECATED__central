@@ -67,12 +67,14 @@ public class EmbeddedWebserver {
             @Value("${replyts.http.maxThreads:null}") Integer maxThreads,
             @Value("${replyts.http.maxThreadQueueSize:null}") Integer maxThreadQueueSize,
             @Value("${replyts.jetty.gzip.enabled:false}") boolean gzipEnabled,
+            @Value("${replyts.jetty.threadPool.instrument:false}") boolean instrumented,
             Environment environment) {
         this.httpPort = httpPortNumber;
         this.gzipEnabled = gzipEnabled;
 
         ThreadPoolBuilder builder = new ThreadPoolBuilder()
                 .withMaxThreads(Optional.ofNullable(maxThreads))
+                .withInstrumentation(instrumented)
                 .withQueueSize(Optional.ofNullable(maxThreadQueueSize));
 
         if (isSSLEnabled) {
