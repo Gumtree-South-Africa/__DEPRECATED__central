@@ -327,6 +327,8 @@
         <retrofit-version>1.7.1</retrofit-version>
         <jutf7-version>1.0.0</jutf7-version>
         <logback-version>1.1.7</logback-version>
+        <logback-kafka-version>0.1.0</logback-kafka-version>
+
         <appassembler-maven-plugin.version>1.10</appassembler-maven-plugin.version>
         <maven-assembly-plugin.version>2.6</maven-assembly-plugin.version>
         <maven-compiler-plugin-version>3.3</maven-compiler-plugin-version>
@@ -1030,6 +1032,12 @@
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-access</artifactId>
                 <version>${logback-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.danielwegener</groupId>
+                <artifactId>logback-kafka-appender</artifactId>
+                <version>${logback-kafka-version}}</version>
+                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.janino</groupId>

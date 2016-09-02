@@ -17,6 +17,22 @@
         </encoder>
     </appender>
 
+    <appender name="KAFKA" class="com.github.danielwegener.logback.kafka.KafkaAppender">
+        <encoder class="com.github.danielwegener.logback.kafka.encoding.LayoutKafkaMessageEncoder">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <pattern>%d %-5level [%thread] %-35logger{35}: %msg %n</pattern>
+            </layout>
+        </encoder>
+
+        <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.RoundRobinKeyingStrategy" />
+        <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy" />
+
+        <producerConfig>bootstrap.servers=localhost:9092</producerConfig>
+        <topic>logs</topic>
+
+        <appender-ref ref="STDOUT" />
+    </appender>
+
     <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
 
     <logger name="com.ecg.replyts" level="DEBUG"/>
@@ -36,6 +52,6 @@
     <root level="WARN">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
+        <appender-ref ref="KAFKA"/>
     </root>
-
 </included>
