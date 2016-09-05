@@ -45,6 +45,8 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer changeConversationVisibilitiesTimer = newTimer("postBoxService.v2.changeConversationVisibilities");
     private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
 
+    private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
+
     private final Counter processNewMessageFutureFailures = newCounter("postBoxService.v2.processNewMessage-futureFailures");
 
     @Autowired
@@ -114,6 +116,7 @@ public class CassandraPostBoxService implements PostBoxService {
                             new ConversationMetadata(rtsMessage.getHeaders().get("Subject")));
 
                     postBoxRepository.createConversation(userId, newConversation, newMessage, newReplyArrived);
+                    newConversationCounter.inc();
                 }
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 if (e instanceof InterruptedException) {
