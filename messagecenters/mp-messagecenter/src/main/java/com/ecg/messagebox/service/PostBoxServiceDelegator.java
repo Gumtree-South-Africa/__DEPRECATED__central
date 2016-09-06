@@ -1,6 +1,7 @@
 package com.ecg.messagebox.service;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.configuration.DiffConfiguration;
 import com.ecg.messagebox.configuration.NewModelConfiguration;
@@ -20,6 +21,7 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +34,7 @@ import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
-import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
+import static com.ecg.replyts.core.runtime.TimingReports.*;
 
 @Component("postBoxServiceDelegator")
 public class PostBoxServiceDelegator implements PostBoxService {
@@ -73,7 +74,9 @@ public class PostBoxServiceDelegator implements PostBoxService {
 
     private final DiffConfiguration diffConfig;
     private final Diff diff;
-    private final int diffPoolSize;
+    private final int diffCorePoolSize;
+    private final int diffMaxPoolSize;
+    private final int diffMaxQueueSize;
 
     // the old model is restricted to a hard limit of 500 total messages per conversation
     // (see ProcessingFinalizer#MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION),
@@ -91,9 +94,11 @@ public class PostBoxServiceDelegator implements PostBoxService {
                                    DiffConfiguration diffConfig,
                                    @Value("${messagebox.oldModel.enabled:true}") boolean oldModelEnabled,
                                    @Value("${messagebox.messagesLimit:500}") int messagesLimit,
-                                   @Value("${messagebox.delegatorService.execSrv.corePoolSize:10}") int corePoolSize,
-                                   @Value("${messagebox.delegatorService.execSrv.maxPoolSize:100}") int maxPoolSize,
-                                   @Value("${messagebox.delegatorService.diff.execSrv.poolSize:10}") int diffPoolSize) {
+                                   @Value("${messagebox.delegatorService.execSrv.corePoolSize:5}") int corePoolSize,
+                                   @Value("${messagebox.delegatorService.execSrv.maxPoolSize:50}") int maxPoolSize,
+                                   @Value("${messagebox.delegatorService.diff.execSrv.corePoolSize:5}") int diffCorePoolSize,
+                                   @Value("${messagebox.delegatorService.diff.execSrv.maxPoolSize:50}") int diffMaxPoolSize,
+                                   @Value("${messagebox.delegatorService.diff.execSrv.maxQueueSize:500}") int diffMaxQueueSize) {
 
         this.oldPostBoxService = oldPostBoxService;
         this.newPostBoxService = newPostBoxService;
@@ -112,7 +117,10 @@ public class PostBoxServiceDelegator implements PostBoxService {
 
         this.corePoolSize = corePoolSize;
         this.maxPoolSize = maxPoolSize;
-        this.diffPoolSize = diffPoolSize;
+
+        this.diffCorePoolSize = diffCorePoolSize;
+        this.diffMaxPoolSize = diffMaxPoolSize;
+        this.diffMaxQueueSize = diffMaxQueueSize;
 
         execSrvForOldModel = newExecutorService("oldModelExecSrv");
         execSrvForNewModel = newExecutorService("newModelExecSrv");
@@ -359,8 +367,15 @@ public class PostBoxServiceDelegator implements PostBoxService {
     }
 
     private ExecutorService newExecutorServiceForDiff() {
+        BlockingQueue<Runnable> queue = new BlockingArrayQueue<>(diffCorePoolSize, diffCorePoolSize, diffMaxQueueSize);
+        newGauge("postBoxDelegatorService.diffExecSrv.queueSizeGauge", (Gauge<Integer>) queue::size);
+
         return new InstrumentedExecutorService(
-                Executors.newFixedThreadPool(diffPoolSize),
+                new ThreadPoolExecutor(
+                        diffCorePoolSize, diffMaxPoolSize,
+                        60L, TimeUnit.SECONDS,
+                        queue
+                ),
                 "postBoxDelegatorService",
                 "diffExecSrv"
         );

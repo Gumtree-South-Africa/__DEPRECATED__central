@@ -1,11 +1,11 @@
 package com.ecg.messagebox.service.delegator;
 
+import com.ecg.messagebox.configuration.DiffConfiguration;
+import com.ecg.messagebox.configuration.NewModelConfiguration;
 import com.ecg.messagebox.converters.ConversationResponseConverter;
 import com.ecg.messagebox.converters.PostBoxResponseConverter;
 import com.ecg.messagebox.converters.UnreadCountsConverter;
 import com.ecg.messagebox.diff.Diff;
-import com.ecg.messagebox.configuration.DiffConfiguration;
-import com.ecg.messagebox.configuration.NewModelConfiguration;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagecenter.persistence.PostBoxUnreadCounts;
 import com.ecg.messagecenter.webapi.responses.ConversationResponse;
@@ -47,7 +47,9 @@ public class BaseDelegatorTest {
 
     static final int CORE_POOL_SIZE = 0;
     static final int MAX_POOL_SIZE = 1;
-    static final int DIFF_POOL_SIZE = 1;
+    static final int DIFF_CORE_POOL_SIZE = 0;
+    static final int DIFF_MAX_POOL_SIZE = 1;
+    static final int DIFF_MAX_QUEUE_SIZE = 10;
 
     static final int MESSAGES_LIMIT = 500;
     static final String USER_ID = "123";

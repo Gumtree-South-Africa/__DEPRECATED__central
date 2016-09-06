@@ -18,7 +18,7 @@ public class OldNewDiffEnabledUseOldDelegatorTest extends BaseDelegatorTest {
 
     private PostBoxServiceDelegator delegator = new PostBoxServiceDelegator(oldPbService, newPbService,
             pbRespConverter, convRespConverter, unreadCountsConverter, diff, newModelConfig, diffConfig, true, MESSAGES_LIMIT,
-            CORE_POOL_SIZE, MAX_POOL_SIZE, DIFF_POOL_SIZE);
+            CORE_POOL_SIZE, MAX_POOL_SIZE, DIFF_CORE_POOL_SIZE, DIFF_MAX_POOL_SIZE, DIFF_MAX_QUEUE_SIZE);
 
     @Before
     public void setup() {

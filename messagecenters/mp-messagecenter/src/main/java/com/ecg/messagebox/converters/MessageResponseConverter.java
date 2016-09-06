@@ -21,6 +21,7 @@ public class MessageResponseConverter {
         MailTypeRts boundness = message.getSenderUserId().equals(projectionOwnerUserId) ? MailTypeRts.OUTBOUND : MailTypeRts.INBOUND;
 
         return new MessageResponse(
+                message.getId().toString(),
                 MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(message.getReceivedDate()),
                 boundness,
                 message.getText(),

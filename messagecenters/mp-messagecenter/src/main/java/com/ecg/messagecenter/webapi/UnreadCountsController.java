@@ -37,12 +37,10 @@ public class UnreadCountsController {
     @RequestMapping(value = MAPPING, method = RequestMethod.GET)
     @ResponseBody
     public ResponseObject<PostBoxUnreadCountsResponse> getUnreadCounts(@PathVariable String postBoxId) {
-        Timer.Context timerContext = API_POSTBOX_GET_UNREAD_COUNTS.time();
-        try {
+
+        try (Timer.Context ignored = API_POSTBOX_GET_UNREAD_COUNTS.time()) {
             PostBoxUnreadCounts unreadCounts = postBoxServiceDelegator.getUnreadCounts(postBoxId);
             return ResponseObject.of(new PostBoxUnreadCountsResponse(unreadCounts));
-        } finally {
-            timerContext.stop();
         }
     }
 }

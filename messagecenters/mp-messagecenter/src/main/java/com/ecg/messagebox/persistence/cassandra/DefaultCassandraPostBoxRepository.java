@@ -79,8 +79,8 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                                              @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency,
                                              JsonConverter jsonConverter,
                                              @Value("${messagebox.future.timeout.ms:5000}") int timeoutInMs,
-                                             @Value("${messagebox.convRepo.execSrv.corePoolSize:10}") int corePoolSize,
-                                             @Value("${messagebox.convRepo.execSrv.maxPoolSize:100}") int maxPoolSize) {
+                                             @Value("${messagebox.convRepo.execSrv.corePoolSize:5}") int corePoolSize,
+                                             @Value("${messagebox.convRepo.execSrv.maxPoolSize:50}") int maxPoolSize) {
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;

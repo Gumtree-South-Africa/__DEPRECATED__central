@@ -1,7 +1,9 @@
 package com.ecg.messagecenter.webapi.responses;
 
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Optional;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -16,8 +18,16 @@ public class MessageResponse {
     private final String textShortTrimmed;
     private final String receivedDate;
 
+    // required by the diff tool
+    private Optional<String> messageId = Optional.absent();
+
     public MessageResponse(String receivedDate, MailTypeRts boundness, String textShort) {
         this(receivedDate, boundness, textShort, null);
+    }
+
+    public MessageResponse(String messageId, String receivedDate, MailTypeRts boundness, String textShort, String senderEmail) {
+        this(receivedDate, boundness, textShort, senderEmail);
+        this.messageId = Optional.of(messageId);
     }
 
     public MessageResponse(String receivedDate, MailTypeRts boundness, String textShort, String senderEmail) {
@@ -46,6 +56,11 @@ public class MessageResponse {
 
     public String getReceivedDate() {
         return receivedDate;
+    }
+
+    @JsonIgnore
+    public Optional<String> getMessageId() {
+        return messageId;
     }
 
     @Override

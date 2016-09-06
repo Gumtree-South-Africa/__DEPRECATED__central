@@ -29,7 +29,7 @@ public class PostBox {
         return unreadCounts;
     }
 
-    public PostBox filterConversations(List<String> conversationIds) {
+    public PostBox removeConversations(List<String> conversationIds) {
         conversations.removeIf(conv -> conversationIds.contains(conv.getId()));
         return this;
     }

@@ -9,6 +9,8 @@ import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -35,6 +37,13 @@ public class Diff {
     private final Counter convRespDiffCounter = newCounter("diff.conversationResponseDiff.counter");
     private final Counter unreadCountsDiffCounter = newCounter("diff.postBoxUnreadCountsDiff.counter");
 
+    private final boolean checkUnreadCounts;
+
+    @Autowired
+    public Diff(@Value("${messagebox.diff.checkUnreadCounts:true}") boolean checkUnreadCounts) {
+        this.checkUnreadCounts = checkUnreadCounts;
+    }
+
     public void postBoxResponseDiff(String userId,
                                     CompletableFuture<PostBoxResponse> newPbRespFuture,
                                     CompletableFuture<PostBoxResponse> oldPbRespFuture) {
@@ -51,10 +60,12 @@ public class Diff {
                 return;
             }
 
-            if (newValue.getNumUnread() != oldValue.getNumUnread()) {
-                logDiffForPbResp(userId, "numUnread",
-                        Integer.toString(newValue.getNumUnread()),
-                        Integer.toString(oldValue.getNumUnread()));
+            if (checkUnreadCounts) {
+                if (newValue.getNumUnread() != oldValue.getNumUnread()) {
+                    logDiffForPbResp(userId, "numUnread",
+                            Integer.toString(newValue.getNumUnread()),
+                            Integer.toString(oldValue.getNumUnread()));
+                }
             }
 
             if (!newValue.get_meta().equals(oldValue.get_meta())) {
@@ -72,44 +83,44 @@ public class Diff {
                 for (int i = 0; i < newConversations.size(); i++) {
                     PostBoxListItemResponse newConv = newConversations.get(i);
                     PostBoxListItemResponse oldConv = oldConversations.get(i);
+                    String logConvPrefix = "conversations[" + newConv.getId() + "](" + i + ")";
 
                     if (!newConv.getId().equals(oldConv.getId())) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").id", newConv.getId(), oldConv.getId());
+                        logDiffForPbResp(userId, logConvPrefix + ".id", newConv.getId(), oldConv.getId());
                     }
                     if (!newConv.getBuyerName().equals(oldConv.getBuyerName())) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").buyerName", newConv.getBuyerName(), oldConv.getBuyerName());
+                        logDiffForPbResp(userId, logConvPrefix + ".buyerName", newConv.getBuyerName(), oldConv.getBuyerName());
                     }
                     if (!newConv.getSellerName().equals(oldConv.getSellerName())) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").sellerName", newConv.getSellerName(), oldConv.getSellerName());
+                        logDiffForPbResp(userId, logConvPrefix + ".sellerName", newConv.getSellerName(), oldConv.getSellerName());
                     }
                     if (!newConv.getUserIdBuyer().equals(oldConv.getUserIdBuyer())) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").userIdBuyer", newConv.getUserIdBuyer().toString(), oldConv.getUserIdBuyer().toString());
+                        logDiffForPbResp(userId, logConvPrefix + ".userIdBuyer", newConv.getUserIdBuyer().toString(), oldConv.getUserIdBuyer().toString());
                     }
                     if (!newConv.getUserIdSeller().equals(oldConv.getUserIdSeller())) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").userIdSeller", newConv.getUserIdSeller().toString(), oldConv.getUserIdSeller().toString());
+                        logDiffForPbResp(userId, logConvPrefix + ".userIdSeller", newConv.getUserIdSeller().toString(), oldConv.getUserIdSeller().toString());
                     }
                     if (!newConv.getAdId().equals(oldConv.getAdId())) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").adId", newConv.getAdId(), oldConv.getAdId());
+                        logDiffForPbResp(userId, logConvPrefix + ".adId", newConv.getAdId(), oldConv.getAdId());
                     }
                     if (newConv.getRole() != oldConv.getRole()) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").role", newConv.getRole().name(), oldConv.getRole().name());
+                        logDiffForPbResp(userId, logConvPrefix + ".role", newConv.getRole().name(), oldConv.getRole().name());
                     }
-                    if (newConv.getNumUnreadMessages() != oldConv.getNumUnreadMessages()) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").numUnreadMessages", Integer.toString(newConv.getNumUnreadMessages()), Integer.toString(oldConv.getNumUnreadMessages()));
+                    if (checkUnreadCounts) {
+                        if (newConv.getNumUnreadMessages() != oldConv.getNumUnreadMessages()) {
+                            logDiffForPbResp(userId, logConvPrefix + ".numUnreadMessages", Integer.toString(newConv.getNumUnreadMessages()), Integer.toString(oldConv.getNumUnreadMessages()));
+                        }
                     }
                     // conversation's latest message
-                    if (!newConv.getSenderEmail().equals(oldConv.getSenderEmail())) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").senderEmail", newConv.getSenderEmail(), oldConv.getSenderEmail());
-                    }
                     if (newConv.getBoundness() != oldConv.getBoundness()) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").boundness", newConv.getBoundness().name(), oldConv.getBoundness().name());
+                        logDiffForPbResp(userId, logConvPrefix + ".boundness", newConv.getBoundness().name(), oldConv.getBoundness().name());
                     }
                     if (!newConv.getTextShortTrimmed().equals(oldConv.getTextShortTrimmed())) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").textShortTrimmed", newConv.getTextShortTrimmed(), oldConv.getTextShortTrimmed());
+                        logDiffForPbResp(userId, logConvPrefix + ".textShortTrimmed", newConv.getTextShortTrimmed(), oldConv.getTextShortTrimmed());
                     }
                     // comparing at minute level only, due to different timestamps inserted in old and new model, so they are a couple of ms apart
                     if (!newConv.getReceivedDate().substring(0, 17).equals(oldConv.getReceivedDate().substring(0, 17))) {
-                        logDiffForPbResp(userId, "conversations(" + i + ").receivedDate", newConv.getReceivedDate(), oldConv.getReceivedDate());
+                        logDiffForPbResp(userId, logConvPrefix + ".receivedDate", newConv.getReceivedDate(), oldConv.getReceivedDate());
                     }
                 }
             }
@@ -180,8 +191,10 @@ public class Diff {
                 logDiffForConvResp(params, "subject", newConvResp.getSubject(), oldConvResp.getSubject());
             }
 
-            if (newConvResp.getNumUnread() != oldConvResp.getNumUnread()) {
-                logDiffForConvResp(params, "numUnread", Long.toString(newConvResp.getNumUnread()), Long.toString(oldConvResp.getNumUnread()));
+            if (checkUnreadCounts) {
+                if (newConvResp.getNumUnread() != oldConvResp.getNumUnread()) {
+                    logDiffForConvResp(params, "numUnread", Long.toString(newConvResp.getNumUnread()), Long.toString(oldConvResp.getNumUnread()));
+                }
             }
 
             List<MessageResponse> newMessages = newConvResp.getMessages();
@@ -193,19 +206,20 @@ public class Diff {
                 for (int i = 0; i < newMessages.size(); i++) {
                     MessageResponse newMsgResp = newMessages.get(i);
                     MessageResponse oldMsgResp = oldMessages.get(i);
+                    String logMsgPrefix = "messages[" + newMsgResp.getMessageId().or("") + "](" + i + ")";
 
                     if (!newMsgResp.getSenderEmail().equals(oldMsgResp.getSenderEmail())) {
-                        logDiffForConvResp(params, "messages(" + i + ").senderEmail", newMsgResp.getSenderEmail(), oldMsgResp.getSenderEmail());
+                        logDiffForConvResp(params, logMsgPrefix + ".senderEmail", newMsgResp.getSenderEmail(), oldMsgResp.getSenderEmail());
                     }
                     if (newMsgResp.getBoundness() != oldMsgResp.getBoundness()) {
-                        logDiffForConvResp(params, "messages(" + i + ").boundness", newMsgResp.getBoundness().name(), oldMsgResp.getBoundness().name());
+                        logDiffForConvResp(params, logMsgPrefix + ".boundness", newMsgResp.getBoundness().name(), oldMsgResp.getBoundness().name());
                     }
                     if (!newMsgResp.getTextShort().equals(oldMsgResp.getTextShort())) {
-                        logDiffForConvResp(params, "messages(" + i + ").textShort", newMsgResp.getTextShort(), oldMsgResp.getTextShort());
+                        logDiffForConvResp(params, logMsgPrefix + ".textShort", newMsgResp.getTextShort(), oldMsgResp.getTextShort());
                     }
                     // comparing at minute level only, due to different timestamps inserted in old and new model, so they are a couple of ms apart
                     if (!newMsgResp.getReceivedDate().substring(0, 17).equals(oldMsgResp.getReceivedDate().substring(0, 17))) {
-                        logDiffForConvResp(params, "messages(" + i + ").receivedDate", newMsgResp.getReceivedDate(), oldMsgResp.getReceivedDate());
+                        logDiffForConvResp(params, logMsgPrefix + ".receivedDate", newMsgResp.getReceivedDate(), oldMsgResp.getReceivedDate());
                     }
                 }
             }
@@ -215,29 +229,30 @@ public class Diff {
     public void postBoxUnreadCountsDiff(String userId,
                                         CompletableFuture<PostBoxUnreadCounts> newUnreadCountsFuture,
                                         CompletableFuture<PostBoxUnreadCounts> oldUnreadCountsFuture) {
+        if (checkUnreadCounts) {
+            try (Timer.Context ignored = unreadCountsDiffTimer.time()) {
 
-        try (Timer.Context ignored = unreadCountsDiffTimer.time()) {
+                PostBoxUnreadCounts newValue, oldValue;
+                try {
+                    newValue = newUnreadCountsFuture.join();
+                    oldValue = oldUnreadCountsFuture.join();
+                } catch (Throwable ignore) {
+                    // no point to continue with diffing
+                    // exception was already logged in main flow - see PostBoxServiceDelegator
+                    return;
+                }
 
-            PostBoxUnreadCounts newValue, oldValue;
-            try {
-                newValue = newUnreadCountsFuture.join();
-                oldValue = oldUnreadCountsFuture.join();
-            } catch (Throwable ignore) {
-                // no point to continue with diffing
-                // exception was already logged in main flow - see PostBoxServiceDelegator
-                return;
-            }
+                if (newValue.getNumUnreadConversations() != oldValue.getNumUnreadConversations()) {
+                    logDiffForUnreadCounts(userId, "numUnreadConversations",
+                            Integer.toString(newValue.getNumUnreadConversations()),
+                            Integer.toString(oldValue.getNumUnreadConversations()));
+                }
 
-            if (newValue.getNumUnreadConversations() != oldValue.getNumUnreadConversations()) {
-                logDiffForUnreadCounts(userId, "numUnreadConversations",
-                        Integer.toString(newValue.getNumUnreadConversations()),
-                        Integer.toString(oldValue.getNumUnreadConversations()));
-            }
-
-            if (newValue.getNumUnreadMessages() != oldValue.getNumUnreadMessages()) {
-                logDiffForUnreadCounts(userId, "numUnreadMessages",
-                        Integer.toString(newValue.getNumUnreadMessages()),
-                        Integer.toString(oldValue.getNumUnreadMessages()));
+                if (newValue.getNumUnreadMessages() != oldValue.getNumUnreadMessages()) {
+                    logDiffForUnreadCounts(userId, "numUnreadMessages",
+                            Integer.toString(newValue.getNumUnreadMessages()),
+                            Integer.toString(oldValue.getNumUnreadMessages()));
+                }
             }
         }
     }

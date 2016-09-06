@@ -38,12 +38,10 @@ public class ResponseDataController {
     @RequestMapping(value = MAPPING, method = RequestMethod.GET)
     @ResponseBody
     public ResponseObject<ResponseDataResponse> getResponseData(@PathVariable String userId) {
-        Timer.Context timerContext = API_POSTBOX_GET_RESPONSE_DATA.time();
-        try {
+
+        try (Timer.Context ignored = API_POSTBOX_GET_RESPONSE_DATA.time()) {
             List<ResponseData> responseDataList = postBoxServiceDelegator.getResponseData(userId);
             return ResponseObject.of(new ResponseDataResponse(responseDataList));
-        } finally {
-            timerContext.stop();
         }
     }
 }

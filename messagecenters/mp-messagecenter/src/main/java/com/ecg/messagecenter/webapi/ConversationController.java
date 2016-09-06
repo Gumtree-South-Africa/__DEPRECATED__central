@@ -50,7 +50,9 @@ class ConversationController {
             @PathVariable("conversationId") String conversationId,
             HttpServletResponse response) {
 
-        return wrapResponse(postBoxServiceDelegator.getConversation(userId, conversationId), response);
+        try (Timer.Context ignored = API_POSTBOX_CONVERSATION_TIMER.time()) {
+            return wrapResponse(postBoxServiceDelegator.getConversation(userId, conversationId), response);
+        }
     }
 
     @RequestMapping(value = PostBoxConversationCommand.MAPPING,
@@ -61,16 +63,13 @@ class ConversationController {
             @PathVariable("conversationId") String conversationId,
             HttpServletResponse response) {
 
-        return wrapResponse(postBoxServiceDelegator.markConversationAsRead(userId, conversationId), response);
+        try (Timer.Context ignored = API_POSTBOX_CONVERSATION_TIMER.time()) {
+            return wrapResponse(postBoxServiceDelegator.markConversationAsRead(userId, conversationId), response);
+        }
     }
 
     private ResponseObject<?> wrapResponse(Optional<ConversationResponse> conversationResponseOpt, HttpServletResponse response) {
-        Timer.Context timerContext = API_POSTBOX_CONVERSATION_TIMER.time();
-        try {
-            return conversationResponseOpt.isPresent() ? ResponseObject.of(conversationResponseOpt.get()) : entityNotFound(response);
-        } finally {
-            timerContext.stop();
-        }
+        return conversationResponseOpt.isPresent() ? ResponseObject.of(conversationResponseOpt.get()) : entityNotFound(response);
     }
 
     private ResponseObject<?> entityNotFound(HttpServletResponse response) {

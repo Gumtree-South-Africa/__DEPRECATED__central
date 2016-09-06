@@ -53,11 +53,8 @@ class PostBoxController {
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page) {
 
-        Timer.Context timerContext = GET_POSTBOX_TIMER.time();
-        try {
+        try (Timer.Context ignored = GET_POSTBOX_TIMER.time()) {
             return ResponseObject.of(postBoxServiceDelegator.getConversations(userId, size, page));
-        } finally {
-            timerContext.stop();
         }
     }
 
@@ -70,12 +67,9 @@ class PostBoxController {
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size) {
 
-        Timer.Context timerContext = DELETE_CONVERSATIONS_TIMER.time();
-        try {
+        try (Timer.Context ignored = DELETE_CONVERSATIONS_TIMER.time()) {
             PostBoxResponse postBoxResponse = postBoxServiceDelegator.deleteConversations(userId, asList(conversationIds), size, page);
             return postBoxResponse == null ? ResponseObject.of(RequestState.OK) : ResponseObject.of(postBoxResponse);
-        } finally {
-            timerContext.stop();
         }
     }
 }
