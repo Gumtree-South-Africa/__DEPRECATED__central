@@ -268,6 +268,7 @@
                 <module>filters/kjca-filter-newreplier</module>
 
                 <module>listeners/kjca-listener-dw</module>
+                <module>listeners/kjca-listener-user-behaviour</module>
 
                 <module>messagecenters/kjca-messagecenter</module>
 
@@ -388,7 +389,6 @@
         <!-- kjca artifact versions -->
         <kjca-service-discovery.version>11</kjca-service-discovery.version>
         <kjca-tracing.version>8</kjca-tracing.version>
-
         <sentry-version>7.1.0</sentry-version>
     </properties>
 
