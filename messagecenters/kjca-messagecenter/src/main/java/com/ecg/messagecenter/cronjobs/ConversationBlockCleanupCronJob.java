@@ -9,13 +9,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinutes;
 import static org.joda.time.DateTime.now;
 
+/**
+ * Unlike the ConversationThread-related cleanup cronjobs, this cronjob can be applied to both Riak and Cassandra as it
+ * works in the same way. This is possible due to the relatively small number of blocks during the active window, which
+ * lets us get away with doing full table-scans for Cassandra. This doesn't perform well enough for conversation threads
+ * however.
+ */
 @Component
-@ConditionalOnExpression("#{('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')) && '${replyts2.cleanup.postboxes.enabled}' == 'true'}")
+@ConditionalOnProperty(value = "replyts2.cleanup.postboxes.enabled", havingValue = "true")
 public class ConversationBlockCleanupCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationBlockCleanupCronJob.class);
 
@@ -32,7 +39,7 @@ public class ConversationBlockCleanupCronJob implements CronJobExecutor {
         LOG.info("Deleting user conversation blocks before '{}'", deleteBlocksBefore);
 
         try {
-            conversationBlockRepo.cleanupOldConversationBlocks(deleteBlocksBefore);
+            conversationBlockRepo.cleanup(deleteBlocksBefore);
         } catch (RuntimeException e) {
             LOG.error("Cleanup: user conversation blocks cleanup failed", e);
         }

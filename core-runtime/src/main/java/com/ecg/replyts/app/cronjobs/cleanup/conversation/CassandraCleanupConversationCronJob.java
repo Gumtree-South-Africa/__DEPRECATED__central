@@ -119,7 +119,8 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
         cleanUpTasks.stream().filter(task -> !task.isDone()).forEach(task -> {
             try {
                 task.get();
-            } catch (CancellationException | ExecutionException ignore) {
+            } catch (ExecutionException | RuntimeException e) {
+                LOG.error("Conversation cleanup task execution failure", e);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

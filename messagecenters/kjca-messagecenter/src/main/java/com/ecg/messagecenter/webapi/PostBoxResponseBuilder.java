@@ -43,7 +43,7 @@ public class PostBoxResponseBuilder {
 
 
     private PostBoxListItemResponse createSinglePostBoxItem(String email, ConversationThread conversationThread) {
-        ConversationBlock conversationBlock = conversationBlockRepository.byConversationId(conversationThread.getConversationId());
+        ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationThread.getConversationId());
 
         return new PostBoxListItemResponse(email, conversationThread, conversationBlock);
     }

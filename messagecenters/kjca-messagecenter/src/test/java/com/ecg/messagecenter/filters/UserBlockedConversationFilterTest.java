@@ -62,7 +62,7 @@ public class UserBlockedConversationFilterTest {
                 Optional.of(now)
         );
 
-        when(conversationBlockRepository.byConversationId(CONV_ID)).thenReturn(conversationBlock);
+        when(conversationBlockRepository.byId(CONV_ID)).thenReturn(conversationBlock);
 
         List<FilterFeedback> feedbacks = filter.filter(mpc);
 
@@ -76,7 +76,7 @@ public class UserBlockedConversationFilterTest {
 
     @Test
     public void noOneBlocked_sent() throws Exception {
-        when(conversationBlockRepository.byConversationId(CONV_ID)).thenReturn(null);
+        when(conversationBlockRepository.byId(CONV_ID)).thenReturn(null);
 
         List<FilterFeedback> feedbacks = filter.filter(mpc);
 
@@ -94,7 +94,7 @@ public class UserBlockedConversationFilterTest {
                 Optional.of(now)
         );
 
-        when(conversationBlockRepository.byConversationId(CONV_ID)).thenReturn(conversationBlock);
+        when(conversationBlockRepository.byId(CONV_ID)).thenReturn(conversationBlock);
 
         List<FilterFeedback> feedbacks = filter.filter(mpc);
 

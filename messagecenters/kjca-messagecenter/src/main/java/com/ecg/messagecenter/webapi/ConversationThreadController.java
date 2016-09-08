@@ -105,7 +105,7 @@ class ConversationThreadController {
                 postBoxRepository.write(postBox);
             }
 
-            ConversationBlock conversationBlock = conversationBlockRepository.byConversationId(conversationId);
+            ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
             boolean blockedByBuyer = false, blockedBySeller = false;
             if (conversationBlock != null) {
                 blockedByBuyer = conversationBlock.getBuyerBlockedSellerAt().isPresent();
@@ -252,7 +252,7 @@ class ConversationThreadController {
 
             java.util.Optional<DateTime> now = java.util.Optional.of(DateTime.now(UTC));
 
-            ConversationBlock conversationBlock = conversationBlockRepository.byConversationId(conversationId);
+            ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
             java.util.Optional<DateTime> buyerBlockedSellerAt = java.util.Optional.empty();
             java.util.Optional<DateTime> sellerBlockerBuyerAt = java.util.Optional.empty();
 
@@ -288,7 +288,7 @@ class ConversationThreadController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
-            ConversationBlock conversationBlock = conversationBlockRepository.byConversationId(conversationId);
+            ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
             if (conversationBlock == null) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }

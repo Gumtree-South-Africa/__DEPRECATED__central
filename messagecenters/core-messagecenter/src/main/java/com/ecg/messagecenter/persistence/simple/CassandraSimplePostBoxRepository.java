@@ -4,7 +4,9 @@ import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.core.runtime.persistence.StatementsBase;
 import com.ecg.replyts.core.runtime.util.StreamUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -227,7 +229,8 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         cleanUpTasks.stream().filter(task -> !task.isDone()).forEach(task -> {
             try {
                 task.get();
-            } catch (CancellationException | ExecutionException ignore) {
+            } catch (ExecutionException | RuntimeException e) {
+                LOG.error("ConversationThread cleanup task execution failure", e);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

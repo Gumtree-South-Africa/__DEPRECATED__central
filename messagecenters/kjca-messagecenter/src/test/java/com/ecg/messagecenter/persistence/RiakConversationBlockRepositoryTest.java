@@ -55,7 +55,7 @@ public class RiakConversationBlockRepositoryTest {
         ConversationBlock conversationBlock = new ConversationBlock(CONV_ID, 1, now, Optional.empty());
         repository.write(conversationBlock);
 
-        repository.cleanupOldConversationBlocks(now.get().plusSeconds(1));
+        repository.cleanup(now.get().plusSeconds(1));
 
         IRiakObject fetchedObj = riakClient.fetchBucket(RiakConversationBlockRepository.BUCKET_NAME).execute().fetch(CONV_ID).execute();
 
@@ -68,7 +68,7 @@ public class RiakConversationBlockRepositoryTest {
         ConversationBlock conversationBlock = new ConversationBlock(CONV_ID, 1, now, Optional.empty());
         repository.write(conversationBlock);
 
-        repository.cleanupOldConversationBlocks(now.get().minusSeconds(10));
+        repository.cleanup(now.get().minusSeconds(10));
 
         IRiakObject fetchedObj = riakClient.fetchBucket(RiakConversationBlockRepository.BUCKET_NAME).execute().fetch(CONV_ID).execute();
 

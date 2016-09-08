@@ -56,7 +56,7 @@ public class RiakConversationBlockRepository implements ConversationBlockReposit
         }
     }
 
-    public ConversationBlock byConversationId(String conversationId) {
+    public ConversationBlock byId(String conversationId) {
         try (Timer.Context ignored = GET_BY_ID_TIMER.time()) {
             return bucket.fetch(conversationId, ConversationBlock.class)
                     .withConverter(converter)
@@ -85,7 +85,7 @@ public class RiakConversationBlockRepository implements ConversationBlockReposit
         }
     }
 
-    public void cleanupOldConversationBlocks(DateTime deleteBlocksBefore) {
+    public void cleanup(DateTime deleteBlocksBefore) {
         try {
             LOG.info("Beginning to remove user conversation blocks");
 

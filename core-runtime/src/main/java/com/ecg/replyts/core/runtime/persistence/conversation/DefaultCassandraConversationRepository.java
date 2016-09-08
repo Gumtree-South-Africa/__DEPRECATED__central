@@ -14,11 +14,12 @@ import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
+import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.core.runtime.persistence.StatementsBase;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
@@ -33,15 +34,14 @@ import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 /**
  * Cassandra backed conversation repository.
  */
-public class DefaultCassandraConversationRepository implements CassandraConversationRepository {
-
+public class DefaultCassandraConversationRepository implements CassandraRepository, CassandraConversationRepository {
     private static final String FIELD_CONVERSATION_ID = "conversation_id";
     private static final String FIELD_MODIFICATION_DATE = "modification_date";
     private static final String FIELD_EVENT_ID = "event_id";
     private static final String FIELD_EVENT_JSON = "event_json";
 
     private final Session session;
-    private final Map<Statements, PreparedStatement> preparedStatements;
+    private final Map<StatementsBase, PreparedStatement> preparedStatements;
     private final ConsistencyLevel readConsistency;
     private final ConsistencyLevel writeConsistency;
 
@@ -66,7 +66,7 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
-        preparedStatements = Statements.prepare(session);
+        this.preparedStatements = StatementsBase.prepare(Statements.class, session);
     }
 
     @Override
@@ -388,79 +388,56 @@ public class DefaultCassandraConversationRepository implements CassandraConversa
         }
     }
 
+    @Autowired
+    public void setObjectMapperConfigurer(JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
+        this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
+    }
+
+    @Override
     public ConsistencyLevel getReadConsistency() {
         return readConsistency;
     }
 
+    @Override
     public ConsistencyLevel getWriteConsistency() {
         return writeConsistency;
     }
 
-    private enum Statements {
-        SELECT_FROM_CONVERSATION_EVENTS("SELECT * FROM core_conversation_events WHERE conversation_id=? ORDER BY event_id ASC"),
-        SELECT_CONVERSATION_EVENTS_BY_DATE("SELECT conversation_id, event_id FROM core_conversation_events_by_date WHERE creatdate = ?"),
-        SELECT_CONVERSATION_ID_FROM_SECRET("SELECT conversation_id FROM core_conversation_secret WHERE secret=? LIMIT 1"),
-        SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN("SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING"),
-        SELECT_CONVERSATION_WHERE_MODIFICATION_BEFORE("SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date <= ? LIMIT ? ALLOW FILTERING"),
-        SELECT_CONVERSATION_MODIFICATION_IDX("SELECT conversation_id, modification_date FROM core_conversation_modification_desc_idx WHERE conversation_id = ? AND modification_date = ?"),
-        SELECT_CONVERSATION_MODIFICATION_IDXS("SELECT conversation_id, modification_date FROM core_conversation_modification_desc_idx WHERE conversation_id = ?"),
-        SELECT_LATEST_CONVERSATION_MODIFICATION_IDX("SELECT conversation_id, modification_date FROM core_conversation_modification_desc_idx WHERE conversation_id = ? LIMIT 1"),
-        SELECT_CONVERSATION_MODIFICATION_IDX_BY_DAY("SELECT conversation_id, modification_date FROM core_conversation_modification_desc_idx_by_day WHERE year = ? AND month = ? AND day = ? AND modification_date = ? AND conversation_id = ?"),
-        SELECT_CONVERSATION_MODIFICATION_IDX_BY_YEAR_MONTH_DAY("SELECT conversation_id, modification_date FROM core_conversation_modification_desc_idx_by_day WHERE year = ? AND month = ? AND day = ?"),
-        SELECT_WHERE_COMPOUND_KEY("SELECT conversation_id FROM core_conversation_resume_idx WHERE compound_key=?"),
-
-        INSERT_CONVERSATION_EVENTS("INSERT INTO core_conversation_events (conversation_id, event_id, event_json) VALUES (?,?,?)", true),
-        INSERT_CONVERSATION_SECRET("INSERT INTO core_conversation_secret (secret, conversation_id) VALUES (?,?)", true),
-        INSERT_CONVERSATION_MODIFICATION_IDX("INSERT INTO core_conversation_modification_desc_idx (conversation_id, modification_date) VALUES (?,?)", true),
-        INSERT_CONVERSATION_MODIFICATION_IDX_BY_DAY("INSERT INTO core_conversation_modification_desc_idx_by_day (year, month, day, modification_date, conversation_id) VALUES (?, ?, ?, ?, ?)", true),
-        INSERT_RESUME_IDX("INSERT INTO core_conversation_resume_idx (compound_key, conversation_id) VALUES (?,?)", true),
-        INSERT_CONVERSATION_EVENTS_BY_DATE("INSERT INTO core_conversation_events_by_date (creatdate, conversation_id, event_id, event_json) VALUES (?, ?, ?, ?)", true),
-
-        DELETE_CONVERSATION_EVENTS("DELETE FROM core_conversation_events WHERE conversation_id=?", true),
-        DELETE_CONVERSATION_SECRET("DELETE FROM core_conversation_secret WHERE secret=?", true),
-        DELETE_CONVERSATION_MODIFICATION_IDX("DELETE FROM core_conversation_modification_desc_idx WHERE conversation_id = ? AND modification_date = ?", true),
-        DELETE_CONVERSATION_MODIFICATION_IDXS("DELETE FROM core_conversation_modification_desc_idx WHERE conversation_id=?", true),
-        DELETE_CONVERSATION_MODIFICATION_IDX_BY_DAY("DELETE FROM core_conversation_modification_desc_idx_by_day WHERE year = ? AND month = ? AND day = ? AND modification_date = ? AND conversation_id = ?", true),
-        DELETE_CONVERSATION_EVENTS_BY_DATE("DELETE FROM core_conversation_events_by_date WHERE creatdate = ? AND conversation_id = ?", true),
-        DELETE_RESUME_IDX("DELETE FROM core_conversation_resume_idx WHERE compound_key=?", true),
-
-        SELECT_EVENTS_WHERE_CREATE_BETWEEN("SELECT * FROM core_conversation_events WHERE event_id > minTimeuuid(?) AND event_id < maxTimeuuid(?) ALLOW FILTERING");
-
-        private final String cql;
-        private final boolean modifying;
-
-        Statements(String cql) {
-            this(cql, false);
-        }
-
-        Statements(String cql, boolean modifying) {
-            this.cql = cql;
-            this.modifying = modifying;
-        }
-
-        public static Map<Statements, PreparedStatement> prepare(Session session) {
-            Map<Statements, PreparedStatement> statements = new EnumMap<>(Statements.class);
-            for (Statements statement : values()) {
-                statements.put(statement, session.prepare(statement.cql));
-            }
-            return ImmutableMap.copyOf(statements);
-        }
-
-        public Statement bind(DefaultCassandraConversationRepository repository, Object... values) {
-            return repository.preparedStatements
-                    .get(this)
-                    .bind(values)
-                    .setConsistencyLevel(getConsistencyLevel(repository))
-                    .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
-        }
-
-        private ConsistencyLevel getConsistencyLevel(DefaultCassandraConversationRepository repository) {
-            return modifying ? repository.getWriteConsistency() : repository.getReadConsistency();
-        }
+    @Override
+    public Map<StatementsBase, PreparedStatement> getPreparedStatements() {
+        return preparedStatements;
     }
 
-    @Autowired
-    public void setObjectMapperConfigurer(JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
-        this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
+    static class Statements extends StatementsBase {
+        static Statements SELECT_FROM_CONVERSATION_EVENTS = new Statements("SELECT * FROM core_conversation_events WHERE conversation_id=? ORDER BY event_id ASC", false);
+        static Statements SELECT_CONVERSATION_EVENTS_BY_DATE = new Statements("SELECT conversation_id, event_id FROM core_conversation_events_by_date WHERE creatdate = ?", false);
+        static Statements SELECT_CONVERSATION_ID_FROM_SECRET = new Statements("SELECT conversation_id FROM core_conversation_secret WHERE secret=? LIMIT 1", false);
+        static Statements SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN = new Statements("SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING", false);
+        static Statements SELECT_CONVERSATION_WHERE_MODIFICATION_BEFORE = new Statements("SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date <= ? LIMIT ? ALLOW FILTERING", false);
+        static Statements SELECT_CONVERSATION_MODIFICATION_IDXS = new Statements("SELECT conversation_id, modification_date FROM core_conversation_modification_desc_idx WHERE conversation_id = ?", false);
+        static Statements SELECT_LATEST_CONVERSATION_MODIFICATION_IDX = new Statements("SELECT conversation_id, modification_date FROM core_conversation_modification_desc_idx WHERE conversation_id = ? LIMIT 1", false);
+        static Statements SELECT_CONVERSATION_MODIFICATION_IDX_BY_YEAR_MONTH_DAY = new Statements("SELECT conversation_id, modification_date FROM core_conversation_modification_desc_idx_by_day WHERE year = ? AND month = ? AND day = ?", false);
+        static Statements SELECT_WHERE_COMPOUND_KEY = new Statements("SELECT conversation_id FROM core_conversation_resume_idx WHERE compound_key=?", false);
+
+        static Statements INSERT_CONVERSATION_EVENTS = new Statements("INSERT INTO core_conversation_events (conversation_id, event_id, event_json) VALUES (?,?,?)", true);
+        static Statements INSERT_CONVERSATION_SECRET = new Statements("INSERT INTO core_conversation_secret (secret, conversation_id) VALUES (?,?)", true);
+        static Statements INSERT_CONVERSATION_MODIFICATION_IDX = new Statements("INSERT INTO core_conversation_modification_desc_idx (conversation_id, modification_date) VALUES (?,?)", true);
+        static Statements INSERT_CONVERSATION_MODIFICATION_IDX_BY_DAY = new Statements("INSERT INTO core_conversation_modification_desc_idx_by_day (year, month, day, modification_date, conversation_id) VALUES (?, ?, ?, ?, ?)", true);
+        static Statements INSERT_RESUME_IDX = new Statements("INSERT INTO core_conversation_resume_idx (compound_key, conversation_id) VALUES (?,?)", true);
+        static Statements INSERT_CONVERSATION_EVENTS_BY_DATE = new Statements("INSERT INTO core_conversation_events_by_date (creatdate, conversation_id, event_id, event_json) VALUES (?, ?, ?, ?)", true);
+
+        static Statements DELETE_CONVERSATION_EVENTS = new Statements("DELETE FROM core_conversation_events WHERE conversation_id=?", true);
+        static Statements DELETE_CONVERSATION_SECRET = new Statements("DELETE FROM core_conversation_secret WHERE secret=?", true);
+        static Statements DELETE_CONVERSATION_MODIFICATION_IDX = new Statements("DELETE FROM core_conversation_modification_desc_idx WHERE conversation_id = ? AND modification_date = ?", true);
+        static Statements DELETE_CONVERSATION_MODIFICATION_IDXS = new Statements("DELETE FROM core_conversation_modification_desc_idx WHERE conversation_id=?", true);
+        static Statements DELETE_CONVERSATION_MODIFICATION_IDX_BY_DAY = new Statements("DELETE FROM core_conversation_modification_desc_idx_by_day WHERE year = ? AND month = ? AND day = ? AND modification_date = ? AND conversation_id = ?", true);
+        static Statements DELETE_CONVERSATION_EVENTS_BY_DATE = new Statements("DELETE FROM core_conversation_events_by_date WHERE creatdate = ? AND conversation_id = ?", true);
+        static Statements DELETE_RESUME_IDX = new Statements("DELETE FROM core_conversation_resume_idx WHERE compound_key=?", true);
+
+        static Statements SELECT_EVENTS_WHERE_CREATE_BETWEEN = new Statements("SELECT * FROM core_conversation_events WHERE event_id > minTimeuuid(?) AND event_id < maxTimeuuid(?) ALLOW FILTERING", false);
+
+        Statements(String cql, boolean modifying) {
+            super(cql, modifying);
+        }
     }
 }

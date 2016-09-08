@@ -250,7 +250,7 @@ public class SimplePostBoxInitializerTest {
         when(postBoxRepository.byId(BUYER_EMAIL)).thenReturn(postbox);
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
-        when(conversationBlockRepository.byConversationId(CONV_ID)).thenReturn(new ConversationBlock(CONV_ID, 1, Optional.of(new DateTime(DateTimeZone.UTC)), Optional.empty()));
+        when(conversationBlockRepository.byId(CONV_ID)).thenReturn(new ConversationBlock(CONV_ID, 1, Optional.of(new DateTime(DateTimeZone.UTC)), Optional.empty()));
 
         postBoxInitializer.moveConversationToPostBox(BUYER_EMAIL, conversation, true, postBoxWriteCallback);
 
@@ -287,7 +287,7 @@ public class SimplePostBoxInitializerTest {
         when(postBoxRepository.byId(SELLER_EMAIL)).thenReturn(postbox);
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
-        when(conversationBlockRepository.byConversationId(CONV_ID)).thenReturn(new ConversationBlock(CONV_ID, 1, Optional.empty(), Optional.of(new DateTime(DateTimeZone.UTC))));
+        when(conversationBlockRepository.byId(CONV_ID)).thenReturn(new ConversationBlock(CONV_ID, 1, Optional.empty(), Optional.of(new DateTime(DateTimeZone.UTC))));
 
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 

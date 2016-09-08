@@ -1,9 +1,10 @@
-package com.ecg.messagecenter.persistence.simple;
+package com.ecg.replyts.core.runtime.persistence;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -19,7 +20,7 @@ public class StatementsBase {
 
     boolean modifying;
 
-    StatementsBase(String cql, boolean modifying) {
+    public StatementsBase(String cql, boolean modifying) {
         this.cql = cql;
         this.modifying = modifying;
     }
@@ -44,6 +45,8 @@ public class StatementsBase {
 
         for (Field field : statementsClass.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers())) {
+                field.setAccessible(true);
+
                 try {
                     statements.add((StatementsBase) field.get(null));
                 } catch (IllegalAccessException e) {
@@ -54,7 +57,13 @@ public class StatementsBase {
 
         return statements.stream().collect(Collectors.toMap(
           (statement) -> statement,
-          (statement) -> session.prepare(statement.cql))
+          (statement) -> {
+              try {
+                  return session.prepare(statement.cql);
+              } catch (InvalidQueryException e) {
+                  throw new IllegalArgumentException(format("Could not prepare statement '%s'", statement.cql), e);
+              }
+          })
         );
     }
 }

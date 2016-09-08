@@ -25,7 +25,7 @@ public class UserBlockedConversationFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
-        ConversationBlock conversationBlock = conversationBlockRepository.byConversationId(context.getConversation().getId());
+        ConversationBlock conversationBlock = conversationBlockRepository.byId(context.getConversation().getId());
 
         List<FilterFeedback> feedbacks = Lists.newArrayList();
 

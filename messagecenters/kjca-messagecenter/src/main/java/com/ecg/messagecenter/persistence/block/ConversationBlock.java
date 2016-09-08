@@ -1,5 +1,8 @@
 package com.ecg.messagecenter.persistence.block;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import org.joda.time.DateTime;
 
@@ -9,6 +12,7 @@ import java.util.Optional;
  * Defines the state of blocking between users in a conversation.
  * Both seller and buyer could block each other at different times.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ConversationBlock {
     public static final int LATEST_VERSION = 1;
 
@@ -17,7 +21,12 @@ public class ConversationBlock {
     private final Optional<DateTime> buyerBlockedSellerAt;
     private final Optional<DateTime> sellerBlockedBuyerAt;
 
-    public ConversationBlock(String conversationId, int version, Optional<DateTime> buyerBlockedSellerAt, Optional<DateTime> sellerBlockedBuyerAt) {
+    @JsonCreator
+    public ConversationBlock(
+            @JsonProperty("conversationId") String conversationId,
+            @JsonProperty("version") int version,
+            @JsonProperty("buyerBlockedSellerAt") Optional<DateTime> buyerBlockedSellerAt,
+            @JsonProperty("sellerBlockedBuyerAt") Optional<DateTime> sellerBlockedBuyerAt) {
         this.conversationId = conversationId;
         this.version = version;
         this.buyerBlockedSellerAt = buyerBlockedSellerAt;

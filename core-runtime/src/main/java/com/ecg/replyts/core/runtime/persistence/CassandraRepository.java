@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.persistence.simple;
+package com.ecg.replyts.core.runtime.persistence;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;

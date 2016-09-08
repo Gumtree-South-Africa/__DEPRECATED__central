@@ -104,7 +104,7 @@ public class SimplePostBoxInitializer {
     }
 
     private boolean recipientBlockedSender(String email, Conversation conversation) {
-        ConversationBlock conversationBlock = conversationBlockRepository.byConversationId(conversation.getId());
+        ConversationBlock conversationBlock = conversationBlockRepository.byId(conversation.getId());
         if (conversationBlock == null) {
             return false;
         }

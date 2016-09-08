@@ -26,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -66,7 +67,7 @@ public class VolumeFilterClusterIntegrationTest {
                                 .setMulticastConfig(new MulticastConfig().setEnabled(false))
                 )
         ).setGroupConfig(
-                new GroupConfig("volume-filter-cluster-integration-test-" + new Random().nextInt(), "nopass")
+                new GroupConfig("volume-filter-cluster-integration-test-" + UUID.randomUUID(), "nopass")
         );
         hazelcastInstance1 = Hazelcast.newHazelcastInstance(config);
         hazelcastInstance2 = Hazelcast.newHazelcastInstance(config);
