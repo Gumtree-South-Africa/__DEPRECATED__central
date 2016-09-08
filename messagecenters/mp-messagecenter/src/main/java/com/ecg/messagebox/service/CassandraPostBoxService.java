@@ -51,14 +51,15 @@ public class CassandraPostBoxService implements PostBoxService {
                                   boolean newReplyArrived) {
         try (Timer.Context ignored = processNewMessageTimer.time()) {
 
-            if (rtsMessage.getState() != MessageState.SENT) return;
-
             String senderUserId = getMessageSenderUserId(rtsConversation, rtsMessage);
-            String receiverUserId = getMessageReceiverUserId(rtsConversation, rtsMessage);
+            if (!canProcessMessage(rtsMessage, userId.equals(senderUserId))) {
+                return;
+            }
 
+            String receiverUserId = getMessageReceiverUserId(rtsConversation, rtsMessage);
             if (!postBoxRepository.areUsersBlocked(senderUserId, receiverUserId)) {
-                String messageTypeString = rtsMessage.getHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase();
-                MessageType messageType = MessageType.get(messageTypeString);
+                String messageTypeStr = rtsMessage.getHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase();
+                MessageType messageType = MessageType.get(messageTypeStr);
                 String messageText = messageResponseFactory.getCleanedMessage(rtsConversation, rtsMessage);
                 Message newMessage = new Message(rtsMessage.getEventTimeUUID().get(), messageText, senderUserId, messageType);
                 Optional<ConversationThread> conversationOpt = postBoxRepository.getConversation(userId, rtsConversation.getId());
@@ -130,6 +131,10 @@ public class CassandraPostBoxService implements PostBoxService {
         try (Timer.Context ignored = getUnreadCountsTimer.time()) {
             return postBoxRepository.getPostBoxUnreadCounts(userId);
         }
+    }
+
+    private boolean canProcessMessage(com.ecg.replyts.core.api.model.conversation.Message rtsMessage, boolean isOwnMessage) {
+        return rtsMessage.getState() != MessageState.IGNORED && (rtsMessage.getState() == MessageState.SENT || isOwnMessage);
     }
 
     private List<Participant> getParticipants(Conversation rtsConversation) {
