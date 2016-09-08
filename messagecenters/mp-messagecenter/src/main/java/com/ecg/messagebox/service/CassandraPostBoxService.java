@@ -7,6 +7,7 @@ import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,6 +50,9 @@ public class CassandraPostBoxService implements PostBoxService {
                                   com.ecg.replyts.core.api.model.conversation.Message rtsMessage,
                                   boolean newReplyArrived) {
         try (Timer.Context ignored = processNewMessageTimer.time()) {
+
+            if (rtsMessage.getState() != MessageState.SENT) return;
+
             String senderUserId = getMessageSenderUserId(rtsConversation, rtsMessage);
             String receiverUserId = getMessageReceiverUserId(rtsConversation, rtsMessage);
 
