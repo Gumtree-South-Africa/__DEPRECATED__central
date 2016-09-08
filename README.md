@@ -25,7 +25,7 @@ To run COMaaS for a specific tenant from your IDE, use the following Run configu
 * Parameters / Command line: verify -Dmaven.exec.skip=false
 * Parameters / Profiles: [name of tenant, e.g. mp]
 
-* General / Maven home directory: [make sure you select the latest version, usually not the IntelliJ built-in, e.g. 3.3.9]
+* General / Maven home directory: [make sure you select the latest version, usually not the IntelliJ built-in, e.g. 3.3.9, set `User setting file` to <PATH_TO>/ecg-comaas-central/etc/settings.xml]
 * General / Make sure "Execute goals recursively" is checked
 
 * Runner / VM arguments:
