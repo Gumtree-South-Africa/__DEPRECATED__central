@@ -5,9 +5,11 @@ Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/ecg-co
 clone this repository.
 Also clone the [vagrant machine](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant) and start it (see [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant#get-started)). 
 
-Download Cassandra from http://archive.apache.org/dist/cassandra/2.1.14/ to your machine and put it in /opt/cassandra.
+Download Cassandra from http://archive.apache.org/dist/cassandra/2.1.14/ to your machine and put it in /opt/cassandra. Alternatively, use `brew install homebrew/versions/cassandra21`.
 
-Run `setup-cassandra.sh` to run initial db migrations.
+Run `cassandra` to start the service. Start the VM. Run `bin/setup-cassandra.sh; bin/setup-cassandra.sh localhost` to run initial db migrations on both instances. Integration tests use the local one, while runtime uses the VM.
+
+If you get an error like `Connection error: ('Unable to connect to any servers', {'localhost': TypeError('ref() does not take keyword arguments',)})` try to upgrade cassandra to 2.1.16 (if released), or downgrade python to <2.7.12. For example, using homebrew: `brew switch python 2.7.9`.
 
 To build comaas from IDE add -Drevision=(ANYTHING) to maven configuration. For the rest of
 this doc we'll assume you picked "123".
