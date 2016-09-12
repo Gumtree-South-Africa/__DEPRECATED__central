@@ -30,6 +30,10 @@ public class Message {
         this(id, type, new MessageMetadata(text, senderUserId));
     }
 
+    public Message(UUID id, String text, String senderUserId, MessageType type, String customData) {
+        this(id, type, new MessageMetadata(text, senderUserId, customData));
+    }
+
     public UUID getId() {
         return id;
     }

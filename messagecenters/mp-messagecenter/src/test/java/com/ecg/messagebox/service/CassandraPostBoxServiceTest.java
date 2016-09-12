@@ -1,27 +1,29 @@
 package com.ecg.messagebox.service;
 
-import com.ecg.messagebox.model.ConversationThread;
-import com.ecg.messagebox.model.MessageNotification;
-import com.ecg.messagebox.model.Visibility;
+import com.datastax.driver.core.utils.UUIDs;
+import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.persistence.DefaultCassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.Builder.aConversation;
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage.Builder.aMessage;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.*;
 
@@ -36,15 +38,26 @@ public class CassandraPostBoxServiceTest {
     private static final String BUYER_USER_ID_NAME = "user-id-buyer";
     private static final String SELLER_USER_ID_NAME = "user-id-seller";
 
+    private static final String BUYER_NAME_KEY = "buyer-name";
+    private static final String SELLER_NAME_KEY = "seller-name";
+
+    private static final String BUYER_NAME_VALUE = "buyer";
+    private static final String SELLER_NAME_VALUE = "seller";
+
     private final CassandraPostBoxRepository conversationsRepoMock = mock(DefaultCassandraPostBoxRepository.class);
     private final UserIdentifierService userIdentifierServiceMock = mock(UserIdentifierService.class);
 
     private CassandraPostBoxService service = new CassandraPostBoxService(conversationsRepoMock, userIdentifierServiceMock);
 
+    @Before
+    public void setup() {
+        when(userIdentifierServiceMock.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
+        when(userIdentifierServiceMock.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
+        when(conversationsRepoMock.areUsersBlocked(any(), any())).thenReturn(false);
+    }
+
     @Test
     public void processNewMessageWithStateIgnored() {
-        when(userIdentifierServiceMock.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
-
         Message rtsMsg = newMessage("1", MessageDirection.BUYER_TO_SELLER, MessageState.IGNORED, DEFAULT_SUBJECT);
         service.processNewMessage(USER_ID_1, newConversation(CONVERSATION_ID).build(), rtsMsg, true);
 
@@ -54,9 +67,7 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void processNewMessageWithStateHeld() {
-        when(userIdentifierServiceMock.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
-
-        Message rtsMsg = newMessage("1", MessageDirection.SELLER_TO_BUYER, MessageState.HELD, DEFAULT_SUBJECT);
+        Message rtsMsg = newMessage("1", SELLER_TO_BUYER, MessageState.HELD, DEFAULT_SUBJECT);
         service.processNewMessage(USER_ID_1, newConversation(CONVERSATION_ID).build(), rtsMsg, true);
 
         verify(userIdentifierServiceMock).getSellerUserIdName();
@@ -65,12 +76,11 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void processNewMessageWithCorrectSubject() {
-        when(userIdentifierServiceMock.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(conversationsRepoMock.getConversation(anyString(), anyString())).thenReturn(Optional.empty());
 
-        Message rtsMsg1 = newMessage("1", MessageDirection.SELLER_TO_BUYER, MessageState.SENT, DEFAULT_SUBJECT);
-        Message rtsMsg2 = newMessage("2", MessageDirection.SELLER_TO_BUYER, MessageState.SENT, "Another subject");
-        Conversation conversation = newConversationWithMessages(CONVERSATION_ID, Arrays.asList(rtsMsg1)).build();
+        Message rtsMsg1 = newMessage("1", SELLER_TO_BUYER, MessageState.SENT, DEFAULT_SUBJECT);
+        Message rtsMsg2 = newMessage("2", SELLER_TO_BUYER, MessageState.SENT, "Another subject");
+        Conversation conversation = newConversationWithMessages(CONVERSATION_ID, singletonList(rtsMsg1)).build();
         service.processNewMessage(USER_ID_1, conversation, rtsMsg2, true);
 
         ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
@@ -87,6 +97,37 @@ public class CassandraPostBoxServiceTest {
         Assert.assertEquals(rtsMsg2.getEventTimeUUID().get(), messageArgCaptor.getValue().getId());
     }
 
+    @Test
+    public void processNewMessageWithMetadataHeader() {
+        when(conversationsRepoMock.getConversation(USER_ID_1, "c1")).thenReturn(Optional.empty());
+
+        Message rtsMsg = newMessageWithMetadata("1", SELLER_TO_BUYER, MessageState.SENT);
+
+        com.ecg.messagebox.model.Message newMessage = new com.ecg.messagebox.model.Message(
+                rtsMsg.getEventTimeUUID().get(), "text 123", USER_ID_2, MessageType.ASQ, "metadata");
+
+        Conversation rtsConversation = newConversation("c1").withMessages(singletonList(rtsMsg)).build();
+
+        List<Participant> participants = newArrayList(
+                new Participant(USER_ID_1, BUYER_NAME_VALUE, rtsConversation.getBuyerId(), ParticipantRole.BUYER),
+                new Participant(USER_ID_2, SELLER_NAME_VALUE, rtsConversation.getSellerId(), ParticipantRole.SELLER)
+        );
+
+        ConversationThread conversation = new ConversationThread(
+                rtsConversation.getId(),
+                rtsConversation.getAdId(),
+                Visibility.ACTIVE,
+                MessageNotification.RECEIVE,
+                participants,
+                newMessage,
+                new ConversationMetadata("subject")
+        );
+
+        service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true);
+
+        verify(conversationsRepoMock).createConversation(USER_ID_1, conversation, newMessage, true);
+    }
+
     private ImmutableConversation.Builder newConversation(String id) {
         return aConversation()
                 .withId(id)
@@ -94,7 +135,8 @@ public class CassandraPostBoxServiceTest {
                 .withCreatedAt(new DateTime())
                 .withLastModifiedAt(new DateTime())
                 .withState(ConversationState.ACTIVE)
-                .withCustomValues(ImmutableMap.of(BUYER_USER_ID_NAME, USER_ID_1, SELLER_USER_ID_NAME, USER_ID_2));
+                .withCustomValues(ImmutableMap.of(BUYER_USER_ID_NAME, USER_ID_1, SELLER_USER_ID_NAME, USER_ID_2,
+                        BUYER_NAME_KEY, BUYER_NAME_VALUE, SELLER_NAME_KEY, SELLER_NAME_VALUE));
     }
 
     private ImmutableConversation.Builder newConversationWithMessages(String id, List<Message> messageList) {
@@ -112,6 +154,21 @@ public class CassandraPostBoxServiceTest {
                 .withHeader("X-Message-Type", "asq")
                 .withTextParts(singletonList("text 123"))
                 .withHeader("Subject", subject)
+                .build();
+    }
+
+    private Message newMessageWithMetadata(String id, MessageDirection direction, MessageState state) {
+        return aMessage()
+                .withId(id)
+                .withEventTimeUUID(Optional.of(UUIDs.timeBased()))
+                .withMessageDirection(direction)
+                .withState(state)
+                .withReceivedAt(new DateTime(2016, 1, 30, 20, 11, 52, DateTimeZone.forID("Europe/Amsterdam")))
+                .withLastModifiedAt(new DateTime(2016, 1, 30, 20, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
+                .withHeader("X-Message-Type", "asq")
+                .withHeader("X-Message-Metadata", "metadata")
+                .withHeader("Subject", "subject")
+                .withTextParts(singletonList("text 123"))
                 .build();
     }
 }

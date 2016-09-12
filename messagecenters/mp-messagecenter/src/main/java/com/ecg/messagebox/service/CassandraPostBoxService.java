@@ -62,7 +62,8 @@ public class CassandraPostBoxService implements PostBoxService {
                 String messageTypeStr = rtsMessage.getHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase();
                 MessageType messageType = MessageType.get(messageTypeStr);
                 String messageText = messageResponseFactory.getCleanedMessage(rtsConversation, rtsMessage);
-                Message newMessage = new Message(rtsMessage.getEventTimeUUID().get(), messageText, senderUserId, messageType);
+                String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
+                Message newMessage = new Message(rtsMessage.getEventTimeUUID().get(), messageText, senderUserId, messageType, customData);
                 Optional<ConversationThread> conversationOpt = postBoxRepository.getConversation(userId, rtsConversation.getId());
 
                 if (conversationOpt.isPresent()) {
@@ -114,7 +115,7 @@ public class CassandraPostBoxService implements PostBoxService {
 
     @Override
     public PostBox changeConversationVisibilities(
-        String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis, int conversationsOffset, int conversationsLimit
+            String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis, int conversationsOffset, int conversationsLimit
     ) {
         try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
             Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
@@ -125,16 +126,17 @@ public class CassandraPostBoxService implements PostBoxService {
 
     @Override
     public PostBox blockUser(
-        String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit
+            String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit
     ) {
         try (Timer.Context ignored = blockUserTimer.time()) {
             postBoxRepository.blockUser(userId, blockedUserId);
             return postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
         }
     }
+
     @Override
     public PostBox unblockUser(
-        String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit
+            String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit
     ) {
         try (Timer.Context ignored = unblockUserTimer.time()) {
             postBoxRepository.unblockUser(userId, blockedUserId);

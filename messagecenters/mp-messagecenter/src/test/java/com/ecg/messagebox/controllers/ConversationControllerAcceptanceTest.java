@@ -16,6 +16,7 @@ public class ConversationControllerAcceptanceTest extends BaseControllerAcceptan
             .to("seller@seller.com")
             .header("X-CUST-" + "user-id-buyer", "1")
             .header("X-CUST-" + "user-id-seller", "2")
+            .header("X-Message-Metadata", "message metadata")
             .adId("232323")
             .plainBody("first contact from buyer");
 
@@ -43,6 +44,7 @@ public class ConversationControllerAcceptanceTest extends BaseControllerAcceptan
                 .body("body.unreadMessagesCount", equalTo(2))
                 .body("body.messages.size()", equalTo(3))
                 .body("body.messages[0].text", equalTo("first contact from buyer"))
+                .body("body.messages[0].customData", equalTo("message metadata"))
                 .body("body.messages[1].text", equalTo("reply by seller"))
                 .body("body.messages[2].text", equalTo("re-reply for buyer"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/conversations/" + convId);
