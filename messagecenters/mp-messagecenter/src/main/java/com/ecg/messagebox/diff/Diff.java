@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
+import static java.lang.Math.min;
 
 /**
  * Diff tool that checks and logs differences between old model and new model responses.
@@ -117,8 +118,8 @@ public class Diff {
                     if (newConv.getBoundness() != oldConv.getBoundness()) {
                         logDiffForPbResp(userId, logConvPrefix + ".boundness", newConv.getBoundness().name(), oldConv.getBoundness().name());
                     }
-                    String newConvTextShortTrimmed = newConv.getTextShortTrimmed().substring(0, MAX_CHARS_TO_COMPARE);
-                    String oldConvTextShortTrimmed = oldConv.getTextShortTrimmed().substring(0, MAX_CHARS_TO_COMPARE);
+                    String newConvTextShortTrimmed = newConv.getTextShortTrimmed().substring(0, min(MAX_CHARS_TO_COMPARE, newConv.getTextShortTrimmed().length()));
+                    String oldConvTextShortTrimmed = oldConv.getTextShortTrimmed().substring(0, min(MAX_CHARS_TO_COMPARE, oldConv.getTextShortTrimmed().length()));
                     if (!newConvTextShortTrimmed.equals(oldConvTextShortTrimmed)) {
                         logDiffForPbResp(userId, logConvPrefix + ".textShortTrimmed", newConvTextShortTrimmed, oldConvTextShortTrimmed);
                     }
