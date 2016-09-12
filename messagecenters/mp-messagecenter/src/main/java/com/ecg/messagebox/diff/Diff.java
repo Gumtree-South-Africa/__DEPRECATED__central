@@ -29,6 +29,8 @@ public class Diff {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("diffLogger");
 
+    private static final int MAX_CHARS_TO_COMPARE = 215;
+
     private final Timer pbRespDiffTimer = newTimer("diff.postBoxResponseDiff.timer");
     private final Timer convRespDiffTimer = newTimer("diff.conversationResponseDiff.timer");
     private final Timer unreadCountsDiffTimer = newTimer("diff.postBoxUnreadCountsDiff.timer");
@@ -115,8 +117,10 @@ public class Diff {
                     if (newConv.getBoundness() != oldConv.getBoundness()) {
                         logDiffForPbResp(userId, logConvPrefix + ".boundness", newConv.getBoundness().name(), oldConv.getBoundness().name());
                     }
-                    if (!newConv.getTextShortTrimmed().equals(oldConv.getTextShortTrimmed())) {
-                        logDiffForPbResp(userId, logConvPrefix + ".textShortTrimmed", newConv.getTextShortTrimmed(), oldConv.getTextShortTrimmed());
+                    String newConvTextShortTrimmed = newConv.getTextShortTrimmed().substring(0, MAX_CHARS_TO_COMPARE);
+                    String oldConvTextShortTrimmed = oldConv.getTextShortTrimmed().substring(0, MAX_CHARS_TO_COMPARE);
+                    if (!newConvTextShortTrimmed.equals(oldConvTextShortTrimmed)) {
+                        logDiffForPbResp(userId, logConvPrefix + ".textShortTrimmed", newConvTextShortTrimmed, oldConvTextShortTrimmed);
                     }
                     // comparing at minute level only, due to different timestamps inserted in old and new model, so they are a couple of ms apart
                     if (!newConv.getReceivedDate().substring(0, 17).equals(oldConv.getReceivedDate().substring(0, 17))) {

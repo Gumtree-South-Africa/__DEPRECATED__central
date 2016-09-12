@@ -61,7 +61,7 @@ public class PostBoxResponseConverter {
         return new MessageResponse(
                 msgResp.getReceivedDate(),
                 msgResp.getBoundness(),
-                truncateText(msgResp.getTextShortTrimmed(), msgTextMaxChars),
+                truncateText(msgResp.getTextShort(), msgTextMaxChars),
                 msgResp.getSenderEmail()
         );
     }
