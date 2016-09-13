@@ -10,11 +10,11 @@ import java.util.List;
 public class HybridSimplePostBoxRepository implements SimplePostBoxRepository {
     private static final Logger LOG = LoggerFactory.getLogger(HybridSimplePostBoxRepository.class);
 
-    private RiakSimplePostBoxRepository riakRepository;
+    private SimplePostBoxRepository riakRepository;
 
     private CassandraSimplePostBoxRepository cassandraRepository;
 
-    public HybridSimplePostBoxRepository(RiakSimplePostBoxRepository riakRepository, CassandraSimplePostBoxRepository cassandraRepository) {
+    public HybridSimplePostBoxRepository(SimplePostBoxRepository riakRepository, CassandraSimplePostBoxRepository cassandraRepository) {
         this.riakRepository = riakRepository;
         this.cassandraRepository = cassandraRepository;
     }
