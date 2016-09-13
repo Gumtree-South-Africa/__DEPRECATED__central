@@ -78,7 +78,7 @@ public class CassandraPostBoxService implements PostBoxService {
                             MessageNotification.RECEIVE,
                             getParticipants(rtsConversation),
                             newMessage,
-                            new ConversationMetadata(rtsMessage.getHeaders().get("Subject")));
+                            new ConversationMetadata(rtsConversation.getMessages().get(0).getHeaders().get("Subject")));
 
                     postBoxRepository.createConversation(userId, newConversation, newMessage, newReplyArrived);
                     newConversationCounter.inc();

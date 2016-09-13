@@ -179,7 +179,8 @@ public class PostBoxServiceDelegator implements PostBoxService {
 
             doDiff(diffConfig.useDiff(userId),
                     () -> diff.conversationResponseDiff(userId, conversationId, newModelFuture, oldModelFuture),
-                    "Error diff-ing conversation responses");
+                    String.format("Error diff-ing conversation responses for userId %s and conversationId %s",
+                            userId, conversationId));
 
             return (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
         }
@@ -210,7 +211,8 @@ public class PostBoxServiceDelegator implements PostBoxService {
 
             doDiff(diffConfig.useDiff(userId),
                     () -> diff.conversationResponseDiff(userId, conversationId, newModelFuture, oldModelFuture),
-                    "Error diff-ing conversation responses");
+                    String.format("Error diff-ing conversation responses for userId %s and conversationId %s",
+                    userId, conversationId));
 
             return (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
         }
@@ -241,7 +243,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
 
             doDiff(diffConfig.useDiff(userId),
                     () -> diff.postBoxResponseDiff(userId, newModelFuture, oldModelFuture),
-                    "Error diff-ing postbox responses");
+                    String.format("Error diff-ing postbox responses for userId %s", userId));
 
             return (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
         }
@@ -273,7 +275,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
 
             doDiff(diffConfig.useDiff(userId),
                     () -> diff.postBoxResponseDiff(userId, newModelFuture, oldModelFuture),
-                    "Error diff-ing postbox responses");
+                    String.format("Error diff-ing postbox responses for userId %s", userId));
 
             return (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
         }
@@ -301,7 +303,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
 
             doDiff(diffConfig.useDiff(userId),
                     () -> diff.postBoxUnreadCountsDiff(userId, newModelFuture, oldModelFuture),
-                    "Error diff-ing unread counts");
+                    String.format("Error diff-ing unread counts for userId %s", userId));
 
             return (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
         }
