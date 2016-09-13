@@ -2,6 +2,7 @@ package com.ecg.messagebox.model;
 
 import org.joda.time.DateTime;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class ConversationModification {
@@ -47,24 +48,17 @@ public class ConversationModification {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         ConversationModification that = (ConversationModification) o;
 
-        if (!userId.equals(that.userId)) return false;
-        if (!conversationId.equals(that.conversationId)) return false;
-        if (advertisementId != null ? !advertisementId.equals(that.advertisementId) : that.advertisementId != null) return false;
-        if (!messageId.equals(that.messageId)) return false;
-        return modifiedAt.equals(that.modifiedAt);
-
+        return Objects.equals(this.userId, that.userId) &&
+                Objects.equals(this.conversationId, that.conversationId) &&
+                Objects.equals(this.advertisementId, that.advertisementId) &&
+                Objects.equals(this.messageId, that.messageId) &&
+                Objects.equals(this.modifiedAt, that.modifiedAt);
     }
 
     @Override
     public int hashCode() {
-        int result = userId.hashCode();
-        result = 31 * result + conversationId.hashCode();
-        result = 31 * result + (advertisementId != null ? advertisementId.hashCode() : 0);
-        result = 31 * result + messageId.hashCode();
-        result = 31 * result + modifiedAt.hashCode();
-        return result;
+        return Objects.hash(userId, conversationId, advertisementId, messageId, modifiedAt);
     }
 }

@@ -105,8 +105,6 @@ public interface CassandraPostBoxRepository {
 
     void deleteConversations(String userId, Map<String, String> adConversationIdsMap);
 
-    void deleteConversation(String userId, String adId, String conversationId);
-
     Map<String, String> getConversationAdIdsMap(String userId, List<String> conversationIds);
 
     Stream<ConversationModification> getConversationModificationsByHour(DateTime date);
@@ -123,7 +121,4 @@ public interface CassandraPostBoxRepository {
 
     ConversationModification getLastConversationModification(String userId, String convId);
 
-    DateTime getCronjobLastProcessedDate(String jobName);
-
-    void setCronjobLastProcessedDate(String jobName, DateTime lastProcessed);
 }

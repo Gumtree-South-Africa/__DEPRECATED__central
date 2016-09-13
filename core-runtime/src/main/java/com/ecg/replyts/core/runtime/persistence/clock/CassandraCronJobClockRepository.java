@@ -27,15 +27,12 @@ public class CassandraCronJobClockRepository implements CronJobClockRepository {
     private final Timer setCronJobClockTimer = TimingReports.newTimer("cassandra.cronJobClockRepo-setClock");
     private final Timer getCronJobLastProcessedDateTimer = TimingReports.newTimer("cassandra.cronJobClockRepo-getLastProcessedDate");
 
-    private ObjectMapper objectMapper;
-
     public CassandraCronJobClockRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
         preparedStatements = Statements.prepare(session);
     }
-
 
     @Override
     public void set(String cronJobName, DateTime lastRunDate, DateTime lastProcessedDate) {
@@ -100,10 +97,5 @@ public class CassandraCronJobClockRepository implements CronJobClockRepository {
         private ConsistencyLevel getConsistencyLevel(CassandraCronJobClockRepository repository) {
             return modifying ? repository.getWriteConsistency() : repository.getReadConsistency();
         }
-    }
-
-    @Autowired
-    public void setObjectMapperConfigurer(JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
-        this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
     }
 }

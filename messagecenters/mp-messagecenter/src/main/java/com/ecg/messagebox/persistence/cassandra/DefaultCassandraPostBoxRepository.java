@@ -72,9 +72,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer deleteConversationTimer = newTimer("cassandra.postBoxRepo.v2.deleteConversation");
     private final Timer deleteModificationIndexTimer = newTimer("cassandra.postBoxRepo.v2.deleteModificationIndexByDate");
     private final Timer getConversationModificationsByDateTimer = newTimer("cassandra.postBoxRepo.v2.getConversationModificationsByHour");
-    private final Timer getCronJobLastProcessedDateTimer = newTimer("cassandra.postBoxRepo.v2.getCronJobLastProcessedDateTimer");
-    private final Timer setCronJobLastProcessedDateTimer = newTimer("cassandra.postBoxRepo.v2.setCronJobLastProcessedDateTimer");
-
+    private final Timer getLastConversationModificationTimer = newTimer("cassandra.postBoxRepo.v2.getLastConversationModificationTimer");
 
     private final Counter postBoxFutureFailures = newCounter("cassandra.postBoxRepo.v2.getPostBox-futureFailures");
     private final Counter conversationFutureFailures = newCounter("cassandra.postBoxRepo.v2.getConversationWithMessages-futureFailures");
@@ -418,13 +416,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public void deleteConversation(String userId, String adId, String conversationId) {
-        try (Timer.Context ignored = deleteConversationTimer.time()) {
-            deleteConversations(userId, Collections.singletonMap(adId, conversationId));
-        }
-    }
-
-    @Override
     public Map<String, String> getConversationAdIdsMap(String userId, List<String> conversationIds) {
         try (Timer.Context ignored = getConversationAdIdsMapTimer.time()) {
 
@@ -505,7 +496,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Override
     public ConversationModification getLastConversationModification(String userId, String convId) {
-        try (Timer.Context ignored = getCronJobLastProcessedDateTimer.time()) {
+        try (Timer.Context ignored = getLastConversationModificationTimer.time()) {
             ResultSet resultSet = session.execute(Statements.SELECT_LATEST_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, convId));
             Row row = resultSet.one();
             if (row == null) {
@@ -517,25 +508,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             DateTime lastModifiedDate = new DateTime(unixTimestamp(msgId));
 
             return new ConversationModification(userId, convId, adId, msgId, lastModifiedDate);
-        }
-    }
-
-    @Override
-    public DateTime getCronjobLastProcessedDate(String jobName){
-        try (Timer.Context ignored = getCronJobLastProcessedDateTimer.time()) {
-            ResultSet resultSet = session.execute(Statements.SELECT_CRONJOB_LAST_PROCESSED_DATE.bind(this, jobName));
-            Row row = resultSet.one();
-            if (row == null) {
-                return null;
-            }
-            return new DateTime(row.getDate("last_processed_date").getTime());
-        }
-    }
-
-    @Override
-    public void setCronjobLastProcessedDate(String jobName, DateTime lastProcessed){
-        try (Timer.Context ignored = setCronJobLastProcessedDateTimer.time()) {
-            session.execute(Statements.INSERT_CRONJOB_LAST_PROCESSED_DATE.bind(this, jobName, lastProcessed.toDate()));
         }
     }
 
@@ -605,11 +577,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         DELETE_AD_CONVERSATION_MODIFICATION_IDX("DELETE FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ? AND msgid = ?", true),
         DELETE_AD_CONVERSATION_MODIFICATION_IDXS("DELETE FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ?", true),
-        DELETE_CONVERSATION_MODIFICATION_IDX_BY_DATE("DELETE FROM mb_conversation_modification_idx_by_date WHERE modifdate = ? AND msgid = ? AND usrid = ? AND convid = ?", true),
-
-        SELECT_CRONJOB_LAST_PROCESSED_DATE("SELECT last_processed_date FROM mb_cronjob_clock WHERE job_name = ?"),
-        INSERT_CRONJOB_LAST_PROCESSED_DATE("INSERT INTO mb_cronjob_clock (job_name, last_processed_date) VALUES (?,?)");
-
+        DELETE_CONVERSATION_MODIFICATION_IDX_BY_DATE("DELETE FROM mb_conversation_modification_idx_by_date WHERE modifdate = ? AND msgid = ? AND usrid = ? AND convid = ?", true);
 
         private final String cql;
         private final boolean modifying;

@@ -3,7 +3,6 @@ package com.ecg.messagebox.persistence.cassandra;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.messagebox.model.ConversationModification;
 import com.ecg.messagebox.json.JsonConverter;
 import com.ecg.messagebox.model.*;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
@@ -25,7 +24,6 @@ import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
 import static com.ecg.messagebox.model.Visibility.ACTIVE;
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
 public class DefaultCassandraPostBoxRepositoryIntegrationTest {
@@ -44,7 +42,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     @BeforeClass
     public static void init() {
         try {
-            session = casdb.loadSchema(keyspace, "cassandra_new_messagebox_schema.cql");
+            session = casdb.loadSchema(keyspace, "cassandra_new_messagebox_schema.cql", "cassandra_schema.cql");
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -214,7 +212,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         insertConversationWithMessages(UID1, UID2, CID, ADID, 4);
         insertConversationWithMessages(UID2, "u3", "c2", "a2", 10);
 
-        conversationsRepo.deleteConversation(UID2, "a2", "c2");
+        conversationsRepo.deleteConversations(UID2, Collections.singletonMap("a2", "c2"));
 
         assertEquals(false, conversationsRepo.getConversation(UID2, "c3").isPresent());
         assertEquals(true, conversationsRepo.getConversation(UID1, CID).isPresent());
@@ -305,22 +303,9 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         assertEquals(c1.getLatestMessage().getId(), lastConversationModification.getMessageId());
     }
 
-    @Test
-    public void setAndGetLastProcessedDate(){
-        DateTime date = DateTime.now();
-
-        conversationsRepo.setCronjobLastProcessedDate("cronjob", date);
-
-        DateTime lastProcessedDateFromRepository = conversationsRepo.getCronjobLastProcessedDate("cronjob");
-
-        assertEquals(date, lastProcessedDateFromRepository);
-    }
-
-
     private ConversationThread insertConversationWithMessages(String userId1, String userId2,
-                                                              String convId, String adId, int numMessages)
-            throws Exception {
-
+                                                              String convId, String adId, int numMessages
+    ) throws Exception {
         List<Message> messages = IntStream
                 .range(0, numMessages)
                 .mapToObj(i -> {
