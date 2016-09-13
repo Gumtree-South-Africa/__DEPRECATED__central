@@ -7,6 +7,9 @@ import com.basho.riak.client.bucket.Bucket;
 import com.basho.riak.client.query.StreamingOperation;
 import com.codahale.metrics.*;
 import com.codahale.metrics.Timer;
+import com.ecg.comaas.r2cmigration.difftool.repo.CassConversationRepo;
+import com.ecg.comaas.r2cmigration.difftool.repo.RiakConversationRepo;
+import com.ecg.comaas.r2cmigration.difftool.util.InstrumentedCallerRunsPolicy;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -20,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -28,12 +31,12 @@ import java.util.stream.Stream;
 
 import static com.ecg.replyts.core.runtime.TimingReports.*;
 
-@Component
-public class R2CCoreConversationDiffTool {
+@Service
+public class R2CConversationDiffTool {
 
 
-    private static final Logger LOG = LoggerFactory.getLogger(R2CCoreConversationDiffTool.class);
-    private static final Logger MISMATCH_LOG = LoggerFactory.getLogger("difftool.mismatch");
+    private static final Logger LOG = LoggerFactory.getLogger(R2CConversationDiffTool.class);
+    private static final Logger MISMATCH_LOG = LoggerFactory.getLogger("difftool-conversation.mismatch");
 
     final static Counter RIAK_TO_CASS_EVENT_MISMATCH_COUNTER = TimingReports.newCounter("difftool.riak-mismatch-counter");
     final static Counter CASS_TO_RIAK_EVENT_MISMATCH_COUNTER = TimingReports.newCounter("difftool.cass-mismatch-counter");
@@ -56,10 +59,10 @@ public class R2CCoreConversationDiffTool {
     private int conversationIdBatchSize;
 
     @Autowired
-    RiakRepo riakRepo;
+    RiakConversationRepo riakRepo;
 
     @Autowired
-    CassandraRepo cassRepo;
+    CassConversationRepo cassRepo;
 
     private DateTime endDate;
     private DateTime startDate;
@@ -67,9 +70,9 @@ public class R2CCoreConversationDiffTool {
     @Value("${replyts.maxConversationAgeDays:180}")
     int compareNumberOfDays;
 
-    public R2CCoreConversationDiffTool(@Value("${threadcount:6}") int threadCount,
-                                       @Value("${queue.size:100}") int workQueueSize,
-                                       @Value("${conversationid.batch.size:1000}") int conversationIdBatchSize) {
+    public R2CConversationDiffTool(@Value("${threadcount:6}") int threadCount,
+                                   @Value("${queue.size:100}") int workQueueSize,
+                                   @Value("${conversationid.batch.size:1000}") int conversationIdBatchSize) {
         this.conversationIdBatchSize = conversationIdBatchSize;
         this.workQueue = new ArrayBlockingQueue<>(workQueueSize);
         this.rejectionHandler = new InstrumentedCallerRunsPolicy("difftool", "");
@@ -97,7 +100,7 @@ public class R2CCoreConversationDiffTool {
         return riakRepo.getConversationCount(startDate, endDate, DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME);
     }
 
-    List<Future> compareRiakToCassandra() throws RiakException {
+    public List<Future> compareRiakToCassandra() throws RiakException {
         List<Future> results = new ArrayList<>(conversationIdBatchSize);
         Bucket convBucket = riakRepo.getBucket(DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME);
         StreamingOperation<IndexEntry> convIdStream = riakRepo.modifiedBetween(startDate, endDate, convBucket);
@@ -144,7 +147,7 @@ public class R2CCoreConversationDiffTool {
         }
     }
 
-    List<Future> compareCassandraToRiak() throws RiakException {
+    public List<Future> compareCassandraToRiak() throws RiakException {
         List<Future> results = new ArrayList<>(conversationIdBatchSize);
         Bucket convBucket = riakRepo.getBucket(DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME);
 

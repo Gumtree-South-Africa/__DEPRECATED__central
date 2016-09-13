@@ -82,6 +82,7 @@
             <id>migration</id>
             <modules>
                 <module>migration/difftool</module>
+                <module>messagecenters/ebayk-messagecenter</module>
             </modules>
         </profile>
 

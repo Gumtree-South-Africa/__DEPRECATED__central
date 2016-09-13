@@ -1,4 +1,4 @@
-package com.ecg.comaas.r2cmigration.difftool;
+package com.ecg.comaas.r2cmigration.difftool.util;
 
 import com.codahale.metrics.Counter;
 

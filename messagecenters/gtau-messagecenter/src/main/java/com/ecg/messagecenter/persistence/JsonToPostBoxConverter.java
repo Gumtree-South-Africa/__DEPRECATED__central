@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}' == 'hybrid'}")
+@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')}")
 public class JsonToPostBoxConverter implements AbstractJsonToPostBoxConverter<ConversationThread> {
     @Override
     public PostBox<ConversationThread> toPostBox(String key, String jsonString, int maxAgeDays) {

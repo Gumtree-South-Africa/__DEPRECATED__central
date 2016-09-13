@@ -118,19 +118,28 @@ public abstract class AbstractConversationThread {
 
         AbstractConversationThread that = (AbstractConversationThread) o;
 
-        return pairsAreEqual(
+        boolean equals = pairsAreEqual(
                 containsUnreadMessages, that.containsUnreadMessages,
                 adId, that.adId,
                 conversationId, that.conversationId,
-                createdAt, that.createdAt,
-                modifiedAt, that.modifiedAt,
-                receivedAt, that.receivedAt,
+                createdAt.getMillis(), that.createdAt.getMillis(),
+                modifiedAt.getMillis(), that.modifiedAt.getMillis(),
                 previewLastMessage, that.previewLastMessage,
                 buyerName, that.buyerName,
                 sellerName, that.sellerName,
                 buyerId, that.buyerId,
                 messageDirection, that.messageDirection
         );
+        if (!equals) {
+            return false;
+        }
+        if (receivedAt == null && that.receivedAt == null) {
+            return true;
+        }
+        if (receivedAt != null && that.receivedAt != null) {
+            return pairsAreEqual(receivedAt.getMillis(), that.receivedAt.getMillis());
+        }
+        return false;
     }
 
     @Override

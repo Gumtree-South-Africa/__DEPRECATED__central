@@ -1,6 +1,12 @@
 package com.ecg.comaas.r2cmigration.difftool;
 
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.Session;
+import com.ecg.comaas.r2cmigration.difftool.repo.CassPostboxRepo;
 import com.ecg.de.kleinanzeigen.replyts.graphite.GraphiteExporter;
+import com.ecg.messagecenter.persistence.JsonToPostBoxConverter;
+import com.ecg.messagecenter.persistence.PostBoxToJsonConverter;
+import com.ecg.messagecenter.persistence.simple.*;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
 import com.ecg.replyts.core.runtime.persistence.strategy.CassandraPersistenceConfiguration;
@@ -9,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import java.net.UnknownHostException;
 
@@ -20,15 +25,19 @@ import java.net.UnknownHostException;
         RiakHostConfig.class,
         RiakPersistenceConfiguration.RiakClientConfiguration.class,
         CassandraPersistenceConfiguration.CassandraClientConfiguration.class,
-        JacksonAwareObjectMapperConfigurer.class
+        JacksonAwareObjectMapperConfigurer.class,
+        JsonToPostBoxConverter.class,     // This has to be specific for each tenant!
+        PostBoxToJsonConverter.class      // This has to be specific for each tenant!
 })
 public class DiffToolConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiffToolConfiguration.class);
 
-    static final String RIAK_CONVERSATION_BUCKET_NAME = "conversation";
+    public static final String RIAK_CONVERSATION_BUCKET_NAME = "conversation";
 
-    static final String RIAK_SECONDARY_INDEX_MODIFIED_AT = "modifiedAt";
+    public static final String RIAK_POSTBOX_BUCKET_NAME = "postbox";
+
+    public static final String RIAK_SECONDARY_INDEX_MODIFIED_AT = "modifiedAt";
 
     @Value("${graphite.enabled:true}")
     boolean isEnabled;
@@ -51,4 +60,24 @@ public class DiffToolConfiguration {
         return null;
     }
 
+    @Bean
+    public RiakSimplePostBoxConflictResolver postBoxConflictResolver() {
+        return new RiakSimplePostBoxConflictResolver();
+    }
+
+    @Bean
+    public RiakSimplePostBoxConverter postBoxConverter() {
+        return new RiakSimplePostBoxConverter();
+    }
+
+    @Bean
+    public RiakSimplePostBoxMerger postBoxMerger() {
+        return new RiakSimplePostBoxMerger();
+    }
+
+    // Uses the same consistency as Conversation repo
+    @Bean
+    public CassPostboxRepo postBoxRepository(Session cassandraSession) {
+        return new CassPostboxRepo(cassandraSession);
+    }
 }

@@ -12,7 +12,7 @@ import java.util.List;
 import static com.ecg.messagecenter.util.ConverterUtils.nullSafeMillis;
 
 @Component
-@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}' == 'hybrid'}")
+@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid') }")
 public class PostBoxToJsonConverter implements AbstractPostBoxToJsonConverter<ConversationThread> {
     @Override
     public String toJson(PostBox<ConversationThread> p) {

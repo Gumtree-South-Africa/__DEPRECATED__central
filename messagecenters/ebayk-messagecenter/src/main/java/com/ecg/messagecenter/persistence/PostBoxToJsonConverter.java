@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}' == 'hybrid'}")
+@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid') }")
 public class PostBoxToJsonConverter implements AbstractPostBoxToJsonConverter<ConversationThread> {
     @Override
     public String toJson(PostBox<ConversationThread> p) {

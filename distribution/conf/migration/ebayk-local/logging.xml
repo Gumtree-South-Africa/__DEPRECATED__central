@@ -26,6 +26,8 @@ from logback-test.xml.
     </appender>
 
 
+
+    <logger name="org.springframework" level="INFO"/>
     <logger name="com.ecg" level="INFO"/>
 
     <logger name="difftool.mismatch" level="DEBUG">

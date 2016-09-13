@@ -1,4 +1,4 @@
-package com.ecg.comaas.r2cmigration.difftool;
+package com.ecg.comaas.r2cmigration.difftool.repo;
 
 import com.basho.riak.client.*;
 import com.basho.riak.client.bucket.Bucket;
@@ -6,6 +6,7 @@ import com.basho.riak.client.cap.DefaultRetrier;
 import com.basho.riak.client.query.StreamingOperation;
 import com.basho.riak.client.query.indexes.IntIndex;
 import com.codahale.metrics.Timer;
+import com.ecg.comaas.r2cmigration.difftool.DiffToolConfiguration;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.conversation.ConversationEvents;
 import com.ecg.replyts.core.runtime.persistence.conversation.ConversationEventsConverter;
@@ -26,9 +27,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.timestampInMinutes;
 
 @Repository
-public class RiakRepo {
+public class RiakConversationRepo {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RiakRepo.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RiakConversationRepo.class);
 
     private final static Timer GET_BY_ID_RIAK_TIMER = TimingReports.newTimer("difftool.riak-getById");
 
@@ -37,8 +38,9 @@ public class RiakRepo {
 
     private IRiakClient riakClient;
 
+
     @Autowired
-    public RiakRepo(IRiakClient riakClient) {
+    public RiakConversationRepo(IRiakClient riakClient) {
         this.riakClient = riakClient;
         this.resolver = new RiakConversationEventConflictResolver();
         this.converter = new ConversationEventsConverter(DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME, new ConversationJsonSerializer());
@@ -82,4 +84,5 @@ public class RiakRepo {
     void close() {
         riakClient.shutdown();
     }
+
 }

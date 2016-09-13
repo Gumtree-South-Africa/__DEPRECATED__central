@@ -27,6 +27,15 @@
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
+            <artifactId>core-messagecenter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>ebayk-messagecenter</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
             <artifactId>core-graphite</artifactId>
         </dependency>
         <dependency>
@@ -44,10 +53,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-joda</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-guava</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>

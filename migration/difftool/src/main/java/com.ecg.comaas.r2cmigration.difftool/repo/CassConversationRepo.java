@@ -1,4 +1,4 @@
-package com.ecg.comaas.r2cmigration.difftool;
+package com.ecg.comaas.r2cmigration.difftool.repo;
 
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
@@ -24,9 +24,9 @@ import java.util.stream.Stream;
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 
 @Repository
-public class CassandraRepo {
+public class CassConversationRepo {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CassandraRepo.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CassConversationRepo.class);
 
     private final static Timer GET_BY_ID_CASS_TIMER = TimingReports.newTimer("difftool.cass-getById");
 
@@ -36,7 +36,8 @@ public class CassandraRepo {
     private static final String COUNT_FROM_CONVERSATION_MOD_IDX = "SELECT count(*) FROM core_conversation_modification_desc_idx";
     private static final String COUNT_FROM_CONVERSATION_MOD_IDX_BY_DAY = "SELECT count(*) FROM core_conversation_modification_desc_idx_by_day";
     private static final String SELECT_FROM_CONVERSATION_EVENTS = "SELECT * FROM core_conversation_events WHERE conversation_id=? ORDER BY event_id ASC";
-    private static final String SELECT_EVENTS_WHERE_CREATE_BETWEEN = "SELECT * FROM core_conversation_events WHERE event_id > minTimeuuid(?) AND event_id < maxTimeuuid(?) ALLOW FILTERING";
+    private static final String SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN = "SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
+
 
     private final ObjectMapper objectMapper;
     private final PreparedStatement getByConvID;
@@ -46,12 +47,12 @@ public class CassandraRepo {
 
 
     @Autowired
-    public CassandraRepo(@Qualifier("cassandraSession") Session session, JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
+    public CassConversationRepo(@Qualifier("cassandraSession") Session session, JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
         try {
             this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
             this.session = session;
             this.getByConvID = session.prepare(SELECT_FROM_CONVERSATION_EVENTS);
-            this.getByDate = session.prepare(SELECT_EVENTS_WHERE_CREATE_BETWEEN);
+            this.getByDate = session.prepare(SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN);
         } catch (Exception e) {
             LOG.error("Fail to connect to cassandra: ", e);
             throw new RuntimeException(e);
@@ -72,7 +73,7 @@ public class CassandraRepo {
         }
     }
 
-    public Statement bind(PreparedStatement statement, Object... values) {
+    public static Statement bind(PreparedStatement statement, Object... values) {
         return statement.bind(values)
                 .setConsistencyLevel(ConsistencyLevel.QUORUM)
                 .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);

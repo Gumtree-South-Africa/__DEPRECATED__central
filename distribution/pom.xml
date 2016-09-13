@@ -490,6 +490,17 @@
                     <artifactId>difftool</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                     <groupId>ecg.comaas</groupId>
+                     <artifactId>ebayk-messagecenter</artifactId>
+                     <version>${project.version}</version>
+                     <exclusions>
+                         <exclusion>
+                             <groupId>commons-logging</groupId>
+                             <artifactId>commons-logging</artifactId>
+                         </exclusion>
+                     </exclusions>
+                 </dependency>
             </dependencies>
         </profile>
     </profiles>
