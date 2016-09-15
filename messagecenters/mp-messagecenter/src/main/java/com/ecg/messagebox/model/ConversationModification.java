@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class ConversationModification {
+
     private final String userId;
     private final String conversationId;
     private final String advertisementId;
@@ -32,7 +33,9 @@ public class ConversationModification {
         return userId;
     }
 
-    public DateTime getModifiedAt() { return modifiedAt; }
+    public DateTime getModifiedAt() {
+        return modifiedAt;
+    }
 
     public String getConversationId() {
         return conversationId;
@@ -42,7 +45,9 @@ public class ConversationModification {
         return advertisementId;
     }
 
-    public UUID getMessageId() { return messageId; }
+    public UUID getMessageId() {
+        return messageId;
+    }
 
     @Override
     public boolean equals(Object o) {

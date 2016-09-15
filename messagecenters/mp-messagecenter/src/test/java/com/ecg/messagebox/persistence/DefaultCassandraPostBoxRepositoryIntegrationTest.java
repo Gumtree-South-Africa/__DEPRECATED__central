@@ -3,9 +3,8 @@ package com.ecg.messagebox.persistence;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.messagebox.model.ConversationModification;
-import com.ecg.messagebox.persistence.jsonconverter.JsonConverter;
 import com.ecg.messagebox.model.*;
+import com.ecg.messagebox.persistence.jsonconverter.JsonConverter;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.collect.ImmutableMap;
@@ -196,7 +195,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         insertConversationWithMessages(UID1, "u4", "c3", "a3", 5);
         insertConversationWithMessages(UID1, "u3", "c4", "a4", 4);
 
-        Map<String,String> adConversationIdsMap = new HashMap<String,String>();
+        Map<String, String> adConversationIdsMap = new HashMap<>();
         adConversationIdsMap.put(ADID, CID);
         adConversationIdsMap.put("a3", "c3");
 
@@ -209,18 +208,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     }
 
     @Test
-    public void deleteConversation() throws Exception {
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 4);
-        insertConversationWithMessages(UID2, "u3", "c2", "a2", 10);
-
-        conversationsRepo.deleteConversations(UID2, Collections.singletonMap("a2", "c2"));
-
-        assertEquals(false, conversationsRepo.getConversation(UID2, "c3").isPresent());
-        assertEquals(true, conversationsRepo.getConversation(UID1, CID).isPresent());
-    }
-
-    @Test
-    public void getConversationAdIdsMap() throws Exception{
+    public void getConversationAdIdsMap() throws Exception {
         insertConversationWithMessages(UID1, UID2, CID, ADID, 4);
         insertConversationWithMessages(UID2, "u3", "c2", "a2", 10);
         insertConversationWithMessages(UID1, "u4", "c3", "a3", 5);
@@ -237,15 +225,15 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     public void getConversationModificationsByDate() throws Exception {
         ConversationThread c1 = insertConversationWithNewAndOldMessages(UID1, UID2, CID, ADID, 5, 7);
 
-        List <ConversationModification> newModList = conversationsRepo
+        List<ConversationModification> newModList = conversationsRepo
                 .getConversationModificationsByHour(c1.getLatestMessage().getReceivedDate().hourOfDay().roundFloorCopy())
                 .collect(Collectors.toList());
 
-        List <ConversationModification> oldModList = conversationsRepo
+        List<ConversationModification> oldModList = conversationsRepo
                 .getConversationModificationsByHour(c1.getMessages().get(0).getReceivedDate().hourOfDay().roundFloorCopy())
                 .collect(Collectors.toList());
 
-        List <ConversationModification> noModList = conversationsRepo
+        List<ConversationModification> noModList = conversationsRepo
                 .getConversationModificationsByHour(c1.getMessages().get(0).getReceivedDate().plusHours(10).hourOfDay().roundFloorCopy())
                 .collect(Collectors.toList());
 
@@ -264,7 +252,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
         conversationsRepo.deleteModificationIndexByDate(date, messageId, UID1, CID);
 
-        List <ConversationModification> modList = conversationsRepo
+        List<ConversationModification> modList = conversationsRepo
                 .getConversationModificationsByHour(c1.getLatestMessage().getReceivedDate().hourOfDay().roundFloorCopy())
                 .collect(Collectors.toList());
 
@@ -296,7 +284,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     }
 
     @Test
-    public void getLastConversationModification() throws Exception{
+    public void getLastConversationModification() throws Exception {
         ConversationThread c1 = insertConversationWithMessages(UID1, UID2, CID, ADID, 5);
 
         ConversationModification lastConversationModification = conversationsRepo.getLastConversationModification(UID1, CID);
@@ -337,7 +325,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     private static ConversationThread insertConversationWithNewAndOldMessages(String userId1, String userId2,
                                                                               String convId, String adId, int numNewMessages, int numOldMessages)
-        throws Exception {
+            throws Exception {
 
         List<Message> messages = IntStream
                 .range(0, numOldMessages)

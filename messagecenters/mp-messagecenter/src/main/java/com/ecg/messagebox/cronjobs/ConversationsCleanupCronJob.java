@@ -116,8 +116,7 @@ public class ConversationsCleanupCronJob implements CronJobExecutor {
             String convId = conversationModification.getConversationId();
             DateTime modifiedAt = conversationModification.getModifiedAt();
             ConversationModification lastConversationModification = repository.getLastConversationModification(userId, convId);
-            DateTime lastModifiedDate = lastConversationModification.getModifiedAt();
-            if (lastModifiedDate != null && lastModifiedDate.isBefore(deleteEverythingBefore)) {
+            if (lastConversationModification != null && lastConversationModification.getModifiedAt().isBefore(deleteEverythingBefore)) {
                 repository.deleteConversations(userId, Collections.singletonMap(lastConversationModification.getAdvertisementId(), convId));
                 deleteConversationCounter.inc();
             } else {

@@ -56,9 +56,8 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer unblockUserTimer = newTimer("cassandra.postBoxRepo.v2.unblockUser");
     private final Timer getBlockedUserInfoTimer = newTimer("cassandra.postBoxRepo.v2.getBlockedUserInfo");
     private final Timer deleteConversationsTimer = newTimer("cassandra.postBoxRepo.v2.deleteConversations");
-    private final Timer deleteConversationTimer = newTimer("cassandra.postBoxRepo.v2.deleteConversation");
     private final Timer deleteModificationIndexTimer = newTimer("cassandra.postBoxRepo.v2.deleteModificationIndexByDate");
-    private final Timer getConversationModificationsByDateTimer = newTimer("cassandra.postBoxRepo.v2.getConversationModificationsByHour");
+    private final Timer getConversationModificationsByHourTimer = newTimer("cassandra.postBoxRepo.v2.getConversationModificationsByHour");
     private final Timer getLastConversationModificationTimer = newTimer("cassandra.postBoxRepo.v2.getLastConversationModificationTimer");
 
     private final Counter postBoxFutureFailures = newCounter("cassandra.postBoxRepo.v2.getPostBox-futureFailures");
@@ -415,11 +414,12 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Override
     public Stream<ConversationModification> getConversationModificationsByHour(DateTime date) {
-        try (Timer.Context ignored = getConversationModificationsByDateTimer.time()) {
-            Statement bound = Statements.SELECT_CONVERSATION_MODIFICATION_IDX_BY_DATE.bind(this, date.hourOfDay().roundFloorCopy().toDate());
+        DateTime dateTimeRoundedAtHour = date.hourOfDay().roundFloorCopy();
+        try (Timer.Context ignored = getConversationModificationsByHourTimer.time()) {
+            Statement bound = Statements.SELECT_CONVERSATION_MODIFICATION_IDX_BY_DATE.bind(this, dateTimeRoundedAtHour.toDate());
             ResultSet resultSet = session.execute(bound);
             return StreamUtils.toStream(resultSet)
-                    .map(row -> new ConversationModification(row.getString("usrid"), row.getString("convid"), row.getUUID("msgid"), date));
+                    .map(row -> new ConversationModification(row.getString("usrid"), row.getString("convid"), row.getUUID("msgid"), dateTimeRoundedAtHour));
         }
     }
 
