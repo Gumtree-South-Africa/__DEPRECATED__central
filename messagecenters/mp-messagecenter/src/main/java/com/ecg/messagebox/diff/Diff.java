@@ -157,7 +157,8 @@ public class Diff {
 
             String params = new StringJoiner(",").add(userId).add(conversationId).toString();
 
-            ConversationResponse oldConvResp = oldValue.get(), newConvResp = newValue.get();
+            ConversationResponse oldConvResp = oldValue.get();
+            ConversationResponse newConvResp = newValue.get();
 
             if (!newConvResp.getId().equals(oldConvResp.getId())) {
                 logDiffForConvResp(params, "id", newConvResp.getId(), oldConvResp.getId());
