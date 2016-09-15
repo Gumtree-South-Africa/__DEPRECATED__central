@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -23,22 +25,22 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
-import static com.ecg.replyts.core.runtime.TimingReports.newGauge;
-import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
-import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.never;
+import static com.ecg.replyts.core.runtime.TimingReports.*;
 import static org.joda.time.DateTime.now;
 
+@Component
+@ConditionalOnExpression("#{'${messagebox.cronjob.conversationsCleanup.enabled}' == 'true'}")
 public class ConversationsCleanupCronJob implements CronJobExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversationsCleanupCronJob.class);
+
     private static final DateTime STARTING_DATE = new DateTime(1445774400000L); // 2015-10-25 13:00:00
     protected static final String CONVERSATIONS_CLEANUP_CRONJOB_NAME = "messagebox_conversations_cleanup_cronjob";
 
-    private final Timer processHourTimer = newTimer("conversationsCleanupCronjob.processHour");
-    private final Counter deleteConversationCounter = newCounter("conversationsCleanupCronjob.deleteConversation");
-    private final Counter deleteModificationIndexCounter = newCounter("conversationsCleanupCronjob.deleteModificationIndexByDate");
-    private final Counter failedCounter = newCounter("conversationsCleanupCronjob.failed");
+    private final Timer processHourTimer = newTimer("conversationsCleanupCronjob.processHourTimer");
+    private final Counter deleteConversationCounter = newCounter("conversationsCleanupCronjob.deleteConversationCounter");
+    private final Counter deleteModificationIndexCounter = newCounter("conversationsCleanupCronjob.deleteModificationIndexByDateCounter");
+    private final Counter failedCounter = newCounter("conversationsCleanupCronjob.failedCounter");
 
     private final int maxConversationAgeDays;
     private final int batchSize;
@@ -46,12 +48,10 @@ public class ConversationsCleanupCronJob implements CronJobExecutor {
     private final String cronJobExpression;
     private final ExecutorService executorService;
     private final CronJobClockRepository cronJobClockRepository;
-    private final boolean cronJobEnabled;
 
     @Autowired
     ConversationsCleanupCronJob(@Qualifier("newCassandraPostBoxRepo") CassandraPostBoxRepository repository,
                                 CronJobClockRepository cronJobClockRepository,
-                                @Value("${messagebox.cronjob.conversationsCleanup.enabled:false}") boolean cronJobEnabled,
                                 @Value("${messagebox.cronjob.conversationsCleanup.workQueueSize:400}") int workQueueSize,
                                 @Value("${messagebox.cronjob.conversationsCleanup.threadCount:4}") int threadCount,
                                 @Value("${replyts.maxConversationAgeDays:180}") int maxConversationAgeDays,
@@ -59,15 +59,14 @@ public class ConversationsCleanupCronJob implements CronJobExecutor {
                                 @Value("${messagebox.cronjob.conversationsCleanup.expression:0 0 0 * * ? *}") String cronJobExpression
     ) {
         this.cronJobClockRepository = cronJobClockRepository;
-        this.cronJobEnabled = cronJobEnabled;
+
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(workQueueSize);
         newGauge("conversationsCleanupCronjob.executionService.workQueueSizeGauge", workQueue::size);
         RejectedExecutionHandler rejectionHandler = new InstrumentedCallerRunsPolicy("conversationsCleanupCronjob", "rejectionHandler");
-
         this.executorService = new InstrumentedExecutorService(
                 new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler),
-                "conversationsCleanupCronjob", "executionService"
-        );
+                "conversationsCleanupCronjob", "executionService");
+
         this.repository = repository;
         this.cronJobExpression = cronJobExpression;
         this.maxConversationAgeDays = maxConversationAgeDays;
@@ -130,6 +129,6 @@ public class ConversationsCleanupCronJob implements CronJobExecutor {
 
     @Override
     public String getPreferredCronExpression() {
-        return cronJobEnabled ? cronJobExpression : never();
+        return cronJobExpression;
     }
 }

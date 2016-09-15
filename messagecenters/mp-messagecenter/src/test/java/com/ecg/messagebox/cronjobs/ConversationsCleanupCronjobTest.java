@@ -31,7 +31,7 @@ public class ConversationsCleanupCronjobTest {
     private CassandraPostBoxRepository repository = mock(CassandraPostBoxRepository.class);
     private CronJobClockRepository cronJobClockRepository = mock(CronJobClockRepository.class);
 
-    private ConversationsCleanupCronJob cronJob = new ConversationsCleanupCronJob(repository, cronJobClockRepository, true, WORK_QUEUE_SIZE, THREAD_COUNT, MAX_CONVERSATION_AGE_DAYS, BATCH_SIZE, CRONJOB_EXPRESSION);
+    private ConversationsCleanupCronJob cronJob = new ConversationsCleanupCronJob(repository, cronJobClockRepository, WORK_QUEUE_SIZE, THREAD_COUNT, MAX_CONVERSATION_AGE_DAYS, BATCH_SIZE, CRONJOB_EXPRESSION);
 
     private ConversationModification conv1 = new ConversationModification("u1", "c1", null, timeBased(), new DateTime());
     private ConversationModification conv2 = new ConversationModification("u2", "c2", null, timeBased(), new DateTime());
