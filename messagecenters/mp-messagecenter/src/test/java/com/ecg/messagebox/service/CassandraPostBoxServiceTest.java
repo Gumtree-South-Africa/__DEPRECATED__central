@@ -7,6 +7,7 @@ import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
+import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
@@ -50,20 +51,19 @@ public class CassandraPostBoxServiceTest {
     private static final String BUYER_NAME_VALUE = "buyer";
     private static final String SELLER_NAME_VALUE = "seller";
 
-    @Mock
-    private CassandraPostBoxRepository conversationsRepoMock;
-    @Mock
-    private UserIdentifierService userIdentifierServiceMock;
+    @Mock private CassandraPostBoxRepository conversationsRepoMock;
+    @Mock private UserIdentifierService userIdentifierServiceMock;
+    @Mock private BlockUserRepository blockUserRepository;
 
-    private CassandraPostBoxService service;
+    private CassandraPostBoxService service = new CassandraPostBoxService(conversationsRepoMock, userIdentifierServiceMock, blockUserRepository);
 
     @Before
     public void setup() {
-        DateTimeUtils.setCurrentMillisFixed(now().getMillis());
-        service = new CassandraPostBoxService(conversationsRepoMock, userIdentifierServiceMock);
+		DateTimeUtils.setCurrentMillisFixed(now().getMillis());
+        service = new CassandraPostBoxService(conversationsRepoMock, userIdentifierServiceMock, blockUserRepository);
         when(userIdentifierServiceMock.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierServiceMock.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
-        when(conversationsRepoMock.areUsersBlocked(any(), any())).thenReturn(false);
+        when(blockUserRepository.areUsersBlocked(any(), any())).thenReturn(false);
     }
 
     @After

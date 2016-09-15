@@ -111,14 +111,6 @@ public interface CassandraPostBoxRepository {
     
     void deleteModificationIndexByDate(DateTime modifiedDate, UUID messageId, String userId, String conversationId);
 
-    void blockUser(String reporterUserId, String blockedUserId);
-
-    void unblockUser(String reporterUserId, String blockedUserId);
-
-    Optional<BlockedUserInfo> getBlockedUserInfo(String userId1, String userId12);
-
-    boolean areUsersBlocked(String userId1, String userId2);
-
     ConversationModification getLastConversationModification(String userId, String convId);
 
 }

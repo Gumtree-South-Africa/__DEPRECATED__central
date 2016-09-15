@@ -52,9 +52,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer getUserUnreadCountsTimer = newTimer("cassandra.postBoxRepo.v2.getUserUnreadCounts");
     private final Timer getConversationUnreadCountMapTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCountMap");
     private final Timer getConversationUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCount");
-    private final Timer blockUserTimer = newTimer("cassandra.postBoxRepo.v2.blockUser");
-    private final Timer unblockUserTimer = newTimer("cassandra.postBoxRepo.v2.unblockUser");
-    private final Timer getBlockedUserInfoTimer = newTimer("cassandra.postBoxRepo.v2.getBlockedUserInfo");
     private final Timer deleteConversationsTimer = newTimer("cassandra.postBoxRepo.v2.deleteConversations");
     private final Timer deleteModificationIndexTimer = newTimer("cassandra.postBoxRepo.v2.deleteModificationIndexByDate");
     private final Timer getConversationModificationsByHourTimer = newTimer("cassandra.postBoxRepo.v2.getConversationModificationsByHour");
@@ -62,7 +59,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     private final Counter postBoxFutureFailures = newCounter("cassandra.postBoxRepo.v2.getPostBox-futureFailures");
     private final Counter conversationFutureFailures = newCounter("cassandra.postBoxRepo.v2.getConversationWithMessages-futureFailures");
-    private final Counter blockedUsersFutureFailures = newCounter("cassandra.postBoxRepo.v2.getBlockedUserInfo-futureFailures");
 
     private final Session session;
     private final ConsistencyLevel readConsistency;
@@ -431,57 +427,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public void blockUser(String reporterUserId, String userIdToBlock) {
-        try (Timer.Context ignored = blockUserTimer.time()) {
-            session.execute(Statements.BLOCK_USER.bind(this, reporterUserId, userIdToBlock, DateTime.now().toDate()));
-        }
-    }
-
-    @Override
-    public void unblockUser(String reporterUserId, String userIdToUnblock) {
-        try (Timer.Context ignored = unblockUserTimer.time()) {
-            session.execute(Statements.UNBLOCK_USER.bind(this, reporterUserId, userIdToUnblock));
-        }
-    }
-
-    @Override
-    public Optional<BlockedUserInfo> getBlockedUserInfo(String userId1, String userId2) {
-        try (Timer.Context ignored = getBlockedUserInfoTimer.time()) {
-            List<ListenableFuture<ResultSet>> futures = Futures.inCompletionOrder(
-                    newArrayList(
-                            session.executeAsync(Statements.SELECT_BLOCKED_USER.bind(this, userId1, userId2)),
-                            session.executeAsync(Statements.SELECT_BLOCKED_USER.bind(this, userId2, userId1))));
-
-            for (ListenableFuture<ResultSet> future : futures) {
-                try {
-                    Row row = future.get(timeoutInMs, TimeUnit.SECONDS).one();
-                    if (row != null) {
-                        return Optional.of(new BlockedUserInfo(
-                                row.getString("blockerid"),
-                                row.getString("blockeeid"),
-                                new DateTime(row.getDate("blockdate"))));
-                    }
-                } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                    if (e instanceof InterruptedException) {
-                        Thread.currentThread().interrupt();
-                    }
-                    futures.forEach(f -> f.cancel(true));
-                    blockedUsersFutureFailures.inc();
-                    LOGGER.error("Could not get blocked user information for user id {} and user id {}", userId1, userId2, e);
-                    throw new RuntimeException(e);
-                }
-            }
-
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public boolean areUsersBlocked(String userId1, String userId2) {
-        return getBlockedUserInfo(userId1, userId2).isPresent();
-    }
-
-    @Override
     public ConversationModification getLastConversationModification(String userId, String convId) {
         try (Timer.Context ignored = getLastConversationModificationTimer.time()) {
             ResultSet resultSet = session.execute(Statements.SELECT_LATEST_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, convId));
@@ -539,13 +484,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         CHANGE_CONVERSATION_VISIBILITY("UPDATE mb_conversations SET vis = ? WHERE usrid = ? AND convid = ?", true),
         CHANGE_CONVERSATION_IDX_VISIBILITY("UPDATE mb_ad_conversation_idx SET vis = ? WHERE usrid = ? AND adid = ? AND convid = ?", true),
-
-        // block/un-block user
-        BLOCK_USER("INSERT INTO mb_blocked_users (blockerid, blockeeid, blockdate) VALUES (?, ?, ?)", true),
-        UNBLOCK_USER("DELETE FROM mb_blocked_users WHERE blockerid = ? AND blockeeid = ?", true),
-
-        // select blocked user
-        SELECT_BLOCKED_USER("SELECT blockerid, blockeeid, blockdate FROM mb_blocked_users WHERE blockerid = ? AND blockeeid = ?"),
 
         // cleanup of old messages and conversations
         INSERT_AD_CONVERSATION_MODIFICATION_IDX("INSERT INTO mb_ad_conversation_modification_idx (usrid, convid, msgid, adid) VALUES (?, ?, ?, ?)", true),

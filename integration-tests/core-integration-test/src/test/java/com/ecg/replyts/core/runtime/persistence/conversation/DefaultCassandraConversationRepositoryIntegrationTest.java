@@ -2,19 +2,20 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationEventId;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
-import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
-import org.junit.After;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationModificationDate;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.command.*;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventId;
+import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Test;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,22 +25,18 @@ import static org.joda.time.DateTime.now;
 import static org.junit.Assert.*;
 
 
-public class CassandraConversationRepositoryIntegrationTest extends ConversationRepositoryIntegrationTestBase<DefaultCassandraConversationRepository> {
+public class DefaultCassandraConversationRepositoryIntegrationTest extends ConversationRepositoryIntegrationTestBase<DefaultCassandraConversationRepository> {
     private String KEYSPACE = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
 
     private Session session = null;
 
     private CassandraIntegrationTestProvisioner casdb = CassandraIntegrationTestProvisioner.getInstance();
 
-    public void init() {
+    @Override
+    protected DefaultCassandraConversationRepository createConversationRepository() {
         if (session == null) {
             session = casdb.initStdSchema(KEYSPACE);
         }
-    }
-
-    @Override
-    protected DefaultCassandraConversationRepository createConversationRepository() {
-        init();
 
         DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
         myRepo.setObjectMapperConfigurer(new JacksonAwareObjectMapperConfigurer());

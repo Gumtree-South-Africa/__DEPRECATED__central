@@ -75,7 +75,6 @@ public class ConversationsController {
             @PathVariable("userId") String userId,
             @RequestParam("action") String action,
             @RequestParam(value = "visibility", defaultValue = "ACTIVE", required = false) String visibility,
-            @RequestParam(value = "blockedUserId", required = false) String blockedUserId,
             @RequestParam(value = "ids", required = false) String[] conversationIds,
             @RequestParam(value = "offset", defaultValue = "0", required = false) int offset,
             @RequestParam(value = "limit", defaultValue = "50", required = false) int limit
@@ -87,12 +86,6 @@ public class ConversationsController {
                 case "change-visibility":
                     Visibility toggledVisibility = Visibility.ARCHIVED.equals(newVisibility) ? Visibility.ACTIVE : Visibility.ARCHIVED;
                     postBox = postBoxService.changeConversationVisibilities(userId, Arrays.asList(conversationIds), newVisibility, toggledVisibility, offset, limit);
-                    break;
-                case "block-user":
-                    postBox = postBoxService.blockUser(userId, blockedUserId, newVisibility, offset, limit);
-                    break;
-                case "unblock-user":
-                    postBox = postBoxService.unblockUser(userId, blockedUserId, newVisibility, offset, limit);
                     break;
                 default:
                     postBox = null;

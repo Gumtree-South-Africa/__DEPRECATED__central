@@ -7,11 +7,11 @@ import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -95,7 +95,7 @@ public class HybridConversationRepository implements MutableConversationReposito
 
     @Override
     public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
-        Optional<Conversation> conversation = Optional.absent();
+        Optional<Conversation> conversation;
         synchronized (cassandraConversationRepository) {
             conversation = cassandraConversationRepository.findExistingConversationFor(key);
 

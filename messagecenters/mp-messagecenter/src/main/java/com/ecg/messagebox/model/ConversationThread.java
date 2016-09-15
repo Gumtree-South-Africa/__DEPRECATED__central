@@ -1,5 +1,7 @@
 package com.ecg.messagebox.model;
 
+import com.ecg.replyts.core.runtime.persistence.BlockedUserInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

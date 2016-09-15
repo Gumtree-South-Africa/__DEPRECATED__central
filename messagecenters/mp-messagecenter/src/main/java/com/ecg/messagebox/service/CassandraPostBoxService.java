@@ -7,6 +7,7 @@ import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,7 @@ import static org.joda.time.DateTime.now;
 public class CassandraPostBoxService implements PostBoxService {
     private final CassandraPostBoxRepository postBoxRepository;
     private final MessagesResponseFactory messageResponseFactory;
+    private final BlockUserRepository blockUserRepository;
     private final UserIdentifierService userIdentifierService;
 
     private final Timer processNewMessageTimer = newTimer("postBoxService.v2.processNewMessage");
@@ -32,16 +34,19 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer getConversationsTimer = newTimer("postBoxService.v2.getConversations");
     private final Timer changeConversationVisibilitiesTimer = newTimer("postBoxService.v2.changeConversationVisibilities");
     private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
-    private final Timer blockUserTimer = newTimer("postBoxService.v2.blockUser");
-    private final Timer unblockUserTimer = newTimer("postBoxService.v2.unblockUser");
 
     private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
 
     @Autowired
-    public CassandraPostBoxService(CassandraPostBoxRepository postBoxRepository, UserIdentifierService userIdentifierService) {
+    public CassandraPostBoxService(
+            CassandraPostBoxRepository postBoxRepository,
+            UserIdentifierService userIdentifierService,
+            BlockUserRepository blockUserRepository
+    ) {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.messageResponseFactory = new MessagesResponseFactory(userIdentifierService);
+        this.blockUserRepository = blockUserRepository;
     }
 
     @Override
@@ -54,7 +59,7 @@ public class CassandraPostBoxService implements PostBoxService {
             String senderUserId = getMessageSenderUserId(rtsConversation, rtsMessage);
             String receiverUserId = getMessageReceiverUserId(rtsConversation, rtsMessage);
 
-            if (!postBoxRepository.areUsersBlocked(senderUserId, receiverUserId)) {
+            if (!blockUserRepository.areUsersBlocked(senderUserId, receiverUserId)) {
                 String messageTypeStr = rtsMessage.getHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase();
                 MessageType messageType = MessageType.get(messageTypeStr);
                 String messageText = messageResponseFactory.getCleanedMessage(rtsConversation, rtsMessage);
@@ -117,26 +122,6 @@ public class CassandraPostBoxService implements PostBoxService {
             Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
             postBoxRepository.changeConversationVisibilities(userId, conversationAdIdsMap, newVis);
             return postBoxRepository.getPostBox(userId, returnVis, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
-        }
-    }
-
-    @Override
-    public PostBox blockUser(
-            String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit
-    ) {
-        try (Timer.Context ignored = blockUserTimer.time()) {
-            postBoxRepository.blockUser(userId, blockedUserId);
-            return postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
-        }
-    }
-
-    @Override
-    public PostBox unblockUser(
-            String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit
-    ) {
-        try (Timer.Context ignored = unblockUserTimer.time()) {
-            postBoxRepository.unblockUser(userId, blockedUserId);
-            return postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
         }
     }
 

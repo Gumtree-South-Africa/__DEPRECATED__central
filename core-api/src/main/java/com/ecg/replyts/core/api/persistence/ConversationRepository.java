@@ -2,10 +2,10 @@ package com.ecg.replyts.core.api.persistence;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
-import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 

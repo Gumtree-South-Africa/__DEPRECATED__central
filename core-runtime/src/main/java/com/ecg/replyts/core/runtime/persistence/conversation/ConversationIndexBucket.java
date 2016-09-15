@@ -12,9 +12,10 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEven
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.ValueSizeConstraint;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 import static com.basho.riak.client.builders.RiakObjectBuilder.newBuilder;
 import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.timestampInMinutes;
@@ -57,7 +58,7 @@ class ConversationIndexBucket {
                     .execute();
 
             if (responseObject == null) {
-                return Optional.absent();
+                return Optional.empty();
             }
 
             return Optional.of(responseObject.getValueAsString());

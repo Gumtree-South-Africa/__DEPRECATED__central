@@ -10,6 +10,9 @@ import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,10 +22,11 @@ import static com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage.B
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class CassandraPostBoxServiceTest {
 
     private static final String USER_ID = "123";
-    
+
     private DefaultCassandraPostBoxRepository postBoxRepository = mock(DefaultCassandraPostBoxRepository.class);
     private ConversationRepository conversationRepository = mock(ConversationRepository.class);
     private UserIdentifierService userIdentifierService = mock(UserIdentifierService.class);

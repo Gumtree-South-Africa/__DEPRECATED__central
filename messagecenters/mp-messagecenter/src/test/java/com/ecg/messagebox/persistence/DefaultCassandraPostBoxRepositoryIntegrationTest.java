@@ -263,28 +263,6 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     }
 
     @Test
-    public void blockUser() {
-        conversationsRepo.blockUser("reporterId", "blockedId");
-
-        Optional<BlockedUserInfo> blockedUserInfo = conversationsRepo.getBlockedUserInfo("reporterId", "blockedId");
-
-        assertEquals(true, blockedUserInfo.isPresent());
-        assertEquals("reporterId", blockedUserInfo.get().getReporterUserId());
-        assertEquals("blockedId", blockedUserInfo.get().getBlockedUserId());
-    }
-
-    @Test
-    public void unblockUser() {
-        conversationsRepo.blockUser("reporterId", "blockedId");
-
-        conversationsRepo.unblockUser("reporterId", "blockedId");
-
-        Optional<BlockedUserInfo> blockedUserInfo = conversationsRepo.getBlockedUserInfo("reporterId", "blockedId");
-
-        assertEquals(false, blockedUserInfo.isPresent());
-    }
-
-    @Test
     public void getLastConversationModification() throws Exception {
         ConversationThread c1 = insertConversationWithMessages(UID1, UID2, CID, ADID, 5);
 

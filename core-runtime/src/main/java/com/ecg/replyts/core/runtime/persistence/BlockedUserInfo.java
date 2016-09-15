@@ -1,12 +1,14 @@
-package com.ecg.messagebox.model;
+package com.ecg.replyts.core.runtime.persistence;
 
 import org.joda.time.DateTime;
 
 import java.util.Objects;
 
 /**
- * Contains information about blocked users: the id of the user who did the blocking and
+ * Contains information about blocked users:
+ * the id of the user who did the blocking
  * the id of the user who was blocked.
+ * the date when the block happened
  */
 public class BlockedUserInfo {
 

@@ -1,6 +1,5 @@
 package com.ecg.replyts.app.preprocessorchain.preprocessors;
 
-import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddCustomValueCommand;
@@ -8,7 +7,6 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,10 +18,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -131,12 +128,12 @@ public class ConversationResumerTest {
     }
 
     private void prepareExistingConversation() {
-        when(repo.findExistingConversationFor(any())).thenReturn(Optional.absent());
+        when(repo.findExistingConversationFor(any())).thenReturn(Optional.empty());
         when(repo.findExistingConversationFor(key)).thenReturn(Optional.of(conv));
     }
 
     private void prepareNonExistingConversation() {
-        when(repo.findExistingConversationFor(any())).thenReturn(Optional.absent());
+        when(repo.findExistingConversationFor(any())).thenReturn(Optional.empty());
     }
 
 

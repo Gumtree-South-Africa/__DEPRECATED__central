@@ -10,12 +10,12 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEven
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -203,11 +203,7 @@ public class RiakConversationRepository implements MutableConversationRepository
 
     @Override
     public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
-        Optional<String> conversationId = conversationIndexBucket.findConversationId(key);
-        if (conversationId.isPresent()) {
-            return Optional.fromNullable(getById(conversationId.get()));
-        }
-        return Optional.absent();
+        return conversationIndexBucket.findConversationId(key).map(this::getById);
     }
 
 }

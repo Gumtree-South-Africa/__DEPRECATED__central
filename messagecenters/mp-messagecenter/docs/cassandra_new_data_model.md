@@ -8,7 +8,7 @@ There are 2 cases:
 
 -A- New conversation
 
-    check if conversation is blocked by checking if there is a row in mb_blocked_users between the two parties
+    check if conversation is blocked by checking if there is a row in blocked_users between the two parties
 
     new row in mb_unread_counters_by_ad
  
@@ -18,7 +18,7 @@ There are 2 cases:
 
 -B- Existing conversation
 
-    check if conversation is blocked by checking if there is a row in mb_blocked_users between the two parties
+    check if conversation is blocked by checking if there is a row in blocked_users between the two parties
     check visibility 
         if displayed continue
         if archived continue, but update visibility to displayed (basically un-archive conversation - same as Facebook)
@@ -37,7 +37,7 @@ There are 2 cases:
 ## Mark a single conversation as read
 
     update existing row in mb_unread_counters_by_ad
-    fetch updated conversation from mb_conversations + mb_messages + mb_blocked_users if include _body parameter is specified
+    fetch updated conversation from mb_conversations + mb_messages + blocked_users if include _body parameter is specified
 
 ## Fetch full postbox: a list of conversations
 
@@ -46,7 +46,7 @@ There are 2 cases:
     PARALLEL read all postbox rows in mb_unread_counters_by_ad
     PARALLEL read all postbox rows in mb_conversations_index
                 read relevant (paginated) rows in mb_conversations
-                read relevant rows from mb_blocked_users
+                read relevant rows from blocked_users
 
 -B- grouped by ad and ordered by last message received timestamp.
 
@@ -56,7 +56,7 @@ There are 2 cases:
 
     PARALLEL read 1 conversation row in mb_unread_counters_by_ad
     PARALLEL read 1 row in mb_conversations
-             read relevant row from mb_blocked_users
+             read relevant row from blocked_users
     PARALLEL read relevant (paginated) rows in mb_messages
 
 ## Delete conversation
@@ -76,7 +76,7 @@ There are 2 cases:
    
 ## Cleanup unblocked users rows                
 
-    stream through table mb_blocked_users or delete rows based on state in the primary key or just delete on unblock operation
+    stream through table blocked_users or delete rows based on state in the primary key or just delete on unblock operation
 
 ## (Future) Robot messages
 
@@ -92,7 +92,7 @@ There are 2 cases:
     PARALLEL get ad related rows rom mb_unread_counters_by_ad
     PARALLEL get ad related rows rom mb_conversations_index
              read relevant (paginated) rows from mb_conversations
-             read relevant rows from mb_blocked_users
+             read relevant rows from blocked_users
 
 # Migration
 

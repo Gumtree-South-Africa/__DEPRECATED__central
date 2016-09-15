@@ -14,22 +14,21 @@ import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
-import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
-import com.ecg.replyts.core.runtime.persistence.StatementsBase;
+import com.ecg.replyts.core.runtime.persistence.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * Cassandra backed conversation repository.
@@ -210,9 +209,9 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
             Statement bound = Statements.SELECT_WHERE_COMPOUND_KEY.bind(this, key.serialize());
             ResultSet resultset = session.execute(bound);
             return Optional
-                    .fromNullable(resultset.one())
-                    .transform(row -> row.getString(FIELD_CONVERSATION_ID))
-                    .transform(this::getById);
+                    .ofNullable(resultset.one())
+                    .map(row -> row.getString(FIELD_CONVERSATION_ID))
+                    .map(this::getById);
         }
     }
 

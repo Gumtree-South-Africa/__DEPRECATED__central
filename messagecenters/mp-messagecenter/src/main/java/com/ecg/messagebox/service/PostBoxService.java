@@ -21,12 +21,8 @@ public interface PostBoxService {
 
     PostBox getConversations(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit);
 
-    PostBox changeConversationVisibilities(String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis,
-                                           int conversationsOffset, int conversationsLimit);
+    PostBox changeConversationVisibilities(String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis, int conversationsOffset, int conversationsLimit);
 
     UserUnreadCounts getUnreadCounts(String userId);
 
-    PostBox blockUser(String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit);
-
-    PostBox unblockUser(String userId, String blockedUserId, Visibility visibility, int conversationsOffset, int conversationsLimit);
 }
