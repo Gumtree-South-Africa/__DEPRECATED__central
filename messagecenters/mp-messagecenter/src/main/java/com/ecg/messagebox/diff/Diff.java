@@ -41,10 +41,13 @@ public class Diff {
     private final Counter unreadCountsDiffCounter = newCounter("diff.postBoxUnreadCountsDiff.counter");
 
     private final boolean checkUnreadCounts;
+    private final boolean checkTextShortTrimmed;
 
     @Autowired
-    public Diff(@Value("${messagebox.diff.checkUnreadCounts:true}") boolean checkUnreadCounts) {
+    public Diff(@Value("${messagebox.diff.checkUnreadCounts:true}") boolean checkUnreadCounts,
+                @Value("${messagebox.diff.checkTextShortTrimmed:true}") boolean checkTextShortTrimmed) {
         this.checkUnreadCounts = checkUnreadCounts;
+        this.checkTextShortTrimmed = checkTextShortTrimmed;
     }
 
     public void postBoxResponseDiff(String userId,
@@ -90,42 +93,46 @@ public class Diff {
 
                     if (!newConv.getId().equals(oldConv.getId())) {
                         logDiffForPbResp(userId, logConvPrefix + ".id", newConv.getId(), oldConv.getId());
-                    }
-                    if (!newConv.getBuyerName().equals(oldConv.getBuyerName())) {
-                        logDiffForPbResp(userId, logConvPrefix + ".buyerName", newConv.getBuyerName(), oldConv.getBuyerName());
-                    }
-                    if (!newConv.getSellerName().equals(oldConv.getSellerName())) {
-                        logDiffForPbResp(userId, logConvPrefix + ".sellerName", newConv.getSellerName(), oldConv.getSellerName());
-                    }
-                    if (!newConv.getUserIdBuyer().equals(oldConv.getUserIdBuyer())) {
-                        logDiffForPbResp(userId, logConvPrefix + ".userIdBuyer", newConv.getUserIdBuyer().toString(), oldConv.getUserIdBuyer().toString());
-                    }
-                    if (!newConv.getUserIdSeller().equals(oldConv.getUserIdSeller())) {
-                        logDiffForPbResp(userId, logConvPrefix + ".userIdSeller", newConv.getUserIdSeller().toString(), oldConv.getUserIdSeller().toString());
-                    }
-                    if (!newConv.getAdId().equals(oldConv.getAdId())) {
-                        logDiffForPbResp(userId, logConvPrefix + ".adId", newConv.getAdId(), oldConv.getAdId());
-                    }
-                    if (newConv.getRole() != oldConv.getRole()) {
-                        logDiffForPbResp(userId, logConvPrefix + ".role", newConv.getRole().name(), oldConv.getRole().name());
-                    }
-                    if (checkUnreadCounts) {
-                        if (newConv.getNumUnreadMessages() != oldConv.getNumUnreadMessages()) {
-                            logDiffForPbResp(userId, logConvPrefix + ".numUnreadMessages", Integer.toString(newConv.getNumUnreadMessages()), Integer.toString(oldConv.getNumUnreadMessages()));
+                    } else {
+                        if (!newConv.getBuyerName().equals(oldConv.getBuyerName())) {
+                            logDiffForPbResp(userId, logConvPrefix + ".buyerName", newConv.getBuyerName(), oldConv.getBuyerName());
                         }
-                    }
-                    // conversation's latest message
-                    if (newConv.getBoundness() != oldConv.getBoundness()) {
-                        logDiffForPbResp(userId, logConvPrefix + ".boundness", newConv.getBoundness().name(), oldConv.getBoundness().name());
-                    }
-                    String newConvTextShortTrimmed = newConv.getTextShortTrimmed().substring(0, min(MAX_CHARS_TO_COMPARE, newConv.getTextShortTrimmed().length()));
-                    String oldConvTextShortTrimmed = oldConv.getTextShortTrimmed().substring(0, min(MAX_CHARS_TO_COMPARE, oldConv.getTextShortTrimmed().length()));
-                    if (!newConvTextShortTrimmed.equals(oldConvTextShortTrimmed)) {
-                        logDiffForPbResp(userId, logConvPrefix + ".textShortTrimmed", newConvTextShortTrimmed, oldConvTextShortTrimmed);
-                    }
-                    // comparing at minute level only, due to different timestamps inserted in old and new model, so they are a couple of ms apart
-                    if (!newConv.getReceivedDate().substring(0, 17).equals(oldConv.getReceivedDate().substring(0, 17))) {
-                        logDiffForPbResp(userId, logConvPrefix + ".receivedDate", newConv.getReceivedDate(), oldConv.getReceivedDate());
+                        if (!newConv.getSellerName().equals(oldConv.getSellerName())) {
+                            logDiffForPbResp(userId, logConvPrefix + ".sellerName", newConv.getSellerName(), oldConv.getSellerName());
+                        }
+                        if (!newConv.getUserIdBuyer().equals(oldConv.getUserIdBuyer())) {
+                            logDiffForPbResp(userId, logConvPrefix + ".userIdBuyer", newConv.getUserIdBuyer().toString(), oldConv.getUserIdBuyer().toString());
+                        }
+                        if (!newConv.getUserIdSeller().equals(oldConv.getUserIdSeller())) {
+                            logDiffForPbResp(userId, logConvPrefix + ".userIdSeller", newConv.getUserIdSeller().toString(), oldConv.getUserIdSeller().toString());
+                        }
+                        if (!newConv.getAdId().equals(oldConv.getAdId())) {
+                            logDiffForPbResp(userId, logConvPrefix + ".adId", newConv.getAdId(), oldConv.getAdId());
+                        }
+                        if (newConv.getRole() != oldConv.getRole()) {
+                            logDiffForPbResp(userId, logConvPrefix + ".role", newConv.getRole().name(), oldConv.getRole().name());
+                        }
+                        if (checkUnreadCounts) {
+                            if (newConv.getNumUnreadMessages() != oldConv.getNumUnreadMessages()) {
+                                logDiffForPbResp(userId, logConvPrefix + ".numUnreadMessages", Integer.toString(newConv.getNumUnreadMessages()), Integer.toString(oldConv.getNumUnreadMessages()));
+                            }
+                        }
+                        // conversation's latest message
+                        if (newConv.getBoundness() != oldConv.getBoundness()) {
+                            logDiffForPbResp(userId, logConvPrefix + ".boundness", newConv.getBoundness().name(), oldConv.getBoundness().name());
+                        }
+
+                        if (checkTextShortTrimmed) {
+                            String newConvTextShortTrimmed = newConv.getTextShortTrimmed().substring(0, min(MAX_CHARS_TO_COMPARE, newConv.getTextShortTrimmed().length()));
+                            String oldConvTextShortTrimmed = oldConv.getTextShortTrimmed().substring(0, min(MAX_CHARS_TO_COMPARE, oldConv.getTextShortTrimmed().length()));
+                            if (!newConvTextShortTrimmed.equals(oldConvTextShortTrimmed)) {
+                                logDiffForPbResp(userId, logConvPrefix + ".textShortTrimmed", newConvTextShortTrimmed, oldConvTextShortTrimmed);
+                            }
+                        }
+                        // comparing at minute level only, due to different timestamps inserted in old and new model, so they are a couple of ms apart
+                        if (!newConv.getReceivedDate().substring(0, 17).equals(oldConv.getReceivedDate().substring(0, 17))) {
+                            logDiffForPbResp(userId, logConvPrefix + ".receivedDate", newConv.getReceivedDate(), oldConv.getReceivedDate());
+                        }
                     }
                 }
             }
