@@ -5,6 +5,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.jsonconverter.JsonConverter;
+import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.collect.ImmutableMap;
@@ -14,6 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.Map.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -134,13 +136,59 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getConversationWithMessages_noMessages() throws Exception {
-        UUID oldUuid = timeBased();
+        UUID oldUuid = UUIDs.startOf(DateTime.now().minusSeconds(1).getMillis());
         insertConversationWithMessages(UID1, UID2, CID, ADID, 50);
 
         assertEquals(true,
                 conversationsRepo.getConversationWithMessages(UID1, CID, Optional.of(oldUuid.toString()), 10).get().getMessages().isEmpty());
         assertEquals(false,
                 conversationsRepo.getConversationWithMessages(UID2, CID, Optional.of(timeBased().toString()), 10).isPresent());
+    }
+
+    @Test
+    public void getConversationMessages_someMessages() throws Exception {
+        ConversationThread newConversation = insertConversationWithMessages(UID1, UID2, CID, ADID, 50);
+
+        List<Message> expected = newConversation.getMessages().subList(30, 40);
+
+        UUID uuid = newConversation.getMessages().get(40).getId();
+        List<Message> actual = conversationsRepo.getConversationMessages(UID1, CID, Optional.of(uuid.toString()), 10);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void getConversationMessages_noMessages() throws Exception {
+        UUID oldUuid = UUIDs.startOf(DateTime.now().minusSeconds(1).getMillis());
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 50);
+
+        assertEquals(true,
+                conversationsRepo.getConversationMessages(UID1, CID, Optional.of(oldUuid.toString()), 10).isEmpty());
+    }
+
+    @Test
+    public void getPaginatedConversationIds() throws Exception {
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 2);
+
+        insertConversationWithMessages(UID1, "u3", "c2", "a2", 3);
+
+        conversationsRepo.changeConversationVisibilities(UID1,
+                ImmutableMap.<String, String>builder().put("c2", "a2").build(),
+                Visibility.ARCHIVED);
+
+        insertConversationWithMessages(UID1, "u4", "c3", "a3", 15);
+
+        insertConversationWithMessages(UID1, "u5", "c4", "a4", 5);
+
+        conversationsRepo.resetConversationUnreadCount(UID1, "c4", "a4");
+
+        insertConversationWithMessages(UID2, "u6", "c5", "a5", 2);
+
+        PaginatedConversationIds actualPaginatedConversationIds = conversationsRepo.getPaginatedConversationIds(UID1, Visibility.ACTIVE, 0, 50);
+
+        PaginatedConversationIds expectedPaginatedConversationIds = new PaginatedConversationIds(Arrays.asList("c4", "c3", "c1"), 3);
+
+        assertEquals(expectedPaginatedConversationIds, actualPaginatedConversationIds);
     }
 
     @Test
@@ -206,6 +254,10 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         assertEquals(false, conversationsRepo.getConversation(UID1, "c3").isPresent());
         assertEquals(true, conversationsRepo.getConversation(UID1, "c4").isPresent());
         assertEquals(true, conversationsRepo.getConversation(UID2, "c2").isPresent());
+        assertEquals(1, conversationsRepo.getPaginatedConversationIds(UID1, Visibility.ACTIVE, 0, 100).getConversationsTotalCount());
+        assertEquals(4, conversationsRepo.getUserUnreadCounts(UID1).getNumUnreadMessages());
+        assertEquals(true, conversationsRepo.getConversationWithMessages(UID1, "c4", Optional.empty(), 10).isPresent());
+        assertEquals(false, conversationsRepo.getConversationWithMessages(UID1, CID, Optional.empty(), 10).isPresent());
     }
 
     @Test
@@ -224,7 +276,11 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getConversationModificationsByDate() throws Exception {
-        ConversationThread c1 = insertConversationWithNewAndOldMessages(UID1, UID2, CID, ADID, 5, 7);
+        Map<DateTime, Integer> datesWithCounts = new LinkedHashMap<>();
+        datesWithCounts.put(DateTime.now().minusMonths(8), 7);
+        datesWithCounts.put(DateTime.now(), 5);
+
+        ConversationThread c1 = insertConversationWithMessagesByDate(UID1, UID2, CID, ADID, datesWithCounts);
 
         List<ConversationModification> newModList = conversationsRepo
                 .getConversationModificationsByHour(c1.getLatestMessage().getReceivedDate().hourOfDay().roundFloorCopy())
@@ -274,61 +330,31 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     private ConversationThread insertConversationWithMessages(String userId1, String userId2,
                                                               String convId, String adId, int numMessages
     ) throws Exception {
-        List<Message> messages = IntStream
-                .range(0, numMessages)
-                .mapToObj(i -> {
-                    String senderUserId = i % 2 == 0 ? userId1 : userId2;
-                    return new Message(timeBased(),
-                            CHAT,
-                            new MessageMetadata("message-" + (i + 1), senderUserId, "custom-" + (i + 1))
-                    );
-                })
-                .collect(Collectors.toList());
-
-        ConversationThread conversation = new ConversationThread(
-                convId, adId, ACTIVE, RECEIVE,
-                newArrayList(
-                        new Participant(userId1, "user name 1", "u1@test.nl", BUYER),
-                        new Participant(userId2, "user name 2", "u2@test.nl", SELLER)
-                ),
-                messages.get(numMessages - 1), new ConversationMetadata(now(), "email subject"));
-        conversation.addNumUnreadMessages(numMessages);
-        conversation.addMessages(messages);
-
-        conversationsRepo.createConversation(userId1, conversation, messages.get(0), true);
-        messages.subList(1, numMessages).forEach(message -> conversationsRepo.addMessage(userId1, convId, adId, message, true));
-
-        return conversation;
+        HashMap<DateTime, Integer> datesWithCounts = new HashMap<>();
+        datesWithCounts.put(DateTime.now(), numMessages);
+        return insertConversationWithMessagesByDate(userId1, userId2, convId, adId, datesWithCounts);
     }
 
-
-    private static ConversationThread insertConversationWithNewAndOldMessages(String userId1, String userId2,
-                                                                              String convId, String adId, int numNewMessages, int numOldMessages)
+    private static ConversationThread insertConversationWithMessagesByDate(String userId1, String userId2,
+                                                                           String convId, String adId, Map <DateTime, Integer> datesWithCounts)
             throws Exception {
 
-        List<Message> messages = IntStream
-                .range(0, numOldMessages)
-                .mapToObj(i -> {
-                    String senderUserId = i % 2 == 0 ? userId1 : userId2;
-                    return new Message(UUIDs.startOf(now().minusMonths(8).minusDays(i).getMillis() / 1000),
-                            CHAT,
-                            new MessageMetadata("message-" + (i + 1), senderUserId, "custom-" + (i + 1))
-                    );
-                })
-                .collect(Collectors.toList());
+        List<Message> messages = new ArrayList<>();
 
-        List<Message> newMessages = IntStream
-                .range(0, numNewMessages)
-                .mapToObj(i -> {
-                    String senderUserId = i % 2 == 0 ? userId1 : userId2;
-                    return new Message(timeBased(),
-                            CHAT,
-                            new MessageMetadata("message-" + (i + 1), senderUserId, "custom-" + (i + 1))
-                    );
-                })
-                .collect(Collectors.toList());
+        for(Entry<DateTime, Integer> dateWithCount : datesWithCounts.entrySet()) {
+            List<Message> newMessages = IntStream
+                    .range(0, dateWithCount.getValue())
+                    .mapToObj(i -> {
+                        String senderUserId = i % 2 == 0 ? userId1 : userId2;
+                        return new Message(UUIDs.startOf(dateWithCount.getKey().getMillis() + i),
+                                CHAT,
+                                new MessageMetadata("message-" + (i + 1), senderUserId, "custom-" + (i + 1))
+                        );
+                    })
+                    .collect(Collectors.toList());
 
-        messages.addAll(newMessages);
+            messages.addAll(newMessages);
+        }
 
         ConversationThread conversation = new ConversationThread(
                 convId, adId, ACTIVE, RECEIVE,

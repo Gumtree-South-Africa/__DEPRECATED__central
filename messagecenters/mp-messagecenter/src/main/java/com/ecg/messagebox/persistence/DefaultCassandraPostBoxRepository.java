@@ -88,7 +88,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         }
     }
 
-    private PaginatedConversationIds getPaginatedConversationIds(String userId, Visibility visibility, int offset, int limit) {
+    public PaginatedConversationIds getPaginatedConversationIds(String userId, Visibility visibility, int offset, int limit) {
         try (Timer.Context ignored = getPaginatedConversationIdsTimer.time()) {
             ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATION_INDICES.bind(this, userId));
 
@@ -147,7 +147,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         }
     }
 
-    private List<Message> getConversationMessages(String userId, String conversationId, Optional<String> cursorOpt, int limit) {
+    public List<Message> getConversationMessages(String userId, String conversationId, Optional<String> cursorOpt, int limit) {
         try (Timer.Context ignored = getConversationMessagesTimer.time()) {
             ResultSet resultSet = cursorOpt
                     .map(cursor -> session.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITH_CURSOR.bind(this, userId, conversationId, UUID.fromString(cursor), limit)))
