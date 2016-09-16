@@ -113,8 +113,9 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         testProperties.put("persistence.cassandra.keyspace", keyspace);
         testProperties.put("mailreceiver.watch.retrydelay.millis", 250);
         testProperties.put("search.es.enabled", esEnabled);
-        testProperties.put("kmobilepush.host", "UNSET_PROPERTY");
-        testProperties.put("kapi.host", "UNSET_PROPERTY");
+        testProperties.put("replyts2-messagecenter-plugin.pushmobile.url", "UNSET_PROPERTY");
+        testProperties.put("replyts2-messagecenter-plugin.api.host", "UNSET_PROPERTY");
+
         LOG.debug("Running tests with ES enabled: " + esEnabled);
 
         if ("riak".equals(testProperties.get("persistence.strategy"))) {

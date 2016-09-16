@@ -1,11 +1,10 @@
 package com.ecg.messagecenter.pushmessage;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.slf4j.Logger;
@@ -28,20 +27,23 @@ public class PushService {
     private static final Logger LOG = LoggerFactory.getLogger(PushService.class);
 
     private final HttpClient httpClient;
-    private final HttpHost kmobilepushHost;
+    private final String pushMobileUrl;
     private final IntegraBackdoorLogger backdoorLogger = new IntegraBackdoorLogger();
 
-    public PushService(String kmobilepushHost, Integer kmobilepushPort) {
+    private static final String ENDPOINT_MESSAGES = "/messages";
+
+
+    public PushService(String pushMobileUrl) {
         this.httpClient = HttpClientBuilder.buildHttpClient(1000, 1000, 2000, 40, 40);
-        this.kmobilepushHost = new HttpHost(kmobilepushHost, kmobilepushPort);
+        this.pushMobileUrl = pushMobileUrl;
     }
 
     public Result sendPushMessage(final PushMessagePayload payload) {
 
         try {
 
-            HttpRequest request = buildRequest(payload);
-            return httpClient.execute(kmobilepushHost, request, new ResponseHandler<Result>() {
+            HttpUriRequest request = buildRequest(payload);
+            return httpClient.execute(request, new ResponseHandler<Result>() {
                 @Override
                 public Result handleResponse(HttpResponse response) throws IOException {
                     int code = response.getStatusLine().getStatusCode();
@@ -65,12 +67,10 @@ public class PushService {
         }
     }
 
-    private HttpRequest buildRequest(PushMessagePayload payload) throws UnsupportedEncodingException {
-        HttpPost post = new HttpPost("/push-mobile/messages");
+    private HttpUriRequest buildRequest(PushMessagePayload payload) throws UnsupportedEncodingException {
+        HttpPost post = new HttpPost(pushMobileUrl + ENDPOINT_MESSAGES);
 
         post.setEntity(new StringEntity(payload.asJson(), ContentType.create("application/json", "UTF-8")));
-        // auth-setting via header much easier as doing yucky handling basic auth aspect in http-client builder
-        post.setHeader("Authorization", "Basic a2Nyb246ZmQzMWxvcWE=");
         return post;
     }
 

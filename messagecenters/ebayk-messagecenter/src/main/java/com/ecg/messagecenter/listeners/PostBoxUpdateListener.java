@@ -17,8 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
-
 /**
  * User: maldana
  * Date: 23.10.13
@@ -32,10 +30,6 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
     private static final Counter PROCESSING_FAILED = TimingReports.newCounter("message-box.postBoxUpdateListener.failed") ;
 
-    private static String API_HOST;
-    private static final Integer API_PORT = Integer.parseInt(System.getProperty("kapi.port", "80"));
-    private static String MOBILEPUSH_HOST;
-    private static final Integer MOBILEPUSH_PORT = Integer.parseInt(System.getProperty("kmobilepush.port", "60021"));
 
     private static final String CUSTOM_VALUE_AD_API_USERID = "ad-api-user-id";
 
@@ -45,39 +39,24 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final SimplePostBoxInitializer postBoxInitializer;
     private final PushService pushService;
     private final AdImageLookup adImageLookup;
+    private final String apiHost;
+    private final Integer apiPort;
+    private final String pushMobileUrl;
 
 
     @Autowired
-    public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
-                                 @Value("${kapi.host:}") String kapiSpringProp,
-                                 @Value("${kmobilepush.host:}") String kmobileSpringProp) {
-        String kapiSysProp = System.getProperty("kapi.host");
-
-        if (isNotEmpty(kapiSysProp)) {
-            API_HOST = kapiSysProp;
-        } else if (isNotEmpty(kapiSpringProp)) {
-            API_HOST = kapiSpringProp;
-        } else {
-            API_HOST = "kapi.mobile.rz";
-        }
-
-        LOG.info("Using API_HOST: " + API_HOST);
-
-        String kmobileSysProp = System.getProperty("kmobilepush.host");
-
-        if (isNotEmpty(kmobileSysProp)) {
-            MOBILEPUSH_HOST = kmobileSysProp;
-        } else if (isNotEmpty(kmobileSpringProp)) {
-            MOBILEPUSH_HOST = kmobileSpringProp;
-        } else {
-            MOBILEPUSH_HOST = "kmobilepush.mobile.rz";
-        }
-
-        LOG.info("Using MOBILEPUSH_HOST: " + MOBILEPUSH_HOST);
+    public PostBoxUpdateListener(
+            @Value("${replyts2-messagecenter-plugin.api.host:kapi.mobile.rz}") String apiHost,
+            @Value("${replyts2-messagecenter-plugin.api.port:80}") Integer apiPort,
+            @Value("${replyts2-messagecenter-plugin.pushmobile.url:http://push-mobile.service.kconsul}") String pushMobileUrl,
+            SimplePostBoxInitializer postBoxInitializer) {
+        this.apiHost = apiHost;
+        this.apiPort = apiPort;
+        this.pushMobileUrl = pushMobileUrl;
 
         this.postBoxInitializer = postBoxInitializer;
-        this.adImageLookup = new AdImageLookup(API_HOST, API_PORT);
-        this.pushService = new PushService(MOBILEPUSH_HOST, MOBILEPUSH_PORT);
+        this.adImageLookup = new AdImageLookup(apiHost, apiPort);
+        this.pushService = new PushService(pushMobileUrl);
         this.userNotificationRules = new UserNotificationRules();
     }
 
