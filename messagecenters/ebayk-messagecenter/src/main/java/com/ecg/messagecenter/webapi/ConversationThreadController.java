@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -54,8 +53,8 @@ class ConversationThreadController {
     }
 
     @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response, Writer writer) throws IOException {
-        new TopLevelExceptionHandler(ex, response, writer).handle();
+    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
+        new TopLevelExceptionHandler(ex, response).handle();
     }
 
     @RequestMapping(value = MessageCenterGetPostBoxConversationCommand.MAPPING,

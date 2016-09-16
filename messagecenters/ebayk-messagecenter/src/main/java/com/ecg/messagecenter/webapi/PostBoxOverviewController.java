@@ -54,8 +54,8 @@ class PostBoxOverviewController {
     }
 
     @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response, Writer writer) throws IOException {
-        new TopLevelExceptionHandler(ex, response, writer).handle();
+    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
+        new TopLevelExceptionHandler(ex, response).handle();
     }
 
     @RequestMapping(value = MessageCenterGetPostBoxCommand.MAPPING,

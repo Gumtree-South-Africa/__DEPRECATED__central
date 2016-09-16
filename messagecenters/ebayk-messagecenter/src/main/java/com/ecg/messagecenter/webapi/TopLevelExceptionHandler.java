@@ -9,44 +9,52 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.Writer;
 
 /**
+ * Handles exception occur during web request processing.
+ * <p>
+ * Writes the stacktrace and exception message to the response and set the response status to internal server error.
+ *
  * @author maldana@ebay-kleinanzeigen.de
  */
 class TopLevelExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopLevelExceptionHandler.class);
 
-    private Throwable ex;
-    private HttpServletResponse response;
-    private Writer writer;
+    private final Throwable cause;
 
-    public TopLevelExceptionHandler(Throwable ex, HttpServletResponse response, Writer writer) {
-        this.ex = ex;
+    private final HttpServletResponse response;
+
+    TopLevelExceptionHandler(Throwable cause, HttpServletResponse response) {
+        this.cause = cause;
         this.response = response;
-        this.writer = writer;
     }
 
-    public void handle() throws IOException {
-        LOGGER.error("Top Level Exception: " + ex.getMessage(), ex);
-        setStatusAndWriteErrorMessage(ex, response, writer, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    void handle() throws IOException {
+        LOGGER.error("Exception while processing web request: ", cause);
+
+        // Only if not committed, reset is possible
+        if (!response.isCommitted()) {
+            // Need to reset, otherwise an error might be occurred using the writer if stream was used before on this response.
+            response.reset();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+
+            try (PrintWriter writer = response.getWriter()) {
+                JSONObject jsonObject = buildExceptionAsJson();
+                writer.write(jsonObject.toString());
+            }
+        }
     }
 
-    private void setStatusAndWriteErrorMessage(Throwable ex, HttpServletResponse response, Writer writer, int statusCode) throws IOException {
-        response.setStatus(statusCode);
-        writer.write(buildErrorWithMessage(ex).toString());
-    }
-
-    private JSONObject buildErrorWithMessage(Throwable ex) {
+    private JSONObject buildExceptionAsJson() {
         StringWriter writer = new StringWriter(2048);
-        ex.printStackTrace(new PrintWriter(writer));
+        cause.printStackTrace(new PrintWriter(writer));
 
         JSONObject jsonObject = new JSONObject();
 
         JSONArray array = new JSONArray();
         JSONObject error = new JSONObject();
-        error.put("message", ex.getMessage());
+        error.put("message", cause.getMessage());
         error.put("details", writer.toString());
         array.add(error);
 

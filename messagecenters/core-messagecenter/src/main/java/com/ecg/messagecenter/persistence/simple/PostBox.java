@@ -69,7 +69,7 @@ public class PostBox<T extends AbstractConversationThread> {
         if (oldConversation.isPresent()) {
             conversationThreads.add((T) oldConversation.get().sameButUnread(message));
         } else {
-            LOG.error("trying to mark conversation as unread but the conversation id is not in the postbox.");
+            LOG.error("trying to mark conversation as unread but the conversation id '{}' is not in the postbox.", conversationId);
         }
     }
 
