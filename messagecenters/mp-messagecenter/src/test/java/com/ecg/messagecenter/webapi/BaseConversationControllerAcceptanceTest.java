@@ -1,30 +1,18 @@
 package com.ecg.messagecenter.webapi;
 
-import com.ecg.messagecenter.identifier.UserIdentifierType;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
-import org.junit.Rule;
-import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
-import java.util.Properties;
-import java.util.function.Supplier;
 
+import static com.ecg.messagecenter.util.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.joda.time.DateTime.now;
 
-public class ConversationControllerAcceptanceTest {
-
-    @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
-
-        properties.put("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_USER_ID.toString());
-        properties.put("userIdentifierService", UserIdentifierType.BY_USER_ID.toString());
-
-        return properties;
-    }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_new_messagebox_schema.cql");
+class BaseConversationControllerAcceptanceTest {
 
     private static final MailBuilder MAIL1 = aNewMail()
             .from("buyer1@buyer.com")
@@ -34,8 +22,7 @@ public class ConversationControllerAcceptanceTest {
             .adId("232323")
             .plainBody("first contact from buyer");
 
-    @Test
-    public void getConversation() throws Exception {
+    void getConversation(ReplyTsIntegrationTestRule testRule, boolean newModelEnabled) throws Exception {
         testRule.deliver(MAIL1);
         MimeMessage contactMail = testRule.waitForMail();
         String anonymizedBuyer = contactMail.getFrom()[0].toString();
@@ -55,6 +42,7 @@ public class ConversationControllerAcceptanceTest {
                 .body("body.id", equalTo(convId))
                 .body("body.numUnread", equalTo(2))
                 .body("body.adId", equalTo("232323"))
+                .body("body.creationDate", newModelEnabled ? equalTo(toFormattedTimeISO8601ExplicitTimezoneOffset(now())) : nullValue())
                 .body("body.messages.size()", equalTo(3))
                 .body("body.messages[0].textShort", equalTo("first contact from buyer"))
                 .body("body.messages[0].boundness", equalTo("INBOUND"))
@@ -65,8 +53,7 @@ public class ConversationControllerAcceptanceTest {
                 .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/postboxes/2/conversations/" + convId);
     }
 
-    @Test
-    public void markConversationAsRead() throws Exception {
+    void markConversationAsRead(ReplyTsIntegrationTestRule testRule) throws Exception {
         String convId = testRule.deliver(MAIL1).getConversation().getId();
         testRule.waitForMail();
 

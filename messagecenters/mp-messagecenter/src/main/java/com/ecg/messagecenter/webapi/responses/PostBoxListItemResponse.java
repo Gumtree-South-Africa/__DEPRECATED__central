@@ -25,6 +25,7 @@ public class PostBoxListItemResponse {
     private ConversationRole role;
     private int numUnreadMessages;
     private MessageResponse lastMessage;
+    private String creationDate;
 
     private PostBoxListItemResponse() {
     }
@@ -48,7 +49,8 @@ public class PostBoxListItemResponse {
     }
 
     public PostBoxListItemResponse(String conversationId, String buyerName, String sellerName, Long buyerUserId, Long sellerUserId,
-                                   String adId, ConversationRole conversationRole, int numUnreadMessages, MessageResponse lastMsgResp) {
+                                   String adId, ConversationRole conversationRole, int numUnreadMessages, MessageResponse lastMsgResp,
+                                   String creationDate) {
         this.id = conversationId;
         this.buyerName = buyerName;
         this.sellerName = sellerName;
@@ -58,6 +60,7 @@ public class PostBoxListItemResponse {
         this.role = conversationRole;
         this.numUnreadMessages = numUnreadMessages;
         this.lastMessage = lastMsgResp;
+        this.creationDate = creationDate;
     }
 
     // old style lookup when we didn't have a complete search aggregate on the list-view
@@ -117,6 +120,10 @@ public class PostBoxListItemResponse {
         return numUnreadMessages;
     }
 
+    public String getCreationDate() {
+        return this.creationDate;
+    }
+
     public String getReceivedDate() {
         return lastMessage.getReceivedDate();
     }
@@ -146,13 +153,14 @@ public class PostBoxListItemResponse {
                 && Objects.equals(adId, that.adId)
                 && role == that.role
                 && numUnreadMessages == that.numUnreadMessages
-                && Objects.equals(lastMessage, that.lastMessage);
+                && Objects.equals(lastMessage, that.lastMessage)
+                && Objects.equals(creationDate, that.creationDate);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, buyerName, sellerName, userIdBuyer, userIdSeller,
-                adId, role, numUnreadMessages, lastMessage);
+                adId, role, numUnreadMessages, lastMessage, creationDate);
     }
 
     @Override
@@ -167,6 +175,7 @@ public class PostBoxListItemResponse {
                 .add("role", role)
                 .add("numUnreadMessages", numUnreadMessages)
                 .add("lastMessage", lastMessage)
+                .add("creationDate", creationDate)
                 .toString();
     }
 }

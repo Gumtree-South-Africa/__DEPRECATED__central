@@ -5,6 +5,7 @@ import com.ecg.messagebox.controllers.responses.MessageResponse;
 import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.model.MessageMetadata;
 import com.ecg.messagebox.model.MessageType;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -21,7 +22,12 @@ public class MessageResponseConverterTest {
     private static final String SENDER_USER_ID = "user id";
     private static final String CUSTOM_DATA = "custom data";
 
-    private final MessageResponseConverter msgRespConverter = new MessageResponseConverter();
+    private MessageResponseConverter msgRespConverter;
+
+    @Before
+    public void setup() {
+        msgRespConverter = new MessageResponseConverter();
+    }
 
     @Test
     public void toMessageResponse() {

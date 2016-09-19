@@ -1,7 +1,8 @@
 package com.ecg.messagebox.oldconverters;
 
-import com.ecg.messagebox.oldconverters.BuyerSellerInfo.BuyerSellerInfoBuilder;
 import com.ecg.messagebox.model.ConversationThread;
+import com.ecg.messagebox.oldconverters.BuyerSellerInfo.BuyerSellerInfoBuilder;
+import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.messagecenter.webapi.responses.ConversationResponse;
 import com.ecg.messagecenter.webapi.responses.MessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ public class OldConversationResponseConverter {
 
         BuyerSellerInfo bsInfo = new BuyerSellerInfoBuilder(newConversation.getParticipants()).build();
 
+        String creationDateStr = newConversation.getMetadata().getCreationDate()
+                .map(MessageCenterUtils::toFormattedTimeISO8601ExplicitTimezoneOffset).orElse(null);
+
         return new ConversationResponse(
                 newConversation.getId(),
                 getConversationRole(projectionOwnerUserId, newConversation.getParticipants()),
@@ -39,6 +43,7 @@ public class OldConversationResponseConverter {
                 bsInfo.getBuyerId(),
                 bsInfo.getSellerId(),
                 newConversation.getAdId(),
+                creationDateStr,
                 newConversation.getMetadata().getEmailSubject(),
                 messageResponses,
                 newConversation.getNumUnreadMessages());

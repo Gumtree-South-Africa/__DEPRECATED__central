@@ -23,6 +23,7 @@ public class ConversationResponse {
     private Long userIdBuyer;
     private Long userIdSeller;
     private String adId;
+    private String creationDate;
     private String subject;
     private long numUnread;
     private List<MessageResponse> messages = new ArrayList<>();
@@ -31,7 +32,7 @@ public class ConversationResponse {
     }
 
     public ConversationResponse(String conversationId, ConversationRole role, String buyerEmail, String sellerEmail, String buyerName,
-                                String sellerName, Long userIdBuyer, Long userIdSeller, String adId, String emailSubject,
+                                String sellerName, Long userIdBuyer, Long userIdSeller, String adId, String creationDate, String emailSubject,
                                 List<MessageResponse> messages, long numUnreadMessages) {
         this.id = conversationId;
         this.role = role;
@@ -42,6 +43,7 @@ public class ConversationResponse {
         this.userIdBuyer = userIdBuyer;
         this.userIdSeller = userIdSeller;
         this.adId = adId;
+        this.creationDate = creationDate;
         this.subject = emailSubject;
         this.numUnread = numUnreadMessages;
         this.messages = messages;
@@ -98,6 +100,10 @@ public class ConversationResponse {
         return adId;
     }
 
+    public String getCreationDate() {
+        return creationDate;
+    }
+
     public String getSubject() {
         return subject;
     }
@@ -147,6 +153,7 @@ public class ConversationResponse {
                 userIdBuyer, conversationResponse.userIdBuyer,
                 userIdSeller, conversationResponse.userIdSeller,
                 adId, conversationResponse.adId,
+                creationDate, conversationResponse.creationDate,
                 subject, conversationResponse.subject,
                 numUnread, conversationResponse.numUnread,
                 messages, conversationResponse.messages
@@ -156,7 +163,7 @@ public class ConversationResponse {
     @Override
     public int hashCode() {
         return Objects.hash(id, role, buyerEmail, sellerEmail, buyerName, sellerName, userIdBuyer, userIdSeller,
-                adId, subject, numUnread, messages);
+                adId, creationDate, subject, numUnread, messages);
     }
 
     @Override
@@ -171,6 +178,7 @@ public class ConversationResponse {
                 .add("userIdBuyer", userIdBuyer)
                 .add("userIdSeller", userIdSeller)
                 .add("adId", adId)
+                .add("creationDate", creationDate)
                 .add("subject", subject)
                 .add("numUnread", numUnread)
                 .add("messages", messages)

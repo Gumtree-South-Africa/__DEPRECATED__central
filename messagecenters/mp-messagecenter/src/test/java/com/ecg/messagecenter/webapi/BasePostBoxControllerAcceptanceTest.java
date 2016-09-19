@@ -1,29 +1,16 @@
 package com.ecg.messagecenter.webapi;
 
-import com.ecg.messagecenter.identifier.UserIdentifierType;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
-import org.junit.Rule;
-import org.junit.Test;
 
-import java.util.Properties;
-import java.util.function.Supplier;
-
+import static com.ecg.messagecenter.util.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.joda.time.DateTime.now;
 
-public class PostBoxControllerAcceptanceTest {
-
-    @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
-
-        properties.put("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_USER_ID.toString());
-        properties.put("userIdentifierService", UserIdentifierType.BY_USER_ID.toString());
-
-        return properties;
-    }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_new_messagebox_schema.cql");
+class BasePostBoxControllerAcceptanceTest {
 
     private static MailBuilder MAIL1 = aNewMail()
             .from("buyer1@buyer.com")
@@ -41,8 +28,7 @@ public class PostBoxControllerAcceptanceTest {
             .adId("232323")
             .plainBody("first contact from buyer 3");
 
-    @Test
-    public void getPostBox() {
+    void getPostBox(ReplyTsIntegrationTestRule testRule, boolean newModelEnabled) {
         String convId1 = testRule.deliver(MAIL1).getConversation().getId();
         testRule.waitForMail();
         String convId2 = testRule.deliver(MAIL2).getConversation().getId();
@@ -56,14 +42,15 @@ public class PostBoxControllerAcceptanceTest {
                 .body("body.conversations[0].id", equalTo(convId2))
                 .body("body.conversations[0].adId", equalTo("232323"))
                 .body("body.conversations[0].textShortTrimmed", equalTo("first contact from buyer 3"))
+                .body("body.conversations[0].creationDate", newModelEnabled ? equalTo(toFormattedTimeISO8601ExplicitTimezoneOffset(now())) : nullValue())
                 .body("body.conversations[1].id", equalTo(convId1))
                 .body("body.conversations[1].adId", equalTo("232323"))
                 .body("body.conversations[1].textShortTrimmed", equalTo("first contact from buyer 1"))
+                .body("body.conversations[1].creationDate", newModelEnabled ? equalTo(toFormattedTimeISO8601ExplicitTimezoneOffset(now())) : nullValue())
                 .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/postboxes/2");
     }
 
-    @Test
-    public void deleteConversations() {
+    void deleteConversations(ReplyTsIntegrationTestRule testRule) {
         String convId1 = testRule.deliver(MAIL1).getConversation().getId();
         testRule.waitForMail();
         String convId2 = testRule.deliver(MAIL2).getConversation().getId();

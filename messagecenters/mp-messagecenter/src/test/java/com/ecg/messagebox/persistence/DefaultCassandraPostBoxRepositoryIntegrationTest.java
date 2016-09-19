@@ -24,6 +24,7 @@ import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
 import static com.ecg.messagebox.model.Visibility.ACTIVE;
 import static com.google.common.collect.Lists.newArrayList;
+import static org.joda.time.DateTime.now;
 import static org.junit.Assert.*;
 
 public class DefaultCassandraPostBoxRepositoryIntegrationTest {
@@ -312,7 +313,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
                         new Participant(userId1, "user name 1", "u1@test.nl", BUYER),
                         new Participant(userId2, "user name 2", "u2@test.nl", SELLER)
                 ),
-                messages.get(numMessages - 1), new ConversationMetadata("email subject"));
+                messages.get(numMessages - 1), new ConversationMetadata(now(), "email subject"));
         conversation.addNumUnreadMessages(numMessages);
         conversation.addMessages(messages);
 
@@ -331,7 +332,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
                 .range(0, numOldMessages)
                 .mapToObj(i -> {
                     String senderUserId = i % 2 == 0 ? userId1 : userId2;
-                    return new Message(UUIDs.startOf(DateTime.now().minusMonths(8).minusDays(i).getMillis() / 1000),
+                    return new Message(UUIDs.startOf(now().minusMonths(8).minusDays(i).getMillis() / 1000),
                             CHAT,
                             new MessageMetadata("message-" + (i + 1), senderUserId, "custom-" + (i + 1))
                     );
@@ -357,7 +358,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
                         new Participant(userId1, "user name 1", "u1@test.nl", BUYER),
                         new Participant(userId2, "user name 2", "u2@test.nl", SELLER)
                 ),
-                messages.get(messages.size() - 1), new ConversationMetadata("email subject"));
+                messages.get(messages.size() - 1), new ConversationMetadata(now(), "email subject"));
         conversation.addNumUnreadMessages(messages.size());
         conversation.addMessages(messages);
 

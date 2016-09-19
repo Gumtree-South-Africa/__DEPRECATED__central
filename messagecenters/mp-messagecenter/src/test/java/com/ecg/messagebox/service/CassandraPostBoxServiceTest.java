@@ -9,7 +9,9 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.DateTimeZone;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +29,7 @@ import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversat
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage.Builder.aMessage;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.singletonList;
+import static org.joda.time.DateTime.now;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -56,11 +59,16 @@ public class CassandraPostBoxServiceTest {
 
     @Before
     public void setup() {
+        DateTimeUtils.setCurrentMillisFixed(now().getMillis());
         service = new CassandraPostBoxService(conversationsRepoMock, userIdentifierServiceMock);
-
         when(userIdentifierServiceMock.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierServiceMock.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(conversationsRepoMock.areUsersBlocked(any(), any())).thenReturn(false);
+    }
+
+    @After
+    public void tearDown() {
+        DateTimeUtils.setCurrentMillisSystem();
     }
 
     @Test
@@ -108,7 +116,7 @@ public class CassandraPostBoxServiceTest {
                 MessageNotification.RECEIVE,
                 participants,
                 newMessage,
-                new ConversationMetadata("subject"));
+                new ConversationMetadata(now(), "subject"));
 
         service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true);
 

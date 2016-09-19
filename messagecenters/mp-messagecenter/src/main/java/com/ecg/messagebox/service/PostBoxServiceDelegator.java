@@ -5,11 +5,11 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.configuration.DiffConfiguration;
 import com.ecg.messagebox.configuration.NewModelConfiguration;
+import com.ecg.messagebox.diff.Diff;
+import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.oldconverters.OldConversationResponseConverter;
 import com.ecg.messagebox.oldconverters.OldPostBoxResponseConverter;
 import com.ecg.messagebox.oldconverters.OldUnreadCountsConverter;
-import com.ecg.messagebox.diff.Diff;
-import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.util.InstrumentedCallerRunsPolicy;
 import com.ecg.messagebox.util.InstrumentedExecutorService;
 import com.ecg.messagecenter.persistence.PostBoxService;
@@ -138,8 +138,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                     execSrvForNewModel,
                     String.format("NewModel processNewMessage - Could not process new message for userId %s, conversationId %s and messageId %s",
                             userId, rtsConversation.getId(), rtsMessage.getId()),
-                    newModelFailureCounter
-            );
+                    newModelFailureCounter);
 
             CompletableFuture oldModelFuture = runAsync(
                     oldModelEnabled,
@@ -147,8 +146,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                     execSrvForOldModel,
                     String.format("OldModel processNewMessage - Could not process new message for userId %s, conversationId %s and messageId %s",
                             userId, rtsConversation.getId(), rtsMessage.getId()),
-                    oldModelFailureCounter
-            );
+                    oldModelFailureCounter);
 
             (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
         }
@@ -165,8 +163,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                     execSrvForNewModel,
                     String.format("NewModel getConversation - Could not get conversation for userId %s and conversationId %s",
                             userId, conversationId),
-                    newModelFailureCounter
-            );
+                    newModelFailureCounter);
 
             CompletableFuture<Optional<ConversationResponse>> oldModelFuture = supplyAsync(
                     oldModelEnabled,
@@ -174,8 +171,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                     execSrvForOldModel,
                     String.format("OldModel getConversation - Could not get conversation for userId %s and conversationId %s",
                             userId, conversationId),
-                    oldModelFailureCounter
-            );
+                    oldModelFailureCounter);
 
             doDiff(diffConfig.useDiff(userId),
                     () -> diff.conversationResponseDiff(userId, conversationId, newModelFuture, oldModelFuture),
@@ -197,8 +193,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                     execSrvForNewModel,
                     String.format("NewModel markConversationAsRead - Could not mark conversation as read for userId %s and conversationId %s",
                             userId, conversationId),
-                    newModelFailureCounter
-            );
+                    newModelFailureCounter);
 
             CompletableFuture<Optional<ConversationResponse>> oldModelFuture = supplyAsync(
                     oldModelEnabled,
@@ -206,13 +201,12 @@ public class PostBoxServiceDelegator implements PostBoxService {
                     execSrvForOldModel,
                     String.format("OldModel markConversationAsRead - Could not mark conversation as read for userId %s and conversationId %s",
                             userId, conversationId),
-                    oldModelFailureCounter
-            );
+                    oldModelFailureCounter);
 
             doDiff(diffConfig.useDiff(userId),
                     () -> diff.conversationResponseDiff(userId, conversationId, newModelFuture, oldModelFuture),
                     String.format("Error diff-ing conversation responses for userId %s and conversationId %s",
-                    userId, conversationId));
+                            userId, conversationId));
 
             return (newModelConfig.useNewModel(userId) ? newModelFuture : oldModelFuture).join();
         }
@@ -229,8 +223,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                     execSrvForNewModel,
                     String.format("NewModel getConversations - Could not get conversations for userId %s, visibility %s, page %d and size %d",
                             userId, Visibility.ACTIVE.name(), page, size),
-                    newModelFailureCounter
-            );
+                    newModelFailureCounter);
 
             CompletableFuture<PostBoxResponse> oldModelFuture = supplyAsync(
                     oldModelEnabled,
@@ -238,8 +231,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                     execSrvForOldModel,
                     String.format("OldModel getConversations - Could not get conversations for userId %s, visibility %s, page %d and size %d",
                             userId, Visibility.ACTIVE.name(), page, size),
-                    oldModelFailureCounter
-            );
+                    oldModelFailureCounter);
 
             doDiff(diffConfig.useDiff(userId),
                     () -> diff.postBoxResponseDiff(userId, newModelFuture, oldModelFuture),
@@ -261,8 +253,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                     execSrvForNewModel,
                     String.format("NewModel deleteConversations - Could not delete conversations for userId %s, conversationIds %s, page %d and size %d",
                             userId, StringUtils.join(conversationIds, ", "), page, size),
-                    newModelFailureCounter
-            );
+                    newModelFailureCounter);
 
             CompletableFuture<PostBoxResponse> oldModelFuture = supplyAsync(
                     oldModelEnabled,
@@ -270,8 +261,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                     execSrvForOldModel,
                     String.format("OldModel deleteConversations - Could not delete conversations for userId %s and conversationIds %s, page %d and size %d",
                             userId, StringUtils.join(conversationIds, ", "), page, size),
-                    oldModelFailureCounter
-            );
+                    oldModelFailureCounter);
 
             doDiff(diffConfig.useDiff(userId),
                     () -> diff.postBoxResponseDiff(userId, newModelFuture, oldModelFuture),
@@ -290,16 +280,14 @@ public class PostBoxServiceDelegator implements PostBoxService {
                     () -> unreadCountsConverter.toOldUnreadCounts(newPostBoxService.getUnreadCounts(userId)),
                     execSrvForNewModel,
                     String.format("NewModel getUnreadCounts - Could not get unread counts for userId %s", userId),
-                    newModelFailureCounter
-            );
+                    newModelFailureCounter);
 
             CompletableFuture<PostBoxUnreadCounts> oldModelFuture = supplyAsync(
                     oldModelEnabled,
                     () -> oldPostBoxService.getUnreadCounts(userId),
                     execSrvForOldModel,
                     String.format("NewModel getUnreadCounts - Could not get unread counts for userId %s", userId),
-                    oldModelFailureCounter
-            );
+                    oldModelFailureCounter);
 
             doDiff(diffConfig.useDiff(userId),
                     () -> diff.postBoxUnreadCountsDiff(userId, newModelFuture, oldModelFuture),
@@ -362,8 +350,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                         corePoolSize, maxPoolSize,
                         60L, TimeUnit.SECONDS,
                         new SynchronousQueue<>(),
-                        new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)
-                ),
+                        new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)),
                 metricsOwner,
                 metricsName);
     }
@@ -376,8 +363,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                 new ThreadPoolExecutor(
                         diffCorePoolSize, diffMaxPoolSize,
                         60L, TimeUnit.SECONDS,
-                        queue
-                ),
+                        queue),
                 "postBoxDelegatorService",
                 "diffExecSrv"
         );

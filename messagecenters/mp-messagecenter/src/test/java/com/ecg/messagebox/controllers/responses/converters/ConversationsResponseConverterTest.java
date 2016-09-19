@@ -4,7 +4,11 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.controllers.responses.ConversationResponse;
 import com.ecg.messagebox.controllers.responses.ConversationsResponse;
 import com.ecg.messagebox.model.*;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 
@@ -14,8 +18,11 @@ import static com.ecg.messagebox.model.Visibility.ACTIVE;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.*;
+import static org.joda.time.DateTime.now;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ConversationsResponseConverterTest {
 
     private static final int CONVS_TOTAL_COUNT = 3;
@@ -27,10 +34,17 @@ public class ConversationsResponseConverterTest {
     private static final int OFFSET = 0;
     private static final int LIMIT = 50;
 
-    private final ConversationResponse convRespMock = mock(ConversationResponse.class);
-    private final ConversationResponseConverter convRespConverterMock = mock(ConversationResponseConverter.class);
+    @Mock
+    private ConversationResponse convRespMock;
+    @Mock
+    private ConversationResponseConverter convRespConverterMock;
 
-    private final ConversationsResponseConverter conversationsResponseConverter = new ConversationsResponseConverter(convRespConverterMock);
+    private ConversationsResponseConverter conversationsResponseConverter;
+
+    @Before
+    public void setup() {
+        conversationsResponseConverter = new ConversationsResponseConverter(convRespConverterMock);
+    }
 
     @Test
     public void toConversationsResponse() {
@@ -42,7 +56,7 @@ public class ConversationsResponseConverterTest {
                 RECEIVE,
                 emptyList(),
                 new Message(UUIDs.timeBased(), MessageType.BID, new MessageMetadata(USER_ID_1, "text")),
-                new ConversationMetadata("email subject"));
+                new ConversationMetadata(now(), "email subject"));
 
         // conversation 2
         ConversationThread c2 = new ConversationThread(
@@ -52,7 +66,7 @@ public class ConversationsResponseConverterTest {
                 MUTE,
                 emptyList(),
                 new Message(UUIDs.timeBased(), MessageType.CHAT, new MessageMetadata(USER_ID_2, "text")),
-                new ConversationMetadata("email subject"));
+                new ConversationMetadata(now(), "email subject"));
 
         // user's conversations
         PostBox postBox = new PostBox(USER_ID_1, Arrays.asList(c1, c2),

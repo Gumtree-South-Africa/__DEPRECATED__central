@@ -12,6 +12,7 @@ public class ConversationResponse {
     private final String messageNotification;
     private final List<ParticipantResponse> participants;
     private final MessageResponse latestMessage;
+    private final String creationDate;
     private final String emailSubject;
     private final int unreadMessagesCount;
     private final Optional<List<MessageResponse>> messages;
@@ -22,6 +23,7 @@ public class ConversationResponse {
                                 String messageNotification,
                                 List<ParticipantResponse> participants,
                                 MessageResponse latestMessage,
+                                String creationDate,
                                 String emailSubject,
                                 int unreadMessagesCount,
                                 Optional<List<MessageResponse>> messages) {
@@ -31,6 +33,7 @@ public class ConversationResponse {
         this.messageNotification = messageNotification;
         this.participants = participants;
         this.latestMessage = latestMessage;
+        this.creationDate = creationDate;
         this.emailSubject = emailSubject;
         this.unreadMessagesCount = unreadMessagesCount;
         this.messages = messages;
@@ -60,6 +63,10 @@ public class ConversationResponse {
         return latestMessage;
     }
 
+    public String getCreationDate() {
+        return creationDate;
+    }
+
     public String getEmailSubject() {
         return emailSubject;
     }
@@ -83,6 +90,7 @@ public class ConversationResponse {
                 && Objects.equals(messageNotification, that.messageNotification)
                 && Objects.equals(participants, that.participants)
                 && Objects.equals(latestMessage, that.latestMessage)
+                && Objects.equals(creationDate, that.creationDate)
                 && Objects.equals(emailSubject, that.emailSubject)
                 && unreadMessagesCount == that.unreadMessagesCount
                 && Objects.equals(messages, that.messages);
@@ -91,6 +99,6 @@ public class ConversationResponse {
     @Override
     public int hashCode() {
         return Objects.hash(id, adId, visibility, messageNotification, participants,
-                latestMessage, emailSubject, unreadMessagesCount, messages);
+                latestMessage, creationDate, emailSubject, unreadMessagesCount, messages);
     }
 }

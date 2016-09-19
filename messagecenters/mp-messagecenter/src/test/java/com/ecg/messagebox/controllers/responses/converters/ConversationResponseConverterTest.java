@@ -4,18 +4,27 @@ import com.ecg.messagebox.controllers.responses.ConversationResponse;
 import com.ecg.messagebox.controllers.responses.MessageResponse;
 import com.ecg.messagebox.controllers.responses.ParticipantResponse;
 import com.ecg.messagebox.model.*;
+import org.joda.time.DateTimeUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Optional;
 
 import static com.datastax.driver.core.utils.UUIDs.timeBased;
 import static com.ecg.messagebox.model.MessageNotification.RECEIVE;
 import static com.ecg.messagebox.model.Visibility.ACTIVE;
+import static com.ecg.messagecenter.util.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.joda.time.DateTime.now;
 import static org.mockito.Mockito.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ConversationResponseConverterTest {
 
     private static final String CONVERSATION_ID = "c1";
@@ -31,12 +40,27 @@ public class ConversationResponseConverterTest {
     private static final Message MSG_BUYER = new Message(timeBased(), MessageType.ASQ, new MessageMetadata("text buyer", "buyerId"));
     private static final Message MSG_SELLER = new Message(timeBased(), MessageType.CHAT, new MessageMetadata("text seller", "sellerId"));
 
-    private final MessageResponse messageRespMock = mock(MessageResponse.class);
-    private final ParticipantResponse participantRespMock = mock(ParticipantResponse.class);
-    private final ParticipantResponseConverter participantRespConverterMock = mock(ParticipantResponseConverter.class);
-    private final MessageResponseConverter msgRespConverterMock = mock(MessageResponseConverter.class);
+    @Mock
+    private MessageResponse messageRespMock;
+    @Mock
+    private ParticipantResponse participantRespMock;
+    @Mock
+    private ParticipantResponseConverter participantRespConverterMock;
+    @Mock
+    private MessageResponseConverter msgRespConverterMock;
 
-    private final ConversationResponseConverter convRespConverter = new ConversationResponseConverter(participantRespConverterMock, msgRespConverterMock);
+    private ConversationResponseConverter convRespConverter;
+
+    @Before
+    public void setup() {
+        DateTimeUtils.setCurrentMillisFixed(now().getMillis());
+        convRespConverter = new ConversationResponseConverter(participantRespConverterMock, msgRespConverterMock);
+    }
+
+    @After
+    public void tearDown() {
+        DateTimeUtils.setCurrentMillisSystem();
+    }
 
     @Test
     public void toConversationWithMessagesResponse() {
@@ -47,7 +71,7 @@ public class ConversationResponseConverterTest {
                 RECEIVE,
                 asList(PARTICIPANT_1, PARTICIPANT_2),
                 MSG_SELLER,
-                new ConversationMetadata(EMAIL_SUBJECT))
+                new ConversationMetadata(now(), EMAIL_SUBJECT))
                 .addMessages(asList(MSG_BUYER, MSG_SELLER))
                 .addNumUnreadMessages(UNREAD_MSGS_COUNT);
 
@@ -58,6 +82,7 @@ public class ConversationResponseConverterTest {
                 "receive",
                 asList(participantRespMock, participantRespMock),
                 messageRespMock,
+                toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
                 EMAIL_SUBJECT,
                 UNREAD_MSGS_COUNT,
                 Optional.of(asList(messageRespMock, messageRespMock)));
@@ -85,7 +110,7 @@ public class ConversationResponseConverterTest {
                 RECEIVE,
                 asList(PARTICIPANT_1, PARTICIPANT_2),
                 MSG_SELLER,
-                new ConversationMetadata(EMAIL_SUBJECT))
+                new ConversationMetadata(now(), EMAIL_SUBJECT))
                 .addMessages(asList(MSG_BUYER, MSG_SELLER))
                 .addNumUnreadMessages(UNREAD_MSGS_COUNT);
 
@@ -96,6 +121,7 @@ public class ConversationResponseConverterTest {
                 "receive",
                 asList(participantRespMock, participantRespMock),
                 messageRespMock,
+                toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
                 EMAIL_SUBJECT,
                 UNREAD_MSGS_COUNT,
                 Optional.empty());

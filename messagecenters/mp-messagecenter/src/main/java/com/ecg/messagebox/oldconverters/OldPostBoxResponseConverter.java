@@ -1,9 +1,10 @@
 package com.ecg.messagebox.oldconverters;
 
-import com.ecg.messagebox.oldconverters.BuyerSellerInfo.BuyerSellerInfoBuilder;
 import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.model.Participant;
 import com.ecg.messagebox.model.PostBox;
+import com.ecg.messagebox.oldconverters.BuyerSellerInfo.BuyerSellerInfoBuilder;
+import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.messagecenter.webapi.responses.MessageResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
@@ -35,9 +36,10 @@ public class OldPostBoxResponseConverter {
                 .meta(newPostBox.getConversations().size(), page, size);
 
         String projectionOwnerUserId = newPostBox.getUserId();
-        newPostBox.getConversations().forEach(conv ->
-                {
+        newPostBox.getConversations().forEach(conv -> {
                     BuyerSellerInfo bsInfo = new BuyerSellerInfoBuilder(conv.getParticipants()).build();
+            String creationDateStr = conv.getMetadata().getCreationDate()
+                    .map(MessageCenterUtils::toFormattedTimeISO8601ExplicitTimezoneOffset).orElse(null);
                     PostBoxListItemResponse itemResponse = new PostBoxListItemResponse(
                             conv.getId(),
                             bsInfo.getBuyerName(),
@@ -47,8 +49,8 @@ public class OldPostBoxResponseConverter {
                             conv.getAdId(),
                             getConversationRole(newPostBox.getUserId(), conv.getParticipants()),
                             conv.getNumUnreadMessages(),
-                            msgRespWithTruncatedText(conv.getLatestMessage(), projectionOwnerUserId, conv.getParticipants())
-                    );
+                            msgRespWithTruncatedText(conv.getLatestMessage(), projectionOwnerUserId, conv.getParticipants()),
+                            creationDateStr);
                     pbResponse.addItem(itemResponse);
                 }
         );
@@ -62,7 +64,6 @@ public class OldPostBoxResponseConverter {
                 msgResp.getReceivedDate(),
                 msgResp.getBoundness(),
                 truncateText(msgResp.getTextShort(), msgTextMaxChars),
-                msgResp.getSenderEmail()
-        );
+                msgResp.getSenderEmail());
     }
 }

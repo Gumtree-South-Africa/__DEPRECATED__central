@@ -1,31 +1,14 @@
 package com.ecg.messagecenter.webapi;
 
-import com.ecg.messagecenter.identifier.UserIdentifierType;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.util.Properties;
-import java.util.function.Supplier;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static org.hamcrest.Matchers.equalTo;
 
-public class UnreadCountsControllerAcceptanceTest {
+class BaseUnreadCountsControllerAcceptanceTest {
 
-    @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
-
-        properties.put("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_USER_ID.toString());
-        properties.put("userIdentifierService", UserIdentifierType.BY_USER_ID.toString());
-
-        return properties;
-    }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_new_messagebox_schema.cql");
-
-    @Test
-    public void getPostBoxUnreadCounts() {
+    void getPostBoxUnreadCounts(ReplyTsIntegrationTestRule testRule) {
         String convId1 = testRule.deliver(
                 aNewMail()
                         .from("buyer1@buyer.com")

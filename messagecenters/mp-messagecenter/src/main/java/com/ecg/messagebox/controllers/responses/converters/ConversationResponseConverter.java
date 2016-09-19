@@ -4,6 +4,7 @@ import com.ecg.messagebox.controllers.responses.ConversationResponse;
 import com.ecg.messagebox.controllers.responses.MessageResponse;
 import com.ecg.messagebox.controllers.responses.ParticipantResponse;
 import com.ecg.messagebox.model.ConversationThread;
+import com.ecg.messagecenter.util.MessageCenterUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +41,9 @@ public class ConversationResponseConverter {
                 .map(participantRespConverter::toParticipantResponse)
                 .collect(Collectors.toList());
 
+        String creationDateStr = conversation.getMetadata().getCreationDate()
+                .map(MessageCenterUtils::toFormattedTimeISO8601ExplicitTimezoneOffset).orElse(null);
+
         return new ConversationResponse(
                 conversation.getId(),
                 conversation.getAdId(),
@@ -47,6 +51,7 @@ public class ConversationResponseConverter {
                 conversation.getMessageNotification().name().toLowerCase(),
                 participantResponses,
                 msgRespConverter.toMessageResponse(conversation.getLatestMessage()),
+                creationDateStr,
                 conversation.getMetadata().getEmailSubject(),
                 conversation.getNumUnreadMessages(),
                 messageResponsesOpt);

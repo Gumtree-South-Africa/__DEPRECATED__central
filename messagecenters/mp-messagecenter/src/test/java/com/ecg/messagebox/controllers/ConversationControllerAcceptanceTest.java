@@ -1,7 +1,9 @@
 package com.ecg.messagebox.controllers;
 
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
+import org.junit.Rule;
 import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
@@ -9,7 +11,7 @@ import javax.mail.internet.MimeMessage;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static org.hamcrest.Matchers.equalTo;
 
-public class ConversationControllerAcceptanceTest extends BaseControllerAcceptanceTest {
+public class ConversationControllerAcceptanceTest extends ReplyTsIntegrationTestRuleHelper {
 
     private static MailBuilder MAIL1 = aNewMail()
             .from("buyer@buyer.com")
@@ -19,6 +21,9 @@ public class ConversationControllerAcceptanceTest extends BaseControllerAcceptan
             .header("X-Message-Metadata", "message metadata")
             .adId("232323")
             .plainBody("first contact from buyer");
+
+    @Rule
+    public ReplyTsIntegrationTestRule testRule = getTestRuleForNewModel();
 
     @Test
     public void getConversation() throws Exception {

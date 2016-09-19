@@ -18,6 +18,7 @@ import java.util.Optional;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
+import static org.joda.time.DateTime.now;
 
 @Component("newCassandraPostBoxService")
 public class CassandraPostBoxService implements PostBoxService {
@@ -73,7 +74,7 @@ public class CassandraPostBoxService implements PostBoxService {
                             MessageNotification.RECEIVE,
                             getParticipants(rtsConversation),
                             newMessage,
-                            new ConversationMetadata(rtsConversation.getMessages().get(0).getHeaders().get("Subject")));
+                            new ConversationMetadata(now(), rtsConversation.getMessages().get(0).getHeaders().get("Subject")));
 
                     postBoxRepository.createConversation(userId, newConversation, newMessage, isNewReply);
                     newConversationCounter.inc();

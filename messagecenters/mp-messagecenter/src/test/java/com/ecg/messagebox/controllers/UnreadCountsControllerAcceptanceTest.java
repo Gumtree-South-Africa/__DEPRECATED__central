@@ -1,12 +1,17 @@
 package com.ecg.messagebox.controllers;
 
+import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static org.hamcrest.Matchers.equalTo;
 
-public class UnreadCountsControllerAcceptanceTest extends BaseControllerAcceptanceTest {
+public class UnreadCountsControllerAcceptanceTest extends ReplyTsIntegrationTestRuleHelper {
+
+    @Rule
+    public ReplyTsIntegrationTestRule testRule = getTestRuleForNewModel();
 
     @Test
     public void getUserUnreadCounts() {
