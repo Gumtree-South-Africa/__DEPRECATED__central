@@ -9,7 +9,10 @@ import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.messagecenter.webapi.PostBoxResponseBuilder;
 import com.ecg.messagecenter.webapi.responses.ConversationResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
@@ -66,16 +69,10 @@ public class CassandraPostBoxService implements PostBoxService {
     @Override
     public void processNewMessage(String postBoxId, Conversation conversation, Message newMessage, ConversationRole conversationRole,
                                   boolean newReplyArrived) {
-
         try (Timer.Context ignored = processNewMessageTimer.time()) {
 
-            // we don't want to update postbox for users if conversation was closed
-            if (ConversationState.CLOSED == conversation.getState()) {
-                return;
-            }
-
-            Optional<DateTime> lastMessageCreatedAt = newMessage.getReceivedAt() != null ? Optional.of(newMessage.getReceivedAt())
-                    : Optional.of(conversation.getLastModifiedAt());
+            Optional<DateTime> lastMessageCreatedAt = newMessage.getReceivedAt() != null ? Optional.of(newMessage.getReceivedAt()) :
+                    Optional.of(conversation.getLastModifiedAt());
 
             ConversationThread newConversationThread = new ConversationThread(
                     conversation.getAdId(),

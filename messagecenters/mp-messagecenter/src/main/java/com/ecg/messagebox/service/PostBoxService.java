@@ -13,7 +13,7 @@ public interface PostBoxService {
     void processNewMessage(String userId,
                            com.ecg.replyts.core.api.model.conversation.Conversation conversation,
                            com.ecg.replyts.core.api.model.conversation.Message message,
-                           boolean newReplyArrived);
+                           boolean isNewReply);
 
     Optional<ConversationThread> getConversation(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit);
 

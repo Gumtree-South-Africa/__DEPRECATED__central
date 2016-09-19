@@ -3,7 +3,6 @@ package com.ecg.messagebox.service;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
-import com.ecg.messagebox.persistence.DefaultCassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -14,7 +13,10 @@ import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +29,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class CassandraPostBoxServiceTest {
 
     private static final String USER_ID_1 = "1";
@@ -44,34 +47,20 @@ public class CassandraPostBoxServiceTest {
     private static final String BUYER_NAME_VALUE = "buyer";
     private static final String SELLER_NAME_VALUE = "seller";
 
-    private final CassandraPostBoxRepository conversationsRepoMock = mock(DefaultCassandraPostBoxRepository.class);
-    private final UserIdentifierService userIdentifierServiceMock = mock(UserIdentifierService.class);
+    @Mock
+    private CassandraPostBoxRepository conversationsRepoMock;
+    @Mock
+    private UserIdentifierService userIdentifierServiceMock;
 
-    private CassandraPostBoxService service = new CassandraPostBoxService(conversationsRepoMock, userIdentifierServiceMock);
+    private CassandraPostBoxService service;
 
     @Before
     public void setup() {
+        service = new CassandraPostBoxService(conversationsRepoMock, userIdentifierServiceMock);
+
         when(userIdentifierServiceMock.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierServiceMock.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(conversationsRepoMock.areUsersBlocked(any(), any())).thenReturn(false);
-    }
-
-    @Test
-    public void processNewMessageWithStateIgnored() {
-        Message rtsMsg = newMessage("1", MessageDirection.BUYER_TO_SELLER, MessageState.IGNORED, DEFAULT_SUBJECT);
-        service.processNewMessage(USER_ID_1, newConversation(CONVERSATION_ID).build(), rtsMsg, true);
-
-        verify(userIdentifierServiceMock).getBuyerUserIdName();
-        verifyZeroInteractions(conversationsRepoMock);
-    }
-
-    @Test
-    public void processNewMessageWithStateHeld() {
-        Message rtsMsg = newMessage("1", SELLER_TO_BUYER, MessageState.HELD, DEFAULT_SUBJECT);
-        service.processNewMessage(USER_ID_1, newConversation(CONVERSATION_ID).build(), rtsMsg, true);
-
-        verify(userIdentifierServiceMock).getSellerUserIdName();
-        verifyZeroInteractions(conversationsRepoMock);
     }
 
     @Test
@@ -110,8 +99,7 @@ public class CassandraPostBoxServiceTest {
 
         List<Participant> participants = newArrayList(
                 new Participant(USER_ID_1, BUYER_NAME_VALUE, rtsConversation.getBuyerId(), ParticipantRole.BUYER),
-                new Participant(USER_ID_2, SELLER_NAME_VALUE, rtsConversation.getSellerId(), ParticipantRole.SELLER)
-        );
+                new Participant(USER_ID_2, SELLER_NAME_VALUE, rtsConversation.getSellerId(), ParticipantRole.SELLER));
 
         ConversationThread conversation = new ConversationThread(
                 rtsConversation.getId(),
@@ -120,8 +108,7 @@ public class CassandraPostBoxServiceTest {
                 MessageNotification.RECEIVE,
                 participants,
                 newMessage,
-                new ConversationMetadata("subject")
-        );
+                new ConversationMetadata("subject"));
 
         service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true);
 

@@ -7,7 +7,6 @@ import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,16 +47,12 @@ public class CassandraPostBoxService implements PostBoxService {
     public void processNewMessage(String userId,
                                   com.ecg.replyts.core.api.model.conversation.Conversation rtsConversation,
                                   com.ecg.replyts.core.api.model.conversation.Message rtsMessage,
-                                  boolean newReplyArrived
+                                  boolean isNewReply
     ) {
         try (Timer.Context ignored = processNewMessageTimer.time()) {
-
             String senderUserId = getMessageSenderUserId(rtsConversation, rtsMessage);
-            if (!canProcessMessage(rtsMessage, userId.equals(senderUserId))) {
-                return;
-            }
-
             String receiverUserId = getMessageReceiverUserId(rtsConversation, rtsMessage);
+
             if (!postBoxRepository.areUsersBlocked(senderUserId, receiverUserId)) {
                 String messageTypeStr = rtsMessage.getHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase();
                 MessageType messageType = MessageType.get(messageTypeStr);
@@ -68,7 +63,7 @@ public class CassandraPostBoxService implements PostBoxService {
 
                 if (conversationOpt.isPresent()) {
                     ConversationThread conversation = conversationOpt.get();
-                    boolean notifyAboutNewMessage = newReplyArrived && conversation.getMessageNotification() == MessageNotification.RECEIVE;
+                    boolean notifyAboutNewMessage = isNewReply && conversation.getMessageNotification() == MessageNotification.RECEIVE;
                     postBoxRepository.addMessage(userId, rtsConversation.getId(), rtsConversation.getAdId(), newMessage, notifyAboutNewMessage);
                 } else {
                     ConversationThread newConversation = new ConversationThread(
@@ -80,7 +75,7 @@ public class CassandraPostBoxService implements PostBoxService {
                             newMessage,
                             new ConversationMetadata(rtsConversation.getMessages().get(0).getHeaders().get("Subject")));
 
-                    postBoxRepository.createConversation(userId, newConversation, newMessage, newReplyArrived);
+                    postBoxRepository.createConversation(userId, newConversation, newMessage, isNewReply);
                     newConversationCounter.inc();
                 }
             }
@@ -149,10 +144,6 @@ public class CassandraPostBoxService implements PostBoxService {
         try (Timer.Context ignored = getUnreadCountsTimer.time()) {
             return postBoxRepository.getUserUnreadCounts(userId);
         }
-    }
-
-    private boolean canProcessMessage(com.ecg.replyts.core.api.model.conversation.Message rtsMessage, boolean isOwnMessage) {
-        return rtsMessage.getState() != MessageState.IGNORED && (rtsMessage.getState() == MessageState.SENT || isOwnMessage);
     }
 
     private List<Participant> getParticipants(Conversation rtsConversation) {

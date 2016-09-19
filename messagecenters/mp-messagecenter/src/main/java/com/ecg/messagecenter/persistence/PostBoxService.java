@@ -11,17 +11,13 @@ import java.util.Optional;
 
 public interface PostBoxService {
 
-    void processNewMessage(String postBoxId,
-                           Conversation conversation,
-                           Message message,
-                           ConversationRole conversationRole,
-                           boolean newReplyArrived);
+    void processNewMessage(String userId, Conversation conversation, Message message, ConversationRole role, boolean newReplyArrived);
 
-    Optional<ConversationResponse> getConversation(String postBoxId, String conversationId);
+    Optional<ConversationResponse> getConversation(String userId, String conversationId);
 
-    Optional<ConversationResponse> markConversationAsRead(String postBoxId, String conversationId);
+    Optional<ConversationResponse> markConversationAsRead(String userId, String conversationId);
 
-    PostBoxResponse getConversations(String postBoxId, Integer size, Integer page);
+    PostBoxResponse getConversations(String userId, Integer size, Integer page);
 
     /**
      * Delete conversations for a postbox and return the new postbox.
@@ -34,24 +30,24 @@ public interface PostBoxService {
      * return deleted conversation back to the client.
      * </p>
      *
-     * @param postBoxId       id of postbox containing the conversations
+     * @param userId          user id
      * @param conversationIds ids of conversations
      * @param size            size
      * @param page            page
      * @return the new postbox or null if size is 0
      */
-    PostBoxResponse deleteConversations(String postBoxId, List<String> conversationIds, Integer size, Integer page);
+    PostBoxResponse deleteConversations(String userId, List<String> conversationIds, Integer size, Integer page);
 
     /**
-     * @param postBoxId id of postbox
+     * @param userId user id
      * @return unread messages and unread conversation counts for postbox, both are 0 when postbox is unknown
      */
-    PostBoxUnreadCounts getUnreadCounts(String postBoxId);
+    PostBoxUnreadCounts getUnreadCounts(String userId);
 
     /**
      * Return the list with response data per conversation for the user.
      *
-     * @param userId the user id
+     * @param userId user id
      * @return the list with response data
      */
     List<ResponseData> getResponseData(String userId);
