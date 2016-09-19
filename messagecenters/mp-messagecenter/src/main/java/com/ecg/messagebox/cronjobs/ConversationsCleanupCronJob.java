@@ -9,6 +9,7 @@ import com.ecg.messagebox.util.InstrumentedExecutorService;
 import com.ecg.replyts.core.api.cron.CronJobExecutor;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.google.common.collect.Iterators;
+import com.google.common.util.concurrent.RateLimiter;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,7 @@ public class ConversationsCleanupCronJob implements CronJobExecutor {
     private final String cronJobExpression;
     private final ExecutorService executorService;
     private final CronJobClockRepository cronJobClockRepository;
+    private final RateLimiter rateLimiter;
 
     @Autowired
     ConversationsCleanupCronJob(@Qualifier("newCassandraPostBoxRepo") CassandraPostBoxRepository repository,
@@ -56,7 +58,8 @@ public class ConversationsCleanupCronJob implements CronJobExecutor {
                                 @Value("${messagebox.cronjob.conversationsCleanup.threadCount:4}") int threadCount,
                                 @Value("${replyts.maxConversationAgeDays:180}") int maxConversationAgeDays,
                                 @Value("${messagebox.cronjob.conversationsCleanup.batchSize:300}") int batchSize,
-                                @Value("${messagebox.cronjob.conversationsCleanup.expression:0 0 0 * * ? *}") String cronJobExpression
+                                @Value("${messagebox.cronjob.conversationsCleanup.expression:0 0 0 * * ? *}") String cronJobExpression,
+                                @Value("${messagebox.cronjob.conversationsCleanup.deletionRateLimit:1000}") int deletionRateLimit
     ) {
         this.cronJobClockRepository = cronJobClockRepository;
 
@@ -66,6 +69,8 @@ public class ConversationsCleanupCronJob implements CronJobExecutor {
         this.executorService = new InstrumentedExecutorService(
                 new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler),
                 "conversationsCleanupCronjob", "executionService");
+
+        this.rateLimiter = RateLimiter.create(deletionRateLimit);
 
         this.repository = repository;
         this.cronJobExpression = cronJobExpression;
@@ -112,6 +117,7 @@ public class ConversationsCleanupCronJob implements CronJobExecutor {
 
     private Runnable cleanupConversation(DateTime deleteEverythingBefore, ConversationModification conversationModification) {
         return () -> {
+            rateLimiter.acquire();
             String userId = conversationModification.getUserId();
             String convId = conversationModification.getConversationId();
             DateTime modifiedAt = conversationModification.getModifiedAt();

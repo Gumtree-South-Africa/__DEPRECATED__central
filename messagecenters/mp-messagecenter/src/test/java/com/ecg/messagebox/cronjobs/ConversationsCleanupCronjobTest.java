@@ -24,6 +24,7 @@ public class ConversationsCleanupCronjobTest {
     private static final int MAX_CONVERSATION_AGE_DAYS = 15;
     private static final int BATCH_SIZE = 1;
     private static final String CRONJOB_EXPRESSION = "0 0 0 * * ? *";
+    private static final int RATE_LIMIT = 100;
     private DateTime deleteEverythingBefore;
     private DateTime dateToProcess;
     private DateTime lastProcessedDate;
@@ -31,7 +32,7 @@ public class ConversationsCleanupCronjobTest {
     private CassandraPostBoxRepository repository = mock(CassandraPostBoxRepository.class);
     private CronJobClockRepository cronJobClockRepository = mock(CronJobClockRepository.class);
 
-    private ConversationsCleanupCronJob cronJob = new ConversationsCleanupCronJob(repository, cronJobClockRepository, WORK_QUEUE_SIZE, THREAD_COUNT, MAX_CONVERSATION_AGE_DAYS, BATCH_SIZE, CRONJOB_EXPRESSION);
+    private ConversationsCleanupCronJob cronJob = new ConversationsCleanupCronJob(repository, cronJobClockRepository, WORK_QUEUE_SIZE, THREAD_COUNT, MAX_CONVERSATION_AGE_DAYS, BATCH_SIZE, CRONJOB_EXPRESSION, RATE_LIMIT);
 
     private ConversationModification conv1 = new ConversationModification("u1", "c1", null, timeBased(), new DateTime());
     private ConversationModification conv2 = new ConversationModification("u2", "c2", null, timeBased(), new DateTime());
