@@ -295,7 +295,7 @@
                     <version>${project.version}</version>
                 </dependency>
 
-                <!-- dependency>
+                <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>ebayk-messagecenter</artifactId>
                     <version>${project.version}</version>
@@ -305,7 +305,7 @@
                             <artifactId>commons-logging</artifactId>
                         </exclusion>
                     </exclusions>
-                </dependency -->
+                </dependency>
 
                 <dependency>
                     <groupId>org.jolokia</groupId>
