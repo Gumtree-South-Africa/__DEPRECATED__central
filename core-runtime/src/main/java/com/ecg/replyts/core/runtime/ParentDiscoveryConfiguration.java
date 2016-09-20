@@ -95,9 +95,7 @@ public class ParentDiscoveryConfiguration {
         DISCOVERABLE_SERVICE_PROPERTIES.forEach((service, property) -> {
             List<String> instances = new ArrayList<>();
 
-            discoveryClient.getInstances(service).forEach(instance -> {
-                 instances.add(instance.getHost() + ":" + instance.getPort());
-            });
+            discoveryClient.getInstances(service).forEach(instance -> instances.add(instance.getHost() + ":" + instance.getPort()));
 
             if (instances.size() > 0) {
                 String instanceList = StringUtils.collectionToDelimitedString(instances, ",");
