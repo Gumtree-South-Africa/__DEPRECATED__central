@@ -1,5 +1,7 @@
 package com.ecg.messagecenter.persistence.simple;
 
+import com.basho.riak.client.IndexEntry;
+import com.basho.riak.client.query.StreamingOperation;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,4 +64,20 @@ public class HybridSimplePostBoxRepository implements SimplePostBoxRepository {
             LOG.error("Error while performing Cassandra PostBox/ConversationThread cleanup", e);
         }
     }
+
+    @Override
+    public long getMessagesCount(DateTime fromDate, DateTime toDate) {
+        return riakRepository.getMessagesCount(fromDate, toDate);
+    }
+
+    @Override
+    public StreamingOperation<IndexEntry> streamPostBoxIds(DateTime fromDate, DateTime toDate) { // use endDate as its current date
+        return riakRepository.streamPostBoxIds(fromDate, toDate);
+    }
+
+    @Override
+    public List<String> getPostBoxIds(DateTime fromDate, DateTime toDate) {
+        return riakRepository.getPostBoxIds(fromDate, toDate);
+    }
+
 }

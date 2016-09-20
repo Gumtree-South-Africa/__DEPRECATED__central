@@ -38,7 +38,6 @@ public class CassConversationRepo {
     private static final String SELECT_FROM_CONVERSATION_EVENTS = "SELECT * FROM core_conversation_events WHERE conversation_id=? ORDER BY event_id ASC";
     private static final String SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN = "SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
 
-
     private final ObjectMapper objectMapper;
     private final PreparedStatement getByConvID;
     private final PreparedStatement getByDate;
