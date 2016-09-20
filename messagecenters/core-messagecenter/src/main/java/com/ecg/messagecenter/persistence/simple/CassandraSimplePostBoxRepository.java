@@ -1,7 +1,5 @@
 package com.ecg.messagecenter.persistence.simple;
 
-import com.basho.riak.client.IndexEntry;
-import com.basho.riak.client.query.StreamingOperation;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
@@ -329,18 +327,5 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         Statements(String cql, boolean modifying) {
             super(cql, modifying);
         }
-    }
-
-    @Override
-    public long getMessagesCount(DateTime fromDate, DateTime toDate) {
-        throw new UnsupportedOperationException();
-    }
-    @Override
-    public StreamingOperation<IndexEntry> streamPostBoxIds(DateTime fromDate, DateTime toDate) {
-        throw new UnsupportedOperationException();
-    }
-    @Override
-    public  List<String> getPostBoxIds(DateTime fromDate, DateTime toDate) {
-        throw new UnsupportedOperationException();
     }
 }

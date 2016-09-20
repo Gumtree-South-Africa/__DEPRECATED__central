@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.TimeUnit;
 
-public class SingleRunGuard {
+class SingleRunGuard {
     private final HazelcastInstance hazelcast;
 
     @Autowired
@@ -14,7 +14,7 @@ public class SingleRunGuard {
         this.hazelcast = hazelcast;
     }
 
-   public boolean runExclusivelyOrSkip(IndexingMode mode, Runnable runnable) {
+    boolean runExclusivelyOrSkip(IndexingMode mode, Runnable runnable) {
         ILock lock = hazelcast.getLock(mode.name());
         boolean tryLock;
         try {

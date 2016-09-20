@@ -1,7 +1,6 @@
 package com.ecg.messagecenter.cronjobs;
 
 import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.replyts.core.api.cron.CronJobExecutor;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -19,9 +18,8 @@ import static org.joda.time.DateTime.now;
 public class RiakSimplePostBoxCleanupCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(RiakSimplePostBoxCleanupCronJob.class);
 
-    // TODO must be either Hybrid or Riak
     @Autowired
-    private SimplePostBoxRepository postBoxRepository;
+    private RiakSimplePostBoxRepository postBoxRepository;
 
     @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;

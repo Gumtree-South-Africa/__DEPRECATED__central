@@ -34,8 +34,8 @@ cqlsh $HOST 9042 -e "USE system; SELECT keyspace_name FROM schema_keyspaces WHER
 # cqlsh $HOST 9042 -e "DROP KEYSPACE IF EXISTS $KEYSPACE;"
 
 if [[ ! -z "$ISNONDEV" ]]; then
-    echo "Creating keyspace with replication factor of 3"
-    cqlsh $HOST 9042 -e  "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'ams1': '3'} AND durable_writes = true;"
+    echo "Creating keyspace with replication factor of 2"
+    cqlsh $HOST 9042 -e  "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'ams1': '2'} AND durable_writes = true;"
 else
     cqlsh $HOST 9042 -e "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': 1} AND durable_writes = true;"
 fi

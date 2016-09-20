@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class RiakSimplePostBoxRepository implements SimplePostBoxRepository {
     private static final Logger LOG = LoggerFactory.getLogger(RiakSimplePostBoxRepository.class);
@@ -155,31 +154,4 @@ public class RiakSimplePostBoxRepository implements SimplePostBoxRepository {
             context.stop();
         }
     }
-
-    @Override
-    public long getMessagesCount(DateTime fromDate, DateTime toDate) {
-        AtomicLong counter = new AtomicLong();
-        streamPostBoxIds(fromDate, toDate).forEach(c -> counter.getAndIncrement());
-        return counter.get();
-    }
-
-    @Override
-    public StreamingOperation<IndexEntry> streamPostBoxIds(DateTime fromDate, DateTime toDate) { // use endDate as its current date
-        try {
-            return postBoxBucket.fetchIndex(IntIndex.named(UPDATED_INDEX))
-                    .from(fromDate.getMillis())
-                    .to(toDate.getMillis())
-                    .executeStreaming();
-        } catch (RiakException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public List<String> getPostBoxIds(DateTime fromDate, DateTime toDate) {
-        List<String> postboxids = Lists.newArrayList();
-        streamPostBoxIds(fromDate, toDate).forEach(id -> postboxids.add(id.getObjectKey()));
-        return postboxids;
-    }
-
 }
