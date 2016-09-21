@@ -5,14 +5,13 @@ import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterDeletePostBoxConversationCommandNew;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -24,9 +23,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
-
-import static org.joda.time.DateTime.now;
-import static org.joda.time.DateTimeZone.UTC;
 
 
 @Controller
@@ -68,6 +64,7 @@ class PostBoxOverviewController {
             @RequestParam(value = "newCounterMode", defaultValue = "false") boolean newCounterMode,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
+            @RequestParam(value = "role", required = false) ConversationRole role,
             HttpServletRequest request) {
 
         Timer.Context timerContext = API_POSTBOX_BY_EMAIL.time();
@@ -82,7 +79,7 @@ class PostBoxOverviewController {
                 postBoxRepository.write(postBox);
             }
 
-            return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
+            return responseBuilder.buildPostBoxResponse(email, size, page, role, postBox, newCounterMode);
 
         } finally {
             timerContext.stop();

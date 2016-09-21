@@ -4,6 +4,7 @@ import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -103,6 +104,29 @@ public class PostBoxTest {
         List<ConversationThread> conversationThreadsCapTo = POST_BOX.getConversationThreadsCapTo(1, 2);
 
         assertEquals(POST_BOX.getConversationThreads().subList(2, 4), conversationThreadsCapTo);
+    }
+
+    @Test
+    public void filterByRole() throws Exception {
+        PostBox postBox = new PostBox("" +
+                "buyer@blah.com",
+                Optional.of(0L),
+                Lists.newArrayList(
+                        new ConversationThread("123", "abc", now(), now().minusHours(100), now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of("seller@blah.com"), Optional.empty()),
+                        new ConversationThread("321", "cba", now(),  now().minusHours(10), now().minusHours(4), false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of("buyer@blah.com"), Optional.empty())
+                ),
+                180
+        );
+        Predicate<AbstractConversationThread> buyerFilter = conversation -> conversation.getBuyerId().get().equals("buyer@blah.com");
+        //I know this is confusing, just following the logic of ConversationBoundnessFinder and the main purpose is to make sure the predicate works as expected
+        Predicate<AbstractConversationThread> sellerFilter = conversation -> conversation.getBuyerId().get().equals("seller@blah.com");
+        List<ConversationThread> buyerConversations = postBox.getFilteredConversationThreads(buyerFilter, 0, 10);
+        List<ConversationThread> sellerConversations = postBox.getFilteredConversationThreads(sellerFilter, 0, 10);
+        assertEquals(1, buyerConversations.size());
+        assertEquals(1, sellerConversations.size());
+        assertEquals("321", buyerConversations.get(0).getAdId());
+        assertEquals("123", sellerConversations.get(0).getAdId());
+
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true, value = "containsUnreadMessages")

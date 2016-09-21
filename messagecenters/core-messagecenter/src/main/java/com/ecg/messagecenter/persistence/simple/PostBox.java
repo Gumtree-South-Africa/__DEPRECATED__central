@@ -7,6 +7,7 @@ import com.ecg.replyts.core.api.util.Pairwise;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
@@ -101,6 +102,14 @@ public class PostBox<T extends AbstractConversationThread> {
 
     public List<T> getConversationThreadsCapTo(int page, int maxSize) {
         return FluentIterable.from(conversationThreads)
+                .skip(page * maxSize)
+                .limit(maxSize)
+                .toList();
+    }
+
+    public List<T> getFilteredConversationThreads(Predicate<T> filter, int page, int maxSize) {
+        return FluentIterable.from(conversationThreads)
+                .filter(filter)
                 .skip(page * maxSize)
                 .limit(maxSize)
                 .toList();

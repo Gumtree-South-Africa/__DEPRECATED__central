@@ -1,12 +1,16 @@
 package com.ecg.messagecenter.webapi;
 
+import com.ecg.messagecenter.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
-import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.util.ConversationBoundnessFinder;
 import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
+import com.google.common.base.Predicate;
 
 import java.util.List;
 
@@ -18,7 +22,11 @@ public class PostBoxResponseBuilder {
         this.conversationBlockRepository = conversationBlockRepository;
     }
 
-    ResponseObject<PostBoxResponse> buildPostBoxResponse(String email, int size, int page,PostBox postBox, boolean newCounterMode) {
+    ResponseObject<PostBoxResponse> buildPostBoxResponse(String email, int size, int page, PostBox postBox, boolean newCounterMode) {
+        return buildPostBoxResponse(email, size, page, null, postBox, newCounterMode);
+    }
+
+    ResponseObject<PostBoxResponse> buildPostBoxResponse(String email, int size, int page, ConversationRole role, PostBox postBox, boolean newCounterMode) {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         if (newCounterMode) {
@@ -27,7 +35,7 @@ public class PostBoxResponseBuilder {
             postBoxResponse.initNumUnread(postBox.getUnreadConversationsCapped().size(), postBox.getLastModification());
         }
 
-        initConversationsPayload(email, postBox.getConversationThreadsCapTo(page, size), postBoxResponse);
+        initConversationsPayload(email, postBox.getFilteredConversationThreads(roleFilter(role, email), page, size), postBoxResponse);
 
         postBoxResponse.meta(postBox.getConversationThreads().size(), page, size);
 
@@ -46,5 +54,14 @@ public class PostBoxResponseBuilder {
         ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationThread.getConversationId());
 
         return new PostBoxListItemResponse(email, conversationThread, conversationBlock);
+    }
+
+    private Predicate<AbstractConversationThread> roleFilter(ConversationRole role, String email){
+        return conversationThread -> {
+            if (role == null) {
+                return true;
+            }
+            return role == ConversationBoundnessFinder.lookupUsersRole(email, conversationThread);
+        };
     }
 }
