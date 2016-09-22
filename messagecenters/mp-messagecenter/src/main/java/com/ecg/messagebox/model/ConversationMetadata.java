@@ -17,7 +17,7 @@ public class ConversationMetadata {
     @JsonCreator
     public ConversationMetadata(@JsonProperty("creationDate") DateTime creationDate,
                                 @JsonProperty("emailSubject") String emailSubject) {
-        this.creationDate = Optional.of(creationDate);
+        this.creationDate = Optional.ofNullable(creationDate);
         this.emailSubject = emailSubject;
     }
 
