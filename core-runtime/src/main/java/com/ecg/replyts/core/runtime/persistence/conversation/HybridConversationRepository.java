@@ -31,9 +31,8 @@ public class HybridConversationRepository implements MutableConversationReposito
 
     @Override
     public MutableConversation getById(String conversationId) {
-        MutableConversation conversation = null;
         synchronized (cassandraConversationRepository) {
-            conversation = cassandraConversationRepository.getById(conversationId);
+            MutableConversation conversation = cassandraConversationRepository.getById(conversationId);
 
             if (conversation == null) {
                 conversation = riakConversationRepository.getById(conversationId);
@@ -42,15 +41,15 @@ public class HybridConversationRepository implements MutableConversationReposito
                     migrateEventsToCassandra(conversationId);
                 }
             }
+
+            return conversation;
         }
-        return conversation;
     }
 
     @Override
     public MutableConversation getBySecret(String secret) {
-        MutableConversation conversation = null;
         synchronized (cassandraConversationRepository) {
-            conversation = cassandraConversationRepository.getBySecret(secret);
+            MutableConversation conversation = cassandraConversationRepository.getBySecret(secret);
 
             if (conversation == null) {
                 conversation = riakConversationRepository.getBySecret(secret);
@@ -59,9 +58,9 @@ public class HybridConversationRepository implements MutableConversationReposito
                     migrateEventsToCassandra(conversation.getId());
                 }
             }
-        }
 
-        return conversation;
+            return conversation;
+        }
     }
 
     @Override
@@ -95,9 +94,8 @@ public class HybridConversationRepository implements MutableConversationReposito
 
     @Override
     public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
-        Optional<Conversation> conversation;
         synchronized (cassandraConversationRepository) {
-            conversation = cassandraConversationRepository.findExistingConversationFor(key);
+            Optional<Conversation> conversation = cassandraConversationRepository.findExistingConversationFor(key);
 
             if (!conversation.isPresent()) {
                 conversation = riakConversationRepository.findExistingConversationFor(key);
@@ -106,13 +104,12 @@ public class HybridConversationRepository implements MutableConversationReposito
                     migrateEventsToCassandra(conversation.get().getId());
                 }
             }
+            return conversation;
         }
-        return conversation;
     }
 
     @Override
     public void commit(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
-
         List<ConversationEvent> cassandraToBeCommittedEvents = toBeCommittedEvents;
         synchronized (cassandraConversationRepository) {
             if (cassandraConversationRepository.getLastModifiedDate(conversationId) == null) {
@@ -162,5 +159,4 @@ public class HybridConversationRepository implements MutableConversationReposito
             }
         }
     }
-
 }

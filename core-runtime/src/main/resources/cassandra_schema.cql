@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS core_configuration (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE IF NOT EXISTS blocked_users (
+CREATE TABLE IF NOT EXISTS core_blocked_users (
     blockerid text,
     blockeeid text,
     blockdate timestamp,
