@@ -1,5 +1,6 @@
 package com.ecg.replyts.core.runtime;
 
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.boot.context.embedded.EmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
 import org.springframework.boot.context.embedded.EmbeddedWebApplicationContext;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.consul.config.ConsulConfigBootstrapConfiguration;
@@ -20,26 +22,29 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Configuration
 @PropertySource("file:${confDir}/replyts.properties")
 @PropertySource("discovery.properties")
 @EnableDiscoveryClient
-@EnableAutoConfiguration(exclude=FreeMarkerAutoConfiguration.class)
+@EnableAutoConfiguration(exclude = FreeMarkerAutoConfiguration.class)
 @Import(ConsulConfigBootstrapConfiguration.class)
 public class ParentDiscoveryConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(ParentDiscoveryConfiguration.class);
 
-    private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = Collections.unmodifiableMap(Stream.of(
-      new AbstractMap.SimpleEntry<>("cassandra", "persistence.cassandra.endpoint"),
-      new AbstractMap.SimpleEntry<>("elasticsearch", "search.es.endpoints")
-    ).collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
+    private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
+            "cassandra", "persistence.cassandra.endpoint",
+            "elasticsearch", "search.es.endpoints"
+    );
+
+    @Value("${replyts.tenant}")
+    private String tenant;
 
     @Value("${replyts.http.port:0}")
     private Integer httpPort;
@@ -82,36 +87,10 @@ public class ParentDiscoveryConfiguration {
                 }
         ));
 
-        LOG.info("Registered service under instance {}", discoveryClient.getLocalServiceInstance().getUri().toString());
-
-        // Auto-discovery any cloud-related services by asking Consul about any known instances
-
-        Map<String, Object> gatheredProperties = new HashMap<>();
-
         LOG.info("Auto-discovering cloud services and overriding appropriate properties");
-
-        // Ask the auto-discovery mechanism about discoverable service instances
-
-        DISCOVERABLE_SERVICE_PROPERTIES.forEach((service, property) -> {
-            List<String> instances = new ArrayList<>();
-
-            discoveryClient.getInstances(service).forEach(instance -> instances.add(instance.getHost() + ":" + instance.getPort()));
-
-            if (instances.size() > 0) {
-                String instanceList = StringUtils.collectionToDelimitedString(instances, ",");
-
-                LOG.info("Auto-discovered {} {} instance(s) - adding property {} = {}", instances.size(), service, property, instanceList);
-
-                gatheredProperties.put(property, instanceList);
-            } else {
-                LOG.info("Auto-discovered 0 {} instance(s) - not populating property {}", service, property);
-            }
-        });
-
-        environment.getPropertySources().addFirst(new MapPropertySource("Auto-discovered services", gatheredProperties));
+        environment.getPropertySources().addFirst(new MapPropertySource("Auto-discovered services", discoverServices()));
 
         // Initialize the property source locator if KV-lookups are enabled (service.configuration.enabled)
-
         if (propertySourceLocator != null) {
             environment.getPropertySources().addFirst(propertySourceLocator.locate(environment));
         }
@@ -131,12 +110,36 @@ public class ParentDiscoveryConfiguration {
             }
 
             LOG.warn("Found deprecated 'persistence.*.enabled' property - re-writing to 'persistence.strategy'");
-
-            Map<String, Object> propertyMap = Collections.unmodifiableMap(Stream.of(
-                    new AbstractMap.SimpleEntry<>("persistence.strategy", strategy)
-            ).collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
-
-            environment.getPropertySources().addFirst(new MapPropertySource("strategy", propertyMap));
+            environment.getPropertySources().addFirst(new MapPropertySource("strategy", ImmutableMap.of("persistence.strategy", strategy)));
         }
+    }
+
+    Map<String, Object> discoverServices() {
+        Map<String, Object> gatheredProperties = new HashMap<>();
+        DISCOVERABLE_SERVICE_PROPERTIES.forEach((service, property) -> {
+            LOG.info("Discovering service {} for property {}", service, property);
+            List<ServiceInstance> discoveredInstances = discoveryClient.getInstances(service);
+            List<String> instances = discoveredInstances.stream()
+                    .filter(instance -> instance.getMetadata().containsKey("tenant-" + tenant))
+                    .peek(instance -> LOG.debug("Discovered tenant specific service {}", instance))
+                    .map(instance -> instance.getHost() + ":" + instance.getPort())
+                    .collect(Collectors.toList());
+            if (instances.size() == 0 && discoveredInstances.size() > 0) {
+                instances = discoveredInstances.stream()
+                        .filter(instance -> instance.getMetadata().keySet().stream().filter(key -> key.startsWith("tenant-")).count() == 0)
+                        .peek(instance -> LOG.debug("Discovered shared service {}", instance))
+                        .map(instance -> instance.getHost() + ":" + instance.getPort())
+                        .collect(Collectors.toList());
+            }
+
+            if (instances.size() > 0) {
+                LOG.info("Auto-discovered {} {} instance(s) - adding property {}", instances.size(), service, property);
+
+                gatheredProperties.put(property, instances.stream().collect(Collectors.joining(",")));
+            } else {
+                LOG.info("Auto-discovered 0 {} instance(s) - not populating property {}", service, property);
+            }
+        });
+        return gatheredProperties;
     }
 }
