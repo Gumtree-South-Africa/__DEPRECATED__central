@@ -2,11 +2,13 @@ package com.ecg.messagecenter.webapi.responses;
 
 
 import com.ecg.messagecenter.util.MessageCenterUtils;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
 * User: maldana
@@ -18,6 +20,8 @@ import java.util.List;
 public class PostBoxResponse {
 
     private Integer numUnread;
+    //not supported for newCounterMode
+    private Map<ConversationRole, Integer> numUnreadPerRole = new HashMap<>();
     private DateTime lastModified;
     private Meta _meta;
     private List<PostBoxListItemResponse> conversations = new ArrayList<PostBoxListItemResponse>();
@@ -29,10 +33,11 @@ public class PostBoxResponse {
         return this;
     }
 
-    public PostBoxResponse initNumUnread(Integer num, DateTime lastModified) {
+    public PostBoxResponse initNumUnread(Integer num, Integer numUnreadAsBuyer, Integer numUnreadAsSeller, DateTime lastModified) {
         this.numUnread = num;
+        this.numUnreadPerRole.put(ConversationRole.Buyer, numUnreadAsBuyer);
+        this.numUnreadPerRole.put(ConversationRole.Seller, numUnreadAsSeller);
         this.lastModified = lastModified;
-
         return this;
     }
 
@@ -50,6 +55,10 @@ public class PostBoxResponse {
 
     public Integer getNumUnread() {
         return numUnread;
+    }
+
+    public Map<ConversationRole, Integer> getNumUnreadPerRole() {
+        return numUnreadPerRole;
     }
 
     public String getLastModified() {

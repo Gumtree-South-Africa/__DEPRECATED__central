@@ -100,8 +100,9 @@ public class VolumeFilterClusterIntegrationTest {
 
     @Test
     public void twoNodes_sameInstances_combinedCalculation() throws Exception {
-        volumeFilter1 = new VolumeFilter("vf-test-sameInstance", hazelcastInstance1, ImmutableList.of(singleMessageQuota), false, activation);
-        volumeFilter2 = new VolumeFilter("vf-test-sameInstance", hazelcastInstance2, ImmutableList.of(singleMessageQuota), false, activation);
+        String testSpecificFilterName = "vf-test-sameInstance".concat(String.valueOf(System.currentTimeMillis()));
+        volumeFilter1 = new VolumeFilter(testSpecificFilterName, hazelcastInstance1, ImmutableList.of(singleMessageQuota), false, activation);
+        volumeFilter2 = new VolumeFilter(testSpecificFilterName, hazelcastInstance2, ImmutableList.of(singleMessageQuota), false, activation);
 
         assertThat(volumeFilter1.doFilter(messageProcessingContext), empty());
         assertThat(volumeFilter2.doFilter(messageProcessingContext).size(), is(1));

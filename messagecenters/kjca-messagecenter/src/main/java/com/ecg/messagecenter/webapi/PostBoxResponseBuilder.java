@@ -17,6 +17,7 @@ import java.util.List;
 public class PostBoxResponseBuilder {
 
     private final RiakConversationBlockRepository conversationBlockRepository;
+    private final static int MAX_UNREAD_NUMBER = 30;
 
     public PostBoxResponseBuilder(RiakConversationBlockRepository conversationBlockRepository) {
         this.conversationBlockRepository = conversationBlockRepository;
@@ -30,9 +31,9 @@ public class PostBoxResponseBuilder {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         if (newCounterMode) {
-            postBoxResponse.initNumUnread(postBox.getNewRepliesCounter().getValue().intValue(), postBox.getLastModification());
+            postBoxResponse.initNumUnread(postBox.getNewRepliesCounter().getValue().intValue(), null, null, postBox.getLastModification());
         } else {
-            postBoxResponse.initNumUnread(postBox.getUnreadConversationsCapped().size(), postBox.getLastModification());
+            postBoxResponse.initNumUnread(postBox.getUnreadConversationsCapped().size(), getNumUnreadForRole(email, ConversationRole.Buyer, postBox, MAX_UNREAD_NUMBER), getNumUnreadForRole(email, ConversationRole.Seller, postBox, MAX_UNREAD_NUMBER), postBox.getLastModification());
         }
 
         initConversationsPayload(email, postBox.getFilteredConversationThreads(roleFilter(role, email), page, size), postBoxResponse);
@@ -40,6 +41,16 @@ public class PostBoxResponseBuilder {
         postBoxResponse.meta(postBox.getConversationThreads().size(), page, size);
 
         return ResponseObject.of(postBoxResponse);
+    }
+
+    int getNumUnreadForRole(String email, ConversationRole role, PostBox postBox, int maxNum) {
+        return Math.toIntExact(
+                postBox.getConversationThreads().stream()
+                        .filter(thread -> ((AbstractConversationThread) thread).isContainsUnreadMessages())
+                        .filter(thread -> ConversationBoundnessFinder.lookupUsersRole(email, (AbstractConversationThread) thread) == role)
+                        .limit(maxNum)
+                        .count()
+        );
     }
 
 

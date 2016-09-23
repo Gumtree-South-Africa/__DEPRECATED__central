@@ -128,6 +128,8 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .expect()
                 .statusCode(200)
                 .body("body.numUnread", equalTo(2))
+                .body("body.numUnreadPerRole.Seller", equalTo(2))
+                .body("body.numUnreadPerRole.Buyer", equalTo(0))
                 .get("http://localhost:" + testRule.getHttpPort() + "/message-center/postboxes/seller1@seller.com");
 
         RestAssured.given()
