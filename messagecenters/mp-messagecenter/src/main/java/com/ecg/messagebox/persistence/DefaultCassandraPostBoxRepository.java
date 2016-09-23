@@ -1,6 +1,5 @@
 package com.ecg.messagebox.persistence;
 
-import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.messagebox.model.*;
@@ -8,36 +7,25 @@ import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.persistence.jsonconverter.JsonConverter;
 import com.ecg.messagebox.persistence.model.ConversationIndex;
 import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
-import com.ecg.messagebox.util.InstrumentedCallerRunsPolicy;
-import com.ecg.messagebox.util.InstrumentedExecutorService;
 import com.ecg.messagebox.util.StreamUtils;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.datastax.driver.core.utils.UUIDs.unixTimestamp;
 import static com.ecg.messagebox.model.Visibility.get;
 import static com.ecg.messagebox.util.uuid.UUIDComparator.staticCompare;
-import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
-import static com.google.common.collect.Lists.newArrayList;
+import static java.util.stream.Collectors.toList;
 
 @Component(("newCassandraPostBoxRepo"))
 public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCassandraPostBoxRepository.class);
 
     private final Timer getPaginatedConversationIdsTimer = newTimer("cassandra.postBoxRepo.v2.getPaginatedConversationIds");
     private final Timer getPostBoxTimer = newTimer("cassandra.postBoxRepo.v2.getPostBox");
@@ -57,88 +45,46 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer getConversationModificationsByHourTimer = newTimer("cassandra.postBoxRepo.v2.getConversationModificationsByHour");
     private final Timer getLastConversationModificationTimer = newTimer("cassandra.postBoxRepo.v2.getLastConversationModificationTimer");
 
-    private final Counter postBoxFutureFailures = newCounter("cassandra.postBoxRepo.v2.getPostBox-futureFailures");
-    private final Counter conversationFutureFailures = newCounter("cassandra.postBoxRepo.v2.getConversationWithMessages-futureFailures");
-
     private final Session session;
     private final ConsistencyLevel readConsistency;
     private final ConsistencyLevel writeConsistency;
 
     private Map<Statements, PreparedStatement> preparedStatements;
 
-    private final ExecutorService executorService;
-
     private final JsonConverter jsonConverter;
 
-    private final int timeoutInMs;
-
     @Autowired
-    public DefaultCassandraPostBoxRepository(@Qualifier("cassandraSession") Session session,
-                                             @Qualifier("cassandraReadConsistency") ConsistencyLevel readConsistency,
-                                             @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency,
-                                             JsonConverter jsonConverter,
-                                             @Value("${messagebox.future.timeout.ms:5000}") int timeoutInMs,
-                                             @Value("${messagebox.convRepo.execSrv.corePoolSize:5}") int corePoolSize,
-                                             @Value("${messagebox.convRepo.execSrv.maxPoolSize:50}") int maxPoolSize) {
+    public DefaultCassandraPostBoxRepository(
+            @Qualifier("cassandraSession") Session session,
+            @Qualifier("cassandraReadConsistency") ConsistencyLevel readConsistency,
+            @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency,
+            JsonConverter jsonConverter
+    ) {
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
-
-        String metricsOwner = "newCassandraPostBoxRepo";
-        String metricsName = "execSrv";
-        this.executorService = new InstrumentedExecutorService(
-                new ThreadPoolExecutor(
-                        corePoolSize, maxPoolSize,
-                        60L, TimeUnit.SECONDS,
-                        new SynchronousQueue<>(),
-                        new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)
-                ),
-                metricsOwner,
-                metricsName);
-
-        this.timeoutInMs = timeoutInMs;
-
         this.jsonConverter = jsonConverter;
-
-        preparedStatements = Statements.prepare(session);
+        this.preparedStatements = Statements.prepare(session);
     }
 
     @Override
     public PostBox getPostBox(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit) {
         try (Timer.Context ignored = getPostBoxTimer.time()) {
-            Future<PaginatedConversationIds> conversationIdsFuture = executorService.submit(() -> getPaginatedConversationIds(userId, visibility, conversationsOffset, conversationsLimit));
-            Future<Map<String, Integer>> unreadCountsFuture = executorService.submit(() -> getConversationUnreadCountMap(userId));
+            PaginatedConversationIds paginatedConversationIds = getPaginatedConversationIds(userId, visibility, conversationsOffset, conversationsLimit);
+            ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATIONS.bind(this, userId, paginatedConversationIds.getConversationIds()));
 
-            try {
-                PaginatedConversationIds paginatedConversationIds = conversationIdsFuture.get(timeoutInMs, TimeUnit.SECONDS);
+            Map<String, Integer> conversationUnreadCountsMap = getConversationUnreadCountMap(userId);
+            List<ConversationThread> conversations = StreamUtils.toStream(resultSet)
+                    .map(row -> {
+                        ConversationThread conversation = createConversation(userId, row);
+                        conversation.addNumUnreadMessages(conversationUnreadCountsMap.getOrDefault(row.getString("convid"), 0));
+                        return conversation;
+                    }).sorted((c1, c2) -> staticCompare(c2.getLatestMessage().getId(), c1.getLatestMessage().getId()))
+                    .collect(toList());
 
-                ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATIONS.bind(this, userId, paginatedConversationIds.getConversationIds()));
+            UserUnreadCounts userUnreadCounts = createUserUnreadCounts(userId, conversationUnreadCountsMap.values());
 
-                Map<String, Integer> conversationUnreadCountsMap = unreadCountsFuture.get(timeoutInMs, TimeUnit.SECONDS);
-
-                List<ConversationThread> conversations = StreamUtils.toStream(resultSet)
-                        .map(row -> {
-                            ConversationThread conversation = createConversation(userId, row);
-                            conversation.addNumUnreadMessages(conversationUnreadCountsMap.getOrDefault(row.getString("convid"), 0));
-                            return conversation;
-                        })
-                        .sorted((c1, c2) -> staticCompare(c2.getLatestMessage().getId(), c1.getLatestMessage().getId()))
-                        .collect(Collectors.toList());
-
-                UserUnreadCounts userUnreadCounts = createUserUnreadCounts(userId, conversationUnreadCountsMap.values());
-
-                return new PostBox(userId, conversations, userUnreadCounts, paginatedConversationIds.getConversationsTotalCount());
-
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                if (e instanceof InterruptedException) {
-                    Thread.currentThread().interrupt();
-                }
-                conversationIdsFuture.cancel(true);
-                unreadCountsFuture.cancel(true);
-                postBoxFutureFailures.inc();
-                LOGGER.error("Could not fetch conversation indices for user id {} and visibility {}", userId, visibility.name(), e);
-                throw new RuntimeException(e);
-            }
+            return new PostBox(userId, conversations, userUnreadCounts, paginatedConversationIds.getConversationsTotalCount());
         }
     }
 
@@ -147,19 +93,16 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATION_INDICES.bind(this, userId));
 
             List<String> allConversationIds = StreamUtils.toStream(resultSet)
-                    .map(row -> new ConversationIndex(row.getString("convid"),
-                            row.getString("adid"),
-                            get(row.getInt("vis")),
-                            row.getUUID("latestmsgid")))
+                    .map(row -> new ConversationIndex(row.getString("convid"), row.getString("adid"), get(row.getInt("vis")), row.getUUID("latestmsgid")))
                     .filter(ci -> ci.getVisibility() == visibility)
                     .sorted((ci1, ci2) -> staticCompare(ci2.getLatestMessageId(), ci1.getLatestMessageId()))
                     .map(ConversationIndex::getConversationId)
-                    .collect(Collectors.toList());
+                    .collect(toList());
 
             List<String> paginatedConversationIds = allConversationIds.stream()
                     .skip(offset * limit)
                     .limit(limit)
-                    .collect(Collectors.toList());
+                    .collect(toList());
 
             return new PaginatedConversationIds(paginatedConversationIds, allConversationIds.size());
         }
@@ -171,7 +114,8 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             return StreamUtils.toStream(resultSet)
                     .collect(Collectors.toMap(
                             row -> row.getString("convid"),
-                            row -> row.getInt("unread")));
+                            row -> row.getInt("unread"))
+                    );
         }
     }
 
@@ -186,36 +130,19 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     @Override
     public Optional<ConversationThread> getConversationWithMessages(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit) {
         try (Timer.Context ignored = getConversationWithMessagesTimer.time()) {
-            Future<Integer> unreadMessagesCountFuture = executorService.submit(() -> getConversationUnreadCount(userId, conversationId));
-            Future<Row> conversationFuture = executorService.submit(() -> session.execute(Statements.SELECT_CONVERSATION.bind(this, userId, conversationId)).one());
-            Future<List<Message>> messagesFuture = executorService.submit(() -> getConversationMessages(userId, conversationId, messageIdCursorOpt, messagesLimit));
+            Row row = session.execute(Statements.SELECT_CONVERSATION.bind(this, userId, conversationId)).one();
+            if (row != null) {
+                ConversationThread conversation = createConversation(userId, row);
 
-            try {
-                Row row = conversationFuture.get(timeoutInMs, TimeUnit.SECONDS);
-                if (row != null) {
-                    ConversationThread conversation = createConversation(userId, row);
+                int unreadMessagesCount = getConversationUnreadCount(userId, conversationId);
+                conversation.addNumUnreadMessages(unreadMessagesCount);
 
-                    int unreadMessagesCount = unreadMessagesCountFuture.get(timeoutInMs, TimeUnit.SECONDS);
-                    conversation.addNumUnreadMessages(unreadMessagesCount);
+                List<Message> messages = getConversationMessages(userId, conversationId, messageIdCursorOpt, messagesLimit);
+                conversation.addMessages(messages);
 
-                    List<Message> messages = messagesFuture.get(timeoutInMs, TimeUnit.SECONDS);
-                    conversation.addMessages(messages);
-
-                    return Optional.of(conversation);
-                } else {
-                    return Optional.empty();
-                }
-
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                if (e instanceof InterruptedException) {
-                    Thread.currentThread().interrupt();
-                }
-                unreadMessagesCountFuture.cancel(true);
-                conversationFuture.cancel(true);
-                messagesFuture.cancel(true);
-                conversationFutureFailures.inc();
-                LOGGER.error("Could not fetch conversation for user identifier {} and conversation id {}", userId, conversationId, e);
-                throw new RuntimeException(e);
+                return Optional.of(conversation);
+            } else {
+                return Optional.empty();
             }
         }
     }
@@ -235,7 +162,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                                 metadata);
                     })
                     .sorted((m1, m2) -> staticCompare(m1.getId(), m2.getId()))
-                    .collect(Collectors.toList());
+                    .collect(toList());
         }
     }
 
@@ -258,7 +185,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             ResultSet result = session.execute(Statements.SELECT_USER_UNREAD_COUNTS.bind(this, userId));
             List<Integer> conversationUnreadCounts = StreamUtils.toStream(result)
                     .map(row -> row.getInt("unread"))
-                    .collect(Collectors.toList());
+                    .collect(toList());
             return createUserUnreadCounts(userId, conversationUnreadCounts);
         }
     }
@@ -340,13 +267,10 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     private List<Statement> newMessageCqlStatements(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount) {
-        List<Statement> statements = new ArrayList<>();
-
+        List<Statement> statements = new ArrayList();
         statements.add(Statements.UPDATE_AD_CONVERSATION_INDEX.bind(this, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
-
         String messageMetadata = jsonConverter.toMessageMetadataJson(userId, conversationId, message);
-        statements.add(Statements.INSERT_MESSAGE.bind(this, userId, conversationId,
-                message.getId(), message.getType().getValue(), messageMetadata));
+        statements.add(Statements.INSERT_MESSAGE.bind(this, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
 
         if (incrementUnreadCount) {
             int newUnreadCount = getConversationUnreadCount(userId, conversationId) + 1;
@@ -429,8 +353,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     @Override
     public ConversationModification getLastConversationModification(String userId, String convId) {
         try (Timer.Context ignored = getLastConversationModificationTimer.time()) {
-            ResultSet resultSet = session.execute(Statements.SELECT_LATEST_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, convId));
-            Row row = resultSet.one();
+            Row row = session.execute(Statements.SELECT_LATEST_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, convId)).one();
             if (row == null) {
                 return null;
             }
@@ -452,7 +375,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     enum Statements {
-
         // select the user's unread counts
         SELECT_USER_UNREAD_COUNTS("SELECT unread FROM mb_conversation_unread_counts WHERE usrid = ?"),
 
