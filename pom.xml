@@ -289,7 +289,7 @@
         <jolokia-spring.version>1.1.1</jolokia-spring.version>
         <mongo-java-driver-version>2.13.0</mongo-java-driver-version>
         <amqp-client-version>3.4.2</amqp-client-version>
-        <logstash-logback-encoder-version>4.4</logstash-logback-encoder-version>
+        <logstash-logback-encoder-version>4.7</logstash-logback-encoder-version>
         <jolokia-version>1.1.1</jolokia-version>
         <antlr-version>3.5.2</antlr-version>
         <archaius.version>0.7.4</archaius.version>
@@ -551,6 +551,10 @@
                     <exclusion>
                         <groupId>com.fasterxml.jackson.core</groupId>
                         <artifactId>jackson-databind</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>ch.qos.logback</groupId>
+                        <artifactId>logback-core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1462,6 +1466,10 @@
                                 <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                             </manifest>
                         </archive>
+                        <excludes>
+                            <exclude>**/logging.xml</exclude>
+                            <exclude>**/logging-test.xml</exclude>
+                        </excludes>
                     </configuration>
                 </plugin>
                 <plugin>
