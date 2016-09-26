@@ -1,7 +1,10 @@
 package com.ecg.messagebox.controllers.responses;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.Objects;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ParticipantResponse {
 
     private final String userId;

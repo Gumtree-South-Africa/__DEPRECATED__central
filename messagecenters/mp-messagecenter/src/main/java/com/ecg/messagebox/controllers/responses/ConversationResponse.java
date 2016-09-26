@@ -1,9 +1,12 @@
 package com.ecg.messagebox.controllers.responses;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConversationResponse {
 
     private final String id;
