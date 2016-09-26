@@ -51,19 +51,22 @@ public class CassandraPostBoxServiceTest {
     private static final String BUYER_NAME_VALUE = "buyer";
     private static final String SELLER_NAME_VALUE = "seller";
 
-    @Mock private CassandraPostBoxRepository conversationsRepoMock;
-    @Mock private UserIdentifierService userIdentifierServiceMock;
-    @Mock private BlockUserRepository blockUserRepository;
+    @Mock
+    private CassandraPostBoxRepository conversationsRepo;
+    @Mock
+    private UserIdentifierService userIdentifierService;
+    @Mock
+    private BlockUserRepository blockUserRepo;
 
-    private CassandraPostBoxService service = new CassandraPostBoxService(conversationsRepoMock, userIdentifierServiceMock, blockUserRepository);
+    private CassandraPostBoxService service;
 
     @Before
     public void setup() {
-		DateTimeUtils.setCurrentMillisFixed(now().getMillis());
-        service = new CassandraPostBoxService(conversationsRepoMock, userIdentifierServiceMock, blockUserRepository);
-        when(userIdentifierServiceMock.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
-        when(userIdentifierServiceMock.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
-        when(blockUserRepository.areUsersBlocked(any(), any())).thenReturn(false);
+        DateTimeUtils.setCurrentMillisFixed(now().getMillis());
+        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService, blockUserRepo);
+        when(userIdentifierService.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
+        when(userIdentifierService.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
+        when(blockUserRepo.areUsersBlocked(any(), any())).thenReturn(false);
     }
 
     @After
@@ -73,7 +76,7 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void processNewMessageWithCorrectSubject() {
-        when(conversationsRepoMock.getConversation(anyString(), anyString())).thenReturn(Optional.empty());
+        when(conversationsRepo.getConversation(anyString(), anyString())).thenReturn(Optional.empty());
 
         Message rtsMsg1 = newMessage("1", SELLER_TO_BUYER, MessageState.SENT, DEFAULT_SUBJECT);
         Message rtsMsg2 = newMessage("2", SELLER_TO_BUYER, MessageState.SENT, "Another subject");
@@ -82,7 +85,7 @@ public class CassandraPostBoxServiceTest {
 
         ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
         ArgumentCaptor<com.ecg.messagebox.model.Message> messageArgCaptor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
-        verify(conversationsRepoMock).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), anyBoolean());
+        verify(conversationsRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), anyBoolean());
 
         ConversationThread capturedConversationThread = conversationThreadArgCaptor.getValue();
         Assert.assertEquals(DEFAULT_SUBJECT, capturedConversationThread.getMetadata().getEmailSubject());
@@ -96,7 +99,7 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void processNewMessageWithMetadataHeader() {
-        when(conversationsRepoMock.getConversation(USER_ID_1, "c1")).thenReturn(Optional.empty());
+        when(conversationsRepo.getConversation(USER_ID_1, "c1")).thenReturn(Optional.empty());
 
         Message rtsMsg = newMessageWithMetadata("1", SELLER_TO_BUYER, MessageState.SENT);
 
@@ -120,7 +123,7 @@ public class CassandraPostBoxServiceTest {
 
         service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true);
 
-        verify(conversationsRepoMock).createConversation(USER_ID_1, conversation, newMessage, true);
+        verify(conversationsRepo).createConversation(USER_ID_1, conversation, newMessage, true);
     }
 
     private ImmutableConversation.Builder newConversation(String id) {

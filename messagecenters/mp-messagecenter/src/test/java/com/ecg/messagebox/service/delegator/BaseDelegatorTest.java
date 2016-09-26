@@ -5,7 +5,7 @@ import com.ecg.messagebox.configuration.NewModelConfiguration;
 import com.ecg.messagebox.oldconverters.OldConversationResponseConverter;
 import com.ecg.messagebox.oldconverters.OldPostBoxResponseConverter;
 import com.ecg.messagebox.oldconverters.OldUnreadCountsConverter;
-import com.ecg.messagebox.diff.Diff;
+import com.ecg.messagebox.diff.DiffTool;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagecenter.persistence.PostBoxUnreadCounts;
 import com.ecg.messagecenter.webapi.responses.ConversationResponse;
@@ -33,7 +33,7 @@ public class BaseDelegatorTest {
     OldConversationResponseConverter convRespConverter = mock(OldConversationResponseConverter.class);
 
     // mocked diff tool
-    Diff diff = mock(Diff.class);
+    DiffTool diff = mock(DiffTool.class);
 
     NewModelConfiguration newModelConfig = mock(NewModelConfiguration.class);
     DiffConfiguration diffConfig = mock(DiffConfiguration.class);

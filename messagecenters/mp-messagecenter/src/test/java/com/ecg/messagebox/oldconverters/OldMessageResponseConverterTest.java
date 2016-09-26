@@ -52,6 +52,7 @@ public class OldMessageResponseConverterTest {
                 toFormattedTimeISO8601ExplicitTimezoneOffset(new DateTime(UUIDs.unixTimestamp(MSG_ID))),
                 boundness,
                 MSG_TEXT,
-                SENDER_EMAIL);
+                SENDER_EMAIL,
+                "asq");
     }
 }

@@ -5,7 +5,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.configuration.DiffConfiguration;
 import com.ecg.messagebox.configuration.NewModelConfiguration;
-import com.ecg.messagebox.diff.Diff;
+import com.ecg.messagebox.diff.DiffTool;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.oldconverters.OldConversationResponseConverter;
 import com.ecg.messagebox.oldconverters.OldPostBoxResponseConverter;
@@ -73,7 +73,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
     private final OldUnreadCountsConverter unreadCountsConverter;
 
     private final DiffConfiguration diffConfig;
-    private final Diff diff;
+    private final DiffTool diff;
     private final int diffCorePoolSize;
     private final int diffMaxPoolSize;
     private final int diffMaxQueueSize;
@@ -89,7 +89,7 @@ public class PostBoxServiceDelegator implements PostBoxService {
                                    OldPostBoxResponseConverter postBoxResponseConverter,
                                    OldConversationResponseConverter conversationResponseConverter,
                                    OldUnreadCountsConverter unreadCountsConverter,
-                                   Diff diff,
+                                   DiffTool diff,
                                    NewModelConfiguration newModelConfig,
                                    DiffConfiguration diffConfig,
                                    @Value("${messagebox.oldModel.enabled:true}") boolean oldModelEnabled,

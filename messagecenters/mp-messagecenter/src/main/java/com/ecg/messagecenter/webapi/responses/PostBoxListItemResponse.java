@@ -8,6 +8,7 @@ import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
@@ -138,6 +139,11 @@ public class PostBoxListItemResponse {
 
     public String getTextShortTrimmed() {
         return lastMessage.getTextShortTrimmed();
+    }
+
+    @JsonIgnore
+    public String getMessageType() {
+        return lastMessage.getMessageType();
     }
 
     @Override

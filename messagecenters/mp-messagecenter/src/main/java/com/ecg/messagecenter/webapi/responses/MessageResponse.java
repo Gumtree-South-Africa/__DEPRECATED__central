@@ -19,23 +19,27 @@ public class MessageResponse {
     private final String receivedDate;
 
     // required by the diff tool
+    private String messageType;
+
+    // required by the diff tool
     private Optional<String> messageId = Optional.absent();
 
     public MessageResponse(String receivedDate, MailTypeRts boundness, String textShort) {
-        this(receivedDate, boundness, textShort, null);
+        this(receivedDate, boundness, textShort, null, null);
     }
 
-    public MessageResponse(String messageId, String receivedDate, MailTypeRts boundness, String textShort, String senderEmail) {
-        this(receivedDate, boundness, textShort, senderEmail);
+    public MessageResponse(String messageId, String receivedDate, MailTypeRts boundness, String textShort, String senderEmail, String messageType) {
+        this(receivedDate, boundness, textShort, senderEmail, messageType);
         this.messageId = Optional.of(messageId);
     }
 
-    public MessageResponse(String receivedDate, MailTypeRts boundness, String textShort, String senderEmail) {
+    public MessageResponse(String receivedDate, MailTypeRts boundness, String textShort, String senderEmail, String messageType) {
         this.senderEmail = senderEmail;
         this.boundness = boundness;
         this.textShort = textShort;
         this.textShortTrimmed = REMOVE_DOUBLE_WHITESPACES.matcher(textShort).replaceAll(" ");
         this.receivedDate = receivedDate;
+        this.messageType = messageType;
     }
 
     public String getSenderEmail() {
@@ -56,6 +60,11 @@ public class MessageResponse {
 
     public String getReceivedDate() {
         return receivedDate;
+    }
+
+    @JsonIgnore
+    public String getMessageType() {
+        return messageType;
     }
 
     @JsonIgnore

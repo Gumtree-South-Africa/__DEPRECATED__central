@@ -38,8 +38,8 @@ public class OldPostBoxResponseConverter {
         String projectionOwnerUserId = newPostBox.getUserId();
         newPostBox.getConversations().forEach(conv -> {
                     BuyerSellerInfo bsInfo = new BuyerSellerInfoBuilder(conv.getParticipants()).build();
-            String creationDateStr = conv.getMetadata().getCreationDate()
-                    .map(MessageCenterUtils::toFormattedTimeISO8601ExplicitTimezoneOffset).orElse(null);
+                    String creationDateStr = conv.getMetadata().getCreationDate()
+                            .map(MessageCenterUtils::toFormattedTimeISO8601ExplicitTimezoneOffset).orElse(null);
                     PostBoxListItemResponse itemResponse = new PostBoxListItemResponse(
                             conv.getId(),
                             bsInfo.getBuyerName(),
@@ -64,6 +64,7 @@ public class OldPostBoxResponseConverter {
                 msgResp.getReceivedDate(),
                 msgResp.getBoundness(),
                 truncateText(msgResp.getTextShort(), msgTextMaxChars),
-                msgResp.getSenderEmail());
+                msgResp.getSenderEmail(),
+                message.getType().getValue());
     }
 }

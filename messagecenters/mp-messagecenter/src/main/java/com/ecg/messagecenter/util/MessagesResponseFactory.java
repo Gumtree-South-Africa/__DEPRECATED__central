@@ -102,7 +102,8 @@ public class MessagesResponseFactory {
                         MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(firstMessage.getReceivedAt()),
                         ConversationBoundnessFinder.boundnessForRole(role, firstMessage.getMessageDirection()),
                         getUserMessage(firstMessage),
-                        conv.getBuyerId()));
+                        conv.getBuyerId(),
+                        firstMessage.getHeaders().get("X-Message-Type")));
     }
 
     private void addReplyMessages(ConversationRole role, Conversation conv, List<Message> messageRts, List<MessageResponse> transformedMessages) {
@@ -113,7 +114,8 @@ public class MessagesResponseFactory {
                             MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(messageRts.get(i).getReceivedAt()),
                             ConversationBoundnessFinder.boundnessForRole(role, messageRts.get(i).getMessageDirection()),
                             getCleanedMessage(conv, messageRts.get(i)),
-                            messageRts.get(i).getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? conv.getBuyerId() : conv.getSellerId()
+                            messageRts.get(i).getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? conv.getBuyerId() : conv.getSellerId(),
+                            messageRts.get(i).getHeaders().get("X-Message-Type")
                     )
             );
         }

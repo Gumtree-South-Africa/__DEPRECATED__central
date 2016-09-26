@@ -46,9 +46,9 @@ public class OldPostBoxResponseConverterTest {
     private static final String C1_BUYER_NAME = "name 1", C1_SELLER_NAME = "name 2", C2_BUYER_NAME = "name 3", C2_SELLER_NAME = "name 1";
 
     private static final MessageResponse MSG_RESP_WITH_LONG_TXT =
-            new MessageResponse("receivedDate1", MailTypeRts.INBOUND, "a very long text", "senderEmail1");
+            new MessageResponse("receivedDate1", MailTypeRts.INBOUND, "a very long text", "senderEmail1", "asq");
     private static final MessageResponse MSG_RESP_WITH_SHORT_TXT =
-            new MessageResponse("receivedDate2", MailTypeRts.OUTBOUND, "short text", "senderEmail2");
+            new MessageResponse("receivedDate2", MailTypeRts.OUTBOUND, "short text", "senderEmail2", "asq");
 
     @Mock
     private OldMessageResponseConverter msgRespConverterMock;
@@ -90,7 +90,8 @@ public class OldPostBoxResponseConverterTest {
                 MSG_RESP_WITH_LONG_TXT.getReceivedDate(),
                 MSG_RESP_WITH_LONG_TXT.getBoundness(),
                 "a very...",
-                MSG_RESP_WITH_LONG_TXT.getSenderEmail()
+                MSG_RESP_WITH_LONG_TXT.getSenderEmail(),
+                "asq"
         );
         PostBoxResponse expected = new PostBoxResponse()
                 .initNumUnreadMessages(UNREAD_MSG_COUNT)

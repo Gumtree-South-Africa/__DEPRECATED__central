@@ -25,6 +25,7 @@ public class OldMessageResponseConverter {
                 MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(message.getReceivedDate()),
                 boundness,
                 message.getText(),
-                senderEmail);
+                senderEmail,
+                message.getType().getValue());
     }
 }
