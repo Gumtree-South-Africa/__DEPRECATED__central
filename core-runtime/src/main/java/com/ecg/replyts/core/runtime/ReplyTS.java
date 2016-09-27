@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Configuration
-@Import({ StartupExperience.class, EmbeddedWebserver.class })
+@Import({StartupExperience.class, EmbeddedWebserver.class})
 public class ReplyTS {
     private static final Logger LOG = LoggerFactory.getLogger(ReplyTS.class);
 
@@ -50,7 +50,7 @@ public class ReplyTS {
     @Lazy(false)
     @DependsOn("defaultContextsInitialized")
     public Boolean started(@Value("${replyts.control.context:control-context.xml}") String contextLocation, EmbeddedWebserver webserver, StartupExperience experience, ApplicationContext context) {
-        webserver.context(new SpringContextProvider("/", new String[] { "classpath:" + contextLocation }, context));
+        webserver.context(new SpringContextProvider("/", new String[]{"classpath:" + contextLocation}, context));
 
         webserver.start();
 
@@ -59,11 +59,11 @@ public class ReplyTS {
 
     public static void main(String[] args) throws Exception {
         try {
-            AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[] {
+            AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[]{
                 "classpath:server-context.xml",
                 "classpath:runtime-context.xml",
                 "classpath*:/plugin-inf/*.xml",
-            }, false, new AnnotationConfigApplicationContext(ParentDiscoveryConfiguration.class));
+            }, false, new AnnotationConfigApplicationContext(ParentConfiguration.class));
 
             context.getEnvironment().setActiveProfiles(PRODUCTIVE_PROFILE);
 

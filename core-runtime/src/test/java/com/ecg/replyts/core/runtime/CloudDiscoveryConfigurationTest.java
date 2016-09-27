@@ -17,10 +17,10 @@ import java.util.Collections;
 import java.util.Map;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ParentDiscoveryConfigurationTest {
+public class CloudDiscoveryConfigurationTest {
 
     @InjectMocks
-    ParentDiscoveryConfiguration parentDiscoveryConfiguration;
+    CloudDiscoveryConfiguration parentDiscoveryConfiguration;
 
     @Mock
     DiscoveryClient discoveryClient;

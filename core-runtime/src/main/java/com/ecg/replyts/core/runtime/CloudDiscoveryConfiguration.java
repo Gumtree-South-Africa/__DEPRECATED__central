@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.context.embedded.EmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
@@ -30,20 +31,20 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
-@PropertySource("file:${confDir}/replyts.properties")
 @PropertySource("discovery.properties")
 @EnableDiscoveryClient
 @EnableAutoConfiguration(exclude = FreeMarkerAutoConfiguration.class)
 @Import(ConsulConfigBootstrapConfiguration.class)
-public class ParentDiscoveryConfiguration {
-    private static final Logger LOG = LoggerFactory.getLogger(ParentDiscoveryConfiguration.class);
+@ConditionalOnExpression("#{'${service.configuration.enabled:false}' == 'true' || '${service.discovery.enabled:false}' == 'true'}")
+public class CloudDiscoveryConfiguration {
+    private static final Logger LOG = LoggerFactory.getLogger(CloudDiscoveryConfiguration.class);
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
             "cassandra", "persistence.cassandra.endpoint",
             "elasticsearch", "search.es.endpoints"
     );
 
-    @Value("${replyts.tenant}")
+    @Value("${replyts.tenant:generic}")
     private String tenant;
 
     @Value("${replyts.http.port:0}")
@@ -93,24 +94,6 @@ public class ParentDiscoveryConfiguration {
         // Initialize the property source locator if KV-lookups are enabled (service.configuration.enabled)
         if (propertySourceLocator != null) {
             environment.getPropertySources().addFirst(propertySourceLocator.locate(environment));
-        }
-    }
-
-    @PostConstruct
-    public void initializePersistenceStrategyIfMissing() {
-        if (!environment.containsProperty("persistence.strategy")) {
-            String strategy;
-
-            if (Boolean.parseBoolean(environment.getProperty("persistence.riak.enabled"))) {
-                strategy = "riak";
-            } else if (Boolean.parseBoolean(environment.getProperty("persistence.cassandra.enabled"))) {
-                strategy = "cassandra";
-            } else {
-                throw new IllegalStateException("No persistence (strategy) indicator found; e.g. persistence.strategy, persistence.cassandra.enabled, ..");
-            }
-
-            LOG.warn("Found deprecated 'persistence.*.enabled' property - re-writing to 'persistence.strategy'");
-            environment.getPropertySources().addFirst(new MapPropertySource("strategy", ImmutableMap.of("persistence.strategy", strategy)));
         }
     }
 
