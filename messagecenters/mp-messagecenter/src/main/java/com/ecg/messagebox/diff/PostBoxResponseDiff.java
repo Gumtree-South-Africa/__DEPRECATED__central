@@ -74,25 +74,26 @@ public class PostBoxResponseDiff {
         Set<String> oldConvIds = allOldConversations.stream().map(PostBoxListItemResponse::getId).collect(toSet());
 
         Set<String> convIdsInNewOnly = Sets.difference(newConvIds, oldConvIds);
-        if (convIdsInNewOnly.size() > 0) {
-            logPbConvDiff(
-                    convIdsInNewOnlyCounter,
-                    userId,
-                    convIdsInNewOnly.size() + " conversations in new model only",
-                    convIdsInNewOnly.stream().collect(Collectors.joining(", ")),
-                    false
-            );
-        }
-
         Set<String> convIdsInOldOnly = Sets.difference(oldConvIds, newConvIds);
-        if (convIdsInOldOnly.size() > 0) {
-            logPbConvDiff(
-                    convIdsInOldOnlyCounter,
-                    userId,
-                    convIdsInOldOnly.size() + " conversations in old model only",
-                    convIdsInOldOnly.stream().collect(Collectors.joining(", ")),
-                    false
-            );
+        if (convIdsInNewOnly.size() != convIdsInOldOnly.size()) {
+            if (convIdsInNewOnly.size() > 0) {
+                logPbConvDiff(
+                        convIdsInNewOnlyCounter,
+                        userId,
+                        convIdsInNewOnly.size() + " conversations in new model only",
+                        convIdsInNewOnly.stream().collect(Collectors.joining(", ")),
+                        false
+                );
+            }
+            if (convIdsInOldOnly.size() > 0) {
+                logPbConvDiff(
+                        convIdsInOldOnlyCounter,
+                        userId,
+                        convIdsInOldOnly.size() + " conversations in old model only",
+                        convIdsInOldOnly.stream().collect(Collectors.joining(", ")),
+                        false
+                );
+            }
         }
 
         if (convIdsInNewOnly.size() > 0 || convIdsInOldOnly.size() > 0) {
@@ -169,8 +170,8 @@ public class PostBoxResponseDiff {
                 SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
                 long oldReceivedDateMillis, newReceivedDateMillis;
                 try {
-                    oldReceivedDateMillis = format.parse(newConv.getReceivedDate()).getTime();
-                    newReceivedDateMillis = format.parse(oldConv.getReceivedDate()).getTime();
+                    oldReceivedDateMillis = format.parse(oldConv.getReceivedDate()).getTime();
+                    newReceivedDateMillis = format.parse(newConv.getReceivedDate()).getTime();
                 } catch (ParseException e) {
                     throw new RuntimeException(e);
                 }

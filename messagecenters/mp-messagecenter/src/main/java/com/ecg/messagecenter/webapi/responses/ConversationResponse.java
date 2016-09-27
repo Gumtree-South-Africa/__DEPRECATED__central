@@ -61,7 +61,6 @@ public class ConversationResponse {
         response.buyerEmail = conversationRts.getBuyerId();
         response.sellerEmail = conversationRts.getSellerId();
         String buyerUserIdName = userIdentifierService.getBuyerUserIdName();
-
         response.userIdBuyer = nullSafeParseLong(conversationRts.getCustomValues().get(buyerUserIdName));
         String sellerUserIdName = userIdentifierService.getSellerUserIdName();
         response.userIdSeller = nullSafeParseLong(conversationRts.getCustomValues().get(sellerUserIdName));

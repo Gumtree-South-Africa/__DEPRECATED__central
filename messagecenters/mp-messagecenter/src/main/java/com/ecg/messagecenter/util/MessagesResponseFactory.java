@@ -102,7 +102,7 @@ public class MessagesResponseFactory {
                         MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(firstMessage.getReceivedAt()),
                         ConversationBoundnessFinder.boundnessForRole(role, firstMessage.getMessageDirection()),
                         getUserMessage(firstMessage),
-                        conv.getBuyerId(),
+                        firstMessage.getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? conv.getBuyerId() : conv.getSellerId(),
                         firstMessage.getHeaders().get("X-Message-Type")));
     }
 

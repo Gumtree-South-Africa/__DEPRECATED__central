@@ -49,7 +49,10 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
                 .body("body.conversations[1].id", equalTo(convId1))
                 .body("body.conversations[1].adId", equalTo("232323"))
                 .body("body.conversations[1].latestMessage.text", equalTo("first contact from buyer 1"))
-                .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/conversations");
+                .body("body.offset", equalTo(0))
+                .body("body.limit", equalTo(300))
+                .body("body.totalCount", equalTo(2))
+                .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/conversations?offset=0&limit=300");
     }
 
     @Test
