@@ -8,8 +8,7 @@ import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.persistence.simple.DefaultRiakSimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterBlockCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
@@ -58,7 +57,7 @@ class ConversationThreadController {
     private static final Counter API_POSTBOX_EMPTY_CONVERSATION = TimingReports.newCounter("webapi-postbox-empty-conversation");
 
     @Autowired
-    private RiakSimplePostBoxRepository postBoxRepository;
+    private DefaultRiakSimplePostBoxRepository postBoxRepository;
     @Autowired
     private ConversationRepository conversationRepository;
     @Autowired

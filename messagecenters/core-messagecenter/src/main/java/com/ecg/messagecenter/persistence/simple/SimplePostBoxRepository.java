@@ -12,4 +12,5 @@ public interface SimplePostBoxRepository {
     void write(PostBox postBox, List<String> deletedIds);
 
     void cleanup(DateTime time);
+
 }

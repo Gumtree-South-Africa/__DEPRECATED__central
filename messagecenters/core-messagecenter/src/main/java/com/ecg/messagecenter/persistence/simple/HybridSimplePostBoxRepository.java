@@ -1,5 +1,7 @@
 package com.ecg.messagecenter.persistence.simple;
 
+import com.basho.riak.client.IndexEntry;
+import com.basho.riak.client.query.StreamingOperation;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,14 +9,14 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 
-public class HybridSimplePostBoxRepository implements SimplePostBoxRepository {
+public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepository {
     private static final Logger LOG = LoggerFactory.getLogger(HybridSimplePostBoxRepository.class);
 
-    private SimplePostBoxRepository riakRepository;
+    private RiakSimplePostBoxRepository riakRepository;
 
     private CassandraSimplePostBoxRepository cassandraRepository;
 
-    public HybridSimplePostBoxRepository(SimplePostBoxRepository riakRepository, CassandraSimplePostBoxRepository cassandraRepository) {
+    public HybridSimplePostBoxRepository(RiakSimplePostBoxRepository riakRepository, CassandraSimplePostBoxRepository cassandraRepository) {
         this.riakRepository = riakRepository;
         this.cassandraRepository = cassandraRepository;
     }
@@ -50,16 +52,22 @@ public class HybridSimplePostBoxRepository implements SimplePostBoxRepository {
 
     @Override
     public void cleanup(DateTime time) {
-        try {
-            riakRepository.cleanup(time);
-        } catch (RuntimeException e) {
-            LOG.error("Error while performing Riak PostBox cleanup", e);
-        }
-
-        try {
-            cassandraRepository.cleanup(time);
-        } catch (RuntimeException e) {
-            LOG.error("Error while performing Cassandra PostBox/ConversationThread cleanup", e);
-        }
+        throw new UnsupportedOperationException("Should be called from the individual cron jobs related to the repositories");
     }
+
+    @Override
+    public long getMessagesCount(DateTime fromDate, DateTime toDate) {
+        return riakRepository.getMessagesCount(fromDate, toDate);
+    }
+
+    @Override
+    public StreamingOperation<IndexEntry> streamPostBoxIds(DateTime fromDate, DateTime toDate) { // use endDate as its current date
+        return riakRepository.streamPostBoxIds(fromDate, toDate);
+    }
+
+    @Override
+    public List<String> getPostBoxIds(DateTime fromDate, DateTime toDate) {
+        return riakRepository.getPostBoxIds(fromDate, toDate);
+    }
+
 }

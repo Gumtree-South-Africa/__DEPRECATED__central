@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Primary;
 public class HybridConversationBlockConfiguration {
     @Bean
     @Primary
-    public ConversationBlockRepository postBoxRepository(RiakConversationBlockRepository riakRepository, CassandraConversationBlockRepository cassandraRepository) {
+    public ConversationBlockRepository conversationBlockRepository(RiakConversationBlockRepository riakRepository, CassandraConversationBlockRepository cassandraRepository) {
         return new HybridConversationBlockRepository(riakRepository, cassandraRepository);
     }
 }

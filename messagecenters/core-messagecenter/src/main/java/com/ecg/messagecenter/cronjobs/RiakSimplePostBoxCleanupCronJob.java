@@ -19,7 +19,7 @@ public class RiakSimplePostBoxCleanupCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(RiakSimplePostBoxCleanupCronJob.class);
 
     @Autowired
-    private RiakSimplePostBoxRepository postBoxRepository;
+    private RiakSimplePostBoxRepository riakSimplePostBoxRepository;
 
     @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;
@@ -33,7 +33,7 @@ public class RiakSimplePostBoxCleanupCronJob implements CronJobExecutor {
         LOG.info("Deleting PostBoxes untouched for more than {} days: everything before '{}'", cleanupDayBoundary, deletePostBoxesBefore);
 
         try {
-            postBoxRepository.cleanup(deletePostBoxesBefore);
+            riakSimplePostBoxRepository.cleanup(deletePostBoxesBefore);
         } catch (RuntimeException e) {
             LOG.error("Cleanup: PostBox cleanup failed", e);
         }

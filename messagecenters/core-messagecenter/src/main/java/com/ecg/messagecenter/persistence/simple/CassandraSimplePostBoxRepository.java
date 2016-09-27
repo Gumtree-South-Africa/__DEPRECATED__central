@@ -328,4 +328,5 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             super(cql, modifying);
         }
     }
+
 }

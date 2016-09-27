@@ -4,7 +4,7 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
+import com.ecg.messagecenter.persistence.simple.DefaultRiakSimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetAdConversationRecipientsCommand;
 import com.ecg.messagecenter.webapi.responses.AdConversationRecipientListResponse;
 import com.ecg.messagecenter.webapi.responses.BuyerContactResponse;
@@ -45,13 +45,13 @@ class AdConversationRecipientsController {
     private static final Histogram API_NUM_CONVERSATIONS_BY_AD = TimingReports.newHistogram("webapi-postbox-num-conversations-by-ad");
 
 
-    private final RiakSimplePostBoxRepository postBoxRepository;
+    private final DefaultRiakSimplePostBoxRepository postBoxRepository;
     private final ConversationRepository conversationRepository;
 
     @Autowired
     public AdConversationRecipientsController(
             ConversationRepository conversationRepository,
-            RiakSimplePostBoxRepository postBoxRepository) {
+            DefaultRiakSimplePostBoxRepository postBoxRepository) {
 
         this.conversationRepository = conversationRepository;
         this.postBoxRepository = postBoxRepository;

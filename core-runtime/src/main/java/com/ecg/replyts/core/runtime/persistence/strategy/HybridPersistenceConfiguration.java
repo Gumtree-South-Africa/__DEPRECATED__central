@@ -69,7 +69,7 @@ public class HybridPersistenceConfiguration {
     private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
 
     @Bean
-    public ConversationRepository conversationRepository(Session cassandraSession) {
+    public HybridConversationRepository conversationRepository(Session cassandraSession) {
         DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
         RiakConversationRepository riakRepository = useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix) : new RiakConversationRepository(riakClient);
 

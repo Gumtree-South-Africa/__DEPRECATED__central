@@ -4,7 +4,7 @@ import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.Counter;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
+import com.ecg.messagecenter.persistence.simple.DefaultRiakSimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -33,7 +33,7 @@ public class PostBoxOverviewControllerTest {
     private PostBoxOverviewController controller;
 
     @Mock
-    private RiakSimplePostBoxRepository postBoxRepository;
+    private DefaultRiakSimplePostBoxRepository postBoxRepository;
     @Mock
     private RiakConversationBlockRepository conversationBlockRepository;
 

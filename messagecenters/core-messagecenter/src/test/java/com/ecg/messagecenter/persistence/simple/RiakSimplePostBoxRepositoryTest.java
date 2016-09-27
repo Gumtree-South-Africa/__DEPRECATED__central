@@ -33,7 +33,7 @@ public class RiakSimplePostBoxRepositoryTest {
     private IRiakClient riakClient;
 
     @Autowired
-    private RiakSimplePostBoxRepository postBoxRepository;
+    private DefaultRiakSimplePostBoxRepository postBoxRepository;
 
     @Test
     public void persistsPostbox() throws RiakRetryFailedException {

@@ -1,7 +1,6 @@
 package com.ecg.messagecenter.persistence.simple;
 
 import com.basho.riak.client.IRiakClient;
-
 import com.basho.riak.client.IndexEntry;
 import com.basho.riak.client.RiakException;
 import com.basho.riak.client.RiakRetryFailedException;
@@ -22,15 +21,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRepository {
-    private static final Logger LOG = LoggerFactory.getLogger(RiakReadOnlySimplePostBoxRepository.class);
+public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepository  {
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultRiakSimplePostBoxRepository.class);
 
+    private final static Timer COMMIT_TIMER = TimingReports.newTimer("postBoxRepo-commit");
     private final static Timer GET_BY_ID_TIMER = TimingReports.newTimer("postBoxRepo-getById");
+    private final static Timer DELETE_TIMER = TimingReports.newTimer("postBoxRepo-delete");
 
+    public static final String UPDATED_INDEX = "modifiedAt";
     public static final String POST_BOX = "postbox";
 
     @Autowired
@@ -38,6 +41,9 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
 
     @Autowired
     private ConflictResolver<PostBox> resolver;
+
+    @Autowired
+    private RiakSimplePostBoxMerger postBoxMerger;
 
     @Autowired
     private IRiakClient riakClient;
@@ -87,17 +93,66 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
 
     @Override
     public void write(PostBox postBox) {
-        LOG.debug("RiakReadOnlySimplePostBoxRepository.write was called");
+        write(postBox, Collections.emptyList());
     }
 
     @Override
     public void write(PostBox postBox, List<String> deletedIds) {
-        LOG.debug("RiakReadOnlySimplePostBoxRepository.write was called");
+        Timer.Context timerContext = COMMIT_TIMER.time();
+
+        try {
+            postBoxBucket.store(postBox.getEmail(), postBox)
+              .withConverter(converter)
+              .withResolver(resolver)
+              .withMutator(new RiakSimplePostBoxMutator(postBoxMerger, postBox, deletedIds))
+              .returnBody(false)
+              .w(Quora.QUORUM)
+              .execute();
+        } catch (RiakRetryFailedException e) {
+            throw new RuntimeException("could not write post-box #" + postBox.getEmail(), e);
+        } finally {
+            timerContext.stop();
+        }
     }
 
     @Override
     public void cleanup(DateTime time) {
-        LOG.debug("RiakReadOnlySimplePostBoxRepository.cleanup was called");
+        try {
+            StreamingOperation<IndexEntry> keyStream = postBoxBucket.fetchIndex(IntIndex.named(UPDATED_INDEX))
+              .from(0)
+              .to(time.getMillis())
+              .executeStreaming();
+
+            LOG.info("Removing num post-boxes... ");
+            int counter = 0;
+            for (IndexEntry indexEntry : keyStream) {
+                try {
+                    delete(indexEntry.getObjectKey());
+                    if (counter % 1000 == 0) {
+                        LOG.info("Iterated postbox to cleanup number: " + counter);
+                    }
+                } catch (RuntimeException e) {
+                    LOG.error("Cleanup: could not cleanup postbox: " + indexEntry.getObjectKey(), e);
+                } finally {
+                    counter++;
+                }
+            }
+            LOG.info("finished postbox cleanup overall deleted items: " + counter);
+        } catch (RiakException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void delete(String email) {
+        Timer.Context context = DELETE_TIMER.time();
+
+        try {
+            postBoxBucket.delete(email).execute();
+        } catch (RiakException e) {
+            LOG.error("could not delete post box", e);
+        } finally {
+            context.stop();
+        }
     }
 
     @Override
@@ -110,7 +165,7 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
     @Override
     public StreamingOperation<IndexEntry> streamPostBoxIds(DateTime fromDate, DateTime toDate) { // use endDate as its current date
         try {
-            return postBoxBucket.fetchIndex(IntIndex.named(DefaultRiakSimplePostBoxRepository.UPDATED_INDEX))
+            return postBoxBucket.fetchIndex(IntIndex.named(UPDATED_INDEX))
                     .from(fromDate.getMillis())
                     .to(toDate.getMillis())
                     .executeStreaming();
@@ -125,4 +180,5 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
         streamPostBoxIds(fromDate, toDate).forEach(id -> postboxids.add(id.getObjectKey()));
         return postboxids;
     }
+
 }

@@ -181,6 +181,7 @@
                 <module>postprocessors/ebayk-postprocessor-linkproxy</module>
                 <module>postprocessors/ebayk-postprocessor-openimmodeanonymizer</module>
 
+                <module>messagecenters/core-messagecenter</module>
                 <module>messagecenters/ebayk-messagecenter</module>
 
                 <module>resultinspectors/core-resultinspector-threshold</module>
@@ -393,7 +394,6 @@
     </properties>
 
 
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -590,6 +590,21 @@
             <dependency>
                 <groupId>ecg.comaas</groupId>
                 <artifactId>core-integration-test-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ecg.comaas</groupId>
+                <artifactId>ebayk-messagecenter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ecg.comaas</groupId>
+                <artifactId>gtau-messagecenter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ecg.comaas</groupId>
+                <artifactId>kjca-messagecenter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

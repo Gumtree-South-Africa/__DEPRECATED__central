@@ -23,12 +23,8 @@ public class RiakConversationBlockConfiguration {
         return new RiakConversationBlockConverter();
     }
 
-    @Configuration
-    @ConditionalOnExpression("#{'${persistence.strategy}' == 'riak'}")
-    static class RiakOnlyConfiguration {
-        @Bean
-        public RiakConversationBlockRepository conversationBlockRepository() {
-            return new RiakConversationBlockRepository();
-        }
+    @Bean
+    public RiakConversationBlockRepository conversationBlockRepository() {
+        return new RiakConversationBlockRepository();
     }
 }

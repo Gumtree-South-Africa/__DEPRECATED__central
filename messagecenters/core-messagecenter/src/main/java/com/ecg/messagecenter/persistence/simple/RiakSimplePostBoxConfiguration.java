@@ -32,8 +32,8 @@ public class RiakSimplePostBoxConfiguration {
     @ConditionalOnExpression("#{'${persistence.strategy}' == 'riak'}")
     static class RiakOnlyConfiguration {
         @Bean
-        public SimplePostBoxRepository postBoxRepository() {
-            return new RiakSimplePostBoxRepository();
+        public RiakSimplePostBoxRepository postBoxRepository() {
+            return new DefaultRiakSimplePostBoxRepository();
         }
     }
 }

@@ -3,7 +3,6 @@ package com.ecg.messagecenter.persistence.simple;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,15 +13,15 @@ import org.springframework.context.annotation.Primary;
 public class HybridSimplePostBoxConfiguration {
 
 
-    @Bean
     @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid")
-    public SimplePostBoxRepository riakSimplePostBoxRepository() {
-        return new RiakSimplePostBoxRepository();
+    @Bean
+    public RiakSimplePostBoxRepository riakSimplePostBoxRepository() {
+        return new DefaultRiakSimplePostBoxRepository();
     }
 
     @Bean
     @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid-riak-readonly")
-    public SimplePostBoxRepository riakReadOnlySimplePostBoxRepository() {
+    public RiakSimplePostBoxRepository riakReadOnlySimplePostBoxRepository() {
         return new RiakReadOnlySimplePostBoxRepository();
     }
 
@@ -33,7 +32,8 @@ public class HybridSimplePostBoxConfiguration {
 
     @Bean
     @Primary
-    public SimplePostBoxRepository postBoxRepository(SimplePostBoxRepository riakRepository, CassandraSimplePostBoxRepository cassandraRepository) {
-        return new HybridSimplePostBoxRepository(riakRepository, cassandraRepository);
+    public HybridSimplePostBoxRepository simplePostBoxRepository(RiakSimplePostBoxRepository riakSimplePostBoxRepository,
+                                                     CassandraSimplePostBoxRepository cassandraSimplePostBoxRepository) {
+        return new HybridSimplePostBoxRepository(riakSimplePostBoxRepository, cassandraSimplePostBoxRepository);
     }
 }

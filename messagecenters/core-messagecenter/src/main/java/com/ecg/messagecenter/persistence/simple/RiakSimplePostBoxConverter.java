@@ -22,7 +22,7 @@ public class RiakSimplePostBoxConverter implements Converter<PostBox> {
     @Autowired
     private AbstractJsonToPostBoxConverter toPostBox;
 
-    @Value("${persistence.simple.bucket.name.prefix:}" + RiakSimplePostBoxRepository.POST_BOX)
+    @Value("${persistence.simple.bucket.name.prefix:}" + DefaultRiakSimplePostBoxRepository.POST_BOX)
     private String bucketName;
 
     @Value("${replyts.maxConversationAgeDays:180}")
@@ -38,7 +38,7 @@ public class RiakSimplePostBoxConverter implements Converter<PostBox> {
 
         return RiakObjectBuilder.newBuilder(bucketName, postBox.getEmail())
           .withValue(compressed)
-          .addIndex(RiakSimplePostBoxRepository.UPDATED_INDEX, DateTime.now().getMillis())
+          .addIndex(DefaultRiakSimplePostBoxRepository.UPDATED_INDEX, DateTime.now().getMillis())
           .withVClock(vClock)
           .withContentType("application/x-gzip")
           .build();

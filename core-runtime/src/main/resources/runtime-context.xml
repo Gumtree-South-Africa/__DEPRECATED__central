@@ -33,6 +33,7 @@
     <bean class="com.ecg.replyts.app.cronjobs.CleanupSearchCronJob"/>
 
     <context:component-scan base-package="com.ecg.replyts.app.cronjobs.cleanup" />
+    <context:component-scan base-package="com.ecg.replyts.core.runtime.migrator" />
 
     <bean id="currentClock" class="com.ecg.replyts.core.api.util.CurrentClock"/>
     <bean id="timeoutHeldsCronJobTimeframe" class="com.ecg.replyts.app.cronjobs.Timeframe">

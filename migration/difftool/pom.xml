@@ -32,7 +32,6 @@
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>ebayk-messagecenter</artifactId>
-            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
