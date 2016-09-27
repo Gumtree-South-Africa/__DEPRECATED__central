@@ -72,13 +72,13 @@ public class CassandraPersistenceConfiguration {
     }
 
     @Bean
-    public ConversationMigrator conversationMigrator() {
-        return null;
+    public BlockUserRepository blockUserRepository(Session cassandraSession) {
+        return new DefaultBlockUserRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
     @Bean
-    public BlockUserRepository blockUserRepository(Session cassandraSession) {
-        return new DefaultBlockUserRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+    public ConversationMigrator conversationMigrator() {
+        return null;
     }
 
     @Configuration

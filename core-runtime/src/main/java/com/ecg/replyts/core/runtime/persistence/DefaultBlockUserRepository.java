@@ -77,7 +77,7 @@ public class DefaultBlockUserRepository implements BlockUserRepository, Cassandr
     }
 
     static class Statements extends StatementsBase {
-        static Statements BLOCK_USER = new Statements("INSERT INTO core_blocked_users (blockerid, blockeeid, blockdate) VALUES (?, ?, ?)", true);
+        static Statements BLOCK_USER = new Statements("INSERT INTO core_blocked_users (blockerid, blockeeid, blockdate) VALUES (?, ?, ?) IF NOT EXISTS", true);
         static Statements UNBLOCK_USER = new Statements("DELETE FROM core_blocked_users WHERE blockerid = ? AND blockeeid = ?", true);
         static Statements SELECT_BLOCKED_USER = new Statements("SELECT blockerid, blockeeid, blockdate FROM core_blocked_users WHERE blockerid = ? AND blockeeid = ?", false);
 

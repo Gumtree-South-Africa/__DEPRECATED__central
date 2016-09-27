@@ -9,6 +9,8 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
+import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
+import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
@@ -97,6 +99,11 @@ public class HybridPersistenceConfiguration {
     public MailRepository mailRepository() throws RiakRetryFailedException {
         // Mail storage has been deprecated in Cassandra - only persisting to Riak
         return new DiffingRiakMailRepository(bucketNamePrefix, riakClient);
+    }
+
+    @Bean
+    public BlockUserRepository blockUserRepository(Session cassandraSession) {
+        return new DefaultBlockUserRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
     @Bean
