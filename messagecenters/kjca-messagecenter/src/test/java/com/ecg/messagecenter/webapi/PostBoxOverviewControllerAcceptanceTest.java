@@ -13,6 +13,8 @@ import java.util.Properties;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 
 public class PostBoxOverviewControllerAcceptanceTest {
     private final Properties testProperties = new Properties() {{
@@ -21,6 +23,57 @@ public class PostBoxOverviewControllerAcceptanceTest {
 
     @Rule
     public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
+
+    @Test
+    public void getConversationWithFilter() throws Exception {
+        testRule.deliver(
+                aNewMail()
+                        .from("buyer1@buyer.com")
+                        .to("seller1@seller.com")
+                        .adId("232323")
+                        .plainBody("First contact from first buyer.")
+        );
+        testRule.waitForMail();
+        testRule.deliver(
+                aNewMail()
+                        .from("buyer2@buyer.com")
+                        .to("seller1@seller.com")
+                        .adId("424242")
+                        .plainBody("First contact from second buyer.")
+        );
+        testRule.waitForMail();
+
+        testRule.deliver(
+                aNewMail()
+                        .from("seller1@seller.com")
+                        .to("buyer1@buyer.com")
+                        .adId("123456")
+                        .plainBody("Contact from first seller to buyer about another ad.")
+        );
+        testRule.waitForMail();
+
+        //without role filter
+        RestAssured.given()
+                .expect()
+                .statusCode(200)
+                .body("body['_meta'].numFound", equalTo(3))
+                .get("http://localhost:" + testRule.getHttpPort() + "/message-center/postboxes/seller1@seller.com");
+
+        //filter by role as a buyer, only 1 conversation should be available
+        RestAssured.given()
+                .expect()
+                .statusCode(200)
+                .body("body['_meta'].numFound", equalTo(1))
+                .body("body.conversations.adId", hasItem("123456"))
+                .get("http://localhost:" + testRule.getHttpPort() + "/message-center/postboxes/seller1@seller.com?role=Buyer");
+
+        RestAssured.given()
+                .expect()
+                .statusCode(200)
+                .body("body['_meta'].numFound", equalTo(2))
+                .body("body.conversations.adId", hasItems("232323", "424242"))
+                .get("http://localhost:" + testRule.getHttpPort() + "/message-center/postboxes/seller1@seller.com?role=Seller");
+    }
 
     @Test
     public void readConversation() {

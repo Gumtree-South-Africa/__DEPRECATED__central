@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.webapi;
+package com.ecg.messagecenter.webapi.responses;
 
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.ConversationThread;
@@ -6,11 +6,10 @@ import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.util.ConversationBoundnessFinder;
-import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
-import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 
 import java.util.List;
 
@@ -23,11 +22,11 @@ public class PostBoxResponseBuilder {
         this.conversationBlockRepository = conversationBlockRepository;
     }
 
-    ResponseObject<PostBoxResponse> buildPostBoxResponse(String email, int size, int page, PostBox postBox, boolean newCounterMode) {
+    public ResponseObject<PostBoxResponse> buildPostBoxResponse(String email, int size, int page, PostBox postBox, boolean newCounterMode) {
         return buildPostBoxResponse(email, size, page, null, postBox, newCounterMode);
     }
 
-    ResponseObject<PostBoxResponse> buildPostBoxResponse(String email, int size, int page, ConversationRole role, PostBox postBox, boolean newCounterMode) {
+    public ResponseObject<PostBoxResponse> buildPostBoxResponse(String email, int size, int page, ConversationRole role, PostBox postBox, boolean newCounterMode) {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         if (newCounterMode) {
@@ -38,7 +37,9 @@ public class PostBoxResponseBuilder {
 
         initConversationsPayload(email, postBox.getFilteredConversationThreads(roleFilter(role, email), page, size), postBoxResponse);
 
-        postBoxResponse.meta(postBox.getConversationThreads().size(), page, size);
+        int filteredSize = FluentIterable.from(postBox.getConversationThreads())
+                .filter(roleFilter(role, email)).size();
+        postBoxResponse.meta(filteredSize, page, size);
 
         return ResponseObject.of(postBoxResponse);
     }
