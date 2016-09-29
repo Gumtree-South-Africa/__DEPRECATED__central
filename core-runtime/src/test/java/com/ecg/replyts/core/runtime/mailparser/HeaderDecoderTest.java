@@ -23,11 +23,11 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class HeaderDecoderTest {
 
-    private List<Field> mailHeaders = new ArrayList<Field>();
+    private final List<Field> mailHeaders = new ArrayList<>();
 
     private Message mail;
 
-    private HeaderDecoder headerDecoder = new HeaderDecoder();
+    private final HeaderDecoder headerDecoder = new HeaderDecoder();
 
     @Before
     public void setUp() throws Exception {
@@ -93,6 +93,14 @@ public class HeaderDecoderTest {
     public void ignoresAdIdHeader() {
         assertEquals("X-ADID", headerDecoder.normalizeHeaderName("X-ADID"));
     }
+
+    @Test
+    public void testReplyTo() throws Exception {
+        addField("Reply-To", "bar@foo.com");
+        ImmutableMultimap<String, String> headers = headerDecoder.decodeHeaders(mail);
+        assertTrue(headers.containsEntry("Reply-To", "bar@foo.com"));
+    }
+
 
     private void addField(String headerName, String headerValue) {
         Field mock = mock(Field.class);

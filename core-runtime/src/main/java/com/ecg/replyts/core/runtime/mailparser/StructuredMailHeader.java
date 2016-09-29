@@ -64,6 +64,15 @@ class StructuredMailHeader {
         revalidateHeaders();
     }
 
+    public void setReplyTo(String address) {
+        try {
+            mail.setReplyTo(asMailbox(address));
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        revalidateHeaders();
+    }
+
     public void addHeader(String name, String value) {
         try {
             String normalizedHeaderName = HEADER_DECODER.normalizeHeaderName(name);

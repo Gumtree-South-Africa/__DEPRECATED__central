@@ -2,7 +2,6 @@ package com.ecg.de.kleinanzeigen.negotiations;
 
 import com.ecg.replyts.app.postprocessorchain.PostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -18,18 +17,21 @@ public class OpenImmoDeanonymizerListener implements PostProcessor {
 
     static final String AD_API_USER_ID = "X-Cust-Ad-Api-User-Id";
 
+    private static final MailAddress FROM = new MailAddress("noreply-immobilien@ebay-kleinanzeigen.de");
+
     @Override
     public void postProcess(MessageProcessingContext context) {
-
         if (!mailToOpenImmoAd(context)) {
             return;
         }
 
         try {
             Conversation c = context.getConversation();
-            MailAddress newFrom = new MailAddress(c.getUserIdFor(context.getMessageDirection().getFromRole()));
+            MailAddress replyTo = new MailAddress(c.getUserIdFor(context.getMessageDirection().getFromRole()));
             MutableMail outgoingMail = context.getOutgoingMail();
-            outgoingMail.setFrom(newFrom);
+
+            outgoingMail.setFrom(FROM);
+            outgoingMail.setReplyTo(replyTo);
         } catch (Exception e) {
             LOG.error("Error deanonymizing Mail address for Open-Immo Conversation #" + context.getConversation().getId());
             throw new RuntimeException(e);

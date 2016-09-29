@@ -42,6 +42,11 @@ class StructuredMutableMail implements MutableMail {
     }
 
     @Override
+    public void setReplyTo(MailAddress newReplyTo) {
+        mail.getMailHeader().setReplyTo(newReplyTo.getAddress());
+    }
+
+    @Override
     public void applyOutgoingMailFixes(List<MessageFixer> fixers, Exception originalException) {
         if (fixers == null) {
             return;

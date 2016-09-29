@@ -40,6 +40,14 @@ public interface MutableMail extends Mail {
     void setTo(MailAddress newTo);
 
     /**
+     * Change the reply to of the mail.
+     * Mail must be mutable.
+     *
+     * @param newReplyTo new reply to (not null)
+     */
+    void setReplyTo(MailAddress newReplyTo);
+
+    /**
      * Try to apply some fixes to this message in order to send it successfully.
      * Some clients send email that isn't valid, but isn't so broken that it can't be fixed.
      * This method should be called explicitly when a sending error occurs, since the vast
