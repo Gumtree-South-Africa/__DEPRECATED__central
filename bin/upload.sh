@@ -87,7 +87,7 @@ function upload() {
     rsync)
       readonly PREFIX="comaas"
       readonly REMOTE_DIR=/opt/tarballs/ecg-comaas
-      readonly RELEASE_FOLDER="${PREFIX}-$(date +%Y%m%d%H%M%S)"
+      readonly RELEASE_FOLDER="${PREFIX}-${TIMESTAMP}"
       readonly KEEPVERSIONS=20
 
       echo "Syncing $PACKAGE to ${HOST_VALUE} ..."
