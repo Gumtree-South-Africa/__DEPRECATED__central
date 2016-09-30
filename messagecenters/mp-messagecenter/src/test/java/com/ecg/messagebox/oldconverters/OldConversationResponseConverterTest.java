@@ -28,11 +28,11 @@ import static org.mockito.Mockito.when;
 public class OldConversationResponseConverterTest {
 
     private static final String BUYER_ID = "123", SELLER_ID = "456";
-    private static final String BUYER_NAME = "user 1", SELLER_NAME = "user 2";
+    private static final String SELLER_NAME = "user 2";
     private static final String BUYER_EMAIL = "user email 1", SELLER_EMAIL = "user email 2";
 
     private static final List<Participant> PARTICIPANTS = asList(
-            new Participant(BUYER_ID, BUYER_NAME, BUYER_EMAIL, ParticipantRole.BUYER),
+            new Participant(BUYER_ID, null, BUYER_EMAIL, ParticipantRole.BUYER),
             new Participant(SELLER_ID, SELLER_NAME, SELLER_EMAIL, ParticipantRole.SELLER));
 
     private static final Message MSG_BUYER = new Message(timeBased(), MessageType.ASQ, new MessageMetadata("text buyer", BUYER_ID));
@@ -92,7 +92,7 @@ public class OldConversationResponseConverterTest {
     }
 
     private ConversationResponse newConversationResponse(ConversationRole role) {
-        return new ConversationResponse(CONVERSATION_ID, role, BUYER_EMAIL, SELLER_EMAIL, BUYER_NAME, SELLER_NAME,
+        return new ConversationResponse(CONVERSATION_ID, role, BUYER_EMAIL, SELLER_EMAIL, "", SELLER_NAME,
                 Long.valueOf(BUYER_ID), Long.valueOf(SELLER_ID), AD_ID, toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
                 EMAIL_SUBJECT, asList(msgResp, msgResp), UNREAD_MSG_COUNT);
     }

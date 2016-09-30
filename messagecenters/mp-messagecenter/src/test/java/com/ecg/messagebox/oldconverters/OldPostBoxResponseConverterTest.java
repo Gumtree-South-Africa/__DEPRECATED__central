@@ -43,7 +43,7 @@ public class OldPostBoxResponseConverterTest {
     private static final int UNREAD_MSG_COUNT = C1_UNREAD_MSG_COUNT + C2_UNREAD_MSG_COUNT;
 
     private static final String C1_BUYER_ID = USER_ID, C1_SELLER_ID = "2", C2_BUYER_ID = "3", C2_SELLER_ID = USER_ID;
-    private static final String C1_BUYER_NAME = "name 1", C1_SELLER_NAME = "name 2", C2_BUYER_NAME = "name 3", C2_SELLER_NAME = "name 1";
+    private static final String C1_BUYER_NAME = "name 1", C2_BUYER_NAME = "name 3", C2_SELLER_NAME = "name 1";
 
     private static final MessageResponse MSG_RESP_WITH_LONG_TXT =
             new MessageResponse("receivedDate1", MailTypeRts.INBOUND, "a very long text", "senderEmail1", "asq");
@@ -71,7 +71,7 @@ public class OldPostBoxResponseConverterTest {
         // conversation 1
         List<Participant> c1Participants = asList(
                 new Participant(C1_BUYER_ID, C1_BUYER_NAME, "email", ParticipantRole.BUYER),
-                new Participant(C1_SELLER_ID, C1_SELLER_NAME, "email", ParticipantRole.SELLER));
+                new Participant(C1_SELLER_ID, null, "email", ParticipantRole.SELLER));
         Message c1LatestMsg = new Message(UUIDs.timeBased(), MessageType.BID, new MessageMetadata(C1_BUYER_ID, "c1 text"));
         ConversationThread c1 = new ConversationThread(C1_ID, C1_AD_ID, Visibility.ACTIVE, MessageNotification.RECEIVE,
                 c1Participants, c1LatestMsg, new ConversationMetadata(now(), "email subject")
@@ -96,7 +96,7 @@ public class OldPostBoxResponseConverterTest {
         PostBoxResponse expected = new PostBoxResponse()
                 .initNumUnreadMessages(UNREAD_MSG_COUNT)
                 .meta(2, PAGE, SIZE)
-                .addItem(new PostBoxListItemResponse(C1_ID, C1_BUYER_NAME, C1_SELLER_NAME,
+                .addItem(new PostBoxListItemResponse(C1_ID, C1_BUYER_NAME, "",
                         Long.valueOf(C1_BUYER_ID), Long.valueOf(C1_SELLER_ID), C1_AD_ID,
                         ConversationRole.Buyer, C1_UNREAD_MSG_COUNT, msgRespWithTruncatedText,
                         toFormattedTimeISO8601ExplicitTimezoneOffset(now())))

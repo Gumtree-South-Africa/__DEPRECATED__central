@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Objects;
 
+import static java.util.Optional.ofNullable;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ParticipantResponse {
 
@@ -14,7 +16,7 @@ public class ParticipantResponse {
 
     public ParticipantResponse(String userId, String name, String email, String role) {
         this.userId = userId;
-        this.name = name;
+        this.name = ofNullable(name).orElse("");
         this.email = email;
         this.role = role;
     }

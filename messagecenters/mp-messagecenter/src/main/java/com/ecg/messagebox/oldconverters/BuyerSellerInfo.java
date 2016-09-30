@@ -7,6 +7,7 @@ import java.util.List;
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
 import static java.lang.Long.parseLong;
+import static java.util.Optional.ofNullable;
 
 class BuyerSellerInfo {
 
@@ -67,15 +68,21 @@ class BuyerSellerInfo {
             switch (participant1.getRole()) {
                 case BUYER:
                     return new BuyerSellerInfo(
-                            parseLong(participant1.getUserId()), parseLong(participant2.getUserId()),
-                            participant1.getName(), participant2.getName(),
-                            participant1.getEmail(), participant2.getEmail()
+                            parseLong(participant1.getUserId()),
+                            parseLong(participant2.getUserId()),
+                            ofNullable(participant1.getName()).orElse(""),
+                            ofNullable(participant2.getName()).orElse(""),
+                            participant1.getEmail(),
+                            participant2.getEmail()
                     );
                 case SELLER:
                     return new BuyerSellerInfo(
-                            parseLong(participant2.getUserId()), parseLong(participant1.getUserId()),
-                            participant2.getName(), participant1.getName(),
-                            participant2.getEmail(), participant1.getEmail()
+                            parseLong(participant2.getUserId()),
+                            parseLong(participant1.getUserId()),
+                            ofNullable(participant2.getName()).orElse(""),
+                            ofNullable(participant1.getName()).orElse(""),
+                            participant2.getEmail(),
+                            participant1.getEmail()
                     );
                 default:
                     throw new IllegalArgumentException(
