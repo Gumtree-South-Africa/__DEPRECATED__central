@@ -65,11 +65,10 @@ public class CassandraPostBoxService implements PostBoxService {
                 String messageText = messageResponseFactory.getCleanedMessage(rtsConversation, rtsMessage);
                 String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
                 Message newMessage = new Message(rtsMessage.getEventTimeUUID().get(), messageText, senderUserId, messageType, customData);
-                Optional<ConversationThread> conversationOpt = postBoxRepository.getConversation(userId, rtsConversation.getId());
+                Optional<MessageNotification> messageNotificationOpt = postBoxRepository.getConversationMessageNotification(userId, rtsConversation.getId());
 
-                if (conversationOpt.isPresent()) {
-                    ConversationThread conversation = conversationOpt.get();
-                    boolean notifyAboutNewMessage = isNewReply && conversation.getMessageNotification() == MessageNotification.RECEIVE;
+                if (messageNotificationOpt.isPresent()) {
+                    boolean notifyAboutNewMessage = isNewReply && messageNotificationOpt.get() == MessageNotification.RECEIVE;
                     postBoxRepository.addMessage(userId, rtsConversation.getId(), rtsConversation.getAdId(), newMessage, notifyAboutNewMessage);
                 } else {
                     ConversationThread newConversation = new ConversationThread(

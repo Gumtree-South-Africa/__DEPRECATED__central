@@ -1,6 +1,5 @@
 package com.ecg.messagebox.persistence;
 
-import com.ecg.messagebox.model.ConversationModification;
 import com.ecg.messagebox.model.*;
 import org.joda.time.DateTime;
 
@@ -29,22 +28,18 @@ public interface CassandraPostBoxRepository {
     PostBox getPostBox(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit);
 
     /**
-     * Fetches a conversation.
-     * <p>
-     * Does not retrieve the unread messages count or any of the conversation's messages.
-     * For that use the {@link #getConversationWithMessages(String, String, Optional, int)} method.
-     * </p>
+     * Returns the message notification value of a conversation.
      *
-     * @param userId      user identifier
+     * @param userId         user identifier
      * @param conversationId id of conversation
-     * @return absent if the conversation does not exist, else returns the conversation
+     * @return absent if the conversation does not exist, else returns the conversation's message notification value
      */
-    Optional<ConversationThread> getConversation(String userId, String conversationId);
+    Optional<MessageNotification> getConversationMessageNotification(String userId, String conversationId);
 
     /**
      * Fetches a conversation with its unread messages count and a cursor-based paginated list of its messages.
      *
-     * @param userId          id of postbox
+     * @param userId             id of postbox
      * @param conversationId     id of conversation
      * @param messageIdCursorOpt message id cursor optional, used in cursor-based pagination of messages
      * @param messagesLimit      maximum number of returned messages
@@ -59,7 +54,7 @@ public interface CassandraPostBoxRepository {
     UserUnreadCounts getUserUnreadCounts(String userId);
 
     /**
-     * @param userId      id of postbox containing the conversation
+     * @param userId         id of postbox containing the conversation
      * @param conversationId id of conversation
      * @return the number of unread messages for the given conversation, or 0 when the conversation does not exist
      */
@@ -68,7 +63,7 @@ public interface CassandraPostBoxRepository {
     /**
      * Resets the message unread count to 0 for the given user/conversation/ad.
      *
-     * @param userId      id of postbox containing the conversation
+     * @param userId         id of postbox containing the conversation
      * @param conversationId id of conversation
      * @param adId           id of ad
      */
@@ -77,7 +72,7 @@ public interface CassandraPostBoxRepository {
     /**
      * Creates a new conversation with the passed message.
      *
-     * @param userId            identifier of user that this conversation belongs to
+     * @param userId               identifier of user that this conversation belongs to
      * @param conversation         the conversation to add or replace
      * @param message              the new message to be added
      * @param incrementUnreadCount if true, the conversation's unread count will be incremented, otherwise not
@@ -87,7 +82,7 @@ public interface CassandraPostBoxRepository {
     /**
      * Adds a new message to an existing conversation.
      *
-     * @param userId            identifier of user that this conversation belongs to
+     * @param userId               identifier of user that this conversation belongs to
      * @param conversationId       id of the conversation to add the message to
      * @param message              the new message to be added
      * @param incrementUnreadCount if true, the conversation's unread count will be incremented, otherwise not
@@ -97,7 +92,7 @@ public interface CassandraPostBoxRepository {
     /**
      * Change conversation visibilities for a postbox.
      *
-     * @param userId            id of postbox containing the conversations
+     * @param userId               id of postbox containing the conversations
      * @param adConversationIdsMap map of ad id to conversation id
      * @param visibility           the new visibility
      */
@@ -108,7 +103,7 @@ public interface CassandraPostBoxRepository {
     Map<String, String> getConversationAdIdsMap(String userId, List<String> conversationIds);
 
     Stream<ConversationModification> getConversationModificationsByHour(DateTime date);
-    
+
     void deleteModificationIndexByDate(DateTime modifiedDate, UUID messageId, String userId, String conversationId);
 
     ConversationModification getLastConversationModification(String userId, String convId);

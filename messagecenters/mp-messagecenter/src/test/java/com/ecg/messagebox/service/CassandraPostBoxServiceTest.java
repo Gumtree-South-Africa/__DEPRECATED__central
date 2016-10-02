@@ -30,6 +30,7 @@ import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversat
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage.Builder.aMessage;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.singletonList;
+import static java.util.Optional.empty;
 import static org.joda.time.DateTime.now;
 import static org.mockito.Mockito.*;
 
@@ -76,7 +77,7 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void processNewMessageWithCorrectSubject() {
-        when(conversationsRepo.getConversation(anyString(), anyString())).thenReturn(Optional.empty());
+        when(conversationsRepo.getConversationMessageNotification(anyString(), anyString())).thenReturn(empty());
 
         Message rtsMsg1 = newMessage("1", SELLER_TO_BUYER, MessageState.SENT, DEFAULT_SUBJECT);
         Message rtsMsg2 = newMessage("2", SELLER_TO_BUYER, MessageState.SENT, "Another subject");
@@ -99,7 +100,7 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void processNewMessageWithMetadataHeader() {
-        when(conversationsRepo.getConversation(USER_ID_1, "c1")).thenReturn(Optional.empty());
+        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, "c1")).thenReturn(empty());
 
         Message rtsMsg = newMessageWithMetadata("1", SELLER_TO_BUYER, MessageState.SENT);
 

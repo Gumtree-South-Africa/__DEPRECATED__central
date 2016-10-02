@@ -22,6 +22,8 @@ import static com.datastax.driver.core.utils.UUIDs.unixTimestamp;
 import static com.ecg.messagebox.model.Visibility.get;
 import static com.ecg.messagebox.util.uuid.UUIDComparator.staticCompare;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 
 @Component(("newCassandraPostBoxRepo"))
@@ -29,7 +31,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     private final Timer getPaginatedConversationIdsTimer = newTimer("cassandra.postBoxRepo.v2.getPaginatedConversationIds");
     private final Timer getPostBoxTimer = newTimer("cassandra.postBoxRepo.v2.getPostBox");
-    private final Timer getConversationTimer = newTimer("cassandra.postBoxRepo.v2.getConversation");
+    private final Timer getConversationMessageNotificationTimer = newTimer("cassandra.postBoxRepo.v2.getConversationMessageNotification");
     private final Timer getConversationWithMessagesTimer = newTimer("cassandra.postBoxRepo.v2.getConversationWithMessages");
     private final Timer getConversationMessagesTimer = newTimer("cassandra.postBoxRepo.v2.getConversationMessages");
     private final Timer createConversationTimer = newTimer("cassandra.postBoxRepo.v2.createConversation");
@@ -120,10 +122,10 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public Optional<ConversationThread> getConversation(String userId, String conversationId) {
-        try (Timer.Context ignored = getConversationTimer.time()) {
-            Row row = session.execute(Statements.SELECT_CONVERSATION.bind(this, userId, conversationId)).one();
-            return row != null ? Optional.of(createConversation(userId, row)) : Optional.empty();
+    public Optional<MessageNotification> getConversationMessageNotification(String userId, String conversationId) {
+        try (Timer.Context ignored = getConversationMessageNotificationTimer.time()) {
+            Row row = session.execute(Statements.SELECT_CONVERSATION_MESSAGE_NOTIFICATION.bind(this, userId, conversationId)).one();
+            return row != null ? of(MessageNotification.get(row.getInt("ntfynew"))) : empty();
         }
     }
 
@@ -140,9 +142,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                 List<Message> messages = getConversationMessages(userId, conversationId, messageIdCursorOpt, messagesLimit);
                 conversation.addMessages(messages);
 
-                return Optional.of(conversation);
+                return of(conversation);
             } else {
-                return Optional.empty();
+                return empty();
             }
         }
     }
@@ -267,7 +269,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     private List<Statement> newMessageCqlStatements(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount) {
-        List<Statement> statements = new ArrayList();
+        List<Statement> statements = new ArrayList<>();
         statements.add(Statements.UPDATE_AD_CONVERSATION_INDEX.bind(this, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
         String messageMetadata = jsonConverter.toMessageMetadataJson(userId, conversationId, message);
         statements.add(Statements.INSERT_MESSAGE.bind(this, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
@@ -292,6 +294,8 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             conversationAdIdsMap.forEach((conversationId, adId) -> {
                 batch.add(Statements.CHANGE_CONVERSATION_VISIBILITY.bind(this, visibility.getCode(), userId, conversationId));
                 batch.add(Statements.CHANGE_CONVERSATION_IDX_VISIBILITY.bind(this, visibility.getCode(), userId, adId, conversationId));
+                batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, conversationId));
+                batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, adId, conversationId));
             });
             batch.setConsistencyLevel(getWriteConsistency());
             session.execute(batch);
@@ -391,6 +395,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         // select single conversation + messages
         SELECT_CONVERSATION("SELECT convid, adid, vis, ntfynew, participants, latestmsg, metadata FROM mb_conversations WHERE usrid = ? AND convid = ?"),
+        SELECT_CONVERSATION_MESSAGE_NOTIFICATION("SELECT ntfynew FROM mb_conversations WHERE usrid = ? AND convid = ?"),
         SELECT_CONVERSATION_UNREAD_COUNT("SELECT unread FROM mb_conversation_unread_counts WHERE usrid = ? AND convid = ?"),
         SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR("SELECT msgid, type, metadata FROM mb_messages WHERE usrid = ? AND convid = ? LIMIT ?"),
         SELECT_CONVERSATION_MESSAGES_WITH_CURSOR("SELECT msgid, type, metadata FROM mb_messages WHERE usrid = ? AND convid = ? AND msgid < ? LIMIT ?"),
