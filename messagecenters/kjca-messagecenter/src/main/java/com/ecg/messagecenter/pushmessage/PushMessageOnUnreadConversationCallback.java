@@ -6,11 +6,12 @@ import ca.kijiji.tracing.TraceThreadLocal;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.cleanup.TextCleaner;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
+import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +23,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
 
     private static final String FROM = "From";
     private static final String SOUND_FILE_NAME = "kijijica-push.caf";
+    private static final int MAX_TITLE_LENGTH = 250;
 
     private static final Logger LOG = LoggerFactory.getLogger(PushMessageOnUnreadConversationCallback.class);
     private static final Locale DEFAULT_LOCALE = Locale.CANADA;
@@ -182,7 +184,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
         return ImmutableMap.<String, String>builder()
                 .put("sound", SOUND_FILE_NAME)
                 .put("AdImageUrl", adInfo.map(AdInfoLookup.AdInfo::getImageUrl).orElse(""))
-                .put("title", pushMessage)
+                .put("title", StringUtils.left(pushMessage, MAX_TITLE_LENGTH))
                 .put("AdId", conversation.getAdId())
                 .put("ConversationId", conversation.getId())
                 .put("AdSubject", adInfo.map(AdInfoLookup.AdInfo::getTitle).orElse(""))
