@@ -26,10 +26,10 @@ public class PreProcessorManager {
     }
 
     public void preProcess(MessageProcessingContext context) {
-        for(PreProcessor preProcessor: preProcessors){
+        for(PreProcessor preProcessor: preProcessors) {
             preProcessor.preProcess(context);
 
-            if (context.isTerminated()) break;
+            if (context.isTerminated()) return;
         }
     }
 
