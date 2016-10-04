@@ -27,12 +27,10 @@ public class FileSystemMailSender {
         File pickupFile = new File(dropFolder, "pre_" + fileId);
 
         try (OutputStream stream = new BufferedOutputStream(new FileOutputStream(dropFile), bufferSize)) {
-
             stream.write(data);
             stream.close();
             if (!dropFile.renameTo(pickupFile)) {
-                throw new RuntimeException(String.format("rename form %s to %s failed",
-                        dropFile.toString(), pickupFile.toString()));
+                throw new RuntimeException(String.format("rename form %s to %s failed", dropFile.toString(), pickupFile.toString()));
             }
 
         } catch (Exception e) {

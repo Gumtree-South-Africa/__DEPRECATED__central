@@ -101,8 +101,9 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      * @param deliveryTimeoutSeconds maximum number of seconds {@link #deliver(MailBuilder)} should wait for a mail to
      *                               be processed.
      */
-    public ReplyTsIntegrationTestRule(Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds,
-                                      boolean esEnabled, String... cqlFilePaths) {
+    public ReplyTsIntegrationTestRule(
+        Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, boolean esEnabled, String... cqlFilePaths
+    ) {
         this.deliveryTimeoutSeconds = deliveryTimeoutSeconds;
         this.cqlFilePaths = cqlFilePaths;
 
@@ -126,7 +127,8 @@ public class ReplyTsIntegrationTestRule implements TestRule {
             testProperties.put("persistence.skip.mail.storage", true);
         }
 
-        this.testRunner = new IntegrationTestRunner(testProperties, configurationResourceDirectory != null ? configurationResourceDirectory : ReplytsRunner.DEFAULT_CONFIG_RESOURCE_DIRECTORY);
+        String configResourceDirectory = configurationResourceDirectory != null ? configurationResourceDirectory : ReplytsRunner.DEFAULT_CONFIG_RESOURCE_DIRECTORY;
+        this.testRunner = new IntegrationTestRunner(testProperties, configResourceDirectory);
     }
 
     @Override

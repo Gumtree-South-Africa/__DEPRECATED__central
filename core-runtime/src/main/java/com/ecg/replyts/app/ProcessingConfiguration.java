@@ -26,8 +26,6 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
 class ProcessingConfiguration {
-
-
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingConfiguration.class);
 
     private ProcessingFlow flow;

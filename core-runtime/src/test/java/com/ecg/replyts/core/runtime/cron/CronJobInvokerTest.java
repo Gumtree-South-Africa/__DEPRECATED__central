@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.util.Collections;
 
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class CronJobInvokerTest {
@@ -56,8 +58,7 @@ public class CronJobInvokerTest {
     @Test
     public void registersMBeans() throws Exception {
         new CronJobInvoker(cje, srvc).invoke();
-        Thread.sleep(100); // invoke is executed asynchronously. Therefore give thread time to start up.
-        Mockito.verify(cje).execute();
+        verify(cje, timeout(200)).execute();
     }
 
 }

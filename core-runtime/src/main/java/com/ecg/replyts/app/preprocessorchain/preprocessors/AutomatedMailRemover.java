@@ -54,6 +54,8 @@ public class AutomatedMailRemover implements PreProcessor {
 
     @Override
     public void preProcess(MessageProcessingContext context) {
+        LOG.debug("Checking if message {} is automated reply", context.getMessageId());
+
         Mail mail = context.getMail();
 
 
@@ -66,7 +68,7 @@ public class AutomatedMailRemover implements PreProcessor {
                 checkContentType(mail, context) &&
                 checkAutoResponse(mail, context);
         if (!isAcceptableMail) {
-            LOG.debug("mail is automated reply");
+            LOG.debug("Message {} is automated reply: {}", context.getMessageId(), context.getTermination().getReason());
         }
 
     }
@@ -148,4 +150,8 @@ public class AutomatedMailRemover implements PreProcessor {
         return true;
     }
 
+    @Override
+    public int getOrder() {
+        return 30;
+    }
 }
