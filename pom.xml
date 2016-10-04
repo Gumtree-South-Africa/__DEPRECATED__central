@@ -1496,7 +1496,6 @@
                         </archive>
                         <excludes>
                             <exclude>**/logging.xml</exclude>
-                            <exclude>**/logging-test.xml</exclude>
                         </excludes>
                     </configuration>
                 </plugin>

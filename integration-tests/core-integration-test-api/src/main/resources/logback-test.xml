@@ -1,3 +1,3 @@
 <configuration>
-    <include resource="integrationtest-conf/logging.xml" />
+    <include resource="integrationtest-conf/logging-test.xml" />
 </configuration>
