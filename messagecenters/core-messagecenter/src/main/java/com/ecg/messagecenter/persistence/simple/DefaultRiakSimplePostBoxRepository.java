@@ -12,7 +12,9 @@ import com.basho.riak.client.convert.Converter;
 import com.basho.riak.client.query.StreamingOperation;
 import com.basho.riak.client.query.indexes.IntIndex;
 import com.codahale.metrics.Timer;
+import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -24,7 +26,8 @@ import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepository  {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRiakSimplePostBoxRepository.class);
@@ -54,7 +57,7 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
     @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;
 
-    private Bucket postBoxBucket;
+    protected Bucket postBoxBucket;
 
     @PostConstruct
     public void createBucket() {
@@ -67,9 +70,7 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
 
     @Override
     public PostBox byId(String email) {
-        Timer.Context timerContext = GET_BY_ID_TIMER.time();
-        LOG.debug("Default riak repository - get postbox byId {}", email);
-        try {
+        try (Timer.Context ignored = GET_BY_ID_TIMER.time()) {
             PostBox postBox = postBoxBucket
               .fetch(email.toLowerCase(), PostBox.class)
               .withConverter(converter)
@@ -85,8 +86,6 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
             return postBox;
         } catch (RiakRetryFailedException e) {
             throw new RuntimeException("could not load post-box by email #" + email, e);
-        } finally {
-            timerContext.stop();
         }
     }
 
@@ -97,9 +96,7 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
 
     @Override
     public void write(PostBox postBox, List<String> deletedIds) {
-        Timer.Context timerContext = COMMIT_TIMER.time();
-
-        try {
+        try (Timer.Context ignored = COMMIT_TIMER.time()) {
             postBoxBucket.store(postBox.getEmail(), postBox)
               .withConverter(converter)
               .withResolver(resolver)
@@ -109,8 +106,6 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
               .execute();
         } catch (RiakRetryFailedException e) {
             throw new RuntimeException("could not write post-box #" + postBox.getEmail(), e);
-        } finally {
-            timerContext.stop();
         }
     }
 
@@ -122,11 +117,14 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
               .to(time.getMillis())
               .executeStreaming();
 
-            LOG.info("Removing num post-boxes... ");
+            LOG.info("Cleaning up Riak PostBoxes before {}", time);
+
             int counter = 0;
+
             for (IndexEntry indexEntry : keyStream) {
                 try {
                     delete(indexEntry.getObjectKey());
+
                     if (counter % 1000 == 0) {
                         LOG.info("Iterated postbox to cleanup number: " + counter);
                     }
@@ -136,38 +134,63 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
                     counter++;
                 }
             }
+
             LOG.info("finished postbox cleanup overall deleted items: " + counter);
         } catch (RiakException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void delete(String email) {
-        Timer.Context context = DELETE_TIMER.time();
+    @Override
+    public Optional<AbstractConversationThread> threadById(String email, String conversationId) {
+        PostBox postBox = byId(email);
 
-        try {
+        return postBox.lookupConversation(conversationId);
+    }
+
+    @Override
+    public Long upsertThread(String email, AbstractConversationThread conversationThread, boolean markAsUnread) {
+        PostBox<AbstractConversationThread> postBox = byId(email);
+
+        List<AbstractConversationThread> finalThreads = postBox.getConversationThreads().stream()
+          .filter(thread -> !thread.getConversationId().equals(conversationThread.getConversationId()))
+          .collect(Collectors.toList());
+
+        if (markAsUnread) {
+            postBox.incNewReplies();
+        }
+
+        finalThreads.add(conversationThread);
+
+        // Write the PostBox to the repository
+
+        PostBox postBoxToWrite = new PostBox(email, Optional.of(postBox.getNewRepliesCounter().getValue()), finalThreads, maxAgeDays);
+
+        write(postBoxToWrite);
+
+        return postBoxToWrite.getNewRepliesCounter().getValue();
+    }
+
+    private void delete(String email) {
+        try(Timer.Context ignored = DELETE_TIMER.time()) {
             postBoxBucket.delete(email).execute();
         } catch (RiakException e) {
             LOG.error("could not delete post box", e);
-        } finally {
-            context.stop();
         }
     }
 
     @Override
     public long getMessagesCount(DateTime fromDate, DateTime toDate) {
-        AtomicLong counter = new AtomicLong();
-        streamPostBoxIds(fromDate, toDate).forEach(c -> counter.getAndIncrement());
-        return counter.get();
+        return Iterators.size(streamPostBoxIds(fromDate, toDate));
     }
 
     @Override
     public StreamingOperation<IndexEntry> streamPostBoxIds(DateTime fromDate, DateTime toDate) { // use endDate as its current date
         try {
             return postBoxBucket.fetchIndex(IntIndex.named(UPDATED_INDEX))
-                    .from(fromDate.getMillis())
-                    .to(toDate.getMillis())
-                    .executeStreaming();
+              .from(fromDate.getMillis())
+              .to(toDate.getMillis())
+              .executeStreaming();
         } catch (RiakException e) {
             throw new RuntimeException(e);
         }
@@ -175,9 +198,8 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
 
     @Override
     public List<String> getPostBoxIds(DateTime fromDate, DateTime toDate) {
-        List<String> postboxids = Lists.newArrayList();
-        streamPostBoxIds(fromDate, toDate).forEach(id -> postboxids.add(id.getObjectKey()));
-        return postboxids;
+        return StreamSupport.stream(streamPostBoxIds(fromDate, toDate).spliterator(), false)
+          .map(id -> id.getObjectKey())
+          .collect(Collectors.toList());
     }
-
 }

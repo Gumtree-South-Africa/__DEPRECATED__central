@@ -1,7 +1,6 @@
 package com.ecg.messagecenter.pushmessage;
 
 import com.codahale.metrics.Counter;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.util.PushNotificationTextShortener;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -48,21 +47,20 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     }
 
     @Override
-    public void success(PostBox postBox, boolean markedAsUnread) {
-
+    public void success(String email, Long unreadCount, boolean markedAsUnread) {
         // only push-trigger on unread use-case
+
         if (!markedAsUnread) {
             return;
         }
 
-        sendPushMessage(postBox);
+        sendPushMessage(email, unreadCount);
     }
 
 
-    void sendPushMessage(PostBox postBox) {
+    void sendPushMessage(String email, Long unreadCount) {
         try {
-
-            Optional<PushMessagePayload> payload = createPayloadBasedOnNotificationRules(conversation, message, postBox);
+            Optional<PushMessagePayload> payload = createPayloadBasedOnNotificationRules(conversation, message, email, unreadCount);
 
             if (!payload.isPresent()) {
                 return;
@@ -82,24 +80,22 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
                 COUNTER_PUSH_FAILED.inc();
                 LOG.error(format("Error sending push for conversation '%s' and message '%s'", conversation.getId(), message.getId()), sendPushResult.getException().get());
             }
-
         } catch (Exception e) {
             COUNTER_PUSH_FAILED.inc();
             LOG.error(format("Error sending push for conversation '%s' and message '%s'", conversation.getId(), message.getId()), e);
         }
     }
 
-
-    private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, PostBox postBox) {
+    private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, String email, Long unreadCount) {
         return Optional.of(
                 new PushMessagePayload(
-                        postBox.getEmail(),
+                        email,
                         createPushMessageText(conversation, message),
                         "CONVERSATION",
                         ImmutableMap.of("conversationId", conversation.getId()),
-                        Optional.of(postBox.getNewRepliesCounter().getValue().intValue()),
+                        Optional.of(unreadCount.intValue()),
                         Optional.of(gcmDetails(conversation, message)),
-                        Optional.<Map<String, String>>empty())
+                        Optional.empty())
         );
     }
 

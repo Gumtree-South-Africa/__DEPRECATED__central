@@ -11,6 +11,7 @@ import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
+import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
@@ -41,14 +42,11 @@ import org.springframework.context.annotation.Import;
  */
 @Configuration
 @Import({
-        CassandraPersistenceConfiguration.CassandraClientConfiguration.class,
-        RiakPersistenceConfiguration.RiakClientConfiguration.class
+  CassandraPersistenceConfiguration.CassandraClientConfiguration.class,
+  RiakPersistenceConfiguration.RiakClientConfiguration.class
 })
 @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid-riak-readonly")
 public class ReadOnlyRiakHybridPersistenceConfiguration {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ReadOnlyRiakHybridPersistenceConfiguration.class);
-
     // Cassandra
 
     @Value("${persistence.cassandra.dc:#{null}}")
@@ -73,15 +71,16 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     @Autowired
     private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
 
-    // TODO make it conditinal on hybrid/hybrid-readonly
+    // TODO: Make it conditional on hybrid/hybrid-readonly
+
     @Bean
-    public ConversationRepository conversationRepository(Session cassandraSession) {
+    public ConversationRepository conversationRepository(Session cassandraSession, HybridMigrationClusterState migrationState) {
         DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
         RiakConversationRepository riakRepository = useBucketNamePrefix ? new QuietReadOnlyRiakConversationRepository(riakClient, bucketNamePrefix) : new RiakConversationRepository(riakClient);
 
         cassandraRepository.setObjectMapperConfigurer(objectMapperConfigurer);
 
-        return new HybridConversationRepository(cassandraRepository, riakRepository);
+        return new HybridConversationRepository(cassandraRepository, riakRepository, migrationState);
     }
 
     @Bean
@@ -102,6 +101,7 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     @Bean
     public MailRepository mailRepository() throws RiakRetryFailedException {
         // Mail storage has been deprecated in Cassandra - only persisting to Riak
+
         return new ReadOnlyRiakMailRepository(bucketNamePrefix, riakClient);
     }
 

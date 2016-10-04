@@ -176,8 +176,8 @@ public class ChunkedPostboxMigrationAction {
                     }
                 };
             }, IndexingMode.MIGRATION.errorHandlingPolicy());
-            LOG.info("Postboxes migrated {} vs scheduled for migration {} (cumulative)", postboxRepository.MIGRATED_POSTBOX_COUNTER.getCount(),
-                    postboxRepository.TOBE_MIGRATED_POSTBOX_COUNTER.getCount());
+            LOG.info("{} PostBoxes actually migrated vs. {} times it was determined necessary for PostBoxes to be migrated", postboxRepository.migratePostBoxCounter.getCount(),
+                    postboxRepository.migratePostBoxNecessaryCounter.getCount());
             LOG.info("MigratePostboxesBetween is complete, migrated {} postboxes", submittedPostboxCounter.get());
             watch.stop();
         } finally {

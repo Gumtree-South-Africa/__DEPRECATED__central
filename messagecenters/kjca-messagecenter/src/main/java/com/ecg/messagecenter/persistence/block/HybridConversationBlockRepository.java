@@ -1,5 +1,8 @@
 package com.ecg.messagecenter.persistence.block;
 
+import com.codahale.metrics.Counter;
+import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,13 +10,18 @@ import org.slf4j.LoggerFactory;
 public class HybridConversationBlockRepository implements ConversationBlockRepository {
     private static final Logger LOG = LoggerFactory.getLogger(HybridConversationBlockRepository.class);
 
+    private final Counter migrateConversationBlockCounter = TimingReports.newCounter("migration.migrate-conversation-block");
+
     private RiakConversationBlockRepository riakRepository;
 
     private CassandraConversationBlockRepository cassandraRepository;
 
-    public HybridConversationBlockRepository(RiakConversationBlockRepository riakRepository, CassandraConversationBlockRepository cassandraRepository) {
+    private HybridMigrationClusterState migrationState;
+
+    public HybridConversationBlockRepository(RiakConversationBlockRepository riakRepository, CassandraConversationBlockRepository cassandraRepository, HybridMigrationClusterState migrationState) {
         this.riakRepository = riakRepository;
         this.cassandraRepository = cassandraRepository;
+        this.migrationState = migrationState;
     }
 
     @Override
@@ -24,7 +32,13 @@ public class HybridConversationBlockRepository implements ConversationBlockRepos
             conversationBlock = riakRepository.byId(conversationId);
 
             if (conversationBlock != null) {
-                cassandraRepository.write(conversationBlock);
+                if (migrationState.tryClaim(ConversationBlock.class, conversationId)) {
+                    LOG.debug("Migrating ConversationBlock for Conversation with id {} from Riak to Cassandra", conversationId);
+
+                    cassandraRepository.write(conversationBlock);
+
+                    migrateConversationBlockCounter.inc();
+                }
             }
         }
 

@@ -1,18 +1,28 @@
 #!/usr/bin/env bash
 #
 # run-single-test.sh runs a single test, provided on the command line.
-# Example: './run-single-test.sh UserfilterIntegrationTest'
+# Example: 'bin/run-single-test.sh kjca UserfilterIntegrationTest'
+
+if [ "$#" -lt 2 ] ; then
+  echo "$0: <tenant> <test> [remote-port]"
+
+  exit 1
+fi
+
+if [ ! -z "$3" ] ; then
+    EXTRAARGS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=$3"
+else
+    EXTRAARGS=""
+fi
 
 set -o nounset
 set -o errexit
 
-readonly ARGS="$@"
 readonly DIR=$(dirname $0)
 
 readonly CASSANDRA_DIR="$DIR/../cassandra_tmp"
 readonly CASSANDRA_PID="cassandra.pid"
 readonly CASSANDRA_HOME=$CASSANDRA_DIR
-
 
 # Import a few certificates if we haven't already
 if [ ! -f comaas.jks ] ; then
@@ -79,4 +89,4 @@ function stopCassandra() {
 }
 
 startCassandra
-mvn -Drevision=123 -Djavax.net.ssl.trustStore=comaas.jks -Djavax.net.ssl.trustStorePassword=comaas  -Dlogback.debug=true -U -s etc/settings.xml -T0.5C -am -DfailIfNoTests=false -P 'core,core-tests,!distribution'  clean package -Dtest=$@
+MAVEN_OPTS="$EXTRAARGS" mvn -Drevision=123 -Djavax.net.ssl.trustStore=comaas.jks -Djavax.net.ssl.trustStorePassword=comaas  -Dlogback.debug=true -U -s etc/settings.xml -T0.5C -am -DfailIfNoTests=false -P "$1,"'core,core-tests,!distribution' clean package -Dtest=$2

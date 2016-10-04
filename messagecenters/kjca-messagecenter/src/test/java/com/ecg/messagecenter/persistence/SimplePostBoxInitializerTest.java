@@ -97,59 +97,28 @@ public class SimplePostBoxInitializerTest {
     public void newPostBox_newThreadCreated() throws Exception {
         Conversation conversation = convBuilder.build();
 
-        PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(), 180);
-
-        when(postBoxRepository.byId(SELLER_EMAIL)).thenReturn(postbox);
+        when(postBoxRepository.threadById(SELLER_EMAIL, conversation.getId())).thenReturn(Optional.empty());
+        when(postBoxRepository.upsertThread(eq(SELLER_EMAIL), any(AbstractConversationThread.class), eq(true))).thenReturn(1L);
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 
-        ArgumentCaptor<PostBox> argumentCaptor = ArgumentCaptor.forClass(PostBox.class);
-        verify(postBoxRepository).write(argumentCaptor.capture());
+        ArgumentCaptor<AbstractConversationThread> argumentCaptor = ArgumentCaptor.forClass(AbstractConversationThread.class);
+        verify(postBoxRepository).upsertThread(eq(SELLER_EMAIL), argumentCaptor.capture(), eq(true));
 
-        assertThat(postbox.getNewRepliesCounter().getValue(), equalTo(1L));
+        AbstractConversationThread conversationThread = argumentCaptor.getValue();
 
-        List<ConversationThread> conversationThreads = argumentCaptor.getValue().getConversationThreads();
-        assertThat(conversationThreads.size(), equalTo(1));
-        assertThat(conversationThreads.get(0).getConversationId(), equalTo(CONV_ID));
-        assertThat(conversationThreads.get(0).getAdId(), equalTo(AD_ID));
-        assertThat(conversationThreads.get(0).getCreatedAt(), equalTo(now));
-        assertThat(conversationThreads.get(0).getReceivedAt(), equalTo(now));
-        assertThat(conversationThreads.get(0).isContainsUnreadMessages(), equalTo(true));
-        assertThat(conversationThreads.get(0).getPreviewLastMessage(), equalTo(Optional.of(MSG_TEXT)));
-        assertThat(conversationThreads.get(0).getBuyerId(), equalTo(Optional.of(BUYER_EMAIL)));
-        assertThat(conversationThreads.get(0).getMessageDirection(), equalTo(Optional.of(MessageDirection.BUYER_TO_SELLER.name())));
+        assertThat(conversationThread.getConversationId(), equalTo(CONV_ID));
+        assertThat(conversationThread.getAdId(), equalTo(AD_ID));
+        assertThat(conversationThread.getCreatedAt(), equalTo(now));
+        assertThat(conversationThread.getReceivedAt(), equalTo(now));
+        assertThat(conversationThread.isContainsUnreadMessages(), equalTo(true));
+        assertThat(conversationThread.getPreviewLastMessage(), equalTo(Optional.of(MSG_TEXT)));
+        assertThat(conversationThread.getBuyerId(), equalTo(Optional.of(BUYER_EMAIL)));
+        assertThat(conversationThread.getMessageDirection(), equalTo(Optional.of(MessageDirection.BUYER_TO_SELLER.name())));
     }
 
-    @Test
-    public void postboxContainsThreadsThatAreTooOld_oldThreadsPurged() throws Exception {
-        DateTime tooLongAgo = new DateTime(UTC).minusDays(181);
-        Conversation conversation = convBuilder.build();
-
-        ConversationThread oldConversationThread = new ConversationThread(
-                "oldAdId", "oldConversationId", tooLongAgo, now, now, false,
-                Optional.of(MSG_TEXT),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.of(BUYER_EMAIL),
-                Optional.of(MessageDirection.BUYER_TO_SELLER.name()));
-
-        PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(oldConversationThread), 180);
-
-        when(postBoxRepository.byId(SELLER_EMAIL)).thenReturn(postbox);
-        when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
-
-        postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
-
-        ArgumentCaptor<PostBox> argumentCaptor = ArgumentCaptor.forClass(PostBox.class);
-        verify(postBoxRepository).write(argumentCaptor.capture());
-
-        assertThat(postbox.getNewRepliesCounter().getValue(), equalTo(1L));
-
-        List<ConversationThread> conversationThreads = argumentCaptor.getValue().getConversationThreads();
-        assertThat(conversationThreads.size(), equalTo(1));
-        assertThat(conversationThreads.get(0).getConversationId(), equalTo(CONV_ID));
-    }
+    // We don't check for old-thread-purging behavior anymore, as this was only relevant when (re)writing entire PostBoxes
 
     @Test
     public void postboxGetsNewConversationWithEmptyMessage_conversationNotAdded() throws Exception {
@@ -206,19 +175,12 @@ public class SimplePostBoxInitializerTest {
                 Optional.of(MessageDirection.BUYER_TO_SELLER.name())
         );
 
-        PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(existingThread), 180);
-
-        when(postBoxRepository.byId(SELLER_EMAIL)).thenReturn(postbox);
+        when(postBoxRepository.threadById(SELLER_EMAIL, conversation.getId())).thenReturn(Optional.of(existingThread));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 
         verifyZeroInteractions(postBoxWriteCallback);
-        verify(postBoxRepository, never()).write(any());
-
-        assertThat(postbox.getNewRepliesCounter().getValue(), equalTo(0L));
-        List<ConversationThread> conversationThreads = postbox.getConversationThreads();
-        assertThat(conversationThreads.size(), equalTo(1));
     }
 
     @Test

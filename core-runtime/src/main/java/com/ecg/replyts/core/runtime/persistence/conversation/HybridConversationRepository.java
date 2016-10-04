@@ -7,60 +7,63 @@ import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import org.joda.time.DateTime;
-import org.springframework.util.StopWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 public class HybridConversationRepository implements MutableConversationRepository {
-    private static final Counter MIGRATION_CONVERSATION_COUNTER = TimingReports.newCounter("hybrid-conversation-total-migrated");
-    private static final Timer MIGRATION_CONVERSATION_TIME_LAG = TimingReports.newTimer("hybrid-conversation-time-migrating");
+    private static final Logger LOG = LoggerFactory.getLogger(HybridConversationRepository.class);
+
+    private final Counter migrateConversationCounter = TimingReports.newCounter("migration.migrate-conversation");
+    private final Timer migrationConversationLagTimer = TimingReports.newTimer("migration.migrate-conversation-lag");
 
     private CassandraConversationRepository cassandraConversationRepository;
+
     private RiakConversationRepository riakConversationRepository;
 
-    public HybridConversationRepository(CassandraConversationRepository cassandraConversationRepository, RiakConversationRepository riakConversationRepository) {
+    private HybridMigrationClusterState migrationState;
+
+    public HybridConversationRepository(CassandraConversationRepository cassandraConversationRepository, RiakConversationRepository riakConversationRepository, HybridMigrationClusterState migrationState) {
         this.cassandraConversationRepository = cassandraConversationRepository;
         this.riakConversationRepository = riakConversationRepository;
+        this.migrationState = migrationState;
     }
 
     @Override
     public MutableConversation getById(String conversationId) {
-        synchronized (cassandraConversationRepository) {
-            MutableConversation conversation = cassandraConversationRepository.getById(conversationId);
+        MutableConversation conversation = cassandraConversationRepository.getById(conversationId);
 
-            if (conversation == null) {
-                conversation = riakConversationRepository.getById(conversationId);
+        if (conversation == null) {
+             conversation = riakConversationRepository.getById(conversationId);
 
-                if (conversation != null) {
-                    migrateEventsToCassandra(conversationId);
-                }
+            if (conversation != null) {
+                migrateEventsToCassandra(conversationId);
             }
-
-            return conversation;
         }
+
+        return conversation;
     }
 
     @Override
     public MutableConversation getBySecret(String secret) {
-        synchronized (cassandraConversationRepository) {
-            MutableConversation conversation = cassandraConversationRepository.getBySecret(secret);
+        MutableConversation conversation = cassandraConversationRepository.getBySecret(secret);
 
-            if (conversation == null) {
-                conversation = riakConversationRepository.getBySecret(secret);
+        if (conversation == null) {
+            conversation = riakConversationRepository.getBySecret(secret);
 
-                if (conversation != null) {
-                    migrateEventsToCassandra(conversation.getId());
-                }
+            if (conversation != null) {
+                migrateEventsToCassandra(conversation.getId());
             }
-
-            return conversation;
         }
+
+        return conversation;
     }
 
     @Override
@@ -94,69 +97,80 @@ public class HybridConversationRepository implements MutableConversationReposito
 
     @Override
     public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
-        synchronized (cassandraConversationRepository) {
-            Optional<Conversation> conversation = cassandraConversationRepository.findExistingConversationFor(key);
+        Optional<Conversation> conversation = cassandraConversationRepository.findExistingConversationFor(key);
 
-            if (!conversation.isPresent()) {
-                conversation = riakConversationRepository.findExistingConversationFor(key);
+        if (!conversation.isPresent()) {
+            conversation = riakConversationRepository.findExistingConversationFor(key);
 
-                if (conversation.isPresent()) {
-                    migrateEventsToCassandra(conversation.get().getId());
-                }
+            if (conversation.isPresent()) {
+                migrateEventsToCassandra(conversation.get().getId());
             }
-            return conversation;
         }
+
+        return conversation;
     }
 
     @Override
     public void commit(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
         List<ConversationEvent> cassandraToBeCommittedEvents = toBeCommittedEvents;
-        synchronized (cassandraConversationRepository) {
-            if (cassandraConversationRepository.getLastModifiedDate(conversationId) == null) {
-                List<ConversationEvent> events = riakConversationRepository.getConversationEvents(conversationId);
 
-                if (events != null && events.size() > 0) {
-                    cassandraToBeCommittedEvents = new ArrayList<>(events);
+        // Also perform a migration of historic events in case 1) there aren't any yet for this conversation, 2) this
+        // isn't already going on
 
-                    cassandraToBeCommittedEvents.addAll(toBeCommittedEvents);
-                }
+        if (cassandraConversationRepository.getLastModifiedDate(conversationId) == null) {
+            List<ConversationEvent> existingEvents = riakConversationRepository.getConversationEvents(conversationId);
+
+            if (existingEvents != null && !existingEvents.isEmpty()) {
+                final List<ConversationEvent> combinedEvents = new ArrayList<>(existingEvents);
+
+                toBeCommittedEvents.stream()
+                  .filter(event -> !combinedEvents.contains(event))
+                  .forEach(event -> combinedEvents.add(event));
+
+                cassandraToBeCommittedEvents = combinedEvents;
             }
 
-            riakConversationRepository.commit(conversationId, toBeCommittedEvents);
+            // If migration is already in progress we still have to commit the additional events provided to this call
 
-            migrateEventsToCassandra(conversationId, cassandraToBeCommittedEvents);
+            if (!migrateEventsToCassandra(conversationId, cassandraToBeCommittedEvents)) {
+                cassandraConversationRepository.commit(conversationId, toBeCommittedEvents);
+            }
+        } else {
+            cassandraConversationRepository.commit(conversationId, toBeCommittedEvents);
         }
+
+        riakConversationRepository.commit(conversationId, toBeCommittedEvents);
     }
 
     @Override
     public void deleteConversation(Conversation c) {
-        synchronized (cassandraConversationRepository) {
-            riakConversationRepository.deleteConversation(c);
-            cassandraConversationRepository.deleteConversation(c);
+        riakConversationRepository.deleteConversation(c);
+        cassandraConversationRepository.deleteConversation(c);
+    }
+
+    private boolean migrateEventsToCassandra(String conversationId) {
+        return migrateEventsToCassandra(conversationId, null);
+    }
+
+    private boolean migrateEventsToCassandra(String conversationId, List<ConversationEvent> events) {
+        // Essentially do a cross-cluster synchronize on this particular Conversation id to avoid duplication
+
+        if (!migrationState.tryClaim(Conversation.class, conversationId)) {
+            return false;
         }
-    }
 
-    private void migrateEventsToCassandra(String conversationId) {
-        migrateEventsToCassandra(conversationId, null);
-    }
+        LOG.debug("Migrating all events for Conversation with id {} from Riak to Cassandra", conversationId);
 
-    private void migrateEventsToCassandra(String conversationId, List<ConversationEvent> events) {
-        synchronized (cassandraConversationRepository) {
-            StopWatch watch = new StopWatch();
-            try {
-                watch.start();
-
-                if (events == null) {
-                    events = riakConversationRepository.getConversationEvents(conversationId);
-                }
-
-                cassandraConversationRepository.commit(conversationId, events);
-
-                watch.stop();
-            } finally {
-                MIGRATION_CONVERSATION_COUNTER.inc();
-                MIGRATION_CONVERSATION_TIME_LAG.update(watch.getTotalTimeMillis(), TimeUnit.MILLISECONDS);
+        try (Timer.Context ignored = migrationConversationLagTimer.time()) {
+            if (events == null) {
+                events = riakConversationRepository.getConversationEvents(conversationId);
             }
+
+            cassandraConversationRepository.commit(conversationId, events);
+        } finally {
+            migrateConversationCounter.inc();
         }
+
+        return true;
     }
 }

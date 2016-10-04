@@ -53,22 +53,21 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     }
 
     @Override
-    public void success(PostBox postBox, boolean markedAsUnread) {
-
+    public void success(String email, Long unreadCount, boolean markedAsUnread) {
         // only push-trigger on unread use-case
+
         if (!markedAsUnread) {
             return;
         }
 
-        sendPushMessage(postBox);
+        sendPushMessage(email, unreadCount);
     }
 
-
-    void sendPushMessage(PostBox postBox) {
+    void sendPushMessage(String email, Long unreadCount) {
         try {
             Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.lookupAdIInfo(Long.parseLong(conversation.getAdId()));
 
-            Optional<PushMessagePayload> payload = createPayloadBasedOnNotificationRules(conversation, message, postBox, adInfo);
+            Optional<PushMessagePayload> payload = createPayloadBasedOnNotificationRules(conversation, message, email, unreadCount, adInfo);
 
             if (!payload.isPresent()) {
                 return;
@@ -105,15 +104,15 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     }
 
 
-    private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, PostBox postBox, Optional<AdInfoLookup.AdInfo> adInfo) {
+    private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, String email, Long unreadCount, Optional<AdInfoLookup.AdInfo> adInfo) {
         String pushMessage = createPushMessageText(conversation, message);
         return Optional.of(
                 new PushMessagePayload(
-                        postBox.getEmail(),
+                        email,
                         pushMessage,
                         "CHATMESSAGE",
                         ImmutableMap.of("ConversationId", conversation.getId()),
-                        Optional.of(postBox.getUnreadConversations().size()),
+                        Optional.of(unreadCount.intValue()),
                         Optional.of(gcmDetails(conversation, message, adInfo, pushMessage, MessageType.isRobot(message))),
                         Optional.of(apnsDetails(conversation,message, adInfo, MessageType.isRobot(message))))
         );

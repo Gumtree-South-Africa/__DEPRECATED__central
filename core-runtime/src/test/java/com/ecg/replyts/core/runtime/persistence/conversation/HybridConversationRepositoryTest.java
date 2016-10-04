@@ -5,6 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEven
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
+import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,6 +30,8 @@ public class HybridConversationRepositoryTest {
     private CassandraConversationRepository cassandraRepository;
     @Mock
     private RiakConversationRepository riakRepository;
+    @Mock
+    private HybridMigrationClusterState migrationState;
 
     @InjectMocks
     private HybridConversationRepository repository;
@@ -38,6 +43,7 @@ public class HybridConversationRepositoryTest {
 
         when(cassandraRepository.getById(eq("123"))).thenReturn(null);
         when(riakRepository.getById(eq("123"))).thenReturn(conversation);
+        when(migrationState.tryClaim(any(Class.class), anyString())).thenReturn(true);
 
         when(riakRepository.getConversationEvents(eq("123"))).thenReturn(Arrays.asList(createdEvent));
 
@@ -53,6 +59,7 @@ public class HybridConversationRepositoryTest {
 
         when(cassandraRepository.getLastModifiedDate(eq("123"))).thenReturn(null);
         when(riakRepository.getConversationEvents(eq("123"))).thenReturn(Arrays.asList(existingConversationEvent));
+        when(migrationState.tryClaim(any(Class.class), anyString())).thenReturn(true);
 
         List<ConversationEvent> expectedEventsForRiakCommit = Arrays.asList(newConversationEvent);
         List<ConversationEvent> expectedEventsForCassandraCommit = Arrays.asList(existingConversationEvent, newConversationEvent);
@@ -87,6 +94,7 @@ public class HybridConversationRepositoryTest {
 
         when(cassandraRepository.getLastModifiedDate(eq("123"))).thenReturn(null);
         when(riakRepository.getConversationEvents(eq("123"))).thenReturn(null);
+        when(migrationState.tryClaim(any(Class.class), anyString())).thenReturn(true);
 
         List<ConversationEvent> expectedEventsForBoth = Arrays.asList(newConversationEvent);
 

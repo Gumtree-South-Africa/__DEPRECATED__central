@@ -11,6 +11,7 @@ import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
+import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
@@ -71,13 +72,13 @@ public class HybridPersistenceConfiguration {
     private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
 
     @Bean
-    public HybridConversationRepository conversationRepository(Session cassandraSession) {
+    public HybridConversationRepository conversationRepository(Session cassandraSession, HybridMigrationClusterState migrationState) {
         DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
         RiakConversationRepository riakRepository = useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix) : new RiakConversationRepository(riakClient);
 
         cassandraRepository.setObjectMapperConfigurer(objectMapperConfigurer);
 
-        return new HybridConversationRepository(cassandraRepository, riakRepository);
+        return new HybridConversationRepository(cassandraRepository, riakRepository, migrationState);
     }
 
     @Bean

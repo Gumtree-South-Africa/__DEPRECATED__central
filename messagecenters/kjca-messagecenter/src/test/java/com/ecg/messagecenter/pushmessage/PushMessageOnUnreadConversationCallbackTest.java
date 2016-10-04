@@ -82,7 +82,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
     @Test
     public void doNotSendPushMessageIfNoRulesApply() {
-        listener.success(postBox, false);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), false);
 
         verify(amqPushService, never()).sendPushMessage(any(PushMessagePayload.class));
     }
@@ -93,7 +93,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", SELLER_MAIL));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
         verify(sendPushService).sendPushMessage(any(PushMessagePayload.class));
         verify(amqPushService, never()).sendPushMessage(any(PushMessagePayload.class));
     }
@@ -103,7 +103,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "Poster display name <" + SELLER_MAIL + ">"));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
         verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
@@ -123,7 +123,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", SELLER_MAIL));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
         verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
@@ -143,7 +143,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", SELLER_MAIL, BoxHeaders.LOCALE.getHeaderName(), "fr_CA"));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
         verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
@@ -163,7 +163,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "Replier display name <" + BUYER_MAIL + ">"));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
         verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
@@ -183,7 +183,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "\"Replier display name\" <" + BUYER_MAIL + ">"));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
         verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
@@ -203,7 +203,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "Replier display name <" + BUYER_MAIL + ">"));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
         verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
@@ -223,7 +223,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "Poster display name <" + BUYER_MAIL + ">"));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(unnecessarilyLongMessage);
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
         verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             private String expectedValue = "Poster display name: " + PushMessageOnUnreadConversationCallback.truncateText(unnecessarilyLongMessage, 50);
@@ -251,8 +251,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", "Poster display name <" + BUYER_MAIL + ">"));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(unnecessarilyLongMessage);
 
-
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
         verify(amqPushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             private String expectedValue = "Poster display name: " + unnecessarilyLongMessage;

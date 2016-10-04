@@ -77,7 +77,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
     @Test
     public void doNotSendPushMessageIfNoRulesApply() {
-        listener.success(postBox, false);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), false);
 
         verify(pushService, never()).sendPushMessage(any(PushMessagePayload.class));
     }
@@ -87,7 +87,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     public void sendPushMessageToSeller() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
         verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
@@ -103,7 +103,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     public void sendPushMessageToBuyerIfRulesApply() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
         verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
@@ -118,7 +118,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     public void testPushMessagePayload() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
         verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override
@@ -139,7 +139,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getHeaders()).thenReturn(messageHeaders);
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()), true);
 
 //        verifyNoMoreInteractions(pushService.sendPushMessage(any(PushMessagePayload.class)));
         verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
@@ -162,10 +162,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         }));
     }
 
-
     private void listenerCallback() {
-        listener.sendPushMessage(postBox);
+        listener.sendPushMessage(postBox.getEmail(), Long.valueOf(postBox.getUnreadConversations().size()));
     }
-
-
 }

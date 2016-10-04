@@ -116,7 +116,7 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
             }));
         });
 
-        cleanUpTasks.stream().filter(task -> !task.isDone()).forEach(task -> {
+        cleanUpTasks.stream().forEach(task -> {
             try {
                 task.get();
             } catch (ExecutionException | RuntimeException e) {

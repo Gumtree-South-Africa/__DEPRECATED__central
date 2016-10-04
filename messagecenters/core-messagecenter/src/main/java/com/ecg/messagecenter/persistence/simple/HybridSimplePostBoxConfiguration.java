@@ -2,6 +2,7 @@ package com.ecg.messagecenter.persistence.simple;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
+import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -32,8 +33,7 @@ public class HybridSimplePostBoxConfiguration {
 
     @Bean
     @Primary
-    public HybridSimplePostBoxRepository simplePostBoxRepository(RiakSimplePostBoxRepository riakSimplePostBoxRepository,
-                                                     CassandraSimplePostBoxRepository cassandraSimplePostBoxRepository) {
-        return new HybridSimplePostBoxRepository(riakSimplePostBoxRepository, cassandraSimplePostBoxRepository);
+    public HybridSimplePostBoxRepository simplePostBoxRepository(RiakSimplePostBoxRepository riakSimplePostBoxRepository, CassandraSimplePostBoxRepository cassandraSimplePostBoxRepository, HybridMigrationClusterState migrationState) {
+        return new HybridSimplePostBoxRepository(riakSimplePostBoxRepository, cassandraSimplePostBoxRepository, migrationState);
     }
 }

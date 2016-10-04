@@ -86,24 +86,24 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     }
 
     @Override
-    public void success(PostBox postBox, boolean markedAsUnread) {
-
+    public void success(String email, Long unreadCount, boolean markedAsUnread) {
         // only push-trigger on unread use-case
+
         if (!markedAsUnread) {
             return;
         }
 
-        sendPushMessage(postBox);
+        sendPushMessage(email, unreadCount);
     }
 
-    void sendPushMessage(PostBox postBox) {
+    void sendPushMessage(String email, Long unreadCount) {
         PushService pushService = null;
         try {
             TraceThreadLocal.set(UUID.randomUUID().toString());
             Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.lookupAdInfo(Long.parseLong(conversation.getAdId()));
-            Optional<UserInfoLookup.UserInfo> userInfo = userInfoLookup.lookupUserInfo(postBox.getEmail());
+            Optional<UserInfoLookup.UserInfo> userInfo = userInfoLookup.lookupUserInfo(email);
 
-            Optional<PushMessagePayload> payload = createPayloadBasedOnNotificationRules(conversation, message, postBox, adInfo, userInfo);
+            Optional<PushMessagePayload> payload = createPayloadBasedOnNotificationRules(conversation, message, email, unreadCount, adInfo, userInfo);
 
             if (!payload.isPresent()) {
                 return;
@@ -148,21 +148,20 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
         return sendPushService;
     }
 
-    private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, PostBox postBox, Optional<AdInfoLookup.AdInfo> adInfo, Optional<UserInfoLookup.UserInfo> userInfo) {
+    private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, String email, Long unreadCount, Optional<AdInfoLookup.AdInfo> adInfo, Optional<UserInfoLookup.UserInfo> userInfo) {
         if (!userInfo.isPresent()) {
             return Optional.empty();
         }
 
         String pushMessage = createPushMessageText(message, getConversationLocale(conversation));
-        final int unreadConversationCount = postBox.getUnreadConversations().size();
         return Optional.of(
                 new PushMessagePayload(
-                        postBox.getEmail(),
+                        email,
                         userInfo.map(UserInfoLookup.UserInfo::getUserId).orElse(""),
                         pushMessage,
                         "CHATMESSAGE",
-                        Optional.of(details(conversation, adInfo, pushMessage, unreadConversationCount)),
-                        Optional.of(unreadConversationCount)
+                        Optional.of(details(conversation, adInfo, pushMessage, unreadCount.intValue())),
+                        Optional.of(unreadCount.intValue())
                 )
         );
     }
