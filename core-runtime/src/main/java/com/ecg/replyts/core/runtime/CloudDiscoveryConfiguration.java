@@ -1,8 +1,15 @@
 package com.ecg.replyts.core.runtime;
 
+import ch.qos.logback.classic.LoggerContext;
+import com.github.danielwegener.logback.kafka.KafkaAppender;
+import com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy;
+import com.github.danielwegener.logback.kafka.encoding.LayoutKafkaMessageEncoder;
+import com.github.danielwegener.logback.kafka.keying.RoundRobinKeyingStrategy;
+import net.logstash.logback.layout.LogstashLayout;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -25,6 +32,9 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
 import javax.annotation.PostConstruct;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,34 +50,34 @@ public class CloudDiscoveryConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CloudDiscoveryConfiguration.class);
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
-            "cassandra", "persistence.cassandra.endpoint",
-            "elasticsearch", "search.es.endpoints"
+      "cassandra", "persistence.cassandra.endpoint",
+      "elasticsearch", "search.es.endpoints"
     );
 
+    private static final String LOG_APPENDER_SERVICE = "kafkalog";
+
+    String version = getClass().getPackage().getImplementationVersion();
+
     @Value("${replyts.tenant:generic}")
-    private String tenant;
+    String tenant;
 
     @Value("${replyts.http.port:0}")
-    private Integer httpPort;
-
-    @Autowired(required = false)
-    private ConsulLifecycle lifecycle;
-
-    @Autowired(required = false)
-    private ConsulPropertySourceLocator propertySourceLocator;
+    Integer httpPort;
 
     @Autowired
-    private ConfigurableEnvironment environment;
+    ConsulLifecycle lifecycle;
 
     @Autowired(required = false)
-    private DiscoveryClient discoveryClient;
+    ConsulPropertySourceLocator propertySourceLocator;
+
+    @Autowired
+    ConfigurableEnvironment environment;
+
+    @Autowired
+    DiscoveryClient discoveryClient;
 
     @PostConstruct
-    public void initializeDiscovery() {
-        if (lifecycle == null) {
-            return;
-        }
-
+    void initializeDiscovery() {
         // XXX: Temporary fix until we switch to Spring Boot (this jumpstarts the lifecycle which fetches the properties)
 
         lifecycle.onApplicationEvent(new EmbeddedServletContainerInitializedEvent(
@@ -89,24 +99,40 @@ public class CloudDiscoveryConfiguration {
         ));
 
         LOG.info("Auto-discovering cloud services and overriding appropriate properties");
+
         environment.getPropertySources().addFirst(new MapPropertySource("Auto-discovered services", discoverServices()));
 
         // Initialize the property source locator if KV-lookups are enabled (service.configuration.enabled)
+
         if (propertySourceLocator != null) {
             environment.getPropertySources().addFirst(propertySourceLocator.locate(environment));
+        }
+
+        // Required properties may have been taken from Consul, so defer initializing logging to here
+
+        populateMDC();
+
+        if (Boolean.valueOf(environment.getProperty("service.discovery.logger.appender.enabled", "false"))) {
+            String appenderTopic = environment.getProperty("service.discovery.logger.appender.topic");
+
+            addKafkaAppender(appenderTopic);
         }
     }
 
     Map<String, Object> discoverServices() {
         Map<String, Object> gatheredProperties = new HashMap<>();
+
         DISCOVERABLE_SERVICE_PROPERTIES.forEach((service, property) -> {
             LOG.info("Discovering service {} for property {}", service, property);
+
             List<ServiceInstance> discoveredInstances = discoveryClient.getInstances(service);
+
             List<String> instances = discoveredInstances.stream()
                     .filter(instance -> instance.getMetadata().containsKey("tenant-" + tenant))
                     .peek(instance -> LOG.debug("Discovered tenant specific service {}", instance))
                     .map(instance -> instance.getHost() + ":" + instance.getPort())
                     .collect(Collectors.toList());
+
             if (instances.size() == 0 && discoveredInstances.size() > 0) {
                 instances = discoveredInstances.stream()
                         .filter(instance -> instance.getMetadata().keySet().stream().filter(key -> key.startsWith("tenant-")).count() == 0)
@@ -123,6 +149,66 @@ public class CloudDiscoveryConfiguration {
                 LOG.info("Auto-discovered 0 {} instance(s) - not populating property {}", service, property);
             }
         });
+
         return gatheredProperties;
+    }
+
+    void addKafkaAppender(String topic) {
+        List<String> instances = new ArrayList<>();
+
+        discoveryClient.getInstances(LOG_APPENDER_SERVICE).forEach(instance -> {
+            instances.add(instance.getHost() + ":" + instance.getPort());
+        });
+
+        if (instances.size() > 0) {
+            LOG.info("Auto-discovered {} Kafka instance(s) to be used for the ROOT log appender - will use the first one", instances.size());
+
+            LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+
+            ch.qos.logback.classic.Logger rootLogger = context.getLogger(Logger.ROOT_LOGGER_NAME);
+
+            KafkaAppender appender = new KafkaAppender();
+
+            appender.addProducerConfigValue("bootstrap.server", instances.get(0));
+            appender.setTopic(topic);
+            appender.setKeyingStrategy(new RoundRobinKeyingStrategy());
+            appender.setDeliveryStrategy(new AsynchronousDeliveryStrategy());
+
+            LayoutKafkaMessageEncoder encoder = new LayoutKafkaMessageEncoder();
+
+            // Use a Logstash layout for logging; this automatically adds in the MDC fields as well
+
+            LogstashLayout layout = new LogstashLayout();
+
+            layout.setContext(context);
+
+            encoder.setLayout(layout);
+            encoder.setContext(context);
+
+            appender.setEncoder(encoder);
+            appender.setContext(context);
+
+            layout.start();
+            encoder.start();
+            appender.start();
+
+            rootLogger.addAppender(appender);
+        } else {
+            LOG.info("Auto-discovered 0 Kafka instance(s) - not adding Kafka-based ROOT log appender");
+        }
+    }
+
+    void populateMDC() {
+        try {
+            InetAddress address = InetAddress.getLocalHost();
+
+            MDC.put("host", address.getHostName());
+            MDC.put("ip", address.getHostAddress());
+        } catch (UnknownHostException e) {
+            LOG.error("Unable to determine primary IP and/or hostname to place in logger MDC", e);
+        }
+
+        MDC.put("version", version);
+        MDC.put("tenant", tenant);
     }
 }
