@@ -39,8 +39,6 @@ public class ConversationFinder implements PreProcessor {
 
     @Override
     public void preProcess(MessageProcessingContext context) {
-        LOG.debug("Finding conversation on message {}", context.getMessageId());
-
         if (Strings.isNullOrEmpty(context.getMail().getDeliveredTo())) {
             throw new IllegalArgumentException("Could not read 'DeliveredTo' recipient from Mail.");
         }
@@ -51,7 +49,6 @@ public class ConversationFinder implements PreProcessor {
         if (senderIsFromPlatformDomain) {
             LOG.warn("Sender {} is from Platform's domain. Discarding Message.", from.getAddress());
             context.terminateProcessing(MessageState.IGNORED, this, "Sender is Cloaked " + from.getAddress());
-            LOG.debug("Could not assign conversation for message {}, ended in {}", context.getMessageId(), context.getTermination().getEndState());
             return;
         }
         boolean isReply = to.isFromDomain(platformDomains);
@@ -83,8 +80,4 @@ public class ConversationFinder implements PreProcessor {
         context.addCommand(addMessageCommand);
     }
 
-    @Override
-    public int getOrder() {
-        return 0;
-    }
 }
