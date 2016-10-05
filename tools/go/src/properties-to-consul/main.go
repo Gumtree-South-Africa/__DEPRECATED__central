@@ -31,7 +31,7 @@ func main() {
 
 	properties, err := readProperties(*filename)
 	if err != nil {
-		log.Fatalf("Encountered an error while reading input file %s: %s", *fileName, err)
+		log.Fatalf("Encountered an error while reading input file %s: %s", *filename, err)
 	}
 	names := properties.Names()
 
