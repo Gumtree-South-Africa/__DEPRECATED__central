@@ -6,6 +6,7 @@ import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.persistence.PostBoxService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import org.slf4j.Logger;
@@ -16,14 +17,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-import static com.ecg.replyts.core.api.model.conversation.ConversationState.CLOSED;
-import static com.ecg.replyts.core.api.model.conversation.ConversationState.DEAD_ON_ARRIVAL;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.IGNORED;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.SENT;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
-import static com.google.common.collect.Lists.newArrayList;
 
 @Component
 public class PostBoxUpdateListener implements MessageProcessedListener {
@@ -52,7 +50,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     @Override
     public void messageProcessed(Conversation conv, Message msg) {
         if ("true".equalsIgnoreCase(conv.getCustomValues().get(SKIP_MESSAGE_CENTER))
-                || newArrayList(DEAD_ON_ARRIVAL, CLOSED).contains(conv.getState())) {
+                || conv.getState() == ConversationState.DEAD_ON_ARRIVAL) {
             return;
         }
 
@@ -88,7 +86,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private void updateUserProjection(Conversation conv, Message msg, String msgSenderUserId, String projectionOwnerUserId,
                                       ConversationRole convRole, boolean isNewReply) {
         boolean isOwnMessage = msgSenderUserId.equals(projectionOwnerUserId);
-        if (msg.getState() != IGNORED && (msg.getState() == SENT || isOwnMessage)) {
+        if (msg.getState() != IGNORED && ((msg.getState() == SENT && conv.getState() != ConversationState.CLOSED) || isOwnMessage)) {
             postBoxServiceDelegator.processNewMessage(projectionOwnerUserId, conv, msg, convRole, isNewReply);
         }
     }

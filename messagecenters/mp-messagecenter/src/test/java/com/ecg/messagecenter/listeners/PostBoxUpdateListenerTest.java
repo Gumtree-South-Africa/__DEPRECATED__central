@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static com.ecg.replyts.core.api.model.conversation.ConversationState.*;
+import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.IGNORED;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.SENT;
@@ -113,13 +114,14 @@ public class PostBoxUpdateListenerTest {
     }
 
     @Test
-    public void convClosed_notProcessed() {
+    public void convClosed_processedForOwnMessageOnly() {
         Conversation conversation = convBuilder.withState(CLOSED).build();
-        Message message = msgBuilder.build();
+        Message message = msgBuilder.withMessageDirection(BUYER_TO_SELLER).build();
 
         listener.messageProcessed(conversation, message);
 
-        verifyZeroInteractions(userIdentifierServiceMock, delegatorMock);
+        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, ConversationRole.Buyer, false);
+        verify(delegatorMock, never()).processNewMessage(SELLER_USER_ID, conversation, message, ConversationRole.Seller, true);
     }
 
     @Test
@@ -161,7 +163,7 @@ public class PostBoxUpdateListenerTest {
     @Test
     public void blockedOwnMessage_processed() {
         Conversation conversation = convBuilder.build();
-        Message message = msgBuilder.withState(MessageState.BLOCKED).build();
+        Message message = msgBuilder.withState(MessageState.BLOCKED).withMessageDirection(BUYER_TO_SELLER).build();
 
         listener.messageProcessed(conversation, message);
 
