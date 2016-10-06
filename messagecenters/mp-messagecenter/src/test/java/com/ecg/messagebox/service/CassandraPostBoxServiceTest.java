@@ -21,9 +21,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.Builder.aConversation;
@@ -102,10 +100,48 @@ public class CassandraPostBoxServiceTest {
     public void processNewMessageWithMetadataHeader() {
         when(conversationsRepo.getConversationMessageNotification(USER_ID_1, "c1")).thenReturn(empty());
 
-        Message rtsMsg = newMessageWithMetadata("1", SELLER_TO_BUYER, MessageState.SENT);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("X-Message-Type", "asq");
+        headers.put("X-Message-Metadata", "metadata");
+        headers.put("Subject", "subject");
+
+        Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
 
         com.ecg.messagebox.model.Message newMessage = new com.ecg.messagebox.model.Message(
                 rtsMsg.getEventTimeUUID().get(), "text 123", USER_ID_2, MessageType.ASQ, "metadata");
+
+        Conversation rtsConversation = newConversation("c1").withMessages(singletonList(rtsMsg)).build();
+
+        List<Participant> participants = newArrayList(
+                new Participant(USER_ID_1, BUYER_NAME_VALUE, rtsConversation.getBuyerId(), ParticipantRole.BUYER),
+                new Participant(USER_ID_2, SELLER_NAME_VALUE, rtsConversation.getSellerId(), ParticipantRole.SELLER));
+
+        ConversationThread conversation = new ConversationThread(
+                rtsConversation.getId(),
+                rtsConversation.getAdId(),
+                Visibility.ACTIVE,
+                MessageNotification.RECEIVE,
+                participants,
+                newMessage,
+                new ConversationMetadata(now(), "subject"));
+
+        service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true);
+
+        verify(conversationsRepo).createConversation(USER_ID_1, conversation, newMessage, true);
+    }
+
+    @Test
+    public void processNewMessageWithIdHeader() {
+        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, "c1")).thenReturn(empty());
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("X-Message-Type", "asq");
+        headers.put("X-Message-Id", "f866b110-857b-11e6-9367-5bbf510138cd");
+        headers.put("Subject", "subject");
+        Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
+
+        com.ecg.messagebox.model.Message newMessage = new com.ecg.messagebox.model.Message(
+                UUID.fromString("f866b110-857b-11e6-9367-5bbf510138cd"), "text 123", USER_ID_2, MessageType.ASQ, null);
 
         Conversation rtsConversation = newConversation("c1").withMessages(singletonList(rtsMsg)).build();
 
@@ -156,7 +192,8 @@ public class CassandraPostBoxServiceTest {
                 .build();
     }
 
-    private Message newMessageWithMetadata(String id, MessageDirection direction, MessageState state) {
+
+    private Message newMessageWithHeaders(String id, MessageDirection direction, MessageState state, Map<String, String> headers) {
         return aMessage()
                 .withId(id)
                 .withEventTimeUUID(Optional.of(UUIDs.timeBased()))
@@ -164,9 +201,7 @@ public class CassandraPostBoxServiceTest {
                 .withState(state)
                 .withReceivedAt(new DateTime(2016, 1, 30, 20, 11, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withLastModifiedAt(new DateTime(2016, 1, 30, 20, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
-                .withHeader("X-Message-Type", "asq")
-                .withHeader("X-Message-Metadata", "metadata")
-                .withHeader("Subject", "subject")
+                .withHeaders(headers)
                 .withTextParts(singletonList("text 123"))
                 .build();
     }

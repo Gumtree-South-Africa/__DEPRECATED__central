@@ -11,10 +11,7 @@ import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
@@ -64,7 +61,9 @@ public class CassandraPostBoxService implements PostBoxService {
                 MessageType messageType = MessageType.get(messageTypeStr);
                 String messageText = messageResponseFactory.getCleanedMessage(rtsConversation, rtsMessage);
                 String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
-                Message newMessage = new Message(rtsMessage.getEventTimeUUID().get(), messageText, senderUserId, messageType, customData);
+                String messageIdStr = rtsMessage.getHeaders().get("X-Message-Id");
+                UUID messageId = messageIdStr != null ? UUID.fromString(messageIdStr) : rtsMessage.getEventTimeUUID().get();
+                Message newMessage = new Message(messageId, messageText, senderUserId, messageType, customData);
                 Optional<MessageNotification> messageNotificationOpt = postBoxRepository.getConversationMessageNotification(userId, rtsConversation.getId());
 
                 if (messageNotificationOpt.isPresent()) {
