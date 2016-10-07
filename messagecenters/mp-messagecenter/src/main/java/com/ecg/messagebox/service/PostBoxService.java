@@ -4,6 +4,7 @@ import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.UserUnreadCounts;
 import com.ecg.messagebox.model.Visibility;
+import com.ecg.messagecenter.persistence.ResponseData;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,5 +25,7 @@ public interface PostBoxService {
     PostBox changeConversationVisibilities(String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis, int conversationsOffset, int conversationsLimit);
 
     UserUnreadCounts getUnreadCounts(String userId);
+
+    List<ResponseData> getResponseData(String userId);
 
 }

@@ -5,6 +5,7 @@ import com.codahale.metrics.Timer;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
+import com.ecg.messagecenter.persistence.ResponseData;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -31,6 +32,7 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer getConversationsTimer = newTimer("postBoxService.v2.getConversations");
     private final Timer changeConversationVisibilitiesTimer = newTimer("postBoxService.v2.changeConversationVisibilities");
     private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
+    private final Timer getResponseDataTimer = newTimer("postBoxService.v2.getResponseData");
 
     private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
 
@@ -127,6 +129,14 @@ public class CassandraPostBoxService implements PostBoxService {
     public UserUnreadCounts getUnreadCounts(String userId) {
         try (Timer.Context ignored = getUnreadCountsTimer.time()) {
             return postBoxRepository.getUserUnreadCounts(userId);
+        }
+    }
+
+    @Override
+    public List<ResponseData> getResponseData(String userId) {
+        try (Timer.Context ignored = getResponseDataTimer.time()) {
+
+            return postBoxRepository.getResponseData(userId);
         }
     }
 

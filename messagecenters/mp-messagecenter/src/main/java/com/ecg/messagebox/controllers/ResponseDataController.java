@@ -1,8 +1,9 @@
-package com.ecg.messagecenter.webapi;
+package com.ecg.messagebox.controllers;
 
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.persistence.PostBoxService;
+import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagecenter.persistence.ResponseData;
+import com.ecg.messagecenter.webapi.TopLevelExceptionHandler;
 import com.ecg.messagecenter.webapi.responses.ResponseDataResponse;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -21,18 +22,18 @@ import java.util.List;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-@Controller("oldResponseDataController")
+@Controller("newResponseDataController")
 public class ResponseDataController {
 
-    private static final Timer API_POSTBOX_GET_RESPONSE_DATA = TimingReports.newTimer("webapi-postbox-get-response-data");
+    private static final String MAPPING = "/users/{userId}/response-data";
 
-    private static final String MAPPING = "/postboxes/{userId}/response-data";
+    private final Timer getResponseDataTimer = TimingReports.newTimer("webapi.get-response-data");
 
-    private final PostBoxService postBoxServiceDelegator;
+    private final PostBoxService postBoxService;
 
     @Autowired
-    public ResponseDataController(@Qualifier("postBoxServiceDelegator") PostBoxService postBoxServiceDelegator) {
-        this.postBoxServiceDelegator = postBoxServiceDelegator;
+    public ResponseDataController(@Qualifier("newCassandraPostBoxService") PostBoxService postBoxService) {
+        this.postBoxService = postBoxService;
     }
 
     @ExceptionHandler
@@ -44,8 +45,8 @@ public class ResponseDataController {
     @ResponseBody
     public ResponseObject<ResponseDataResponse> getResponseData(@PathVariable String userId) {
 
-        try (Timer.Context ignored = API_POSTBOX_GET_RESPONSE_DATA.time()) {
-            List<ResponseData> responseDataList = postBoxServiceDelegator.getResponseData(userId);
+        try (Timer.Context ignored = getResponseDataTimer.time()) {
+            List<ResponseData> responseDataList = postBoxService.getResponseData(userId);
             return ResponseObject.of(new ResponseDataResponse(responseDataList));
         }
     }

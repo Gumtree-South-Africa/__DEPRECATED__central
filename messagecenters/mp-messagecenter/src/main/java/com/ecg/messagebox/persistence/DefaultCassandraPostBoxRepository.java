@@ -3,11 +3,15 @@ package com.ecg.messagebox.persistence;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.messagebox.model.*;
+import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.Message;
+import com.ecg.messagebox.model.MessageType;
+import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.persistence.jsonconverter.JsonConverter;
 import com.ecg.messagebox.persistence.model.ConversationIndex;
 import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
 import com.ecg.messagebox.util.StreamUtils;
+import com.ecg.messagecenter.persistence.*;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +26,7 @@ import static com.datastax.driver.core.utils.UUIDs.unixTimestamp;
 import static com.ecg.messagebox.model.Visibility.get;
 import static com.ecg.messagebox.util.uuid.UUIDComparator.staticCompare;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
+import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
@@ -46,6 +51,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer deleteModificationIndexTimer = newTimer("cassandra.postBoxRepo.v2.deleteModificationIndexByDate");
     private final Timer getConversationModificationsByHourTimer = newTimer("cassandra.postBoxRepo.v2.getConversationModificationsByHour");
     private final Timer getLastConversationModificationTimer = newTimer("cassandra.postBoxRepo.v2.getLastConversationModificationTimer");
+    private final Timer selectResponseDataTimer = newTimer("cassandra.postBoxRepo.v2.selectResponseData");
 
     private final Session session;
     private final ConsistencyLevel readConsistency;
@@ -370,6 +376,21 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         }
     }
 
+    @Override
+    public List<ResponseData> getResponseData(String userId) {
+        try (Timer.Context ignored = selectResponseDataTimer.time()) {
+            ResultSet result = session.execute(Statements.SELECT_RESPONSE_DATA.bind(this, userId));
+            return toStream(result)
+                    .map(this::rowToResponseData)
+                    .collect(Collectors.toList());
+        }
+    }
+
+    private ResponseData rowToResponseData(Row row) {
+        return new ResponseData(row.getString("userid"), row.getString("convid"),
+                new DateTime(row.getDate("createdate")), com.ecg.messagecenter.persistence.MessageType.get(row.getString("convtype")), row.getInt("responsespeed"));
+    }
+
     public ConsistencyLevel getReadConsistency() {
         return readConsistency;
     }
@@ -428,7 +449,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         DELETE_AD_CONVERSATION_MODIFICATION_IDX("DELETE FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ? AND msgid = ?", true),
         DELETE_AD_CONVERSATION_MODIFICATION_IDXS("DELETE FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ?", true),
-        DELETE_CONVERSATION_MODIFICATION_IDX_BY_DATE("DELETE FROM mb_conversation_modification_idx_by_date WHERE modifdate = ? AND msgid = ? AND usrid = ? AND convid = ?", true);
+        DELETE_CONVERSATION_MODIFICATION_IDX_BY_DATE("DELETE FROM mb_conversation_modification_idx_by_date WHERE modifdate = ? AND msgid = ? AND usrid = ? AND convid = ?", true),
+
+        SELECT_RESPONSE_DATA("SELECT userid, convid, convtype, createdate, responsespeed FROM mb_response_data WHERE userid=? LIMIT 100");
 
         private final String cql;
         private final boolean modifying;
