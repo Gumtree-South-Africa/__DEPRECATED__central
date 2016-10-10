@@ -16,7 +16,7 @@ readonly ATTEMPTS=30
 readonly HEALTH_CHECK_DELAY=3
 readonly HOST='localhost'
 
-# tanant-> http port lookup
+# tenant-> http port lookup
 declare -A HTTP_PORTS=(
   ["ebayk"]=$BASEPORT
   ["gtau"]=$((BASEPORT+1))
@@ -161,10 +161,14 @@ function main() {
 function usage() {
 cat << EOF
 Usage:
-    $0 $TENANT
     Run Comaas for TENANT where TENANT one of ebayk,mp,mde,kjca,gtau
+    Make sure to create a 'bare' package first (e.g. ./bin/build.sh -T mp -P bare)
+
+Example:
+    $0 mp
 
 EOF
+exit 0;
 }
 
 parseCmd ${ARGS}
