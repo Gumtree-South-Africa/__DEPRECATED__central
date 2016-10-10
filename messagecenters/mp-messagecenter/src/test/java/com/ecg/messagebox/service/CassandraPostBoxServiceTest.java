@@ -93,7 +93,11 @@ public class CassandraPostBoxServiceTest {
         Assert.assertEquals(Visibility.ACTIVE, capturedConversationThread.getVisibility());
         Assert.assertEquals(MessageNotification.RECEIVE, capturedConversationThread.getMessageNotification());
 
-        Assert.assertEquals(rtsMsg2.getEventTimeUUID().get(), messageArgCaptor.getValue().getId());
+        DateTime messageIdDate = new DateTime(UUIDs.unixTimestamp(messageArgCaptor.getValue().getId()));
+        DateTime currentTime = new DateTime();
+        Assert.assertEquals(messageIdDate.dayOfMonth(), currentTime.dayOfMonth());
+        Assert.assertEquals(messageIdDate.monthOfYear(), currentTime.monthOfYear());
+        Assert.assertEquals(messageIdDate.year(), currentTime.year());
     }
 
     @Test
@@ -110,24 +114,39 @@ public class CassandraPostBoxServiceTest {
         com.ecg.messagebox.model.Message newMessage = new com.ecg.messagebox.model.Message(
                 rtsMsg.getEventTimeUUID().get(), "text 123", USER_ID_2, MessageType.ASQ, "metadata");
 
+        ArgumentCaptor<com.ecg.messagebox.model.Message> messageArgCaptor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
+
         Conversation rtsConversation = newConversation("c1").withMessages(singletonList(rtsMsg)).build();
 
         List<Participant> participants = newArrayList(
                 new Participant(USER_ID_1, BUYER_NAME_VALUE, rtsConversation.getBuyerId(), ParticipantRole.BUYER),
                 new Participant(USER_ID_2, SELLER_NAME_VALUE, rtsConversation.getSellerId(), ParticipantRole.SELLER));
 
-        ConversationThread conversation = new ConversationThread(
-                rtsConversation.getId(),
-                rtsConversation.getAdId(),
-                Visibility.ACTIVE,
-                MessageNotification.RECEIVE,
-                participants,
-                newMessage,
-                new ConversationMetadata(now(), "subject"));
+        ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
 
         service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true);
 
-        verify(conversationsRepo).createConversation(USER_ID_1, conversation, newMessage, true);
+        verify(conversationsRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), eq(true));
+
+        com.ecg.messagebox.model.Message capturedMessage = messageArgCaptor.getValue();
+
+        DateTime messageIdDate = new DateTime(UUIDs.unixTimestamp(capturedMessage.getId()));
+        DateTime currentTime = new DateTime();
+        Assert.assertEquals(messageIdDate.dayOfMonth(), currentTime.dayOfMonth());
+        Assert.assertEquals(messageIdDate.monthOfYear(), currentTime.monthOfYear());
+        Assert.assertEquals(messageIdDate.year(), currentTime.year());
+
+        Assert.assertEquals("text 123", capturedMessage.getText());
+        Assert.assertEquals(USER_ID_2, capturedMessage.getSenderUserId());
+        Assert.assertEquals(MessageType.ASQ, capturedMessage.getType());
+        Assert.assertEquals("metadata", capturedMessage.getCustomData());
+
+        ConversationThread conversation = conversationThreadArgCaptor.getValue();
+        Assert.assertEquals(conversation.getId(), rtsConversation.getId());
+        Assert.assertEquals(conversation.getAdId(), rtsConversation.getAdId());
+        Assert.assertEquals(conversation.getVisibility(), Visibility.ACTIVE);
+        Assert.assertEquals(conversation.getMessageNotification(), MessageNotification.RECEIVE);
+        Assert.assertEquals(conversation.getParticipants(), participants);
     }
 
     @Test

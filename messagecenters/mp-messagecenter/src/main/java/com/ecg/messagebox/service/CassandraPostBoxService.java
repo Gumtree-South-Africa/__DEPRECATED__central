@@ -2,6 +2,7 @@ package com.ecg.messagebox.service;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
+import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
@@ -64,7 +65,7 @@ public class CassandraPostBoxService implements PostBoxService {
                 String messageText = messageResponseFactory.getCleanedMessage(rtsConversation, rtsMessage);
                 String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
                 String messageIdStr = rtsMessage.getHeaders().get("X-Message-Id");
-                UUID messageId = messageIdStr != null ? UUID.fromString(messageIdStr) : rtsMessage.getEventTimeUUID().get();
+                UUID messageId = messageIdStr != null ? UUID.fromString(messageIdStr) : UUIDs.timeBased();
                 Message newMessage = new Message(messageId, messageText, senderUserId, messageType, customData);
                 Optional<MessageNotification> messageNotificationOpt = postBoxRepository.getConversationMessageNotification(userId, rtsConversation.getId());
 
