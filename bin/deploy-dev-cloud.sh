@@ -5,6 +5,11 @@
 set -o nounset
 set -o errexit
 
+if [[ $# -ne 1 ]]; then
+  echo Usage: ${0} distribution_name.tar.gz
+  exit 1
+fi
+
 distr_name="$1"
 if [[ ! -f ${distr_name} ]]; then
   echo "${distr_name} does not exist"
@@ -17,7 +22,7 @@ dir=$(mktemp -d)
 # get the fileserver and consul IP addresses from openstack/nova
 echo -n "Repackaging for Nomad... "
 tar zxf ${distr_name} -C ${dir}
-tar zcf ${dir}/comaas.tar.gz -C ${dir}/distribution .
+tar zcf ${dir}/comaas.tar.gz -C $(find ${dir} -type d -depth 1) .
 echo Done.
 
 echo Uploading to fileserver001.dev:
@@ -25,5 +30,5 @@ scp ${dir}/comaas.tar.gz fileserver001.dev:/var/www/html/comaas.tar.gz
 rm -rf ${dir}
 
 echo "Posting to Nomad; evaluation ID:"
-curl -f -X POST -d @bin/comaas_deploy_dev_cloud.json http://consul001.dev:4646/v1/jobs --header "Content-Type:application/json"
+curl -f -X POST -d @bin/comaas_deploy_dev_cloud.json http://localhost:4646/v1/jobs --header "Content-Type:application/json"
 

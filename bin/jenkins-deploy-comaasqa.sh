@@ -3,8 +3,7 @@
 # jenkins-deploy-comaasqa.sh deploys a comaas package to the comaasqa env
 
 set -o nounset
-# Not exiting on error, since we have a retry mechanism in here
-# set -o errexit
+set -o errexit
 
 ATTEMPTS=20
 
@@ -31,21 +30,30 @@ function parseArgs() {
 
 function deploy() {
   # Send the job to Nomad
+  tar -zxf ${BUILD_DIR}/comaas-${TENANT}-configuration-${TIMESTAMP}-${GIT_HASH}.tar.gz ./import_into_consul/comaas-qa.properties
+
   MD5=($(md5sum -b ${BUILD_DIR}/${ARTIFACT_NAME}))
-  PORT=$(tar -xzf ${BUILD_DIR}/${ARTIFACT_NAME} --to-command="grep ^replyts.http.port=" ./conf/replyts.properties | cut -d'=' -f2)
+  PORT=$(grep ^replyts.http.port= ./import_into_consul/comaas-qa.properties | cut -d'=' -f2)
 
   cp distribution/nomad/comaas_deploy_jenkins.json comaas_deploy_jenkins.json
 
   sed -i "s/COUNT/$COUNT/g" comaas_deploy_jenkins.json
   sed -i "s/STAGGER/$STAGGER/g" comaas_deploy_jenkins.json
-  sed -i "s/TENANT/$TENANT/g" comaas_deploy_jenkins.json
+  sed -i "s/%TENANT%/$TENANT/g" comaas_deploy_jenkins.json
   sed -i "s/GIT_HASH/$GIT_HASH/g" comaas_deploy_jenkins.json
   sed -i "s/TIMESTAMP/$TIMESTAMP/g" comaas_deploy_jenkins.json
-  sed -i "s/PORT/$PORT/g" comaas_deploy_jenkins.json
+  sed -i "s/%PORT%/$PORT/g" comaas_deploy_jenkins.json
   sed -i "s/md5/md5:$MD5/" comaas_deploy_jenkins.json
   sed -i "s~ARTIFACT~$ARTIFACT_NAME~" comaas_deploy_jenkins.json # Use ~ separator here since $ARTIFACT might contain slashes
 
   STAGGER_S=$((($STAGGER / 1000000000)))
+
+  # First PUT the configuration into Consul
+  # TODO replace this with a properly packaged version of this tool, then remove the binary from our git repo
+  tools/go/src/properties-to-consul/properties-to-consul-linux \
+    -prefix "comaas/comaas:core:${TENANT}" \
+    -file "./import_into_consul/comaas-qa.properties" \
+    -consul "http://consul001:8500/"
 
   # Extract the Evaluation ID on return or fail if there isn't one
   EVALUATIONID=$(curl -s -X POST -d @comaas_deploy_jenkins.json http://consul001:4646/v1/jobs --header "Content-Type:application/json" | jq -r '.EvalID')
@@ -99,7 +107,9 @@ function deploy() {
         echo "Checking host: $HOST"
 
         if [ -n "$HOST" ]; then
+          set +o errexit
           HEALTH=$(curl -s http://${HOST}:${PORT}/health)
+          set -o errexit
           echo "${HOST}'s health is $HEALTH"
           if [ -n "$HEALTH" ]; then
             break

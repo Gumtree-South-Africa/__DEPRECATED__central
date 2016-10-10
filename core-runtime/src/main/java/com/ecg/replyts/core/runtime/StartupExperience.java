@@ -18,6 +18,9 @@ public class StartupExperience {
         begin = System.currentTimeMillis();
     }
 
+    @Value("${replyts.tenant:unknown}")
+    private String tenant;
+
     public StartupExperience(@Value("${confDir}") String confDir, @Value("${logDir:.}") String logDir) {
         this();
 
@@ -36,6 +39,7 @@ public class StartupExperience {
         LOG.info("");
 
         LOG.info("COMaaS startup complete in {}ms.", System.currentTimeMillis() - begin);
+        LOG.info("Started COMaaS for tenant {} on port {}", tenant, apiHttpPort);
         LOG.info("Documentation can be found here: https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki");
 
         try {

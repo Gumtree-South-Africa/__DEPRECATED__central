@@ -1,8 +1,8 @@
 {
     "Job": {
         "Region": "comaas-qa",
-        "ID": "comaas-TENANT",
-        "Name": "comaas-TENANT",
+        "ID": "comaas-%TENANT%",
+        "Name": "comaas-%TENANT%",
         "Type": "service",
         "Priority": 50,
         "AllAtOnce": false,
@@ -12,31 +12,34 @@
         "Constraints": null,
         "TaskGroups": [
             {
-                "Name": "comaas-node-TENANT",
+                "Name": "comaas-node-%TENANT%",
                 "Count": COUNT,
                 "Constraints": null,
                 "Tasks": [
                     {
-                        "Name": "comaas-TENANT",
+                        "Name": "comaas-%TENANT%",
                         "Driver": "raw_exec",
                         "User": "",
                         "Config": {
                             "command": "bin/comaas"
                         },
+                        "Env": {
+                            "COMAAS_HTTP_PORT": "%PORT%",
+                            "COMAAS_TENANT": "%TENANT%"
+                        },
                         "Constraints": null,
-                        "Env": null,
                         "Services": [
                             {
                                 "Id": "",
-                                "Name": "comaas-TENANT-comaas-node-TENANT-comaas-TENANT",
+                                "Name": "comaas-%TENANT%",
                                 "Tags": [
                                     "git-GIT_HASH"
                                 ],
-                                "PortLabel": "comaas_TENANT",
+                                "PortLabel": "comaas_%TENANT%",
                                 "Checks": [
                                     {
                                         "Id": "",
-                                        "Name": "tenant_running",
+                                        "Name": "health-endpoint-returns-200",
                                         "Type": "http",
                                         "Command": "",
                                         "Args": null,
@@ -59,8 +62,8 @@
                                     "CIDR": "",
                                     "ReservedPorts": [
                                         {
-                                            "Label": "comaas_TENANT",
-                                            "Value": PORT
+                                            "Label": "comaas_%TENANT%",
+                                            "Value": %PORT%
                                         }
                                     ],
                                     "DynamicPorts": null,

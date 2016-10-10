@@ -46,7 +46,7 @@ function repackage() {
   tar xfz ${ARTIFACT} -C tmp/
 
   for prop in distribution/conf/${TENANT}/*; do
-    if [[ -f "$prop" || "$prop" == *comaasqa || "$prop" == *local || "$prop" == *bare || "$prop" == *sandbox ]]; then
+    if [[ -f "$prop" || "$prop" == *import_into_consul || "$prop" == *comaasqa || "$prop" == *local || "$prop" == *bare || "$prop" == *sandbox ]]; then
       continue
     fi
 

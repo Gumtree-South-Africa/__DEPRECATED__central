@@ -5,8 +5,8 @@ import com.github.danielwegener.logback.kafka.KafkaAppender;
 import com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy;
 import com.github.danielwegener.logback.kafka.encoding.LayoutKafkaMessageEncoder;
 import com.github.danielwegener.logback.kafka.keying.RoundRobinKeyingStrategy;
-import net.logstash.logback.layout.LogstashLayout;
 import com.google.common.collect.ImmutableMap;
+import net.logstash.logback.layout.LogstashLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -50,19 +50,11 @@ public class CloudDiscoveryConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CloudDiscoveryConfiguration.class);
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
-      "cassandra", "persistence.cassandra.endpoint",
-      "elasticsearch", "search.es.endpoints"
+            "cassandra", "persistence.cassandra.endpoint",
+            "elasticsearch", "search.es.endpoints"
     );
 
     private static final String LOG_APPENDER_SERVICE = "kafkalog";
-
-    String version = getClass().getPackage().getImplementationVersion();
-
-    @Value("${replyts.tenant:generic}")
-    String tenant;
-
-    @Value("${replyts.http.port:0}")
-    Integer httpPort;
 
     @Autowired
     ConsulLifecycle lifecycle;
@@ -75,6 +67,12 @@ public class CloudDiscoveryConfiguration {
 
     @Autowired
     DiscoveryClient discoveryClient;
+
+    @Value("${replyts.tenant:unknown}")
+    private String tenant;
+
+    @Value("${replyts.http.port:0}")
+    private int httpPort;
 
     @PostConstruct
     void initializeDiscovery() {
@@ -153,7 +151,7 @@ public class CloudDiscoveryConfiguration {
         return gatheredProperties;
     }
 
-    void addKafkaAppender(String topic) {
+    private void addKafkaAppender(String topic) {
         List<String> instances = new ArrayList<>();
 
         discoveryClient.getInstances(LOG_APPENDER_SERVICE).forEach(instance -> {
@@ -198,7 +196,7 @@ public class CloudDiscoveryConfiguration {
         }
     }
 
-    void populateMDC() {
+    private void populateMDC() {
         try {
             InetAddress address = InetAddress.getLocalHost();
 
@@ -208,7 +206,7 @@ public class CloudDiscoveryConfiguration {
             LOG.error("Unable to determine primary IP and/or hostname to place in logger MDC", e);
         }
 
-        MDC.put("version", version);
+        MDC.put("version", getClass().getPackage().getImplementationVersion());
         MDC.put("tenant", tenant);
     }
 }

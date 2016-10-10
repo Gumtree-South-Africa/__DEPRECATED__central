@@ -32,16 +32,19 @@ function package() {
     # and for repackaging and distribution to the tenants' legacy environments.
     ./bin/build.sh -T ${TENANT} -P comaasqa
 
+    # Create a zip with all the tenant's configuration to be imported into Consul
+    ARTIFACT_NAME="comaas-${TENANT}-configuration-${TIMESTAMP}-${GIT_HASH}.tar.gz"
+    tar zcf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/conf/${TENANT} ./import_into_consul
+    echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
+
     # Some manual hassling is necessary since mvn doesn't create the package we want
     ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}"
-    echo "Creating ${ARTIFACT_NAME}.tar.gz"
     tar xf distribution/target/distribution-${TENANT}-comaasqa.tar.gz -C distribution/target
     tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
 
     # Now create a package with cloud sandbox properties that will be deployed using deploy.py
     ARTIFACT_NAME="comaas-${TENANT}_sandbox-${TIMESTAMP}-${GIT_HASH}"
-    echo "Creating ${ARTIFACT_NAME}.tar.gz"
     rm -rf distribution/target/distribution/conf
     mkdir distribution/target/distribution/conf-${TENANT}
     cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf-${TENANT}

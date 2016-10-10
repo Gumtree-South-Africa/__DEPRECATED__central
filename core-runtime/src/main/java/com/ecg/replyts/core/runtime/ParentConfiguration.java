@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
@@ -21,8 +22,18 @@ public class ParentConfiguration {
     @Autowired
     private ConfigurableEnvironment environment;
 
+    @Value("${service.discovery.enabled:false}")
+    private boolean discoveryEnabled;
+
+    @Value("${service.configuration.enabled:false}")
+    private boolean configurationEnabled;
+
+    // This is no longer needed as soon as we move to the cloud. Keep for now
     @PostConstruct
     public void initializePersistenceStrategyIfMissing() {
+        if (discoveryEnabled || configurationEnabled) {
+            return;
+        }
         if (!environment.containsProperty("persistence.strategy")) {
             String strategy;
 

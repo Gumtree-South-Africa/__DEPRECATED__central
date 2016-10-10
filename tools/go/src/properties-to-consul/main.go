@@ -12,9 +12,9 @@ import (
 	"github.com/rickar/props"
 )
 
-func readProperties(fileName string) (*props.Properties, error) {
-	log.Println("Reading properties from file replyts.properties")
-	reader, err := os.Open(fileName)
+func readProperties(filename string) (*props.Properties, error) {
+	log.Printf("Reading properties from file %s\n", filename)
+	reader, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -48,23 +48,6 @@ func main() {
 		u.Path = p + "/" + name
 		urlStr := u.String()
 
-		res, err := http.Get(urlStr)
-		if err != nil {
-			log.Fatalf("Encountered an error requesting %q: %s", urlStr, err)
-		}
-
-		if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusNotFound {
-			log.Fatalf("Failed to query Consul for status, received %d: %s", res.StatusCode, urlStr)
-		}
-
-		if res.StatusCode == http.StatusOK {
-			//This property already exists, so let's 'check-and-set' to avoid race conditions
-			v := url.Values{}
-			v.Set("cas", res.Header.Get("X-Consul-Index"))
-			u.RawQuery = v.Encode()
-		}
-
-		urlStr = u.String()
 		req, err := http.NewRequest("PUT", urlStr, strings.NewReader(properties.Get(name)))
 		if err != nil {
 			log.Fatalf("Encountered an error creating http request for %q: %s", urlStr, err)

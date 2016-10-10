@@ -2,7 +2,9 @@ package com.ecg.replyts.core.runtime;
 
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
-import com.hazelcast.config.*;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.FileSystemXmlConfig;
+import com.hazelcast.config.XmlConfigBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,7 +40,6 @@ public class ReplyTS {
     public Config hazelcastConfiguration(@Value("${confDir}/hazelcast.xml") String location) throws IOException {
         if (location.startsWith("classpath")) {
             InputStream inputStream = new ClassPathResource(location.substring(location.indexOf(":") + 1)).getInputStream();
-
             return new XmlConfigBuilder(inputStream).build();
         } else
             return new FileSystemXmlConfig(location);
@@ -60,9 +61,9 @@ public class ReplyTS {
     public static void main(String[] args) throws Exception {
         try {
             AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[]{
-                "classpath:server-context.xml",
-                "classpath:runtime-context.xml",
-                "classpath*:/plugin-inf/*.xml",
+                    "classpath:server-context.xml",
+                    "classpath:runtime-context.xml",
+                    "classpath*:/plugin-inf/*.xml",
             }, false, new AnnotationConfigApplicationContext(ParentConfiguration.class));
 
             context.getEnvironment().setActiveProfiles(PRODUCTIVE_PROFILE);
