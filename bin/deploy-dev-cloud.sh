@@ -31,4 +31,3 @@ rm -rf ${dir}
 
 echo "Posting to Nomad; evaluation ID:"
 curl -f -X POST -d @bin/comaas_deploy_dev_cloud.json http://localhost:4646/v1/jobs --header "Content-Type:application/json"
-

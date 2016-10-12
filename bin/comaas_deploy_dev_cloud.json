@@ -18,13 +18,15 @@
                 "Tasks": [
                     {
                         "Name": "comaas",
-                        "Driver": "exec",
+                        "Driver": "raw_exec",
                         "User": "",
                         "Config": {
                             "command": "bin/comaas"
                         },
                         "Constraints": null,
-                        "Env": null,
+                        "Env": {
+                            "COMAAS_HTTP_PORT": "12345"
+                        },
                         "Services": [
                             {
                                 "Id": "",

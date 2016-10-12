@@ -71,11 +71,15 @@ public class CloudDiscoveryConfiguration {
     @Value("${replyts.tenant:unknown}")
     private String tenant;
 
-    @Value("${replyts.http.port:0}")
-    private int httpPort;
-
     @PostConstruct
     void initializeDiscovery() {
+        // Check if the COMAAS_HTTP_PORT env var was set, and introduce it as the replyts.http.port. If not set, this value
+        // should come from the replyts.properties file.
+        String comaasHttpPort = System.getenv("COMAAS_HTTP_PORT");
+        if (comaasHttpPort != null) {
+            environment.getPropertySources().addFirst(new MapPropertySource("Environment-detected properties", ImmutableMap.of("replyts.http.port", comaasHttpPort)));
+        }
+
         // XXX: Temporary fix until we switch to Spring Boot (this jumpstarts the lifecycle which fetches the properties)
 
         lifecycle.onApplicationEvent(new EmbeddedServletContainerInitializedEvent(
@@ -91,7 +95,9 @@ public class CloudDiscoveryConfiguration {
 
                     @Override
                     public int getPort() {
-                        return httpPort;
+                        // This is a dummy value and will be overwritten by the properties file or
+                        // the COMAAS_HTTP_PORT system env var. The env var has precedence over the properties file var.
+                        return 0;
                     }
                 }
         ));
@@ -209,4 +215,5 @@ public class CloudDiscoveryConfiguration {
         MDC.put("version", getClass().getPackage().getImplementationVersion());
         MDC.put("tenant", tenant);
     }
+
 }

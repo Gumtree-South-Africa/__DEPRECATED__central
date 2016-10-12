@@ -1,0 +1,26 @@
+<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config http://www.hazelcast.com/schema/config/hazelcast-config-2.3.xsd"
+           xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <group>
+        <name>replyts_ebayk</name>
+        <password>xxxxxxxxx</password>
+    </group>
+
+    <properties>
+        <property name="hazelcast.jmx">true</property>
+        <property name="hazelcast.version.check.enabled">false</property>
+    </properties>
+
+
+    <network>
+        <port auto-increment="false">13100</port>
+         <join>
+            <multicast enabled="false"></multicast>
+            <tcp-ip enabled="true">
+                <members>core001,core002,core003</members>
+            </tcp-ip>
+        </join>
+    </network>
+
+</hazelcast>
