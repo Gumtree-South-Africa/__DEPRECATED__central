@@ -42,11 +42,6 @@ case "${TENANT}" in
       # Deploy for mp demo, upload for all other environments/tenants
       if [[ "$DESTINATION" == "demo" ]] ; then
         # This requires the deploy.py script to be on the PATH
-
-        # TODO
-        # scp properties
-        # scp p2c
-        # exec p2c
         deploy.py --redeploy --config distribution/conf/mp/demo/deploy.conf --logdir . --component ${PKG} --ignore-lb
       else
         `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} ${DESTINATION}

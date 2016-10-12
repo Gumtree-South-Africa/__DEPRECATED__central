@@ -81,7 +81,7 @@ function upload() {
       echo "Uploading $PACKAGE to $URL"
 
       set -o xtrace
-      curl -k -vvv --progress-bar -X PUT --upload-file "${PACKAGE}" "${HOST}" > /dev/null
+      curl -k -s -X PUT --upload-file "${PACKAGE}" "${HOST}"
       set +o xtrace
 
       ;;
