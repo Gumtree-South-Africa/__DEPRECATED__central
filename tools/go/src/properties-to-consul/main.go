@@ -23,9 +23,13 @@ func readProperties(filename string) (*props.Properties, error) {
 
 func main() {
 	consulAddress := flag.String("consul", "http://localhost:8500/", "consul host to connect to")
-	prefix := flag.String("prefix", "", "prefix or directory in consul, properties will be saved to consuladdress/v1/kv/prefix/...")
+	tenant := flag.String("tenant", "", "prefix or directory in consul, properties will be saved to consuladdress/v1/kv/comaas/comaas:core:<tenant>/...")
 	filename := flag.String("file", "replyts.properties", "the properties file to read")
 	flag.Parse()
+
+	if len(*tenant) == 0 {
+		log.Fatalln("Please provide a tenant name using -tenant")
+	}
 
 	*consulAddress += "/v1/kv/"
 
@@ -36,7 +40,7 @@ func main() {
 	names := properties.Names()
 
 	client := &http.Client{}
-	u, err := url.Parse(*consulAddress + *prefix)
+	u, err := url.Parse(*consulAddress + "comaas/comaas:core:" + *tenant)
 	if err != nil {
 		log.Fatalf("Encountered an error parsing Consul URL %s: %s", *consulAddress, err)
 	}

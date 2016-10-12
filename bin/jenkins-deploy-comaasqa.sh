@@ -51,7 +51,7 @@ function deploy() {
   # First PUT the configuration into Consul
   # TODO replace this with a properly packaged version of this tool, then remove the binary from our git repo
   tools/go/src/properties-to-consul/properties-to-consul-linux \
-    -prefix "comaas/comaas:core:${TENANT}" \
+    -tenant "${TENANT}" \
     -file "./import_into_consul/comaas-qa.properties" \
     -consul "http://consul001:8500/"
 
