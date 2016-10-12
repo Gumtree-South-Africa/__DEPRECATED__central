@@ -9,6 +9,8 @@ import org.kohsuke.args4j.OptionDef;
 import org.kohsuke.args4j.spi.OneArgumentOptionHandler;
 import org.kohsuke.args4j.spi.Setter;
 
+import static com.ecg.comaas.r2cmigration.difftool.DiffToolConfiguration.DATETIME_STRING;
+
 
 public class DateTimeOptionHandler extends OneArgumentOptionHandler<DateTime> {
 
@@ -16,10 +18,10 @@ public class DateTimeOptionHandler extends OneArgumentOptionHandler<DateTime> {
         super(parser, option, setter);
     }
 
-    // expected input "04/02/2011 20:27"
+    // expected input "04-02-2011T20:27"
     @Override
     public DateTime parse(String arg) {
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/yyyy HH:mm");
+        DateTimeFormatter formatter = DateTimeFormat.forPattern(DATETIME_STRING);
         return formatter.parseLocalDateTime(arg).toDateTime(DateTimeZone.UTC);
     }
 }

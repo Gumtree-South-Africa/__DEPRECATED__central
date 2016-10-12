@@ -2,6 +2,7 @@ package com.ecg.messagecenter.migration;
 
 import com.ecg.messagecenter.persistence.simple.HybridSimplePostBoxRepository;
 import com.ecg.replyts.core.runtime.indexer.SingleRunGuard;
+import com.hazelcast.core.HazelcastInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ public class PostboxMigratorConfiguration {
     private HybridSimplePostBoxRepository hybridRepository;
 
     @Autowired
-    private SingleRunGuard singleRunGuard;
+    private HazelcastInstance hazelcastInstance;
 
     @Value("${migration.bulkoperations.threadcount:4}")
     private int threadCount;
@@ -41,7 +42,7 @@ public class PostboxMigratorConfiguration {
     @Bean
     public ChunkedPostboxMigrationAction chunkedPostboxMigrationAction(PostboxMigrationChunkHandler postboxMigrationChunkHandler) {
         LOG.info("Activating r2c migration functionality");
-        return new ChunkedPostboxMigrationAction(singleRunGuard, hybridRepository, postboxMigrationChunkHandler, threadCount, chunkSizeMinutes, maxConversationAgeDays);
+        return new ChunkedPostboxMigrationAction(hazelcastInstance, hybridRepository, postboxMigrationChunkHandler, threadCount, chunkSizeMinutes, maxConversationAgeDays);
     }
 
 }

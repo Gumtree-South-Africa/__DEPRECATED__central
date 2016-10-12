@@ -12,10 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,22 +26,16 @@ public class CassPostboxRepo {
     private static final Logger LOG = LoggerFactory.getLogger(CassPostboxRepo.class);
 
     private static final String SELECT_POSTBOX_Q = "SELECT conversation_id, json_value FROM mb_postbox WHERE postbox_id = ?";
-    public static final String SELECT_POSTBOX_UNREAD_COUNTS_CONVERSATION_IDS_Q = "SELECT conversation_id, num_unread FROM mb_unread_counters WHERE postbox_id = ?";
-    public static final String SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE_Q = "SELECT postbox_id, conversation_id, modification_date, rounded_modification_date FROM mb_postbox_modification_idx_by_date WHERE rounded_modification_date = ?";
-    private static final String SELECT_POSTBOX_WHERE_MODIFICATION_BETWEEN = "SELECT postbox_id, conversation_id, modification_date FROM mb_postbox_modification_idx_by_date WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
+    private static final String SELECT_POSTBOX_UNREAD_COUNTS_CONVERSATION_IDS_Q = "SELECT conversation_id, num_unread FROM mb_unread_counters WHERE postbox_id = ?";
+    private static final String SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE_Q = "SELECT postbox_id, conversation_id, modification_date, rounded_modification_date FROM mb_postbox_modification_idx_by_date WHERE rounded_modification_date = ?";
+    private static final String SELECT_POSTBOX_WHERE_MODIFICATION_BETWEEN = "SELECT postbox_id FROM mb_postbox_modification_idx_by_date WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
     private static final String COUNT_POSTBOX_WHERE_MODIFICATION_BETWEEN = "SELECT count(*) FROM mb_postbox_modification_idx_by_date WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
 
-
     private static final String FIELD_POSTBOX_ID = "postbox_id";
-    private static final String FIELD_CONVERSATION_ID = "conversation_id";
-    private static final String FIELD_MODIFICATION_DATE = "modification_date";
-    private static final String FIELD_ROUNDED_MODIFICATION_DATE = "rounded_modification_date";
-
     private final Session session;
 
     private final Timer byIdTimer = newTimer("cassandra.postBoxRepo-byId");
     private AtomicLong streamGauge = new AtomicLong();
-
     private ObjectMapper objectMapper;
 
     @Value("${replyts.maxConversationAgeDays:180}")
@@ -58,21 +50,11 @@ public class CassPostboxRepo {
     @Value("${replyts.cleanup.conversation.streaming.batch.size:3000}")
     private int batchSize;
 
-    private ThreadPoolExecutor threadPoolExecutor;
-
-
     PreparedStatement selectPostbox = null;
     PreparedStatement selectPostboxUnreadCount = null;
     PreparedStatement selectConvThreadIdxByDate = null;
     PreparedStatement selectPostboxModifiedBetweenByDate = null;
     PreparedStatement countPostboxes = null;
-
-    @PostConstruct
-    public void createThreadPoolExecutor() {
-        ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(workQueueSize);
-        RejectedExecutionHandler rejectionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
-        this.threadPoolExecutor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
-    }
 
     public CassPostboxRepo(Session session) {
         this.session = session;
@@ -104,7 +86,6 @@ public class CassPostboxRepo {
                 int unreadCount = conversationUnreadCounts.getOrDefault(conversationId, 0);
 
                 newRepliesCount.addAndGet(unreadCount);
-
                 Optional<AbstractConversationThread> ctOptional = toConversationThread(
                         email,
                         conversationId,
@@ -113,12 +94,12 @@ public class CassPostboxRepo {
 
                 ctOptional.map(conversationThreads::add);
             });
-
             return new PostBox(email, Optional.of(newRepliesCount.get()), conversationThreads, maxAgeDays);
         }
     }
 
-    private Optional<AbstractConversationThread> toConversationThread(String postboxId, String conversationId, String jsonValue, int numUnreadMessages) {
+    private Optional<AbstractConversationThread> toConversationThread(String postboxId, String
+            conversationId, String jsonValue, int numUnreadMessages) {
         try {
             // AbstractConversationThread is parameterized so store the effective class in the data
 
@@ -137,27 +118,21 @@ public class CassPostboxRepo {
         }
     }
 
-    public long getPostboxesCount(Date fromDate, Date toDate) {
-        return streamMessageBoxIdsByHour(fromDate, toDate).parallel().count();
-    }
-
-    public long getPostboxesCountByQuery(Date fromDate, Date toDate) {
+    // This does not really give any info on how many postboxes there is in the time slice
+    // but it does give some ideas how many we are going to pass through.
+    public long getPostboxModificationCountByQuery(Date fromDate, Date toDate) {
         Statement bound = CassConversationRepo.bind(countPostboxes, fromDate, toDate);
         ResultSet resultset = session.execute(bound);
-        return resultset.one().getLong(1);
+        Row row = resultset.one();
+        return row.getLong(0);
     }
 
     public Stream<String> streamMessageBoxIdsByHour(Date fromDate, Date toDate) {
         Statement bound = CassConversationRepo.bind(selectPostboxModifiedBetweenByDate, fromDate, toDate);
         ResultSet resultset = session.execute(bound);
-        return toStream(resultset).map(row -> {
-            return row.getString(FIELD_POSTBOX_ID) + "/"
-                    + row.getString(FIELD_CONVERSATION_ID) + "/"
-                    + row.getString(FIELD_MODIFICATION_DATE);
-        });
+        return toStream(resultset).map(row -> row.getString(FIELD_POSTBOX_ID));
 
     }
-
 
     @Autowired
     public void setObjectMapperConfigurer(JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {

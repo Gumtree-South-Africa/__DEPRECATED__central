@@ -131,7 +131,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
                 ctOptional.map(conversationThreads::add);
             });
-
             return new PostBox(postBoxId, conversationThreads);
         }
     }

@@ -27,12 +27,12 @@ import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 public class CassConversationRepo {
 
     private static final Logger LOG = LoggerFactory.getLogger(CassConversationRepo.class);
-
     private final static Timer GET_BY_ID_CASS_TIMER = TimingReports.newTimer("difftool.cass-getById");
 
     private static final String FIELD_CONVERSATION_ID = "conversation_id";
     private static final String FIELD_EVENT_ID = "event_id";
     private static final String FIELD_EVENT_JSON = "event_json";
+
     private static final String COUNT_FROM_CONVERSATION_MOD_IDX = "SELECT count(*) FROM core_conversation_modification_desc_idx";
     private static final String COUNT_FROM_CONVERSATION_MOD_IDX_BY_DAY = "SELECT count(*) FROM core_conversation_modification_desc_idx_by_day";
     private static final String SELECT_FROM_CONVERSATION_EVENTS = "SELECT * FROM core_conversation_events WHERE conversation_id=? ORDER BY event_id ASC";
@@ -43,7 +43,6 @@ public class CassConversationRepo {
     private final PreparedStatement getByDate;
 
     private Session session;
-
 
     @Autowired
     public CassConversationRepo(@Qualifier("cassandraSession") Session session, JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
@@ -73,9 +72,8 @@ public class CassConversationRepo {
     }
 
     public static Statement bind(PreparedStatement statement, Object... values) {
-        return statement.bind(values)
-                .setConsistencyLevel(ConsistencyLevel.QUORUM)
-                .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
+        BoundStatement bs = statement.bind(values);
+        return bs.setConsistencyLevel(ConsistencyLevel.QUORUM).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
     }
 
     public long getConversationModCount() {

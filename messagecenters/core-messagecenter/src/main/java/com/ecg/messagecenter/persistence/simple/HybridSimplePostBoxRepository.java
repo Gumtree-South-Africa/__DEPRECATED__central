@@ -2,6 +2,8 @@ package com.ecg.messagecenter.persistence.simple;
 
 import com.basho.riak.client.IndexEntry;
 import com.basho.riak.client.query.StreamingOperation;
+import com.codahale.metrics.Counter;
+import com.ecg.replyts.core.runtime.TimingReports;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,9 @@ import java.util.List;
 
 public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepository {
     private static final Logger LOG = LoggerFactory.getLogger(HybridSimplePostBoxRepository.class);
+
+    public final Counter TOBE_MIGRATED_POSTBOX_COUNTER = TimingReports.newCounter("migration.tobe-migrated-riak-postbox-counter");
+    public final Counter MIGRATED_POSTBOX_COUNTER = TimingReports.newCounter("migration.migrated-postbox-counter");
 
     private RiakSimplePostBoxRepository riakRepository;
 
@@ -23,17 +28,32 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
 
     @Override
     public PostBox byId(String email) {
-        PostBox postBox = cassandraRepository.byId(email);
+        LOG.debug("Fetching postbox byId {}", email);
 
-        if (postBox == null) {
-            postBox = riakRepository.byId(email);
+        synchronized (cassandraRepository) {
+            PostBox postBox = cassandraRepository.byId(email);
 
-            if (postBox != null) {
-                cassandraRepository.write(postBox);
+            if (postBox == null) {
+                postBox = riakRepository.byId(email);
+                LOG.debug("Postbox {} found in riak only", email);
+
+                if (postBox != null) {
+                    TOBE_MIGRATED_POSTBOX_COUNTER.inc();
+
+                    if (!postBox.getConversationThreads().isEmpty()) {
+                        LOG.debug("Migrating Postbox {} from riak to cassandra", email);
+                        cassandraRepository.write(postBox);
+                        MIGRATED_POSTBOX_COUNTER.inc();
+                    } else {
+                        LOG.debug("Postbox id {} is empty skipping", email);
+                    }
+
+                } else {
+                    LOG.warn("Postbox id {} not found in known repositories", email);
+                }
             }
+            return postBox;
         }
-
-        return postBox;
     }
 
     @Override
@@ -43,16 +63,18 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
 
     @Override
     public void write(PostBox postBox, List<String> deletedIds) {
-        try {
-            cassandraRepository.write(postBox, deletedIds);
-        } finally {
-            riakRepository.write(postBox, deletedIds);
+        synchronized (cassandraRepository) {
+            try {
+                cassandraRepository.write(postBox, deletedIds);
+            } finally {
+                riakRepository.write(postBox, deletedIds);
+            }
         }
     }
 
     @Override
     public void cleanup(DateTime time) {
-        throw new UnsupportedOperationException("Should be called from the individual cron jobs related to the repositories");
+        riakRepository.cleanup(time);
     }
 
     @Override

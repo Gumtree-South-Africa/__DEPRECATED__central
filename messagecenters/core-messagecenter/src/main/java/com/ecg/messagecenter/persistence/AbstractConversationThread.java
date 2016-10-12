@@ -161,10 +161,10 @@ public abstract class AbstractConversationThread {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("modifiedAt", modifiedAt)
+                .add("createdAt", createdAt)
                 .add("adId", adId)
                 .add("conversationId", conversationId)
-                .add("createdAt", createdAt)
-                .add("modifiedAt", modifiedAt)
                 .add("containsUnreadMessages", containsUnreadMessages)
                 .toString();
     }

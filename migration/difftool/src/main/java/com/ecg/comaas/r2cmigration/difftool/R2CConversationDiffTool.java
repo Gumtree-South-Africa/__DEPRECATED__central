@@ -9,7 +9,6 @@ import com.codahale.metrics.*;
 import com.codahale.metrics.Timer;
 import com.ecg.comaas.r2cmigration.difftool.repo.CassConversationRepo;
 import com.ecg.comaas.r2cmigration.difftool.repo.RiakConversationRepo;
-import com.ecg.comaas.r2cmigration.difftool.util.InstrumentedCallerRunsPolicy;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -22,7 +21,6 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -44,10 +42,6 @@ public class R2CConversationDiffTool {
     private final static Timer RIAK_TO_CASS_COMPARE_TIMER = TimingReports.newTimer("difftool.riak-to-cass.compare-timer");
     private final static Timer CASS_TO_RIAK_COMPARE_TIMER = TimingReports.newTimer("difftool.cass-to-riak.compare-timer");
 
-    final private ArrayBlockingQueue<Runnable> workQueue;
-    final private RejectedExecutionHandler rejectionHandler;
-    final ExecutorService threadPoolExecutor;
-
     Counter cassConversationCounter;
     Counter cassEventCounter;
     Counter riakEventCounter;
@@ -56,7 +50,10 @@ public class R2CConversationDiffTool {
     volatile boolean isRiakMatchesCassandra = true;
     volatile boolean isCassandraMatchesRiak = true;
 
-    private int conversationIdBatchSize;
+    private DateTime endDate;
+    private DateTime startDate;
+    private int idBatchSize;
+    private int maxEntityAge;
 
     @Autowired
     RiakConversationRepo riakRepo;
@@ -64,36 +61,36 @@ public class R2CConversationDiffTool {
     @Autowired
     CassConversationRepo cassRepo;
 
-    private DateTime endDate;
-    private DateTime startDate;
+    @Autowired
+    ThreadPoolExecutor executor;
 
-    @Value("${replyts.maxConversationAgeDays:180}")
-    int compareNumberOfDays;
-
-    public R2CConversationDiffTool(@Value("${threadcount:6}") int threadCount,
-                                   @Value("${queue.size:100}") int workQueueSize,
-                                   @Value("${conversationid.batch.size:1000}") int conversationIdBatchSize) {
-        this.conversationIdBatchSize = conversationIdBatchSize;
-        this.workQueue = new ArrayBlockingQueue<>(workQueueSize);
-        this.rejectionHandler = new InstrumentedCallerRunsPolicy("difftool", "");
-        this.threadPoolExecutor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
-
+    public R2CConversationDiffTool(int idBatchSize, int maxEntityAge) {
+        this.idBatchSize = idBatchSize;
+        this.maxEntityAge = maxEntityAge;
         cassConversationCounter = newCounter("difftool.cassConversationCounter");
         cassEventCounter = newCounter("difftool.cassEventCounter");
         riakEventCounter = newCounter("difftool.riakEventCounter");
         riakConversationCounter = newCounter("difftool.riakConversationCounter");
-
     }
 
-    public void setEndDate(DateTime endDate) {
+    public void setDateRange(DateTime startDate, DateTime endDate) {
         if (endDate != null) {
-            Preconditions.checkArgument(endDate.isBeforeNow());
             this.endDate = endDate;
         } else {
             this.endDate = new DateTime(DateTimeZone.UTC);
         }
-        this.startDate = this.endDate.minusDays(compareNumberOfDays);
-        LOG.info("Comparing last {} days, ending on {}", compareNumberOfDays, this.endDate);
+        if (startDate != null) {
+            this.startDate = startDate;
+        } else {
+            this.startDate = this.endDate.minusDays(maxEntityAge);
+        }
+        Preconditions.checkArgument(this.endDate.isBeforeNow());
+        Preconditions.checkArgument(this.startDate.isBefore(this.endDate));
+        if (startDate != null) {
+            LOG.info("Compare between {} and {}", this.startDate, this.endDate);
+        } else {
+            LOG.info("Comparing last {} days, ending on {}", maxEntityAge, this.endDate);
+        }
     }
 
     public long getConversationsToBeMigratedCount() throws RiakException {
@@ -101,11 +98,11 @@ public class R2CConversationDiffTool {
     }
 
     public List<Future> compareRiakToCassandra() throws RiakException {
-        List<Future> results = new ArrayList<>(conversationIdBatchSize);
+        List<Future> results = new ArrayList<>(idBatchSize);
         Bucket convBucket = riakRepo.getBucket(DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME);
         StreamingOperation<IndexEntry> convIdStream = riakRepo.modifiedBetween(startDate, endDate, convBucket);
-        Iterators.partition(convIdStream.iterator(), conversationIdBatchSize).forEachRemaining(convIdIdx -> {
-            results.add(threadPoolExecutor.submit(() -> {
+        Iterators.partition(convIdStream.iterator(), idBatchSize).forEachRemaining(convIdIdx -> {
+            results.add(executor.submit(() -> {
                 compareRiakToCassAsync(convIdIdx, convBucket);
             }));
         });
@@ -148,14 +145,14 @@ public class R2CConversationDiffTool {
     }
 
     public List<Future> compareCassandraToRiak() throws RiakException {
-        List<Future> results = new ArrayList<>(conversationIdBatchSize);
+        List<Future> results = new ArrayList<>(idBatchSize);
         Bucket convBucket = riakRepo.getBucket(DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME);
 
         // This stream contains duplicated conversationIds, as well as ConversationEvents
         Stream<Map.Entry<String, List<ConversationEvent>>> conversationStream = cassRepo.findEventsCreatedBetween(startDate, endDate);
 
-        Iterators.partition(conversationStream.iterator(), conversationIdBatchSize).forEachRemaining(cassConvEvents -> {
-            results.add(threadPoolExecutor.submit(() -> {
+        Iterators.partition(conversationStream.iterator(), idBatchSize).forEachRemaining(cassConvEvents -> {
+            results.add(executor.submit(() -> {
                 compareCassToRiakAsync(cassConvEvents, convBucket);
             }));
         });
@@ -213,13 +210,22 @@ public class R2CConversationDiffTool {
         CASS_TO_RIAK_EVENT_MISMATCH_COUNTER.inc();
     }
 
+    public static final Comparator<ConversationEvent> MODIFICATION_DATE = (ConversationEvent c1, ConversationEvent c2) ->
+            c1.getConversationModifiedAt().compareTo(c2.getConversationModifiedAt());
+
+    private String conEventListToString(List<ConversationEvent> conversations) {
+        StringBuilder objstr = new StringBuilder();
+        conversations.stream().sorted(MODIFICATION_DATE.reversed()).forEachOrdered(c -> objstr.append(c+"\n"));
+        return objstr.toString();
+    }
+
     private void logConvEventDifference(String convId, List<ConversationEvent> cassConvEvents,
                                         List<ConversationEvent> riakEvents, boolean riakToCassandra) {
 
         LOG.warn("Riak {} and Cassandra {} number of conversationEvents mismatch for conversationId {}: ",
                 riakEvents.size(), cassConvEvents.size(), convId);
-        MISMATCH_LOG.info("Cassandra Events Size {}, events: {} ", cassConvEvents.size(), cassConvEvents);
-        MISMATCH_LOG.info("Riak Events Size {}, events: {}\n", riakEvents.size(), riakEvents);
+        MISMATCH_LOG.info("Cassandra Events Size {}, events:\n{} ", cassConvEvents.size(), conEventListToString(cassConvEvents));
+        MISMATCH_LOG.info("Riak Events Size {}, events:\n{}\n", riakEvents.size(), conEventListToString(riakEvents));
 
         if (riakToCassandra) {
             RIAK_TO_CASS_EVENT_MISMATCH_COUNTER.inc(riakEvents.size());

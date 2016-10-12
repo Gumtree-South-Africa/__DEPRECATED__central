@@ -1,8 +1,8 @@
 package com.ecg.comaas.r2cmigration.difftool;
 
-import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.comaas.r2cmigration.difftool.repo.CassPostboxRepo;
+import com.ecg.comaas.r2cmigration.difftool.util.InstrumentedCallerRunsPolicy;
 import com.ecg.de.kleinanzeigen.replyts.graphite.GraphiteExporter;
 import com.ecg.messagecenter.persistence.JsonToPostBoxConverter;
 import com.ecg.messagecenter.persistence.PostBoxToJsonConverter;
@@ -17,6 +17,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 
 import java.net.UnknownHostException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @ComponentScan("com.ecg.comaas.r2cmigration.difftool")
@@ -39,6 +42,8 @@ public class DiffToolConfiguration {
 
     public static final String RIAK_SECONDARY_INDEX_MODIFIED_AT = "modifiedAt";
 
+    public static final String DATETIME_STRING = "dd-MM-yyyy'T'HH:mm";
+
     @Value("${graphite.enabled:true}")
     boolean isEnabled;
     @Value("${graphite.endpoint.hostname:graph001}")
@@ -50,6 +55,16 @@ public class DiffToolConfiguration {
     @Value("${graphite.prefix:difftool}")
     String prefix;
 
+    @Value("${replyts.maxConversationAgeDays:180}")
+    int maxEntityAge;
+
+    @Value("${difftool.batch.size:1000}")
+    int idBatchSize;
+    @Value("${difftool.threadcount:6}")
+    int threadCount;
+    @Value("${difftool.queue.size:100}")
+    int workQueueSize;
+
     @Bean
     GraphiteExporter graphiteExporter() {
         try {
@@ -58,6 +73,16 @@ public class DiffToolConfiguration {
             LOG.error("Failed to connect to Graphite with : " + he.getLocalizedMessage(), he);
         }
         return null;
+    }
+
+    @Bean
+    public R2CConversationDiffTool r2CConversationDiffTool() {
+        return new R2CConversationDiffTool(idBatchSize, maxEntityAge);
+    }
+
+    @Bean
+    public R2CPostboxDiffTool r2CPostboxDiffTool() {
+        return new R2CPostboxDiffTool(idBatchSize, maxEntityAge);
     }
 
     @Bean
@@ -80,4 +105,12 @@ public class DiffToolConfiguration {
     public CassPostboxRepo postBoxRepository(Session cassandraSession) {
         return new CassPostboxRepo(cassandraSession);
     }
+
+    @Bean
+    public ThreadPoolExecutor threadPoolExecutor() {
+        return new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(workQueueSize),
+                new InstrumentedCallerRunsPolicy("difftool-conversation", ""));
+    }
+
 }

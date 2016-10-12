@@ -13,7 +13,6 @@ import java.util.List;
 class PostboxMigrationChunkHandler {
 
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("migrate-chunk-postbox");
-    private static final Timer FETCH_TIMER = TimingReports.newTimer("fetch-chunk-postbox");
 
     private final HybridSimplePostBoxRepository postboxRepository;
     private final int maxChunkSize;

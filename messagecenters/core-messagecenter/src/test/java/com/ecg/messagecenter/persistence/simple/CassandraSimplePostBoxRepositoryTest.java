@@ -36,23 +36,31 @@ public class CassandraSimplePostBoxRepositoryTest {
     private SimplePostBoxRepository postBoxRepository;
 
     @Test
-    public void persistsPostbox() {
-        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Collections.<AbstractConversationThread>emptyList(), 25);
-
+    public void persistsEmptyPostbox() {
+        String pboxid = "emptyfoo@bar.com";
+        PostBox box = new PostBox(pboxid, Optional.empty(), Collections.<AbstractConversationThread>emptyList(), 25);
         postBoxRepository.write(box);
+        assertNull("Expected empty postbox", postBoxRepository.byId(pboxid));
+    }
 
-        assertNotNull(postBoxRepository.byId("foo@bar.com"));
+    @Test
+    public void persistsPostbox() {
+        String pboxid = "bar@bar.com";
+        PostBox box = new PostBox(pboxid, Optional.empty(), Arrays.asList(createConversationThread(now(), "345")), 25);
+        postBoxRepository.write(box);
+        assertNotNull("Postbox is not created", postBoxRepository.byId(pboxid));
     }
 
     @Test
     public void cleansUpPostbox() {
-        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Arrays.asList(createConversationThread(now(), "123")), 25);
+        DateTime now = now();
+        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Arrays.asList(createConversationThread(now, "123")), 25);
 
         postBoxRepository.write(box);
 
-        postBoxRepository.cleanup(now());
+        postBoxRepository.cleanup(now);
 
-        assertEquals("PostBox contains no conversation threads anymore", 0, postBoxRepository.byId("foo@bar.com").getConversationThreads().size());
+        assertNull("PostBox contains conversation threads", postBoxRepository.byId("foo@bar.com"));
     }
 
     @Test
@@ -63,7 +71,7 @@ public class CassandraSimplePostBoxRepositoryTest {
 
         postBoxRepository.cleanup(now().minusHours(1));
 
-        assertEquals("PostBox still contains its 1 conversation thread", 1, postBoxRepository.byId("foo@bar.com").getConversationThreads().size());
+        assertEquals("Number of conversation threads are not equal to 1", 1, postBoxRepository.byId("foo@bar.com").getConversationThreads().size());
     }
 
     private AbstractConversationThread createConversationThread(DateTime date, String conversationId) {

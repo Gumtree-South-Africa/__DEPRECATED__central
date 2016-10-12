@@ -28,8 +28,7 @@ from logback-test.xml.
 
 
     <logger name="org.springframework" level="INFO"/>
-    <logger name="com.datastax" level="INFO"/>
-    <logger name="com.ecg" level="DEBUG"/>
+    <logger name="com.ecg" level="INFO"/>
 
     <logger name="difftool.mismatch" level="DEBUG">
         <appender-ref ref="MISMATCHFILE"/>

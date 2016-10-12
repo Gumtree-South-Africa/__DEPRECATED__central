@@ -68,7 +68,7 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
     @Override
     public PostBox byId(String email) {
         Timer.Context timerContext = GET_BY_ID_TIMER.time();
-
+        LOG.debug("Default riak repository - get postbox byId {}", email);
         try {
             PostBox postBox = postBoxBucket
               .fetch(email.toLowerCase(), PostBox.class)
@@ -82,7 +82,6 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
             if (postBox == null) {
                 postBox = new PostBox(email.toLowerCase(), Optional.of(0L), Lists.newArrayList(), maxAgeDays);
             }
-
             return postBox;
         } catch (RiakRetryFailedException e) {
             throw new RuntimeException("could not load post-box by email #" + email, e);

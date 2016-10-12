@@ -13,15 +13,11 @@ import com.ecg.comaas.r2cmigration.difftool.DiffToolConfiguration;
 import com.ecg.messagecenter.persistence.simple.*;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-
-import javax.annotation.PreDestroy;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.ecg.comaas.r2cmigration.difftool.DiffToolConfiguration.*;
@@ -29,25 +25,20 @@ import static com.ecg.comaas.r2cmigration.difftool.DiffToolConfiguration.*;
 @Repository
 public class RiakPostboxRepo {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RiakPostboxRepo.class);
-
     private static final Timer GET_BY_ID_RIAK_TIMER = TimingReports.newTimer("difftool.riak-postbox-getById");
-
-    private IRiakClient riakClient;
 
     @Autowired
     private Converter<PostBox> converter;
+
     @Autowired
     private ConflictResolver<PostBox> resolver;
 
     @Value("${replyts.maxConversationAgeDays:360}")
     private int maxAgeDays;
-
     private Bucket postbox;
 
     @Autowired
     public RiakPostboxRepo(IRiakClient riakClient) {
-        this.riakClient = riakClient;
         try {
             this.postbox = riakClient.fetchBucket(RIAK_POSTBOX_BUCKET_NAME).execute();
         } catch (RiakException re) {
@@ -55,19 +46,11 @@ public class RiakPostboxRepo {
         }
     }
 
-
     public long getMessagesCount(DateTime fromDate, DateTime toDate) throws RiakRetryFailedException {
         AtomicLong counter = new AtomicLong();
         streamPostBoxIds(fromDate, toDate).forEach(c -> counter.getAndIncrement());
         return counter.get();
     }
-
-
-    @PreDestroy
-    void close() {
-        riakClient.shutdown();
-    }
-
 
     public PostBox getById(String email) {
         try (Timer.Context ignored = GET_BY_ID_RIAK_TIMER.time()) {

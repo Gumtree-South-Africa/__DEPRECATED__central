@@ -1,6 +1,11 @@
 package com.ecg.messagecenter.migration;
 
 import static com.ecg.replyts.core.webapi.control.ConversationMigrationController.*;
+
+import com.ecg.replyts.core.runtime.indexer.IndexingMode;
+import com.ecg.replyts.core.runtime.indexer.SingleRunGuard;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ILock;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +21,10 @@ import java.util.concurrent.TimeUnit;
 @Controller
 @ConditionalOnExpression("#{ '${persistence.strategy}'.startsWith('hybrid') }")
 @RequestMapping("/msgmigration")
-class MigrationController {
+class PostboxMigrationController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MigrationController.class);
-
-    private String status;
+    private static final Logger LOG = LoggerFactory.getLogger(PostboxMigrationController.class);
+    private volatile String status;
 
     @Autowired
     private ChunkedPostboxMigrationAction migrator;
@@ -29,36 +33,37 @@ class MigrationController {
     @ResponseBody
     public String migratePostboxes(@PathVariable String ids) {
         final List<String> postboxids = CSV_SPLITTER.splitToList(ids);
+
         LOG.info("Invoke index postboxes via Web interface for postboxes {} ", postboxids);
         boolean hasExecuted = migrator.migrateChunk(postboxids);
         if (hasExecuted) {
-            return String.format("Migrating postboxes %s started.", ids);
+            status = String.format("Migrating postboxes %s started.", ids);
         }
-        return DEFAULT_NO_EXECUTION_MESSAGE;
+        return hasExecuted ? status : DEFAULT_NO_EXECUTION_MESSAGE;
     }
 
     @RequestMapping("postboxesBetween/{fromDate}/{toDate}")
     @ResponseBody
-    public String migratePostboxesBetween(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime fromDate,
-                                              @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime toDate) {
+    public String migratePostboxesBetween(@PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime fromDate,
+                                              @PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime toDate) {
         LOG.info("Invoke migratePostboxesBetween from {} to {} via web interface", fromDate, toDate);
         boolean hasExecuted = migrator.migratePostboxesBetween(fromDate, toDate);
         if (hasExecuted) {
-            return String.format("Migrating postboxes from %s to %s started.", fromDate, toDate);
+            status = String.format("Migrating postboxes from %s to %s started.", fromDate, toDate);
         }
-        return DEFAULT_NO_EXECUTION_MESSAGE;
+        return hasExecuted ? status : DEFAULT_NO_EXECUTION_MESSAGE;
     }
 
 
     @RequestMapping("/postboxesFromDate/{fromDate}")
     @ResponseBody
-    public String migratePostboxesFromDate(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime fromDate) {
+    public String migratePostboxesFromDate(@PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime fromDate) {
         LOG.info("Invoke migratePostboxesFromDate via Web interface fromDate: {}", fromDate);
         boolean hasExecuted = migrator.migratePostboxesFromDate(fromDate);
         if (hasExecuted) {
-            return String.format("Migrating postboxes fromDate %s started.", fromDate);
+            status = String.format("Migrating postboxes from %s started.", fromDate);
         }
-        return DEFAULT_NO_EXECUTION_MESSAGE;
+        return hasExecuted ? status : DEFAULT_NO_EXECUTION_MESSAGE;
     }
 
     @RequestMapping("allpostboxes")
@@ -67,9 +72,9 @@ class MigrationController {
         LOG.info("Invoke migrateAllPostboxes via Web interface");
         boolean hasExecuted = migrator.migrateAllPostboxes();
         if (hasExecuted) {
-            return "Migrating all postboxes started.";
+            status = "Migrating all postboxes started.";
         }
-        return DEFAULT_NO_EXECUTION_MESSAGE;
+        return hasExecuted? status : DEFAULT_NO_EXECUTION_MESSAGE;
     }
 
     @RequestMapping("status")
@@ -77,13 +82,13 @@ class MigrationController {
     public String getStatus() {
         LOG.info("Invoke getStatus via Web interface");
         if (status != null) {
-            return String.format("<pre>Running: %s \n" +
-                    "Completed: %d%% \n" +
-                    "Processing rate: %s conversations/per second \n" +
-                    "Expected completion in %d s \n" +
-                    "Avg number of conversations per time slice %d \n" +
-                    "Time taken %ds \n" +
-                    "Conversations migrated %d \n</pre>",
+            return String.format("Running: %s; " +
+                    "Completed: %d%%; " +
+                    "Processing rate: %s pbox/s; " +
+                    "Expected completion in %d s; " +
+                    "Avg number of postboxes per time slice %d; " +
+                    "Time taken %ds; " +
+                    "Postboxes migrated %d ;",
                     status,
                     migrator.getPercentCompleted(),
                     migrator.getRatePostboxesPerSec(),

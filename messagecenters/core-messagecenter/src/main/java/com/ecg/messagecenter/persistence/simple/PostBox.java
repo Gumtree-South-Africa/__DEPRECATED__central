@@ -34,7 +34,6 @@ public class PostBox<T extends AbstractConversationThread> {
     public PostBox(String email, Counter newRepliesCounter, List<T> conversationThreads, int maxAgeDays) {
         Preconditions.checkNotNull(email);
         Preconditions.checkNotNull(conversationThreads);
-
         this.maxAgeDays = maxAgeDays;
         this.conversationThreads = cleanupAndSortByReceivedDate(conversationThreads);
         this.email = email.toLowerCase();
@@ -50,6 +49,9 @@ public class PostBox<T extends AbstractConversationThread> {
                 .limit(500) // we cap to 500 to not kill the persistence store for very large objects
                 .toList();
     }
+
+    public static final Comparator<AbstractConversationThread> MODIFICATION_DATE = (AbstractConversationThread c1, AbstractConversationThread c2) ->
+            c1.getModifiedAt().compareTo(c2.getModifiedAt());
 
     public Optional<T> removeConversation(String conversationId) {
         int indexToRemove = -1;
@@ -125,8 +127,7 @@ public class PostBox<T extends AbstractConversationThread> {
         if (o == null || getClass() != o.getClass()) return false;
 
         PostBox postBox = (PostBox) o;
-
-        return Pairwise.pairsAreEqual(email, postBox.email, newRepliesCounter, postBox.newRepliesCounter, conversationThreads, postBox.conversationThreads);
+        return Pairwise.pairsAreEqual(email, postBox.email, conversationThreads, postBox.conversationThreads);
     }
 
     public DateTime getLastModification() {
@@ -168,30 +169,35 @@ public class PostBox<T extends AbstractConversationThread> {
         final DateTime conversationRetentionTime = DateTime.now().minusDays(maxAgeDays);
 
         return conversationThreads
-          .stream()
-          .filter(input -> input == null || input.getCreatedAt().isAfter(conversationRetentionTime))
-          .collect(Collectors.toList());
+                .stream()
+                .filter(input -> input == null || input.getCreatedAt().isAfter(conversationRetentionTime))
+                .collect(Collectors.toList());
     }
 
     private List<T> cleanupAndSortByReceivedDate(List<T> conversationThreads) {
         List<T> sorted = cleanupExpiredConversations(conversationThreads);
-
         Collections.sort(sorted, (T a, T b) -> DateTimeComparator.getInstance().compare(b.getReceivedAt(), a.getReceivedAt()));
-
         return sorted;
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-          .add("email", email)
-          .add("newRepliesCounter", newRepliesCounter)
-          .add("conversationThreads", conversationThreads)
-          .toString();
+        StringBuilder objstr = new StringBuilder(MoreObjects.toStringHelper(this)
+                .add("email", email)
+                .add("newRepliesCounter", newRepliesCounter.getValue()).toString());
+
+        objstr.append("\nNumber of conversations " + conversationThreads.size() + "\n");
+        List<AbstractConversationThread> cThreads = new ArrayList<>(conversationThreads);
+        Collections.sort(conversationThreads, MODIFICATION_DATE);
+        for(AbstractConversationThread ct: cThreads) {
+            objstr.append(ct.toString());
+            objstr.append("\n");
+        }
+        return objstr.toString();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(email, newRepliesCounter, conversationThreads);
+        return Objects.hashCode(email, conversationThreads);
     }
 }

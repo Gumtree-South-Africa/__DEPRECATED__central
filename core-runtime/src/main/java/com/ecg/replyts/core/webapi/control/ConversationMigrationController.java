@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/coremigration")
 public class ConversationMigrationController {
 
+    public static final String DATETIME_STRING = "dd-MM-yyyy'T'HH:mm";
+
     private static final Logger LOG = LoggerFactory.getLogger(ConversationMigrationController.class);
     public static final String DEFAULT_NO_EXECUTION_MESSAGE = "No action was triggered as other process is already executing migration";
     public static final Splitter CSV_SPLITTER = Splitter.on(CharMatcher.WHITESPACE.or(CharMatcher.is(',')).or(CharMatcher.BREAKING_WHITESPACE)).trimResults().omitEmptyStrings();
@@ -37,33 +39,32 @@ public class ConversationMigrationController {
         LOG.info("Invoke index conversation via Web interface for conversations {} ", conversations);
         boolean hasExecuted = migrator.migrateChunk(conversations);
         if (hasExecuted) {
-            return  String.format("Migrating conversations %s started.", ids);
+            status = String.format("Migrating conversations %s started.", ids);
         }
-        return DEFAULT_NO_EXECUTION_MESSAGE;
+        return hasExecuted ? status : DEFAULT_NO_EXECUTION_MESSAGE;
     }
 
     @RequestMapping("conversationsBetween/{fromDate}/{toDate}")
     @ResponseBody
-    public String migrateConversationsBetween(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime fromDate,
-                                              @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime toDate) {
+    public String migrateConversationsBetween(@PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime fromDate,
+                                              @PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime toDate) {
         LOG.info("Invoke migrateConversationsBetween from {} to {} via web interface", fromDate, toDate);
         boolean hasExecuted = migrator.migrateConversationsBetween(fromDate, toDate);
         if (hasExecuted) {
-            return String.format("Migrating conversations from %s to %s started.", fromDate, toDate);
+            status = String.format("Migrating conversations from %s to %s started.", fromDate, toDate);
         }
-        return DEFAULT_NO_EXECUTION_MESSAGE;
+        return hasExecuted ? status : DEFAULT_NO_EXECUTION_MESSAGE;
     }
-
 
     @RequestMapping("/conversationsFromDate/{fromDate}")
     @ResponseBody
-    public String migrateConversationsFromDate(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime fromDate) {
+    public String migrateConversationsFromDate(@PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime fromDate) {
         LOG.info("Invoke migrateConversationsFromDate via Web interface fromDate: {}", fromDate);
         boolean hasExecuted = migrator.migrateConversationsFromDate(fromDate);
         if (hasExecuted) {
-            return String.format("Migrating conversations fromDate %s started.", fromDate);
+            status = String.format("Migrating conversations fromDate %s started.", fromDate);
         }
-        return DEFAULT_NO_EXECUTION_MESSAGE;
+        return hasExecuted ? status : DEFAULT_NO_EXECUTION_MESSAGE;
     }
 
     @RequestMapping("allconversations")
@@ -72,9 +73,9 @@ public class ConversationMigrationController {
         LOG.info("Invoke migrateConversations via Web interface");
         boolean hasExecuted = migrator.migrateAllConversations();
         if (hasExecuted) {
-            return "Migrating all conversations started.";
+            status = "Migrating all conversations started.";
         }
-        return DEFAULT_NO_EXECUTION_MESSAGE;
+        return hasExecuted ? status : DEFAULT_NO_EXECUTION_MESSAGE;
     }
 
     @RequestMapping("status")
