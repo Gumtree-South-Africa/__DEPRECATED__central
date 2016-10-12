@@ -42,6 +42,11 @@ case "${TENANT}" in
       # Deploy for mp demo, upload for all other environments/tenants
       if [[ "$DESTINATION" == "demo" ]] ; then
         # This requires the deploy.py script to be on the PATH
+
+        # TODO
+        # scp properties
+        # scp p2c
+        # exec p2c
         deploy.py --redeploy --config distribution/conf/mp/demo/deploy.conf --logdir . --component ${PKG} --ignore-lb
       else
         `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} ${DESTINATION}
@@ -53,6 +58,14 @@ case "${TENANT}" in
     for PKG in $(ls ${BUILD_DIR}/comaas-${TENANT}*); do
       PACKAGE_REGEX=".*/comaas-${TENANT}-(comaasqa|local).*"
       [[ ${PKG} =~ ${PACKAGE_REGEX} ]] && continue
+
+      # UPLOAD configuration
+      CONFIG_REGEX=".*/comaas-${TENANT}-configuration.*"
+      if [[ ${PKG} =~ ${CONFIG_REGEX} ]]; then
+        `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} sandbox
+#        `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} prod
+        continue
+      fi
 
       # UPLOAD SANDBOX PACKAGE
       SANDBOX_REGEX=".*/comaas-${TENANT}_sandbox.*"
