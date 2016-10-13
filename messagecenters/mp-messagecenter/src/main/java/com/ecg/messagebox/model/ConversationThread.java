@@ -132,4 +132,20 @@ public class ConversationThread {
         return Objects.hash(id, adId, visibility, messageNotification, participants,
                 latestMessage, metadata, numUnreadMessages, blockedUserInfo, messages);
     }
+
+    @Override
+    public String toString() {
+        return "ConversationThread{" +
+                "id='" + id + '\'' +
+                ", adId='" + adId + '\'' +
+                ", visibility=" + visibility +
+                ", messageNotification=" + messageNotification +
+                ", participants=" + participants +
+                ", latestMessage=" + latestMessage +
+                ", metadata=" + metadata +
+                ", numUnreadMessages=" + numUnreadMessages +
+                ", blockedUserInfo=" + blockedUserInfo +
+                ", messages=" + messages +
+                '}';
+    }
 }

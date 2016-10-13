@@ -2,11 +2,15 @@ package com.ecg.messagebox.service;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.model.*;
+import com.ecg.messagebox.model.ConversationThread;
+import com.ecg.messagebox.model.MessageType;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
+import com.ecg.messagecenter.persistence.*;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
+import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
@@ -56,16 +60,19 @@ public class CassandraPostBoxServiceTest {
     private UserIdentifierService userIdentifierService;
     @Mock
     private BlockUserRepository blockUserRepo;
+    @Mock
+    private ResponseDataService responseDataService;
 
     private CassandraPostBoxService service;
 
     @Before
     public void setup() {
         DateTimeUtils.setCurrentMillisFixed(now().getMillis());
-        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService, blockUserRepo);
+        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService, blockUserRepo, responseDataService);
         when(userIdentifierService.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierService.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(blockUserRepo.areUsersBlocked(any(), any())).thenReturn(false);
+        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, CONVERSATION_ID)).thenReturn(empty());
     }
 
     @After
@@ -75,8 +82,6 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void processNewMessageWithCorrectSubject() {
-        when(conversationsRepo.getConversationMessageNotification(anyString(), anyString())).thenReturn(empty());
-
         Message rtsMsg1 = newMessage("1", SELLER_TO_BUYER, MessageState.SENT, DEFAULT_SUBJECT);
         Message rtsMsg2 = newMessage("2", SELLER_TO_BUYER, MessageState.SENT, "Another subject");
         Conversation conversation = newConversationWithMessages(CONVERSATION_ID, singletonList(rtsMsg1)).build();
@@ -98,12 +103,12 @@ public class CassandraPostBoxServiceTest {
         Assert.assertEquals(messageIdDate.dayOfMonth(), currentTime.dayOfMonth());
         Assert.assertEquals(messageIdDate.monthOfYear(), currentTime.monthOfYear());
         Assert.assertEquals(messageIdDate.year(), currentTime.year());
+
+        verify(responseDataService).calculateResponseData(USER_ID_1, conversation, rtsMsg2);
     }
 
     @Test
     public void processNewMessageWithMetadataHeader() {
-        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, "c1")).thenReturn(empty());
-
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
         headers.put("X-Message-Metadata", "metadata");
@@ -116,7 +121,7 @@ public class CassandraPostBoxServiceTest {
 
         ArgumentCaptor<com.ecg.messagebox.model.Message> messageArgCaptor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
 
-        Conversation rtsConversation = newConversation("c1").withMessages(singletonList(rtsMsg)).build();
+        Conversation rtsConversation = newConversation(CONVERSATION_ID).withMessages(singletonList(rtsMsg)).build();
 
         List<Participant> participants = newArrayList(
                 new Participant(USER_ID_1, BUYER_NAME_VALUE, rtsConversation.getBuyerId(), ParticipantRole.BUYER),
@@ -151,7 +156,7 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void processNewMessageWithIdHeader() {
-        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, "c1")).thenReturn(empty());
+        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, CONVERSATION_ID)).thenReturn(empty());
 
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
@@ -162,7 +167,7 @@ public class CassandraPostBoxServiceTest {
         com.ecg.messagebox.model.Message newMessage = new com.ecg.messagebox.model.Message(
                 UUID.fromString("f866b110-857b-11e6-9367-5bbf510138cd"), "text 123", USER_ID_2, MessageType.ASQ, null);
 
-        Conversation rtsConversation = newConversation("c1").withMessages(singletonList(rtsMsg)).build();
+        Conversation rtsConversation = newConversation(CONVERSATION_ID).withMessages(singletonList(rtsMsg)).build();
 
         List<Participant> participants = newArrayList(
                 new Participant(USER_ID_1, BUYER_NAME_VALUE, rtsConversation.getBuyerId(), ParticipantRole.BUYER),

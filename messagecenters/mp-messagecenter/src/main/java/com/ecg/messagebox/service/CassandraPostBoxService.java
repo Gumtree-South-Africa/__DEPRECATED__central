@@ -6,7 +6,6 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagecenter.identifier.UserIdentifierService;
-import com.ecg.messagecenter.persistence.ResponseData;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -26,6 +25,7 @@ public class CassandraPostBoxService implements PostBoxService {
     private final MessagesResponseFactory messageResponseFactory;
     private final BlockUserRepository blockUserRepository;
     private final UserIdentifierService userIdentifierService;
+    private final ResponseDataService responseDataService;
 
     private final Timer processNewMessageTimer = newTimer("postBoxService.v2.processNewMessage");
     private final Timer getConversationTimer = newTimer("postBoxService.v2.getConversation");
@@ -33,7 +33,6 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer getConversationsTimer = newTimer("postBoxService.v2.getConversations");
     private final Timer changeConversationVisibilitiesTimer = newTimer("postBoxService.v2.changeConversationVisibilities");
     private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
-    private final Timer getResponseDataTimer = newTimer("postBoxService.v2.getResponseData");
 
     private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
 
@@ -41,12 +40,14 @@ public class CassandraPostBoxService implements PostBoxService {
     public CassandraPostBoxService(
             CassandraPostBoxRepository postBoxRepository,
             UserIdentifierService userIdentifierService,
-            BlockUserRepository blockUserRepository
+            BlockUserRepository blockUserRepository,
+            ResponseDataService responseDataService
     ) {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.messageResponseFactory = new MessagesResponseFactory(userIdentifierService);
         this.blockUserRepository = blockUserRepository;
+        this.responseDataService = responseDataService;
     }
 
     @Override
@@ -85,6 +86,8 @@ public class CassandraPostBoxService implements PostBoxService {
                     postBoxRepository.createConversation(userId, newConversation, newMessage, isNewReply);
                     newConversationCounter.inc();
                 }
+
+                responseDataService.calculateResponseData(userId, rtsConversation, rtsMessage);
             }
         }
     }
@@ -130,14 +133,6 @@ public class CassandraPostBoxService implements PostBoxService {
     public UserUnreadCounts getUnreadCounts(String userId) {
         try (Timer.Context ignored = getUnreadCountsTimer.time()) {
             return postBoxRepository.getUserUnreadCounts(userId);
-        }
-    }
-
-    @Override
-    public List<ResponseData> getResponseData(String userId) {
-        try (Timer.Context ignored = getResponseDataTimer.time()) {
-
-            return postBoxRepository.getResponseData(userId);
         }
     }
 

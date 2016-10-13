@@ -1,7 +1,6 @@
 package com.ecg.messagebox.persistence;
 
 import com.ecg.messagebox.model.*;
-import com.ecg.messagecenter.persistence.ResponseData;
 import org.joda.time.DateTime;
 
 import java.util.List;
@@ -108,7 +107,5 @@ public interface CassandraPostBoxRepository {
     void deleteModificationIndexByDate(DateTime modifiedDate, UUID messageId, String userId, String conversationId);
 
     ConversationModification getLastConversationModification(String userId, String convId);
-
-    List<ResponseData> getResponseData(String userId);
 
 }

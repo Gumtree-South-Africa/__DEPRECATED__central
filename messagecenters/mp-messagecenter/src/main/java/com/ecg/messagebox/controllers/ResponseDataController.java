@@ -1,14 +1,13 @@
 package com.ecg.messagebox.controllers;
 
 import com.codahale.metrics.Timer;
-import com.ecg.messagebox.service.PostBoxService;
+import com.ecg.messagebox.service.ResponseDataService;
 import com.ecg.messagecenter.persistence.ResponseData;
 import com.ecg.messagecenter.webapi.TopLevelExceptionHandler;
 import com.ecg.messagecenter.webapi.responses.ResponseDataResponse;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,11 +28,11 @@ public class ResponseDataController {
 
     private final Timer getResponseDataTimer = TimingReports.newTimer("webapi.get-response-data");
 
-    private final PostBoxService postBoxService;
+    private final ResponseDataService responseDataService;
 
     @Autowired
-    public ResponseDataController(@Qualifier("newCassandraPostBoxService") PostBoxService postBoxService) {
-        this.postBoxService = postBoxService;
+    public ResponseDataController(ResponseDataService responseDataService) {
+        this.responseDataService = responseDataService;
     }
 
     @ExceptionHandler
@@ -46,7 +45,7 @@ public class ResponseDataController {
     public ResponseObject<ResponseDataResponse> getResponseData(@PathVariable String userId) {
 
         try (Timer.Context ignored = getResponseDataTimer.time()) {
-            List<ResponseData> responseDataList = postBoxService.getResponseData(userId);
+            List<ResponseData> responseDataList = responseDataService.getResponseData(userId);
             return ResponseObject.of(new ResponseDataResponse(responseDataList));
         }
     }
