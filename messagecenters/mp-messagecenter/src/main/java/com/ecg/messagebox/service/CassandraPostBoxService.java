@@ -9,6 +9,7 @@ import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,7 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
 
     private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CassandraPostBoxService.class);
 
     @Autowired
     public CassandraPostBoxService(
@@ -66,6 +68,7 @@ public class CassandraPostBoxService implements PostBoxService {
                 String messageText = messageResponseFactory.getCleanedMessage(rtsConversation, rtsMessage);
                 String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
                 String messageIdStr = rtsMessage.getHeaders().get("X-Message-Id");
+                LOGGER.debug("Message Id from header is " + messageIdStr + " for user " + userId + " and conversationId " + rtsConversation.getId());
                 UUID messageId = messageIdStr != null ? UUID.fromString(messageIdStr) : UUIDs.timeBased();
                 Message newMessage = new Message(messageId, messageText, senderUserId, messageType, customData);
                 Optional<MessageNotification> messageNotificationOpt = postBoxRepository.getConversationMessageNotification(userId, rtsConversation.getId());
