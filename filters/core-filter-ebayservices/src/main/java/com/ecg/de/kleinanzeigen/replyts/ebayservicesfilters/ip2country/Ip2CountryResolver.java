@@ -4,9 +4,9 @@ import com.ebay.marketplace.personalization.v1.services.LocationType;
 import com.google.common.base.Optional;
 import de.mobile.ebay.service.ServiceException;
 import de.mobile.ebay.service.TrackingGeoLocationService;
-import de.mobile.ebay.service.impl.Config;
-import de.mobile.ebay.service.impl.TrackingGeoLocationServiceImpl;
-import org.apache.http.client.HttpClient;
+import de.mobile.ebay.service.lbs.Config;
+import de.mobile.ebay.service.lbs.HttpClientFactory;
+import de.mobile.ebay.service.lbs.TrackingGeoLocationServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +25,8 @@ class Ip2CountryResolver {
     private final TrackingGeoLocationService geoLocationService;
 
     @Autowired
-    public Ip2CountryResolver(HttpClient client, @Qualifier("esconfig-ipc") Config config) {
-        this(new TrackingGeoLocationServiceImpl(client, config));
+    public Ip2CountryResolver(@Qualifier("okHttpClientFactory") HttpClientFactory httpClientFactory, @Qualifier("lbs-esconfig-ipc") Config config) {
+        this(new TrackingGeoLocationServiceImpl(httpClientFactory, config));
     }
 
     Ip2CountryResolver(TrackingGeoLocationService geoLocationService) {

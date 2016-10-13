@@ -4,6 +4,23 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+    <bean id="okHttpClientFactory" factory-bean="httpClientFactoryBuilder" factory-method="build"/>
+
+    <bean id="httpClientFactoryBuilder" class="de.mobile.ebay.service.lbs.HttpClientFactoryBuilder">
+        <property name="maxTotalConnections" value="100" />
+        <property name="connectionTimeout" value="3000" />
+        <property name="socketTimeout" value="3000" />
+        <property name="proxyUrl" value="${replyts2-ebayservicesfilters-plugin.proxyurl:}" />
+    </bean>
+
+    <bean id="lbs-esconfig-ipc" class="de.mobile.ebay.service.lbs.ServiceConfigBean">
+        <property name="endpointUrl" value="${ebayIPTrackingService.endpointUrl:https://api.ebay.com/base/location/v2/}" />
+        <property name="oAuthUrl" value="https://idauth.ebay.com/idauth/site/" />
+        <property name="queryId" value="ecgebayk_geoloc_ip_1" />
+        <property name="clientId" value="urn:ebay-marketplace-consumerid:a4335f20-7467-4b26-b1a2-c0ec26ec3c02" />
+        <property name="clientSecret" value="91c5d3ae-2ecc-4e48-9b9b-072c7159878c" />
+    </bean>
+
     <bean id="esconfig-ipc" class="de.mobile.ebay.service.impl.ServiceConfigBean">
         <property name="iafToken" value="${replyts2-ebayservicesfilters-plugin.ip.iaftoken}" />
         <property name="appName" value="${replyts2-ebayservicesfilters-plugin.ip.appname}" />
