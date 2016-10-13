@@ -49,8 +49,7 @@ function deploy() {
   STAGGER_S=$((($STAGGER / 1000000000)))
 
   # First PUT the configuration into Consul
-  # TODO replace this with a properly packaged version of this tool, then remove the binary from our git repo
-  tools/go/src/properties-to-consul/properties-to-consul-linux \
+  properties-to-consul \
     -tenant "${TENANT}" \
     -file "./import_into_consul/comaas-qa.properties" \
     -consul "http://consul001:8500/"
