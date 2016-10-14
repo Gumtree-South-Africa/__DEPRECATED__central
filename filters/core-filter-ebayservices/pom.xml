@@ -25,6 +25,12 @@
             <artifactId>ebay-services</artifactId>
             <version>${ebay-services-version}</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
