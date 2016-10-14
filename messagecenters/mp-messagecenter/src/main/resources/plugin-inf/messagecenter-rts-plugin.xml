@@ -7,9 +7,6 @@
        http://www.springframework.org/schema/context
        http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <context:component-scan base-package="com.ecg.messagebox.configuration"/>
-    <context:component-scan base-package="com.ecg.messagebox.oldconverters"/>
-    <context:component-scan base-package="com.ecg.messagebox.diff"/>
     <context:component-scan base-package="com.ecg.messagebox.service"/>
     <context:component-scan base-package="com.ecg.messagebox.persistence.jsonconverter"/>
     <context:component-scan base-package="com.ecg.messagebox.persistence"/>
@@ -17,12 +14,11 @@
     <context:component-scan base-package="com.ecg.messagebox.controllers.responses.converters"/>
     <context:component-scan base-package="com.ecg.messagebox.cronjobs"/>
 
-    <context:component-scan base-package="com.ecg.messagecenter.persistence.cassandra"/>
     <context:component-scan base-package="com.ecg.messagecenter.listeners"/>
-    <context:component-scan base-package="com.ecg.messagecenter.webapi"/>
-    <context:component-scan base-package="com.ecg.messagecenter.identifier"/>
+    <context:component-scan base-package="com.ecg.messagebox.webapi"/>
+    <context:component-scan base-package="com.ecg.messagebox.identifier"/>
 
-    <bean id="userIdentifierServiceFactory" class="com.ecg.messagecenter.identifier.UserIdentifierServiceFactory"/>
+    <bean id="userIdentifierServiceFactory" class="com.ecg.messagebox.identifier.UserIdentifierServiceFactory"/>
 
     <bean id="userIdentifierService" factory-bean="userIdentifierServiceFactory"
           factory-method="createUserIdentifierService"/>

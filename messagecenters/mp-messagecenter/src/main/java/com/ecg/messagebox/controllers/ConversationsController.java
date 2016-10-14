@@ -6,12 +6,10 @@ import com.ecg.messagebox.controllers.responses.converters.ConversationsResponse
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.PostBoxService;
-import com.ecg.messagecenter.webapi.TopLevelExceptionHandler;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
@@ -38,7 +36,7 @@ public class ConversationsController {
     private final ConversationsResponseConverter responseConverter;
 
     @Autowired
-    public ConversationsController(@Qualifier("newCassandraPostBoxService") PostBoxService postBoxService,
+    public ConversationsController(PostBoxService postBoxService,
                                    ConversationsResponseConverter responseConverter) {
         this.postBoxService = postBoxService;
         this.responseConverter = responseConverter;

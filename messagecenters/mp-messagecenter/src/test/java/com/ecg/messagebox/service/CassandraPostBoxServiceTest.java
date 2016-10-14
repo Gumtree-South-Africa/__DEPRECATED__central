@@ -1,16 +1,12 @@
 package com.ecg.messagebox.service;
 
 import com.datastax.driver.core.utils.UUIDs;
+import com.ecg.messagebox.identifier.UserIdentifierService;
 import com.ecg.messagebox.model.*;
-import com.ecg.messagebox.model.ConversationThread;
-import com.ecg.messagebox.model.MessageType;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
-import com.ecg.messagecenter.identifier.UserIdentifierService;
-import com.ecg.messagecenter.persistence.*;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
-import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;

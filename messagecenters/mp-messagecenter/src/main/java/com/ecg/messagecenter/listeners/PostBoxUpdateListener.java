@@ -2,8 +2,8 @@ package com.ecg.messagecenter.listeners;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.identifier.UserIdentifierService;
-import com.ecg.messagecenter.persistence.PostBoxService;
+import com.ecg.messagebox.service.PostBoxService;
+import com.ecg.messagebox.identifier.UserIdentifierService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
@@ -12,7 +12,6 @@ import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -35,14 +34,14 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final Counter processingFailedCounter = newCounter("message-box.postBoxUpdateListener.failed");
     private final Counter missingUserIdsCounter = newCounter("message-box.postBoxUpdateListener.missingUserIdsCounter");
 
-    private final PostBoxService postBoxServiceDelegator;
+    private final PostBoxService postBoxService;
     private final UserIdentifierService userIdentifierService;
     private final UserNotificationRules userNotificationRules;
 
     @Autowired
-    public PostBoxUpdateListener(@Qualifier("postBoxServiceDelegator") PostBoxService postBoxServiceDelegator,
+    public PostBoxUpdateListener(PostBoxService postBoxService,
                                  UserIdentifierService userIdentifierService) {
-        this.postBoxServiceDelegator = postBoxServiceDelegator;
+        this.postBoxService = postBoxService;
         this.userIdentifierService = userIdentifierService;
         this.userNotificationRules = new UserNotificationRules();
     }
@@ -70,9 +69,9 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             String msgSenderUserId = msg.getMessageDirection() == BUYER_TO_SELLER ? buyerUserId : sellerUserId;
 
             // update buyer and seller projections
-            updateUserProjection(conv, msg, msgSenderUserId, buyerUserId, ConversationRole.Buyer,
+            updateUserProjection(conv, msg, msgSenderUserId, buyerUserId,
                     userNotificationRules.buyerShouldBeNotified(msg));
-            updateUserProjection(conv, msg, msgSenderUserId, sellerUserId, ConversationRole.Seller,
+            updateUserProjection(conv, msg, msgSenderUserId, sellerUserId,
                     userNotificationRules.sellerShouldBeNotified(msg));
 
             processingSuccessCounter.inc();
@@ -84,10 +83,10 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     }
 
     private void updateUserProjection(Conversation conv, Message msg, String msgSenderUserId, String projectionOwnerUserId,
-                                      ConversationRole convRole, boolean isNewReply) {
+                                      boolean isNewReply) {
         boolean isOwnMessage = msgSenderUserId.equals(projectionOwnerUserId);
         if (msg.getState() != IGNORED && ((msg.getState() == SENT && conv.getState() != ConversationState.CLOSED) || isOwnMessage)) {
-            postBoxServiceDelegator.processNewMessage(projectionOwnerUserId, conv, msg, convRole, isNewReply);
+            postBoxService.processNewMessage(projectionOwnerUserId, conv, msg, isNewReply);
         }
     }
 }

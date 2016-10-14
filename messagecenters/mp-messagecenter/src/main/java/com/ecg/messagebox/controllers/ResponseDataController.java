@@ -2,9 +2,8 @@ package com.ecg.messagebox.controllers;
 
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.service.ResponseDataService;
+import com.ecg.messagebox.controllers.responses.ResponseDataResponse;
 import com.ecg.messagecenter.persistence.ResponseData;
-import com.ecg.messagecenter.webapi.TopLevelExceptionHandler;
-import com.ecg.messagecenter.webapi.responses.ResponseDataResponse;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,7 @@ import java.util.List;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-@Controller("newResponseDataController")
+@Controller
 public class ResponseDataController {
 
     private static final String MAPPING = "/users/{userId}/response-data";

@@ -4,10 +4,8 @@ import com.codahale.metrics.Timer;
 import com.ecg.messagebox.controllers.responses.converters.UnreadCountsResponseConverter;
 import com.ecg.messagebox.model.UserUnreadCounts;
 import com.ecg.messagebox.service.PostBoxService;
-import com.ecg.messagecenter.webapi.TopLevelExceptionHandler;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +19,7 @@ import java.io.Writer;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-@Controller("newUnreadCountsController")
+@Controller
 public class UnreadCountsController {
 
     private static final Timer GET_UNREAD_COUNTS_TIMER = newTimer("webapi.get-unread-counts");
@@ -32,7 +30,7 @@ public class UnreadCountsController {
     private final UnreadCountsResponseConverter responseConverter;
 
     @Autowired
-    public UnreadCountsController(@Qualifier("newCassandraPostBoxService") PostBoxService postBoxService,
+    public UnreadCountsController(PostBoxService postBoxService,
                                   UnreadCountsResponseConverter responseConverter) {
         this.postBoxService = postBoxService;
         this.responseConverter = responseConverter;

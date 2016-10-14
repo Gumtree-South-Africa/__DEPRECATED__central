@@ -41,7 +41,6 @@ else
 fi
 cqlsh $HOST 9042 -k "$KEYSPACE" -f core-runtime/src/main/resources/cassandra_schema.cql
 cqlsh $HOST 9042 -k "$KEYSPACE" -f filters/mp-filter-volume/src/main/resources/cassandra_volume_filter_schema.cql
-cqlsh $HOST 9042 -k "$KEYSPACE" -f messagecenters/mp-messagecenter/src/main/resources/cassandra_messagebox_schema.cql
 cqlsh $HOST 9042 -k "$KEYSPACE" -f messagecenters/mp-messagecenter/src/main/resources/cassandra_new_messagebox_schema.cql
 cqlsh $HOST 9042 -k "$KEYSPACE" -f messagecenters/core-messagecenter/src/main/resources/cassandra_core_messagecenter_schema.cql
 

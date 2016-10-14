@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.listeners;
 
-import com.ecg.messagecenter.identifier.UserIdentifierService;
-import com.ecg.messagecenter.persistence.PostBoxService;
+import com.ecg.messagebox.service.PostBoxService;
+import com.ecg.messagebox.identifier.UserIdentifierService;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
@@ -76,8 +76,8 @@ public class PostBoxUpdateListenerTest {
 
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Buyer);
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Seller);
-        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, ConversationRole.Buyer, false);
-        verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, ConversationRole.Seller, true);
+        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false);
+        verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, true);
     }
 
     @Test
@@ -89,8 +89,8 @@ public class PostBoxUpdateListenerTest {
 
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Buyer);
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Seller);
-        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, ConversationRole.Buyer, true);
-        verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, ConversationRole.Seller, false);
+        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, true);
+        verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, false);
     }
 
     @Test
@@ -120,8 +120,8 @@ public class PostBoxUpdateListenerTest {
 
         listener.messageProcessed(conversation, message);
 
-        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, ConversationRole.Buyer, false);
-        verify(delegatorMock, never()).processNewMessage(SELLER_USER_ID, conversation, message, ConversationRole.Seller, true);
+        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false);
+        verify(delegatorMock, never()).processNewMessage(SELLER_USER_ID, conversation, message, true);
     }
 
     @Test
@@ -167,8 +167,8 @@ public class PostBoxUpdateListenerTest {
 
         listener.messageProcessed(conversation, message);
 
-        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, ConversationRole.Buyer, false);
-        verify(delegatorMock, never()).processNewMessage(SELLER_USER_ID, conversation, message, ConversationRole.Seller, true);
+        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false);
+        verify(delegatorMock, never()).processNewMessage(SELLER_USER_ID, conversation, message, true);
     }
 
     @Test
@@ -178,7 +178,7 @@ public class PostBoxUpdateListenerTest {
 
         doThrow(new RuntimeException("~expected exception~"))
                 .when(delegatorMock)
-                .processNewMessage(BUYER_USER_ID, conversation, message, ConversationRole.Buyer, false);
+                .processNewMessage(BUYER_USER_ID, conversation, message, false);
 
         thrown.expect(RuntimeException.class);
         thrown.expectMessage("Error updating user projections for conversation cid, conversation state ACTIVE and message mid: ~expected exception~");

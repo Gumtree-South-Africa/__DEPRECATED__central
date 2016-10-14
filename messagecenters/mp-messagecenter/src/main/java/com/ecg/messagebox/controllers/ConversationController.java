@@ -4,12 +4,10 @@ import com.codahale.metrics.Timer;
 import com.ecg.messagebox.controllers.responses.ConversationResponse;
 import com.ecg.messagebox.controllers.responses.converters.ConversationResponseConverter;
 import com.ecg.messagebox.service.PostBoxService;
-import com.ecg.messagecenter.webapi.TopLevelExceptionHandler;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +20,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-@Controller("userConversationController")
+@Controller
 public class ConversationController {
 
     private static final String CONVERSATION_RESOURCE = "/users/{userId}/conversations/{conversationId}";
@@ -34,7 +32,7 @@ public class ConversationController {
     private final ConversationResponseConverter responseConverter;
 
     @Autowired
-    public ConversationController(@Qualifier("newCassandraPostBoxService") PostBoxService postBoxService,
+    public ConversationController(PostBoxService postBoxService,
                                   ConversationResponseConverter responseConverter) {
         this.postBoxService = postBoxService;
         this.responseConverter = responseConverter;

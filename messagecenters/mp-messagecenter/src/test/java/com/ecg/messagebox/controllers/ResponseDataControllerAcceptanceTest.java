@@ -1,8 +1,9 @@
 package com.ecg.messagebox.controllers;
 
-import com.ecg.messagecenter.identifier.UserIdentifierType;
+import com.ecg.messagebox.identifier.UserIdentifierType;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -13,6 +14,7 @@ import java.util.function.Supplier;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static org.hamcrest.Matchers.equalTo;
 
+@Ignore
 public class ResponseDataControllerAcceptanceTest {
 
     @Rule
@@ -23,7 +25,7 @@ public class ResponseDataControllerAcceptanceTest {
         properties.put("userIdentifierService", UserIdentifierType.BY_USER_ID.toString());
 
         return properties;
-    }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_new_messagebox_schema.cql");
+    }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_new_messagebox_schema.cql");
 
     @Test
     public void readMessages() throws Exception {

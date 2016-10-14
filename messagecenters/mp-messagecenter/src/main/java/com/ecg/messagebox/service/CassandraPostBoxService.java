@@ -3,10 +3,10 @@ package com.ecg.messagebox.service;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.utils.UUIDs;
+import com.ecg.messagebox.identifier.UserIdentifierService;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
-import com.ecg.messagecenter.identifier.UserIdentifierService;
-import com.ecg.messagecenter.util.MessagesResponseFactory;
+import com.ecg.messagebox.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static org.joda.time.DateTime.now;
 
-@Component("newCassandraPostBoxService")
+@Component
 public class CassandraPostBoxService implements PostBoxService {
     private final CassandraPostBoxRepository postBoxRepository;
     private final MessagesResponseFactory messageResponseFactory;
@@ -47,7 +47,7 @@ public class CassandraPostBoxService implements PostBoxService {
     ) {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
-        this.messageResponseFactory = new MessagesResponseFactory(userIdentifierService);
+        this.messageResponseFactory = new MessagesResponseFactory();
         this.blockUserRepository = blockUserRepository;
         this.responseDataService = responseDataService;
     }
