@@ -2,6 +2,7 @@ package com.ecg.messagebox.service;
 
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.persistence.ResponseDataRepository;
+import com.ecg.messagecenter.identifier.UserIdentifierService;
 import com.ecg.messagecenter.persistence.ResponseData;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -21,10 +22,13 @@ public class DefaultResponseDataService implements ResponseDataService {
     private final Timer getResponseDataTimer = newTimer("postBoxService.v2.getResponseData");
 
     private static final String X_MESSAGE_TYPE = "X-Message-Type";
+    private final UserIdentifierService userIdentifierService;
 
     @Autowired
-    public DefaultResponseDataService(ResponseDataRepository responseDataRepository) {
+    public DefaultResponseDataService(ResponseDataRepository responseDataRepository,
+                                      UserIdentifierService userIdentifierService) {
         this.responseDataRepository = responseDataRepository;
+        this.userIdentifierService = userIdentifierService;
     }
 
     @Override
@@ -38,7 +42,8 @@ public class DefaultResponseDataService implements ResponseDataService {
     @Override
     public void calculateResponseData(String userId, Conversation rtsConversation, Message rtsNewMessage) {
         // BR: only for sellers
-        if (userId.equals(rtsConversation.getSellerId())) {
+        boolean isSeller = userIdentifierService.getSellerUserId(rtsConversation).map(userId::equals).orElse(false);
+        if (isSeller) {
             // BR: only for conversations initiated by buyer
             if (rtsConversation.getMessages().size() == 1 && MessageDirection.BUYER_TO_SELLER == rtsNewMessage.getMessageDirection()) {
                 ResponseData initialResponseData = new ResponseData(userId, rtsConversation.getId(), rtsConversation.getCreatedAt(),
