@@ -1,13 +1,19 @@
 # Comaas central
 
 ## Dev setup
-Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki#set-up-code-review) to 
-clone this repository.
+Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki#set-up-code-review) to clone this repository.
 Also clone the [vagrant machine](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant) and start it (see [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant#get-started)). 
 
-Download Cassandra from http://archive.apache.org/dist/cassandra/2.1.14/ to your machine and put it in /opt/cassandra. Alternatively, use `brew install homebrew/versions/cassandra21`.
+### Cassandra
 
-Run `cassandra` to start the service. Start the VM. Run `bin/setup-cassandra.sh; bin/setup-cassandra.sh localhost` to run initial db migrations on both instances. Integration tests use the local one, while runtime uses the VM.
+If you are usign python >= 2.7.12 you need cassandra 2.1.16+ (http://archive.apache.org/dist/cassandra/2.1.16/apache-cassandra-2.1.16-bin.tar.gz) download it and put it in /opt/cassandra.
+
+If you are using older python you can use brew `brew install homebrew/versions/cassandra21`.
+
+#### Setup
+
+1. Run `cassandra` to start the service. Start the VM.
+2. Run `bin/setup-cassandra.sh; bin/setup-cassandra.sh localhost` to run initial db migrations on both instances. Integration tests use the local one, while runtime uses the VM.
 
 If you get an error like `Connection error: ('Unable to connect to any servers', {'localhost': TypeError('ref() does not take keyword arguments',)})` try to upgrade cassandra to 2.1.16 (if released), or downgrade python to <2.7.12. For example, using homebrew: `brew switch python 2.7.9`.
 
