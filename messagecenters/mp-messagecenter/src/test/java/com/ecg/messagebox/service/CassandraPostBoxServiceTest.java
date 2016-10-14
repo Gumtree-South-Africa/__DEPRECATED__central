@@ -160,7 +160,7 @@ public class CassandraPostBoxServiceTest {
 
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
-        headers.put("X-Message-Id", "f866b110-857b-11e6-9367-5bbf510138cd");
+        headers.put("X-Message-ID", "f866b110-857b-11e6-9367-5bbf510138cd");
         headers.put("Subject", "subject");
         Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
 
