@@ -8,6 +8,8 @@ import com.ecg.replyts.core.api.model.conversation.command.NewConversationComman
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ExtendedConversationEvent;
+import com.ecg.replyts.core.api.model.user.event.BlockedUserEvent;
+import com.ecg.replyts.core.api.model.user.event.EmailPreferenceEvent;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,8 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
-import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -24,7 +24,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class ExtendedConversationEventSerializerTest {
+import static com.ecg.replyts.core.api.model.user.event.BlockAction.BLOCK_USER;
+import static com.ecg.replyts.core.api.model.user.event.BlockAction.UNBLOCK_USER;
+import static com.ecg.replyts.core.api.model.user.event.EmailPreferenceCommand.TURN_OFF_EMAIL;
+import static com.ecg.replyts.core.api.model.user.event.EmailPreferenceCommand.TURN_ON_EMAIL;
+import static org.junit.Assert.assertEquals;
+
+public class EventSerializerTest {
 
     private static final String AD_ID = "9876345";
     private static final String CONVERSATION_ID = "conv-5801";
@@ -51,12 +57,12 @@ public class ExtendedConversationEventSerializerTest {
             .withHeaders(new HashMap<>())
             .build();
 
-    private ExtendedConversationEventSerializer serializer = new ExtendedConversationEventSerializer();
+    private EventSerializer serializer = new EventSerializer();
 
     @Test
     public void testSerialize_newConversation() throws Exception {
         List<ConversationEvent> newConversationEvents = ImmutableConversation.apply(newConversationCommand);
-        Assert.assertEquals(1, newConversationEvents.size());
+        assertEquals(1, newConversationEvents.size());
         ConversationEvent newConversationEvent = newConversationEvents.get(0);
         DefaultMutableConversation conversation = DefaultMutableConversation.create(newConversationCommand);
 
@@ -68,7 +74,7 @@ public class ExtendedConversationEventSerializerTest {
 
         JsonNode expected = objectReader.readTree(getClass().getResourceAsStream("expectedNewConversation.json"));
         JsonNode actual = objectReader.readTree(new ByteArrayInputStream(newConversationSerialized));
-        Assert.assertEquals(expected, actual);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -76,7 +82,7 @@ public class ExtendedConversationEventSerializerTest {
         DefaultMutableConversation conversation = DefaultMutableConversation.create(newConversationCommand);
 
         List<ConversationEvent> addMessageEvents = ((ImmutableConversation) conversation.getImmutableConversation()).apply(addMessageCommand);
-        Assert.assertEquals(1, addMessageEvents.size());
+        assertEquals(1, addMessageEvents.size());
         ConversationEvent addMessageEvent = addMessageEvents.get(0);
 
         conversation.applyCommand(addMessageCommand);
@@ -89,7 +95,48 @@ public class ExtendedConversationEventSerializerTest {
 
         JsonNode expected = objectReader.readTree(getClass().getResourceAsStream("expectedAddMessage.json"));
         JsonNode actual = objectReader.readTree(new ByteArrayInputStream(newConversationSerialized));
-        Assert.assertEquals(expected, actual);
+        assertEquals(expected, actual);
     }
 
+    @Test
+    public void testSerialize_userEmailOn() throws Exception {
+        byte[] se = serializer.serialize(new EmailPreferenceEvent(TURN_ON_EMAIL, "1"));
+
+        JsonNode actual = objectReader.readTree(new ByteArrayInputStream(se));
+        assertEquals(TURN_ON_EMAIL.toString(), actual.findValue("emailPreferenceCommand").asText());
+        assertEquals("EmailPreferenceEvent", actual.findValue("type").asText());
+        assertEquals("1", actual.findValue("userId").asText());
+    }
+
+    @Test
+    public void testSerialize_userEmailOff() throws Exception {
+        byte[] se = serializer.serialize(new EmailPreferenceEvent(TURN_OFF_EMAIL, "1"));
+
+        JsonNode actual = objectReader.readTree(new ByteArrayInputStream(se));
+        assertEquals(TURN_OFF_EMAIL.toString(), actual.findValue("emailPreferenceCommand").asText());
+        assertEquals("EmailPreferenceEvent", actual.findValue("type").asText());
+        assertEquals("1", actual.findValue("userId").asText());
+    }
+
+    @Test
+    public void testSerialize_userBlock() throws Exception {
+        byte[] se = serializer.serialize(new BlockedUserEvent("1", "2", BLOCK_USER));
+
+        JsonNode actual = objectReader.readTree(new ByteArrayInputStream(se));
+        assertEquals("1", actual.findValue("blockerId").asText());
+        assertEquals("2", actual.findValue("blockeeId").asText());
+        assertEquals(BLOCK_USER.toString(), actual.findValue("blockAction").asText());
+        assertEquals("BlockedUserEvent", actual.findValue("type").asText());
+    }
+
+    @Test
+    public void testSerialize_userUnBlock() throws Exception {
+        byte[] se = serializer.serialize(new BlockedUserEvent("1", "2", UNBLOCK_USER));
+
+        JsonNode actual = objectReader.readTree(new ByteArrayInputStream(se));
+        assertEquals("1", actual.findValue("blockerId").asText());
+        assertEquals("2", actual.findValue("blockeeId").asText());
+        assertEquals(UNBLOCK_USER.toString(), actual.findValue("blockAction").asText());
+        assertEquals("BlockedUserEvent", actual.findValue("type").asText());
+    }
 }

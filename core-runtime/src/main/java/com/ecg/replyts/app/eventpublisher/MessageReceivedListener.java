@@ -20,6 +20,6 @@ public class MessageReceivedListener implements ConversationEventListener {
     @Override
     public void eventsTriggered(Conversation conversation, List<ConversationEvent> conversationEvents) {
         List<Event> events = eventConverter.toEvents(conversation, conversationEvents);
-        eventPublisher.publishEvents(events);
+        eventPublisher.publishConversationEvents(events);
     }
 }

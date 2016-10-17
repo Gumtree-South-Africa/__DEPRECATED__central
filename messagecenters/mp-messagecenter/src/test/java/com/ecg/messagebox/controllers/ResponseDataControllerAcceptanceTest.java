@@ -1,6 +1,6 @@
 package com.ecg.messagebox.controllers;
 
-import com.ecg.messagebox.identifier.UserIdentifierType;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierType;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
 import org.junit.Ignore;

@@ -1,8 +1,8 @@
 package com.ecg.replyts2.eventpublisher.rabbitmq;
 
 import com.codahale.metrics.Counter;
-import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.app.eventpublisher.EventPublisher;
+import com.ecg.replyts.core.runtime.TimingReports;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +28,13 @@ public class RabbitEventPublisher implements EventPublisher {
     }
 
     @Override
-    public void publishEvents(List<Event> events) {
+    public void publishConversationEvents(List<Event> events) {
         events.forEach(this::publishEvent);
+    }
+
+    @Override
+    public void publishUserEvents(List<Event> events) {
+
     }
 
     private void publishEvent(Event event) {

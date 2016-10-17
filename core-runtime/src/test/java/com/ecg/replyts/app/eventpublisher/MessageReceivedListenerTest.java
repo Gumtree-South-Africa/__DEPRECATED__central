@@ -37,7 +37,7 @@ public class MessageReceivedListenerTest {
     @Mock
     private EventPublisher eventPublisher;
     @Mock
-    private ExtendedConversationEventSerializer serializer;
+    private EventSerializer serializer;
     @Captor
     private ArgumentCaptor<ExtendedConversationEvent> serializerEventCaptor;
     @Captor
@@ -69,7 +69,7 @@ public class MessageReceivedListenerTest {
             assertThat(serializedEvent.conversation.buyerAnonymousEmail, is("anon-buyer@a.com"));
         }
 
-        verify(eventPublisher).publishEvents(publisherEventsCaptor.capture());
+        verify(eventPublisher).publishConversationEvents(publisherEventsCaptor.capture());
         List<EventPublisher.Event> events = publisherEventsCaptor.getValue();
         assertThat(events.size(), is(3));
         assertThat(events.get(0).data, sameInstance(jsonBytes1));

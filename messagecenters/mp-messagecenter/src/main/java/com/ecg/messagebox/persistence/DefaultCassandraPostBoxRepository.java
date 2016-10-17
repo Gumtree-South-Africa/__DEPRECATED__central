@@ -27,7 +27,7 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 
-@Component(("newCassandraPostBoxRepo"))
+@Component
 public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
 
     private final Timer getPaginatedConversationIdsTimer = newTimer("cassandra.postBoxRepo.v2.getPaginatedConversationIds");

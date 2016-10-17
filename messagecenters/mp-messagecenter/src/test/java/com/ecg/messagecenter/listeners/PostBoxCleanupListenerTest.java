@@ -1,12 +1,12 @@
 package com.ecg.messagecenter.listeners;
 
-import com.ecg.messagebox.identifier.UserIdentifierService;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationClosedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationDeletedEvent;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import org.joda.time.DateTime;
 import org.junit.Before;

@@ -100,4 +100,11 @@
     <bean class="com.ecg.replyts.migrations.MigrationConfiguration" />
 
     <bean class="com.ecg.replyts.app.ConversationEventListeners" />
+
+    <bean class="com.ecg.replyts.app.UserEventListener" />
+
+    <bean id="userIdentifierServiceFactory" class="com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory"/>
+
+    <bean id="userIdentifierService" factory-bean="userIdentifierServiceFactory"
+          factory-method="createUserIdentifierService"/>
 </beans>

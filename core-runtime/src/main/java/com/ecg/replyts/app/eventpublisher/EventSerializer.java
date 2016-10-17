@@ -1,6 +1,5 @@
 package com.ecg.replyts.app.eventpublisher;
 
-import com.ecg.replyts.core.api.model.conversation.event.ExtendedConversationEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -9,13 +8,13 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 /**
- * Serializes instances of {@link ExtendedConversationEvent} to JSON.
+ * Serializes events to JSON.
  */
-public class ExtendedConversationEventSerializer {
+public class EventSerializer {
 
     private final ObjectWriter objectWriter;
 
-    public ExtendedConversationEventSerializer() {
+    public EventSerializer() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JodaModule());
         objectMapper.registerModule(new GuavaModule());
@@ -23,11 +22,11 @@ public class ExtendedConversationEventSerializer {
         objectWriter = objectMapper.writer();
     }
 
-    public byte[] serialize(ExtendedConversationEvent extendedConversationEvent) {
+    public <T> byte[] serialize(T extendedConversationEvent) {
         try {
             return objectWriter.writeValueAsBytes(extendedConversationEvent);
         } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Could not serialize extendedConversationEvent " + extendedConversationEvent, e);
+            throw new IllegalArgumentException("Could not serialize event " + extendedConversationEvent, e);
         }
     }
 }

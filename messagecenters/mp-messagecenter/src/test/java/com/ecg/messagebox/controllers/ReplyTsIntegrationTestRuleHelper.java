@@ -1,10 +1,11 @@
 package com.ecg.messagebox.controllers;
 
-import com.ecg.messagebox.identifier.UserIdentifierType;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 
 import java.util.Properties;
 import java.util.function.Supplier;
+
+import static com.ecg.replyts.core.runtime.identifier.UserIdentifierType.BY_USER_ID;
 
 public class ReplyTsIntegrationTestRuleHelper {
 
@@ -28,8 +29,8 @@ public class ReplyTsIntegrationTestRuleHelper {
 
     private static Properties getUserIdStrategyProperties() {
         Properties properties = new Properties();
-        properties.put("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_USER_ID.toString());
-        properties.put("userIdentifierService", UserIdentifierType.BY_USER_ID.toString());
+        properties.put("messagebox.userid.userIdentifierStrategy", BY_USER_ID.toString());
+        properties.put("userIdentifierService", BY_USER_ID.toString());
         return properties;
     }
 }

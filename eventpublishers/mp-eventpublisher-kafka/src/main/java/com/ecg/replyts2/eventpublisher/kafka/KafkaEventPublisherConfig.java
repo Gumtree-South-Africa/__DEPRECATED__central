@@ -6,7 +6,6 @@ import com.ecg.replyts.app.eventpublisher.EventPublisher;
 import com.ecg.replyts.app.eventpublisher.MessageReceivedListener;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
-import kafka.utils.KafkaScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,9 @@ public class KafkaEventPublisherConfig {
     @Value("${replyts.kafka.broker.list:localhost:9092}")
     private String kafkaBrokers;
     @Value("${replyts.kafka.topic:conversations}")
-    private String kafkaTopic;
+    private String kafkaConversationEventsTopic;
+    @Value("${replyts.kafka.user.events.topic:user_events}")
+    private String kafkaUserEventsTopic;
     @Value("${replyts.kafka.replay.topic:conversations_replay}")
     private String kafkaReplayTopic;
 
@@ -75,12 +76,14 @@ public class KafkaEventPublisherConfig {
         return new MessageReceivedListener(new EventConverter(mailCloakingService), newKafkaEventPublisher());
     }
 
+    @Bean
+    @Conditional(KafkaEnabledConditional.class)
     public EventPublisher newKafkaEventPublisher() {
-        return new KafkaEventPublisher(producer, kafkaTopic);
+        return new KafkaEventPublisher(producer, kafkaConversationEventsTopic, kafkaUserEventsTopic);
     }
 
     public EventPublisher newKafkaEventReplayPublisher() {
-        return new KafkaEventPublisher(producer, kafkaReplayTopic);
+        return new KafkaEventPublisher(producer, kafkaReplayTopic, kafkaUserEventsTopic);
     }
 
     @PreDestroy

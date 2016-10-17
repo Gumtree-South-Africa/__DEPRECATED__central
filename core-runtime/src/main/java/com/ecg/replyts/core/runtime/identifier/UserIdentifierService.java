@@ -1,4 +1,4 @@
-package com.ecg.messagebox.identifier;
+package com.ecg.replyts.core.runtime.identifier;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;

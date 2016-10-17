@@ -1,40 +1,45 @@
-package com.ecg.messagebox.identifier;
+package com.ecg.replyts.core.runtime.identifier;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 
 import java.util.Optional;
 
-public class UserIdentifierServiceByUserIdHeaders implements UserIdentifierService {
+public class UserIdentifierServiceByMailAddress implements UserIdentifierService {
 
-    private final String buyerUserIdName;
+    private String buyerUserIdName;
 
-    private final String sellerUserIdName;
+    private String sellerUserIdName;
 
-    public UserIdentifierServiceByUserIdHeaders(String buyerUserIdName, String sellerUserIdName) {
+    public UserIdentifierServiceByMailAddress(String buyerUserIdName, String sellerUserIdName) {
         this.buyerUserIdName = buyerUserIdName;
         this.sellerUserIdName = sellerUserIdName;
     }
 
-    public UserIdentifierServiceByUserIdHeaders() {
+    public UserIdentifierServiceByMailAddress() {
         this.buyerUserIdName = DEFAULT_BUYER_USER_ID_NAME;
         this.sellerUserIdName = DEFAULT_SELLER_USER_ID_NAME;
     }
 
     @Override
     public Optional<String> getUserIdentificationOfConversation(Conversation conversation, ConversationRole role) {
-        String customValueName = role == ConversationRole.Buyer ? getBuyerUserIdName() : getSellerUserIdName();
-        return Optional.ofNullable(conversation.getCustomValues().get(customValueName));
+        if (role == ConversationRole.Buyer) {
+            return getBuyerUserId(conversation);
+        } else if (role == ConversationRole.Seller) {
+            return getSellerUserId(conversation);
+        } else {
+            throw new IllegalArgumentException("Invalid role " + role);
+        }
     }
 
     @Override
     public Optional<String> getBuyerUserId(Conversation conversation) {
-        return Optional.ofNullable(conversation.getCustomValues().get(getBuyerUserIdName()));
+        return Optional.ofNullable(conversation.getBuyerId());
     }
 
     @Override
     public Optional<String> getSellerUserId(Conversation conversation) {
-        return Optional.ofNullable(conversation.getCustomValues().get(getSellerUserIdName()));
+        return Optional.ofNullable(conversation.getSellerId());
     }
 
     @Override

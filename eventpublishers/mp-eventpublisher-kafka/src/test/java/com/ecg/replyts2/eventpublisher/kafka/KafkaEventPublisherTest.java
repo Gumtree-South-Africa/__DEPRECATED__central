@@ -34,17 +34,17 @@ public class KafkaEventPublisherTest {
 
     @Before
     public void setUp() throws Exception {
-        eventPublisher = new KafkaEventPublisher(producer, "topic1");
+        eventPublisher = new KafkaEventPublisher(producer, "topic1", "topic2");
     }
 
     @Test
-    public void testPublishEvents() throws Exception {
+    public void testPublishConversationEvents() throws Exception {
         List<Event> events = Arrays.asList(
                 new Event("p1", data1),
                 new Event("p2", data2)
         );
 
-        eventPublisher.publishEvents(events);
+        eventPublisher.publishConversationEvents(events);
 
         verify(producer).send(producedMessagesCaptor.capture());
         List<KeyedMessage<String, byte[]>> producedMessages = producedMessagesCaptor.getValue();
@@ -53,6 +53,26 @@ public class KafkaEventPublisherTest {
         assertThat(producedMessages.get(0).partitionKey(), is("p1"));
         assertThat(producedMessages.get(0).message(), sameInstance(data1));
         assertThat(producedMessages.get(1).topic(), is("topic1"));
+        assertThat(producedMessages.get(1).partitionKey(), is("p2"));
+        assertThat(producedMessages.get(1).message(), sameInstance(data2));
+    }
+
+    @Test
+    public void testPublishUserEvents() throws Exception {
+        List<Event> events = Arrays.asList(
+                new Event("p1", data1),
+                new Event("p2", data2)
+        );
+
+        eventPublisher.publishUserEvents(events);
+
+        verify(producer).send(producedMessagesCaptor.capture());
+        List<KeyedMessage<String, byte[]>> producedMessages = producedMessagesCaptor.getValue();
+        assertThat(producedMessages.size(), is(2));
+        assertThat(producedMessages.get(0).topic(), is("topic2"));
+        assertThat(producedMessages.get(0).partitionKey(), is("p1"));
+        assertThat(producedMessages.get(0).message(), sameInstance(data1));
+        assertThat(producedMessages.get(1).topic(), is("topic2"));
         assertThat(producedMessages.get(1).partitionKey(), is("p2"));
         assertThat(producedMessages.get(1).message(), sameInstance(data2));
     }

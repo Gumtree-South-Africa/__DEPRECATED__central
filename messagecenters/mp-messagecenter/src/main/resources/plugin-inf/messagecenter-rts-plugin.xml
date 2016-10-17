@@ -17,9 +17,6 @@
     <context:component-scan base-package="com.ecg.messagecenter.listeners"/>
     <context:component-scan base-package="com.ecg.messagebox.webapi"/>
     <context:component-scan base-package="com.ecg.messagebox.identifier"/>
+    <context:component-scan base-package="com.ecg.messagebox.preprocessors"/>
 
-    <bean id="userIdentifierServiceFactory" class="com.ecg.messagebox.identifier.UserIdentifierServiceFactory"/>
-
-    <bean id="userIdentifierService" factory-bean="userIdentifierServiceFactory"
-          factory-method="createUserIdentifierService"/>
 </beans>

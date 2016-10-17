@@ -20,13 +20,13 @@ public class EventConverter {
 
     private MailCloakingService mailCloakingService;
 
-    private final ExtendedConversationEventSerializer serializer;
+    private final EventSerializer serializer;
 
     public EventConverter(MailCloakingService mailCloakingService) {
-        this(mailCloakingService, new ExtendedConversationEventSerializer());
+        this(mailCloakingService, new EventSerializer());
     }
 
-    public EventConverter(MailCloakingService mailCloakingService, ExtendedConversationEventSerializer serializer) {
+    public EventConverter(MailCloakingService mailCloakingService, EventSerializer serializer) {
         this.mailCloakingService = mailCloakingService;
         this.serializer = serializer;
     }

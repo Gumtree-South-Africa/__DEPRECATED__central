@@ -1,12 +1,12 @@
 package com.ecg.messagebox.service;
 
 import com.codahale.metrics.Timer;
-import com.ecg.messagebox.identifier.UserIdentifierService;
 import com.ecg.messagebox.persistence.ResponseDataRepository;
 import com.ecg.messagecenter.persistence.ResponseData;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import org.joda.time.Minutes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

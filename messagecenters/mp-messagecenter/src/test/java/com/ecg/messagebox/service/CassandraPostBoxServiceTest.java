@@ -1,11 +1,11 @@
 package com.ecg.messagebox.service;
 
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.messagebox.identifier.UserIdentifierService;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.google.common.collect.ImmutableMap;

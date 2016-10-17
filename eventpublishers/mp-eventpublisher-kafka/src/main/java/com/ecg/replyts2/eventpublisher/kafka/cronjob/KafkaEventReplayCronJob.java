@@ -95,7 +95,7 @@ public class KafkaEventReplayCronJob implements CronJobExecutor {
             Iterators.partition(stream.iterator(), eventBatchSize).forEachRemaining(pairs ->
                     eventReplayTasks.add(threadPoolExecutor.submit(() -> {
                         LOGGER.info("Replaying {} events to Kafka", pairs.size());
-                        eventPublisher.publishEvents(
+                        eventPublisher.publishConversationEvents(
                                 eventConverter.toEvents(pairs));
                     })));
 

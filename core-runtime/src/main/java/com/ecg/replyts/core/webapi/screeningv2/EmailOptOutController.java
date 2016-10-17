@@ -1,0 +1,94 @@
+package com.ecg.replyts.core.webapi.screeningv2;
+
+import com.codahale.metrics.Timer;
+import com.ecg.replyts.app.UserEventListener;
+import com.ecg.replyts.core.api.model.user.event.EmailPreferenceEvent;
+import com.ecg.replyts.core.api.webapi.envelope.RequestState;
+import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
+import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import static com.ecg.replyts.core.api.model.user.event.EmailPreferenceCommand.TURN_OFF_EMAIL;
+import static com.ecg.replyts.core.api.model.user.event.EmailPreferenceCommand.TURN_ON_EMAIL;
+import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+
+/**
+ * Allows to turn off and on email sending
+ */
+@Controller
+@ConditionalOnExpression("#{('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))}")
+public class EmailOptOutController {
+    private static final Timer TURN_ON = newTimer("webapi.email-notifications.turn-on");
+    private static final Timer TURN_OFF = newTimer("webapi.email-notifications.turn-off");
+    private static final Timer STATUS = newTimer("webapi.email-notifications.status");
+    private static final Logger log = LoggerFactory.getLogger(EmailOptOutController.class);
+
+    private final EmailOptOutRepository emailOptOutRepository;
+    private final UserEventListener userEventListener;
+
+    @Autowired
+    public EmailOptOutController(EmailOptOutRepository emailOptOutRepository, UserEventListener eventListener){
+        this.emailOptOutRepository = emailOptOutRepository;
+        this.userEventListener = eventListener;
+    }
+
+    @RequestMapping(value = "/email-notifications/{userId}/turn-on", produces = APPLICATION_JSON_VALUE, method = PUT)
+    @ResponseBody
+    ResponseObject<?> emailTurnOn(@PathVariable String userId) {
+        try (Timer.Context ignored = TURN_ON.time()) {
+            log.trace("Turning on email notifications for userId: " + userId);
+            emailOptOutRepository.turnOnEmail(userId);
+            userEventListener.eventTriggered(new EmailPreferenceEvent(TURN_ON_EMAIL, userId));
+            return ResponseObject.of(RequestState.OK);
+        }
+    }
+
+    @RequestMapping(value = "/email-notifications/{userId}/turn-off", produces = APPLICATION_JSON_VALUE, method = PUT)
+    @ResponseBody
+    ResponseObject<?> emailTurnOff(@PathVariable String userId) {
+        try (Timer.Context ignored = TURN_OFF.time()) {
+            log.trace("Turning off email notifications for userId: " + userId);
+            emailOptOutRepository.turnOffEmail(userId);
+            userEventListener.eventTriggered(new EmailPreferenceEvent(TURN_OFF_EMAIL, userId));
+            return ResponseObject.of(RequestState.OK);
+        }
+    }
+
+    @RequestMapping(value = "/email-notifications/{userId}", produces = APPLICATION_JSON_VALUE, method = GET)
+    @ResponseBody
+    ResponseObject<?> isEmailTurnedOn(@PathVariable String userId) {
+        try (Timer.Context ignored = STATUS.time()) {
+            final boolean emailTurnedOn = emailOptOutRepository.isEmailTurnedOn(userId);
+            return ResponseObject.of(new EmailNotificationsStatus(emailTurnedOn));
+        }
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    class EmailNotificationsStatus {
+
+        public boolean isEmailNotifications() {
+            return emailNotifications;
+        }
+
+        public void setEmailNotifications(boolean emailNotifications) {
+            this.emailNotifications = emailNotifications;
+        }
+
+        public boolean emailNotifications;
+
+        EmailNotificationsStatus(boolean emailNotification) {
+            this.emailNotifications = emailNotification;
+        }
+    }
+}

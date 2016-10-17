@@ -15,6 +15,7 @@ import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.RiakIndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
+import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
 import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
 import com.ecg.replyts.core.runtime.persistence.config.RiakConfigurationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;
@@ -67,11 +68,6 @@ public class RiakPersistenceConfiguration {
     @Bean
     public IndexerClockRepository indexerClockRepository() throws RiakRetryFailedException {
         return new RiakIndexerClockRepository(riakClient, bucketNamePrefix);
-    }
-
-    @Bean
-    public BlockUserRepository blockUserRepository() {
-        return null;
     }
 
     @Bean

@@ -1,4 +1,4 @@
-package com.ecg.messagebox.identifier;
+package com.ecg.replyts.core.runtime.identifier;
 
 public enum UserIdentifierType {
     BY_MAIL,

@@ -4,7 +4,9 @@ import java.util.List;
 
 public interface EventPublisher {
 
-    void publishEvents(List<Event> events);
+    void publishConversationEvents(List<Event> events);
+
+    void publishUserEvents(List<Event> events);
 
     class Event {
         public final String partitionKey;

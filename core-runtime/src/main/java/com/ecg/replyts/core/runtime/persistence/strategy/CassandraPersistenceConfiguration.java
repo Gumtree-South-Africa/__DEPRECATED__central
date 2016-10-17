@@ -9,6 +9,7 @@ import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
+import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
@@ -74,6 +75,11 @@ public class CassandraPersistenceConfiguration {
     @Bean
     public BlockUserRepository blockUserRepository(Session cassandraSession) {
         return new DefaultBlockUserRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+    }
+
+    @Bean
+    public EmailOptOutRepository emailOptOutRepository(Session cassandraSession) {
+        return new EmailOptOutRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
     @Bean

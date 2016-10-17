@@ -1,10 +1,10 @@
 package com.ecg.messagebox.service;
 
 
-import com.ecg.messagebox.identifier.UserIdentifierService;
 import com.ecg.messagebox.persistence.ResponseDataRepository;
 import com.ecg.messagecenter.persistence.ResponseData;
 import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;

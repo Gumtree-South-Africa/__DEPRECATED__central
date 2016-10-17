@@ -43,7 +43,7 @@ public class RabbitEventPublisherTest {
                 new EventPublisher.Event("p2", data2)
         );
 
-        eventPublisher.publishEvents(events);
+        eventPublisher.publishConversationEvents(events);
 
         verify(channel, times(2)).basicPublish(eq("exchangeName1"), eq("routingKey1"), eq(null), publishedMessagesCaptor.capture());
         List<byte[]> publishedMessages = publishedMessagesCaptor.getAllValues();

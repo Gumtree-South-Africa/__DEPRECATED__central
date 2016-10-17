@@ -1,8 +1,8 @@
 package com.ecg.messagecenter.listeners;
 
 import com.ecg.messagebox.service.PostBoxService;
-import com.ecg.messagebox.identifier.UserIdentifierService;
 import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.google.common.collect.ImmutableMap;
