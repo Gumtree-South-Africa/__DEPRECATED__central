@@ -238,21 +238,14 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     }
 
     @Test
-    public void deleteConversations() throws Exception {
+    public void deleteConversation() throws Exception {
         insertConversationWithMessages(UID1, UID2, CID, ADID, 4);
         insertConversationWithMessages(UID2, "u3", "c2", "a2", 10);
-        insertConversationWithMessages(UID1, "u4", "c3", "a3", 5);
         insertConversationWithMessages(UID1, "u3", "c4", "a4", 4);
 
-        Map<String, String> adConversationIdsMap = new HashMap<>();
-        adConversationIdsMap.put(ADID, CID);
-        adConversationIdsMap.put("a3", "c3");
-
-        conversationsRepo.deleteConversations(UID1, adConversationIdsMap);
+        conversationsRepo.deleteConversation(UID1, CID, ADID);
 
         assertEquals(false, conversationsRepo.getConversationWithMessages(UID1, CID, NO_MSG_ID_CURSOR, MSGS_LIMIT).isPresent());
-        assertEquals(false, conversationsRepo.getConversationWithMessages(UID1, "c3", NO_MSG_ID_CURSOR, MSGS_LIMIT).isPresent());
-        assertEquals(true, conversationsRepo.getConversationWithMessages(UID1, "c4", NO_MSG_ID_CURSOR, MSGS_LIMIT).isPresent());
         assertEquals(true, conversationsRepo.getConversationWithMessages(UID2, "c2", NO_MSG_ID_CURSOR, MSGS_LIMIT).isPresent());
         assertEquals(1, conversationsRepo.getPaginatedConversationIds(UID1, Visibility.ACTIVE, 0, 100).getConversationsTotalCount());
         assertEquals(4, conversationsRepo.getUserUnreadCounts(UID1).getNumUnreadMessages());
@@ -297,25 +290,6 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         assertEquals(5, newModList.size());
         assertEquals(7, oldModList.size());
         assertEquals(0, noModList.size());
-    }
-
-    @Test
-    public void deleteModificationIndexByDate() throws Exception {
-        ConversationThread c1 = insertConversationWithMessages(UID1, UID2, CID, ADID, 5);
-
-        DateTime date = c1.getLatestMessage().getReceivedDate().hourOfDay().roundFloorCopy();
-        UUID messageId = c1.getLatestMessage().getId();
-        List<Message> messages = c1.getMessages();
-
-        conversationsRepo.deleteModificationIndexByDate(date, messageId, UID1, CID);
-
-        List<ConversationModification> modList = conversationsRepo
-                .getConversationModificationsByHour(c1.getLatestMessage().getReceivedDate().hourOfDay().roundFloorCopy())
-                .collect(Collectors.toList());
-
-        assertEquals(4, modList.size());
-        assertEquals(true, modList.contains(new ConversationModification(UID1, CID, null, messages.get(3).getId(), date)));
-        assertEquals(false, modList.contains(new ConversationModification(UID1, CID, null, messages.get(4).getId(), date)));
     }
 
     @Test

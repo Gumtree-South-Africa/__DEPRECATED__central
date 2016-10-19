@@ -98,13 +98,11 @@ public interface CassandraPostBoxRepository {
      */
     void changeConversationVisibilities(String userId, Map<String, String> adConversationIdsMap, Visibility visibility);
 
-    void deleteConversations(String userId, Map<String, String> adConversationIdsMap);
+    void deleteConversation(String userId, String conversationId, String adId);
 
     Map<String, String> getConversationAdIdsMap(String userId, List<String> conversationIds);
 
     Stream<ConversationModification> getConversationModificationsByHour(DateTime date);
-
-    void deleteModificationIndexByDate(DateTime modifiedDate, UUID messageId, String userId, String conversationId);
 
     ConversationModification getLastConversationModification(String userId, String convId);
 

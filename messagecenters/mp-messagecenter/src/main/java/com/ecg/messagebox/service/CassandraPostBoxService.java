@@ -34,6 +34,7 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer getConversationsTimer = newTimer("postBoxService.v2.getConversations");
     private final Timer changeConversationVisibilitiesTimer = newTimer("postBoxService.v2.changeConversationVisibilities");
     private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
+    private final Timer deleteConversationsTimer = newTimer("postBoxService.v2.deleteConversation");
 
     private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CassandraPostBoxService.class);
@@ -135,6 +136,13 @@ public class CassandraPostBoxService implements PostBoxService {
     public UserUnreadCounts getUnreadCounts(String userId) {
         try (Timer.Context ignored = getUnreadCountsTimer.time()) {
             return postBoxRepository.getUserUnreadCounts(userId);
+        }
+    }
+
+    @Override
+    public void deleteConversation(String userId, String conversationId, String adId) {
+        try (Timer.Context ignored = deleteConversationsTimer.time()) {
+            postBoxRepository.deleteConversation(userId, conversationId, adId);
         }
     }
 

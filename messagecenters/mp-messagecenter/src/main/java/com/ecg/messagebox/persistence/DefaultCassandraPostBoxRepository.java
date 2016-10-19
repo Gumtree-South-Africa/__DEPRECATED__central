@@ -43,8 +43,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer getUserUnreadCountsTimer = newTimer("cassandra.postBoxRepo.v2.getUserUnreadCounts");
     private final Timer getConversationUnreadCountMapTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCountMap");
     private final Timer getConversationUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCount");
-    private final Timer deleteConversationsTimer = newTimer("cassandra.postBoxRepo.v2.deleteConversations");
-    private final Timer deleteModificationIndexTimer = newTimer("cassandra.postBoxRepo.v2.deleteModificationIndexByDate");
     private final Timer getConversationModificationsByHourTimer = newTimer("cassandra.postBoxRepo.v2.getConversationModificationsByHour");
     private final Timer getLastConversationModificationTimer = newTimer("cassandra.postBoxRepo.v2.getLastConversationModificationTimer");
 
@@ -304,28 +302,24 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public void deleteConversations(String userId, Map<String, String> adConversationIdsMap) {
-        try (Timer.Context ignored = deleteConversationsTimer.time()) {
-            adConversationIdsMap.forEach((adId, conversationId) -> {
-                BatchStatement batch = new BatchStatement();
-                batch.add(Statements.DELETE_AD_CONVERSATION.bind(this, userId, conversationId));
-                batch.add(Statements.DELETE_AD_CONVERSATION_INDEX.bind(this, userId, adId, conversationId));
-                batch.add(Statements.DELETE_CONVERSATION_UNREAD_COUNT.bind(this, userId, conversationId));
-                batch.add(Statements.DELETE_AD_CONVERSATION_UNREAD_COUNT.bind(this, userId, adId, conversationId));
-                batch.add(Statements.DELETE_CONVERSATION_MESSAGES.bind(this, userId, conversationId));
-                batch.setConsistencyLevel(getWriteConsistency());
-                session.execute(batch);
+    public void deleteConversation(String userId, String conversationId, String adId) {
+        BatchStatement batch = new BatchStatement();
+        batch.add(Statements.DELETE_CONVERSATION.bind(this, userId, conversationId));
+        batch.add(Statements.DELETE_AD_CONVERSATION_INDEX.bind(this, userId, adId, conversationId));
+        batch.add(Statements.DELETE_CONVERSATION_UNREAD_COUNT.bind(this, userId, conversationId));
+        batch.add(Statements.DELETE_AD_CONVERSATION_UNREAD_COUNT.bind(this, userId, adId, conversationId));
+        batch.add(Statements.DELETE_CONVERSATION_MESSAGES.bind(this, userId, conversationId));
+        batch.setConsistencyLevel(getWriteConsistency());
+        session.execute(batch);
 
-                ResultSet resultSet = session.execute(Statements.SELECT_AD_CONVERSATION_MODIFICATION_IDXS.bind(this, userId, conversationId));
-                StreamUtils.toStream(resultSet)
-                        .map(row -> row.getUUID("msgid"))
-                        .forEach(messageId -> {
-                            Date modifiedDate = new DateTime(unixTimestamp(messageId)).hourOfDay().roundFloorCopy().toDate();
-                            session.execute(Statements.DELETE_CONVERSATION_MODIFICATION_IDX_BY_DATE.bind(this, modifiedDate, messageId, userId, conversationId));
-                        });
-                session.execute(Statements.DELETE_AD_CONVERSATION_MODIFICATION_IDXS.bind(this, userId, conversationId));
-            });
-        }
+        ResultSet resultSet = session.execute(Statements.SELECT_AD_CONVERSATION_MODIFICATION_IDXS.bind(this, userId, conversationId));
+        StreamUtils.toStream(resultSet)
+                .map(row -> row.getUUID("msgid"))
+                .forEach(messageId -> {
+                    Date modifiedDate = new DateTime(unixTimestamp(messageId)).hourOfDay().roundFloorCopy().toDate();
+                    session.execute(Statements.DELETE_CONVERSATION_MODIFICATION_IDX_BY_DATE.bind(this, modifiedDate, messageId, userId, conversationId));
+                });
+        session.execute(Statements.DELETE_AD_CONVERSATION_MODIFICATION_IDXS.bind(this, userId, conversationId));
     }
 
     @Override
@@ -345,13 +339,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             ResultSet resultSet = session.execute(bound);
             return StreamUtils.toStream(resultSet)
                     .map(row -> new ConversationModification(row.getString("usrid"), row.getString("convid"), row.getUUID("msgid"), dateTimeRoundedAtHour));
-        }
-    }
-
-    @Override
-    public void deleteModificationIndexByDate(DateTime modifiedDate, UUID messageId, String userId, String conversationId) {
-        try (Timer.Context ignored = deleteModificationIndexTimer.time()) {
-            session.execute(Statements.DELETE_CONVERSATION_MODIFICATION_IDX_BY_DATE.bind(this, modifiedDate.toDate(), messageId, userId, conversationId));
         }
     }
 
@@ -424,7 +411,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         DELETE_CONVERSATION_UNREAD_COUNT("DELETE FROM mb_conversation_unread_counts WHERE usrid = ? AND convid = ?", true),
         DELETE_AD_CONVERSATION_UNREAD_COUNT("DELETE FROM mb_ad_conversation_unread_counts WHERE usrid = ? AND adid = ? AND convid = ?", true),
         DELETE_AD_CONVERSATION_INDEX("DELETE FROM mb_ad_conversation_idx WHERE usrid = ? AND adid = ? AND convid = ?", true),
-        DELETE_AD_CONVERSATION("DELETE FROM mb_conversations WHERE usrid = ? AND convid = ?", true),
+        DELETE_CONVERSATION("DELETE FROM mb_conversations WHERE usrid = ? AND convid = ?", true),
         DELETE_CONVERSATION_MESSAGES("DELETE FROM mb_messages WHERE usrid = ? AND convid = ?", true),
 
         DELETE_AD_CONVERSATION_MODIFICATION_IDX("DELETE FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ? AND msgid = ?", true),

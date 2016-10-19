@@ -24,4 +24,6 @@ public interface PostBoxService {
     PostBox changeConversationVisibilities(String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis, int conversationsOffset, int conversationsLimit);
 
     UserUnreadCounts getUnreadCounts(String userId);
+
+    void deleteConversation(String userId, String conversationId, String adId);
 }
