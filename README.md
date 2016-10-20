@@ -4,9 +4,23 @@
 Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki#set-up-code-review) to clone this repository.
 Also clone the [vagrant machine](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant) and start it (see [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant#get-started)). 
 
-### Cassandra
+### Docker
+Install [Docker](https://docs.docker.com/engine/installation/mac/) to be able to run tests. Alternatively, `brew cask install docker` and start `Docker.app`.
 
-If you are usign python >= 2.7.12 you need cassandra 2.1.16+ (http://archive.apache.org/dist/cassandra/2.1.16/apache-cassandra-2.1.16-bin.tar.gz) download it and put it in /opt/cassandra.
+Start a container with Cassandra like this:
+`docker run --detach --publish 9042:9042 --name cassandra cassandra:2.1.14`
+
+Import the `replyts2` keyspace with this command:
+`docker run --rm --link cassandra:cassandra --volume ~/dev/ecg-comaas-central:/code --workdir /code cassandra:2.1.14 bin/setup-cassandra.sh cassandra replyts2 no`
+
+Note that you will have to install Docker on your local machines, the automated tests rely on it.
+
+### Native Cassandra
+
+If you want to be able to run Cassandra natively, download Cassandra from http://archive.apache.org/dist/cassandra/2.1.14/ to your machine and put it in /opt/cassandra. Alternatively, use `brew install homebrew/versions/cassandra21`.
+This is no longer strictly needed.
+
+If you are using python >= 2.7.12 you need cassandra 2.1.16+ (http://archive.apache.org/dist/cassandra/2.1.16/apache-cassandra-2.1.16-bin.tar.gz) download it and put it in /opt/cassandra.
 
 If you are using older python you can use brew `brew install homebrew/versions/cassandra21`.
 
@@ -62,20 +76,20 @@ This will call exec:java through the 'verify' phase in the distribution module. 
  If that does not help check if these services are running in Vagrant machine
   ```
   vagrant ssh
-  sudo /etc/init.d/elasticsearch status 
+  sudo /etc/init.d/elasticsearch status
   sudo /etc/init.d/kafka status
   sudo /etc/init.d/cassandra status
   ```
  and manually start them if necessary
- 
+
 ### ebayk tenant on comaas-vagrant
 *  Set search.es.clustername=replytscluster in distribution/conf/ebayk/replyts.properties
-*  After starting ReplyTS launch jconsole and invoke ReplayTS.ClusterModeControl.Operations.switchToFailoverMode so email processing works. 
+*  After starting ReplyTS launch jconsole and invoke ReplayTS.ClusterModeControl.Operations.switchToFailoverMode so email processing works.
 For more information on this see https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two%20Datacenter%20Operations
 
 ### mde tenant on comaas-vagrant
 *  Set search.es.clustername=replytscluster in distribution/conf/mde/replyts.properties
-*  After starting ReplyTS launch jconsole and invoke ReplayTS.ClusterModeControl.Operations.switchToFailoverMode so email processing works. 
+*  After starting ReplyTS launch jconsole and invoke ReplayTS.ClusterModeControl.Operations.switchToFailoverMode so email processing works.
 For more information on this see https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two%20Datacenter%20Operations
 
 ## Auto-discovery of (cloud) services and properties (Consul)
@@ -97,8 +111,8 @@ In order to add keys to consul, add them with the prefix `comaas/<tenant>` or `c
 
 ## Notes on (future) tenants:
 
-eBay Annunci (Italy) is using a quite clean replyts2-core fork (with Riak storage) plus some custom plugin (mainly for monitoring purpose).   
-They forked the message box plugin from the GTAU one and customized it by adding some endpoints (e.g. direct conversation/message creation) and cleanup strategies.  
+eBay Annunci (Italy) is using a quite clean replyts2-core fork (with Riak storage) plus some custom plugin (mainly for monitoring purpose).
+They forked the message box plugin from the GTAU one and customized it by adding some endpoints (e.g. direct conversation/message creation) and cleanup strategies.
 
-core: https://github.corp.ebay.com/annunci/replyts2-core  
+core: https://github.corp.ebay.com/annunci/replyts2-core
 message box plugin: https://github.corp.ebay.com/annunci/replyts2-ebayk-message-center

@@ -1,13 +1,17 @@
 package com.ecg.replyts.integration.cassandra;
 
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.QueryOptions;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Session;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -21,7 +25,6 @@ public class CassandraIntegrationTestProvisioner {
     private static final QueryOptions CLUSTER_OPTIONS = new QueryOptions().setRefreshSchemaIntervalMillis(5);
 
     private static final String LOCAL_CASSANDRA_HOST = "localhost";
-    private static final Integer LOCAL_CASSANDRA_PORT = 9042;
 
     private static CassandraIntegrationTestProvisioner INSTANCE;
 
@@ -30,6 +33,10 @@ public class CassandraIntegrationTestProvisioner {
     private Cluster cluster;
 
     private CassandraIntegrationTestProvisioner() {
+    }
+
+    private static int getLocalCassandraPort() {
+        return Integer.parseInt(System.getProperty("testLocalCassandraPort", "9042"));
     }
 
     public static synchronized CassandraIntegrationTestProvisioner getInstance() {
@@ -84,18 +91,18 @@ public class CassandraIntegrationTestProvisioner {
     private synchronized Session getSession(String keyspace) {
         Preconditions.checkNotNull(INSTANCE);
 
-        return getSession(LOCAL_CASSANDRA_HOST, LOCAL_CASSANDRA_PORT, keyspace);
+        return getSession(LOCAL_CASSANDRA_HOST, getLocalCassandraPort(), keyspace);
     }
 
     private synchronized Session getSession(String host, int nativeTransportPort, String keyspace) {
         if (cluster == null) {
             cluster = new Cluster.Builder().addContactPoints(host)
-              .withPort(nativeTransportPort)
-              .withMaxSchemaAgreementWaitSeconds(1)
-              .withQueryOptions(CLUSTER_OPTIONS)
-              .withoutJMXReporting()
-              .withoutMetrics()
-              .build();
+                    .withPort(nativeTransportPort)
+                    .withMaxSchemaAgreementWaitSeconds(1)
+                    .withQueryOptions(CLUSTER_OPTIONS)
+                    .withoutJMXReporting()
+                    .withoutMetrics()
+                    .build();
         }
 
         if (keyspace != null) {
@@ -106,7 +113,7 @@ public class CassandraIntegrationTestProvisioner {
     }
 
     public static Object getEndPoint() {
-        return LOCAL_CASSANDRA_HOST + ":" + LOCAL_CASSANDRA_PORT;
+        return LOCAL_CASSANDRA_HOST + ":" + getLocalCassandraPort();
     }
 
     public synchronized void cleanTables(Session session, String keyspace) {

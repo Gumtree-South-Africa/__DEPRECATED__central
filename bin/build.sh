@@ -5,19 +5,26 @@
 set -o nounset
 set -o errexit
 
+function log() {
+    echo "[$(date)]: $*"
+}
+
+function fatal() {
+    log $*
+    exit 1
+}
+
 readonly ARGS="$@"
 readonly DIR=$(dirname $0)
 
-readonly CASSANDRA_DIR="$DIR/../cassandra_tmp"
-readonly CASSANDRA_PID="cassandra.pid"
-readonly CASSANDRA_HOME=$CASSANDRA_DIR
+CASSANDRA_CONTAINER_PORT=9042 # this will be overwritten by the Docker container port number
 
 REVISION="$(git rev-parse --short HEAD)"
 # Override REVISION in case of an in-progress Gerrit review
 if [[ $(git rev-parse --abbrev-ref HEAD) == review* ]]; then
-    REVISION="gerrit-$(git rev-parse --abbrev-ref HEAD | egrep -o '/[^/]+$' | egrep -o '[a-zA-Z0-9\-]+')"
+    REVISION="gerrit-$(git rev-parse --abbrev-ref HEAD | egrep -o '/[^/]+$' | egrep -o '[a-zA-Z0-9\-_]+')"
 fi
-echo "Building revision $REVISION"
+log "Building revision $REVISION"
 
 # Import a few certificates if we haven't already
 
@@ -41,48 +48,29 @@ if [ ! -f comaas.jks ] ; then
     done
 fi
 
-function log() {
-    echo "[$(date)]: $*"
-}
-
-function fatal() {
-    log $*
-    exit 1
-}
-
+CASSANDRA_CONTAINER_NAME="not_started"
 function startCassandra() {
+    hash docker 2>/dev/null || fatal "I require docker but it's not installed. Aborting. More information: https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/blob/master/README.md"
+
     # stop & clean cassandra dir on exit
     trap "stopCassandra" EXIT
-    export PATH=$PATH:/opt/cassandra/bin:/usr/sbin
-    log "Starting cassandra"
-    rm -rf ${CASSANDRA_DIR}
-    mkdir ${CASSANDRA_DIR}
-    export PATH=$PATH:/opt/cassandra/bin:/usr/sbin
-    cassandra "-Dcassandra.logdir=$CASSANDRA_DIR" "-Dcassandra.config=file:///$PWD/etc/cassandra.yaml" "-Dcassandra.storagedir=$CASSANDRA_DIR" -p ${CASSANDRA_PID}
+
+    CASSANDRA_CONTAINER_NAME=cassandra_test_${TENANT}_$(date +'%s')
+
+    log "Starting cassandra: ${CASSANDRA_CONTAINER_NAME}"
+    docker run --detach --publish-all --name ${CASSANDRA_CONTAINER_NAME} cassandra:2.1.14
+    CASSANDRA_CONTAINER_PORT=$(docker port ${CASSANDRA_CONTAINER_NAME} 9042 | cut -d: -f2)
+    log "Cassandra started on port ${CASSANDRA_CONTAINER_PORT}"
 }
 
 function stopCassandra() {
-    if [[ -e ${CASSANDRA_PID} ]]; then
-        log "Stopping cassandra"
-        PID=$(cat ${CASSANDRA_PID})
-        kill ${PID}
-
-        counter=0
-        while $(ps -p "$PID" > /dev/null); do
-            if [ ${counter} -gt 10 ]; then
-                break
-            fi
-            log "waiting for Cassandra to exit"
-            sleep 1
-            counter=$(expr ${counter} + 1)
-        done
-        if $(ps -p "$PID" > /dev/null); then
-            log "Cassandra didn't exit in 10 seconds"
-            exit 1
-        fi
-        rm -rf ${CASSANDRA_DIR}
-        rm -rf ${CASSANDRA_PID}
-        log "Cassandra stopped"
+    set +o errexit
+    docker top ${CASSANDRA_CONTAINER_NAME} 1>/dev/null 2>&1
+    local ec=$?
+    set -o errexit
+    if [ ${ec} -eq 0 ]; then
+      log "Stopping cassandra: "
+      docker rm -fv ${CASSANDRA_CONTAINER_NAME}
     fi
 }
 
@@ -143,10 +131,7 @@ function main() {
     PROFILES=""
 
     # skip tests and set concurrency based on whether tests should be run
-    if ! [[ ${RUN_TESTS} -eq 1 ]]; then
-        log "Skipping the tests"
-        MVN_ARGS="$MVN_ARGS -DskipTests=true"
-    else
+    if [[ ${RUN_TESTS} -eq 1 ]]; then
         startCassandra
         MVN_ARGS="$MVN_ARGS"
         MVN_TASKS="clean package"
@@ -154,6 +139,9 @@ function main() {
         if [[ "$RUN_CORE_TESTS" -eq 1 ]] ; then
                 PROFILES="core,core-tests,"
         fi
+    else
+        log "Skipping the tests"
+        MVN_ARGS="$MVN_ARGS -DskipTests=true"
     fi
 
     if [[ "$RUN_INTEGRATION_TESTS" -eq 1 ]] ; then
@@ -181,15 +169,15 @@ function main() {
         fi
 
     elif [[ "$RUN_ONLY_INTEGRATION_TESTS_P1" -eq 1 ]] ; then
-        echo "Running Integration Tests P1 only"
+        log "Running Integration Tests P1 only"
         MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P integration-tests-part1,!distribution "
         MVN_TASKS="clean package"
     elif [[ "$RUN_ONLY_INTEGRATION_TESTS_P2" -eq 1 ]] ; then
-        echo "Running Integration Tests P2 only"
+        log "Running Integration Tests P2 only"
         MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P integration-tests-part2,!distribution "
         MVN_TASKS="clean package"
     elif [[ "$RUN_CORE_TESTS" -eq 1 && "$RUN_INTEGRATION_TESTS" -eq 0 ]] ; then
-        echo "Running Core Tests only"
+        log "Running Core Tests only"
         MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P core,core-tests,!distribution "
         MVN_TASKS="clean package"
     else
@@ -197,15 +185,16 @@ function main() {
 
         # Extract all tenant profile IDs from the POM, as build profile selection is limited (MNG-3328 etc.)
         TENANT=`
-          sed -n '/<profile>/{n;s/.*<id>\(.*\)<\/id>/\1/;p;}' $DIR/../pom.xml | \
+          sed -n '/<profile>/{n;s/.*<id>\(.*\)<\/id>/\1/;p;}' ${DIR}/../pom.xml | \
           grep -v 'default\|distribution\|deploy' | \
           tr $'\n' ','`
 
         MVN_ARGS="$MVN_ARGS -P${PROFILES}${TENANT}!distribution"
     fi
 
-    log "Executing: mvn $MVN_ARGS $MVN_TASKS"
-    mvn $MVN_ARGS $MVN_TASKS
+    CMD="mvn ${MVN_ARGS} ${MVN_TASKS} -DtestLocalCassandraPort=${CASSANDRA_CONTAINER_PORT}"
+    log "Executing: ${CMD}"
+    ${CMD}
 
     stopCassandra
 
@@ -235,7 +224,7 @@ Usage:
     ENVNAME is the properties profile name. common values [local, comaasqa, bare]
 
     Examples: "$0 -t -T ebayk,mp " - build and test ebayk and mp distributions
-    
+
 EOF
 }
 
