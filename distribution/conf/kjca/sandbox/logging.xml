@@ -1,0 +1,55 @@
+<!--
+<?xml version="1.0" encoding="utf-8"?>
+
+LOOKS LIKE A BROKEN CONFIG? It's not, this is just a fragment that will be included
+from logback.xml.
+
+-->
+<included>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %X{trace}, [%thread] %-35logger{35}: %msg %n</pattern>
+            <outputPatternAsPresentationHeader>false</outputPatternAsPresentationHeader>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logDir}/comaas.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logDir}/archived/comaas.log.%d</fileNamePattern>
+            <maxHistory>5</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %X{trace}, [%thread] %-35logger{35}: %msg %n</pattern>
+            <outputPatternAsPresentationHeader>false</outputPatternAsPresentationHeader>
+        </encoder>
+    </appender>
+
+    <appender name="Sentry" class="com.getsentry.raven.logback.SentryAppender">
+        <dsn>${sentry.dsn}</dsn>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>${sentry.log.level:-OFF}</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <tags>env:${sentry.env},host:${sentry.host}</tags>
+        <ravenFactory>com.getsentry.raven.DefaultRavenFactory</ravenFactory>
+    </appender>
+
+    <logger name="com.ecg.comaas" level="DEBUG"/>
+    <logger name="com.ecg.replyts" level="DEBUG"/>
+    <logger name="com.ecg.de" level="DEBUG"/>
+    <logger name="ca.kijiji" level="DEBUG"/>
+
+    <!-- These are too noisy at DEBUG level in QA envs -->
+    <logger name="com.ecg.replyts.core.runtime.cluster.monitor.RiakClusterHealthCheck" level="WARN" />
+    <logger name="com.ecg.replyts.core.runtime.cluster.monitor.RiakClientHealthWrapper" level="WARN" />
+
+    <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="Sentry"/>
+    </root>
+</included>
