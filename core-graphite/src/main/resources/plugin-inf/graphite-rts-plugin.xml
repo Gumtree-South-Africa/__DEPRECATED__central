@@ -5,7 +5,7 @@
         <constructor-arg index="0" value="${graphite.enabled:true}"/>
         <constructor-arg index="1" value="${graphite.endpoint.hostname:}" />
         <constructor-arg index="2" value="${graphite.endpoint.port:2003}" />
-        <constructor-arg index="3" value="${graphite.timeperiod.sec:10}" />
+        <constructor-arg index="3" value="${graphite.timeperiod.sec:60}" />
         <constructor-arg index="4" value="${graphite.prefix:rts2}" />
     </bean>
 
