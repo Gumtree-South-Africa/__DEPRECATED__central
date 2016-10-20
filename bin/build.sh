@@ -55,7 +55,7 @@ function startCassandra() {
     # stop & clean cassandra dir on exit
     trap "stopCassandra" EXIT
 
-    CASSANDRA_CONTAINER_NAME=cassandra_test_${TENANT}_$(date +'%s')
+    CASSANDRA_CONTAINER_NAME=cassandra_test_${TENANT//,/-}_$(date +'%s')
 
     log "Starting cassandra: ${CASSANDRA_CONTAINER_NAME}"
     docker run --detach --publish-all --name ${CASSANDRA_CONTAINER_NAME} cassandra:2.1.14
