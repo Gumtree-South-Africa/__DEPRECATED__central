@@ -2,22 +2,22 @@
 
 ## Dev setup
 Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki#set-up-code-review) to clone this repository.
-Also clone the [vagrant machine](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant) and start it (see [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant#get-started)). 
+Also clone the [vagrant machine](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant) and start it (see [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant#get-started)).
 
 ### Docker
 Install [Docker](https://docs.docker.com/engine/installation/mac/) to be able to run tests. Alternatively, `brew cask install docker` and start `Docker.app`.
 
 Start a container with Cassandra like this:
-`docker run --detach --publish 9042:9042 --name cassandra cassandra:2.1.14`
+`docker run --detach --publish 9042:9042 --name cassandra cassandra:2.1.15`
 
 Import the `replyts2` keyspace with this command:
-`docker run --rm --link cassandra:cassandra --volume ~/dev/ecg-comaas-central:/code --workdir /code cassandra:2.1.14 bin/setup-cassandra.sh cassandra replyts2 no`
+`docker run --rm --link cassandra:cassandra --volume ~/dev/ecg-comaas-central:/code --workdir /code cassandra:2.1.15 bin/setup-cassandra.sh cassandra replyts2 no`
 
 Note that you will have to install Docker on your local machines, the automated tests rely on it.
 
 ### Native Cassandra
 
-If you want to be able to run Cassandra natively, download Cassandra from http://archive.apache.org/dist/cassandra/2.1.14/ to your machine and put it in /opt/cassandra. Alternatively, use `brew install homebrew/versions/cassandra21`.
+If you want to be able to run Cassandra natively, download Cassandra from http://archive.apache.org/dist/cassandra/2.1.15/ to your machine and put it in /opt/cassandra. Alternatively, use `brew install homebrew/versions/cassandra21`.
 This is no longer strictly needed.
 
 If you are using python >= 2.7.12 you need cassandra 2.1.16+ (http://archive.apache.org/dist/cassandra/2.1.16/apache-cassandra-2.1.16-bin.tar.gz) download it and put it in /opt/cassandra.

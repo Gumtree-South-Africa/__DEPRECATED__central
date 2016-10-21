@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -o nounset
-#set -o errexit
+set -o errexit
 
 readonly ARGS="$@"
 readonly DIR=$(dirname $0)
@@ -11,19 +11,18 @@ readonly COMAAS_OUT="$PWD/comaas.out"
 readonly CASSANDRA_DIR="$PWD/../cassandra_tmp"
 readonly CASSANDRA_PID="$PWD/cassandra.pid"
 readonly CASSANDRA_HOME=$CASSANDRA_DIR
-readonly BASEPORT=18081
 readonly ATTEMPTS=30
 readonly HEALTH_CHECK_DELAY=3
 readonly HOST='localhost'
 
-# tenant-> http port lookup
-declare -A HTTP_PORTS=(
-  ["ebayk"]=$BASEPORT
-  ["gtau"]=$((BASEPORT+1))
-  ["kjca"]=$((BASEPORT+2))
-  ["mde"]=$((BASEPORT+3))
-  ["mp"]=$((BASEPORT+4))
-)
+function log() {
+    echo "[$(date)]: $*"
+}
+
+function fatal() {
+    log $*
+    exit 1
+}
 
 function parseCmd() {
   # check amount of args
@@ -31,51 +30,42 @@ function parseCmd() {
   TENANT=$1
 }
 
-function startCassandra() {
-    # stop & clean cassandra dir on exit
-    trap "stopCassandra" EXIT
-    export PATH=$PATH:/opt/cassandra/bin:/usr/sbin
-    log "Starting cassandra"
-    rm -rf ${CASSANDRA_DIR}
-    mkdir ${CASSANDRA_DIR}
-    export PATH=$PATH:/opt/cassandra/bin:/usr/sbin
-    cassandra "-Dcassandra.logdir=$CASSANDRA_DIR" "-Dcassandra.config=file:///$PWD/etc/cassandra.yaml" "-Dcassandra.storagedir=$CASSANDRA_DIR" -p ${CASSANDRA_PID} > cassandra.out 2>&1
-}
+source "${DIR}/_cassandra_docker.sh"
 
-function stopCassandra() {
-    if [[ -e ${CASSANDRA_PID} ]]; then
-        log "Stopping cassandra"
-        PID=$(cat ${CASSANDRA_PID})
-        kill ${PID}
+function findOpenPort() {
+    for i in $(seq 1 ${ATTEMPTS}); do
+        local PORT=$((9000 + RANDOM % 999))
 
-        counter=0
-        while $(ps -p "$PID" > /dev/null); do
-            if [ ${counter} -gt 10 ]; then
-                break
-            fi
-            log "waiting for Cassandra to exit"
-            sleep 1
-            counter=$(expr ${counter} + 1)
-        done
-        if $(ps -p "$PID" > /dev/null); then
-            log "Cassandra didn't exit in 10 seconds"
+        set +o errexit
+        lsof -ni:${PORT} 2>&1 >/dev/null;
+        local ec=$?
+        set -o errexit
+
+        if [[ ${ec} -gt 0 ]]; then
+            break
         fi
-        rm -rf ${CASSANDRA_DIR}
-        rm -rf ${CASSANDRA_PID}
-        log "Cassandra stopped"
+    done
+
+    if [[ ${i} -ge ${ATTEMPTS} ]]; then
+        fatal "Could not find open port to start Comaas."
     fi
+
+    echo ${PORT}
 }
 
 function startComaas() {
-    # stop comaas on exit
-    trap "stopComaas" EXIT
     log "Starting Comaas"
     cd distribution/target
-    tar xfz distribution-$TENANT-bare.tar.gz
+    tar xfz distribution-${TENANT}-bare.tar.gz
     cd distribution
+    sed -i "s/:9042$/:${CASSANDRA_CONTAINER_PORT}/" conf/replyts.properties
+
     log "Writing comaas output to ${COMAAS_OUT}"
-    bin/comaas > ${COMAAS_OUT} 2>&1 &
+    COMAAS_HTTP_PORT=$(findOpenPort)
+    log "Starting comaas on port $COMAAS_HTTP_PORT"
+    COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} bin/comaas > ${COMAAS_OUT} 2>&1 &
     echo $! > ${COMAAS_PID}
+
     log "Comaas pid: $(cat ${COMAAS_PID})"
 }
 
@@ -83,28 +73,17 @@ function stopComaas() {
     if [[ -f ${COMAAS_PID} ]]; then
         log "Stopping comaas"
         PID=$(cat ${COMAAS_PID})
-        kill ${PID}
+        kill -0 ${PID} 2>&1 >/dev/null || { log "Comaas already stopped"; return; }
 
-        counter=0
-        while $(ps -p "$PID" > /dev/null); do
-            if [ ${counter} -gt 10 ]; then
-                break
-            fi
-            log "waiting for Comaas to exit"
-            sleep 1
-            counter=$(expr ${counter} + 1)
-        done
-        if $(ps -p "$PID" > /dev/null); then
-            log "Comaas didn't exit in 10 seconds, killing it. You may want to check if cassandra is still running"
-            kill -9 ${PID}
-        fi
-        rm ${COMAAS_PID}
+        kill -9 ${PID}
         log "Comaas stopped"
     fi
 }
 
-function log() {
-    echo "[$(date)]: $*"
+trap "stopAll" EXIT
+function stopAll() {
+    stopCassandra
+    stopComaas
 }
 
 function main() {
@@ -113,19 +92,31 @@ function main() {
 
    if [[ "$TENANT" == "mp" ]] ; then
        startCassandra
-       sleep 5
-       $DIR/setup-cassandra.sh localhost replyts2
+       sleep 5 # give the cassandra container some time to settle
+
+       for i in $(seq 1 ${ATTEMPTS}); do
+         set +o errexit
+         docker run --rm --volume ${PWD}:/code --workdir /code --link ${CASSANDRA_CONTAINER_NAME}:cassandra ${CASSANDRA_IMAGE_NAME} bin/setup-cassandra.sh cassandra replyts2
+         ec=$?
+         set -o errexit
+         if [[ ${ec} -eq 0 ]]; then
+            break
+         fi
+       done
+       if [[ ${i} -ge ${ATTEMPTS} ]]; then
+          fatal "Could not import keyspace into Cassandra."
+       fi
    fi
 
    startComaas
    sleep 10
 
-   PORT="${HTTP_PORTS[$TENANT]}"
-
    for i in $(seq 1 $ATTEMPTS) ; do
        sleep "$HEALTH_CHECK_DELAY"
-       log "Waiting for comaas to start. Listening on port $PORT for $(($HEALTH_CHECK_DELAY * $i))s"
-       HEALTH=$(curl -s http://${HOST}:${PORT}/health)
+       log "Waiting for comaas to start. Listening on port $COMAAS_HTTP_PORT for $(($HEALTH_CHECK_DELAY * $i))s"
+       set +o errexit
+       HEALTH=$(curl -s http://${HOST}:${COMAAS_HTTP_PORT}/health)
+       set -o errexit
 
        if [ ! -z "$HEALTH" ]; then
            echo "${HOST}'s health is $HEALTH"
@@ -133,7 +124,7 @@ function main() {
        fi
 
        if [ $i -eq $ATTEMPTS ]; then
-          echo "Unable to get health from http://${HOST}:${PORT}/health, exiting"
+          echo "Unable to get health from http://${HOST}:${COMAAS_HTTP_PORT}/health, exiting"
           exit 1
        fi
    done

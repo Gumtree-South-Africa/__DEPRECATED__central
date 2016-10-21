@@ -31,6 +31,13 @@ public class ParentConfiguration {
     // This is no longer needed as soon as we move to the cloud. Keep for now
     @PostConstruct
     public void initializePersistenceStrategyIfMissing() {
+        // Check if the COMAAS_HTTP_PORT env var was set, and introduce it as the replyts.http.port. If not set, this value
+        // should come from the replyts.properties file.
+        String comaasHttpPort = System.getenv("COMAAS_HTTP_PORT");
+        if (comaasHttpPort != null) {
+            environment.getPropertySources().addFirst(new MapPropertySource("Environment-detected properties", ImmutableMap.of("replyts.http.port", comaasHttpPort)));
+        }
+
         if (discoveryEnabled || configurationEnabled) {
             return;
         }

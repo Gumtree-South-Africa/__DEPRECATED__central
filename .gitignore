@@ -71,3 +71,6 @@ build-env
 
 .cache/
 
+comaas.out
+comaas.pid
+

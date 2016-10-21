@@ -33,12 +33,16 @@ public class MailDataProviderConfiguration {
         this.coordinator = coordinator;
     }
 
+    /**
+     * This Bean requires a ClusterModeManager, which requires a ClusterMonitor, which is a Riak specific Bean.
+     * This should be refactored because some tenants (MP) do not use Riak at all but are still wiring these beans. They
+     * get around the fact that there are no Riak hosts by setting
+     * persistence.riak.datacenter.primary.hosts=localhost
+     * in replyts.properties.
+     */
     @Bean
     public MailDataProvider buildMailDataProvider(ClusterModeManager clusterModeManager) {
-
-        MailDataProvider provider = new FilesystemMailDataProvider(new File(mailDataDir), retryDelay, retryCounter, watchRetryDelay, coordinator, clusterModeManager);
-
-        return provider;
+        return new FilesystemMailDataProvider(new File(mailDataDir), retryDelay, retryCounter, watchRetryDelay, coordinator, clusterModeManager);
     }
 
 }

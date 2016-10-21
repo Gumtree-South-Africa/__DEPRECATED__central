@@ -17,12 +17,10 @@ function fatal() {
 readonly ARGS="$@"
 readonly DIR=$(dirname $0)
 
-CASSANDRA_CONTAINER_PORT=9042 # this will be overwritten by the Docker container port number
-
 REVISION="$(git rev-parse --short HEAD)"
 # Override REVISION in case of an in-progress Gerrit review
 if [[ $(git rev-parse --abbrev-ref HEAD) == review* ]]; then
-    REVISION="gerrit-$(git rev-parse --abbrev-ref HEAD | egrep -o '/[^/]+$' | egrep -o '[a-zA-Z0-9\-_]+')"
+    REVISION="gerrit-$(git rev-parse --abbrev-ref HEAD | egrep -o '/[^/]+$' | egrep -o '[a-zA-Z0-9_-]+')"
 fi
 log "Building revision $REVISION"
 
@@ -48,31 +46,7 @@ if [ ! -f comaas.jks ] ; then
     done
 fi
 
-CASSANDRA_CONTAINER_NAME="not_started"
-function startCassandra() {
-    hash docker 2>/dev/null || fatal "I require docker but it's not installed. Aborting. More information: https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/blob/master/README.md"
-
-    # stop & clean cassandra dir on exit
-    trap "stopCassandra" EXIT
-
-    CASSANDRA_CONTAINER_NAME=cassandra_test_${TENANT//,/-}_$(date +'%s')
-
-    log "Starting cassandra: ${CASSANDRA_CONTAINER_NAME}"
-    docker run --detach --publish-all --name ${CASSANDRA_CONTAINER_NAME} cassandra:2.1.14
-    CASSANDRA_CONTAINER_PORT=$(docker port ${CASSANDRA_CONTAINER_NAME} 9042 | cut -d: -f2)
-    log "Cassandra started on port ${CASSANDRA_CONTAINER_PORT}"
-}
-
-function stopCassandra() {
-    set +o errexit
-    docker top ${CASSANDRA_CONTAINER_NAME} 1>/dev/null 2>&1
-    local ec=$?
-    set -o errexit
-    if [ ${ec} -eq 0 ]; then
-      log "Stopping cassandra: "
-      docker rm -fv ${CASSANDRA_CONTAINER_NAME}
-    fi
-}
+source "${DIR}/_cassandra_docker.sh"
 
 function parseCmd() {
     RUN_TESTS=0
@@ -133,6 +107,8 @@ function main() {
     # skip tests and set concurrency based on whether tests should be run
     if [[ ${RUN_TESTS} -eq 1 ]]; then
         startCassandra
+        trap "stopCassandra" EXIT
+
         MVN_ARGS="$MVN_ARGS"
         MVN_TASKS="clean package"
 

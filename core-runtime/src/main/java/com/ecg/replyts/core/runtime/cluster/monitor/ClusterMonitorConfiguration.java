@@ -50,7 +50,7 @@ class ClusterMonitorConfiguration {
     @Bean
     public ClusterMonitor clusterMonitor(@Qualifier(RIAK_CLUSTER_SANITY_CHECK) Check riakClusterSanityCheck) {
         long checkIntervalMillis = TimeUnit.SECONDS.toMillis(checkIntervalSeconds);
-        return  new RiakClusterMonitor(checkIntervalMillis, riakClusterSanityCheck);
+        return new RiakClusterMonitor(checkIntervalMillis, riakClusterSanityCheck);
     }
 
     private static Map<Host, IRiakClient> createHttpRiakClients(RiakHostConfig riakHostConfig, int httpClientTimeoutMs) throws RiakException {

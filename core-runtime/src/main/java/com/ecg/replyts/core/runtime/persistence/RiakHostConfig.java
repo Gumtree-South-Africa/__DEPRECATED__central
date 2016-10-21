@@ -5,7 +5,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -78,11 +77,11 @@ public class RiakHostConfig {
 
     @Autowired
     public RiakHostConfig(@Value("${persistence.riak.datacenter.primary.hosts:}")
-                          String riakHostsInPrimaryDatacenter,
+                                  String riakHostsInPrimaryDatacenter,
                           @Value("${persistence.riak.pb.port:8087}")
-                          int protobufPort,
+                                  int protobufPort,
                           @Value("${persistence.riak.http.port:8098}")
-                          int httpPort) {
+                                  int httpPort) {
 
         this.protobufPort = protobufPort;
         this.httpPort = httpPort;
