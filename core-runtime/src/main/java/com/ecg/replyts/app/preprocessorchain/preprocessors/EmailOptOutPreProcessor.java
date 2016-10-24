@@ -14,7 +14,8 @@ import org.springframework.stereotype.Component;
 import static com.ecg.replyts.core.api.processing.MessageProcessingContext.DELIVERY_CHANNEL_MAIL;
 
 @Component
-@ConditionalOnExpression("#{('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))}")
+@ConditionalOnExpression("#{ ${email.opt.out.enabled:false} && " +
+        "('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))}")
 public class EmailOptOutPreProcessor implements PreProcessor {
 
     private final EmailOptOutRepository emailOptOutRepo;

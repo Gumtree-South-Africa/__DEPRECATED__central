@@ -9,11 +9,7 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
-import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
-import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
-import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
-import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.core.runtime.persistence.*;
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
@@ -23,10 +19,9 @@ import com.ecg.replyts.core.runtime.persistence.conversation.QuietReadOnlyRiakCo
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.ReadOnlyRiakMailRepository;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -111,6 +106,7 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     }
 
     @Bean
+    @ConditionalOnExpression("${email.opt.out.enabled:false}")
     public EmailOptOutRepository emailOptOutRepository(Session cassandraSession) {
         return new EmailOptOutRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }

@@ -27,7 +27,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
  * Allows to turn off and on email sending
  */
 @Controller
-@ConditionalOnExpression("#{('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))}")
+@ConditionalOnExpression("#{ ${email.opt.out.enabled:false} && " +
+        "('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))}")
 public class EmailOptOutController {
     private static final Timer TURN_ON = newTimer("webapi.email-notifications.turn-on");
     private static final Timer TURN_OFF = newTimer("webapi.email-notifications.turn-off");

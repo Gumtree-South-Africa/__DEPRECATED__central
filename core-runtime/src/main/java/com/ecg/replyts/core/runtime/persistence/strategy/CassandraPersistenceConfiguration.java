@@ -78,6 +78,7 @@ public class CassandraPersistenceConfiguration {
     }
 
     @Bean
+    @ConditionalOnExpression("${email.opt.out.enabled:false}")
     public EmailOptOutRepository emailOptOutRepository(Session cassandraSession) {
         return new EmailOptOutRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
