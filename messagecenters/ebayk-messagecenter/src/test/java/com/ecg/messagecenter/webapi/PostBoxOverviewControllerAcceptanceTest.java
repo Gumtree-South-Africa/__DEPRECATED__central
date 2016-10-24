@@ -79,6 +79,15 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller1@seller.com/conversations/" + conversationId);
     }
 
+    // COMAAS-267 Test .pl email
+    @Test
+    public void readConversationFromDifferentEmail() {
+        RestAssured.given()
+                .expect()
+                .statusCode(200)
+                .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/zajac2444@o2.pl");
+    }
+
     @Test
     public void deleteConversation() {
         String conversationId = testRule.deliver(

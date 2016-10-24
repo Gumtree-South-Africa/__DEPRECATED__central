@@ -28,7 +28,12 @@
 	</bean>
 
     <context:annotation-config />
-    <mvc:annotation-driven/>
+ 
+    <bean id="noPathExtNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+        <property name="favorPathExtension" value="false" />
+    </bean>
+
+    <mvc:annotation-driven content-negotiation-manager="noPathExtNegotiationManager" />
 
     <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer"
           p:nullValue="null" />
