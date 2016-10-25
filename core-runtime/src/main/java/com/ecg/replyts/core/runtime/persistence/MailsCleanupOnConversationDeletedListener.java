@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-@ConditionalOnExpression("${persistence.skip.mail.storage:false}")
+@ConditionalOnExpression("${mails.cleanup.on.conversation.deleted.enabled:true}")
 public class MailsCleanupOnConversationDeletedListener implements ConversationEventListener {
     private final MailRepository mailRepository;
 
