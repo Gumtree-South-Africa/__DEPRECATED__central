@@ -14,7 +14,6 @@ import com.basho.riak.client.query.indexes.IntIndex;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -28,6 +27,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import java.util.Spliterator;
+import java.util.stream.Stream;
 
 public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepository  {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRiakSimplePostBoxRepository.class);
@@ -181,25 +182,33 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
 
     @Override
     public long getMessagesCount(DateTime fromDate, DateTime toDate) {
-        return Iterators.size(streamPostBoxIds(fromDate, toDate));
+        return streamPostBoxIds(fromDate, toDate).count();
     }
 
     @Override
-    public StreamingOperation<IndexEntry> streamPostBoxIds(DateTime fromDate, DateTime toDate) { // use endDate as its current date
+    public Stream<String> streamPostBoxIds(DateTime fromDate, DateTime toDate) { // use endDate as its current date
+        LOG.debug("Fetching Postboxes modifiedBetween {} - {}", fromDate, toDate);
+
         try {
-            return postBoxBucket.fetchIndex(IntIndex.named(UPDATED_INDEX))
-              .from(fromDate.getMillis())
-              .to(toDate.getMillis())
-              .executeStreaming();
+
+            Spliterator<IndexEntry> idxSplitterator =  postBoxBucket.fetchIndex(IntIndex.named(UPDATED_INDEX))
+                    .from(fromDate.getMillis())
+                    .to(toDate.getMillis())
+                    .executeStreaming()
+                    .spliterator();
+
+            return StreamSupport.stream(idxSplitterator, false).map(idx -> idx.getObjectKey());
+
         } catch (RiakException e) {
-            throw new RuntimeException(e);
+
+            String errMess = "Streaming postboxes modified between '" + fromDate + "' and '" + toDate + "' failed";
+            LOG.error(errMess, e);
+            throw new RuntimeException(errMess, e);
         }
     }
 
     @Override
     public List<String> getPostBoxIds(DateTime fromDate, DateTime toDate) {
-        return StreamSupport.stream(streamPostBoxIds(fromDate, toDate).spliterator(), false)
-          .map(id -> id.getObjectKey())
-          .collect(Collectors.toList());
+         return streamPostBoxIds(fromDate, toDate).collect(Collectors.toList());
     }
 }

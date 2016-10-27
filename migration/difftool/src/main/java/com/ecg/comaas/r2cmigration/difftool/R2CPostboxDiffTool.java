@@ -85,8 +85,12 @@ public class R2CPostboxDiffTool {
         }
     }
 
-    public long getMessagesToBeMigratedCount() throws RiakException {
-        return riakRepo.getMessagesCount(startDate, endDate);
+    public long getMessagesCountInTimeSlice(boolean riakToCass) throws RiakException {
+        if(riakToCass) {
+            return riakRepo.getMessagesCount(startDate, endDate);
+        } else {
+            return cassRepo.getPostboxModificationCountByQuery(startDate.toDate(), endDate.toDate());
+        }
     }
 
     public List<Future> compareRiakToCassAsync() throws RiakException {

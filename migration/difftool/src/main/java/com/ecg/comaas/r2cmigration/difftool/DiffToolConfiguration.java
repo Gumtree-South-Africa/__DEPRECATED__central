@@ -50,7 +50,7 @@ public class DiffToolConfiguration {
     String hostname;
     @Value("${graphite.endpoint.port:2003}")
     int port;
-    @Value("${graphite.timeperiod.sec:10}")
+    @Value("${graphite.timeperiod.sec:1}")
     int timeout;
     @Value("${graphite.prefix:difftool}")
     String prefix;
@@ -58,11 +58,11 @@ public class DiffToolConfiguration {
     @Value("${replyts.maxConversationAgeDays:180}")
     int maxEntityAge;
 
-    @Value("${difftool.batch.size:1000}")
+    @Value("${migration.batch.size:1000}")
     int idBatchSize;
-    @Value("${difftool.threadcount:6}")
+    @Value("${migration.threadcount:6}")
     int threadCount;
-    @Value("${difftool.queue.size:100}")
+    @Value("${migration.queue.size:100}")
     int workQueueSize;
 
     @Bean

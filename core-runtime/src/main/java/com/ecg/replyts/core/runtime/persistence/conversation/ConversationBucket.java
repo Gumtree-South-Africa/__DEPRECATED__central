@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.ecg.replyts.core.runtime.persistence.FetchIndexHelper.fetchResult;
 import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.timestampInMinutes;
@@ -91,6 +94,7 @@ class ConversationBucket {
     public List<String> modifiedBetween(DateTime start, DateTime end) {
         long startMin = timestampInMinutes(start);
         long endMin = timestampInMinutes(end);
+        LOG.debug("Fetching ConversationBucket#modifiedBetween {} - {}", startMin, endMin);
         try {
             return bucket.fetchIndex(
                     IntIndex.named(SECONDARY_INDEX_MODIFIED_AT)).from(startMin).to(endMin).execute();
@@ -98,6 +102,29 @@ class ConversationBucket {
             throw new RuntimeException("ConversationBucket: modified between '" + startMin + "' and '" + endMin + "' search failed", e);
         }
     }
+
+    public Stream<String> modifiedBetweenStream(DateTime start, DateTime end) {
+        try {
+            long startMin = timestampInMinutes(start);
+            long endMin = timestampInMinutes(end);
+            LOG.debug("Fetching ConversationBucket#modifiedBetween {} - {}", startMin, endMin);
+
+            Spliterator<IndexEntry> idxSplitterator = bucket.fetchIndex(
+                    IntIndex.named(ConversationBucket.SECONDARY_INDEX_MODIFIED_AT))
+                    .from(startMin)
+                    .to(endMin)
+                    .executeStreaming()
+                    .spliterator();
+
+            return StreamSupport.stream(idxSplitterator, false).map(idx -> idx.getObjectKey());
+
+        } catch (RiakException e) {
+            String errMess = bucket.getName() + ": modified between '" + start + "' and '" + end + "' search failed";
+            LOG.error(errMess, e);
+            throw new RuntimeException(errMess, e);
+        }
+    }
+
 
     public List<String> createdBetween(DateTime start, DateTime end) {
         try {
@@ -118,6 +145,10 @@ class ConversationBucket {
         } catch (RiakException e) {
             throw new RuntimeException("ConversationBucket: modified before '" + before + "' max rows '" + maxRows + "' search failed", e);
         }
+    }
+
+    public long getConversationCount(DateTime start, DateTime end) {
+        return modifiedBetween(start, end).stream().count();
     }
 
     public void delete(String id) {

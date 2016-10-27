@@ -56,8 +56,8 @@ public class ConversationComparer {
             LOG.info("Number of conversation events that do not match after Cassandra to Riak comparison {}", diffTool.CASS_TO_RIAK_EVENT_MISMATCH_COUNTER.getCount());
         }
 
-        long convIdxCountByDate = diffTool.cassRepo.getConversationModByDayCount();
-        long convIdxCount = diffTool.cassRepo.getConversationModCount();
+        long convIdxCountByDate = diffTool.getCassandraConversationModByDayCount();
+        long convIdxCount = diffTool.getCassandraConversationCount();
 
         // This is likely to only work on full import, once cassandra db is used directly core_conversation_modification_desc_idx would contain duplicated conversation_id
         // so we might need to distinct the values from these indexes first before comparison

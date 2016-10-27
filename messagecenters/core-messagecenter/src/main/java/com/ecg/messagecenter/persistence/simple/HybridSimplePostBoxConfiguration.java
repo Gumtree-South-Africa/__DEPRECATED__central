@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+
 @Configuration
 @ConditionalOnExpression("#{'${persistence.strategy}'.startsWith('hybrid')}")
 public class HybridSimplePostBoxConfiguration {
@@ -36,4 +37,5 @@ public class HybridSimplePostBoxConfiguration {
     public HybridSimplePostBoxRepository simplePostBoxRepository(RiakSimplePostBoxRepository riakSimplePostBoxRepository, CassandraSimplePostBoxRepository cassandraSimplePostBoxRepository, HybridMigrationClusterState migrationState) {
         return new HybridSimplePostBoxRepository(riakSimplePostBoxRepository, cassandraSimplePostBoxRepository, migrationState);
     }
+
 }

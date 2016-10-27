@@ -102,7 +102,7 @@ public class Comparer {
                 convDiff.setDateRange(diffToolOpts.startDateTime, diffToolOpts.endDateTime);
 
                 if (diffToolOpts.fetchRecordCount) {
-                    LOG.info("About to verify {} conversations entries ", convDiff.getConversationsToBeMigratedCount());
+                    LOG.info("About to verify {} conversations entries ", convDiff.getConversationsCountInTimeSlice(diffToolOpts.riakToCassandra));
                 }
 
                 if (diffToolOpts.riakToCassandra) {
@@ -117,7 +117,7 @@ public class Comparer {
                 pboxDiff.setDateRange(diffToolOpts.startDateTime, diffToolOpts.endDateTime);
 
                 if (diffToolOpts.fetchRecordCount) {
-                    LOG.info("About to verify {} postbox entries", pboxDiff.getMessagesToBeMigratedCount());
+                    LOG.info("About to verify {} postbox entries", pboxDiff.getMessagesCountInTimeSlice(diffToolOpts.riakToCassandra));
                 }
 
                 if (diffToolOpts.riakToCassandra) {

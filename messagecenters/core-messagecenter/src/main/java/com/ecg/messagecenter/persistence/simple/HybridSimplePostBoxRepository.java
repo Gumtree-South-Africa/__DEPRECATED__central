@@ -1,7 +1,5 @@
 package com.ecg.messagecenter.persistence.simple;
 
-import com.basho.riak.client.IndexEntry;
-import com.basho.riak.client.query.StreamingOperation;
 import com.codahale.metrics.Counter;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -9,10 +7,11 @@ import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
+
 
 public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepository {
     private static final Logger LOG = LoggerFactory.getLogger(HybridSimplePostBoxRepository.class);
@@ -120,7 +119,7 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
     }
 
     @Override
-    public StreamingOperation<IndexEntry> streamPostBoxIds(DateTime fromDate, DateTime toDate) { // use endDate as its current date
+    public Stream<String> streamPostBoxIds(DateTime fromDate, DateTime toDate) { // use endDate as its current date
         return riakRepository.streamPostBoxIds(fromDate, toDate);
     }
 

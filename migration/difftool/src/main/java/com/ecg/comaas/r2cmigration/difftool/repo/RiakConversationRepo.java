@@ -7,6 +7,7 @@ import com.basho.riak.client.query.StreamingOperation;
 import com.basho.riak.client.query.indexes.IntIndex;
 import com.codahale.metrics.Timer;
 import com.ecg.comaas.r2cmigration.difftool.DiffToolConfiguration;
+
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.conversation.ConversationEvents;
 import com.ecg.replyts.core.runtime.persistence.conversation.ConversationEventsConverter;
@@ -63,10 +64,13 @@ public class RiakConversationRepo {
 
     public StreamingOperation<IndexEntry> modifiedBetween(DateTime start, DateTime end, Bucket bucket) {
         try {
+            long startMin = timestampInMinutes(start);
+            long endMin = timestampInMinutes(end);
+            LOG.debug("Fetching RiakConversationRepo#modifiedBetween {} - {}", startMin, endMin);
             return bucket.fetchIndex(
                     IntIndex.named(DiffToolConfiguration.RIAK_SECONDARY_INDEX_MODIFIED_AT)).
-                    from(timestampInMinutes(start)).
-                    to(timestampInMinutes(end)).executeStreaming();
+                    from(startMin).
+                    to(endMin).executeStreaming();
         } catch (RiakException e) {
             String errMess = bucket.getName() + ": modified between '" + start + "' and '" + end + "' search failed";
             LOG.error(errMess, e);

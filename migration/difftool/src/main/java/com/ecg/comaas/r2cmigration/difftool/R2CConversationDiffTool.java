@@ -93,8 +93,22 @@ public class R2CConversationDiffTool {
         }
     }
 
-    public long getConversationsToBeMigratedCount() throws RiakException {
-        return riakRepo.getConversationCount(startDate, endDate, DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME);
+    public long getConversationsCountInTimeSlice(boolean riakToCass) throws RiakException {
+        if(riakToCass) {
+            // Fetch riak counters
+            return riakRepo.getConversationCount(startDate, endDate, DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME);
+        } else {
+            // Fetch cass counters
+            return getCassandraConversationCount();
+        }
+    }
+
+    public long getCassandraConversationModByDayCount() {
+        return cassRepo.getConversationModByDayCount(startDate, endDate);
+    }
+
+    public long getCassandraConversationCount() {
+        return cassRepo.getConversationModCount(startDate, endDate);
     }
 
     public List<Future> compareRiakToCassandra() throws RiakException {

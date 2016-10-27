@@ -1,6 +1,7 @@
 package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.basho.riak.client.IRiakClient;
+
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
@@ -172,7 +173,7 @@ public class RiakConversationRepository implements MutableConversationRepository
 
     @Override
     public Stream<String> streamConversationsModifiedBetween(DateTime start, DateTime end) {
-        throw new UnsupportedOperationException();
+       return conversationBucket.modifiedBetweenStream(start, end);
     }
 
     @Override
@@ -204,6 +205,10 @@ public class RiakConversationRepository implements MutableConversationRepository
     @Override
     public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
         return conversationIndexBucket.findConversationId(key).map(this::getById);
+    }
+
+    public long getConversationCount(DateTime start, DateTime end) {
+        return  conversationBucket.getConversationCount(start, end);
     }
 
 }

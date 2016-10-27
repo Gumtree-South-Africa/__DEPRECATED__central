@@ -33,14 +33,16 @@ public class CassConversationRepo {
     private static final String FIELD_EVENT_ID = "event_id";
     private static final String FIELD_EVENT_JSON = "event_json";
 
-    private static final String COUNT_FROM_CONVERSATION_MOD_IDX = "SELECT count(*) FROM core_conversation_modification_desc_idx";
-    private static final String COUNT_FROM_CONVERSATION_MOD_IDX_BY_DAY = "SELECT count(*) FROM core_conversation_modification_desc_idx_by_day";
+    private static final String COUNT_FROM_CONVERSATION_MOD_IDX = "SELECT count(*) FROM core_conversation_modification_desc_idx WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
+    private static final String COUNT_FROM_CONVERSATION_MOD_IDX_BY_DAY = "SELECT count(*) FROM core_conversation_modification_desc_idx_by_day WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
     private static final String SELECT_FROM_CONVERSATION_EVENTS = "SELECT * FROM core_conversation_events WHERE conversation_id=? ORDER BY event_id ASC";
     private static final String SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN = "SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
 
     private final ObjectMapper objectMapper;
     private final PreparedStatement getByConvID;
     private final PreparedStatement getByDate;
+    private final PreparedStatement getCount;
+    private final PreparedStatement getCountByDay;
 
     private Session session;
 
@@ -51,6 +53,8 @@ public class CassConversationRepo {
             this.session = session;
             this.getByConvID = session.prepare(SELECT_FROM_CONVERSATION_EVENTS);
             this.getByDate = session.prepare(SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN);
+            this.getCount = session.prepare(COUNT_FROM_CONVERSATION_MOD_IDX);
+            this.getCountByDay = session.prepare(COUNT_FROM_CONVERSATION_MOD_IDX_BY_DAY);
         } catch (Exception e) {
             LOG.error("Fail to connect to cassandra: ", e);
             throw new RuntimeException(e);
@@ -76,13 +80,16 @@ public class CassConversationRepo {
         return bs.setConsistencyLevel(ConsistencyLevel.QUORUM).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
     }
 
-    public long getConversationModCount() {
-        ResultSet resultset = session.execute(COUNT_FROM_CONVERSATION_MOD_IDX);
+    public long getConversationModCount(DateTime startDate, DateTime endDate) {
+        Statement statement = bind(getCount, startDate.toDate(), endDate.toDate());
+        ResultSet resultset = session.execute(statement);
         return resultset.one().getLong("count");
     }
 
-    public long getConversationModByDayCount() {
-        ResultSet resultset = session.execute(COUNT_FROM_CONVERSATION_MOD_IDX_BY_DAY);
+    public long getConversationModByDayCount(DateTime startDate, DateTime endDate) {
+        Statement statement = bind(getCountByDay, startDate.toDate(), endDate.toDate());
+        LOG.debug("getConversationModByDayCount {} - {} ", startDate.toDate(), endDate.toDate());
+        ResultSet resultset = session.execute(statement);
         return resultset.one().getLong("count");
     }
 
@@ -99,14 +106,13 @@ public class CassConversationRepo {
         }
     }
 
-    public Stream<Map.Entry<String, List<ConversationEvent>>> findEventsCreatedBetween(DateTime start, DateTime end) {
-        Statement statement = getByDate.bind(start.toDate(), end.toDate());
-        return toStream(session.execute(statement)).map(this::getConversationEvents);
-    }
-
     private Map.Entry<String, List<ConversationEvent>> getConversationEvents(Row row) {
         String conversationId = row.getString(FIELD_CONVERSATION_ID);
         return new AbstractMap.SimpleImmutableEntry<String, List<ConversationEvent>>(conversationId, getConversationEvents(conversationId));
     }
 
+    public Stream<Map.Entry<String, List<ConversationEvent>>> findEventsCreatedBetween(DateTime start, DateTime end) {
+        Statement statement = getByDate.bind(start.toDate(), end.toDate());
+        return toStream(session.execute(statement)).map(this::getConversationEvents);
+    }
 }

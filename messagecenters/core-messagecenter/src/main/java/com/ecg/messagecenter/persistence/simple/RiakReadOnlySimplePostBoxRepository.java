@@ -1,31 +1,87 @@
 package com.ecg.messagecenter.persistence.simple;
 
+import com.basho.riak.client.IRiakClient;
+import com.basho.riak.client.IndexEntry;
+import com.basho.riak.client.RiakException;
+import com.basho.riak.client.RiakRetryFailedException;
 import com.basho.riak.client.bucket.Bucket;
+import com.basho.riak.client.cap.ConflictResolver;
+import com.basho.riak.client.cap.DefaultRetrier;
+import com.basho.riak.client.cap.Quora;
+import com.basho.riak.client.convert.Converter;
+import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
+import com.basho.riak.client.query.indexes.IntIndex;
+import com.ecg.replyts.core.runtime.TimingReports;
+import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
-import java.lang.reflect.Proxy;
 import java.util.List;
+import java.util.Optional;
+import java.util.Spliterator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-public class RiakReadOnlySimplePostBoxRepository extends DefaultRiakSimplePostBoxRepository {
+public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRepository {
+
     private static final Logger LOG = LoggerFactory.getLogger(RiakReadOnlySimplePostBoxRepository.class);
+
+    private final static Timer GET_BY_ID_TIMER = TimingReports.newTimer("postBoxRepo-getById");
+
+    public static final String UPDATED_INDEX = "modifiedAt";
+    public static final String POST_BOX = "postbox";
+
+    @Autowired
+    private Converter<PostBox> converter;
+
+    @Autowired
+    private IRiakClient riakClient;
+
+    @Autowired
+    private ConflictResolver<PostBox> resolver;
+
+    @Value("${persistence.simple.bucket.name.prefix:}" + POST_BOX)
+    private String bucketName;
+
+    @Value("${replyts.maxConversationAgeDays:180}")
+    private int maxAgeDays;
+
+    protected Bucket postBoxBucket;
 
     @PostConstruct
     public void createBucketProxy() {
-        // Wrap the Riak bucket in an intercepting Proxy to ensure we never accidentally write to Riak
+        try {
+            this.postBoxBucket = riakClient.fetchBucket(bucketName).execute();
+        } catch (RiakRetryFailedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-        postBoxBucket = (Bucket) Proxy.newProxyInstance(postBoxBucket.getClass().getClassLoader(),
-          new Class[] { Bucket.class },
-          (proxy, method, args) -> {
-            if (method.getName().contains("store") || method.getName().contains("delete")) {
-                throw new IllegalStateException("Read-only Riak SimplePostBoxRepository attempted to perform write operation");
+    @Override
+    public PostBox byId(String email) {
+        try (Timer.Context ignored = GET_BY_ID_TIMER.time()) {
+            PostBox postBox = postBoxBucket
+                    .fetch(email.toLowerCase(), PostBox.class)
+                    .withConverter(converter)
+                    .withResolver(resolver)
+                    .notFoundOK(true)
+                    .r(Quora.QUORUM)
+                    .withRetrier(new DefaultRetrier(3))
+                    .execute();
+
+            if (postBox == null) {
+                postBox = new PostBox(email.toLowerCase(), Optional.of(0L), Lists.newArrayList(), maxAgeDays);
             }
-
-            return method.invoke(args);
-          });
+            return postBox;
+        } catch (RiakRetryFailedException e) {
+            throw new RuntimeException("could not load post-box by email #" + email, e);
+        }
     }
 
     @Override
@@ -53,4 +109,42 @@ public class RiakReadOnlySimplePostBoxRepository extends DefaultRiakSimplePostBo
 
         return existingPostBox.getNewRepliesCounter().getValue();
     }
+
+    @Override
+    public Optional<AbstractConversationThread> threadById(String email, String conversationId) {
+        PostBox postBox = byId(email);
+
+        return postBox.lookupConversation(conversationId);
+    }
+
+    @Override
+    public Stream<String> streamPostBoxIds(DateTime fromDate, DateTime toDate) { // use endDate as its current date
+        LOG.debug("Fetching Postboxes modifiedBetween {} - {}", fromDate, toDate);
+        try {
+            Spliterator<IndexEntry> idxSplitterator = postBoxBucket.fetchIndex(IntIndex.named(UPDATED_INDEX))
+                    .from(fromDate.getMillis())
+                    .to(toDate.getMillis())
+                    .executeStreaming()
+                    .spliterator();
+
+            return StreamSupport.stream(idxSplitterator, false).map(idx -> idx.getObjectKey());
+
+        } catch (RiakException e) {
+
+            String errMess = "Streaming postboxes modified between '" + fromDate + "' and '" + toDate + "' failed";
+            LOG.error(errMess, e);
+            throw new RuntimeException(errMess, e);
+        }
+    }
+
+    @Override
+    public long getMessagesCount(DateTime fromDate, DateTime toDate) {
+        return streamPostBoxIds(fromDate, toDate).count();
+    }
+
+    @Override
+    public List<String> getPostBoxIds(DateTime fromDate, DateTime toDate) {
+        return streamPostBoxIds(fromDate, toDate).collect(Collectors.toList());
+    }
+
 }

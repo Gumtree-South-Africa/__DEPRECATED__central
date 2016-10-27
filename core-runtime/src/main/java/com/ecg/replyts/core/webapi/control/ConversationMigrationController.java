@@ -85,18 +85,19 @@ public class ConversationMigrationController {
         if (status != null) {
             return String.format("<pre>Running: %s \n" +
                     "Completed: %d%% \n" +
-                    "Processing rate: %s conversations/per second \n" +
+                    "Processing rate: %s \n" +
                     "Expected completion in %d s \n" +
-                    "Avg number of conversations per time slice %d \n" +
                     "Time taken %ds \n" +
-                    "Conversations migrated %d \n</pre>",
+                    "Conversations batches migrated %d, of %d total \n" +
+                    "Total conversations in the time slice %d \n</pre>",
                     status,
                     migrator.getPercentCompleted(),
                     migrator.getRateConversationsPerSec(),
                     migrator.getExpectedCompletionTime(TimeUnit.SECONDS),
-                    migrator.getAvgConversationPerTimeSlice(),
                     migrator.getTimeTaken(TimeUnit.SECONDS),
-                    migrator.getTotalConversationsMigrated()) ;
+                    migrator.getConversationsBatchesMigrated(),
+                    migrator.getTotalBatches(),
+                    migrator.getTotalConversations()) ;
         }
         return "Nothing has been executed";
     }

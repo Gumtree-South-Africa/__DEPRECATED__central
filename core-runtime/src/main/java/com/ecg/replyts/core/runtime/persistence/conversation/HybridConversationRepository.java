@@ -173,4 +173,9 @@ public class HybridConversationRepository implements MutableConversationReposito
 
         return true;
     }
+
+    // Defer to Riak as the single source of truth; once both are in sync, switch to persistence.strategy = cassandra
+    public long getConversationCount(DateTime start, DateTime end) {
+        return riakConversationRepository.getConversationCount(start,end);
+    }
 }

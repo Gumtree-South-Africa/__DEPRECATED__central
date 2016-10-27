@@ -66,8 +66,6 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     @Autowired
     private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
 
-    // TODO: Make it conditional on hybrid/hybrid-readonly
-
     @Bean
     public ConversationRepository conversationRepository(Session cassandraSession, HybridMigrationClusterState migrationState) {
         DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);

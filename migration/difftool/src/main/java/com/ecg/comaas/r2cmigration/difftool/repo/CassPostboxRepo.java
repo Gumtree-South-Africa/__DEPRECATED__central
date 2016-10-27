@@ -27,7 +27,6 @@ public class CassPostboxRepo {
 
     private static final String SELECT_POSTBOX_Q = "SELECT conversation_id, json_value FROM mb_postbox WHERE postbox_id = ?";
     private static final String SELECT_POSTBOX_UNREAD_COUNTS_CONVERSATION_IDS_Q = "SELECT conversation_id, num_unread FROM mb_unread_counters WHERE postbox_id = ?";
-    private static final String SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE_Q = "SELECT postbox_id, conversation_id, modification_date, rounded_modification_date FROM mb_postbox_modification_idx_by_date WHERE rounded_modification_date = ?";
     private static final String SELECT_POSTBOX_WHERE_MODIFICATION_BETWEEN = "SELECT postbox_id FROM mb_postbox_modification_idx_by_date WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
     private static final String COUNT_POSTBOX_WHERE_MODIFICATION_BETWEEN = "SELECT count(*) FROM mb_postbox_modification_idx_by_date WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
 
@@ -52,7 +51,7 @@ public class CassPostboxRepo {
 
     PreparedStatement selectPostbox = null;
     PreparedStatement selectPostboxUnreadCount = null;
-    PreparedStatement selectConvThreadIdxByDate = null;
+
     PreparedStatement selectPostboxModifiedBetweenByDate = null;
     PreparedStatement countPostboxes = null;
 
@@ -60,7 +59,6 @@ public class CassPostboxRepo {
         this.session = session;
         this.selectPostbox = session.prepare(SELECT_POSTBOX_Q);
         this.selectPostboxUnreadCount = session.prepare(SELECT_POSTBOX_UNREAD_COUNTS_CONVERSATION_IDS_Q);
-        this.selectConvThreadIdxByDate = session.prepare(SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE_Q);
         this.selectPostboxModifiedBetweenByDate = session.prepare(SELECT_POSTBOX_WHERE_MODIFICATION_BETWEEN);
         this.countPostboxes = session.prepare(COUNT_POSTBOX_WHERE_MODIFICATION_BETWEEN);
         newGauge("cassandra.postboxRepo-streamConversationModificationsByHour", () -> streamGauge.get());

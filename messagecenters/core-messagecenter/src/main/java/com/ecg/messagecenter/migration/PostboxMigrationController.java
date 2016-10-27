@@ -2,10 +2,7 @@ package com.ecg.messagecenter.migration;
 
 import static com.ecg.replyts.core.webapi.control.ConversationMigrationController.*;
 
-import com.ecg.replyts.core.runtime.indexer.IndexingMode;
-import com.ecg.replyts.core.runtime.indexer.SingleRunGuard;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ILock;
+
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,18 +83,20 @@ class PostboxMigrationController {
                     "Completed: %d%%; " +
                     "Processing rate: %s pbox/s; " +
                     "Expected completion in %d s; " +
-                    "Avg number of postboxes per time slice %d; " +
                     "Time taken %ds; " +
-                    "Postboxes migrated %d ;",
+                    "Postbox batches migrated %d, of %d total \n" +
+                    "Total postboxes in the time slice %d \n</pre>",
                     status,
                     migrator.getPercentCompleted(),
                     migrator.getRatePostboxesPerSec(),
                     migrator.getExpectedCompletionTime(TimeUnit.SECONDS),
-                    migrator.getAvgPostboxesPerTimeSlice(),
                     migrator.getTimeTaken(TimeUnit.SECONDS),
-                    migrator.getTotalPostboxesMigrated());
+                    migrator.getPostboxBatchesMigrated(),
+                    migrator.getTotalBatches(),
+                    migrator.getTotalPostboxes());
         }
         return "Nothing has been executed";
     }
+
 
 }

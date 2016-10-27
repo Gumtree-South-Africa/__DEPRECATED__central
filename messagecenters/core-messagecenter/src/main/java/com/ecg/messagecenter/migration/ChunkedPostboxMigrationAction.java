@@ -2,13 +2,11 @@ package com.ecg.messagecenter.migration;
 
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.simple.HybridSimplePostBoxRepository;
-import com.ecg.replyts.core.runtime.DateSliceIterator;
+import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.*;
-import com.ecg.replyts.core.runtime.workers.BlockingBatchExecutor;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Range;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.common.collect.Iterators;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
 import org.joda.time.DateTime;
@@ -18,95 +16,99 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
-import static java.util.concurrent.TimeUnit.DAYS;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static com.ecg.replyts.core.runtime.TimingReports.*;
+import static com.ecg.replyts.core.runtime.migrator.Util.waitForCompletion;
 
 public class ChunkedPostboxMigrationAction {
 
     private static final Logger LOG = LoggerFactory.getLogger(ChunkedPostboxMigrationAction.class);
+    private static final Logger FAILED_POSTBOX_IDS = LoggerFactory.getLogger("FailedToFetchPostboxes");
 
-    // Never interrupt the migration by timing out
-    private static final int MAX_PROCESSING_TIME_DAYS = 360;
+    private AtomicLong submittedBatchCounter = new AtomicLong();
+    private AtomicInteger processedBatchCounter = new AtomicInteger();
+    private AtomicLong totalPostboxCounter = new AtomicLong();
 
-    private AtomicLong submittedPostboxCounter = new AtomicLong();
-    private AtomicInteger processedTimeSlices = new AtomicInteger();
-    private AtomicInteger totalTimeSlices = new AtomicInteger();
+    private final Timer BATCH_MIGRATION_TIMER = TimingReports.newTimer("migration.migrated-postboxes-timer");
 
-    private final Timer TIMER = TimingReports.newTimer("migration.migrated-postboxs-timer");
-
-    private final PostboxMigrationChunkHandler postboxChunkHandler;
     private final HybridSimplePostBoxRepository postboxRepository;
-    private final int threadCount;
-    private final int chunkSizeMinutes;
     private final int conversationMaxAgeDays;
+
     private Stopwatch watch;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(2, new ThreadFactoryBuilder().setDaemon(true).setNameFormat("PostboxMigrationController-%s").build());
+
+    @Autowired
+    private final ThreadPoolExecutor executor;
 
     @Autowired
     private final HazelcastInstance hazelcast;
 
+    private final int idBatchSize;
+
     ChunkedPostboxMigrationAction(
             HazelcastInstance hazelcast,
             HybridSimplePostBoxRepository postboxRepository,
-            PostboxMigrationChunkHandler migrationChunkHandler,
-            int threadCount,
-            int chunkSizeMinutes,
+            ThreadPoolExecutor executor,
+            int idBatchSize,
             int conversationMaxAgeDays
     ) {
         super();
         this.hazelcast = hazelcast;
         this.postboxRepository = postboxRepository;
-        this.postboxChunkHandler = migrationChunkHandler;
-        this.threadCount = threadCount;
-        this.chunkSizeMinutes = chunkSizeMinutes;
+        this.idBatchSize = idBatchSize;
+        this.executor = executor;
         this.conversationMaxAgeDays = conversationMaxAgeDays;
-        newGauge("migration.processed-time-slices-counter", () -> processedTimeSlices.get());
-        newGauge("migration.total-time-slices-counter", () -> totalTimeSlices.get());
-        newGauge("migration.submitted-postbox-counter", () -> submittedPostboxCounter.get());
+        newGauge("migration.processed-batch-counter", () -> processedBatchCounter.get());
+        newGauge("migration.postboxes-counter", () -> totalPostboxCounter.get());
+        newGauge("migration.submitted-batch-counter", () -> submittedBatchCounter.get());
     }
 
     public long getExpectedCompletionTime(TimeUnit tunit) {
         return tunit.convert(new Double(((100 - getPercentCompleted()) / 100.0) * watch.elapsed(TimeUnit.SECONDS)).intValue(), TimeUnit.SECONDS);
     }
 
-    public int getAvgPostboxesPerTimeSlice() {
-        return (int) submittedPostboxCounter.get() / processedTimeSlices.get();
-    }
-
     public String getRatePostboxesPerSec() {
-        if (submittedPostboxCounter.get() > 0) {
-            return String.format("%.2f postboxes per second", (submittedPostboxCounter.get() / (double) watch.elapsed(TimeUnit.SECONDS)));
+        if (submittedBatchCounter.get() > 0) {
+            return String.format("%.2f conversations per second", (submittedBatchCounter.get() * idBatchSize / (double) watch.elapsed(TimeUnit.SECONDS)));
         }
         return "";
     }
 
-    public long getTotalPostboxesMigrated() {
-        return submittedPostboxCounter.get();
+    public long getPostboxBatchesMigrated() {
+        return processedBatchCounter.get();
+    }
+
+    public long getTotalPostboxes() {
+        return totalPostboxCounter.get();
     }
 
     public long getTimeTaken(TimeUnit tunit) {
         return watch.elapsed(tunit);
     }
 
-    private LocalDateTime getStartingTime() {
-        return new LocalDateTime(new Date()).minusDays(conversationMaxAgeDays);
+    public int getTotalBatches() {
+        return new Double(Math.ceil((double) totalPostboxCounter.get() / idBatchSize)).intValue();
     }
 
     public int getPercentCompleted() {
-        if (processedTimeSlices.get() != 0) {
-            LOG.debug("Processed {}, total {} slices ", processedTimeSlices.get(), totalTimeSlices.get());
-            return new Double(processedTimeSlices.get() * 100 / (double) totalTimeSlices.get()).intValue();
+        if (processedBatchCounter.get() > 0) {
+            LOG.debug("Processed {}, of total {} batches ", processedBatchCounter.get(), getTotalBatches());
+            return new Double(processedBatchCounter.get() * 100 / (double) submittedBatchCounter.get()).intValue();
         }
         return 0;
+    }
+
+
+    private LocalDateTime getStartingTime() {
+        return new LocalDateTime(new Date()).minusDays(conversationMaxAgeDays);
     }
 
     public boolean migrateAllPostboxes() {
@@ -116,7 +118,7 @@ public class ChunkedPostboxMigrationAction {
 
     public boolean migrateChunk(List<String> postboxIds) {
         String msg = String.format(" migrateChunk for the list of postbox ids %s ", postboxIds);
-        return execute(() -> postboxChunkHandler.migrateChunk(postboxIds), msg);
+        return execute(() -> fetchPostboxes(postboxIds), msg);
     }
 
     public boolean migratePostboxesFromDate(LocalDateTime dateFrom) {
@@ -134,7 +136,7 @@ public class ChunkedPostboxMigrationAction {
         ILock lock = hazelcast.getLock(IndexingMode.MIGRATION.toString());
         try {
             if (lock.tryLock(1L, TimeUnit.SECONDS)) {
-                executorService.execute(runnable);
+                executor.execute(runnable);
                 LOG.info("Executing {}", msg);
                 return true;
             } else {
@@ -144,44 +146,67 @@ public class ChunkedPostboxMigrationAction {
         } catch (Exception e) {
             LOG.error("Exception while waiting on a lock", e);
             lock.unlock();
+            executor.getQueue().clear();
             throw new RuntimeException(e);
         }
     }
 
     private void migratePostboxesBetweenDates(LocalDateTime dateFrom, LocalDateTime dateTo) {
         try {
-            DateSliceIterator dateSlices = new DateSliceIterator(Range.closed(dateFrom.toDateTime(DateTimeZone.UTC), dateTo.toDateTime(DateTimeZone.UTC)),
-                    chunkSizeMinutes, MINUTES, IndexingMode.MIGRATION.indexingDirection(), DateTimeZone.UTC);
-
-            totalTimeSlices.set(dateSlices.chunkCount());
-            processedTimeSlices.set(0);
-            submittedPostboxCounter.set(0);
-            LOG.info("There are {} time slices, {}m each to run through", dateSlices.chunkCount(), chunkSizeMinutes);
+            List<Future> results = new ArrayList<>();
             watch = Stopwatch.createStarted();
-            BlockingBatchExecutor<Range<DateTime>> executor = new BlockingBatchExecutor<>("Migrating", threadCount, MAX_PROCESSING_TIME_DAYS, DAYS);
-            executor.executeAll(dateSlices, (Range<DateTime> slice) -> {
-                return () -> {
-                    try (Timer.Context ignored = TIMER.time()) {
-                        processedTimeSlices.incrementAndGet();
-                        List<String> postboxIds = postboxRepository.getPostBoxIds(slice.lowerEndpoint(), slice.upperEndpoint());
-                        if (!postboxIds.isEmpty()) {
-                            submittedPostboxCounter.addAndGet(postboxIds.size());
-                            LOG.debug("Migrating postboxes from {}, to {}", slice.lowerEndpoint(), slice.upperEndpoint());
-                            LOG.debug("Migrating postbox ids: {}", postboxIds.toString());
-                            LOG.debug("Migrating {} postboxes, migrated so far {}", postboxIds.size(), submittedPostboxCounter.get());
-                            postboxChunkHandler.migrateChunk(postboxIds);
-                        }
-                    } catch (RuntimeException e) {
-                        LOG.error("Postbox migration fails with", e);
-                    }
-                };
-            }, IndexingMode.MIGRATION.errorHandlingPolicy());
-            LOG.info("{} PostBoxes actually migrated vs. {} times it was determined necessary for PostBoxes to be migrated", postboxRepository.migratePostBoxCounter.getCount(),
-                    postboxRepository.migratePostBoxNecessaryCounter.getCount());
-            LOG.info("MigratePostboxesBetween is complete, migrated {} postboxes", submittedPostboxCounter.get());
+
+            processedBatchCounter.set(0);
+            submittedBatchCounter.set(0);
+
+            long totalPostboxes = postboxRepository.getMessagesCount(dateFrom.toDateTime(DateTimeZone.UTC), dateTo.toDateTime(DateTimeZone.UTC));
+
+            Stream<String> postboxStream = postboxRepository.streamPostBoxIds(dateFrom.toDateTime(DateTimeZone.UTC),
+                    dateTo.toDateTime(DateTimeZone.UTC));
+
+            totalPostboxCounter.set(totalPostboxes);
+
+            Iterators.partition(postboxStream.iterator(), idBatchSize).forEachRemaining(pboxIdBatch -> {
+                results.add(executor.submit(() -> {
+                    submittedBatchCounter.incrementAndGet();
+                    fetchPostboxes(pboxIdBatch);
+                }));
+            });
+
+            waitForCompletion(results, processedBatchCounter, LOG);
             watch.stop();
         } finally {
             hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock
+        }
+    }
+
+
+    public void fetchPostboxes(List<String> postboxIds) {
+        try (Timer.Context ignored = BATCH_MIGRATION_TIMER.time()) {
+
+            int fetchedPostboxCounter = 0;
+            for (String postboxId : postboxIds) {
+                try {
+                    PostBox postbox = postboxRepository.byId(postboxId);
+                    // might be null for very old postbox that have been removed by the cleanup job while the indexer
+                    // was running.
+                    if (postbox != null) {
+                        fetchedPostboxCounter++;
+                    }
+                } catch (Exception e) {
+                    LOG.error(String.format("Migrator could not load postbox {} from repository - skipping it", postboxId), e);
+                    FAILED_POSTBOX_IDS.info(postboxId);
+                }
+            }
+            if (fetchedPostboxCounter > 0) {
+
+                LOG.debug("Fetch {} postboxes", fetchedPostboxCounter);
+            }
+            if (fetchedPostboxCounter != postboxIds.size()) {
+
+                LOG.warn("At least some postbox IDs were not found in the database, {} postboxes expected, but only {} retrieved",
+                        postboxIds.size(), fetchedPostboxCounter);
+            }
         }
     }
 
