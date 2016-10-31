@@ -38,8 +38,10 @@ public class CassandraPostBoxServiceTest {
     private static final String USER_ID_1 = "1";
     private static final String USER_ID_2 = "2";
     private static final String DEFAULT_SUBJECT = "Default subject";
-    private static final String AD_ID = "m123";
-    private static final String CONVERSATION_ID = "c1";
+    private static final String AD_ID_1 = "m123";
+    private static final String AD_ID_2 = "m152";
+    private static final String CONVERSATION_ID_1 = "c1";
+    private static final String CONVERSATION_ID_2 = "c2";
 
     private static final String BUYER_USER_ID_NAME = "user-id-buyer";
     private static final String SELLER_USER_ID_NAME = "user-id-seller";
@@ -50,6 +52,13 @@ public class CassandraPostBoxServiceTest {
     private static final String BUYER_NAME_VALUE = "buyer";
     private static final String SELLER_NAME_VALUE = "seller";
 
+    private static final String CURSOR = "msg1234";
+    private static final int MESSAGE_LIMIT = 100;
+
+    private static final int CONVERSATION_OFFSET = 0;
+    private static final int CONVERSATION_LIMIT = 50;
+
+
     @Mock
     private CassandraPostBoxRepository conversationsRepo;
     @Mock
@@ -58,6 +67,8 @@ public class CassandraPostBoxServiceTest {
     private BlockUserRepository blockUserRepo;
     @Mock
     private ResponseDataService responseDataService;
+    @Mock
+    private PostBox postBox;
 
     private CassandraPostBoxService service;
 
@@ -68,7 +79,7 @@ public class CassandraPostBoxServiceTest {
         when(userIdentifierService.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierService.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(blockUserRepo.areUsersBlocked(any(), any())).thenReturn(false);
-        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, CONVERSATION_ID)).thenReturn(empty());
+        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, CONVERSATION_ID_1)).thenReturn(empty());
     }
 
     @After
@@ -80,7 +91,7 @@ public class CassandraPostBoxServiceTest {
     public void processNewMessageWithCorrectSubject() {
         Message rtsMsg1 = newMessage("1", SELLER_TO_BUYER, MessageState.SENT, DEFAULT_SUBJECT);
         Message rtsMsg2 = newMessage("2", SELLER_TO_BUYER, MessageState.SENT, "Another subject");
-        Conversation conversation = newConversationWithMessages(CONVERSATION_ID, singletonList(rtsMsg1)).build();
+        Conversation conversation = newConversationWithMessages(CONVERSATION_ID_1, singletonList(rtsMsg1)).build();
         service.processNewMessage(USER_ID_1, conversation, rtsMsg2, true);
 
         ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
@@ -89,8 +100,8 @@ public class CassandraPostBoxServiceTest {
 
         ConversationThread capturedConversationThread = conversationThreadArgCaptor.getValue();
         Assert.assertEquals(DEFAULT_SUBJECT, capturedConversationThread.getMetadata().getEmailSubject());
-        Assert.assertEquals(CONVERSATION_ID, capturedConversationThread.getId());
-        Assert.assertEquals(AD_ID, capturedConversationThread.getAdId());
+        Assert.assertEquals(CONVERSATION_ID_1, capturedConversationThread.getId());
+        Assert.assertEquals(AD_ID_1, capturedConversationThread.getAdId());
         Assert.assertEquals(Visibility.ACTIVE, capturedConversationThread.getVisibility());
         Assert.assertEquals(MessageNotification.RECEIVE, capturedConversationThread.getMessageNotification());
 
@@ -112,12 +123,9 @@ public class CassandraPostBoxServiceTest {
 
         Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
 
-        com.ecg.messagebox.model.Message newMessage = new com.ecg.messagebox.model.Message(
-                rtsMsg.getEventTimeUUID().get(), "text 123", USER_ID_2, MessageType.ASQ, "metadata");
-
         ArgumentCaptor<com.ecg.messagebox.model.Message> messageArgCaptor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
 
-        Conversation rtsConversation = newConversation(CONVERSATION_ID).withMessages(singletonList(rtsMsg)).build();
+        Conversation rtsConversation = newConversation(CONVERSATION_ID_1).withMessages(singletonList(rtsMsg)).build();
 
         List<Participant> participants = newArrayList(
                 new Participant(USER_ID_1, BUYER_NAME_VALUE, rtsConversation.getBuyerId(), ParticipantRole.BUYER),
@@ -152,7 +160,7 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void processNewMessageWithIdHeader() {
-        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, CONVERSATION_ID)).thenReturn(empty());
+        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, CONVERSATION_ID_1)).thenReturn(empty());
 
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
@@ -163,7 +171,7 @@ public class CassandraPostBoxServiceTest {
         com.ecg.messagebox.model.Message newMessage = new com.ecg.messagebox.model.Message(
                 UUID.fromString("f866b110-857b-11e6-9367-5bbf510138cd"), "text 123", USER_ID_2, MessageType.ASQ, null);
 
-        Conversation rtsConversation = newConversation(CONVERSATION_ID).withMessages(singletonList(rtsMsg)).build();
+        Conversation rtsConversation = newConversation(CONVERSATION_ID_1).withMessages(singletonList(rtsMsg)).build();
 
         List<Participant> participants = newArrayList(
                 new Participant(USER_ID_1, BUYER_NAME_VALUE, rtsConversation.getBuyerId(), ParticipantRole.BUYER),
@@ -183,10 +191,78 @@ public class CassandraPostBoxServiceTest {
         verify(conversationsRepo).createConversation(USER_ID_1, conversation, newMessage, true);
     }
 
+    @Test
+    public void getConversation(){
+        ConversationThread expectedConversationThread = newConversationThread(CONVERSATION_ID_1);
+        when(conversationsRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT)).thenReturn(Optional.of(expectedConversationThread));
+        Optional<ConversationThread> conversationThread = service.getConversation(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT);
+
+        Assert.assertEquals(expectedConversationThread, conversationThread.get());
+    }
+
+
+    @Test
+    public void markConversationAsRead(){
+        ConversationThread repoConversationThread = newConversationThread(CONVERSATION_ID_1).addNumUnreadMessages(5);
+        when(conversationsRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT)).thenReturn(Optional.of(repoConversationThread));
+
+        Optional<ConversationThread> conversationThread = service.markConversationAsRead(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT);
+
+        ConversationThread expectedConversationThread = repoConversationThread.addNumUnreadMessages(0);
+
+        verify(conversationsRepo).resetConversationUnreadCount(USER_ID_1, CONVERSATION_ID_1, AD_ID_1);
+        Assert.assertEquals(expectedConversationThread, conversationThread.get());
+    }
+
+    @Test
+    public void getConversations(){
+        PostBox expectedPostBox = newPostBox();
+        when(conversationsRepo.getPostBox(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT)).thenReturn(expectedPostBox);
+        PostBox postBox = service.getConversations(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET , CONVERSATION_LIMIT);
+
+        Assert.assertEquals(expectedPostBox, postBox);
+    }
+
+    @Test
+    public void changeConversationVisibilities(){
+        List<String> conversationIds =  Arrays.asList(CONVERSATION_ID_1, CONVERSATION_ID_2);
+        Map<String, String> conversationAdIdsMap = new HashMap<>();
+        conversationAdIdsMap.put(CONVERSATION_ID_1, AD_ID_1);
+        conversationAdIdsMap.put(CONVERSATION_ID_2, AD_ID_2);
+
+        PostBox expectedPostBox = newPostBox();
+
+        when(conversationsRepo.getConversationAdIdsMap(USER_ID_1, conversationIds)).thenReturn(conversationAdIdsMap);
+        when(conversationsRepo.getPostBox(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT)).thenReturn(postBox);
+        when(postBox.removeConversations(conversationIds)).thenReturn(expectedPostBox);
+
+        PostBox returnedPostBox = service.changeConversationVisibilities(USER_ID_1, conversationIds, Visibility.ARCHIVED, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT);
+
+        verify(conversationsRepo).changeConversationVisibilities(USER_ID_1, conversationAdIdsMap, Visibility.ARCHIVED);
+        Assert.assertEquals(expectedPostBox, returnedPostBox);
+    }
+
+    @Test
+    public void getUnreadCounts(){
+        UserUnreadCounts expectedUserUnreadCounts = new UserUnreadCounts(USER_ID_1, 3, 5);
+        when(conversationsRepo.getUserUnreadCounts(USER_ID_1)).thenReturn(expectedUserUnreadCounts);
+
+        UserUnreadCounts userUnreadCounts = service.getUnreadCounts(USER_ID_1);
+
+        Assert.assertEquals(expectedUserUnreadCounts, userUnreadCounts);
+    }
+
+    @Test
+    public void deleteConversation(){
+        service.deleteConversation(USER_ID_1, CONVERSATION_ID_1, AD_ID_1);
+
+        verify(conversationsRepo).deleteConversation(USER_ID_1, CONVERSATION_ID_1, AD_ID_1);
+    }
+
     private ImmutableConversation.Builder newConversation(String id) {
         return aConversation()
                 .withId(id)
-                .withAdId(AD_ID)
+                .withAdId(AD_ID_1)
                 .withCreatedAt(new DateTime())
                 .withLastModifiedAt(new DateTime())
                 .withState(ConversationState.ACTIVE)
@@ -212,7 +288,6 @@ public class CassandraPostBoxServiceTest {
                 .build();
     }
 
-
     private Message newMessageWithHeaders(String id, MessageDirection direction, MessageState state, Map<String, String> headers) {
         return aMessage()
                 .withId(id)
@@ -224,5 +299,27 @@ public class CassandraPostBoxServiceTest {
                 .withHeaders(headers)
                 .withTextParts(singletonList("text 123"))
                 .build();
+    }
+
+    private ConversationThread newConversationThread(String conversationId){
+        return new ConversationThread(
+                conversationId,
+                AD_ID_1,
+                Visibility.ACTIVE,
+                MessageNotification.RECEIVE,
+                Arrays.asList(new Participant(USER_ID_1, "user1", "user1@email.test", ParticipantRole.BUYER),
+                        new Participant(USER_ID_2, "user2", "user2@email.test", ParticipantRole.SELLER)),
+                new com.ecg.messagebox.model.Message(UUIDs.timeBased(), MessageType.CHAT, new MessageMetadata("text", "senderUserId")),
+                new ConversationMetadata(DateTime.now(), "subject")
+        );
+    }
+
+    private PostBox newPostBox(){
+        return new PostBox(
+                USER_ID_1,
+                Arrays.asList(newConversationThread(CONVERSATION_ID_1), newConversationThread(CONVERSATION_ID_2)),
+                new UserUnreadCounts(USER_ID_1, 2, 5),
+                6
+        );
     }
 }
