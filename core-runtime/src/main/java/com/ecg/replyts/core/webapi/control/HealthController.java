@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutionException;
 @RestController
 @RequestMapping(value = "/health")
 public class HealthController {
-    private static final Logger LOG = LoggerFactory.getLogger(HealthController.class)
+    private static final Logger LOG = LoggerFactory.getLogger(HealthController.class);
 
     private String version = getClass().getPackage().getImplementationVersion();
 
