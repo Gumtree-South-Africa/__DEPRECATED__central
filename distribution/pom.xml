@@ -24,26 +24,19 @@
             </properties>
 
             <dependencies>
+                <!-- coremods -->
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>core-resultinspector-threshold</artifactId>
+                    <artifactId>gtau-coremod-autogatemaildelivery</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>core-filter-user</artifactId>
+                    <artifactId>gtau-coremod-readrepairindexer</artifactId>
                     <version>${project.version}</version>
                 </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>core-filter-volume</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>core-filter-word</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
+
+                <!-- filters -->
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>core-filter-bankaccount</artifactId>
@@ -66,14 +59,38 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>gtau-coremod-readrepairindexer</artifactId>
+                    <artifactId>core-filter-user</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>gtau-coremod-autogatemaildelivery</artifactId>
+                    <artifactId>core-filter-volume</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-filter-blockedip</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-filter-echelon</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <!-- listeners -->
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-listener-jsonmessagelogger</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <!-- messagecenters -->
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>gtau-messagecenter</artifactId>
@@ -84,14 +101,11 @@
                     <artifactId>gtau-robot</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+
+                <!-- postprocessors -->
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>gtau-postprocessor-fromnamepreparator</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>gtau-postprocessor-sentrepliesnotifier</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
@@ -111,7 +125,14 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>gtau-listener-jsonmessagelogger</artifactId>
+                    <artifactId>gtau-postprocessor-sentrepliesnotifier</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <!-- resultinspectors -->
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
