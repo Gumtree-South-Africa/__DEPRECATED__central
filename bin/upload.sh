@@ -56,6 +56,7 @@ declare -A METHODS=(
   ["ebayk-sandbox"]="rsync"
   ["mde-sandbox"]="rsync"
   ["kjca-sandbox"]="rsync"
+  ["gtau-sandbox"]="rsync"
 )
 
 function upload() {
