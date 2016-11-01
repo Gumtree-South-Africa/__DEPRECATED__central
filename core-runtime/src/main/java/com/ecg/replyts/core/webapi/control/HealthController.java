@@ -2,6 +2,8 @@ package com.ecg.replyts.core.webapi.control;
 
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.client.Client;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
@@ -17,6 +19,8 @@ import java.util.concurrent.ExecutionException;
 @RestController
 @RequestMapping(value = "/health")
 public class HealthController {
+    private static final Logger LOG = LoggerFactory.getLogger(HealthController.class)
+
     private String version = getClass().getPackage().getImplementationVersion();
 
     @Value("${spring.application.name:unknown}")
@@ -105,6 +109,7 @@ public class HealthController {
 
                 return StringUtils.collectionToDelimitedString(versions, ", ");
             } catch (ExecutionException|ElasticsearchException e) {
+                LOG.warn("Could not get ES version", e);
                 return "error";
             }
         }
