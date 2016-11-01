@@ -49,7 +49,7 @@ public class PostBoxOverviewControllerTest {
 
         String email = "seller@example.com";
 
-        DateTime tooLongAgo = new DateTime(UTC).minusDays(MAX_CONVERSATION_AGE_DAYS);
+        DateTime tooLongAgo = new DateTime(UTC).minusDays(MAX_CONVERSATION_AGE_DAYS + 1);
         DateTime now = DateTime.now(UTC);
         ConversationThread oldConversationThread = new ConversationThread(
                 "oldAdId", "oldConversationId", tooLongAgo, now, now, false,
