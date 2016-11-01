@@ -34,29 +34,31 @@
             </properties>
 
             <modules>
-                <module>resultinspectors/core-resultinspector-threshold</module>
-
-                <module>listeners/gtau-listener-jsonmessagelogger</module>
-
                 <module>coremods/gtau-coremod-autogatemaildelivery</module>
                 <module>coremods/gtau-coremod-readrepairindexer</module>
 
-                <module>filters/core-filter-word</module>
-                <module>filters/core-filter-volume</module>
                 <module>filters/core-filter-bankaccount</module>
                 <module>filters/core-filter-belenblockedad</module>
                 <module>filters/core-filter-belenblockeduser</module>
                 <module>filters/core-filter-ebayservices</module>
                 <module>filters/core-filter-user</module>
+                <module>filters/core-filter-volume</module>
+                <module>filters/core-filter-word</module>
+                <module>filters/gtau-filter-blockedip</module>
+                <module>filters/gtau-filter-echelon</module>
+
+                <module>listeners/gtau-listener-jsonmessagelogger</module>
 
                 <module>messagecenters/gtau-messagecenter</module>
                 <module>messagecenters/gtau-robot</module>
 
                 <module>postprocessors/gtau-postprocessor-fromnamepreparator</module>
-                <module>postprocessors/gtau-postprocessor-sentrepliesnotifier</module>
                 <module>postprocessors/gtau-postprocessor-headerinjector</module>
                 <module>postprocessors/gtau-postprocessor-idreplacer</module>
                 <module>postprocessors/gtau-postprocessor-messagethreading</module>
+                <module>postprocessors/gtau-postprocessor-sentrepliesnotifier</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>
 
         </profile>
