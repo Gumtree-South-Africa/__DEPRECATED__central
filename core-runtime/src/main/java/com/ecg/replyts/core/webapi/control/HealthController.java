@@ -109,7 +109,7 @@ public class HealthController {
 
                 return StringUtils.collectionToDelimitedString(versions, ", ");
             } catch (ExecutionException|ElasticsearchException e) {
-                LOG.warn("Could not get ES version", e);
+                LOG.debug("Could not get ES version", e);
                 return "error";
             }
         }
