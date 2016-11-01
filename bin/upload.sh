@@ -41,6 +41,7 @@ declare -A HOSTS=(
   ["ebayk-sandbox"]="mpdeploy@10.41.136.80"
   ["mde-sandbox"]="mpdeploy@10.41.136.80"
   ["kjca-sandbox"]="mpdeploy@10.41.136.80"
+  ["gtau-sandbox"]="mpdeploy@10.41.136.80"
 )
 
 # map to lookup upload methods for a tenant
