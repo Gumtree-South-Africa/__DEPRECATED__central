@@ -1,6 +1,15 @@
 package com.ecg.messagecenter.util;
 
+import com.ecg.replyts.app.Mails;
+import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.runtime.mailparser.ParsingException;
+import com.google.common.io.ByteStreams;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -17,13 +26,16 @@ public class MessageContentHelperTest {
 
     @Test
     public void trueXml() {
-        assertTrue(MessageContentHelper.isXml(AUTOGATE_LEAD));
+        assertTrue(MessageContentHelper.isLooksLikeXml(AUTOGATE_LEAD));
     }
 
     @Test
     public void falseXml() {
-        assertFalse(MessageContentHelper.isXml(null));
-        assertFalse(MessageContentHelper.isXml(" "));
+        assertFalse(MessageContentHelper.isLooksLikeXml(null));
+        assertFalse(MessageContentHelper.isLooksLikeXml(" "));
+        assertFalse(MessageContentHelper.isLooksLikeXml(
+                "Hi, welcome to Gumtree! <a href=\"http://www.qa6.gumtree.com.au\">link</a>"
+        ));
     }
 
     @Test
@@ -39,5 +51,20 @@ public class MessageContentHelperTest {
     @Test
     public void invalid_name() {
         assertEquals("Anonymous", MessageContentHelper.senderName(INVALID_NAME));
+    }
+
+    @Test
+    public void autogate_email() throws Exception {
+        File email = new File(getClass().getResource("steve.eml").getFile());
+        FileInputStream fin = new FileInputStream(email);
+        try {
+            Mail mail = new Mails().readMail(ByteStreams.toByteArray(fin));
+            List<String> parts = mail.getPlaintextParts();
+            assertTrue("Message should be XML", MessageContentHelper.isLooksLikeXml(parts.get(0)));
+        } catch (ParsingException | IOException e) {
+            e.printStackTrace();
+        } finally {
+            fin.close();
+        }
     }
 }

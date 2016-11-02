@@ -10,6 +10,7 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 import com.google.common.base.Preconditions;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,8 @@ public class PostBoxListItemResponse {
     private String id;
     private String buyerName;
     private String sellerName;
+    private String buyerId;
+    private String sellerId;
     private String adId;
 
     private ConversationRole role;
@@ -41,6 +44,9 @@ public class PostBoxListItemResponse {
         this.sellerName = conversationThread.getSellerName().isPresent() ? conversationThread.getSellerName().get(): "";
         this.adId = conversationThread.getAdId();
         this.role = ConversationBoundnessFinder.lookupUsersRole(email, conversationThread);
+        this.buyerId = conversationThread.getBuyerId().orElse("");
+        this.sellerId = conversationThread.getSellerId().orElse("");
+        this.attachments = conversationThread.getLastMessageAttachments();
 
         this.lastMessage = new MessageResponse(
                 MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(conversationThread.getReceivedAt()),
@@ -49,8 +55,11 @@ public class PostBoxListItemResponse {
                 ConversationBoundnessFinder.boundnessForRole(this.role, conversationThread.getMessageDirection().get()),
                 conversationThread.getPreviewLastMessage().get(),
                 Optional.empty(),
+                MessageResponse.Attachment.transform(
+                  conversationThread.getLastMessageAttachments(),
+                  Optional.ofNullable(conversationThread.getLastMessageId()).orElse(Optional.<String>empty()).orElse(null)),
                 Collections.emptyList(),
-                Collections.emptyList());
+                Optional.<RobotMessageResponse>empty());
     }
 
     // old style lookup when we didn't have a complete search aggregate on the list-view
@@ -65,6 +74,8 @@ public class PostBoxListItemResponse {
         response.sellerName = conversationRts.getCustomValues().get("seller-name") == null ? "" : conversationRts.getCustomValues().get("seller-name");
         response.adId = conversationRts.getAdId();
         response.role = ConversationBoundnessFinder.lookupUsersRole(email, conversationRts);
+        response.sellerId = conversationRts.getSellerId();
+        response.buyerId = conversationRts.getBuyerId();
 
         MessagesResponseFactory factory = new MessagesResponseFactory(new MessagesDiffer());
         Optional<MessageResponse> messageResponse = factory.latestMessage(email, conversationRts);
@@ -130,5 +141,13 @@ public class PostBoxListItemResponse {
     }
     public String getOfferId() {
         return lastMessage.getOfferId();
+    }
+
+    public String getBuyerId() {
+        return buyerId;
+    }
+
+    public String getSellerId() {
+        return sellerId;
     }
 }

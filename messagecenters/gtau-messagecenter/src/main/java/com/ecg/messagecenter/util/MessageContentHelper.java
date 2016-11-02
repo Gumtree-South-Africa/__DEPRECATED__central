@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.util;
 
-import com.google.common.base.Strings;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -12,20 +12,28 @@ import java.util.regex.Pattern;
  * @author mdarapour@ebay.com
  */
 public class MessageContentHelper {
-    static final Pattern XML_PATTERN = Pattern.compile("<(\\S+?)(.*?)>(.*?)</\\1>");
+    static final Pattern XML_HEURISTIC_PATTERN = Pattern.compile("^<(.*)>(.*?)</(.*)>", Pattern.DOTALL);
     static final Pattern SENDER_PATTERN = Pattern.compile("(.*)via\\sgumtree$", Pattern.CASE_INSENSITIVE);
     static final String ANONYMOUS = "Anonymous";
 
-    public static boolean isXml(String text) {
-        return !Strings.isNullOrEmpty(text) && XML_PATTERN.matcher(text).find();
-    }
+    /**
+     * Checks if something looks like XML. It uses an heuristic instead of actually validating if something is properly
+     * XML because it is cheaper to use the heuristic.
+     *
+     * An alternative implementation would be to use something like JAXB to validate if something is actually XML.
+     * @param text
+     * @return
+     */
+    public static boolean isLooksLikeXml(String text) {
+        return StringUtils.hasText(text) && XML_HEURISTIC_PATTERN.matcher(text.trim()).find();
+     }
 
     public static String senderName(String name) {
         return Optional.ofNullable(name).map(new Function<String, String>() {
             @Nullable
             @Override
             public String apply(@Nullable String input) {
-                if(Strings.isNullOrEmpty(input)) {
+                if(!StringUtils.hasText(input)) {
                     return ANONYMOUS;
                 }
 
@@ -34,7 +42,7 @@ public class MessageContentHelper {
                 if (matcher.matches()) {
                     result = matcher.group(1).trim();
                 }
-                return Strings.isNullOrEmpty(result) ? ANONYMOUS : result;
+                return !StringUtils.hasText(result) ? ANONYMOUS : result;
             }
         }).get();
     }

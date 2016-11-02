@@ -83,9 +83,13 @@ public class PostBoxResponseBuilder {
                         conversationThread.getBuyerName(),
                         conversationThread.getSellerName(),
                         conversationThread.getBuyerId(),
+                        conversationThread.getSellerId(),
                         conversationThread.getMessageDirection(),
                         Optional.<String>empty(),
-                        Optional.<String>empty()));
+                        Optional.<String>empty(),
+                        lastMessage.getAttachmentFilenames(),
+                        conversationThread.getLastMessageId()
+                ));
             }
         }
 

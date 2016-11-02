@@ -116,7 +116,8 @@ public class MessagesResponseFactory {
                     Optional.ofNullable(phoneNumber),
                     MessageResponse.Attachment.transform(firstMessage),
                     conv.getBuyerId(),
-                    MessageType.getLinks(firstMessage)));
+                    MessageType.getLinks(firstMessage),
+                    MessageType.getRobotDetails(firstMessage)));
     }
 
 
@@ -148,8 +149,8 @@ public class MessagesResponseFactory {
                         Optional.<String>empty(),
                         MessageResponse.Attachment.transform(messageRts.get(i)),
                         messageRts.get(i).getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? conv.getBuyerId() : conv.getSellerId(),
-                        MessageType.getLinks(messageRts.get(i))
-                    )
+                        MessageType.getLinks(messageRts.get(i)),
+                        MessageType.getRobotDetails(messageRts.get(i)))
             );
 
         }

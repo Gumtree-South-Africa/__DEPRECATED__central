@@ -6,14 +6,18 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.joda.time.DateTime;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.ecg.replyts.core.api.util.Pairwise.pairsAreEqual;
 
 @JsonIgnoreProperties(ignoreUnknown = true, value = "containsUnreadMessages")
 public class ConversationThread extends AbstractConversationThread {
+    private Optional<String> sellerId;
     private Optional<String> robot;
     private Optional<String> offerId;
+    private List<String> lastMessageAttachments;
+    private Optional<String> lastMessageId;
 
     public ConversationThread(
             @JsonProperty("adId") String adId,
@@ -26,9 +30,12 @@ public class ConversationThread extends AbstractConversationThread {
             @JsonProperty("buyerName") Optional<String> buyerName,
             @JsonProperty("sellerName") Optional<String> sellerName,
             @JsonProperty("buyerId") Optional<String> buyerId,
+            @JsonProperty("sellerId") Optional<String> sellerId,
             @JsonProperty("messageDirection") Optional<String> messageDirection,
             @JsonProperty("robot") Optional<String> robot,
-            @JsonProperty("offerId") Optional<String> offerId) {
+            @JsonProperty("offerId") Optional<String> offerId,
+            @JsonProperty("lastMessageAttachments") List<String> lastMessageAttachments,
+            @JsonProperty("lastMessageId") Optional<String> lastMessageId) {
         super(
                 adId,
                 conversationId,
@@ -43,8 +50,11 @@ public class ConversationThread extends AbstractConversationThread {
                 messageDirection
         );
 
+        this.sellerId = sellerId;
         this.robot = robot;
         this.offerId = offerId;
+        this.lastMessageAttachments = lastMessageAttachments;
+        this.lastMessageId = lastMessageId;
     }
 
     @Override
@@ -54,13 +64,23 @@ public class ConversationThread extends AbstractConversationThread {
         if (!actualMessage.isPresent())
             actualMessage = previewLastMessage;
 
-        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), true, actualMessage, buyerName, sellerName, buyerId, messageDirection, robot, offerId);
+        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), true, actualMessage, buyerName, sellerName, buyerId, sellerId, messageDirection, robot, offerId, lastMessageAttachments, lastMessageId);
     }
+
+    public Optional<String> getSellerId() { return sellerId; }
 
     public Optional<String> getRobot() { return robot; }
 
     public Optional<String> getOfferId() {
         return offerId;
+    }
+
+    public List<String> getLastMessageAttachments() {
+        return lastMessageAttachments;
+    }
+
+    public Optional<String> getLastMessageId() {
+        return lastMessageId;
     }
 
     @Override
@@ -72,16 +92,22 @@ public class ConversationThread extends AbstractConversationThread {
         ConversationThread that = (ConversationThread) o;
 
         return pairsAreEqual(
+                sellerId, that.sellerId,
                 robot, that.robot,
-                offerId, that.offerId
+                offerId, that.offerId,
+                lastMessageAttachments, that.lastMessageAttachments,
+                lastMessageId, that.lastMessageId
         );
     }
 
     @Override
     public int hashCode() {
         return super.hashCode() + Objects.hashCode(
+                sellerId,
                 robot,
-                offerId
+                offerId,
+                lastMessageAttachments,
+                lastMessageId
         );
     }
 

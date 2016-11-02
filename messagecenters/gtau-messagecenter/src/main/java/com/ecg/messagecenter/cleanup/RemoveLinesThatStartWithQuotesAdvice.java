@@ -6,6 +6,7 @@ package com.ecg.messagecenter.cleanup;
 public class RemoveLinesThatStartWithQuotesAdvice extends AbstractCleanupAdvice {
 
     private static final String QUOTE = ">";
+    private static final String PIPE = "|";
 
     public RemoveLinesThatStartWithQuotesAdvice(Text text) {
         super(text);
@@ -16,7 +17,7 @@ public class RemoveLinesThatStartWithQuotesAdvice extends AbstractCleanupAdvice 
         quoteByLine(new LineAdvice() {
             @Override
             public boolean isQuoted(Text.Line line) {
-                return line.content.startsWith(QUOTE);
+                return line.content.startsWith(QUOTE) || line.content.startsWith(PIPE);
             }
         });
     }

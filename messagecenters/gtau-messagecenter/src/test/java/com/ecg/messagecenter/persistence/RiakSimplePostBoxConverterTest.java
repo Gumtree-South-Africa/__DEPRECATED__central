@@ -18,6 +18,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static junit.framework.Assert.assertEquals;
@@ -65,7 +66,7 @@ public class RiakSimplePostBoxConverterTest {
     @Test
     public void receivedAtIsNullSafeDeconstruct(){
         PostBox postBox = new PostBox("bla@blah.com", Optional.of(1L), Lists.newArrayList(
-                new ConversationThread("321", "cba", now(), now(), null, false, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty())), 180);
+                new ConversationThread("321", "cba", now(), now(), null, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), new ArrayList(), Optional.empty())), 180);
 
         IRiakObject riakObject = converter.fromDomain(postBox, new BasicVClock(new byte[]{}));
 
@@ -88,9 +89,9 @@ public class RiakSimplePostBoxConverterTest {
         DateTime receivedAt3 = dt.withMillis(1391332984880L);
 
         return new PostBox("bla@blah.com", Optional.of(1L), Lists.newArrayList(
-                new ConversationThread("123", "abc", createdAt1, modifiedAt1, receivedAt1, true, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                new ConversationThread("321", "cba", createdAt2, modifiedAt2, receivedAt2, false, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty()),
-                new ConversationThread("213", "bca", createdAt3, modifiedAt3, receivedAt3, false, Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<String>empty())
+                new ConversationThread("123", "abc", createdAt1, modifiedAt1, receivedAt1, true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), new ArrayList(), Optional.empty()),
+                new ConversationThread("321", "cba", createdAt2, modifiedAt2, receivedAt2, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), new ArrayList(), Optional.empty()),
+                new ConversationThread("213", "bca", createdAt3, modifiedAt3, receivedAt3, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), new ArrayList(), Optional.empty())
         ), 180);
     }
 

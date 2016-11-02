@@ -12,8 +12,11 @@ public class RemoveDateEmailQuoteHeaderAdvice extends AbstractCleanupAdvice {
             Pattern.compile("[0-9]{1,2} [a-zA-Z]{2,10} [0-9]{4}"),
             Pattern.compile("[a-zA-Z]{2,10} [0-9]{1,2}, [0-9]{4}"),
             Pattern.compile("[0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日")
+            //Pattern.compile("(Mon(day)?|Tue(sday)?|Wed(nesday)?|Thu(rsday)?|Fri(day)?|Sat(urday)?|Sun(day)?), [0-9]{1,2} (Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(tember)?|Oct(ober)?|Nov(ember)?|Dec(ember)?) \\d{4}")
     };
     private static final Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9._-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)*");
+
+    private static final Pattern GUMTREE_AUSTRALIA = Pattern.compile("Gumtree\\s+Australia");
 
     protected RemoveDateEmailQuoteHeaderAdvice(Text text) {
         super(text);
@@ -36,7 +39,7 @@ public class RemoveDateEmailQuoteHeaderAdvice extends AbstractCleanupAdvice {
             if (lineContainsADate(theLine)) {
                 markQuoted(prevIndex);
                 keepChecking = false;
-            } else if (removedLines == 0 && lineContainsAnEmail(theLine)) {
+            } else if (removedLines == 0 && (lineContainsThePattern(theLine, EMAIL_PATTERN) || lineContainsThePattern(theLine, GUMTREE_AUSTRALIA))) {
                 markQuoted(prevIndex);
                 index--;
                 removedLines++;
@@ -47,7 +50,7 @@ public class RemoveDateEmailQuoteHeaderAdvice extends AbstractCleanupAdvice {
         if (removedLines == 0 && index > 1) {
             if (text.getLineWithOriginalIndex(index - 1).content.length() < 10
                     && lineContainsADate(text.getLineWithOriginalIndex(index - 2).content)
-                    && lineContainsAnEmail(text.getLineWithOriginalIndex(index - 2).content)) {
+                    && lineContainsThePattern(text.getLineWithOriginalIndex(index - 2).content, EMAIL_PATTERN)) {
                 markQuoted(index - 1);
                 markQuoted(index - 2);
             }
@@ -55,9 +58,9 @@ public class RemoveDateEmailQuoteHeaderAdvice extends AbstractCleanupAdvice {
     }
 
 
-    private static boolean lineContainsAnEmail(String line) {
+    private static boolean lineContainsThePattern(String line, Pattern pattern) {
         // Is there something that looks like an email?
-        if (EMAIL_PATTERN.matcher(line).find()) {
+        if (pattern.matcher(line).find()) {
             return  true;
         }
         return false;

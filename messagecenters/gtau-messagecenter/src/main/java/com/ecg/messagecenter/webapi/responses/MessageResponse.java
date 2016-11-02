@@ -6,7 +6,10 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.net.MediaType;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -34,12 +37,17 @@ public class MessageResponse {
     private final Optional<String> robot;
     private final String senderEmail;
     private final List<MessageLink> messageLinks;
+    private final Optional<RobotMessageResponse> robotResponse;
 
-    public MessageResponse(String receivedDate, Optional<String> offerId, Optional<String> robot, MailTypeRts boundness, String textShort, Optional<String> phoneNumber, List<Attachment> attachments, List<MessageLink> messageLinks) {
-        this(receivedDate, offerId, robot, boundness, textShort, phoneNumber, attachments, null, messageLinks);
+    public MessageResponse(String receivedDate, Optional<String> offerId, Optional<String> robot, MailTypeRts boundness,
+                           String textShort, Optional<String> phoneNumber, List<Attachment> attachments, List<MessageLink> messageLinks,
+                           Optional<RobotMessageResponse> robotResponse) {
+        this(receivedDate, offerId, robot, boundness, textShort, phoneNumber, attachments, null, messageLinks, robotResponse);
     }
 
-    public MessageResponse(String receivedDate, Optional<String> offerId, Optional<String> robot, MailTypeRts boundness, String textShort, Optional<String> phoneNumber, List<Attachment> attachments, String senderEmail, List<MessageLink> messageLinks) {
+    public MessageResponse(String receivedDate, Optional<String> offerId, Optional<String> robot, MailTypeRts boundness,
+                           String textShort, Optional<String> phoneNumber, List<Attachment> attachments, String senderEmail,
+                           List<MessageLink> messageLinks, Optional<RobotMessageResponse> robotResponse) {
         this.receivedDate = receivedDate;
         this.boundness = boundness;
         this.textShort = textShort;
@@ -48,6 +56,7 @@ public class MessageResponse {
         this.senderEmail = senderEmail;
         this.offerId = offerId;
         this.robot = robot;
+        this.robotResponse = robotResponse;
         this.textShortTrimmed = REMOVE_DOUBLE_WHITESPACES.matcher(textShort).replaceAll(" ");
         this.messageLinks = messageLinks;
     }
@@ -77,6 +86,10 @@ public class MessageResponse {
     }
 
     public String getRobot() { return robot.isPresent() ? robot.get() : null; }
+
+    public RobotMessageResponse getRobotResponse() {
+        return robotResponse.orElse(null);
+    }
 
     public String getTextShort() {
         StringBuilder b = new StringBuilder();
@@ -133,6 +146,18 @@ public class MessageResponse {
             List<MessageResponse.Attachment> attachments = Lists.newArrayList();
             for (String filename : firstMessage.getAttachmentFilenames()) {
                 attachments.add(new MessageResponse.Attachment(filename, firstMessage.getId()));
+            }
+            return ImmutableList.copyOf(attachments);
+        }
+
+        public static List<Attachment> transform(List<String> attachmentFilenames, String messageId) {
+            if(CollectionUtils.isEmpty(attachmentFilenames) || !StringUtils.hasText(messageId)){
+                return new ArrayList<>();
+            }
+
+            List<MessageResponse.Attachment> attachments = Lists.newArrayList();
+            for (String filename : attachmentFilenames) {
+                attachments.add(new MessageResponse.Attachment(filename, messageId));
             }
             return ImmutableList.copyOf(attachments);
         }

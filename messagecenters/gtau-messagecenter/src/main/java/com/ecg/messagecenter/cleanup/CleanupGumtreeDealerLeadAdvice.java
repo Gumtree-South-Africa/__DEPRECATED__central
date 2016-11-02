@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.cleanup;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Specific advice to extract the 'Reply To Ad' message.

@@ -6,7 +6,11 @@ package com.ecg.messagecenter.persistence;
 public enum Header {
     OfferId("X-Offerid"),
     Robot("X-Robot"),
-    MessageLinks("X-Message-Links");
+    MessageLinks("X-Message-Links"),
+    Autogate("X-Cust-Http-Account-Name"),
+    MessageSender("X-Message-Sender"),
+    RichTextMessage("X-RichText-Message"),
+    RichTextLinks("X-RichText-Links");
 
     private String value;
 

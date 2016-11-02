@@ -1,0 +1,50 @@
+Date: Thu, 12 May 2016 05:45:50 +1000 (AEST)
+Subject: Gumtree sales lead for "1998 Toyota Starlet EP91R Group X Red 5
+ Speed Manual Hatchback"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Message-ID: <1hmw8s5nbrfnaabv1cq5rayl7li@users.gumtree.com.au>
+X-Cust-Http-Url: https://dataconnect.carsales.com.au/lead/lead.xml
+X-Cust-Http-Account-Name: GumtreeWeb
+X-Cust-Http-Account-Password: ^u<IekK%
+X-Reply-Channel: cp_api
+To: dl-gumtree-au-pd-support@ebay.com
+From: Steve <Buyer.35k6o5m3e03t6@users.gumtree.com.au>
+
+<?xml version="1.0" encoding="UTF-8"?>
+<lead schemaVersion="1.0" xmlns="http://dataconnect.carsales.com.au/schema/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://dataconnect.carsales.com.au/schema/ https://dataconnect.carsales.com.au/lead/lead.xml">
+  <sourceID>1054</sourceID>
+  <leadType>BNCIS</leadType>
+  <requestType>Dealer</requestType>
+  <sourceDealerID>17477</sourceDealerID>
+  <dealerName>Blue Chip Auto</dealerName>
+
+  <comments>1000- cash today for red starlet
+
+Sent from my iPhone</comments>
+  <prospect>
+    <firstName>Steve</firstName>
+    <email>coopsfloorshine@yahoo.com</email>
+    <homePhone>012</homePhone>
+  </prospect>
+  <itemInfo>
+    <stockNumber>3801</stockNumber>
+    <price>1999.00</price>
+    <colour>Red</colour>
+    <description>Gumtree sales lead for &quot;1998 Toyota Starlet EP91R Group X Red 5 Speed Manual Hatchback&quot; - http://www.gumtree.com.au/s-ad/croydon/cars-vans-utes/1998-toyota-starlet-ep91r-group-x-red-5-speed-manual-hatchback/1111873772</description>
+    <itemDetails>
+      <carInfo>
+        <makeName>Toyota</makeName>
+        <modelName>Starlet</modelName>
+        <releaseYear>1998</releaseYear>
+        <bodyStyle>Hatchback</bodyStyle>
+        <transmission>Manual</transmission>
+        <kilometres>114898</kilometres>
+        <rego>XML549</rego>
+      </carInfo>
+    </itemDetails>
+  </itemInfo>
+</lead>

@@ -12,8 +12,6 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
@@ -34,8 +32,6 @@ import static org.joda.time.DateTime.now;
 
 @Controller
 class ConversationThreadController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxOverviewController.class);
-
     private static final Timer API_POSTBOX_CONVERSATION_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-by-id");
     private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
 
@@ -110,7 +106,6 @@ class ConversationThreadController {
         Conversation conversation = conversationRepository.getById(conversationId);
         // can only happen if both buckets diverge
         if (conversation == null) {
-            LOGGER.warn("Inconsistency: Conversation id #{} exists in 'postbox' bucket but not inside 'conversations' bucket", conversationId);
             return entityNotFound(response);
         }
 
@@ -119,7 +114,6 @@ class ConversationThreadController {
             API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
             return ResponseObject.of(created.get());
         } else {
-            LOGGER.info("Conversation id #{} is empty but was accessed from list-view, should normally not be reachable by UI", conversationId);
             return entityNotFound(response);
         }
 
@@ -144,9 +138,13 @@ class ConversationThreadController {
                         item.getBuyerName(),
                         item.getSellerName(),
                         item.getBuyerId(),
+                        item.getSellerId(),
                         item.getMessageDirection(),
                         item.getRobot(),
-                        item.getOfferId()));
+                        item.getOfferId(),
+                        item.getLastMessageAttachments(),
+                        item.getLastMessageId()
+                ));
 
                 needsUpdate = true;
 

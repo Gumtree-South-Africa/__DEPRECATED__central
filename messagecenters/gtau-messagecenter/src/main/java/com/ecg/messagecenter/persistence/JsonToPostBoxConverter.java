@@ -10,6 +10,8 @@ import org.joda.time.DateTime;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,9 +35,12 @@ public class JsonToPostBoxConverter implements AbstractJsonToPostBoxConverter<Co
                     lookupStringValue(threadNode,"buyerName"),
                     lookupStringValue(threadNode,"sellerName"),
                     lookupStringValue(threadNode, "buyerId"),
+                    lookupStringValue(threadNode, "sellerId"),
                     lookupStringValue(threadNode, "messageDirection"),
                     lookupStringValue(threadNode, "robot"),
-                    lookupStringValue(threadNode, "offerId"))
+                    lookupStringValue(threadNode, "offerId"),
+                    lookupListValue(threadNode, "lastMessageAttachments"),
+                    lookupStringValue(threadNode, "lastMessageId"))
             );
         }
 
@@ -53,6 +58,18 @@ public class JsonToPostBoxConverter implements AbstractJsonToPostBoxConverter<Co
     private Optional<Long> lookupLongValue(JsonNode threadNode, String key) {
         return threadNode.has(key) ? Optional.of(threadNode.get(key).asLong()) : Optional.<Long>empty();
     }
+
+    private List<String> lookupListValue(JsonNode threadNode, String key) {
+        final List<String> stringValues = new ArrayList<>();
+        if (threadNode.has(key) && threadNode.get(key).isArray()) {
+            final ArrayNode array = (ArrayNode) threadNode.get(key);
+            final Iterator<JsonNode> jsonNodeIterator = array.iterator();
+            while (jsonNodeIterator.hasNext()) {
+                stringValues.add(jsonNodeIterator.next().asText());
+            }
+        }
+        return stringValues;
+     }
 
     private DateTime parseDate(JsonNode obj, String key) {
         JsonNode jsonNode = obj.get(key);

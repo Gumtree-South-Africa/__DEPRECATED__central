@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import static com.ecg.messagecenter.util.MessageType.isAutogate;
+
 /**
  * User: maldana
  * Date: 23.10.13
@@ -33,6 +35,9 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
     private static final Counter PROCESSING_FAILED = TimingReports.newCounter("message-box.postBoxUpdateListener.failed") ;
+    private static final Counter MESSGAE_XML = TimingReports.newCounter("message-box.postBoxUpdateListener.xml");
+    private static final Counter MESSGAE_AUTOGATE = TimingReports.newCounter("message-box.postBoxUpdateListener.autogate") ;
+    private static final String INITIAL_CONVERSATION_MESSAGE = "Gumtree prompted this buyer";
 
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
@@ -71,7 +76,12 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             return;
         }
 
-        if(MessageContentHelper.isXml(message.getPlainTextBody())) {
+        if(isAutogate(message)) {
+            MESSGAE_AUTOGATE.inc();
+        }
+
+        if (MessageContentHelper.isLooksLikeXml(message.getPlainTextBody())) {
+            MESSGAE_XML.inc();
             return;
         }
 
@@ -92,7 +102,8 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             // We don't broadcast robot messages, to do so UserNotificationRules needs to change
             if(MessageType.isRobot(message)) {
                 if(message.getMessageDirection().equals(MessageDirection.BUYER_TO_SELLER)) {
-                    updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message));
+                    if(!message.getPlainTextBody().contains(INITIAL_CONVERSATION_MESSAGE))
+                        updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message));
                 }
                 if(message.getMessageDirection().equals(MessageDirection.SELLER_TO_BUYER)) {
                     updateMessageCenter(conversation.getBuyerId(), conversation, message, userNotificationRules.buyerShouldBeNotified(message));

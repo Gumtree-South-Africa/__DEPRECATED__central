@@ -1,0 +1,683 @@
+Return-Path: <gloria_poulakis@yahoo.com.au>
+X-Original-To: Buyer.1y6nbm2h065j2@users.gumtree.com.au
+Delivered-To: Buyer.1y6nbm2h065j2@users.gumtree.com.au
+Received: from au-rtscore207.intern.gumtree.com.au (localhost [127.0.0.1])
+	by au-rtscore207.intern.gumtree.com.au (Postfix) with ESMTP id 51C1021219
+	for <Buyer.1y6nbm2h065j2@users.gumtree.com.au>; Tue, 23 Aug 2016 09:26:23 +1000 (AEST)
+Received: from au-rtsmx001.intern.gumtree.com.au (au-lb002.vlan1443.intern.gumtree.com.au [10.32.144.189])
+	by au-rtscore207.intern.gumtree.com.au (Postfix) with ESMTP id 473DC2006C
+	for <Buyer.1y6nbm2h065j2@users.gumtree.com.au>; Tue, 23 Aug 2016 09:26:23 +1000 (AEST)
+Received: from au-rtsmx001.intern.gumtree.com.au (localhost [127.0.0.1])
+	by au-rtsmx001.intern.gumtree.com.au (Postfix) with ESMTP id 367231B85DC
+	for <Buyer.1y6nbm2h065j2@users.gumtree.com.au>; Tue, 23 Aug 2016 09:26:23 +1000 (AEST)
+Received: from nm2-vm1.bullet.mail.bf1.yahoo.com (nm2-vm1.bullet.mail.bf1.yahoo.com [98.139.213.158])
+	by au-rtsmx001.intern.gumtree.com.au (Postfix) with ESMTPS id B4D231B85E2
+	for <Buyer.1y6nbm2h065j2@users.gumtree.com.au>; Tue, 23 Aug 2016 09:26:22 +1000 (AEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com.au; s=s2048; t=1471908381; bh=8aO5JLp8BLTWC7htxvP7ySNc24pILplEAA8W1sse+uE=; h=Date:From:Reply-To:To:In-Reply-To:References:Subject:From:Subject; b=KQYIpkGy5Ac1SpauBasbF74ZawBLsqp7+NMMBGfKTO4ydtjPOrHrGObzM9x1Gw/COQCJ/YuFdJLhBlVTx2fOMrOzGbu9eLMeo5J6QXYxvkdEUv/P/FLTboftLelgtCh93fJbk/PJeyHiG0QzHxO0kpFqw/EYbFSxk8N7IASsr65A0gtvQ03p0rpNLpaki08E2Bzoc+j0Gb82IXF0LP1SxmQ2rvmz5ktiEFbTR9ZMhcC58lqJsdGqDA6S3Y07tPdbeMWSlKsCN/lF3RuxgoBvTVQF8hHGv3Rgw4y7fv/kM7jBOKN3m+tDDbPPpecxqG7tWeyS+R7jj/8fUmPjdfJX4g==
+Received: from [66.196.81.170] by nm2.bullet.mail.bf1.yahoo.com with NNFMP; 22 Aug 2016 23:26:21 -0000
+Received: from [98.139.212.222] by tm16.bullet.mail.bf1.yahoo.com with NNFMP; 22 Aug 2016 23:26:21 -0000
+Received: from [127.0.0.1] by omp1031.mail.bf1.yahoo.com with NNFMP; 22 Aug 2016 23:26:21 -0000
+X-Yahoo-Newman-Property: ymail-3
+X-Yahoo-Newman-Id: 747366.57864.bm@omp1031.mail.bf1.yahoo.com
+X-YMail-OSG: iCYOF7gVM1mA06AVyUdmaz2U6YTgbFo7yv9AtpbYRQrx1SqAgZVqFx0o.M1miSB
+ wpLllZ_05lb_9H_fdNh_2MTHP6yGovg9UMr4M2Umg0iUkyvvoyRga5pi041XUQ6R_OizheH7LxC5
+ K2_iKMdxPj_5Q91HlZnolGt8RcK942eaYp6sCV4a7Wzz8Ajsxht63xdRlHojp_ZxuOBuYifqFrfS
+ nYakJKp5WcL6OcsHFUd8m26DQBsuWNain3ghpXoSrxbzTbZp7Jf2.DoqC0JkMe1i4WyR3hy4VP1s
+ x9plwZpPo_NAKZ1LTiHZ9RJYI1WuzfNUrG4xm4jDbblgZc_o4_MQx8tJ.sGEfFvlYcvd4ALP96yW
+ 8FUurQJ_iJ1A3gNAVD9gxuSVlmLVUc0g2gjrmX3XTR9YwqITCu4OwhMeRK2JUxOve3R0430cbRQ6
+ 1SoucCHJunhxpCQMVRllCwq5w7ffKN.JNOziR2f9x1kgWh4oQ08VKTEvkUNKuPKbtbkqw6thDZyj
+ X18Lst8as1xRMQPUZ1i40du1yUfZK
+Received: from jws106118.mail.bf1.yahoo.com by sendmailws105.mail.bf1.yahoo.com; Mon, 22 Aug 2016 23:26:21 +0000; 1471908381.344
+Date: Mon, 22 Aug 2016 23:26:20 +0000 (UTC)
+From: Gloria Poulakis <gloria_poulakis@yahoo.com.au>
+Reply-To: Gloria Poulakis <gloria_poulakis@yahoo.com.au>
+To: Sheldon via Gumtree <Buyer.1y6nbm2h065j2@users.gumtree.com.au>
+Message-ID: <494743055.396989.1471908380372.JavaMail.yahoo@mail.yahoo.com>
+In-Reply-To: <1hrkmryyzbrdw5etypqqds9200p@users.gumtree.com.au>
+References: <1hrkmryyzbrdw5etypqqds9200p@users.gumtree.com.au>
+Subject: Re: Sheldon replied to your ad "400 Litre Bio-fill - foam packing
+ peanut loose-fill"
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_396988_563477716.1471908380363"
+X-Virus-Scanned: ClamAV using ClamSMTP
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+------=_Part_396988_563477716.1471908380363
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi Sheldon
+It is still available and I am free to catch-up tonight (between 6.30 and 8=
+.30pm) at South Coogee, NSW..
+I have 3 left and am selling them for $29 for one or all 3 for $80 (let me =
+know if you want 1 or all 3 and I'll get them ready for you).
+ThanksGloria
+
+=20
+
+    On Tuesday, 23 August 2016, 8:00, Sheldon via Gumtree <Buyer.1y6nbm2h06=
+5j2@users.gumtree.com.au> wrote:
+=20
+
+  Gumtree Australia#yiv3239173883 body {width:100%;margin-right:auto;margin=
+-left:auto;background:#f3f2ef;}#yiv3239173883 * {}#yiv3239173883 .yiv323917=
+3883ExternalClass * {line-height:100%;}#yiv3239173883 #yiv3239173883 div, #=
+yiv3239173883 p, #yiv3239173883 a, #yiv3239173883 li, #yiv3239173883 td {}#=
+yiv3239173883 table {border-collapse:collapse;}@media screen and (max-width=
+:480px){#yiv3239173883 div, #yiv3239173883 span {padding:0;margin:0;}#yiv32=
+39173883 body {width:100%;min-width:100%;position:relative;margin:0;padding=
+:0;}#yiv3239173883 table[class=3Dyiv3239173883wrapper] {width:100% !importa=
+nt;border:none;}#yiv3239173883 table[class=3Dyiv3239173883wrapperInset] {wi=
+dth:92% !important;margin:0 4% 0 4% !important;}#yiv3239173883 table[class=
+=3Dyiv3239173883wrapperXtra] {width:86% !important;margin:0 7% 0 7% !import=
+ant;}#yiv3239173883 td[class=3Dyiv3239173883gutters] {padding-left:0 !impor=
+tant;padding-right:0 !important;}#yiv3239173883 #yiv3239173883 img[class=3D=
+yiv3239173883mobile_logo] {width:240px;min-height:auto;}#yiv3239173883 td[c=
+lass=3Dyiv3239173883mobCenterTop] {text-align:center;padding:0 12px 20px 12=
+px !important;}#yiv3239173883 img[class=3Dyiv3239173883mgIcon] {width:45px =
+!important;min-height:auto !important;}#yiv3239173883 td[class=3Dyiv3239173=
+883safe_logo] {width:55px !important;}#yiv3239173883 td[class=3Dyiv32391738=
+83safe_logo] img {width:55px !important;min-height:auto !important;}#yiv323=
+9173883 td[class=3Dyiv3239173883share] {padding:12px 0px 5px 0 !important;}=
+#yiv3239173883 td[id=3Dyiv3239173883itunes] {padding:0 12px 0 0 !important;=
+}}
+| =20
+|=20
+| =20
+|    |
+
+=20
+|  Sheldon replied to your ad "400 Litre Bio-fill - foam packin..."  |
+
+  |
+
+  |
+| =20
+|  |
+
+  |
+
+  |
+
+
+| =20
+| =20
+|  Sheldon  |
+|   |
+
+ |
+| =20
+|  Hi wondering if this is still available and if I could pick it up today?=
+ Thanks.
+
+Sent from my iPad  |
+
+ |
+|  Respond by replying directly to this email  |
+| =20
+| =20
+|  |
+|  My Messages  |
+|  Now you can read and manage your messages online via My Gumtree.  |
+
+=20
+|  |
+|  Already sold?  |
+|  To stop getting emails, please delete this ad.  |
+
+  |
+
+ |
+
+  |
+
+
+| =20
+| =20
+|    |=20
+|  Stay safe when you=E2=80=99re selling!  |
+|=20
+|  =E2=80=A2  |  Please report suspicious email to us immediately  |
+|  =E2=80=A2  |  Don't send money - exchange in person and follow our safet=
+y tips  |
+
+  |
+
+  |
+
+  |
+
+  |
+
+
+| =20
+| =20
+| Download the Gumtree app: |
+|=20
+|  |  |
+
+ |
+
+=20
+| Share your ad and follow us: |
+|=20
+|  |  |  |  |  |
+
+ |
+
+ |
+
+ |
+
+
+| =20
+|  This email has landed in your inbox because you've subscribed to get ema=
+ils from Gumtree (officially Marktplaats B.V, trading as gumtree.com.au).
+ Any questions? Feel free to contact us or check out our Privacy Policy and=
+ Terms of Use.   |
+
+=20
+|  Marktplaats B.V (trading as Gumtree Ltd), Wibautstraat 224-2, 1097 Amste=
+rdam, DN, The Netherlands
+ Copyright =C2=A9 2007-2016 eBay. All Rights Reserved.  |
+
+ |
+
+ @media {#yiv3239173883 t {background-image:url('https://giamx8r4.emltrk.co=
+m/giamx8r4?p&d=3D[t5N5twtcnKWf2v6TjvIyPg]');}}#yiv3239173883 div.yiv3239173=
+883OutlookMessageHeader {background-image:url('https://giamx8r4.emltrk.com/=
+giamx8r4?f&d=3D[t5N5twtcnKWf2v6TjvIyPg]');}#yiv3239173883 table.yiv32391738=
+83moz-email-headers-table {background-image:url('https://giamx8r4.emltrk.co=
+m/giamx8r4?f&d=3D[t5N5twtcnKWf2v6TjvIyPg]');}#yiv3239173883 blockquote t {b=
+ackground-image:url('https://giamx8r4.emltrk.com/giamx8r4?f&d=3D[t5N5twtcnK=
+Wf2v6TjvIyPg]');}#yiv3239173883 #yiv3239173883MailContainerBody t {backgrou=
+nd-image:url('https://giamx8r4.emltrk.com/giamx8r4?f&d=3D[t5N5twtcnKWf2v6Tj=
+vIyPg]');} =20
+
+  
+------=_Part_396988_563477716.1471908380363
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<html><head></head><body><div style=3D"color:#000; background-color:#fff; f=
+ont-family:verdana, helvetica, sans-serif;font-size:13px"><div id=3D"yui_3_=
+16_0_ym19_1_1471781262953_63050"><span id=3D"yui_3_16_0_ym19_1_147178126295=
+3_63293">Hi Sheldon</span></div><div id=3D"yui_3_16_0_ym19_1_1471781262953_=
+63049"><span><br></span></div><div dir=3D"ltr" id=3D"yui_3_16_0_ym19_1_1471=
+781262953_63048"><span id=3D"yui_3_16_0_ym19_1_1471781262953_63199">It is s=
+till available and I am free to catch-up tonight (between 6.30 and 8.30pm) =
+at South Coogee, NSW..</span></div><div dir=3D"ltr" id=3D"yui_3_16_0_ym19_1=
+_1471781262953_63048"><span><br></span></div><div dir=3D"ltr" id=3D"yui_3_1=
+6_0_ym19_1_1471781262953_63048"><span id=3D"yui_3_16_0_ym19_1_1471781262953=
+_63200">I have 3 left and am selling them for $29 for one or all 3 for $80 =
+(let me know if you want 1 or all 3 and I'll get them ready for you).</span=
+></div><div dir=3D"ltr" id=3D"yui_3_16_0_ym19_1_1471781262953_63048"><span>=
+<br></span></div><div dir=3D"ltr" id=3D"yui_3_16_0_ym19_1_1471781262953_630=
+48"><span>Thanks</span></div><div dir=3D"ltr" id=3D"yui_3_16_0_ym19_1_14717=
+81262953_63048">Gloria</div><div dir=3D"ltr" id=3D"yui_3_16_0_ym19_1_147178=
+1262953_63048"><span><br></span></div><div dir=3D"ltr" id=3D"yui_3_16_0_ym1=
+9_1_1471781262953_63048"><span><br></span></div> <div class=3D"qtdSeparateB=
+R"><br><br></div><div class=3D"yahoo_quoted" style=3D"display: block;"> <di=
+v style=3D"font-family: verdana, helvetica, sans-serif; font-size: 13px;"> =
+<div style=3D"font-family: HelveticaNeue, Helvetica Neue, Helvetica, Arial,=
+ Lucida Grande, Sans-Serif; font-size: 16px;"> <div dir=3D"ltr"><font size=
+=3D"2" face=3D"Arial"> On Tuesday, 23 August 2016, 8:00, Sheldon via Gumtre=
+e &lt;Buyer.1y6nbm2h065j2@users.gumtree.com.au&gt; wrote:<br></font></div> =
+ <br><br> <div class=3D"y_msg_container"><div id=3D"yiv3239173883">
+
+
+
+
+
+=09
+=09=09=20
+=09=09=20
+=09=09=20
+=09=09<title>Gumtree Australia</title>
+
+<style type=3D"text/css">
+#yiv3239173883 body {width:100%;margin-right:auto;margin-left:auto;backgrou=
+nd:#f3f2ef;}
+#yiv3239173883 * {}
+#yiv3239173883 .yiv3239173883ExternalClass * {line-height:100%;}#yiv3239173=
+883 =20
+#yiv3239173883 div, #yiv3239173883 p, #yiv3239173883 a, #yiv3239173883 li, =
+#yiv3239173883 td {}
+#yiv3239173883 table {border-collapse:collapse;}
+@media screen and (max-width:480px){
+#yiv3239173883 div, #yiv3239173883 span {padding:0;margin:0;}
+#yiv3239173883 body {width:100%;min-width:100%;position:relative;margin:0;p=
+adding:0;}
+#yiv3239173883 table[class=3Dyiv3239173883wrapper] {width:100% !important;b=
+order:none;}
+#yiv3239173883 table[class=3Dyiv3239173883wrapperInset] {width:92% !importa=
+nt;margin:0 4% 0 4% !important;}
+#yiv3239173883 table[class=3Dyiv3239173883wrapperXtra] {width:86% !importan=
+t;margin:0 7% 0 7% !important;}
+#yiv3239173883 td[class=3Dyiv3239173883gutters] {padding-left:0 !important;=
+padding-right:0 !important;}
+
+#yiv3239173883 =20
+#yiv3239173883 img[class=3Dyiv3239173883mobile_logo] {width:240px;min-heigh=
+t:auto;}
+#yiv3239173883 td[class=3Dyiv3239173883mobCenterTop] {text-align:center;pad=
+ding:0 12px 20px 12px !important;}
+
+#yiv3239173883 img[class=3Dyiv3239173883mgIcon] {width:45px !important;min-=
+height:auto !important;}
+#yiv3239173883 td[class=3Dyiv3239173883safe_logo] {width:55px !important;}
+#yiv3239173883 td[class=3Dyiv3239173883safe_logo] img {width:55px !importan=
+t;min-height:auto !important;}
+
+#yiv3239173883 td[class=3Dyiv3239173883share] {padding:12px 0px 5px 0 !impo=
+rtant;}
+#yiv3239173883 td[id=3Dyiv3239173883itunes] {padding:0 12px 0 0 !important;=
+}
+}
+</style>
+=09
+
+    <div>
+
+
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" bgco=
+lor=3D"#f3f2ef">
+    <tbody><tr><td align=3D"center" valign=3D"top" style=3D"padding:10px 0 =
+0 0;">
+        <table class=3D"yiv3239173883wrapperInset" width=3D"600" border=3D"=
+0" cellpadding=3D"0" cellspacing=3D"0" align=3D"center">
+            <tbody><tr><td><table width=3D"100%" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" align=3D"center" bgcolor=3D"#ffffff">
+                <tbody><tr><td>
+                    <table class=3D"yiv3239173883wrapper" border=3D"0" cell=
+padding=3D"0" cellspacing=3D"0" align=3D"left" width=3D"150">
+                        <tbody><tr><td width=3D"100%" align=3D"center" styl=
+e=3D"padding:12px 0 12px 0;"><a rel=3D"nofollow" target=3D"_blank" href=3D"=
+http://www.gumtree.com.au/?utm_source=3Dtransactional&amp;utm_medium=3Demai=
+l&amp;utm_campaign=3Dreply_message">
+                            <img class=3D"yiv3239173883mobile_logo" src=3D"=
+http://gumtree.classistatic.com/latest/img/email_assets/logo.jpg" alt=3D"Gu=
+mtree" width=3D"150" border=3D"0"></a>
+                        </td>
+                        </tr>
+                    </tbody></table>
+                    <table class=3D"yiv3239173883wrapper" border=3D"0" cell=
+padding=3D"0" cellspacing=3D"0" bgcolor=3D"#ffffff" align=3D"right" width=
+=3D"435">
+                        <tbody><tr><td style=3D"font-family:Arial, Helvetic=
+a, sans-serif;color:#000000;font-size:26px;padding:30px 20px 0px 0px;" clas=
+s=3D"yiv3239173883mobCenterTop">
+                            Sheldon replied to your ad <a rel=3D"nofollow" =
+target=3D"_blank" href=3D"http://www.gumtree.com.au/s-ad/south-coogee/misce=
+llaneous-goods/400-litre-bio-fill-foam-packing-peanut-loose-fill/1105617444=
+?utm_source=3Dtransactional&amp;utm_medium=3Demail&amp;utm_campaign=3Dreply=
+_message" style=3D"color:#92c000;">"400 Litre Bio-fill - foam packin..."</a=
+>
+                        </td>
+                        </tr>
+                    </tbody></table>
+                </td>
+                </tr>
+            </tbody></table>
+            </td>
+            </tr>
+            <tr>
+                <td bgcolor=3D"#ffffff">
+                    <table width=3D"90%" height=3D"1" border=3D"0" cellpadd=
+ing=3D"0" cellspacing=3D"0" align=3D"center" bgcolor=3D"#f3f2ef">
+                        <tbody><tr><td></td></tr>
+                    </tbody></table>
+                </td>
+            </tr>
+        </tbody></table>
+    </td>
+    </tr>
+</tbody></table>
+
+
+
+
+
+
+
+
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" bgco=
+lor=3D"#f3f2ef" align=3D"center">
+   =20
+    <tbody><tr><td align=3D"center" valign=3D"top" style=3D"padding:0px 0 0=
+ 0;">
+        <table class=3D"yiv3239173883wrapperInset" bgcolor=3D"#ffffff" widt=
+h=3D"600" border=3D"0" cellpadding=3D"0" cellspacing=3D"0">
+
+           =20
+<tbody><tr><td align=3D"center">
+    <table align=3D"center" width=3D"92%" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0">
+        <tbody><tr><td align=3D"left" style=3D"color:#000000;font-size:24px=
+;line-height:120%;font-family:Arial, Helvetica, Sans-serif;word-wrap:break-=
+word;padding:20px 0 0 0;">
+            <strong>Sheldon</strong>
+        </td>
+        </tr>
+        <tr>
+            <td align=3D"left" style=3D"color:#999999;font-size:14px;line-h=
+eight:120%;font-family:Arial, Helvetica, Sans-serif;word-wrap:break-word;pa=
+dding:4px 0 6px 0;">
+               =20
+            </td>
+
+        </tr>
+    </tbody></table>
+</td>
+</tr>
+           =20
+
+           =20
+<tr><td align=3D"center">
+    <table align=3D"center" width=3D"92%" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" bgcolor=3D"#f9faf4">
+        <tbody><tr><td align=3D"left" style=3D"color:#333333;font-size:14px=
+;line-height:120%;font-family:Arial, Helvetica, Sans-serif;word-wrap:break-=
+word;padding:20px 20px 20px 20px;">
+        Hi wondering if this is still available and if I could pick it up t=
+oday? Thanks.<br><br>Sent from my iPad
+        </td>
+        </tr>
+    </tbody></table>
+</td>
+</tr>
+           =20
+
+           =20
+    <tr><td align=3D"center" style=3D"color:#999999;font-size:12px;line-hei=
+ght:120%;font-family:Arial, Helvetica, Sans-serif;word-wrap:break-word;padd=
+ing:3px 20px 16px 20px;">
+        Respond by replying directly to this email
+    </td>
+    </tr>
+           =20
+
+
+           =20
+<tr><td align=3D"center" style=3D"padding:20px 0 20px 0;">
+    <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%">
+        <tbody><tr><td valign=3D"top">
+            <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=
+=3D"300" class=3D"yiv3239173883wrapper" align=3D"left">
+                <tbody><tr><td align=3D"center"><img src=3D"http://gumtree.=
+classistatic.com/latest/img/email_assets/myMessages.png" alt=3D"icon" width=
+=3D"35" class=3D"yiv3239173883mgIcon"></td></tr>
+                <tr><td align=3D"center" style=3D"color:#666666;font-size:1=
+4px;line-height:120%;font-family:Arial, Helvetica, Sans-serif;padding:5px 0=
+ 5px 0;">
+                    <b>My Messages</b>
+                </td>
+                </tr>
+                <tr><td align=3D"center" style=3D"color:#666666;font-size:1=
+3px;line-height:120%;font-family:Arial, Helvetica, Sans-serif;padding:0 40p=
+x 5px 40px;">
+                Now you can read and manage your messages online via <a rel=
+=3D"nofollow" target=3D"_blank" href=3D"http://www.gumtree.com.au/m-message=
+s.html?utm_source=3Dtransactional&amp;utm_medium=3Demail&amp;utm_campaign=
+=3Dreply_message">My Gumtree</a>.
+                </td>
+                </tr>
+            </tbody></table>
+           =20
+            <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=
+=3D"300" align=3D"right" class=3D"yiv3239173883wrapper" style=3D"border-lef=
+t:1px solid #f3f2ef;">
+                <tbody><tr><td align=3D"center"><img src=3D"http://gumtree.=
+classistatic.com/latest/img/email_assets/sold.png" alt=3D"icon" width=3D"35=
+" class=3D"yiv3239173883mgIcon"></td></tr>
+                <tr><td align=3D"center" style=3D"color:#666666;font-size:1=
+4px;line-height:120%;font-family:Arial, Helvetica, Sans-serif;padding:5px 0=
+ 5px 0;">
+                    <b>Already sold?</b>
+                </td>
+                </tr>
+                <tr><td align=3D"center" style=3D"color:#666666;font-size:1=
+3px;line-height:120%;font-family:Arial, Helvetica, Sans-serif;padding:0 40p=
+x 5px 40px;">
+                To stop getting emails, please <a rel=3D"nofollow" target=
+=3D"_blank" href=3D"http://www.gumtree.com.au/m-my-ad.html?adId=3D110561744=
+4&amp;utm_source=3Dtransactional&amp;utm_medium=3Demail&amp;utm_campaign=3D=
+reply_message">delete this ad</a>.
+                </td>
+                </tr>
+            </tbody></table>
+        </td>
+        </tr>
+    </tbody></table>
+</td>
+</tr>
+           =20
+
+        </tbody></table>
+    </td>
+    </tr>
+</tbody></table>
+
+
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" bgco=
+lor=3D"#f3f2ef" align=3D"center">
+    <tbody><tr><td align=3D"center" valign=3D"top" style=3D"padding:20px 0 =
+0 0;">
+        <table class=3D"yiv3239173883wrapperInset" bgcolor=3D"#ffffff" widt=
+h=3D"600" border=3D"0" cellpadding=3D"0" cellspacing=3D"0">
+            <tbody><tr><td align=3D"center" style=3D"padding:20px 0 20px 0;=
+">
+                <table align=3D"center" width=3D"92%" border=3D"0" cellpadd=
+ing=3D"0" cellspacing=3D"0">
+                    <tbody><tr><td width=3D"150" align=3D"center" class=3D"=
+yiv3239173883safe_logo">
+                        <img src=3D"http://gumtree.classistatic.com/latest/=
+img/email_assets/shield.png" alt=3D"Gumtree" width=3D"55" border=3D"0">
+                    </td>
+                        <td><table width=3D"100%" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0">
+                            <tbody><tr><td align=3D"left" style=3D"color:#6=
+66666;font-size:14px;line-height:120%;font-family:Arial, Helvetica, Sans-se=
+rif;padding:0 0 9px 0;">
+                                <strong>Stay safe when you=E2=80=99re selli=
+ng!</strong>
+                            </td>
+                            </tr>
+                            <tr><td><table width=3D"100%" border=3D"0" cell=
+padding=3D"0" cellspacing=3D"0">
+                                <tbody><tr><td align=3D"left" valign=3D"top=
+" style=3D"color:#666666;font-size:14px;line-height:120%;font-family:Arial,=
+ Helvetica, Sans-serif;padding:0 8px 0 0;">
+                                    =E2=80=A2
+                                </td>
+                                    <td align=3D"left" style=3D"color:#6666=
+66;font-size:13px;line-height:120%;font-family:Arial, Helvetica, Sans-serif=
+;padding:0 0 0 0;">
+                                        Please <a rel=3D"nofollow" target=
+=3D"_blank" href=3D"http://www.gumtree.com.au/report-spam-email.html?raspd=
+=3D1105617444_=3D_rojvo:ir1evlkq_=3D_6mMGOlVoUXh4eL-x_drQcQ" style=3D"color=
+:#397400;">report suspicious email</a>
+                                        to us immediately
+                                    </td>
+                                </tr>
+                                <tr><td align=3D"left" valign=3D"top" style=
+=3D"color:#666666;font-size:14px;line-height:120%;font-family:Arial, Helvet=
+ica, Sans-serif;padding:0 8px 0 0;">
+                                    =E2=80=A2
+                                </td>
+                                    <td align=3D"left" style=3D"color:#6666=
+66;font-size:13px;line-height:120%;font-family:Arial, Helvetica, Sans-serif=
+;padding:0 0 0 0;">
+                                        Don't send money - exchange in pers=
+on and follow our
+                                        <a rel=3D"nofollow" target=3D"_blan=
+k" href=3D"http://www.gumtree.com.au/scam-security-centre/?utm_source=3Dtra=
+nsactional&amp;utm_medium=3Demail&amp;utm_campaign=3Dreply_message" style=
+=3D"color:#397400;">safety tips</a>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            </td>
+                            </tr>
+                        </tbody></table>
+                        </td>
+                    </tr>
+                </tbody></table>
+            </td>
+            </tr>
+        </tbody></table>
+    </td>
+    </tr>
+</tbody></table>
+
+
+
+
+
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" bgco=
+lor=3D"#f3f2ef" align=3D"center">
+    <tbody><tr><td align=3D"center">
+        <table class=3D"yiv3239173883wrapper" width=3D"600" border=3D"0" ce=
+llpadding=3D"0" cellspacing=3D"0" align=3D"center" style=3D"border-collapse=
+:collapse;">
+            <tbody><tr><td style=3D"padding:10px 0px 10px 0px;">
+                <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" cla=
+ss=3D"yiv3239173883wrapper" style=3D"border-collapse:collapse;" align=3D"le=
+ft" width=3D"200">
+
+                    <tbody><tr><td align=3D"center" nowrap=3D"" style=3D"fo=
+nt-family:Arial, Helvetica, sans-serif;color:#2c2d2a;font-size:13px;padding=
+:0px 0px 5px 30px;" class=3D"yiv3239173883share"><strong>Download the Gumtr=
+ee app:</strong></td></tr>
+                    <tr><td><table align=3D"center" border=3D"0" cellpaddin=
+g=3D"0" cellspacing=3D"0" style=3D"border-collapse:collapse;">
+                        <tbody><tr><td style=3D"padding:0 12px 0 30px;" id=
+=3D"yiv3239173883itunes"><a rel=3D"nofollow" target=3D"_blank" href=3D"http=
+://itunes.apple.com/au/app/mygumtree-free-local-classifieds/id336693856?mt=
+=3D8"><img src=3D"http://gumtree.classistatic.com/latest/img/email_assets/a=
+ppstore.png" alt=3D"App Store" height=3D"30" border=3D"0"></a></td>
+                            <td><a rel=3D"nofollow" target=3D"_blank" href=
+=3D"https://play.google.com/store/apps/details?id=3Dcom.ebay.gumtree.au"><i=
+mg src=3D"http://gumtree.classistatic.com/latest/img/email_assets/googlePla=
+y.png" alt=3D"Google Play" height=3D"30" border=3D"0"></a></td>
+                        </tr>
+                    </tbody></table></td>
+                    </tr>
+                </tbody></table>
+                <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" cla=
+ss=3D"yiv3239173883wrapper" style=3D"border-collapse:collapse;" align=3D"ri=
+ght" width=3D"205">
+                    <tbody><tr><td style=3D"font-family:Arial, Helvetica, s=
+ans-serif;color:#2c2d2a;font-size:13px;padding:0 12px 5px 0;" align=3D"cent=
+er" class=3D"yiv3239173883share"><strong>Share your ad and follow us:</stro=
+ng></td></tr>
+                    <tr><td><table border=3D"0" cellpadding=3D"0" cellspaci=
+ng=3D"0" align=3D"center">
+                        <tbody><tr><td style=3D"padding:0 12px 0 0;"><a rel=
+=3D"nofollow" target=3D"_blank" href=3D"https://www.facebook.com/GumtreeAus=
+tralia"><img src=3D"http://gumtree.classistatic.com/latest/img/email_assets=
+/facebook.png" alt=3D"Facebook" width=3D"29" height=3D"30" border=3D"0" sty=
+le=3D"display:block;"></a></td>
+                            <td style=3D"padding:0 12px 0 0;"><a rel=3D"nof=
+ollow" target=3D"_blank" href=3D"https://twitter.com/gumtreeau"><img src=3D=
+"http://gumtree.classistatic.com/latest/img/email_assets/twitter.png" alt=
+=3D"Twitter" width=3D"29" height=3D"30" border=3D"0" style=3D"display:block=
+;"></a></td>
+                            <td style=3D"padding:0 12px 0 0;"><a rel=3D"nof=
+ollow" target=3D"_blank" href=3D"http://www.youtube.com/user/GumtreeAustral=
+ia"><img src=3D"http://gumtree.classistatic.com/latest/img/email_assets/you=
+tube.png" alt=3D"Youtube" width=3D"29" height=3D"30" border=3D"0" style=3D"=
+display:block;"></a></td>
+                            <td style=3D"padding:0 12px 0 0;"><a rel=3D"nof=
+ollow" target=3D"_blank" href=3D"https://plus.google.com/+gumtreeaustralia"=
+><img src=3D"http://gumtree.classistatic.com/latest/img/email_assets/google=
+Plus.png" alt=3D"Google +" width=3D"29" height=3D"30" border=3D"0" style=3D=
+"display:block;"></a></td>
+                            <td style=3D"padding:0 12px 0 0;"><a rel=3D"nof=
+ollow" target=3D"_blank" href=3D"http://www.pinterest.com/gumtreeau/"><img =
+src=3D"http://gumtree.classistatic.com/latest/img/email_assets/pintrest.png=
+" alt=3D"Pinterest" width=3D"29" height=3D"30" border=3D"0" style=3D"displa=
+y:block;"></a></td>
+                        </tr>
+                    </tbody></table></td>
+                    </tr>
+                </tbody></table></td>
+            </tr>
+        </tbody></table></td>
+    </tr>
+</tbody></table>
+
+<table width=3D"100%" cellpadding=3D"0" cellspacing=3D"0" border=3D"0" alig=
+n=3D"center" bgcolor=3D"#f3f2ef">
+    <tbody><tr><td align=3D"center">
+        <table cellpadding=3D"0" cellspacing=3D"0" border=3D"0" width=3D"60=
+0" class=3D"yiv3239173883wrapper" align=3D"center">
+            <tbody><tr><td align=3D"center" style=3D"padding:10px 20px 10px=
+ 20px;font-family:Arial, Helvetica, sans-serif;font-size:11px;color:#000;li=
+ne-height:18px;">
+                <em>This email has landed in your inbox because you've subs=
+cribed to get emails from Gumtree (officially Marktplaats B.V, trading as <=
+a rel=3D"nofollow" target=3D"_blank" href=3D"http://www.gumtree.com.au/?utm=
+_source=3Dtransactional&amp;utm_medium=3Demail&amp;utm_campaign=3Dreply_mes=
+sage" style=3D"color:#397400;text-decoration:underline;">gumtree.com.au</a>=
+).<br>
+                    Any questions? Feel free to <a rel=3D"nofollow" target=
+=3D"_blank" href=3D"https://help.gumtree.com.au/?utm_source=3Dtransactional=
+&amp;utm_medium=3Demail&amp;utm_campaign=3Dreply_message" style=3D"color:#3=
+97400;text-decoration:underline;"><strong>contact us</strong></a> or check =
+out our <a rel=3D"nofollow" target=3D"_blank" href=3D"http://www.gumtree.co=
+m.au/scam-security-centre/policies-guidelines/privacy-policy/?utm_source=3D=
+transactional&amp;utm_medium=3Demail&amp;utm_campaign=3Dreply_message" styl=
+e=3D"color:#397400;text-decoration:underline;"><strong>Privacy Policy</stro=
+ng></a> and <a rel=3D"nofollow" target=3D"_blank" href=3D"http://www.gumtre=
+e.com.au/scam-security-centre/policies-guidelines/gumtree-terms-of-use/?utm=
+_source=3Dtransactional&amp;utm_medium=3Demail&amp;utm_campaign=3Dreply_mes=
+sage" style=3D"color:#397400;text-decoration:underline;"><strong>Terms of U=
+se</strong></a>.
+                </em>
+            </td>
+            </tr>
+        </tbody></table>
+        <table cellpadding=3D"0" cellspacing=3D"0" border=3D"0" width=3D"60=
+0" class=3D"yiv3239173883wrapper" align=3D"center">
+            <tbody><tr>
+                <td style=3D"padding:10px 20px 10px 20px;font-family:Arial,=
+ Helvetica, sans-serif;font-size:11px;color:#000;line-height:18px;border-to=
+p:2px #d7d7bd solid;" align=3D"center">
+                    Marktplaats B.V (trading as Gumtree Ltd), Wibautstraat =
+224-2, 1097 Amsterdam, DN, The Netherlands<br>
+                    Copyright =C2=A9 2007-2016 eBay. All Rights Reserved.
+                </td>
+            </tr>
+        </tbody></table></td>
+    </tr>
+</tbody></table>
+    <style>
+@media {
+#yiv3239173883 t {
+background-image:url('https://giamx8r4.emltrk.com/giamx8r4?p&d=3D[t5N5twtcn=
+KWf2v6TjvIyPg]');}
+}
+#yiv3239173883 div.yiv3239173883OutlookMessageHeader {
+background-image:url('https://giamx8r4.emltrk.com/giamx8r4?f&d=3D[t5N5twtcn=
+KWf2v6TjvIyPg]');}
+#yiv3239173883 table.yiv3239173883moz-email-headers-table {
+background-image:url('https://giamx8r4.emltrk.com/giamx8r4?f&d=3D[t5N5twtcn=
+KWf2v6TjvIyPg]');}
+#yiv3239173883 blockquote t {
+background-image:url('https://giamx8r4.emltrk.com/giamx8r4?f&d=3D[t5N5twtcn=
+KWf2v6TjvIyPg]');}
+#yiv3239173883 #yiv3239173883MailContainerBody t {
+background-image:url('https://giamx8r4.emltrk.com/giamx8r4?f&d=3D[t5N5twtcn=
+KWf2v6TjvIyPg]');}
+</style>
+    <div id=3D"yiv3239173883_t"></div>
+    <img src=3D"https://giamx8r4.emltrk.com/giamx8r4?d=3D[t5N5twtcnKWf2v6Tj=
+vIyPg]" width=3D"1" height=3D"1" border=3D"0">
+
+</div>
+
+
+</div><br><br></div>  </div> </div>  </div></div></body></html>
+------=_Part_396988_563477716.1471908380363--

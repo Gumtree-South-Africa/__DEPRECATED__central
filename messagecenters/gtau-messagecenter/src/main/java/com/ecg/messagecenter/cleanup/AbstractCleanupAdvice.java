@@ -28,23 +28,27 @@ public abstract class AbstractCleanupAdvice implements CleanupAdvice {
 
     @Override
     public boolean isLineQuoted(int index) {
-        return quoted[index];
+        if(index < cleaned.length)
+            return quoted[index];
+        return false;
     }
 
     @Override
     public boolean isLineCleaned(int index) {
-        return cleaned[index];
+        if(index < cleaned.length)
+            return cleaned[index];
+        return false;
     }
 
     public void quoteByLine(LineAdvice lineAdvice) {
-        for (com.ecg.messagecenter.cleanup.Text.Line line : text.lines) {
+        for (Text.Line line : text.lines) {
             if (lineAdvice.isQuoted(line)) {
                 this.markQuoted(line.originalIndex);
             }
         }
     }
     public void cleanByLine(LineAdvice lineAdvice) {
-        for (com.ecg.messagecenter.cleanup.Text.Line line : text.lines) {
+        for (Text.Line line : text.lines) {
             if (lineAdvice.isQuoted(line)) {
                 this.markCleaned(line.originalIndex);
             }
@@ -52,6 +56,6 @@ public abstract class AbstractCleanupAdvice implements CleanupAdvice {
     }
 
     public interface LineAdvice {
-        public boolean isQuoted(com.ecg.messagecenter.cleanup.Text.Line line);
+        public boolean isQuoted(Text.Line line);
     }
 }

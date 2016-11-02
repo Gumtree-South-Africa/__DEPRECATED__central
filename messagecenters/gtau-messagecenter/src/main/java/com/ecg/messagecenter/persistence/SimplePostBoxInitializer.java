@@ -45,8 +45,11 @@ public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<C
           Optional.ofNullable(conversation.getCustomValues().get("buyer-name")),
           Optional.ofNullable(conversation.getCustomValues().get("seller-name")),
           Optional.ofNullable(conversation.getBuyerId()),
+          Optional.ofNullable(conversation.getSellerId()),
           Optional.ofNullable(lastMessage.getMessageDirection().name()),
           Optional.ofNullable(MessageType.getRobot(lastMessage)),
-          Optional.ofNullable(MessageType.getOffer(lastMessage)));
+          Optional.ofNullable(MessageType.getOffer(lastMessage)),
+          lastMessage.getAttachmentFilenames(),
+          Optional.ofNullable(lastMessage.getId()));
     }
 }

@@ -164,6 +164,8 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations.size()", equalTo(1))
                 .body("body.conversations[0].unread", equalTo(true))
                 .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer."))
+                .body("body.conversations[0].buyerId", equalTo("buyer11@buyer.com"))
+                .body("body.conversations[0].sellerId", equalTo("seller11@seller.com"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller11@seller.com");
 
         RestAssured.given()

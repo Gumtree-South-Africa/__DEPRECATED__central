@@ -7,8 +7,8 @@ import java.util.regex.Pattern;
  */
 public class CleanSignatureLinesAdvice extends AbstractCleanupAdvice {
     private static final Pattern[] SIGNATURE_PATTERNS = {
-            Pattern.compile("sent from (iphone|ipad|windows mail|samsung (mobile|tablet)|HTC)", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("sent from my (iphone|ipad|windows mail|samsung (mobile|tablet)|HTC)", Pattern.CASE_INSENSITIVE)
+            Pattern.compile("sent from (iphone|ipad|windows mail|samsung (mobile|tablet)|HTC).*", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("sent from my (iphone|ipad|windows mail|samsung (mobile|tablet)|HTC).*", Pattern.CASE_INSENSITIVE)
     };
 
     public CleanSignatureLinesAdvice(Text text) {

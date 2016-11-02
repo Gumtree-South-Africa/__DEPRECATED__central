@@ -4,6 +4,7 @@ import com.ecg.messagecenter.persistence.simple.AbstractPostBoxToJsonConverter;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
@@ -49,6 +50,9 @@ public class PostBoxToJsonConverter implements AbstractPostBoxToJsonConverter<Co
             if (thread.getBuyerId().isPresent()) {
                 builder.attr("buyerId", thread.getBuyerId().get());
             }
+            if (thread.getSellerId().isPresent()) {
+                builder.attr("sellerId", thread.getSellerId().get());
+            }
             if (thread.getMessageDirection().isPresent()) {
                 builder.attr("messageDirection", thread.getMessageDirection().get());
             }
@@ -58,11 +62,25 @@ public class PostBoxToJsonConverter implements AbstractPostBoxToJsonConverter<Co
             if (thread.getOfferId().isPresent()) {
                 builder.attr("offerId", thread.getOfferId().get());
             }
+            if (CollectionUtils.isNotEmpty(thread.getLastMessageAttachments())) {
+                builder.attr("lastMessageAttachments", attachments(thread.getLastMessageAttachments()));
+            }
+            if (thread.getLastMessageId().isPresent()) {
+                builder.attr("lastMessageId", thread.getLastMessageId().get());
+            }
 
             threads.add(builder.build());
         }
 
         return threads;
+    }
+
+    private ArrayNode attachments(List<String> lastMessageAttachments) {
+        final ArrayNode attachments = JsonObjects.newJsonArray();
+        for (String attachment : lastMessageAttachments) {
+            attachments.add(attachment);
+        }
+        return attachments;
     }
 
     private Long nullSafeMillis(DateTime dateTime) {
