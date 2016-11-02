@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.embedded.EmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
 @Configuration
 @PropertySource("discovery.properties")
 @EnableDiscoveryClient
-@EnableAutoConfiguration(exclude = FreeMarkerAutoConfiguration.class)
+@EnableAutoConfiguration(exclude = {FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class})
 @Import(ConsulConfigBootstrapConfiguration.class)
 @ConditionalOnExpression("#{'${service.configuration.enabled:false}' == 'true' || '${service.discovery.enabled:false}' == 'true'}")
 public class CloudDiscoveryConfiguration {
