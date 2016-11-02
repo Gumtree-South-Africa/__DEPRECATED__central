@@ -150,6 +150,16 @@ public class RobotService {
                 .addHeader(Header.ReplyChannel.key, Header.ReplyChannel.value);
 
         builder.addHeader(Header.MessageLinks.key, JSONSerializer.toJSON(payload.getLinks()).toString());
+
+        // Does the payload have a sender detail?
+        if (payload.getSender() != null) {
+            builder.addHeader(Header.MessageSender.key, JSONSerializer.toJSON(payload.getSender()).toString());
+        }
+
+        // Does the payload have a rich message?
+        addRichMessageDetailsToHeader(builder, payload.getRichTextMessage(), Header.RichTextMessage, Header.RichTextLinks);
+
+
         conversation.applyCommand(builder.build());
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
@@ -159,7 +169,7 @@ public class RobotService {
         moderationService.changeMessageState(conversation, messageId, new ModerationAction(ModerationResultState.GOOD, Optional.<String>absent()));
     }
 
-    private Mail aRobotMail(Conversation conversation, MessagePayload payload) throws MimeException {
+    protected Mail aRobotMail(Conversation conversation, MessagePayload payload) throws MimeException {
         Message mail = new DefaultMessageBuilder().newMessage();
         org.apache.james.mime4j.dom.Header header = new HeaderImpl();
         mail.setFrom(AddressBuilder.DEFAULT.parseMailbox(Header.From.value));
@@ -172,8 +182,33 @@ public class RobotService {
         header.addField(buildHeader(Header.Ad.key, conversation.getAdId()));
         header.addField(buildHeader(Header.ReplyChannel.key, Header.ReplyChannel.value));
         header.addField(buildHeader(Header.MessageLinks.key, JSONSerializer.toJSON(payload.getLinks()).toString()));
+        if (payload.getSender() != null) {
+            header.addField(buildHeader(Header.MessageSender.key, JSONSerializer.toJSON(payload.getSender()).toString()));
+        }
+        addRichMessageHeaderToMail(header, payload.getRichTextMessage(), Header.RichTextMessage, Header.RichTextLinks);
+
         mail.setHeader(header);
         return new StructuredMail(mail);
+    }
+
+    private void addRichMessageHeaderToMail(org.apache.james.mime4j.dom.Header header,
+                                            MessagePayload.RichMessage richMessage,
+                                            Header messageHeader, Header linksHeader) throws MimeException {
+        if (richMessage == null) {
+            return;
+        }
+
+        header.addField(buildHeader(messageHeader.key, richMessage.getRichMessageText()));
+        header.addField(buildHeader(linksHeader.key, JSONSerializer.toJSON(richMessage.getLinks()).toString()));
+    }
+
+    private void addRichMessageDetailsToHeader(AddMessageCommandBuilder builder, MessagePayload.RichMessage message,
+                                               Header messageHeader, Header linksHeader) {
+        if (message == null) {
+            return;
+        }
+        builder.addHeader(messageHeader.key, message.getRichMessageText());
+        builder.addHeader(linksHeader.key, JSONSerializer.toJSON(message.getLinks()).toString());
     }
 
     private ParsedField buildHeader(String key, String value) throws MimeException {
@@ -186,7 +221,10 @@ public class RobotService {
         Ad("X-ADID", "0000"),
         Subject("Subject", "Gumtree Robot"),
         ReplyChannel("X-Reply-Channel", "gumbot"),
-        MessageLinks("X-Message-Links", "{}");
+        MessageLinks("X-Message-Links", "{}"),
+        RichTextMessage("X-RichText-Message", ""),
+        RichTextLinks("X-RichText-Links", "{}"),
+        MessageSender("X-Message-Sender", "{}");
 
         private String key;
         private String value;

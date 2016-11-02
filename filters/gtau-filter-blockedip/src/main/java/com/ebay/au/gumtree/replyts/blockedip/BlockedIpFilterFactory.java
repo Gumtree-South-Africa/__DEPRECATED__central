@@ -10,7 +10,7 @@ import javax.sql.DataSource;
 /**
  * @author mdarapour
  */
-class BlockedIpFilterFactory implements FilterFactory {
+public class BlockedIpFilterFactory implements FilterFactory {
     private DataSource datasource;
 
     public BlockedIpFilterFactory(DataSource datasource) {

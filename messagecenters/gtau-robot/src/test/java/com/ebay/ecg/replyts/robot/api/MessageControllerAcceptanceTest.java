@@ -185,6 +185,8 @@ public class MessageControllerAcceptanceTest {
         ));
         rule.waitForMail();
 
+        Thread.sleep(1000);
+
         RestAssured.given()
                 .expect()
                 .statusCode(200)

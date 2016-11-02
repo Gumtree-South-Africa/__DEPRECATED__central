@@ -4,6 +4,7 @@ import com.ebay.ecg.australia.events.entity.Entities;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MessagePayload {
@@ -11,6 +12,8 @@ public class MessagePayload {
     private String message;
     private String messageDirection;
     private List<Link> links;
+    private MessageSender sender;
+    private RichMessage richTextMessage;
 
     public String getMessage() {
         return message;
@@ -20,9 +23,13 @@ public class MessagePayload {
         this.message = message;
     }
 
-    public String getMessageDirection() { return messageDirection; }
+    public String getMessageDirection() {
+        return messageDirection;
+    }
 
-    public void setMessageDirection(String messageDirection) { this.messageDirection = messageDirection; }
+    public void setMessageDirection(String messageDirection) {
+        this.messageDirection = messageDirection;
+    }
 
     public MessageDirection getMessageDirectionEnum() {
         if (messageDirection.equals(MessageDirection.BUYER_TO_SELLER.name())) {
@@ -49,9 +56,25 @@ public class MessagePayload {
             links.clear();
         }
 
-        for(Entities.MessageLinkInfo link : messageLinks) {
+        for (Entities.MessageLinkInfo link : messageLinks) {
             this.links.add(new Link(link.getUrl(), link.getType().name(), link.getBeginIndex(), link.getEndIndex()));
         }
+    }
+
+    public MessageSender getSender() {
+        return sender;
+    }
+
+    public void setSender(MessageSender sender) {
+        this.sender = sender;
+    }
+
+    public RichMessage getRichTextMessage() {
+        return richTextMessage;
+    }
+
+    public void setRichTextMessage(RichMessage richTextMessage) {
+        this.richTextMessage = richTextMessage;
     }
 
     public static class Link {
@@ -84,5 +107,32 @@ public class MessagePayload {
         }
     }
 
+    public static class RichMessage {
+        private String richMessageText;
+        private List<Link> links = new ArrayList<>();
 
+        public String getRichMessageText() {
+            return richMessageText;
+        }
+
+        public void setRichMessageText(String richMessageText) {
+            this.richMessageText = richMessageText;
+        }
+
+        public List<Link> getLinks() {
+            return links;
+        }
+
+        public void replaceLinks(List<Entities.MessageLinkInfo> messageLinks) {
+            if (links == null) {
+                links = Lists.newArrayList();
+            } else {
+                links.clear();
+            }
+
+            for (Entities.MessageLinkInfo link : messageLinks) {
+                this.links.add(new Link(link.getUrl(), link.getType().name(), link.getBeginIndex(), link.getEndIndex()));
+            }
+        }
+    }
 }

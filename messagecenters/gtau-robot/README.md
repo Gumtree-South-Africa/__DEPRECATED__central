@@ -1,7 +1,7 @@
 # gtau-robot
 
 Originally taken from https://github.corp.ebay.com/GumtreeAU/gumtree-au-robot
-(original git hash: 086eb6155aef63bda803e879f472b0d8f7991361)
+(original git hash: 575b34e62d46e65dec4e26f716adbd1b7ff9a907)
 
 # Description
 

@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * @author mdarapour
  */
-class BlockedIpFilter implements Filter {
+public class BlockedIpFilter implements Filter {
     public static final String IP_ADDR_HEADER = "X-Cust-Ip";
 
     private static final List<FilterFeedback> OK_OUTCOME_NO_SCORE = Collections.emptyList();

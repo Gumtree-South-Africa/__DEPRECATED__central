@@ -367,6 +367,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <mysql-connector-version>5.1.18</mysql-connector-version>
+        <hikaricp.version>2.4.7</hikaricp.version>
         <c3p0-version>0.9.1.2</c3p0-version>
         <ebay-services-version>0.10</ebay-services-version>
         <libphonenumber-version>7.0.10</libphonenumber-version>
@@ -379,7 +380,7 @@
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
-        <gumtree-au-events.version>1.24</gumtree-au-events.version>
+        <gumtree-au-events.version>1.33</gumtree-au-events.version>
         <wiremock.version>1.58</wiremock.version>
 
         <!-- mde artifact versions -->
@@ -640,6 +641,11 @@
                 <groupId>ca.kijiji</groupId>
                 <artifactId>kijiji-tracing</artifactId>
                 <version>${kjca-tracing.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>${hikaricp.version}</version>
             </dependency>
 
             <dependency>

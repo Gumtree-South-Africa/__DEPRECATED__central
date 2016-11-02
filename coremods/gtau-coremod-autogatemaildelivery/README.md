@@ -1,7 +1,7 @@
 # gtau-coremod-autogatemaildelivery
 
 Originally taken from https://github.corp.ebay.com/GumtreeAU/replyts2-autogate-maildelivery
-(original git hash: 01710a83ba6d9d160130bccc608ec859e1133bab)
+(original git hash: 90b0436bf15e234060d2b8a716360cea75de89c5)
 
 # Description
 

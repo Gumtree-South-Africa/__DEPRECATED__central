@@ -1,7 +1,7 @@
 # gtau-filter-blockedip
 
 Originally taken from https://github.corp.ebay.com/GumtreeAU/replyts2-blockedipfilter-plugin
-(original git hash: b1d2e69b6eb0697543b37fc4ae0ba10ff70cca13)
+(original git hash: e17bd0c0c972cc6d3a81245623e9cb791caf25c2)
 
 # Description
 
