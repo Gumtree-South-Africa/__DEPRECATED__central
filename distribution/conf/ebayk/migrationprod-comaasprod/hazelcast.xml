@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <group>
-        <name>replyts_ebayk</name>a
+        <name>replyts_ebayk</name>
         <password>welskdjfoghi0t435345r8wer9859348</password>
     </group>
 
@@ -14,7 +14,7 @@
     </properties>
 
     <network>
-        <port auto-increment="false">>5701</port>
+        <port auto-increment="false">5701</port>
         <join>
             <multicast enabled="false"></multicast>
             <tcp-ip enabled="true">
