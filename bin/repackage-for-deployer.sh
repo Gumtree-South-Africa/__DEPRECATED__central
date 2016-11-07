@@ -39,8 +39,8 @@ function repackage() {
 
   REPACKAGED_ARTIFACT_NAME="comaas-${TENANT}_fordeployer-${ENV}-${TIMESTAMP}-${GIT_HASH}"
   ARTIFACT_NAME="distribution-${TENANT}-${ENV}"
-
   cd distribution/target
+  mkdir -p repackage
   tar xvfz $ARTIFACT$FILEEXT
   cd distribution
   rm -rf conf
@@ -50,8 +50,10 @@ function repackage() {
   sed -i'.bak' "s~/conf ~/conf-${TENANT} ~" bin/comaas
   cd ..
   # now in distribution/target/
-  mv distribution ${REPACKAGED_ARTIFACT_NAME}
-  tar czf $WORKSPACE/${REPACKAGED_ARTIFACT_NAME}.tar.gz -C ${REPACKAGED_ARTIFACT_NAME} .
+  mkdir -p repackage/${REPACKAGED_ARTIFACT_NAME}/
+  mv distribution/* repackage/${REPACKAGED_ARTIFACT_NAME}/
+  tar czf $WORKSPACE/${REPACKAGED_ARTIFACT_NAME}.tar.gz -C repackage .
+
   echo "Created ${WORKSPACE}/${REPACKAGED_ARTIFACT_NAME}.tar.gz"
 }
 
