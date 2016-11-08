@@ -152,7 +152,7 @@ function main() {
 function usage() {
 cat << EOF
 Usage:
-    Run Comaas for TENANT where TENANT one of ebayk,mp,mde,kjca,gtau
+    Run Comaas for TENANT where TENANT one of ebayk,mp,mde,kjca,gtau,bt
     Make sure to create a 'bare' package first (e.g. ./bin/build.sh -T mp -P bare)
 
 Example:

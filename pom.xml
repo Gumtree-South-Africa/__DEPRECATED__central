@@ -278,6 +278,37 @@
                 <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>
         </profile>
+
+        <profile>
+            <id>bt</id>
+
+            <repositories>
+                <repository>
+                    <releases>
+                        <enabled>true</enabled>
+                        <updatePolicy>always</updatePolicy>
+                        <checksumPolicy>warn</checksumPolicy>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>bolt-nexus</id>
+                    <name>Bolt-Nexus</name>
+                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/groups/public</url>
+                    <layout>default</layout>
+                </repository>
+            </repositories>
+
+            <distributionManagement>
+                <repository>
+                    <id>bolt-nexus</id>
+                    <name>Bolt-Nexus</name>
+                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases</url>
+                    <layout>default</layout>
+                </repository>
+            </distributionManagement>
+        </profile>
+
     </profiles>
 
     <properties>
