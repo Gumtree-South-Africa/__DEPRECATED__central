@@ -272,6 +272,7 @@
 
                 <module>listeners/kjca-listener-dw</module>
                 <module>listeners/kjca-listener-user-behaviour</module>
+                <module>listeners/kjca-listener-adcounters</module>
 
                 <module>messagecenters/kjca-messagecenter</module>
 
