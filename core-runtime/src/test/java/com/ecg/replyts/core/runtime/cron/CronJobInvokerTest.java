@@ -58,7 +58,7 @@ public class CronJobInvokerTest {
     @Test
     public void registersMBeans() throws Exception {
         new CronJobInvoker(cje, srvc).invoke();
-        verify(cje, timeout(200)).execute();
+        verify(cje, timeout(5000)).execute();
     }
 
 }
