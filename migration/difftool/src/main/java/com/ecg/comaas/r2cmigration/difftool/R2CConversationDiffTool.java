@@ -143,7 +143,7 @@ public class R2CConversationDiffTool {
                         ConversationEvent cassConvEvent = cassConvEvents.get(i);
                         ConversationEvent riakConvEvent = riakConvEvents.get(i);
                         if (!cassConvEvent.equals(riakConvEvent)) {
-                            LOG.warn("NOT SAME: %s %n%s %n%n ", cassConvEvent, riakConvEvent);
+                            LOG.warn("NOT SAME: {} \n{} \n\n", cassConvEvent, riakConvEvent);
                             MISMATCH_LOG.info("convid: {}, eventid: {}", cassConvEvent, riakConvEvent);
                             isRiakMatchesCassandra = false;
                             RIAK_TO_CASS_EVENT_MISMATCH_COUNTER.inc();
