@@ -187,4 +187,11 @@ class StructuredMutableMail implements MutableMail {
     public TypedContent<byte[]> getAttachment(String filename) {
         return mail.getAttachment(filename);
     }
+
+    @Override
+    public String toString() {
+        return "StructuredMutableMail{" +
+                "mail=" + mail +
+                '}';
+    }
 }

@@ -8,6 +8,8 @@ import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +21,8 @@ import static org.junit.Assert.assertEquals;
  * @author mhuttar
  */
 public class VolumeFilterIntegrationTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(VolumeFilterIntegrationTest.class);
 
     private final Properties testProperties = new Properties() {{
         put("persistence.strategy", "riak");
@@ -82,14 +86,24 @@ public class VolumeFilterIntegrationTest {
                         "]}"));
 
         // Send 2 messages, hopefully within 8 seconds
-        String from = "foo" + System.currentTimeMillis() + "@bar.com";
+        long start = System.currentTimeMillis();
+        String from = "foo" + start + "@bar.com";
         for (int i = 0; i < 2; i++) {
             AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
             assertEquals(MessageState.SENT, response.getMessage().getState());
         }
+        long end = System.currentTimeMillis();
+
+        long elapsed = end-start;
+        if (elapsed < 7000) {
+            LOG.error("Flickering test alert: this might fail because sending 2 mails took {} milliseconds", elapsed);
+        }
 
         // We've now violated the quota, so sending another message should fail
         AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
+        if (!response.getMessage().getProcessingFeedback().isEmpty()) {
+            LOG.error("Flickering test alert, ProcessedMail is: \n" + response);
+        }
         assertEquals(1, response.getMessage().getProcessingFeedback().size());
 
         // Wait until the quota window has elapsed but the ttl on the in-memory violation store has not yet

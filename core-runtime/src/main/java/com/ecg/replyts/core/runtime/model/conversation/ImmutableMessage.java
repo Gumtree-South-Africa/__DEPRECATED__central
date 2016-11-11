@@ -152,6 +152,29 @@ public class ImmutableMessage implements Message {
         return textParts;
     }
 
+    @Override
+    public String toString() {
+        return "ImmutableMessage{" +
+                "id='" + id + '\'' +
+                ", messageDirection=" + messageDirection +
+                ", state=" + state +
+                ", receivedAt=" + receivedAt +
+                ", lastModifiedAt=" + lastModifiedAt +
+                ", senderMessageIdHeader='" + senderMessageIdHeader + '\'' +
+                ", inResponseToMessageId='" + inResponseToMessageId + '\'' +
+                ", filterResultState=" + filterResultState +
+                ", humanResultState=" + humanResultState +
+                ", headers=" + headers +
+                ", plainTextBody='" + plainTextBody + '\'' +
+                ", attachments=" + attachments +
+                ", textParts=" + textParts +
+                ", processingFeedback=" + processingFeedback +
+                ", lastEditor=" + lastEditor +
+                ", version=" + version +
+                ", eventTimeUUID=" + eventTimeUUID +
+                '}';
+    }
+
     public static final class Builder {
 
         private int version = 0;

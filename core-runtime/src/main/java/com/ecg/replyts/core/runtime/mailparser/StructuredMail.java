@@ -273,4 +273,13 @@ public class StructuredMail implements Mail {
         }
         throw new IllegalArgumentException(format("No such attachment found with file name '%s' for message '%s'", filename, mail.getMessageId()));
     }
+
+    @Override
+    public String toString() {
+        return "StructuredMail{" +
+                "mail=" + mail +
+                ", mailHeader=" + mailHeader +
+                ", mailBodyVisitingClient=" + mailBodyVisitingClient +
+                '}';
+    }
 }

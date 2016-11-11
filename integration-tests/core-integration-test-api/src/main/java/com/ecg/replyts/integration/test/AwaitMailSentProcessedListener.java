@@ -6,6 +6,8 @@ import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.integration.smtp.CapturingMailDeliveryService;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +58,11 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
 
         public Message getMessage() {
             return m;
+        }
+
+        @Override
+        public String toString() {
+            return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
         }
     }
 
