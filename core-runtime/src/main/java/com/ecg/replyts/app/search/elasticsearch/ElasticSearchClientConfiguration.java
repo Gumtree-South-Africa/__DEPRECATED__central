@@ -33,7 +33,7 @@ public class ElasticSearchClientConfiguration {
 
     @Autowired
     ElasticSearchClientConfiguration(@Value("${search.es.endpoints}") String endpoints, @Value("${search.es.clustername}") String clusterName) {
-        LOG.info("Productive ES Node configuration");
+        LOG.info("Productive ES Node configuration. endpoints: {}, clustername: {}", endpoints, clusterName);
         try {
             Settings settings = ImmutableSettings.settingsBuilder()
                     .put("cluster.name", clusterName).build();
