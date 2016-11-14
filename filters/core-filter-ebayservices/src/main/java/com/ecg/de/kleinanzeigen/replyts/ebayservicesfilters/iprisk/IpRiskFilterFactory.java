@@ -8,6 +8,8 @@ import de.mobile.ebay.service.IpRatingService;
 import de.mobile.ebay.service.impl.Config;
 import de.mobile.ebay.service.impl.IpRatingServiceImpl;
 import org.apache.http.client.HttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -19,10 +21,13 @@ import org.springframework.stereotype.Component;
 @Component
 class IpRiskFilterFactory implements FilterFactory {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(IpRiskFilterFactory.class);
+
     private final IpRatingService ipRatingService;
 
     @Autowired
     public IpRiskFilterFactory(HttpClient client, @Qualifier("esconfig-ipaddr") Config config) {
+        LOGGER.info("Configured proxy for IpRiskFilter: '{}'", config.proxyUrl());
         this.ipRatingService = new IpRatingServiceImpl(client, config);
     }
 

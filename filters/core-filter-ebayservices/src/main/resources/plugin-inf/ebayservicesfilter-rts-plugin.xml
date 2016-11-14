@@ -6,11 +6,15 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 
     <bean id="okHttpClientFactory" factory-bean="httpClientFactoryBuilder" factory-method="build"/>
 
+    <bean id="ebayservices.proxy" class="java.lang.String">
+        <constructor-arg value="#{systemEnvironment['http_proxy']?:'${replyts2-ebayservicesfilters-plugin.proxyurl:}'}"></constructor-arg>
+    </bean>
+
     <bean id="httpClientFactoryBuilder" class="de.mobile.ebay.service.lbs.HttpClientFactoryBuilder">
         <property name="maxTotalConnections" value="100" />
         <property name="connectionTimeout" value="3000" />
         <property name="socketTimeout" value="3000" />
-        <property name="proxyUrl" value="${replyts2-ebayservicesfilters-plugin.proxyurl:}" />
+        <property name="proxyUrl" ref="ebayservices.proxy" />
     </bean>
 
     <bean id="lbs-esconfig-ipc" class="de.mobile.ebay.service.lbs.ServiceConfigBean">
@@ -25,21 +29,22 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
         <property name="iafToken" value="${replyts2-ebayservicesfilters-plugin.ip.iaftoken}" />
         <property name="appName" value="${replyts2-ebayservicesfilters-plugin.ip.appname}" />
         <property name="endpointUrl" value="http://svcs.ebay.com/services/personalization/v1/TrackingGeoLocationService" />
-        <property name="proxyUrl" value="${replyts2-ebayservicesfilters-plugin.proxyurl:}" />
+        <property name="proxyUrl" ref="ebayservices.proxy" />
     </bean>
+
 
     <bean id="esconfig-ipaddr" class="de.mobile.ebay.service.impl.ServiceConfigBean">
         <property name="iafToken" value="${replyts2-ebayservicesfilters-plugin.ip.iaftoken}" />
         <property name="appName" value="${replyts2-ebayservicesfilters-plugin.ip.appname}" />
         <property name="endpointUrl" value="https://svcs.ebay.com/ws/spf" />
-        <property name="proxyUrl" value="${replyts2-ebayservicesfilters-plugin.proxyurl:}" />
+        <property name="proxyUrl" ref="ebayservices.proxy" />
     </bean>
 
     <bean id="esconfig-user" class="de.mobile.ebay.service.impl.ServiceConfigBean">
         <property name="iafToken" value="${replyts2-ebayservicesfilters-plugin.user.iaftoken}" />
         <property name="appName" value="${replyts2-ebayservicesfilters-plugin.user.appname}" />
         <property name="endpointUrl" value="https://svcs.ebay.com/ws/spf" />
-        <property name="proxyUrl" value="${replyts2-ebayservicesfilters-plugin.proxyurl:}" />
+        <property name="proxyUrl" ref="ebayservices.proxy" />
     </bean>
 
     <context:component-scan base-package="com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters"></context:component-scan>
