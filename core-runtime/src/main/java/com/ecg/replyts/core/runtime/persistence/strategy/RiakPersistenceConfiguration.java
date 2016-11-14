@@ -74,19 +74,19 @@ public class RiakPersistenceConfiguration {
     @Configuration
     @Profile({ ReplyTS.PRODUCTIVE_PROFILE, ReplyTS.MIGRATION_PROFILE })
     public static class RiakClientConfiguration {
-        @Value("${persistence.riak.idleConnectionTimeoutMs}")
+        @Value("${persistence.riak.idleConnectionTimeoutMs:60000}")
         private int idleConnectionTtlMs;
 
-        @Value("${persistence.riak.connectionTimeoutMs}")
+        @Value("${persistence.riak.connectionTimeoutMs:1000}")
         private int connectionTimeoutMs;
 
-        @Value("${persistence.riak.requestTimeoutMs}")
+        @Value("${persistence.riak.requestTimeoutMs:5000}")
         private int requestTimeoutMs;
 
-        @Value("${persistence.riak.connectionPoolSizePerRiakHost}")
+        @Value("${persistence.riak.connectionPoolSizePerRiakHost:1}")
         private int connectionPoolSizePerRiakHost;
 
-        @Value("${persistence.riak.maxConnectionsToRiakCluster}")
+        @Value("${persistence.riak.maxConnectionsToRiakCluster:1}")
         private int totalMaxConnectionsToRiakCluster;
 
         @Autowired

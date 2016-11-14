@@ -76,7 +76,7 @@ public class RiakHostConfig {
     }
 
     @Autowired
-    public RiakHostConfig(@Value("${persistence.riak.datacenter.primary.hosts:}")
+    public RiakHostConfig(@Value("${persistence.riak.datacenter.primary.hosts:localhost}")
                                   String riakHostsInPrimaryDatacenter,
                           @Value("${persistence.riak.pb.port:8087}")
                                   int protobufPort,
