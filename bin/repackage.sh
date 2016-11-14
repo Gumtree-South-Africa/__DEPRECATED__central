@@ -35,9 +35,20 @@ function repackage-mde-ebayk() {
    tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
    HOMEDIR=$PWD
    cd ${BUILDDIR}
-   md5sum ${PACKAGE_NAME}.tar.gz > ${PACKAGE_NAME}.tar.gz.md5
+   portable-md5 ${PACKAGE_NAME}.tar.gz > ${PACKAGE_NAME}.tar.gz.md5
    cd $HOMEDIR
    echo "Created package for $TENANT ${PACKAGE_BASE}.tar.gz"
+}
+
+function portable-md5() {
+  local PACKAGE=$1
+  if builtin command -v md5 > /dev/null; then
+    # mac osx
+    md5 -r ${PACKAGE}
+  else
+    # linux
+    md5sum ${PACKAGE}
+  fi
 }
 
 function repackage() {

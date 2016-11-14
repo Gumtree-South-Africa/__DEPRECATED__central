@@ -48,7 +48,7 @@ function package() {
     rm -rf distribution/target/distribution/conf
     mkdir distribution/target/distribution/conf-${TENANT}
     cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf-${TENANT}
-    sed -i "s~/conf ~/conf-${TENANT} ~" distribution/target/distribution/bin/comaas
+    sed -i.bak "s~/conf ~/conf-${TENANT} ~" distribution/target/distribution/bin/comaas
     mv distribution/target/distribution distribution/target/${ARTIFACT_NAME}
     tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/ ${ARTIFACT_NAME}
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
