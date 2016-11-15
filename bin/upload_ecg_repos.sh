@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -o nounset
+set -o errexit
+
 if [ $# -ne 4 ]; then
     echo "Usage: ${0##*/} <tenant> <package> <timestamp> <environment>" 1>&2
     exit 1
