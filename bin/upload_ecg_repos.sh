@@ -32,3 +32,5 @@ if ! curl --head -o /dev/null -svf "${DEST_URL}?$$.2"; then
     echo "Upload seems to have failed. Can't find ${DEST_URL}"
     exit 1
 fi
+
+echo "Successfully uploaded ${PACKAGE} to ${URL}"
