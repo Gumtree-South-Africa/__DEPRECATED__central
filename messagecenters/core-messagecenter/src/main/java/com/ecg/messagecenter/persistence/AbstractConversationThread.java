@@ -4,6 +4,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.util.Optional;
 
@@ -43,6 +44,7 @@ public abstract class AbstractConversationThread {
         Preconditions.checkNotNull(conversationId);
         Preconditions.checkNotNull(createdAt);
         Preconditions.checkNotNull(modifiedAt);
+        Preconditions.checkNotNull(receivedAt);
 
         this.adId = adId;
         this.conversationId = conversationId;
@@ -139,33 +141,35 @@ public abstract class AbstractConversationThread {
         if (receivedAt != null && that.receivedAt != null) {
             return pairsAreEqual(receivedAt.getMillis(), that.receivedAt.getMillis());
         }
+        // The difference is only in receivedAt at this point
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(
-                adId,
-                conversationId,
-                createdAt,
-                modifiedAt,
-                receivedAt,
-                containsUnreadMessages,
-                previewLastMessage,
-                buyerName,
-                sellerName,
-                buyerId,
-                messageDirection);
+        return Objects.hashCode(adId, conversationId, createdAt, modifiedAt, receivedAt, containsUnreadMessages, previewLastMessage, buyerName, sellerName, buyerId, messageDirection);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("modifiedAt", modifiedAt)
-                .add("createdAt", createdAt)
+                .add("modifiedAt", modifiedAt.toDateTime(DateTimeZone.UTC))
+                .add("createdAt", createdAt.toDateTime(DateTimeZone.UTC))
                 .add("adId", adId)
                 .add("conversationId", conversationId)
                 .add("containsUnreadMessages", containsUnreadMessages)
                 .toString();
+    }
+
+    public String fullToString() {
+        StringBuilder objstr = new StringBuilder(this.toString());
+        objstr.append(MoreObjects.toStringHelper(this)
+                .add("receivedAt", receivedAt!= null ? receivedAt.toDateTime(DateTimeZone.UTC) : "")
+                .add("previewLastMessage", previewLastMessage)
+                .add("buyerName", buyerName)
+                .add("sellerName", sellerName)
+                .add("buyerId", buyerId)
+                .add("messageDirection", messageDirection));
+        return objstr.toString();
     }
 }

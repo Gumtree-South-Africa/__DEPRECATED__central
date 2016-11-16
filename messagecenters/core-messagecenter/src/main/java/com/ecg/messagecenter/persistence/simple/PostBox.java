@@ -4,17 +4,15 @@ import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.Counter;
 import com.ecg.messagecenter.util.MessageCenterConstants;
 import com.ecg.replyts.core.api.util.Pairwise;
-import com.google.common.base.MoreObjects;
+import com.google.common.base.*;
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeComparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.joda.time.DateTime.now;
@@ -35,7 +33,7 @@ public class PostBox<T extends AbstractConversationThread> {
         Preconditions.checkNotNull(email);
         Preconditions.checkNotNull(conversationThreads);
         this.maxAgeDays = maxAgeDays;
-        this.conversationThreads = cleanupAndSortByReceivedDate(conversationThreads);
+        this.conversationThreads = cleanupAndSortByModificationCreationDate(conversationThreads);
         this.email = email.toLowerCase();
         this.newRepliesCounter = newRepliesCounter;
     }
@@ -50,8 +48,13 @@ public class PostBox<T extends AbstractConversationThread> {
                 .toList();
     }
 
-    public static final Comparator<AbstractConversationThread> MODIFICATION_DATE = (AbstractConversationThread c1, AbstractConversationThread c2) ->
-            c1.getModifiedAt().compareTo(c2.getModifiedAt());
+
+    public static final Comparator<AbstractConversationThread> RECEIVED_MODIFIED_CREATION_DATE = Comparator.comparing(
+            (AbstractConversationThread c) -> c.getReceivedAt().getMillis()).reversed()
+            .thenComparing(c -> c.getModifiedAt().getMillis()).reversed()
+            .thenComparing(c -> c.getCreatedAt().getMillis()).reversed()
+            // betting on the fact that there is at max two messages with the same modif, creation and preview
+            .thenComparing(c -> c.getPreviewLastMessage().orElse("0"));
 
     public Optional<T> removeConversation(String conversationId) {
         int indexToRemove = -1;
@@ -174,26 +177,37 @@ public class PostBox<T extends AbstractConversationThread> {
                 .collect(Collectors.toList());
     }
 
-    private List<T> cleanupAndSortByReceivedDate(List<T> conversationThreads) {
+    private List<T> cleanupAndSortByModificationCreationDate(List<T> conversationThreads) {
         List<T> sorted = cleanupExpiredConversations(conversationThreads);
-        Collections.sort(sorted, (T a, T b) -> DateTimeComparator.getInstance().compare(b.getReceivedAt(), a.getReceivedAt()));
+        Collections.sort(sorted, RECEIVED_MODIFIED_CREATION_DATE);
         return sorted;
     }
 
     @Override
     public String toString() {
+        Function<AbstractConversationThread, String> stringer = (AbstractConversationThread c) -> c.toString();
+        return toStringHelper(stringer);
+    }
+
+    private String toStringHelper(Function<AbstractConversationThread, String> stringer) {
         StringBuilder objstr = new StringBuilder(MoreObjects.toStringHelper(this)
                 .add("email", email)
                 .add("newRepliesCounter", newRepliesCounter.getValue()).toString());
 
         objstr.append("\nNumber of conversations " + conversationThreads.size() + "\n");
         List<AbstractConversationThread> cThreads = new ArrayList<>(conversationThreads);
-        Collections.sort(conversationThreads, MODIFICATION_DATE);
+        Collections.sort(conversationThreads, RECEIVED_MODIFIED_CREATION_DATE);
+
         for(AbstractConversationThread ct: cThreads) {
-            objstr.append(ct.toString());
+            objstr.append(stringer.apply(ct));
             objstr.append("\n");
         }
         return objstr.toString();
+    }
+
+    public String fullToString() {
+        Function<AbstractConversationThread, String> stringer = (AbstractConversationThread c) -> c.fullToString();
+        return toStringHelper(stringer);
     }
 
     @Override

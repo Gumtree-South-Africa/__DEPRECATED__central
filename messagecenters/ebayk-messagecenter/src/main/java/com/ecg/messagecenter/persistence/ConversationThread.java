@@ -3,6 +3,7 @@ package com.ecg.messagecenter.persistence;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
 import org.joda.time.DateTime;
 
 import java.util.Optional;
@@ -65,5 +66,40 @@ public class ConversationThread extends AbstractConversationThread {
 
     public Optional<Long> getUserIdBuyer() {
         return userIdBuyer;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ConversationThread that = (ConversationThread) o;
+        return Objects.equal(userIdBuyer, that.userIdBuyer) &&
+                Objects.equal(userIdSeller, that.userIdSeller);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), userIdBuyer, userIdSeller);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("{");
+        sb.append(super.toString());
+        sb.append("userIdBuyer=").append(userIdBuyer);
+        sb.append(", userIdSeller=").append(userIdSeller);
+        sb.append('}');
+        return sb.toString();
+    }
+
+    @Override
+    public String fullToString() {
+        final StringBuilder sb = new StringBuilder("{");
+        sb.append(super.fullToString())
+                .append("userIdBuyer=").append(userIdBuyer)
+                .append("userIdSeller=").append(userIdSeller)
+                .append("}");
+        return sb.toString();
     }
 }

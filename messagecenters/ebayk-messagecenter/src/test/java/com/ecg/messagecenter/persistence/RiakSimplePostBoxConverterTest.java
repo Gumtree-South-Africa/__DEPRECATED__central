@@ -63,19 +63,6 @@ public class RiakSimplePostBoxConverterTest {
         assertEquals(postBox.getEmail(), converted.getEmail());
     }
 
-    @Test
-    public void receivedAtIsNullSafeDeconstruct() {
-        PostBox postBox = new PostBox("bla@blah.com", Optional.of(1L), Lists.newArrayList(
-                new ConversationThread("321", "cba", now(), now(), null, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty())), 180);
-
-        IRiakObject riakObject = converter.fromDomain(postBox, new BasicVClock(new byte[]{}));
-
-        PostBox converted = converter.toDomain(riakObject);
-
-        assertEquals(postBox.getConversationThreads(), converted.getConversationThreads());
-        assertEquals(postBox.getEmail(), converted.getEmail());
-    }
-
     private PostBox createPostBox() {
         DateTime dt = new DateTime();
         DateTime createdAt1 = dt.withMillis(1391368984813L);
