@@ -30,7 +30,7 @@ public class ConversationResponseConverter {
                 .map(msgRespConverter::toMessageResponse).collect(Collectors.toList());
 
         int otherParticipantUnreadMessages = conversationThread.getHighestOtherParticipantUnreadMessages();
-        for (int i = messageResponses.size() - otherParticipantUnreadMessages - 1; i < messageResponses.size(); i++) {
+        for (int i = messageResponses.size() - otherParticipantUnreadMessages; i < messageResponses.size(); i++) {
             messageResponses.get(i).withIsRead(false);
         }
         return toConversationResponse(conversationThread, Optional.of(messageResponses));
