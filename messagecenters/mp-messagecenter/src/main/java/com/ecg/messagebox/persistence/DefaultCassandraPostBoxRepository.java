@@ -78,7 +78,15 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             List<ConversationThread> conversations = StreamUtils.toStream(resultSet)
                     .map(row -> {
                         ConversationThread conversation = createConversation(userId, row);
-                        conversation.addNumUnreadMessages(conversationUnreadCountsMap.getOrDefault(row.getString("convid"), 0));
+
+                        for (Participant participant : conversation.getParticipants()) {
+                            if (userId.equals(participant.getUserId())) {
+                                conversation.addNumUnreadMessages(userId, conversationUnreadCountsMap.getOrDefault(row.getString("convid"), 0));
+                            } else {
+                                Map<String, Integer> unreadCountsMap = getConversationUnreadCountMap(participant.getUserId());
+                                conversation.addNumUnreadMessages(participant.getUserId(), unreadCountsMap.getOrDefault(row.getString("convid"), 0));
+                            }
+                        }
                         return conversation;
                     }).sorted((c1, c2) -> staticCompare(c2.getLatestMessage().getId(), c1.getLatestMessage().getId()))
                     .collect(toList());
@@ -135,8 +143,10 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             if (row != null) {
                 ConversationThread conversation = createConversation(userId, row);
 
-                int unreadMessagesCount = getConversationUnreadCount(userId, conversationId);
-                conversation.addNumUnreadMessages(unreadMessagesCount);
+                for (Participant participant: conversation.getParticipants()) {
+                    int unreadMessagesCount = getConversationUnreadCount(participant.getUserId(), conversationId);
+                    conversation.addNumUnreadMessages(participant.getUserId(), unreadMessagesCount);
+                }
 
                 List<Message> messages = getConversationMessages(userId, conversationId, messageIdCursorOpt, messagesLimit);
                 conversation.addMessages(messages);
@@ -177,7 +187,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         Message latestMessage = jsonConverter.fromMessageJson(userId, conversationId, row.getString("latestmsg"));
         ConversationMetadata metadata = jsonConverter.fromConversationMetadataJson(userId, conversationId, row.getString("metadata"));
 
-        return new ConversationThread(conversationId, adId, visibility, messageNotification, participants, latestMessage, metadata);
+        return new ConversationThread(conversationId, adId, userId, visibility, messageNotification, participants, latestMessage, metadata);
     }
 
     @Override

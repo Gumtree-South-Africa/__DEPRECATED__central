@@ -55,6 +55,7 @@ public class ConversationResponseConverterTest {
     public void setup() {
         DateTimeUtils.setCurrentMillisFixed(now().getMillis());
         convRespConverter = new ConversationResponseConverter(participantRespConverterMock, msgRespConverterMock);
+        when(messageRespMock.withIsRead(true)).thenReturn(messageRespMock);
     }
 
     @After
@@ -67,13 +68,15 @@ public class ConversationResponseConverterTest {
         ConversationThread conversation = new ConversationThread(
                 CONVERSATION_ID,
                 AD_ID,
+                PARTICIPANT_1.getUserId(),
                 ACTIVE,
                 RECEIVE,
                 asList(PARTICIPANT_1, PARTICIPANT_2),
                 MSG_SELLER,
                 new ConversationMetadata(now(), EMAIL_SUBJECT))
                 .addMessages(asList(MSG_BUYER, MSG_SELLER))
-                .addNumUnreadMessages(UNREAD_MSGS_COUNT);
+                .addNumUnreadMessages(PARTICIPANT_1.getUserId(), UNREAD_MSGS_COUNT)
+                .addNumUnreadMessages(PARTICIPANT_2.getUserId(), 0);
 
         ConversationResponse expected = new ConversationResponse(
                 CONVERSATION_ID,
@@ -106,13 +109,15 @@ public class ConversationResponseConverterTest {
         ConversationThread conversation = new ConversationThread(
                 CONVERSATION_ID,
                 AD_ID,
+                PARTICIPANT_1.getUserId(),
                 ACTIVE,
                 RECEIVE,
                 asList(PARTICIPANT_1, PARTICIPANT_2),
                 MSG_SELLER,
                 new ConversationMetadata(now(), EMAIL_SUBJECT))
                 .addMessages(asList(MSG_BUYER, MSG_SELLER))
-                .addNumUnreadMessages(UNREAD_MSGS_COUNT);
+                .addNumUnreadMessages(PARTICIPANT_1.getUserId(), UNREAD_MSGS_COUNT)
+                .addNumUnreadMessages(PARTICIPANT_2.getUserId(), 0);
 
         ConversationResponse expected = new ConversationResponse(
                 CONVERSATION_ID,
