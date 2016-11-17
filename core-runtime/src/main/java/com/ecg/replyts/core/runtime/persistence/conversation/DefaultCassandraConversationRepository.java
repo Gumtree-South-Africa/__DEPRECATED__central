@@ -217,11 +217,16 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
 
     @Override
     public void commit(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
-        if (toBeCommittedEvents.isEmpty()) throw new IllegalArgumentException("toBeCommittedEvents must not be empty");
+        if (toBeCommittedEvents.isEmpty()) {
+            throw new IllegalArgumentException("toBeCommittedEvents must not be empty");
+        }
+
         try (Timer.Context ignored = commitTimer.time()) {
-            storeSecretIfNewlyCreated(toBeCommittedEvents);
-            storeMetadata(conversationId, toBeCommittedEvents);
             BatchStatement batch = new BatchStatement();
+
+            storeSecretIfNewlyCreated(batch, toBeCommittedEvents);
+            storeMetadata(batch, conversationId, toBeCommittedEvents);
+
             for (ConversationEvent conversationEvent : toBeCommittedEvents) {
                 try {
                     UUID eventId = conversationEvent.getEventTimeUUID().get();
@@ -245,7 +250,9 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
                     throw new RuntimeException("Unexpected serialization exception", e);
                 }
             }
+
             batch.setConsistencyLevel(getWriteConsistency()).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
+
             session.execute(batch);
         }
     }
@@ -259,13 +266,12 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         }
     }
 
-    private void storeMetadata(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
+    private void storeMetadata(BatchStatement batch, String conversationId, List<ConversationEvent> toBeCommittedEvents) {
         // Lookup the compound key (optional) and the last modified date
         DateTime modifiedDateTime = getConversationModifiedDateTime(toBeCommittedEvents);
         Date modifiedDate = modifiedDateTime.toDate();
         ConversationIndexKey compoundKey = getConversationCompoundKey(toBeCommittedEvents);
 
-        BatchStatement batch = new BatchStatement();
         if (compoundKey != null) {
             // It's a new conversation.
             batch.add(Statements.INSERT_RESUME_IDX.bind(this, compoundKey.serialize(), conversationId));
@@ -274,9 +280,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         batch.add(Statements.INSERT_CONVERSATION_MODIFICATION_IDX.bind(this, conversationId, modifiedDate));
         batch.add(Statements.INSERT_CONVERSATION_MODIFICATION_IDX_BY_DAY.bind(this, modifiedDateTime.getYear(), modifiedDateTime.getMonthOfYear(),
                 modifiedDateTime.getDayOfMonth(), modifiedDate, conversationId));
-
-        batch.setConsistencyLevel(getWriteConsistency()).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
-        session.execute(batch);
     }
 
     private DateTime getConversationModifiedDateTime(List<ConversationEvent> toBeCommittedEvents) {
@@ -303,16 +306,13 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         return compoundKey;
     }
 
-    private void storeSecretIfNewlyCreated(List<ConversationEvent> toBeCommittedEvents) {
+    private void storeSecretIfNewlyCreated(BatchStatement batch, List<ConversationEvent> toBeCommittedEvents) {
         for (ConversationEvent e : toBeCommittedEvents) {
             if (e instanceof ConversationCreatedEvent) {
                 ConversationCreatedEvent createdEvent = ((ConversationCreatedEvent) e);
                 if (createdEvent.getState() != ConversationState.DEAD_ON_ARRIVAL) {
-                    BatchStatement batch = new BatchStatement();
                     batch.add(Statements.INSERT_CONVERSATION_SECRET.bind(this, createdEvent.getBuyerSecret(), createdEvent.getConversationId()));
                     batch.add(Statements.INSERT_CONVERSATION_SECRET.bind(this, createdEvent.getSellerSecret(), createdEvent.getConversationId()));
-                    batch.setConsistencyLevel(getWriteConsistency()).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
-                    session.execute(batch);
                 }
                 return;
             }
