@@ -26,24 +26,29 @@ log "Building revision $REVISION"
 
 # Import a few certificates if we haven't already
 
-MVN_ARGS="-Drevision=$REVISION -Djavax.net.ssl.trustStore=comaas.jks -Djavax.net.ssl.trustStorePassword=comaas -U"
+MVN_ARGS="-Drevision=$REVISION -U"
 
-if [ ! -f comaas.jks ] ; then
-    keytool -genkey -alias comaas -keyalg RSA -keystore comaas.jks -keysize 2048 \
-      -dname "CN=com, OU=COMaaS, O=eBay Classifieds, L=Amsterdam, S=Noord-Holland, C=NL" \
-      -storepass 'comaas' -keypass 'comaas'
+# If we are running on a non-builder environment (locally for example) then import the certificates into
+# a local trust store; on builder we rely on e.g. mobile-ca-certificates being installed
 
-    # autodeploy, kautodeploy, nexus.corp.mobile.de
+if [ ! -f /usr/bin/apt-get ] ; then
+    MVN_ARGS="-Djavax.net.ssl.trustStore=comaas.jks -Djavax.net.ssl.trustStorePassword=comaas $MVN_ARGS"
 
-    for HOST in autodeploy.corp.mobile.de kautodeploy.corp.mobile.de nexus.corp.mobile.de ; do
-        openssl s_client -connect ${HOST}:443 </dev/null | \
-          sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' 1>deploy.crt
+    if [ ! -f comaas.jks ] ; then
+        keytool -genkey -alias comaas -keyalg RSA -keystore comaas.jks -keysize 2048 \
+          -dname "CN=com, OU=COMaaS, O=eBay Classifieds, L=Amsterdam, S=Noord-Holland, C=NL" \
+          -storepass 'comaas' -keypass 'comaas'
 
-        keytool -import -noprompt -trustcacerts -alias ${HOST} -file deploy.crt \
-                -keystore comaas.jks -storepass 'comaas'
+        # Install eBay SSL CA v2
 
-        rm -f deploy.crt
-    done
+        curl -sO "http://pki.corp.ebay.com/root-certs-pem.zip" && unzip root-certs-pem.zip
+
+        for f in root-certs-pem/*.pem; do
+            keytool -importcert -keystore comaas.jks -storepass 'comaas' -file $f -alias $f -noprompt
+        done
+
+        rm -rf root-certs-pem.zip root-certs-pem
+    fi
 fi
 
 source "${DIR}/_cassandra_docker.sh"
