@@ -102,7 +102,7 @@ When `service.discovery.enabled` is enabled, the application will register itsel
 When `service.discovery.enabled` is enabled, the application will automatically scan for other Consul-registered services. Currently this is only Cassandra, where the service name is hard-matched to 'cassandra'. Cassandra must be registered with Consul (e.g. through a `cassandra.json` file on each Cassandra/Consul node) for this to work.
 
 ### Consul configuration (KV)
-When `service.configuration.enabled` is enabled in addition to `service.discovery.enabled`, Consul will also be added as a PropertySource for configuration resolution (similar to replyts.properties). Configuration in Consul overrides what is present in the replyts.properties file.
+When `service.discovery.enabled` is enabled, Consul will also be added as a PropertySource for configuration resolution (similar to replyts.properties). Configuration in Consul overrides what is present in the replyts.properties file.
 
 In order to add keys to consul, add them with the prefix `comaas/<tenant>` or `comaas/comaas:core:<tenant>:<port>`. E.g. `comaas/kjca/persistence.strategy` with value `cassandra`. This prefix approach allows one Consul instance to contain properties for multiple tenants (or the same tenant running on multiple ports).
 

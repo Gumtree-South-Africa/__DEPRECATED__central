@@ -69,7 +69,6 @@ public class HealthControllerTest {
 
             properties.put("persistence.strategy", "none");
 
-            properties.put("service.configuration.enabled", true);
             properties.put("service.discovery.enabled", true);
 
             environment.getPropertySources().addLast(new PropertiesPropertySource("test", properties));

@@ -25,9 +25,6 @@ public class ParentConfiguration {
     @Value("${service.discovery.enabled:false}")
     private boolean discoveryEnabled;
 
-    @Value("${service.configuration.enabled:false}")
-    private boolean configurationEnabled;
-
     // This is no longer needed as soon as we move to the cloud. Keep for now
     @PostConstruct
     public void initializePersistenceStrategyIfMissing() {
@@ -38,7 +35,7 @@ public class ParentConfiguration {
             environment.getPropertySources().addFirst(new MapPropertySource("Environment-detected properties", ImmutableMap.of("replyts.http.port", comaasHttpPort)));
         }
 
-        if (discoveryEnabled || configurationEnabled) {
+        if (discoveryEnabled) {
             return;
         }
         if (!environment.containsProperty("persistence.strategy")) {

@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 @EnableDiscoveryClient
 @EnableAutoConfiguration(exclude = {FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class})
 @Import(ConsulConfigBootstrapConfiguration.class)
-@ConditionalOnExpression("#{'${service.configuration.enabled:false}' == 'true' || '${service.discovery.enabled:false}' == 'true'}")
+@ConditionalOnExpression("#{'${service.discovery.enabled:false}' == 'true'}")
 public class CloudDiscoveryConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CloudDiscoveryConfiguration.class);
 
@@ -100,7 +100,7 @@ public class CloudDiscoveryConfiguration {
 
         environment.getPropertySources().addFirst(new MapPropertySource("Auto-discovered services", discoverServices()));
 
-        // Initialize the property source locator if KV-lookups are enabled (service.configuration.enabled)
+        // Initialize the property source locator if KV-lookups are enabled (service.discovery.enabled)
 
         if (propertySourceLocator != null) {
             environment.getPropertySources().addFirst(propertySourceLocator.locate(environment));
