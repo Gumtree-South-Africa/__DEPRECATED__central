@@ -84,7 +84,7 @@ class EventCreator {
             }
         }
 
-        builder.attr("custAdApiUserId", message.getHeaders().containsKey(AD_API_USER_ID) ? message.getHeaders().get(AD_API_USER_ID) : null);
+        builder.attr("custadapiuserid", message.getHeaders().containsKey(AD_API_USER_ID) ? message.getHeaders().get(AD_API_USER_ID) : null);
     }
 
     private boolean replyMessage(Conversation conversation, Message message) {
