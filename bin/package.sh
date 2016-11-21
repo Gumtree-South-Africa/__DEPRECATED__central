@@ -37,9 +37,15 @@ function package() {
     tar zcf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/conf/${TENANT} ./import_into_consul
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
 
-    # Some manual hassling is necessary since mvn doesn't create the package we want
-    ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}"
+    # Remove the root directory from the comaasqa package for Nomad
+    ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}-nomad"
     tar xf distribution/target/distribution-${TENANT}-comaasqa.tar.gz -C distribution/target
+    tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
+    echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
+
+    # Remove the root directory from the sandbox package for Nomad and add config
+    ARTIFACT_NAME="comaas-${TENANT}-sandbox-${TIMESTAMP}-${GIT_HASH}-nomad"
+    cp -v distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
     tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
 
