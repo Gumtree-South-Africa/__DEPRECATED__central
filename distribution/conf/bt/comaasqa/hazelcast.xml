@@ -14,7 +14,7 @@
 
 
     <network>
-        <port auto-increment="false">13100</port>
+        <port auto-increment="false">13105</port>
          <join>
             <multicast enabled="false"></multicast>
             <tcp-ip enabled="true">
