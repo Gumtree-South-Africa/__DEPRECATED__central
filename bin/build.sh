@@ -49,6 +49,11 @@ if [ ! -f /usr/bin/apt-get ] ; then
 
         rm -rf root-certs-pem.zip root-certs-pem
     fi
+else
+    # If we are running on a builder environment then the certificates should have been installed in
+    # /etc/ssl/certs/java/cacerts (mobile-ca-certificates doesn't support Oracle JDK)
+
+    MVN_ARGS="-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStorePassword=changeit $MVN_ARGS"
 fi
 
 source "${DIR}/_cassandra_docker.sh"

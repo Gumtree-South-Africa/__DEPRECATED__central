@@ -1,7 +1,10 @@
 package com.ecg.messagecenter.pushmessage;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import net.sf.json.JSONObject;
+import com.fasterxml.uuid.Generators;
+import com.fasterxml.uuid.impl.TimeBasedGenerator;
 
 import java.util.Map;
 import java.util.Optional;
@@ -15,6 +18,7 @@ import java.util.Optional;
  */
 public class PushMessagePayload {
 
+    private static final TimeBasedGenerator uuidGenerator = Generators.timeBasedGenerator();
     private final String email;
     private final String message;
     private final String activity;
@@ -22,12 +26,13 @@ public class PushMessagePayload {
     private final Map<String, String> details;
     private final Optional<Map<String, String>> gcmDetails;
     private final Optional<Map<String, String>> apnsDetails;
+    private final Map<String, String> utmDetails;
 
-    public PushMessagePayload(String email, String message, String activity, Map<String, String> details) {
+    PushMessagePayload(String email, String message, String activity, Map<String, String> details) {
         this(email, message, activity, details, Optional.<Integer>empty(), Optional.<Map<String, String>>empty(), Optional.<Map<String, String>>empty());
     }
 
-    public PushMessagePayload(String email, String message, String activity, Map<String, String> details, Optional<Integer> alertCounter, Optional<Map<String, String>> gcmDetails, Optional<Map<String, String>> apnsDetails) {
+    PushMessagePayload(String email, String message, String activity, Map<String, String> details, Optional<Integer> alertCounter, Optional<Map<String, String>> gcmDetails, Optional<Map<String, String>> apnsDetails) {
         if (details == null) {
             details = Maps.newHashMap();
         }
@@ -38,29 +43,40 @@ public class PushMessagePayload {
         this.activity = activity;
         this.details = details;
         this.alertCounter = alertCounter;
+
+        String pushNotificationId = uuidGenerator.generate().toString();
+
+        this.utmDetails = constructUtmDetails(pushNotificationId);
+    }
+
+    private Map<String, String> constructUtmDetails(String pushNotificationId) {
+        return ImmutableMap.of("utm_source", "System",
+                "utm_medium", "PushNotification",
+                "utm_campaign", "NewMessage",
+                "utm_content", pushNotificationId);
     }
 
     public String getEmail() {
         return email;
     }
 
-    public String getActivity() {
+    String getActivity() {
         return activity;
     }
 
-    public Optional<Integer> getAlertCounter() {
+    Optional<Integer> getAlertCounter() {
         return alertCounter;
     }
 
-    public Map<String, String> getDetails() {
+    Map<String, String> getDetails() {
         return details;
     }
 
-    public Optional<Map<String, String>> getGcmDetails() {
+    Optional<Map<String, String>> getGcmDetails() {
         return gcmDetails;
     }
 
-    public Optional<Map<String, String>> getApnsDetails() {
+    Optional<Map<String, String>> getApnsDetails() {
         return apnsDetails;
     }
 
@@ -68,7 +84,11 @@ public class PushMessagePayload {
         return message;
     }
 
-    public String asJson() {
+    Map<String, String> getUtmDetails() {
+        return utmDetails;
+    }
+
+    String asJson() {
         JSONObject json = new JSONObject();
 
         json.put("email", email);
@@ -79,7 +99,7 @@ public class PushMessagePayload {
             json.put("alertCounter", alertCounter.get());
         }
 
-        if (gcmDetails.isPresent() && gcmDetails.get().size() > 0) {
+        if (gcmDetails.isPresent() && !gcmDetails.get().isEmpty()) {
             JSONObject gcmDetails = new JSONObject();
             for (Map.Entry<String, String> entry : this.gcmDetails.get().entrySet()) {
                 gcmDetails.put(entry.getKey(), entry.getValue());
@@ -87,14 +107,14 @@ public class PushMessagePayload {
             json.put("gcmDetails", gcmDetails);
         }
 
-        if (apnsDetails.isPresent() && apnsDetails.get().size() > 0) {
+        if (apnsDetails.isPresent() && !apnsDetails.get().isEmpty()) {
             JSONObject apnsDetails = new JSONObject();
             for (Map.Entry<String, String> entry : this.apnsDetails.get().entrySet()) {
                 apnsDetails.put(entry.getKey(), entry.getValue());
             }
             json.put("apnsDetails", apnsDetails);
         }
-
+        json.put("utmDetails", utmDetails);
 
         return json.toString();
     }
