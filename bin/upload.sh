@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -x
 #
 # upload.sh takes a package and uploads it to the tenant's deploy server (e.g. https://autodeploy.mobile.corp.de)
 
@@ -31,6 +31,7 @@ declare -A HOSTS=(
   ["ebayk"]="https://comaas-uploader:ohy9Te#hah9U@kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/com/ecg/ebayk/comaas/"
   ["mde"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-team-releases/ecg/ecg-comaas/"
   ["kjca"]='http://comaas:bMv!Yne7Apj3F4pW@nexus.kjdev.ca/content/repositories/comaas/ecg/comaas/versions/'
+  ["gtau"]=""
 
   # Overrides for specific environments
   ["mp-prod"]="builder@deploy001.esh.ops.prod.icas.ecg.so"
@@ -50,6 +51,7 @@ declare -A METHODS=(
   ["ebayk"]="curl"
   ["mde"]="curl"
   ["kjca"]="curl"
+  ["gtau"]="curl"
 
   # Overrides for specific environments
   ["mp-sandbox"]="rsync"
@@ -64,6 +66,11 @@ function upload() {
   HOST_VALUE="${HOSTS[${TENANT}-${DESTINATION}]:-}"
   if [ -z "$HOST_VALUE" ] ; then
     HOST_VALUE="${HOSTS[$TENANT]}"
+  fi
+
+  if [ -z "$HOST_VALUE" ]; then
+    # Don't do anything if we don't know where to upload to.
+    return
   fi
 
   # prefer a specific method; otherwise default to the tenant default
