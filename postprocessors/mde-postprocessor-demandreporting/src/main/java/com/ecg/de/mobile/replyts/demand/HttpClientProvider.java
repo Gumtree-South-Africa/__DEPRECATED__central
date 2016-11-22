@@ -8,7 +8,6 @@ import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,9 +32,12 @@ public class HttpClientProvider {
         clientParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.socketTimeout());
 
         logger.info("Providing http client with proxyURI: " + config.proxyUri());
-        if (config.proxyUri() != null) {
+        if (config.proxyUri() != null && !config.proxyUri().toString().trim().equals("null")) {
+            logger.info("Configured http client with proxyURI: " + config.proxyUri());
             HttpHost proxyHost = new HttpHost(config.proxyUri().getHost(), config.proxyUri().getPort());
             clientParams.setParameter(ConnRouteParams.DEFAULT_PROXY, proxyHost);
+        } else {
+            logger.info("Http client will be configured without proxy");
         }
 
         client = new DefaultHttpClient(connectionManager, clientParams);
@@ -98,4 +100,5 @@ public class HttpClientProvider {
             return socketTimeout;
         }
     }
+
 }
