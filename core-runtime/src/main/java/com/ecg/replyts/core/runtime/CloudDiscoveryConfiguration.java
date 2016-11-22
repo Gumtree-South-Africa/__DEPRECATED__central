@@ -180,11 +180,11 @@ public class CloudDiscoveryConfiguration {
 
             layout.setContext(context);
 
-            encoder.setLayout(layout);
             encoder.setContext(context);
+            encoder.setLayout(layout);
 
-            appender.setEncoder(encoder);
             appender.setContext(context);
+            appender.setEncoder(encoder);
 
             layout.start();
             encoder.start();
