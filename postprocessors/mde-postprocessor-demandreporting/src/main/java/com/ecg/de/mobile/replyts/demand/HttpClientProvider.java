@@ -32,7 +32,8 @@ public class HttpClientProvider {
         clientParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, config.connectionTimeout());
         clientParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.socketTimeout());
 
-        if (config.proxyUri() != null && !config.proxyUri.equals("none")) {
+        logger.info("Providing http client with proxyURI: " + config.proxyUri());
+        if (config.proxyUri() != null) {
             HttpHost proxyHost = new HttpHost(config.proxyUri().getHost(), config.proxyUri().getPort());
             clientParams.setParameter(ConnRouteParams.DEFAULT_PROXY, proxyHost);
         }
@@ -74,7 +75,7 @@ public class HttpClientProvider {
         @Value("${replyts.outbound.event.collector.service.socket.timeout.ms}")
         private int socketTimeout = 1000;
 
-        @Value("${replyts.outbound.event.collector.service.proxy}")
+        @Value("${replyts.outbound.event.collector.service.proxy:null}")
         private URI proxyUri;
 
         public int connectionTimeout() {
