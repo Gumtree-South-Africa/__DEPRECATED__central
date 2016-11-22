@@ -32,7 +32,7 @@ public class HttpClientProvider {
         clientParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, config.connectionTimeout());
         clientParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.socketTimeout());
 
-        if (config.proxyUri() != null) {
+        if (config.proxyUri() != null && !config.proxyUri.equals("none")) {
             HttpHost proxyHost = new HttpHost(config.proxyUri().getHost(), config.proxyUri().getPort());
             clientParams.setParameter(ConnRouteParams.DEFAULT_PROXY, proxyHost);
         }
