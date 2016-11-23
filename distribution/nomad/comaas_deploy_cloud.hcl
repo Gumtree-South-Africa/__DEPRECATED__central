@@ -80,4 +80,3 @@ job "comaas-%TENANT%" {
     }
   }
 }
-

@@ -70,7 +70,8 @@ if [ "$UPLOAD" = true ] ; then
 fi
 
 echo "Posting to Nomad; evaluation ID:"
-sed "s/%TENANT%/$tenant/g; s/%TENANT_SHORT%/$tenant_short/g; s/%ARTIFACT%/$artifact_name/g; s/%GIT_HASH%/$git_hash/g; s/%ENVIRONMENT%/$env/g; s/%COUNT%/$count/g" \
-  bin/comaas_deploy_dev_cloud.hcl > builds/${artifact_name}.hcl
+sed "s/%TENANT%/$tenant/g; s/%TENANT_SHORT%/$tenant_short/g; s~%ARTIFACT%~http://fileserver001/$artifact_name~g;
+s/%GIT_HASH%/$git_hash/g; s/%ENVIRONMENT%/$env/g; s/%COUNT%/$count/g" \
+  distribution/nomad/deployer/comaas_deploy_cloud.hcl > builds/${artifact_name}.hcl
 nomad run -output builds/${artifact_name}.hcl > builds/${artifact_name}.json
 curl -X POST -d @builds/${artifact_name}.json http://localhost:4646/v1/jobs --header "Content-Type:application/json"
