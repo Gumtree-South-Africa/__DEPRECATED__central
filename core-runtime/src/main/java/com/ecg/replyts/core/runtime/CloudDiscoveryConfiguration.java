@@ -163,34 +163,24 @@ public class CloudDiscoveryConfiguration {
 
             LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 
-            ch.qos.logback.classic.Logger rootLogger = context.getLogger(Logger.ROOT_LOGGER_NAME);
-
             KafkaAppender appender = new KafkaAppender();
 
-            appender.addProducerConfigValue("bootstrap.server", instances.get(0));
+            LogstashLayout layout = new LogstashLayout(); // Adds in the MDC fields as well
+
+            layout.setContext(context);
+            layout.start();
+
+            appender.setEncoder(new LayoutKafkaMessageEncoder(layout, Charset.forName("UTF-8"));
+            appender.setName("comaasKafkaAppender");
             appender.setTopic(topic);
+            appender.setContext(context);
+            appender.addProducerConfigValue("bootstrap.servers", instances.get(0));
             appender.setKeyingStrategy(new RoundRobinKeyingStrategy());
             appender.setDeliveryStrategy(new AsynchronousDeliveryStrategy());
 
-            LayoutKafkaMessageEncoder encoder = new LayoutKafkaMessageEncoder();
-
-            // Use a Logstash layout for logging; this automatically adds in the MDC fields as well
-
-            LogstashLayout layout = new LogstashLayout();
-
-            layout.setContext(context);
-
-            encoder.setContext(context);
-            encoder.setLayout(layout);
-
-            appender.setContext(context);
-            appender.setEncoder(encoder);
-
-            layout.start();
-            encoder.start();
             appender.start();
 
-            rootLogger.addAppender(appender);
+            context.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(appender);
         } else {
             LOG.info("Auto-discovered 0 Kafka instance(s) - not adding Kafka-based ROOT log appender");
         }
