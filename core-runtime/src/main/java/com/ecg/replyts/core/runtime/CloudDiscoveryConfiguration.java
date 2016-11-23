@@ -35,6 +35,7 @@ import org.springframework.core.env.MapPropertySource;
 import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -170,7 +171,7 @@ public class CloudDiscoveryConfiguration {
             layout.setContext(context);
             layout.start();
 
-            appender.setEncoder(new LayoutKafkaMessageEncoder(layout, Charset.forName("UTF-8"));
+            appender.setEncoder(new LayoutKafkaMessageEncoder(layout, Charset.forName("UTF-8")));
             appender.setName("comaasKafkaAppender");
             appender.setTopic(topic);
             appender.setContext(context);
