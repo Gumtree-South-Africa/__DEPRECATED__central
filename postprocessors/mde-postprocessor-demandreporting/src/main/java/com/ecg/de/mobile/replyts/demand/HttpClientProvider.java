@@ -30,6 +30,7 @@ public class HttpClientProvider {
         HttpParams clientParams = new BasicHttpParams();
         clientParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, config.connectionTimeout());
         clientParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.socketTimeout());
+        logger.info("Set connection timeout to {} ms and socket timeout to {} ms", config.connectionTimeout(), config.socketTimeout());
 
         logger.info("Providing http client with proxyURI: " + config.proxyUri());
         if (config.proxyUri() != null && !config.proxyUri().toString().trim().equals("null")) {
@@ -71,11 +72,11 @@ public class HttpClientProvider {
         @Value("${replyts.outbound.event.collector.service.maxTotalConnections}")
         private int maxTotalConnections = 1000;
 
-        @Value("${replyts.outbound.event.collector.service.connection.timeout.sec}")
-        private int connectionTimeout = 0;
+        @Value("${replyts.outbound.event.collector.service.connection.timeout.sec:${replyts.outbound.event.collector.service.connection.timeout.ms}}")
+        private int connectionTimeout = 4000;
 
         @Value("${replyts.outbound.event.collector.service.socket.timeout.ms}")
-        private int socketTimeout = 1000;
+        private int socketTimeout = 10000;
 
         @Value("${replyts.outbound.event.collector.service.proxy:null}")
         private URI proxyUri;

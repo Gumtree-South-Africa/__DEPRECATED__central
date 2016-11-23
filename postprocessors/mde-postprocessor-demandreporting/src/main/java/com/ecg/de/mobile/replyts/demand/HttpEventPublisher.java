@@ -54,9 +54,11 @@ public class HttpEventPublisher implements Runnable {
 
     private void sendHttpCall() {
         try {
-            httpClient.execute(prepareHttpCall(), SuccessStatusCodeResponseHandler.INSTANCE);
+            HttpPut request = prepareHttpCall();
+            logger.debug("Sending request to event collector: " + request);
+            httpClient.execute(request, SuccessStatusCodeResponseHandler.INSTANCE);
         } catch (IOException e) {
-            logger.warn("Unable to send tracking events. {}", e.getMessage());
+            logger.warn("Unable to send tracking events. {}", e);
         }
     }
 
