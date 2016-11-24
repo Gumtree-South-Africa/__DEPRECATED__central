@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
@@ -43,20 +44,24 @@ public class OutdatedEntityMonitorTest {
     }
 
     @Test
-    public void findsOutdatedMessage() {
-        when(message1.getState()).thenReturn(MessageRtsState.SENT);
+    public void findsOutdatedMessageInList() {
+        when(message1.getState()).thenReturn(MessageRtsState.BLOCKED);
+        when(message2.getState()).thenReturn(MessageRtsState.SENT);
 
 
-        monitor.scan(msgLst, MessageRtsState.HELD);
+        monitor.scan(msgLst, Arrays.asList(MessageRtsState.HELD, MessageRtsState.BLOCKED));
 
-        verify(reporter).reportOutdated(Lists.newArrayList("1"));
+        verify(reporter).reportOutdated(Lists.newArrayList("2"));
 
     }
 
     @Test
-    public void doesNotInvokeMonitorWhenDataOkay() {
+    public void doesNotInvokeMonitorWhenDataOkayInList() {
+        when(message1.getState()).thenReturn(MessageRtsState.BLOCKED);
+        when(message2.getState()).thenReturn(MessageRtsState.SENT);
 
-        monitor.scan(msgLst, MessageRtsState.HELD);
+
+        monitor.scan(msgLst, Arrays.asList(MessageRtsState.HELD, MessageRtsState.BLOCKED, MessageRtsState.SENT));
 
         verifyZeroInteractions(reporter);
 

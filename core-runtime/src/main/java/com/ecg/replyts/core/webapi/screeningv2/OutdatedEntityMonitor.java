@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -25,11 +27,11 @@ class OutdatedEntityMonitor {
         this.entityReporter = entityReporter;
     }
 
-    void scan(List<MessageRts> messages, MessageRtsState expectedState) {
+    void scan(List<MessageRts> messages, List<MessageRtsState> expectedState) {
         Preconditions.checkArgument(canOutdate(expectedState));
         List<String> outdatedConversationIds = Lists.newArrayList();
         for (MessageRts message : messages) {
-            if (message.getState() != expectedState) {
+            if (!expectedState.contains(message.getState())) {
                 outdatedConversationIds.add(message.getConversation().getId());
                 LOG.warn("Conv/Message {}/{} is outdated. State in Index: {}, Actual state: {}. Reindexing message.",
                         message.getConversation().getId(), message.getId(), expectedState, message.getState());
@@ -42,7 +44,8 @@ class OutdatedEntityMonitor {
 
     }
 
-    boolean canOutdate(MessageRtsState expectedState) {
-        return expectedState == MessageRtsState.HELD || expectedState == MessageRtsState.SENT || expectedState == MessageRtsState.BLOCKED;
+    boolean canOutdate(List<MessageRtsState> expectedStates) {
+        List<MessageRtsState> canOutDatedStates = Arrays.asList(MessageRtsState.HELD, MessageRtsState.BLOCKED, MessageRtsState.SENT);
+        return !Collections.disjoint(expectedStates, canOutDatedStates);
     }
 }

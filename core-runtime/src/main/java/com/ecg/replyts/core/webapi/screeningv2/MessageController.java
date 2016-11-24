@@ -100,8 +100,10 @@ public class MessageController {
 
         // check if the current search result contains "outdated" entities (that should have been reindexed already)
         // this is the case after crashes or split brains. if this is the case, "repair" them in the index by reindexing.
-        if (entityMonitor.canOutdate(command.getMessageState())) {
-            entityMonitor.scan(responseObject.getBody(), command.getMessageState());
+        if (command.getMessageStates() != null) {
+            if (entityMonitor.canOutdate(command.getMessageStates())) {
+                entityMonitor.scan(responseObject.getBody(), command.getMessageStates());
+            }
         }
 
         if (response.isPartialResult()) {

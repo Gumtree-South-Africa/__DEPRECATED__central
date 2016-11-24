@@ -2,9 +2,12 @@ package com.ecg.replyts.core.api.webapi.commands.payloads;
 
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,7 +55,8 @@ public class SearchMessagePayload {
         public static final ConcernedUserRole DEFAULT = ANY;
     }
 
-    private MessageRtsState messageState;
+    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+    private List<MessageRtsState> messageStates;
     private ModerationResultState humanResultState;
 
     private Date fromDate;
@@ -77,13 +81,18 @@ public class SearchMessagePayload {
     private int offset;
 
 
-    public MessageRtsState getMessageState() {
-        return messageState;
+    public List<MessageRtsState> getMessageStates() {
+        return messageStates;
     }
 
+    @JsonProperty("messageStates")
+    public void setMessageStates(List<MessageRtsState> messageStates) {
+        this.messageStates = messageStates;
+    }
 
+    @JsonProperty("messageState")
     public void setMessageState(MessageRtsState messageState) {
-        this.messageState = messageState;
+        this.messageStates = Collections.singletonList(messageState);
     }
 
     public ModerationResultState getHumanResultState() {

@@ -176,8 +176,8 @@ final class SearchTransformer {
     }
 
     private void setupMessageStateFilters() {
-        if (payload.getMessageState() != null) {
-            TermFilterBuilder messageStateFilterBuilder = termFilter("messageState", payload.getMessageState().name());
+        if (payload.getMessageStates() != null) {
+            TermsFilterBuilder messageStateFilterBuilder = FilterBuilders.inFilter("messageState", payload.getMessageStates().stream().map(Enum::name).toArray());
             addFilter(messageStateFilterBuilder);
         }
         if (payload.getHumanResultState() != null) {
