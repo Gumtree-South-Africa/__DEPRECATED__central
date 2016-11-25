@@ -52,7 +52,6 @@ public class ConversationsResponseConverterTest {
         ConversationThread c1 = new ConversationThread(
                 "c1",
                 "m1",
-                USER_ID_1,
                 ACTIVE,
                 RECEIVE,
                 emptyList(),
@@ -63,7 +62,6 @@ public class ConversationsResponseConverterTest {
         ConversationThread c2 = new ConversationThread(
                 "c2",
                 "m2",
-                USER_ID_1,
                 ACTIVE,
                 MUTE,
                 emptyList(),

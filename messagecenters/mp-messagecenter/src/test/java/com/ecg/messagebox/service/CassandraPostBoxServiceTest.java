@@ -180,7 +180,6 @@ public class CassandraPostBoxServiceTest {
         ConversationThread conversation = new ConversationThread(
                 rtsConversation.getId(),
                 rtsConversation.getAdId(),
-                USER_ID_1,
                 Visibility.ACTIVE,
                 MessageNotification.RECEIVE,
                 participants,
@@ -204,12 +203,12 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void markConversationAsRead(){
-        ConversationThread repoConversationThread = newConversationThread(CONVERSATION_ID_1).addNumUnreadMessages(USER_ID_1, 5);
+        ConversationThread repoConversationThread = newConversationThread(CONVERSATION_ID_1).addNumUnreadMessages(5);
         when(conversationsRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT)).thenReturn(Optional.of(repoConversationThread));
 
         Optional<ConversationThread> conversationThread = service.markConversationAsRead(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT);
 
-        ConversationThread expectedConversationThread = repoConversationThread.addNumUnreadMessages(USER_ID_1, 0);
+        ConversationThread expectedConversationThread = repoConversationThread.addNumUnreadMessages(0);
 
         verify(conversationsRepo).resetConversationUnreadCount(USER_ID_1, CONVERSATION_ID_1, AD_ID_1);
         Assert.assertEquals(expectedConversationThread, conversationThread.get());
@@ -306,7 +305,6 @@ public class CassandraPostBoxServiceTest {
         return new ConversationThread(
                 conversationId,
                 AD_ID_1,
-                USER_ID_1,
                 Visibility.ACTIVE,
                 MessageNotification.RECEIVE,
                 Arrays.asList(new Participant(USER_ID_1, "user1", "user1@email.test", ParticipantRole.BUYER),

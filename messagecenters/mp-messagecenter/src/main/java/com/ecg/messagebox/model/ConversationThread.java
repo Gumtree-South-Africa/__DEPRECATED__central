@@ -2,30 +2,31 @@ package com.ecg.messagebox.model;
 
 import com.ecg.replyts.core.runtime.persistence.BlockedUserInfo;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class ConversationThread {
 
     private String id;
     private String adId;
-    private String userId;
     private Visibility visibility;
     private MessageNotification messageNotification;
     private List<Participant> participants;
     private Message latestMessage;
     private ConversationMetadata metadata;
 
+    private int numUnreadMessages;
     private BlockedUserInfo blockedUserInfo;
     private List<Message> messages = new ArrayList<>();
-    private Map<String, Integer> participantUnreadMessages = new HashMap<>();
 
-    public ConversationThread(String id, String adId, String userId,
+    public ConversationThread(String id, String adId,
                               Visibility visibility, MessageNotification messageNotification,
                               List<Participant> participants,
                               Message latestMessage, ConversationMetadata metadata) {
         this.id = id;
         this.adId = adId;
-        this.userId = userId;
         this.visibility = visibility;
         this.messageNotification = messageNotification;
         this.participants = participants;
@@ -34,12 +35,12 @@ public class ConversationThread {
     }
 
     public ConversationThread(ConversationThread conversation) {
-        this(conversation.getId(), conversation.getAdId(), conversation.getUserId(),
+        this(conversation.getId(), conversation.getAdId(),
                 conversation.getVisibility(), conversation.getMessageNotification(),
                 conversation.getParticipants(),
                 conversation.getLatestMessage(),
                 conversation.getMetadata());
-        this.participantUnreadMessages = conversation.participantUnreadMessages;
+        this.numUnreadMessages = conversation.numUnreadMessages;
         this.blockedUserInfo = conversation.blockedUserInfo;
         this.messages = conversation.messages;
     }
@@ -50,10 +51,6 @@ public class ConversationThread {
 
     public String getAdId() {
         return adId;
-    }
-
-    public String getUserId() {
-        return userId;
     }
 
     public Visibility getVisibility() {
@@ -86,12 +83,12 @@ public class ConversationThread {
         return metadata;
     }
 
-    public int getNumUnreadMessages(String userId) {
-        return participantUnreadMessages.get(userId);
+    public int getNumUnreadMessages() {
+        return numUnreadMessages;
     }
 
-    public ConversationThread addNumUnreadMessages(String userId, int numUnreadMessages) {
-        this.participantUnreadMessages.put(userId, numUnreadMessages);
+    public ConversationThread addNumUnreadMessages(int numUnreadMessages) {
+        this.numUnreadMessages = numUnreadMessages;
         return this;
     }
 
@@ -113,41 +110,27 @@ public class ConversationThread {
         return this;
     }
 
-    public int getHighestOtherParticipantUnreadMessages() {
-        int unreadMessages = 0;
-        for (Participant participant : getParticipants()) {
-            if (!participant.getUserId().equals(userId)) {
-                int pUnreadMessages = participantUnreadMessages.get(participant.getUserId());
-                if (pUnreadMessages > unreadMessages) {
-                    unreadMessages = pUnreadMessages;
-                }
-            }
-        }
-        return unreadMessages;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ConversationThread that = (ConversationThread) o;
-        return Objects.equals(id, that.id) &&
+        return numUnreadMessages == that.numUnreadMessages &&
+                Objects.equals(id, that.id) &&
                 Objects.equals(adId, that.adId) &&
-                Objects.equals(userId, that.userId) &&
                 visibility == that.visibility &&
                 messageNotification == that.messageNotification &&
                 Objects.equals(participants, that.participants) &&
                 Objects.equals(latestMessage, that.latestMessage) &&
                 Objects.equals(metadata, that.metadata) &&
                 Objects.equals(blockedUserInfo, that.blockedUserInfo) &&
-                Objects.equals(messages, that.messages) &&
-                Objects.equals(participantUnreadMessages, that.participantUnreadMessages);
+                Objects.equals(messages, that.messages);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, adId, userId, visibility, messageNotification, participants,
-                latestMessage, metadata, participantUnreadMessages, blockedUserInfo, messages);
+        return Objects.hash(id, adId, visibility, messageNotification, participants,
+                latestMessage, metadata, numUnreadMessages, blockedUserInfo, messages);
     }
 
     @Override
@@ -155,13 +138,12 @@ public class ConversationThread {
         return "ConversationThread{" +
                 "id='" + id + '\'' +
                 ", adId='" + adId + '\'' +
-                ", userId='" + userId + '\'' +
                 ", visibility=" + visibility +
                 ", messageNotification=" + messageNotification +
                 ", participants=" + participants +
                 ", latestMessage=" + latestMessage +
                 ", metadata=" + metadata +
-                ", participantUnreadMessages=" + participantUnreadMessages +
+                ", numUnreadMessages=" + numUnreadMessages +
                 ", blockedUserInfo=" + blockedUserInfo +
                 ", messages=" + messages +
                 '}';

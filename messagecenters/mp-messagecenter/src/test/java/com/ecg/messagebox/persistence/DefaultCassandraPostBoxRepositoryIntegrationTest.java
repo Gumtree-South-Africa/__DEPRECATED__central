@@ -14,7 +14,6 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.rmi.server.UID;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -36,9 +35,6 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     private static final String UID1 = "u1";
     private static final String UID2 = "u2";
-    private static final String UID5 = "u5";
-    private static final String UID4 = "u4";
-    private static final String UID6 = "u6";
     private static final String CID = "c1";
     private static final String ADID = "a1";
     private static final Optional<String> NO_MSG_ID_CURSOR = empty();
@@ -94,10 +90,9 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         PostBox actualPostBox = conversationsRepo.getPostBox(UID1, Visibility.ACTIVE, 0, 50);
 
         List<ConversationThread> expectedConversations = newArrayList(
-                new ConversationThread(c4).addNumUnreadMessages(UID5, 0).addNumUnreadMessages(UID1, 0)
-                        .addMessages(Collections.emptyList()),
-                new ConversationThread(c3).addNumUnreadMessages(UID4, 0).addNumUnreadMessages(UID1, 15).addMessages(Collections.emptyList()),
-                new ConversationThread(c1).addNumUnreadMessages(UID1, 2).addNumUnreadMessages(UID2, 0).addMessages(Collections.emptyList()));
+                new ConversationThread(c4).addNumUnreadMessages(0).addMessages(Collections.emptyList()),
+                new ConversationThread(c3).addMessages(Collections.emptyList()),
+                new ConversationThread(c1).addMessages(Collections.emptyList()));
         PostBox expectedPostBox = new PostBox(UID1, expectedConversations, new UserUnreadCounts(UID1, 2, 17), 3);
 
         assertEquals(expectedPostBox, actualPostBox);
@@ -231,7 +226,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         insertConversationWithMessages(UID1, UID2, CID, ADID, 1);
         ConversationThread newConversation = conversationsRepo.getConversationWithMessages(UID1, CID, NO_MSG_ID_CURSOR, MSGS_LIMIT).get();
         assertEquals(Visibility.ACTIVE, newConversation.getVisibility());
-        assertEquals(1, newConversation.getNumUnreadMessages(UID1));
+        assertEquals(1, newConversation.getNumUnreadMessages());
 
         conversationsRepo.changeConversationVisibilities(UID1,
                 ImmutableMap.<String, String>builder().put(CID, ADID).build(),
@@ -239,7 +234,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
         ConversationThread actual = conversationsRepo.getConversationWithMessages(UID1, CID, NO_MSG_ID_CURSOR, MSGS_LIMIT).get();
         assertEquals(Visibility.ARCHIVED, actual.getVisibility());
-        assertEquals(0, actual.getNumUnreadMessages(UID1));
+        assertEquals(0, actual.getNumUnreadMessages());
     }
 
     @Test
@@ -335,14 +330,13 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         }
 
         ConversationThread conversation = new ConversationThread(
-                convId, adId, UID1, ACTIVE, RECEIVE,
+                convId, adId, ACTIVE, RECEIVE,
                 newArrayList(
                         new Participant(userId1, "user name 1", "u1@test.nl", BUYER),
                         new Participant(userId2, "user name 2", "u2@test.nl", SELLER)
                 ),
                 messages.get(messages.size() - 1), new ConversationMetadata(now(), "email subject"));
-        conversation.addNumUnreadMessages(userId1, messages.size());
-        conversation.addNumUnreadMessages(userId2, 0);
+        conversation.addNumUnreadMessages(messages.size());
         conversation.addMessages(messages);
 
         conversationsRepo.createConversation(userId1, conversation, messages.get(0), true);
