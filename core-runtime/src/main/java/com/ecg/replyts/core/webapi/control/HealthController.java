@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +23,8 @@ public class HealthController {
     private static final Logger LOG = LoggerFactory.getLogger(HealthController.class);
 
     private String version = getClass().getPackage().getImplementationVersion();
+
+    private String searchClusterVersion;
 
     @Value("${spring.application.name:unknown}")
     private String instanceName;
@@ -46,6 +49,11 @@ public class HealthController {
 
     @Value("${persistence.cassandra.dc:unknown}")
     private String cassandraDc;
+
+    @PostConstruct
+    public void initSearchClusterVersion() throws InterruptedException {
+        this.searchClusterVersion = getSearchClusterVersion();
+    }
 
     @Autowired(required = false)
     private Client searchClient = null;
@@ -96,22 +104,25 @@ public class HealthController {
         }
 
         public String getSearchClusterVersion() throws InterruptedException {
-            if (searchClient == null) {
-                return "unknown";
-            }
+            return searchClusterVersion;
+        }
+    }
 
-            try {
-                Set<String> versions = new HashSet<>();
+    public String getSearchClusterVersion() throws InterruptedException {
+        if (searchClient == null) {
+            return "unknown";
+        }
 
-                // If versions differ between cluster nodes, return a comma separated list instead
+        try {
+            Set<String> versions = new HashSet<>();
 
-                searchClient.admin().cluster().prepareNodesInfo().execute().get().forEach(info -> versions.add(info.getVersion().toString()));
+            // If versions differ between cluster nodes, return a comma separated list instead
+            searchClient.admin().cluster().prepareNodesInfo().execute().get().forEach(info -> versions.add(info.getVersion().toString()));
 
-                return StringUtils.collectionToDelimitedString(versions, ", ");
-            } catch (ExecutionException|ElasticsearchException e) {
-                LOG.debug("Could not get ES version", e);
-                return "error";
-            }
+            return StringUtils.collectionToDelimitedString(versions, ", ");
+        } catch (ExecutionException|ElasticsearchException e) {
+            LOG.error("Could not get ES version", e);
+            return "error";
         }
     }
 }
