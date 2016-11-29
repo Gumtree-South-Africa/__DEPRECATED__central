@@ -15,6 +15,7 @@ job "comaas-%TENANT%" {
   {
     attribute = "${node.class}"
     value = "%TENANT%"
+    distinct_hosts = true
   }
   update {
     max_parallel = 1
