@@ -44,6 +44,12 @@ public class Comparer {
         @Option(name = "-c2r", forbids = "-r2c", usage = "Perform Cassandra to Riak Validation")
         boolean cassandraToRiak = false;
 
+        @Option(name = "-v", usage = "Verbose")
+        boolean verbose = false;
+
+        @Option(name = "-tz", usage = "Add/remove tz minutes from the time range")
+        int timezoneShiftInMinutes = 0;
+
         @Option(name = "-what", required = true, usage = "What to validate [conv,mbox]")
         String what;
 
@@ -99,7 +105,7 @@ public class Comparer {
     void execute(ConfigurableApplicationContext context, Options diffToolOpts) throws RiakException, InterruptedException {
         switch (diffToolOpts.what) {
             case "conv":
-                convDiff.setDateRange(diffToolOpts.startDateTime, diffToolOpts.endDateTime);
+                convDiff.setDateRange(diffToolOpts.startDateTime, diffToolOpts.endDateTime, diffToolOpts.timezoneShiftInMinutes);
 
                 if (diffToolOpts.fetchRecordCount) {
                     LOG.info("About to verify {} conversations entries ", convDiff.getConversationsCountInTimeSlice(diffToolOpts.riakToCassandra));
@@ -110,11 +116,12 @@ public class Comparer {
                 }
 
                 if (diffToolOpts.cassandraToRiak) {
-                    compareCassToRiakConv(convDiff);
+                    compareCassToRiakConv(convDiff, diffToolOpts.fetchRecordCount);
                 }
                 break;
             case "mbox":
-                pboxDiff.setDateRange(diffToolOpts.startDateTime, diffToolOpts.endDateTime);
+                pboxDiff.setDateRange(diffToolOpts.startDateTime, diffToolOpts.endDateTime,  diffToolOpts.timezoneShiftInMinutes);
+                pboxDiff.setVerbose(diffToolOpts.verbose);
 
                 if (diffToolOpts.fetchRecordCount) {
                     LOG.info("About to verify {} postbox entries", pboxDiff.getMessagesCountInTimeSlice(diffToolOpts.riakToCassandra));

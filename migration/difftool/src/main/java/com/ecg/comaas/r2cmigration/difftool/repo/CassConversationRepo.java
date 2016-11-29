@@ -111,7 +111,7 @@ public class CassConversationRepo {
         return new AbstractMap.SimpleImmutableEntry<String, List<ConversationEvent>>(conversationId, getConversationEvents(conversationId));
     }
 
-    public Stream<Map.Entry<String, List<ConversationEvent>>> findEventsCreatedBetween(DateTime start, DateTime end) {
+    public Stream<Map.Entry<String, List<ConversationEvent>>> findEventsModifiedBetween(DateTime start, DateTime end) {
         Statement statement = getByDate.bind(start.toDate(), end.toDate());
         return toStream(session.execute(statement)).map(this::getConversationEvents);
     }

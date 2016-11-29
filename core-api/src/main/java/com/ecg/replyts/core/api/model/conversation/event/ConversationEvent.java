@@ -8,6 +8,7 @@ import org.joda.time.DateTime;
 import java.util.Optional;
 import java.util.UUID;
 import com.datastax.driver.core.utils.UUIDs;
+import org.joda.time.DateTimeZone;
 
 import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY;
@@ -97,7 +98,7 @@ public abstract class ConversationEvent {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("eventId", eventId)
-                .add("timestamp", conversationModifiedAt.toString())
+                .add("timestamp", conversationModifiedAt.toDateTime(DateTimeZone.UTC))
                 .add("ver", formatVer).toString();
     }
 }

@@ -14,11 +14,13 @@ import com.ecg.replyts.core.runtime.persistence.conversation.ConversationEventsC
 import com.ecg.replyts.core.runtime.persistence.conversation.ConversationJsonSerializer;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationEventConflictResolver;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 
@@ -37,18 +39,30 @@ public class RiakConversationRepo {
     private final RiakConversationEventConflictResolver resolver;
     private final ConversationEventsConverter converter;
 
+    private String bucketNamePrefix;
+
     private IRiakClient riakClient;
 
-
     @Autowired
-    public RiakConversationRepo(IRiakClient riakClient) {
+    public RiakConversationRepo(IRiakClient riakClient, @Value("${persistence.riak.bucket.name.prefix:}") String bucketNamePrefix) {
         this.riakClient = riakClient;
         this.resolver = new RiakConversationEventConflictResolver();
-        this.converter = new ConversationEventsConverter(DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME, new ConversationJsonSerializer());
+        if (StringUtils.isNotBlank(bucketNamePrefix)) {
+            LOG.info("Using riak bucket prefix: {}", bucketNamePrefix.trim());
+            this.bucketNamePrefix = bucketNamePrefix.trim();
+        } else {
+            LOG.info("No riak bucket prefix configured");
+        }
+        this.converter = new ConversationEventsConverter(this.bucketNamePrefix + DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME, new ConversationJsonSerializer());
     }
 
-    public Bucket getBucket(String bucketName) throws RiakRetryFailedException {
+    private Bucket getBucket(String bucketName) throws RiakRetryFailedException {
+        LOG.debug("Fetching riak bucket {}", bucketName);
         return riakClient.fetchBucket(bucketName).execute();
+    }
+
+    public Bucket getConversationBucket() throws RiakRetryFailedException {
+        return getBucket(bucketNamePrefix + DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME);
     }
 
     public ConversationEvents fetchConversation(String convId, Bucket bucket) throws RiakRetryFailedException {
@@ -78,9 +92,9 @@ public class RiakConversationRepo {
         }
     }
 
-    public long getConversationCount(DateTime start, DateTime end, String bucketName) throws RiakRetryFailedException {
+    public long getConversationCount(DateTime start, DateTime end) throws RiakRetryFailedException {
         AtomicLong counter = new AtomicLong();
-        modifiedBetween(start, end, getBucket(bucketName)).forEach(c -> counter.getAndIncrement());
+        modifiedBetween(start, end, getBucket(bucketNamePrefix + DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME)).forEach(c -> counter.getAndIncrement());
         return counter.get();
     }
 

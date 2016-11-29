@@ -125,7 +125,7 @@ public class CassPostboxRepo {
         return row.getLong(0);
     }
 
-    public Stream<String> streamMessageBoxIdsByHour(Date fromDate, Date toDate) {
+    public Stream<String> streamMessageBoxIds(Date fromDate, Date toDate) {
         Statement bound = CassConversationRepo.bind(selectPostboxModifiedBetweenByDate, fromDate, toDate);
         ResultSet resultset = session.execute(bound);
         return toStream(resultset).map(row -> row.getString(FIELD_POSTBOX_ID));

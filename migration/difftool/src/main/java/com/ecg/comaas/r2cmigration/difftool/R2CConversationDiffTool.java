@@ -52,6 +52,7 @@ public class R2CConversationDiffTool {
 
     private DateTime endDate;
     private DateTime startDate;
+    private int tzShiftInMin;
     private int idBatchSize;
     private int maxEntityAge;
 
@@ -73,7 +74,8 @@ public class R2CConversationDiffTool {
         riakConversationCounter = newCounter("difftool.riakConversationCounter");
     }
 
-    public void setDateRange(DateTime startDate, DateTime endDate) {
+    public void setDateRange(DateTime startDate, DateTime endDate, int tzShiftInMin) {
+        this.tzShiftInMin = tzShiftInMin;
         if (endDate != null) {
             this.endDate = endDate;
         } else {
@@ -89,14 +91,14 @@ public class R2CConversationDiffTool {
         if (startDate != null) {
             LOG.info("Compare between {} and {}", this.startDate, this.endDate);
         } else {
-            LOG.info("Comparing last {} days, ending on {}", maxEntityAge, this.endDate);
+            LOG.info("Comparing last {} days, starting from {}", maxEntityAge, this.startDate);
         }
     }
 
     public long getConversationsCountInTimeSlice(boolean riakToCass) throws RiakException {
         if(riakToCass) {
             // Fetch riak counters
-            return riakRepo.getConversationCount(startDate, endDate, DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME);
+            return riakRepo.getConversationCount(startDate, endDate);
         } else {
             // Fetch cass counters
             return getCassandraConversationCount();
@@ -108,12 +110,15 @@ public class R2CConversationDiffTool {
     }
 
     public long getCassandraConversationCount() {
-        return cassRepo.getConversationModCount(startDate, endDate);
+        DateTime tzStart = startDate.plusMinutes(tzShiftInMin);
+        DateTime tzEnd = endDate.plusMinutes(tzShiftInMin);
+        LOG.info("Cassandra Conversation count between startDate {} endDate {}, timezone correction is {} min", tzStart, tzEnd, tzShiftInMin);
+        return cassRepo.getConversationModCount(tzStart, tzEnd);
     }
 
     public List<Future> compareRiakToCassandra() throws RiakException {
         List<Future> results = new ArrayList<>(idBatchSize);
-        Bucket convBucket = riakRepo.getBucket(DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME);
+        Bucket convBucket = riakRepo.getConversationBucket();
         StreamingOperation<IndexEntry> convIdStream = riakRepo.modifiedBetween(startDate, endDate, convBucket);
         Iterators.partition(convIdStream.iterator(), idBatchSize).forEachRemaining(convIdIdx -> {
             results.add(executor.submit(() -> {
@@ -160,10 +165,14 @@ public class R2CConversationDiffTool {
 
     public List<Future> compareCassandraToRiak() throws RiakException {
         List<Future> results = new ArrayList<>(idBatchSize);
-        Bucket convBucket = riakRepo.getBucket(DiffToolConfiguration.RIAK_CONVERSATION_BUCKET_NAME);
+        Bucket convBucket = riakRepo.getConversationBucket();
+
+        DateTime tzStart = startDate.plusMinutes(tzShiftInMin);
+        DateTime tzEnd = endDate.plusMinutes(tzShiftInMin);
+        LOG.info("Streaming Cassandra Conversation events between startDate {} endDate {}, timezone correction is {} min", tzStart, tzEnd, tzShiftInMin);
 
         // This stream contains duplicated conversationIds, as well as ConversationEvents
-        Stream<Map.Entry<String, List<ConversationEvent>>> conversationStream = cassRepo.findEventsCreatedBetween(startDate, endDate);
+        Stream<Map.Entry<String, List<ConversationEvent>>> conversationStream = cassRepo.findEventsModifiedBetween(tzStart, tzEnd);
 
         Iterators.partition(conversationStream.iterator(), idBatchSize).forEachRemaining(cassConvEvents -> {
             results.add(executor.submit(() -> {

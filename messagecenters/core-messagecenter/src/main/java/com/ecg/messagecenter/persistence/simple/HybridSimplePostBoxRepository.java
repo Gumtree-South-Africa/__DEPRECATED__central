@@ -43,9 +43,8 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
                 migratePostBoxNecessaryCounter.inc();
 
                 // Essentially do a cross-cluster synchronize on this particular PostBox email to avoid duplication
-
                 if (migrationState.tryClaim(PostBox.class, email)) {
-                    LOG.debug("Migrating PostBox with email {} from Riak to Cassandra", email);
+                    LOG.debug("Migrating PostBox {}, with {} conversation threads from Riak to Cassandra", email, postBox.getConversationThreads().size());
 
                     cassandraRepository.write(postBox);
 

@@ -77,7 +77,7 @@ public class ChunkedPostboxMigrationAction {
 
     public String getRatePostboxesPerSec() {
         if (submittedBatchCounter.get() > 0) {
-            return String.format("%.2f conversations per second", (submittedBatchCounter.get() * idBatchSize / (double) watch.elapsed(TimeUnit.SECONDS)));
+            return String.format("%.2f ", (submittedBatchCounter.get() * idBatchSize / (double) watch.elapsed(TimeUnit.SECONDS)));
         }
         return "";
     }
@@ -159,12 +159,12 @@ public class ChunkedPostboxMigrationAction {
             processedBatchCounter.set(0);
             submittedBatchCounter.set(0);
 
-            long totalPostboxes = postboxRepository.getMessagesCount(dateFrom.toDateTime(DateTimeZone.UTC), dateTo.toDateTime(DateTimeZone.UTC));
+            long postboxesCounter = postboxRepository.getMessagesCount(dateFrom.toDateTime(DateTimeZone.UTC), dateTo.toDateTime(DateTimeZone.UTC));
 
             Stream<String> postboxStream = postboxRepository.streamPostBoxIds(dateFrom.toDateTime(DateTimeZone.UTC),
                     dateTo.toDateTime(DateTimeZone.UTC));
 
-            totalPostboxCounter.set(totalPostboxes);
+            totalPostboxCounter.set(postboxesCounter);
 
             Iterators.partition(postboxStream.iterator(), idBatchSize).forEachRemaining(pboxIdBatch -> {
                 results.add(executor.submit(() -> {
@@ -175,6 +175,7 @@ public class ChunkedPostboxMigrationAction {
 
             waitForCompletion(results, processedBatchCounter, LOG);
             watch.stop();
+            LOG.info("Migrate postboxes from {} to {} date completed, migrated {} postboxes", dateFrom, dateTo, postboxesCounter);
         } finally {
             hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock
         }

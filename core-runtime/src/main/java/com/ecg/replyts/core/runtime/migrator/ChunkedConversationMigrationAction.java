@@ -170,6 +170,7 @@ public class ChunkedConversationMigrationAction {
             });
 
             waitForCompletion(results, processedBatchCounter, LOG);
+            LOG.info("Conversation migration from {} to {} date completed,  {} conversations migrated", dateFrom, dateTo, convCount);
             watch.stop();
         } finally {
             hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock

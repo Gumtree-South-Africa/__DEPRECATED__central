@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterators;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -186,7 +187,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
                 if (jsonValue.isPresent()) {
                     DateTime timestamp = conversationThread.getModifiedAt();
-                    DateTime roundedToHour = timestamp.hourOfDay().roundFloorCopy().toDateTime();
+                    DateTime roundedToHour = timestamp.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
 
                     batch.add(Statements.UPDATE_CONVERSATION_THREAD.bind(this, jsonValue.get(), postboxId, conversationThread.getConversationId()));
                     batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, conversationThread.isContainsUnreadMessages() ? 1 : 0, postboxId, conversationThread.getConversationId()));
@@ -203,7 +204,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
     public void writeThread(String email, AbstractConversationThread conversationThread) {
         DateTime timestamp = conversationThread.getModifiedAt();
-        DateTime roundedToHour = timestamp.hourOfDay().roundFloorCopy().toDateTime();
+        DateTime roundedToHour = timestamp.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
 
         try (Timer.Context ignored = writeThreadTimer.time()) {
             BatchStatement batch = new BatchStatement();
@@ -225,7 +226,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
     @Override
     public void cleanup(DateTime time) {
-        DateTime roundedToHour = time.hourOfDay().roundFloorCopy().toDateTime();
+        DateTime roundedToHour = time.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
 
         LOG.info("Cleanup: Deleting conversations for the date {} and rounded hour {}", time, roundedToHour);
 
