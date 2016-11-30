@@ -169,7 +169,7 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
 
         write(postBoxToWrite);
 
-        return postBoxToWrite.getNewRepliesCounter().getValue();
+        return (long) postBoxToWrite.getUnreadConversations().size();
     }
 
     private void delete(String email) {
