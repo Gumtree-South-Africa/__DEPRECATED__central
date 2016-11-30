@@ -5,6 +5,7 @@ import ch.qos.logback.access.jetty.RequestLogImpl;
 import com.ecg.replyts.core.webapi.ssl.SSLConfiguration;
 import com.ecg.replyts.core.webapi.ssl.SSLServerFactory;
 import com.ecg.replyts.core.webapi.util.ServerStartupLifecycleListener;
+import com.github.danielwegener.logback.kafka.KafkaAppender;
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.ConnectorStatistics;
 import org.eclipse.jetty.server.Handler;
@@ -52,6 +53,9 @@ public class EmbeddedWebserver {
     private Integer httpPort;
 
     private boolean isStarted = false;
+
+    @Autowired(required = false)
+    private KafkaAppender accessLogAppender;
 
     @Value("${cluster.jmx.enabled:true}")
     private boolean isJmxEnabled = false;
@@ -176,24 +180,36 @@ public class EmbeddedWebserver {
             throw new IllegalStateException("This EmbeddedWebserver already has a request-logging handler associated with it");
         }
 
-        if (new File(logbackAccessFileName).exists()) {
+        if (accessLogAppender != null && accessLogAppender.isStarted()) {
+            LOG.info("Found valid Kafka appender for access logging");
+
+            RequestLogImpl logger = new RequestLogImpl();
+
+            logger.addAppender(accessLogAppender);
+
+            return startRequestLogHandler(logger);
+        } else if (new File(logbackAccessFileName).exists()) {
             LOG.info("Found config file for access logging: " + logbackAccessFileName);
 
-            RequestLogHandler requestLogHandler = new RequestLogHandler();
-            RequestLogImpl logbackLogger = new RequestLogImpl();
+            RequestLogImpl logger = new RequestLogImpl();
 
-            logbackLogger.setFileName(logbackAccessFileName);
-            requestLogHandler.setRequestLog(logbackLogger);
+            logger.setFileName(logbackAccessFileName);
 
-            // Have to call start(), logger seems not to be started automatically on server start (bug?).
-
-            logbackLogger.start();
-
-            return requestLogHandler;
+            return startRequestLogHandler(logger);
         } else {
-            LOG.info("Did not find config file for access logging, access logging disabled. To enable, provide {}", logbackAccessFileName);
+            LOG.info("Did not find config file {} for access logging and Kafka (access) logging is disabled", logbackAccessFileName);
+
             return null;
         }
+    }
+
+    private Handler startRequestLogHandler(RequestLogImpl logger) {
+        RequestLogHandler handler = new RequestLogHandler();
+
+        handler.setRequestLog(logger);
+        logger.start();
+
+        return handler;
     }
 
     private GzipHandler buildGzipHandler(Handler contextHandler) {

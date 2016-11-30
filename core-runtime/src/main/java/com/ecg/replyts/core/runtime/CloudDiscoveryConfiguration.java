@@ -26,11 +26,13 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.consul.config.ConsulConfigBootstrapConfiguration;
 import org.springframework.cloud.consul.config.ConsulPropertySourceLocator;
 import org.springframework.cloud.consul.discovery.ConsulLifecycle;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.net.InetAddress;
@@ -50,6 +52,10 @@ import java.util.stream.Collectors;
 @ConditionalOnExpression("#{'${service.discovery.enabled:false}' == 'true'}")
 public class CloudDiscoveryConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CloudDiscoveryConfiguration.class);
+
+    private static final String LOGGER_APPENDER_KAFKA_ENABLED = "service.discovery.logger.appender.enabled";
+    private static final String LOGGER_APPENDER_KAFKA_LOGS_TOPIC = "service.discovery.logger.appender.logs.topic";
+    private static final String LOGGER_APPENDER_KAFKA_ACCESS_LOGS_TOPIC = "service.discovery.logger.appender.access.logs.topic";
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
             "cassandra", "persistence.cassandra.endpoint",
@@ -72,6 +78,13 @@ public class CloudDiscoveryConfiguration {
 
     @Value("${replyts.tenant:unknown}")
     private String tenant;
+
+    private KafkaAppender accessLogAppender = new KafkaAppender();
+
+    @Bean
+    public KafkaAppender accessLogAppender() {
+        return accessLogAppender;
+    }
 
     @PostConstruct
     void initializeDiscovery() {
@@ -107,14 +120,34 @@ public class CloudDiscoveryConfiguration {
             environment.getPropertySources().addFirst(propertySourceLocator.locate(environment));
         }
 
-        // Required properties may have been taken from Consul, so defer initializing logging to here
+        // This method will also introduce a 'tenant' field into each log line
 
         populateMDC();
 
-        if (Boolean.valueOf(environment.getProperty("service.discovery.logger.appender.enabled", "false"))) {
-            String appenderTopic = environment.getProperty("service.discovery.logger.appender.topic");
+        // Consul may override the (Kafka) logging related properties, so fetch them from the Environment here rather
+        // than through @Value annotations at the top
 
-            addKafkaAppender(appenderTopic);
+        if (Boolean.valueOf(environment.getProperty(LOGGER_APPENDER_KAFKA_ENABLED, "false"))) {
+            LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+
+            // Add ROOT logging via Kafka
+
+            String logsTopic = environment.getProperty(LOGGER_APPENDER_KAFKA_LOGS_TOPIC);
+
+            if (StringUtils.hasText(logsTopic)) {
+                KafkaAppender appender = createKafkaAppender(context, logsTopic);
+
+                context.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(appender);
+            }
+
+            // Also complete the relevant settings of the Kafka appender for access logs (must be done after @Bean
+            // has initialized so that any related properties can be read from Consul)
+
+            String accessLogsTopic = environment.getProperty(LOGGER_APPENDER_KAFKA_ACCESS_LOGS_TOPIC);
+
+            if (StringUtils.hasText(accessLogsTopic)) {
+                fillInKafkaAppender(context, accessLogsTopic, accessLogAppender);
+            }
         }
     }
 
@@ -152,7 +185,15 @@ public class CloudDiscoveryConfiguration {
         return gatheredProperties;
     }
 
-    private void addKafkaAppender(String topic) {
+    private KafkaAppender createKafkaAppender(LoggerContext context, String topic) {
+        KafkaAppender appender = new KafkaAppender();
+
+        fillInKafkaAppender(context, topic, appender);
+
+        return appender;
+    }
+
+    private void fillInKafkaAppender(LoggerContext context, String topic, KafkaAppender appender) {
         List<String> instances = new ArrayList<>();
 
         discoveryClient.getInstances(LOG_APPENDER_SERVICE).forEach(instance -> {
@@ -160,11 +201,7 @@ public class CloudDiscoveryConfiguration {
         });
 
         if (instances.size() > 0) {
-            LOG.info("Auto-discovered {} Kafka instance(s) to be used for the ROOT log appender - will use the first one", instances.size());
-
-            LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-
-            KafkaAppender appender = new KafkaAppender();
+            LOG.info("Auto-discovered {} Kafka instance(s) to be used for the {} log appender - will use the first one", instances.size(), topic);
 
             LogstashLayout layout = new LogstashLayout(); // Adds in the MDC fields as well
 
@@ -172,16 +209,13 @@ public class CloudDiscoveryConfiguration {
             layout.start();
 
             appender.setEncoder(new LayoutKafkaMessageEncoder(layout, Charset.forName("UTF-8")));
-            appender.setName("comaasKafkaAppender");
+            appender.setName(topic + "COMaaSKafkaAppender");
             appender.setTopic(topic);
             appender.setContext(context);
             appender.addProducerConfigValue("bootstrap.servers", instances.get(0));
             appender.setKeyingStrategy(new RoundRobinKeyingStrategy());
             appender.setDeliveryStrategy(new AsynchronousDeliveryStrategy());
-
             appender.start();
-
-            context.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(appender);
         } else {
             LOG.info("Auto-discovered 0 Kafka instance(s) - not adding Kafka-based ROOT log appender");
         }
