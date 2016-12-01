@@ -27,6 +27,6 @@ class MessageToEventName {
     }
 
     private boolean messageWasModerated(Message message) {
-        return message.getHumanResultState().equals(ModerationResultState.UNCHECKED);
+        return message.getHumanResultState() == ModerationResultState.UNCHECKED;
     }
 }

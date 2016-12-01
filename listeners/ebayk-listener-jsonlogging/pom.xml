@@ -19,7 +19,10 @@
             <groupId>ecg.comaas</groupId>
             <artifactId>core-runtime</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>ebayk-listener-dailyreport</artifactId>
+        </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-integration-test-api</artifactId>

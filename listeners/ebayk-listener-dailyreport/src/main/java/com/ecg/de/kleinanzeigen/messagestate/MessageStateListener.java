@@ -1,5 +1,8 @@
 package com.ecg.de.kleinanzeigen.messagestate;
 
+import com.ecg.de.kleinanzeigen.hadoop.HadoopEventEmitter;
+import com.ecg.de.kleinanzeigen.hadoop.HadoopLogEntry;
+import com.ecg.de.kleinanzeigen.hadoop.TrackerLogStyleUseCase;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
@@ -11,15 +14,25 @@ import org.slf4j.LoggerFactory;
  */
 public class MessageStateListener implements MessageProcessedListener {
 
-    private final Logger LOG = LoggerFactory.getLogger("hadoop_daily_report_v2");
+    private static final Logger LOG = LoggerFactory.getLogger(MessageStateListener.class);
 
-    private final static MessageToEventName EVENT_NAMER = new MessageToEventName();
+
+    private static final MessageToEventName EVENT_NAMER = new MessageToEventName();
+    private final HadoopEventEmitter hadoopEmitter;
+
+    public MessageStateListener(HadoopEventEmitter hadoopEmitter) {
+        this.hadoopEmitter = hadoopEmitter;
+    }
 
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
-        if (LOG.isInfoEnabled()) {
+        try {
             // quite a lot of messages that go through replyts. don't process messages if info logger is not enabled.
-            LOG.info(EVENT_NAMER.jsonLogEntry(message));
+            String msg = EVENT_NAMER.jsonLogEntry(message);
+            HadoopLogEntry entry = new HadoopLogEntry(TrackerLogStyleUseCase.DAILY_REPORT_V3, msg);
+            hadoopEmitter.insert(entry);
+        } catch (Exception e) {
+            LOG.error("sending to kafka failed", e);
         }
     }
 }

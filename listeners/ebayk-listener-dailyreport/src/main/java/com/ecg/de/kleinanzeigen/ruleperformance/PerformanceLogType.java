@@ -1,10 +1,8 @@
 package com.ecg.de.kleinanzeigen.ruleperformance;
 
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.google.common.base.Optional;
 
-import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.of;
+import java.util.Optional;
 
 /**
 * @author mhuttar
@@ -16,10 +14,10 @@ enum PerformanceLogType {
 
     public static Optional<PerformanceLogType> valueOf(Message msg) {
         switch (msg.getHumanResultState()) {
-            case BAD: return of(CONFIRMED);
-            case GOOD:return of(MISFIRE);
-            case UNCHECKED: return of(FIRE);
+            case BAD: return Optional.of(CONFIRMED);
+            case GOOD:return Optional.of(MISFIRE);
+            case UNCHECKED: return Optional.of(FIRE);
         }
-        return absent();
+        return Optional.empty();
     }
 }

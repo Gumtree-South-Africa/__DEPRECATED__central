@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean class="com.ecg.de.kleinanzeigen.messagestate.MessageStateListener" />
-    <bean class="com.ecg.de.kleinanzeigen.ruleperformance.FilterRulePerformanceListener" />
+    <bean name="kafkaConfig" class="com.ecg.de.kleinanzeigen.hadoop.KafkaHadoopLogConfig">
+    </bean>
+
+    <bean name="hadoopEventKafkaEmitter" class="com.ecg.de.kleinanzeigen.hadoop.HadoopEventKafkaEmitter">
+    </bean>
+
+    <bean class="com.ecg.de.kleinanzeigen.messagestate.MessageStateListener" >
+        <constructor-arg ref="hadoopEventKafkaEmitter"/>
+    </bean>
+    <bean class="com.ecg.de.kleinanzeigen.ruleperformance.FilterRulePerformanceListener" >
+        <constructor-arg ref="hadoopEventKafkaEmitter"/>
+    </bean>
+
+
 </beans>
