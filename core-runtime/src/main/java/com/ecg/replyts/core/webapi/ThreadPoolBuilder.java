@@ -60,7 +60,7 @@ public class ThreadPoolBuilder {
 
         QueuedThreadPool threadPool;
         if (instrumented) {
-            threadPool = new InstrumentedQueuedThreadPool(MetricsService.getInstance().getRegistry(),
+            threadPool = new HostReportingInstrumentedQueuedTPool(MetricsService.getInstance().getRegistry(),
                     maxThreads, MIN_THREADS_JETTY_DEFAULT, IDLE_TIMEOUT_JETTY_DEFAULT, queue);
         } else {
             threadPool = new QueuedThreadPool(maxThreads, MIN_THREADS_JETTY_DEFAULT, IDLE_TIMEOUT_JETTY_DEFAULT, queue);

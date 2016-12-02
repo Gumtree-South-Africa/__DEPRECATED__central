@@ -15,20 +15,27 @@ import java.util.Map;
 
 public final class TimingReports {
 
-    private static String hostName = "localhost";
-
     private static final Logger LOG = LoggerFactory.getLogger(TimingReports.class);
 
+    private static String hostName;
 
     static {
         try {
             hostName = InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[^a-zA-Z0-9-]", "-");
         } catch (UnknownHostException e) {
             LOG.error("can not get local host name ", e);
+        } finally {
+            if (hostName == null) {
+                hostName = "localhost";
+            }
         }
     }
 
     private TimingReports() {
+    }
+
+    public static String getHostName() {
+        return hostName;
     }
 
     private static final Map<ConfigurationId, Timer> PLUGIN_TIMERS = Maps.newConcurrentMap();
