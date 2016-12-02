@@ -7,6 +7,7 @@ import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.integration.riak.EmbeddedRiakClient;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,6 +43,11 @@ public class DefaultRiakSimplePostBoxRepositoryTest {
 
     @Autowired
     private DefaultRiakSimplePostBoxRepository postBoxRepository;
+
+    @After
+    public void cleanup() {
+        postBoxRepository.cleanup(DateTime.now());
+    }
 
     @Test
     public void persistsPostbox() throws RiakRetryFailedException {
@@ -115,10 +122,12 @@ public class DefaultRiakSimplePostBoxRepositoryTest {
                 public PostBox toPostBox(String key, String jsonString, int maxAgeDays) {
                     List<AbstractConversationThread> threads = new ArrayList<>();
 
-                    for (String unreadLine : jsonString.split("\n")) {
-                        String[] values = unreadLine.split("=");
+                    if (StringUtils.hasText(jsonString)) {
+                        for (String unreadLine : jsonString.split("\n")) {
+                            String[] values = unreadLine.split("=");
 
-                        threads.add(createConvThread(DateTime.now(), values[0], Boolean.valueOf(values[1])));
+                            threads.add(createConvThread(DateTime.now(), values[0], Boolean.valueOf(values[1])));
+                        }
                     }
 
                     return new PostBox("foo@bar.com", Optional.empty(), threads, maxAgeDays);
