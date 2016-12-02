@@ -20,56 +20,60 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
-
 @Component
 public class FsboCsPlatformAdChecker implements AdChecker {
-	private final Logger logger = LoggerFactory.getLogger(getClass());
-	
-	private final HttpClient httpClient;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private final String fsboCsWebserviceUrl;
-	
-	
-	public FsboCsPlatformAdChecker( @Value("${replyts.mobile.fsbo.fraud.fsboCsWebserviceUrl}") String fsboCsWebserviceUrl) {
-		this.fsboCsWebserviceUrl = fsboCsWebserviceUrl.endsWith("/") ? fsboCsWebserviceUrl : fsboCsWebserviceUrl+"/";
-		this.httpClient = new DefaultHttpClient(new PoolingClientConnectionManager());
-	}
+    private final HttpClient httpClient;
 
-	@Override
-	public boolean isFraud(long adId) {
-		HttpGet get = new HttpGet(fsboCsWebserviceUrl + "status/" + adId);
-		try {
-			String msg = httpClient.execute(get, new ResponseHandler<String>() {
-	
-				@Override
-				public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-					int status = response.getStatusLine().getStatusCode();
-					if (status != HttpStatus.SC_OK) {
-						throw new ClientProtocolException("Server returned status "+status+".");
-					}
-					HttpEntity entity = response.getEntity();
-					if (entity == null) {
-						throw new ClientProtocolException("Got empty response.");
-					}
-					
-					BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
-					return reader.readLine();
-				}
-				
-			});
-			
-			logger.info("Fsbo-cs-platform returned {} for ad {}.", msg, adId);
-			
-			if (msg.equals("fraud")) {
-				return true;
-			}
-		} catch (Exception e) {
-			logger.error("Could not determine status of ad "+adId+".", e);
-		}
-		
-		return false;
-		
-	}
+    private final String fsboCsWebserviceUrl;
+
+
+    public FsboCsPlatformAdChecker(@Value("${replyts.mobile.fsbo.fraud.fsboCsWebserviceUrl}") String fsboCsWebserviceUrl) {
+        this.fsboCsWebserviceUrl = fsboCsWebserviceUrl.endsWith("/") ? fsboCsWebserviceUrl : fsboCsWebserviceUrl + "/";
+        this.httpClient = new DefaultHttpClient(new PoolingClientConnectionManager());
+    }
+
+    @Override
+    public boolean isFraud(long adId) {
+        HttpGet get = new HttpGet(fsboCsWebserviceUrl + "status/" + adId);
+        try {
+            String msg = httpClient.execute(get, new ResponseHandler<String>() {
+
+                @Override
+                public String handleResponse(HttpResponse response) throws IOException {
+                    int status = response.getStatusLine().getStatusCode();
+                    if (status != HttpStatus.SC_OK) {
+                        if (status == HttpStatus.SC_NOT_FOUND) {
+                            logger.info("Could not determine status of ad {}. Issue details: {}", adId, response.getStatusLine());
+                        } else {
+                            throw new ClientProtocolException("Server returned status " + status + ".");
+                        }
+                    }
+
+                    HttpEntity entity = response.getEntity();
+                    if (entity == null) {
+                        throw new ClientProtocolException("Got empty response.");
+                    }
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
+                    return reader.readLine();
+                }
+
+            });
+
+            logger.info("Fsbo-cs-platform returned {} for ad {}.", msg, adId);
+
+            if (msg.equals("fraud")) {
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+
+        return false;
+
+    }
 
 
 }
