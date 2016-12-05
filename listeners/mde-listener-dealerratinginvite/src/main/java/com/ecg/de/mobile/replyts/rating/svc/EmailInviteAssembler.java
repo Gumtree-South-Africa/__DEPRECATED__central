@@ -69,9 +69,9 @@ public final class EmailInviteAssembler {
         try {
             return new InternetAddress(fullEmail).getAddress();
         } catch (AddressException e) {
-            logger.error("Error extracting email address from , " + fullEmail + ": " + e.getMessage());
+            logger.info("Problems extracting email address from '{}', but will try a workaround. Details: {}", fullEmail, e.getMessage());
             return extractEmailFallback(fullEmail)
-                    .orElseThrow(() -> new RuntimeException("Invalid recpient address " + fullEmail));
+                    .orElseThrow(() -> new RuntimeException("Invalid recipient address " + fullEmail));
         }
     }
 
@@ -84,7 +84,7 @@ public final class EmailInviteAssembler {
             try {
                 return Optional.of(new InternetAddress(fullEmail.substring(beginMailAddress + 1, endMailAddress)).getAddress());
             } catch (AddressException e) {
-                logger.error("Error extracting email address from , " + fullEmail + ": " + e.getMessage());
+                logger.error("Error extracting email address from '{}', Details: {}", fullEmail, e.getMessage(), e);
             }
         }
 
