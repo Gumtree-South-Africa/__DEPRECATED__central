@@ -23,6 +23,7 @@
     <logger name="com.ecg.de" level="DEBUG"/>
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
     <logger name="ca.kijiji" level="DEBUG"/>
+    <logger name="com.ecg.replyts.core.runtime.cluster.monitor" level="INFO"/>
 
     <logger name="org.springframework.cloud" level="DEBUG"/>
 
