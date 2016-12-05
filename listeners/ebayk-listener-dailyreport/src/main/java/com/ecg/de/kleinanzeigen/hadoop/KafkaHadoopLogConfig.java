@@ -35,8 +35,8 @@ public class KafkaHadoopLogConfig {
      * We want to write less data to local kafka and avoid mirror maker traffic.
      * Flume consumes from kbrokeraggr and so we send the data directly to aggr because
      */
-    @Value("${kafka.aggregate.hosts:replyts.dev.kjdev.ca:9092}")
-    private String kafkaHost;
+    @Value("${dailyreport.kafka.aggregate.hosts:replyts.dev.kjdev.ca:9092}")
+    private String kafkaHosts;
 
 
     private AsyncProducer<UUID, String> producer;
@@ -46,12 +46,12 @@ public class KafkaHadoopLogConfig {
     public void setup() {
 
         try {
-            LOG.info("KAFKA: try connecting to {}", kafkaHost);
+            LOG.info("KAFKA: try connecting to {}", kafkaHosts);
 
             Properties props = producerProperties();
             producer = new AsyncProducer<>(new KafkaProducer<UUID, String>(props, new UUIDSerializer(), new StringSerializer()));
         } catch (Exception e) {
-            LOG.error("Exception on Kafka config (hosts: " + kafkaHost + "), it won't be possible to send events to Kafka", e);
+            LOG.error("Exception on Kafka config (hosts: " + kafkaHosts + "), it won't be possible to send events to Kafka", e);
         }
     }
 
@@ -65,15 +65,15 @@ public class KafkaHadoopLogConfig {
         return producer;
     }
 
-    public String getKafkaHost() {
-        return kafkaHost;
+    public String getKafkaHosts() {
+        return kafkaHosts;
     }
 
 
     private Properties producerProperties() {
 
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaHost);
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaHosts);
         props.put(ProducerConfig.RETRIES_CONFIG, 1);
         // batch size is mount of bytes to allocate for new ByteBuffer on batching.
         props.put(ProducerConfig.BATCH_SIZE_CONFIG, 16 * 1024);
