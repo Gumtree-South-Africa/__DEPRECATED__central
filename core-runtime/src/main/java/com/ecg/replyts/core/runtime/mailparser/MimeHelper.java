@@ -12,7 +12,11 @@ import java.io.OutputStream;
 
 final class MimeHelper {
 
-    public static final int MAX_HEADER_LENGTH = 30_000;
+    private static final int MAX_HEADER_LENGTH = 30_000;
+
+    // Temporary fix for COMAAS-310. Once the mime4j issue has been resolved, remove this line and revert back to the
+    // default limit of 1,000 characters for body lines.
+    private static final int MAX_LINE_LEN = -1;
 
     private MimeHelper() {
 
@@ -25,6 +29,9 @@ final class MimeHelper {
 
             // Some email providers (like Hotmail) send a References header that's >10,000
             // characters long (which is the default limit in MimeConfig)
+            // Our X-Track-referrer: is also sometimes up to 1600 characters long.
+            // This doesn't actually work: https://issues.apache.org/jira/browse/MIME4J-256
+            mimeConfig.setMaxLineLen(MAX_LINE_LEN);
             mimeConfig.setMaxHeaderLen(MAX_HEADER_LENGTH);
 
             messageBuilder.setMimeEntityConfig(mimeConfig);
