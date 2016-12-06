@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,8 +23,6 @@ public class HealthController {
     private static final Logger LOG = LoggerFactory.getLogger(HealthController.class);
 
     private String version = getClass().getPackage().getImplementationVersion();
-
-    private String hostname;
 
     private String searchClusterVersion;
 
@@ -42,17 +38,11 @@ public class HealthController {
     @Value("${persistence.strategy:unknown}")
     private String conversationRepositorySource;
 
-    @Value("#{'${persistence.riak.datacenter.primary.hosts:unknown}'.split(',')}")
-    private List<String> riakHosts;
+    @Value("#{'${persistence.strategy:cassandra}' == \"riak\" ? '${persistence.riak.datacenter.primary.hosts:unknown}'.split(',') : '${persistence.cassandra.endpoint:unknown}'.split(',')}")
+    private List<String> conversationRepositoryHosts;
 
-    @Value("#{'${persistence.cassandra.endpoint:unknown}'.split(',')}")
-    private List<String> cassandraHosts;
-
-    @Value("${persistence.riak.bucket.name.prefix:}")
-    private String riakBucketPrefix;
-
-    @Value("${persistence.cassandra.keyspace:}")
-    private String cassandraKeyspace;
+    @Value("#{'${persistence.strategy:cassandra}' == \"riak\" ? '${persistence.riak.bucket.name.prefix:}' : '${persistence.cassandra.keyspace:}'}")
+    private String conversationRepositorySchemaOrPrefix;
 
     @Value("${search.es.clustername:unknown}")
     private String searchClusterName;
@@ -61,9 +51,8 @@ public class HealthController {
     private String cassandraDc;
 
     @PostConstruct
-    public void init() throws InterruptedException, UnknownHostException {
+    public void initSearchClusterVersion() throws InterruptedException {
         this.searchClusterVersion = getSearchClusterVersion();
-        this.hostname = getHostname();
     }
 
     @Autowired(required = false)
@@ -98,20 +87,12 @@ public class HealthController {
             return conversationRepositorySource;
         }
 
-        public List<String> getRiakHosts() {
-            return riakHosts;
+        public List<String> getConversationRepositoryHosts() {
+            return conversationRepositoryHosts;
         }
 
-        public List<String> getCassandraHosts() {
-            return cassandraHosts;
-        }
-
-        public String getRiakBucketPrefix() {
-            return riakBucketPrefix;
-        }
-
-        public String getCassandraKeyspace() {
-            return cassandraKeyspace;
+        public String getConversationRepositorySchemaOrPrefix() {
+            return conversationRepositorySchemaOrPrefix;
         }
 
         public String getCassandraDc() {
@@ -125,13 +106,9 @@ public class HealthController {
         public String getSearchClusterVersion() throws InterruptedException {
             return searchClusterVersion;
         }
-
-        public String getHostname() {
-            return hostname;
-        }
     }
 
-    private String getSearchClusterVersion() throws InterruptedException {
+    public String getSearchClusterVersion() throws InterruptedException {
         if (searchClient == null) {
             return "unknown";
         }
@@ -147,9 +124,5 @@ public class HealthController {
             LOG.error("Could not get ES version", e);
             return "error";
         }
-    }
-
-    private String getHostname() throws UnknownHostException {
-        return InetAddress.getLocalHost().getHostName();
     }
 }
