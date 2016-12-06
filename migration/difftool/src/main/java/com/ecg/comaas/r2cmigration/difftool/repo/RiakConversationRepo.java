@@ -39,7 +39,7 @@ public class RiakConversationRepo {
     private final RiakConversationEventConflictResolver resolver;
     private final ConversationEventsConverter converter;
 
-    private String bucketNamePrefix;
+    private String bucketNamePrefix="";
 
     private IRiakClient riakClient;
 

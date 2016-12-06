@@ -38,7 +38,7 @@ public class RiakPostboxRepo {
     @Value("${replyts.maxConversationAgeDays:360}")
     private int maxAgeDays;
 
-    private String bucketNamePrefix;
+    private String bucketNamePrefix="";
     private Bucket postbox;
 
     @Autowired
