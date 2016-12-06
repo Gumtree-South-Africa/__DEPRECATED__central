@@ -12,13 +12,12 @@
         <property name="hazelcast.version.check.enabled">false</property>
     </properties>
 
-
     <network>
         <port auto-increment="false">13100</port>
          <join>
             <multicast enabled="false"></multicast>
             <tcp-ip enabled="true">
-                <members>core001,core002,core003</members>
+                <members>ek-core001,ek-core002,ek-core003,ek-core004,ek-core005,ek-core006,ek-core007,ek-core008,ek-core009</members>
             </tcp-ip>
         </join>
     </network>
