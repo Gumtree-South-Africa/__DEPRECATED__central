@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import static com.ecg.de.mobile.replyts.rating.svc.EmailInviteAssembler.assemble;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
 
 public class DealerRatingService {
 
@@ -58,12 +59,25 @@ public class DealerRatingService {
     public void saveInvitation(final Message message, final String conversationId) {
         if (isActive) {
             final EmailInviteEntity invite = assemble(message, conversationId);
-            if (isSourceAllowed(invite)) {
-                if (message.getState() == MessageState.SENT) {
-                    logger.info("Persisting via service, " + invite.getDealerId() + "; " + invite.getBuyerEmail());
-                    client.createEmailInvite(invite);
+            try {
+                if (isSourceAllowed(invite)) {
+                    if (message.getState() == MessageState.SENT) {
+                        logger.info("Persisting via service, " + invite.getDealerId() + "; " + invite.getBuyerEmail());
+                        client.createEmailInvite(invite);
+                    } else {
+                        logger.info("Don't create email trigger because message is in state {}", message.getState());
+                    }
+                }
+            } catch (RetrofitError error) {
+                if(error.getResponse() != null && error.getResponse().getStatus() == SC_CONFLICT) {
+
+                    if(invite!=null) {
+                        logger.debug("Invite has already been emailed for dealerId {} and email {}", invite.getDealerId(), invite.getBuyerEmail());
+                    } else {
+                        logger.debug("The invite has already been emailed - ignoring");
+                    }
                 } else {
-                    logger.info("Don't create emal trigger because message is in state {}", message.getState());
+                    throw error;
                 }
             }
         } else {
