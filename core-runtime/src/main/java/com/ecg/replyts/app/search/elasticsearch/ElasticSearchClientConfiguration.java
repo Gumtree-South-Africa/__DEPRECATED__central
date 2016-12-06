@@ -41,7 +41,7 @@ public class ElasticSearchClientConfiguration {
             for (String endpoint : Splitter.on(',').trimResults().omitEmptyStrings().split(endpoints)) {
                 Iterator<String> host = Splitter.on(':').trimResults().split(endpoint).iterator();
                 InetSocketTransportAddress transportAddress = new InetSocketTransportAddress(host.next(), Integer.valueOf(host.next()));
-                LOG.info("Known ES endpoints: {}", endpoints);
+                LOG.info("Known ES endpoint: {}", endpoint);
                 esClient.addTransportAddress(transportAddress);
             }
 

@@ -22,6 +22,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static com.ecg.replyts.core.runtime.ReplyTS.EMBEDDED_PROFILE;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertNotNull;
 
 import javax.annotation.PostConstruct;
@@ -46,6 +47,7 @@ public class HealthControllerTest {
                 .body("version", equalTo(HealthController.class.getPackage().getImplementationVersion()))
                 .body("discoveryEnabled", equalTo(true))
                 .body("conversationRepositoryHosts[0]", equalTo("fuzzy-cats"))
+                .body("hostname", not(equalTo(null)))
                 .when()
                 .request()
                 .get("http://localhost:" + httpPort + "/health");
