@@ -150,6 +150,6 @@ public class HealthController {
     }
 
     private String getHostname() throws UnknownHostException {
-        return InetAddress.getLocalHost().getHostName();
+        return InetAddress.getLocalHost().getCanonicalHostName();
     }
 }
