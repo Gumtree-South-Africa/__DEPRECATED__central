@@ -4,7 +4,7 @@ set -o nounset
 set -o errexit
 
 if [ $# -ne 4 ]; then
-    echo "Usage: ${0##*/} <tenant> <package> <timestamp> <environment>" 1>&2
+    echo "Usage: ${0##*/} <tenant> <git_hash> <timestamp> <build_dir>" 1>&2
     exit 1
 fi
 
