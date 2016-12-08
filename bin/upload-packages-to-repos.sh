@@ -3,6 +3,17 @@
 set -o nounset
 set -o errexit
 
+if [ $# -ne 4 ]; then
+    echo "Usage: ${0##*/} <tenant> <package> <timestamp> <environment>" 1>&2
+    exit 1
+fi
+
+TENANT=$1
+GIT_HASH=$2
+TIMESTAMP=$3
+BUILD_DIR=$4
+
+
 # Nomad packages:
 ./bin/upload_ecg_repos.sh ${TENANT} ${BUILD_DIR}/comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}-nomad.tar.gz ${TIMESTAMP} sandbox
 ./bin/upload_ecg_repos.sh ${TENANT} ${BUILD_DIR}/comaas-${TENANT}-sandbox-${TIMESTAMP}-${GIT_HASH}-nomad.tar.gz ${TIMESTAMP} sandbox
