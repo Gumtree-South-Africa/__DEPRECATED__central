@@ -1,12 +1,7 @@
 package ca.kijiji.replyts.adcounters;
 
 import ca.kijiji.replyts.TnsApiClient;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.FilterResultState;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
@@ -23,9 +18,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewConversationCommand;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static com.ecg.replyts.core.api.model.mail.Mail.ADID_HEADER;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class IncrementReplyCountListenerTest {
@@ -49,20 +43,34 @@ public class IncrementReplyCountListenerTest {
     }
 
     @Test
-    public void actionInvoked_messageStateIsSent() throws Exception{
-        Message message = newMessage(MessageState.SENT);
+    public void firstMsgInConv_messageStateIsSent_countIncremented() throws Exception {
+        Message message = newMessage(MessageState.SENT, true);
         incrementReplyCountListener.messageProcessed(conversation, message);
         verify(tnsApiClient, times(1)).incrementReplyCount(adId);
     }
 
     @Test
-    public void noAction_messageStateIsNotSent() throws Exception{
-        Message message = newMessage(MessageState.BLOCKED);
+    public void firstMsgInConv_messageStateIsNotSent_countNotIncremented() throws Exception {
+        Message message = newMessage(MessageState.BLOCKED, true);
         incrementReplyCountListener.messageProcessed(conversation, message);
         verify(tnsApiClient, never()).incrementReplyCount(adId);
     }
 
-    public Message newMessage(MessageState state) {
+    @Test
+    public void followUpMsg_messageStateIsSent_countNotIncremented() throws Exception {
+        Message message = newMessage(MessageState.SENT, false);
+        incrementReplyCountListener.messageProcessed(conversation, message);
+        verify(tnsApiClient, never()).incrementReplyCount(adId);
+    }
+
+    @Test
+    public void followUpMsg_messageStateNotSent_countNotIncremented() throws Exception {
+        Message message = newMessage(MessageState.HELD, false);
+        incrementReplyCountListener.messageProcessed(conversation, message);
+        verify(tnsApiClient, never()).incrementReplyCount(adId);
+    }
+
+    public Message newMessage(MessageState state, boolean useAdIdHeader) {
         return ImmutableMessage.Builder.aMessage()
                 .withMessageDirection(MessageDirection.BUYER_TO_SELLER)
                 .withState(state)
@@ -70,7 +78,7 @@ public class IncrementReplyCountListenerTest {
                 .withLastModifiedAt(DateTime.now())
                 .withFilterResultState(FilterResultState.OK)
                 .withHumanResultState(ModerationResultState.GOOD)
-                .withHeader("random", "random")
+                .withHeader(useAdIdHeader ? ADID_HEADER : "X-Whatever", "adid")
                 .withProcessingFeedback(ProcessingFeedbackBuilder.aProcessingFeedback()
                         .withFilterName("filterName")
                         .withFilterInstance("filterInstantce"))
