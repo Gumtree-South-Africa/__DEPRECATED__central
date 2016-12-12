@@ -64,7 +64,7 @@ public class FsboCsPlatformAdChecker implements AdChecker {
 
             logger.info("Fsbo-cs-platform returned {} for ad {}.", msg, adId);
 
-            if (msg.equals("fraud")) {
+            if (msg!=null && msg.equals("fraud")) {
                 return true;
             }
         } catch (Exception e) {
