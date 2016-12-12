@@ -22,26 +22,32 @@ import static org.mockito.Mockito.*;
 public class EmailOptOutPreProcessorTest {
 
     @Mock
-    private EmailOptOutRepository emailOutRepo;
+    private EmailOptOutRepository emailOptOutRepo;
     @Mock
     private UserIdentifierService userIdService;
     @Mock
     private MessageProcessingContext context;
     @Mock
     private MutableConversation conversation;
+    @Mock
+    private EmailOptOutPreProcessorFilter preProcessorFilter;
+
     private EmailOptOutPreProcessor preProcessor;
 
     @Before
-    public void setUp(){
-        preProcessor = new EmailOptOutPreProcessor(emailOutRepo, userIdService);
+    public void setUp() {
+        preProcessor = new EmailOptOutPreProcessor(emailOptOutRepo, userIdService);
+        preProcessor.setEmailOptOutPreProcessorFilter(preProcessorFilter);
+
+        when(preProcessorFilter.filter(context)).thenReturn(false);
         when(context.getConversation()).thenReturn(conversation);
         when(context.getMessageDirection()).thenReturn(BUYER_TO_SELLER);
     }
 
     @Test
-    public void skipProcessingEmail(){
+    public void skipProcessingEmail() {
         when(userIdService.getUserIdentificationOfConversation(conversation, Seller)).thenReturn(of("123"));
-        when(emailOutRepo.isEmailTurnedOn("123")).thenReturn(false);
+        when(emailOptOutRepo.isEmailTurnedOn("123")).thenReturn(false);
 
         preProcessor.preProcess(context);
 
@@ -49,9 +55,9 @@ public class EmailOptOutPreProcessorTest {
     }
 
     @Test
-    public void processEmail(){
+    public void processEmail() {
         when(userIdService.getUserIdentificationOfConversation(conversation, Seller)).thenReturn(of("123"));
-        when(emailOutRepo.isEmailTurnedOn("123")).thenReturn(true);
+        when(emailOptOutRepo.isEmailTurnedOn("123")).thenReturn(true);
 
         preProcessor.preProcess(context);
 
@@ -59,8 +65,29 @@ public class EmailOptOutPreProcessorTest {
     }
 
     @Test
-    public void noUser(){
+    public void noUser() {
         when(userIdService.getUserIdentificationOfConversation(conversation, Seller)).thenReturn(empty());
+
+        preProcessor.preProcess(context);
+
+        verify(context, never()).skipDeliveryChannel(any());
+    }
+
+    @Test
+    public void processEmailIfFiltered() {
+        when(preProcessorFilter.filter(context)).thenReturn(true);
+
+        preProcessor.preProcess(context);
+
+        verifyZeroInteractions(userIdService, context);
+    }
+
+    @Test
+    public void processEmailIfNoFilter() {
+        preProcessor.setEmailOptOutPreProcessorFilter(null);
+
+        when(userIdService.getUserIdentificationOfConversation(conversation, Seller)).thenReturn(of("123"));
+        when(emailOptOutRepo.isEmailTurnedOn("123")).thenReturn(true);
 
         preProcessor.preProcess(context);
 

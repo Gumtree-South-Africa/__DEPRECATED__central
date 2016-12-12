@@ -18,6 +18,7 @@ import static com.ecg.replyts.core.api.processing.MessageProcessingContext.DELIV
         "('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))}")
 public class EmailOptOutPreProcessor implements PreProcessor {
 
+    private EmailOptOutPreProcessorFilter filter;
     private final EmailOptOutRepository emailOptOutRepo;
     private final UserIdentifierService userIdService;
 
@@ -29,6 +30,10 @@ public class EmailOptOutPreProcessor implements PreProcessor {
 
     @Override
     public void preProcess(MessageProcessingContext context) {
+        if (filter != null && filter.filter(context)) {
+            return;
+        }
+
         Conversation c = context.getConversation();
         MessageDirection toRole = context.getMessageDirection();
         ConversationRole role = toRole.getToRole();
@@ -43,5 +48,10 @@ public class EmailOptOutPreProcessor implements PreProcessor {
     @Override
     public int getOrder() {
         return 40;
+    }
+
+    @Autowired(required = false)
+    public void setEmailOptOutPreProcessorFilter(EmailOptOutPreProcessorFilter filter) {
+        this.filter = filter;
     }
 }
