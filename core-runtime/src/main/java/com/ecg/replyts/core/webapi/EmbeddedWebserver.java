@@ -2,6 +2,7 @@ package com.ecg.replyts.core.webapi;
 
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
+import ch.qos.logback.core.status.OnConsoleStatusListener;
 import com.ecg.replyts.core.webapi.ssl.SSLConfiguration;
 import com.ecg.replyts.core.webapi.ssl.SSLServerFactory;
 import com.ecg.replyts.core.webapi.util.ServerStartupLifecycleListener;
@@ -185,6 +186,7 @@ public class EmbeddedWebserver {
 
             RequestLogImpl logger = new RequestLogImpl();
 
+            logger.getStatusManager().add(new OnConsoleStatusListener());
             logger.addAppender(accessLogAppender);
 
             return startRequestLogHandler(logger);
