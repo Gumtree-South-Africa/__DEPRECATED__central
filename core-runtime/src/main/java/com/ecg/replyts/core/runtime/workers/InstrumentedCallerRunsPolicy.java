@@ -1,4 +1,4 @@
-package com.ecg.messagebox.util;
+package com.ecg.replyts.core.runtime.workers;
 
 import com.codahale.metrics.Counter;
 

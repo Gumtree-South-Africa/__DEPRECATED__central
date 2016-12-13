@@ -1,4 +1,4 @@
-package com.ecg.messagebox.util;
+package com.ecg.replyts.core.runtime.workers;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -16,7 +16,7 @@ import static com.ecg.replyts.core.runtime.TimingReports.*;
  * Decorator for {@link java.util.concurrent.ExecutorService}s to add metrics.
  * <p>
  * In case the executorService is a {@link java.util.concurrent.ThreadPoolExecutor},
- * consider configuring it with a {@link com.ecg.messagebox.util.InstrumentedCallerRunsPolicy}.
+ * consider configuring it with a {@link InstrumentedCallerRunsPolicy}.
  */
 public class InstrumentedExecutorService implements ExecutorService {
 
@@ -34,7 +34,7 @@ public class InstrumentedExecutorService implements ExecutorService {
      * Instrumented executor service with given metrics owner and name.
      * <p>
      * In case the executorService is a {@link java.util.concurrent.ThreadPoolExecutor},
-     * consider configuring it with a {@link com.ecg.messagebox.util.InstrumentedCallerRunsPolicy}.
+     * consider configuring it with a {@link InstrumentedCallerRunsPolicy}.
      */
     public InstrumentedExecutorService(ExecutorService executorService, String owner, String name) {
         this.delegate = executorService;
