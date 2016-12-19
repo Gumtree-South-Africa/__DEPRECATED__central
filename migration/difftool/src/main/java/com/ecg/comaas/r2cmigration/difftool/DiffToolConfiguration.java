@@ -2,7 +2,6 @@ package com.ecg.comaas.r2cmigration.difftool;
 
 import com.datastax.driver.core.Session;
 import com.ecg.comaas.r2cmigration.difftool.repo.CassPostboxRepo;
-import com.ecg.comaas.r2cmigration.difftool.util.InstrumentedCallerRunsPolicy;
 import com.ecg.de.kleinanzeigen.replyts.graphite.GraphiteExporter;
 import com.ecg.messagecenter.persistence.JsonToPostBoxConverter;
 import com.ecg.messagecenter.persistence.PostBoxToJsonConverter;
@@ -11,6 +10,8 @@ import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigur
 import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
 import com.ecg.replyts.core.runtime.persistence.strategy.CassandraPersistenceConfiguration;
 import com.ecg.replyts.core.runtime.persistence.strategy.RiakPersistenceConfiguration;
+import com.ecg.replyts.core.runtime.workers.InstrumentedCallerRunsPolicy;
+import com.ecg.replyts.core.runtime.workers.InstrumentedExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.*;
 
 import java.net.UnknownHostException;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -107,10 +109,10 @@ public class DiffToolConfiguration {
     }
 
     @Bean
-    public ThreadPoolExecutor threadPoolExecutor() {
-        return new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS,
+    public ExecutorService executorService() {
+        return new InstrumentedExecutorService( new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(workQueueSize),
-                new InstrumentedCallerRunsPolicy("difftool-conversation", ""));
+                new InstrumentedCallerRunsPolicy("executorRun", "")), "executor", "");
     }
 
 }

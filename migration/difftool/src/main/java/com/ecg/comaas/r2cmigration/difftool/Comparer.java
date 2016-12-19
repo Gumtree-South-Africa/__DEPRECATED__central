@@ -25,7 +25,7 @@ import static com.ecg.comaas.r2cmigration.difftool.PostboxComparer.*;
 public class Comparer {
 
     @Autowired
-    private ThreadPoolExecutor executor;
+    private ExecutorService executor;
 
     @Autowired
     private R2CConversationDiffTool convDiff;

@@ -35,13 +35,17 @@ public class R2CConversationDiffTool {
 
 
     private static final Logger LOG = LoggerFactory.getLogger(R2CConversationDiffTool.class);
-    private static final Logger MISMATCH_LOG = LoggerFactory.getLogger("difftool-conversation.mismatch");
+    private static final Logger MISMATCH_LOG = LoggerFactory.getLogger("conversation.mismatch");
 
-    final static Counter RIAK_TO_CASS_EVENT_MISMATCH_COUNTER = TimingReports.newCounter("difftool.riak-mismatch-counter");
-    final static Counter CASS_TO_RIAK_EVENT_MISMATCH_COUNTER = TimingReports.newCounter("difftool.cass-mismatch-counter");
+    final static Counter RIAK_TO_CASS_EVENT_MISMATCH_COUNTER = TimingReports.newCounter("riak-mismatch-counter");
+    final static Counter CASS_TO_RIAK_EVENT_MISMATCH_COUNTER = TimingReports.newCounter("cass-mismatch-counter");
 
-    private final static Timer RIAK_TO_CASS_COMPARE_TIMER = TimingReports.newTimer("difftool.riak-to-cass.compare-timer");
-    private final static Timer CASS_TO_RIAK_COMPARE_TIMER = TimingReports.newTimer("difftool.cass-to-riak.compare-timer");
+    private final static Timer RIAK_TO_CASS_BATCH_COMPARE_TIMER = TimingReports.newTimer("riak-to-cass.batch-compare-timer");
+    private final static Timer CASS_TO_RIAK_BATCH_COMPARE_TIMER = TimingReports.newTimer("cass-to-riak.batch-compare-timer");
+
+    private final static Timer RIAK_TO_CASS_COMPARE_TIMER = TimingReports.newTimer("riak-to-cass.compare-timer");
+    private final static Timer CASS_TO_RIAK_COMPARE_TIMER = TimingReports.newTimer("cass-to-riak.compare-timer");
+
 
     Counter cassConversationCounter;
     Counter cassEventCounter;
@@ -64,15 +68,15 @@ public class R2CConversationDiffTool {
     CassConversationRepo cassRepo;
 
     @Autowired
-    ThreadPoolExecutor executor;
+    ExecutorService executor;
 
     public R2CConversationDiffTool(int idBatchSize, int maxEntityAge) {
         this.idBatchSize = idBatchSize;
         this.maxEntityAge = maxEntityAge;
-        cassConversationCounter = newCounter("difftool.cassConversationCounter");
-        cassEventCounter = newCounter("difftool.cassEventCounter");
-        riakEventCounter = newCounter("difftool.riakEventCounter");
-        riakConversationCounter = newCounter("difftool.riakConversationCounter");
+        cassConversationCounter = newCounter("cassConversationCounter");
+        cassEventCounter = newCounter("cassEventCounter");
+        riakEventCounter = newCounter("riakEventCounter");
+        riakConversationCounter = newCounter("riakConversationCounter");
     }
 
     public void setDateRange(DateTime startDate, DateTime endDate, int tzShiftInMin) {
@@ -134,36 +138,40 @@ public class R2CConversationDiffTool {
             .thenComparing(c -> c.getEventId());
 
     void compareRiakToCassAsync(List<IndexEntry> conversationIdsFromRiak, Bucket convBucket) {
-        try (Timer.Context ignored = RIAK_TO_CASS_COMPARE_TIMER.time()) {
+        try (Timer.Context ignored = RIAK_TO_CASS_BATCH_COMPARE_TIMER.time()) {
+
             for (IndexEntry convIdIdx : conversationIdsFromRiak) {
-                LOG.debug("Next riak convId {}", convIdIdx.getObjectKey());
-                String convId = convIdIdx.getObjectKey();
-                List<ConversationEvent> riakConvEvents = riakRepo.fetchConversation(convId, convBucket).getEvents();
-                List<ConversationEvent> cassConvEvents = cassRepo.getById(convId);
 
-                riakConversationCounter.inc();
-                riakEventCounter.inc(riakConvEvents.size());
+                try (Timer.Context timer2 = RIAK_TO_CASS_COMPARE_TIMER.time()) {
 
-                if (cassConvEvents.size() != riakConvEvents.size()) {
-                    logConvEventDifference(convId, cassConvEvents, riakConvEvents, true);
+                    LOG.debug("Next riak convId {}", convIdIdx.getObjectKey());
+                    String convId = convIdIdx.getObjectKey();
 
-                } else {
-                    Collections.sort(riakConvEvents, MODIFIED_DATE_EVENTID);
-                    Collections.sort(cassConvEvents, MODIFIED_DATE_EVENTID);
+                    List<ConversationEvent> riakConvEvents = riakRepo.fetchConversation(convId, convBucket).getEvents();
+                    List<ConversationEvent> cassConvEvents = cassRepo.getById(convId);
 
-                    for (int i = 0; i < cassConvEvents.size(); i++) {
-                        ConversationEvent cassConvEvent = cassConvEvents.get(i);
-                        ConversationEvent riakConvEvent = riakConvEvents.get(i);
-                        if (!cassConvEvent.equals(riakConvEvent)) {
-                            LOG.warn("NOT SAME\n cassEvent:{} \n riakEvent:{} \n\n", cassConvEvent, riakConvEvent);
-                            MISMATCH_LOG.info("convid: {}, cassEventId: {}, riakEventId: {}", convId, cassConvEvent.getEventId(), riakConvEvent.getEventId());
-                            isRiakMatchesCassandra = false;
-                            RIAK_TO_CASS_EVENT_MISMATCH_COUNTER.inc();
+                    riakConversationCounter.inc();
+                    riakEventCounter.inc(riakConvEvents.size());
+
+                    if (cassConvEvents.size() != riakConvEvents.size()) {
+                        logConvEventDifference(convId, cassConvEvents, riakConvEvents, true);
+
+                    } else {
+                        Collections.sort(riakConvEvents, MODIFIED_DATE_EVENTID);
+                        Collections.sort(cassConvEvents, MODIFIED_DATE_EVENTID);
+
+                        for (int i = 0; i < cassConvEvents.size(); i++) {
+                            ConversationEvent cassConvEvent = cassConvEvents.get(i);
+                            ConversationEvent riakConvEvent = riakConvEvents.get(i);
+                            if (!cassConvEvent.equals(riakConvEvent)) {
+                                LOG.warn("NOT SAME\n cassEvent:{} \n riakEvent:{} \n\n", cassConvEvent, riakConvEvent);
+                                MISMATCH_LOG.info("convid: {}, cassEventId: {}, riakEventId: {}", convId, cassConvEvent.getEventId(), riakConvEvent.getEventId());
+                                isRiakMatchesCassandra = false;
+                                RIAK_TO_CASS_EVENT_MISMATCH_COUNTER.inc();
+                            }
                         }
                     }
                 }
-
-                LOG.debug("---------------------------------------------------------------");
             }
         } catch (RiakRetryFailedException e) {
             LOG.error("Fetching conversation from riak fails with ", e);
@@ -190,46 +198,50 @@ public class R2CConversationDiffTool {
     }
 
     void compareCassToRiakAsync(List<Map.Entry<String, List<ConversationEvent>>> allCassConvEvents, Bucket convBucket) {
-        try (Timer.Context ignored = CASS_TO_RIAK_COMPARE_TIMER.time()) {
+        try (Timer.Context ignored = CASS_TO_RIAK_BATCH_COMPARE_TIMER.time()) {
 
-            HashMap<String, List<ConversationEvent>> checked = new HashMap<>();
+            Set<String> convIds = ConcurrentHashMap.newKeySet();
             for (Map.Entry<String, List<ConversationEvent>> cassConvEventsEntry : allCassConvEvents) {
 
-                String convId = cassConvEventsEntry.getKey();
-                if (StringUtils.isBlank(convId)) {
-                    // Hmm empty conversation Id, skip
-                    continue;
-                }
-                if (checked.containsKey(convId) && checked.get(convId).equals(cassConvEventsEntry.getValue())) {
-                    LOG.debug("Skipping next cassandra convId {} as it was already verified", convId);
-                    continue;
-                }
-                List<ConversationEvent> cassConvEvents = cassConvEventsEntry.getValue();
-                checked.put(convId, cassConvEvents);
+                try (Timer.Context timer2 = CASS_TO_RIAK_COMPARE_TIMER.time()) {
 
-                cassConversationCounter.inc();
-                cassEventCounter.inc(cassConvEvents.size());
+                    String convId = cassConvEventsEntry.getKey();
+                    if (StringUtils.isBlank(convId)) {
+                        // Hmm empty conversation Id, skip
+                        continue;
+                    }
+                    if (convIds.contains(convId)) {
+                        LOG.debug("Skipping next cassandra convId {} as it was already verified", convId);
+                        continue;
+                    }
+                    convIds.add(convId);
 
-                LOG.debug("Next cassandra convId = " + convId);
+                    List<ConversationEvent> cassConvEvents = cassConvEventsEntry.getValue();
 
-                ConversationEvents riakConvEvent = riakRepo.fetchConversation(convId, convBucket);
-                List<ConversationEvent> riakEvents = riakConvEvent != null ? riakConvEvent.getEvents() : null;
+                    cassConversationCounter.inc();
+                    cassEventCounter.inc(cassConvEvents.size());
 
-                if (riakEvents == null && cassConvEventsEntry == null) {
-                    continue;
-                }
-                if (cassConvEvents.size() != riakEvents.size()) {
-                    logConvEventDifference(convId, cassConvEvents, riakEvents, false);
-                } else {
-                    Collections.sort(riakEvents, MODIFIED_DATE_EVENTID);
-                    Collections.sort(cassConvEvents, MODIFIED_DATE_EVENTID);
+                    LOG.debug("Next cassandra convId = " + convId);
 
-                    for (int i = 0; i < cassConvEvents.size(); i++) {
-                        ConversationEvent cassEvent = cassConvEvents.get(i);
-                        ConversationEvent riakEvent = riakEvents.get(i);
+                    ConversationEvents riakConvEvent = riakRepo.fetchConversation(convId, convBucket);
+                    List<ConversationEvent> riakEvents = riakConvEvent != null ? riakConvEvent.getEvents() : null;
 
-                        if (!cassEvent.equals(riakEvent)) {
-                            logC2RMismatch(convId, cassEvent, riakEvent);
+                    if (riakEvents == null && cassConvEventsEntry == null) {
+                        continue;
+                    }
+                    if (cassConvEvents.size() != riakEvents.size()) {
+                        logConvEventDifference(convId, cassConvEvents, riakEvents, false);
+                    } else {
+                        Collections.sort(riakEvents, MODIFIED_DATE_EVENTID);
+                        Collections.sort(cassConvEvents, MODIFIED_DATE_EVENTID);
+
+                        for (int i = 0; i < cassConvEvents.size(); i++) {
+                            ConversationEvent cassEvent = cassConvEvents.get(i);
+                            ConversationEvent riakEvent = riakEvents.get(i);
+
+                            if (!cassEvent.equals(riakEvent)) {
+                                logC2RMismatch(convId, cassEvent, riakEvent);
+                            }
                         }
                     }
                 }

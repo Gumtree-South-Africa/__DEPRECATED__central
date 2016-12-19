@@ -27,7 +27,7 @@ import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 public class CassConversationRepo {
 
     private static final Logger LOG = LoggerFactory.getLogger(CassConversationRepo.class);
-    private final static Timer GET_BY_ID_CASS_TIMER = TimingReports.newTimer("difftool.cass-getById");
+    private final static Timer GET_BY_ID_CASS_TIMER = TimingReports.newTimer("cass-getById");
 
     private static final String FIELD_CONVERSATION_ID = "conversation_id";
     private static final String FIELD_EVENT_ID = "event_id";

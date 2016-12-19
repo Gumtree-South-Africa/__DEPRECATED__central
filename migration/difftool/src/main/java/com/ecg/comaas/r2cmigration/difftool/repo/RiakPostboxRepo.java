@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Repository
 public class RiakPostboxRepo {
 
-    private static final Timer GET_BY_ID_RIAK_TIMER = TimingReports.newTimer("difftool.riak-postbox-getById");
+    private static final Timer GET_BY_ID_RIAK_TIMER = TimingReports.newTimer("riak-postbox-getById");
     private static final Logger LOG = LoggerFactory.getLogger(RiakPostboxRepo.class);
 
     @Autowired

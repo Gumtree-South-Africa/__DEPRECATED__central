@@ -34,12 +34,12 @@ public class RiakConversationRepo {
 
     private static final Logger LOG = LoggerFactory.getLogger(RiakConversationRepo.class);
 
-    private final static Timer GET_BY_ID_RIAK_TIMER = TimingReports.newTimer("difftool.riak-getById");
+    private final static Timer GET_BY_ID_RIAK_TIMER = TimingReports.newTimer("riak-getById");
 
     private final RiakConversationEventConflictResolver resolver;
     private final ConversationEventsConverter converter;
 
-    private String bucketNamePrefix="";
+    private String bucketNamePrefix = "";
 
     private IRiakClient riakClient;
 
