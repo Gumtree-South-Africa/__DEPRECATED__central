@@ -118,6 +118,5 @@ public class SearchIndexer {
                     .setSource(indexData.getDocument());
             bulk.add(indexRequestBuilder);
         }
-        LOG.debug("Fetched so far {}", INDEX_OPERATIONS_COUNTER.getCount());
     }
 }

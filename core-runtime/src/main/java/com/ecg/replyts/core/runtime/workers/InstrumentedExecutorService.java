@@ -176,13 +176,13 @@ public class InstrumentedExecutorService implements ExecutorService {
         private final Runnable task;
 
         private InstrumentedRunnable(Runnable task) {
-            this.start = System.currentTimeMillis();
+            this.start = System.nanoTime();
             this.task = task;
         }
 
         @Override
         public void run() {
-            runDelay.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
+            runDelay.update(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             running.inc();
             final Timer.Context context = duration.time();
             try {
@@ -205,13 +205,13 @@ public class InstrumentedExecutorService implements ExecutorService {
         private final Callable<T> callable;
 
         private InstrumentedCallable(Callable<T> callable) {
-            this.start = System.currentTimeMillis();
+            this.start = System.nanoTime();
             this.callable = callable;
         }
 
         @Override
         public T call() throws Exception {
-            runDelay.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
+            runDelay.update(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             running.inc();
             final Timer.Context context = duration.time();
             try {

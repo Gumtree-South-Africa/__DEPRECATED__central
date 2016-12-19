@@ -23,11 +23,11 @@ public class IndexerActionConfiguration {
     private int chunkSizeMinutes;
 
     // StreamingIndexer  properties
-    @Value("${replyts.indexer.streaming.threadcount:4}")
+    @Value("${replyts.indexer.streaming.threadcount:16}")
     private int streamingThreadCount;
-    @Value("${replyts.indexer.streaming.queue.size:100000}")
+    @Value("${replyts.indexer.streaming.queue.size:1000}")
     private int workQueueSize;
-    @Value("${replyts.indexer.streaming.maxWaitingTasks:30}")
+    @Value("${replyts.indexer.streaming.maxWaitingTasks:200}")
     private int maxWaitingTasks;
     @Value("${replyts.indexer.streaming.conversationid.batch.size:3000}")
     private int conversationIdBatchSize;

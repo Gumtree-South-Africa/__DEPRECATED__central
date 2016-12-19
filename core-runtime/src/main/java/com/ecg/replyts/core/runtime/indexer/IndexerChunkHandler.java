@@ -42,7 +42,7 @@ public class IndexerChunkHandler {
 
     public void indexChunk(List<String> conversationIds) {
         if (conversationIds.size() > maxChunkSize) {
-            LOG.info("Partitioning conversation list with {} elements into chunks of size {}", conversationIds.size(), maxChunkSize);
+            LOG.trace("Partitioning conversation list with {} elements into chunks of size {}", conversationIds.size(), maxChunkSize);
         }
         List<List<String>> partitions = Lists.partition(conversationIds, maxChunkSize);
 
@@ -63,13 +63,13 @@ public class IndexerChunkHandler {
 
     public List<ListenableActionFuture<BulkResponse>> indexChunkAsync(Set<String> conversationIds) {
         if (conversationIds.size() > maxChunkSize) {
-            LOG.info("Partitioning conversation list with {} elements into chunks of size {}", conversationIds.size(), maxChunkSize);
+            LOG.trace("Partitioning conversation list with {} elements into chunks of size {}", conversationIds.size(), maxChunkSize);
         }
 
         List<List<String>> partitions = Lists.partition(new ArrayList<>(conversationIds), maxChunkSize);
         List<ListenableActionFuture<BulkResponse>> indexTasks = Lists.newArrayListWithExpectedSize(partitions.size());
         for (List<String> partition : partitions) {
-            indexTasks.add( indexChunkPartitionAsync(partition) );
+            indexTasks.add(indexChunkPartitionAsync(partition));
         }
         return indexTasks;
     }
@@ -89,7 +89,7 @@ public class IndexerChunkHandler {
                 FAILED_IDX.info(convId);
             }
         }
-        if(conversations.size() > 0) {
+        if (conversations.size() > 0) {
             LOG.trace("Fetch {} conversations from {} to {} completed", conversationIds.size(), conversationIds.get(0), conversationIds.get(conversationIds.size() - 1));
         }
         return conversations;
@@ -99,7 +99,7 @@ public class IndexerChunkHandler {
     private ListenableActionFuture<BulkResponse> indexChunkPartitionAsync(List<String> conversationIds) {
         try (Timer.Context timer = FETCH_TIMER.time()) {
             List<Conversation> conversations = fetchConversations(conversationIds);
-            if(conversations.size() != conversationIds.size()) {
+            if (conversations.size() != conversationIds.size()) {
                 LOG.warn("At least some conversation IDs were not found in the database, {} conversations expected, but only {} retrieved",
                         conversationIds.size(), conversations.size());
             }
