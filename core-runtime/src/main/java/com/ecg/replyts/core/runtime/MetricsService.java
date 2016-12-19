@@ -1,9 +1,13 @@
 package com.ecg.replyts.core.runtime;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
+import com.codahale.metrics.*;
+import com.codahale.metrics.jvm.BufferPoolMetricSet;
+import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
+import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
+import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
+
+import java.lang.management.ManagementFactory;
+import java.util.Map;
 
 /**
  * Wrap the implementations of metric lib. Currently we use codahale metric plugin.
@@ -21,6 +25,10 @@ public class MetricsService { // NOSONAR - this class is mocked
 
     private MetricsService() {
         this.registry = new MetricRegistry();
+        registerAll("jvm." + TimingReports.getHostName() + ".gc", new GarbageCollectorMetricSet(), this.registry);
+        registerAll("jvm." + TimingReports.getHostName() + ".buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()), this.registry);
+        registerAll("jvm." + TimingReports.getHostName() + ".memory", new MemoryUsageGaugeSet(), this.registry);
+        registerAll("jvm." + TimingReports.getHostName() + ".threads", new ThreadStatesGaugeSet(), this.registry);
     }
 
     /**
@@ -46,4 +54,15 @@ public class MetricsService { // NOSONAR - this class is mocked
     public Histogram histogram(String name) {
         return registry.histogram(name);
     }
+
+    private void registerAll(String prefix, MetricSet metricSet, MetricRegistry registry) {
+        for (Map.Entry<String, Metric> entry : metricSet.getMetrics().entrySet()) {
+            if (entry.getValue() instanceof MetricSet) {
+                registerAll(prefix + "." + entry.getKey(), (MetricSet) entry.getValue(), registry);
+            } else {
+                registry.register(prefix + "." + entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
 }
