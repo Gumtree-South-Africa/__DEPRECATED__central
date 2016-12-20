@@ -72,7 +72,7 @@ public class EmbeddedWebserver {
             @Value("${replyts.http.maxThreads:null}") Integer maxThreads,
             @Value("${replyts.http.maxThreadQueueSize:null}") Integer maxThreadQueueSize,
             @Value("${replyts.jetty.gzip.enabled:false}") boolean gzipEnabled,
-            @Value("${replyts.jetty.threadPool.instrument:false}") boolean instrumented,
+            @Value("${replyts.jetty.threadPool.instrument:true}") boolean instrumented,
             Environment environment) {
         this.httpPort = httpPortNumber;
         this.gzipEnabled = gzipEnabled;
