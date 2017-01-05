@@ -64,7 +64,7 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>core-filter-volume</artifactId>
+                    <artifactId>gtau-filter-volume</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>

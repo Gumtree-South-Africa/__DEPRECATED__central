@@ -18,6 +18,7 @@ class VolumeFilterFactory implements FilterFactory {
 
     @Override
     public Filter createPlugin(String filtername, JsonNode jsonNode) {
-        return new VolumeFilter(sharedBrain, new ConfigurationParser(jsonNode).get());
+        final ConfigurationParser parser = new ConfigurationParser(jsonNode);
+        return new VolumeFilter(sharedBrain, parser.get(), parser.getWhitelistedEmails());
     }
 }

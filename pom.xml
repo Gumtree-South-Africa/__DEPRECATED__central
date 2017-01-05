@@ -42,8 +42,8 @@
                 <module>filters/core-filter-belenblockeduser</module>
                 <module>filters/core-filter-ebayservices</module>
                 <module>filters/core-filter-user</module>
-                <module>filters/core-filter-volume</module>
                 <module>filters/core-filter-word</module>
+                <module>filters/gtau-filter-volume</module>
                 <module>filters/gtau-filter-blockedip</module>
                 <module>filters/gtau-filter-echelon</module>
 
