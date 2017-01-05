@@ -1,11 +1,13 @@
 package com.ecg.replyts.core.runtime;
 
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.LayoutBase;
 import com.github.danielwegener.logback.kafka.KafkaAppender;
 import com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy;
 import com.github.danielwegener.logback.kafka.encoding.LayoutKafkaMessageEncoder;
 import com.github.danielwegener.logback.kafka.keying.RoundRobinKeyingStrategy;
 import com.google.common.collect.ImmutableMap;
+import net.logstash.logback.layout.LogstashAccessLayout;
 import net.logstash.logback.layout.LogstashLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,7 +148,7 @@ public class CloudDiscoveryConfiguration {
             String accessLogsTopic = environment.getProperty(LOGGER_APPENDER_KAFKA_ACCESS_LOGS_TOPIC);
 
             if (StringUtils.hasText(accessLogsTopic)) {
-                fillInKafkaAppender(context, accessLogsTopic, accessLogAppender);
+                fillInKafkaAppender(context, accessLogsTopic, accessLogAppender, new LogstashAccessLayout());
             }
         }
     }
@@ -188,12 +190,12 @@ public class CloudDiscoveryConfiguration {
     private KafkaAppender createKafkaAppender(LoggerContext context, String topic) {
         KafkaAppender appender = new KafkaAppender();
 
-        fillInKafkaAppender(context, topic, appender);
+        fillInKafkaAppender(context, topic, appender, new LogstashLayout());
 
         return appender;
     }
 
-    private void fillInKafkaAppender(LoggerContext context, String topic, KafkaAppender appender) {
+    private void fillInKafkaAppender(LoggerContext context, String topic, KafkaAppender appender, LayoutBase layout) {
         List<String> instances = new ArrayList<>();
 
         discoveryClient.getInstances(LOG_APPENDER_SERVICE).forEach(instance -> {
@@ -201,9 +203,8 @@ public class CloudDiscoveryConfiguration {
         });
 
         if (instances.size() > 0) {
-            LOG.info("Auto-discovered {} Kafka instance(s) to be used for the {} log appender - will use the first one", instances.size(), topic);
-
-            LogstashLayout layout = new LogstashLayout(); // Adds in the MDC fields as well
+            String instance = instances.get(0);
+            LOG.info("Auto-discovered {} Kafka instance(s) to be used for the '{}' log appender - will use the first one: {}", instances.size(), topic, instance);
 
             layout.setContext(context);
             layout.start();
@@ -212,7 +213,7 @@ public class CloudDiscoveryConfiguration {
             appender.setName(topic + "COMaaSKafkaAppender");
             appender.setTopic(topic);
             appender.setContext(context);
-            appender.addProducerConfigValue("bootstrap.servers", instances.get(0));
+            appender.addProducerConfigValue("bootstrap.servers", instance);
             appender.setKeyingStrategy(new RoundRobinKeyingStrategy());
             appender.setDeliveryStrategy(new AsynchronousDeliveryStrategy());
             appender.start();
