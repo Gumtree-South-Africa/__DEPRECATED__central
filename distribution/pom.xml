@@ -16,6 +16,61 @@
 
     <profiles>
         <profile>
+            <id>gtuk</id>
+
+            <properties>
+                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                <profile-classifier>gtuk</profile-classifier>
+            </properties>
+
+            <dependencies>
+
+                <!-- filters -->
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-bankaccount</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-belenblockedad</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-belenblockeduser</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-ebayservices</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-user</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-volume</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <!-- resultinspectors -->
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>gtau</id>
 
             <properties>
@@ -689,7 +744,7 @@
                         <configuration>
                             <rules>
                                 <requireActiveProfile>
-                                    <profiles>mp,ebayk,mde,kjca,gtau,bt,migration</profiles>
+                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,bt,migration</profiles>
                                     <all>false</all>
                                 </requireActiveProfile>
                             </rules>

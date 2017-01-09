@@ -62,6 +62,27 @@
             </modules>
 
         </profile>
+        <profile>
+            <id>gtuk</id>
+
+            <properties>
+                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                <profile-classifier>gtuk</profile-classifier>
+            </properties>
+
+            <modules>
+                <module>filters/core-filter-bankaccount</module>
+                <module>filters/core-filter-belenblockedad</module>
+                <module>filters/core-filter-belenblockeduser</module>
+                <module>filters/core-filter-ebayservices</module>
+                <module>filters/core-filter-user</module>
+                <module>filters/core-filter-volume</module>
+                <module>filters/core-filter-word</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
+            </modules>
+
+        </profile>
 
         <!-- This profile is required to be able to run core tests only-->
         <profile>
