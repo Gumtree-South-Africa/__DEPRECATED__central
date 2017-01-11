@@ -86,6 +86,7 @@
     <bean class="com.ecg.replyts.core.runtime.indexer.IndexingJournals"/>
 
     <bean class="com.ecg.replyts.core.runtime.indexer.IndexerChunkHandler"/>
+    <bean class="com.ecg.replyts.core.runtime.indexer.IndexerBulkHandler"/>
 
     <bean class="com.ecg.replyts.core.runtime.indexer.IndexerHealthCheck"/>
     <bean class="com.ecg.replyts.core.runtime.indexer.DeltaIndexingCronJob"/>

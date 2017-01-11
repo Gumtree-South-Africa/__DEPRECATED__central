@@ -47,10 +47,6 @@ public class SearchIndexer {
         this.indexDataBuilder = indexDataBuilder;
     }
 
-    public static long getFetchedDocumentCount() {
-        return INDEX_OPERATIONS_COUNTER.getCount();
-    }
-
     public void updateSearchSync(List<Conversation> conversations) {
         if (!esEnabled) {
             return;

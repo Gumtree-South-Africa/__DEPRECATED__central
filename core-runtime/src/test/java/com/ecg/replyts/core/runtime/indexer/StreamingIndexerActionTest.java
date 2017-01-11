@@ -15,9 +15,9 @@ import static org.mockito.Mockito.when;
 public class StreamingIndexerActionTest {
 
     ConversationRepository conversationRepository = mock(ConversationRepository.class);
-    IndexerChunkHandler indexerChunkHandler = mock(IndexerChunkHandler.class);
+    IndexerBulkHandler indexerBulkHandler = mock(IndexerBulkHandler.class);
 
-    StreamingIndexerAction streamingIndexerAction = new StreamingIndexerAction(conversationRepository, indexerChunkHandler, 8, 1000, 10, 300);
+    BulkIndexerAction bulkIndexerAction = new BulkIndexerAction(conversationRepository, indexerBulkHandler, 8, 1000, 10);
 
     @Test
     public void shouldIndexWithDateRange() throws Exception {
@@ -26,11 +26,11 @@ public class StreamingIndexerActionTest {
 
         when(conversationRepository.streamConversationsModifiedBetween(from, to)).thenReturn(Stream.of("c1", "c2"));
 
-        streamingIndexerAction.doIndexBetween(from, to, null, null);
+        bulkIndexerAction.doIndexBetween(from, to, null, null);
 
         // Give scheduler some time to submit the task
         Thread.sleep(500);
 
-        verify(indexerChunkHandler).indexChunkAsync(new HashSet(Arrays.asList("c1", "c2")));
+        verify(indexerBulkHandler).indexChunk(new HashSet(Arrays.asList("c1", "c2")));
     }
 }

@@ -34,7 +34,7 @@ public class IndexerChunkHandler {
     IndexerChunkHandler(
             ConversationRepository conversationRepository,
             SearchIndexer indexer,
-            @Value("${batch.bulkoperations.maxChunkSize:350}") int maxChunkSize) {
+            @Value("${batch.bulkoperations.maxChunkSize:200}") int maxChunkSize) {
         this.conversationRepository = conversationRepository;
         this.indexer = indexer;
         this.maxChunkSize = maxChunkSize;
