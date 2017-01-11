@@ -45,6 +45,7 @@ if [[ "$TENANT" == "mp" ]] ; then
     else
       `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} ${DESTINATION}
     fi
+  done
 fi
 
 for PKG in $(ls ${BUILD_DIR}/comaas-${TENANT}*); do
