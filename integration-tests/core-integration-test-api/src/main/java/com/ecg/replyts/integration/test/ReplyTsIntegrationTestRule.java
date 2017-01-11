@@ -112,7 +112,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         }
 
         testProperties.put("persistence.cassandra.keyspace", keyspace);
-        testProperties.put("replyts.jetty.threadPool.instrument", false);
+        testProperties.put("replyts.jetty.instrument", false);
         testProperties.put("mailreceiver.watch.retrydelay.millis", 250);
         testProperties.put("search.es.enabled", esEnabled);
         testProperties.put("replyts2-messagecenter-plugin.pushmobile.url", "UNSET_PROPERTY");

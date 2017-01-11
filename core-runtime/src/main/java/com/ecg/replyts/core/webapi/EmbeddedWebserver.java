@@ -3,6 +3,7 @@ package com.ecg.replyts.core.webapi;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
 import ch.qos.logback.core.status.OnConsoleStatusListener;
+import com.ecg.replyts.core.runtime.MetricsService;
 import com.ecg.replyts.core.webapi.ssl.SSLConfiguration;
 import com.ecg.replyts.core.webapi.ssl.SSLServerFactory;
 import com.ecg.replyts.core.webapi.util.ServerStartupLifecycleListener;
@@ -11,6 +12,7 @@ import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.ConnectorStatistics;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
@@ -64,6 +66,8 @@ public class EmbeddedWebserver {
     @Value("${confDir:conf}/logback-access.xml")
     private String logbackAccessFileName;
 
+    private boolean instrument;
+
     @Autowired
     public EmbeddedWebserver(
             @Value("${replyts.ssl.enabled:false}") boolean isSSLEnabled,
@@ -72,10 +76,11 @@ public class EmbeddedWebserver {
             @Value("${replyts.http.maxThreads:null}") Integer maxThreads,
             @Value("${replyts.http.maxThreadQueueSize:null}") Integer maxThreadQueueSize,
             @Value("${replyts.jetty.gzip.enabled:false}") boolean gzipEnabled,
-            @Value("${replyts.jetty.threadPool.instrument:true}") boolean instrumented,
+            @Value("${replyts.jetty.instrument:true}") boolean instrumented,
             Environment environment) {
         this.httpPort = httpPortNumber;
         this.gzipEnabled = gzipEnabled;
+        this.instrument = instrumented;
 
         ThreadPoolBuilder builder = new ThreadPoolBuilder()
                 .withMaxThreads(Optional.ofNullable(maxThreads))
@@ -129,15 +134,15 @@ public class EmbeddedWebserver {
         if (gzipEnabled) {
             LOG.info("Jetty gzip compression is enabled");
             GzipHandler gzipHandler = buildGzipHandler(createContextHandler());
-            handlers.addHandler(gzipHandler);
+            handlers.addHandler(instrument(gzipHandler));
         } else {
-            handlers.addHandler(createContextHandler());
+            handlers.addHandler(instrument(createContextHandler()));
         }
 
         Handler accessLoggingHandler = createAccessLoggingHandler();
         if (accessLoggingHandler != null) {
             LOG.info("Access logging is enabled");
-            handlers.addHandler(accessLoggingHandler);
+            handlers.addHandler(instrument(accessLoggingHandler));
         }
 
         server.setHandler(handlers);
@@ -157,6 +162,16 @@ public class EmbeddedWebserver {
         // Don't report having started until all context have been initialized
 
         isStarted = true;
+    }
+
+    private Handler instrument(Handler handler) {
+        if(instrument) {
+            HostReportingServletHandler instrumentedHandler = new HostReportingServletHandler(MetricsService.getInstance().getRegistry());
+            LOG.debug("Instrumenting handler: ", handler);
+            instrumentedHandler.setHandler(handler);
+            return instrumentedHandler;
+        }
+        return handler;
     }
 
     private Handler createContextHandler() {
@@ -221,4 +236,5 @@ public class EmbeddedWebserver {
         gzipHandler.setHandler(contextHandler);
         return gzipHandler;
     }
+
 }

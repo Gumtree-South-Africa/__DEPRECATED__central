@@ -20,8 +20,6 @@ import static com.codahale.metrics.MetricRegistry.name;
  */
 public class HostReportingInstrumentedQueuedTPool extends QueuedThreadPool {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TimingReports.class);
-
     private final MetricRegistry metricRegistry;
 
     public HostReportingInstrumentedQueuedTPool(@Name("registry") MetricRegistry registry) {
