@@ -44,10 +44,8 @@ function repackage() {
   tar xvfz $ARTIFACT$FILEEXT
   cd distribution
   rm -rf conf
-  mkdir -p conf-${TENANT}
-  cp ../../conf/$TENANT/$ENV/* conf-${TENANT}
-  # '.bak' for MacOS only to tell sed which extension to use for backup file
-  sed -i'.bak' "s~/conf ~/conf-${TENANT} ~" bin/comaas
+  mkdir -p conf
+  cp ../../conf/$TENANT/$ENV/* conf
   cd ..
   # now in distribution/target/
   mkdir -p repackage/${REPACKAGED_ARTIFACT_NAME}/

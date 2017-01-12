@@ -40,9 +40,8 @@ tar xf distribution/target/distribution-${TENANT}-comaasqa.tar.gz -C distributio
 PACKAGE_NAME="comaas-${TENANT}_sandbox-${TIMESTAMP}-${GIT_HASH}"
 ARTIFACT_NAME="${PACKAGE_NAME}.tar.gz"
 rm -rf distribution/target/distribution/conf
-mkdir -p distribution/target/distribution/conf-${TENANT}
-cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf-${TENANT}
-sed -i.bak "s~/conf ~/conf-${TENANT} ~" distribution/target/distribution/bin/comaas
+mkdir -p distribution/target/distribution/conf
+cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
 mv distribution/target/distribution distribution/target/${PACKAGE_NAME}
 tar czf ${BUILD_DIR}/${ARTIFACT_NAME} -C distribution/target/ ${PACKAGE_NAME}
 rm -rf distribution/target/${PACKAGE_NAME}
@@ -57,14 +56,13 @@ echo "Created ${BUILD_DIR}/${ARTIFACT_NAME}"
 if [[ -d distribution/conf/${TENANT}/prod ]]; then
     # unpack the comaasqa package
     tar xf distribution/target/distribution-${TENANT}-comaasqa.tar.gz -C distribution/target
-      
+
     # Create a package for prod
     PACKAGE_NAME="comaas-${TENANT}_prod-${TIMESTAMP}-${GIT_HASH}"
     ARTIFACT_NAME="${PACKAGE_NAME}.tar.gz"
     rm -rf distribution/target/distribution/conf
-    mkdir -p distribution/target/distribution/conf-${TENANT}
-    cp distribution/conf/${TENANT}/prod/* distribution/target/distribution/conf-${TENANT}
-    sed -i.bak "s~/conf ~/conf-${TENANT} ~" distribution/target/distribution/bin/comaas
+    mkdir -p distribution/target/distribution/conf
+    cp distribution/conf/${TENANT}/prod/* distribution/target/distribution/conf
     chmod 775 distribution/target/distribution/log
     mv distribution/target/distribution distribution/target/${PACKAGE_NAME}
     tar czf ${BUILD_DIR}/${ARTIFACT_NAME} -C distribution/target/ ${PACKAGE_NAME}
