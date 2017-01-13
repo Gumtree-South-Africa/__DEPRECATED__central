@@ -40,17 +40,16 @@ function package() {
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
 
 
-# RP: Removed the nomad packages for now, until we're going to move forward with it.
     # Remove the root directory from the comaasqa package for Nomad
-#    ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}-nomad"
-#    tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
-#    echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
+    ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}-nomad"
+    tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
+    echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
 
     # Remove the root directory from the sandbox package for Nomad and add config
-#    ARTIFACT_NAME="comaas-${TENANT}-sandbox-${TIMESTAMP}-${GIT_HASH}-nomad"
-#    cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
-#    tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
-#    echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
+    ARTIFACT_NAME="comaas-${TENANT}-sandbox-${TIMESTAMP}-${GIT_HASH}-nomad"
+    cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
+    tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
+    echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
 
     # Now create a package with cloud sandbox properties that will be deployed using deploy.py
     ARTIFACT_NAME="comaas-${TENANT}_sandbox-${TIMESTAMP}-${GIT_HASH}"
