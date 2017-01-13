@@ -55,9 +55,10 @@ function repackage() {
   mkdir -p tmp
   mkdir -p tmp2
   tar xfz ${ARTIFACT} -C tmp/
+  (cd tmp && sed -i'' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' bin/comaas)
 
   for prop in distribution/conf/${TENANT}/*; do
-    if [[ -f "$prop" || "$prop" == *import_into_consul || "$prop" == *comaasqa || "$prop" == *local || "$prop" == *bare || "$prop" == *sandbox ]]; then
+    if [[ -f "$prop" || "$prop" == *import_into_consul || "$prop" == *comaasqa || "$prop" == *local || "$prop" == *bare || "$prop" == *sandbox || "$prop" == *migration* ]]; then
       continue
     fi
 
