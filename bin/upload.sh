@@ -36,13 +36,6 @@ declare -A HOSTS=(
   # Overrides for specific environments
   ["mp-prod"]="builder@deploy001.esh.ops.prod.icas.ecg.so"
   ["mde-prod"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-productive-releases/ecg/ecg-comaas/"
-
-  # TODO below ip address is that of deployer001 in comaas-lp openstack project ("sandbox"), this should be domain name
-  ["mp-sandbox"]="mpdeploy@10.41.136.80"
-  ["ebayk-sandbox"]="mpdeploy@10.41.136.80"
-  ["mde-sandbox"]="mpdeploy@10.41.136.80"
-  ["kjca-sandbox"]="mpdeploy@10.41.136.80"
-  ["gtau-sandbox"]="mpdeploy@10.41.136.80"
 )
 
 # map to lookup upload methods for a tenant
@@ -52,13 +45,6 @@ declare -A METHODS=(
   ["mde"]="curl"
   ["kjca"]="curl"
   ["gtau"]="curl"
-
-  # Overrides for specific environments
-  ["mp-sandbox"]="rsync"
-  ["ebayk-sandbox"]="rsync"
-  ["mde-sandbox"]="rsync"
-  ["kjca-sandbox"]="rsync"
-  ["gtau-sandbox"]="rsync"
 )
 
 function upload() {

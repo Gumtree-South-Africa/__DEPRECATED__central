@@ -49,23 +49,8 @@ if [[ "$TENANT" == "mp" ]] ; then
 fi
 
 for PKG in $(ls ${BUILD_DIR}/comaas-${TENANT}*); do
-  PACKAGE_REGEX=".*/comaas-${TENANT}-(comaasqa|local).*"
+  PACKAGE_REGEX=".*/comaas-${TENANT}-(comaasqa|local|sandbox|prod|configuration).*"
   [[ ${PKG} =~ ${PACKAGE_REGEX} ]] && continue
-
-  # UPLOAD configuration
-  CONFIG_REGEX=".*/comaas-${TENANT}-configuration.*"
-  if [[ ${PKG} =~ ${CONFIG_REGEX} ]]; then
-    `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} sandbox
-    #  `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} prod
-    continue
-  fi
-
-  # UPLOAD SANDBOX PACKAGE
-  SANDBOX_REGEX=".*/comaas-${TENANT}_sandbox.*"
-  if [[ ${PKG} =~ ${SANDBOX_REGEX} ]]; then
-    `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} sandbox
-    continue
-  fi
 
   `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP}
   if [[ "${TENANT}" == "mde" ]]; then
