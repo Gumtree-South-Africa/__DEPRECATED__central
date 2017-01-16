@@ -326,7 +326,9 @@
                 <repository>
                     <id>bolt-nexus</id>
                     <name>Bolt-Nexus</name>
-                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases</url>
+                    <url>
+                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
+                    </url>
                     <layout>default</layout>
                 </repository>
             </distributionManagement>
@@ -451,6 +453,7 @@
         <kjca-service-discovery.version>11</kjca-service-discovery.version>
         <kjca-tracing.version>8</kjca-tracing.version>
         <sentry-version>7.1.0</sentry-version>
+        <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
     </properties>
 
 
@@ -1662,6 +1665,11 @@
                             <exclude>**/logging.xml</exclude>
                         </excludes>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${build-helper-maven-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>pl.project13.maven</groupId>

@@ -336,8 +336,28 @@
                             <classpathPrefix>./</classpathPrefix>
                             <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                         </manifest>
+                        <manifestEntries>
+                            <!--COMAAS-355: gtuk temp version for debian package based on build date-->
+                            <Build-Date>${t}</Build-Date>
+                        </manifestEntries>
                     </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>timestamp-property</id>
+                        <goals>
+                            <goal>timestamp-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>t</name>
+                            <pattern>yyyyMMddHHmm</pattern>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
 
