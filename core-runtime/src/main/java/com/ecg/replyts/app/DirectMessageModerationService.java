@@ -4,6 +4,7 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.MessageModeratedCommand;
+import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ModerationAction;
@@ -17,57 +18,69 @@ import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversation
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static org.joda.time.DateTime.now;
 
 /**
- * Service that handles Moderation results from CS agents (forwarded to ReplyTS via Webservice).
- * If the ModerationResultState GOOD, the message will be sent, if it is BAD, it will end up BLOCKED.
+ * Handles Moderation results from CS agents, forwarded via REST endpoint. If the result state is GOOD or TIMED_OUT, the
+ * message will be sent; if it is BAD, it will end up BLOCKED.
  */
+@Service
 public class DirectMessageModerationService implements ModerationService {
-
-    // Max processing time, choose a quite long time, post processing shouldn't be the processing problem
+    // Choose a quite long time, post processing shouldn't be the processing problem
     private static final long MAX_MESSAGE_PROCESSING_TIME_SECONDS = 300L;
 
-    private final MutableConversationRepository conversationRepository;
-    private final SearchIndexer searchIndexer;
-    private final List<MessageProcessedListener> listeners;
-    private final MailRepository mailRepository;
-    private final ProcessingFlow flow;
-    private final Mails mails = new Mails();
-    private final ConversationEventListeners conversationEventListeners;
+    @Autowired
+    private MutableConversationRepository conversationRepository;
 
+    @Autowired
+    private SearchIndexer searchIndexer;
 
-    DirectMessageModerationService(MutableConversationRepository conversationRepository, ProcessingFlow flow, MailRepository mailRepository, SearchIndexer searchIndexer, List<MessageProcessedListener> listeners, ConversationEventListeners conversationEventListeners) {
-        this.conversationRepository = conversationRepository;
-        this.flow = flow;
-        this.mailRepository = mailRepository;
-        this.searchIndexer = searchIndexer;
-        this.listeners = listeners;
-        this.conversationEventListeners = conversationEventListeners;
-    }
+    @Autowired(required = false)
+    private List<MessageProcessedListener> listeners = emptyList();
+
+    @Autowired
+    private HeldMailRepository heldMailRepository;
+
+    @Autowired(required = false)
+    private MailRepository mailRepository;
+
+    @Autowired
+    private ProcessingFlow flow;
+
+    @Autowired
+    private ConversationEventListeners conversationEventListeners;
 
     @Override
     public void changeMessageState(MutableConversation conversation, String messageId, ModerationAction moderationAction) {
         Preconditions.checkArgument(moderationAction.getModerationResultState().isAcceptableOutcome(), "Moderation State " + moderationAction.getModerationResultState() + " is not an acceptable moderation outcome");
-        MessageModeratedCommand command = new MessageModeratedCommand(conversation.getId(), messageId, now(), moderationAction);
-        conversation.applyCommand(command);
+
+        conversation.applyCommand(new MessageModeratedCommand(conversation.getId(), messageId, now(), moderationAction));
 
         if (moderationAction.getModerationResultState().allowsSending()) {
-            byte[] inboundMailData = mailRepository.readInboundMail(messageId);
+            byte[] inboundMailData = heldMailRepository.read(messageId);
+
             MessageProcessingContext processingContext = putIntoFlow(conversation, inboundMailData, messageId);
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            try {
+
+            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 processingContext.getOutgoingMail().writeTo(outputStream);
-                mailRepository.persistMail(messageId, inboundMailData, Optional.of(outputStream.toByteArray()));
+
+                if (mailRepository != null) {
+                    mailRepository.persistMail(messageId, inboundMailData, Optional.of(outputStream.toByteArray()));
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
+
+        heldMailRepository.remove(messageId);
 
         searchIndexer.updateSearchAsync(ImmutableList.<Conversation>of(conversation));
 
@@ -82,16 +95,17 @@ public class DirectMessageModerationService implements ModerationService {
 
     private MessageProcessingContext putIntoFlow(MutableConversation conversation, byte[] mail, String messageId) {
         try {
-            ProcessingTimeGuard processingTimeGuard = new ProcessingTimeGuard(MAX_MESSAGE_PROCESSING_TIME_SECONDS);
-            MessageProcessingContext context = new MessageProcessingContext(mails.readMail(mail), messageId, processingTimeGuard);
+            MessageProcessingContext context = new MessageProcessingContext(Mails.readMail(mail), messageId, new ProcessingTimeGuard(MAX_MESSAGE_PROCESSING_TIME_SECONDS));
+
             context.setConversation(conversation);
             context.setMessageDirection(conversation.getMessageById(messageId).getMessageDirection());
 
             flow.inputForPostProcessor(context);
+
             return context;
         } catch (ParsingException e) {
-            // assume we can parse the mail, as it was parsed before it was inserted into persistence in first place.
-            // If the mail is unparsable now, this is a weird case, that we cannot handle correctly.
+            // Assume we can parse the mail, as it was parsed before it was inserted into persistence in first place. If
+            // the mail is unparseable now, this is a weird case, that we cannot handle correctly.
             throw new RuntimeException(e);
         }
     }

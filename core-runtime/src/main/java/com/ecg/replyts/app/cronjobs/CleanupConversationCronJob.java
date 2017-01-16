@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -23,8 +24,8 @@ import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.never;
 import static com.ecg.replyts.core.runtime.persistence.FetchIndexHelper.logInterval;
 import static org.joda.time.DateTime.now;
 
+@Component
 public class CleanupConversationCronJob implements CronJobExecutor {
-
     private static final Logger LOG = LoggerFactory.getLogger(CleanupConversationCronJob.class);
 
     private final boolean cronJobEnabled;

@@ -18,7 +18,6 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MailsCleanupOnConversationDeletedListenerTest {
-
     private static final String CONVERSATION_ID = "1234";
 
     @Mock

@@ -3,6 +3,7 @@ package com.ecg.replyts.app.filterchain;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.runtime.TimingReports;
+import org.springframework.stereotype.Component;
 
 
 /**
@@ -11,12 +12,9 @@ import com.ecg.replyts.core.runtime.TimingReports;
  *
  * Would be nice if timing reports where not designd in a static way.
  */
-public class Metrics {
-
-
+@Component
+public class FilterListMetrics {
     public Timer.Context newOrExistingTimerFor(ConfigurationId filterId) {
         return TimingReports.newOrExistingTimerFor(filterId).time();
     }
-
-
 }

@@ -23,34 +23,33 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-/**
- * Allows to turn off and on email sending
- */
 @Controller
-@ConditionalOnExpression("#{ ${email.opt.out.enabled:false} && " +
-        "('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))}")
+@ConditionalOnExpression("'${email.opt.out.enabled:false}' == 'true' && ('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))")
 public class EmailOptOutController {
+    private static final Logger LOG = LoggerFactory.getLogger(EmailOptOutController.class);
+
     private static final Timer TURN_ON = newTimer("webapi.email-notifications.turn-on");
     private static final Timer TURN_OFF = newTimer("webapi.email-notifications.turn-off");
     private static final Timer STATUS = newTimer("webapi.email-notifications.status");
-    private static final Logger log = LoggerFactory.getLogger(EmailOptOutController.class);
-
-    private final EmailOptOutRepository emailOptOutRepository;
-    private final UserEventListener userEventListener;
 
     @Autowired
-    public EmailOptOutController(EmailOptOutRepository emailOptOutRepository, UserEventListener eventListener){
-        this.emailOptOutRepository = emailOptOutRepository;
-        this.userEventListener = eventListener;
-    }
+    private EmailOptOutRepository emailOptOutRepository;
+
+    @Autowired(required = false)
+    private UserEventListener userEventListener;
 
     @RequestMapping(value = "/email-notifications/{userId}/turn-on", produces = APPLICATION_JSON_VALUE, method = PUT)
     @ResponseBody
     ResponseObject<?> emailTurnOn(@PathVariable String userId) {
         try (Timer.Context ignored = TURN_ON.time()) {
-            log.trace("Turning on email notifications for userId: " + userId);
+            LOG.trace("Turning on email notifications for userId: " + userId);
+
             emailOptOutRepository.turnOnEmail(userId);
-            userEventListener.eventTriggered(new EmailPreferenceEvent(TURN_ON_EMAIL, userId));
+
+            if (userEventListener != null) {
+                userEventListener.eventTriggered(new EmailPreferenceEvent(TURN_ON_EMAIL, userId));
+            }
+
             return ResponseObject.of(RequestState.OK);
         }
     }
@@ -59,9 +58,14 @@ public class EmailOptOutController {
     @ResponseBody
     ResponseObject<?> emailTurnOff(@PathVariable String userId) {
         try (Timer.Context ignored = TURN_OFF.time()) {
-            log.trace("Turning off email notifications for userId: " + userId);
+            LOG.trace("Turning off email notifications for userId: " + userId);
+
             emailOptOutRepository.turnOffEmail(userId);
-            userEventListener.eventTriggered(new EmailPreferenceEvent(TURN_OFF_EMAIL, userId));
+
+            if (userEventListener != null) {
+                userEventListener.eventTriggered(new EmailPreferenceEvent(TURN_OFF_EMAIL, userId));
+            }
+
             return ResponseObject.of(RequestState.OK);
         }
     }
@@ -77,7 +81,6 @@ public class EmailOptOutController {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     class EmailNotificationsStatus {
-
         public boolean isEmailNotifications() {
             return emailNotifications;
         }

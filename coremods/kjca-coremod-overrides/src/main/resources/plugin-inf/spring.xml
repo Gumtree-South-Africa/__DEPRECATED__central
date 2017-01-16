@@ -8,7 +8,7 @@
 
     <bean class="ca.kijiji.replyts.TextAnonymizer" id="textAnonymizer"/>
 
-    <bean id="postProcessorChain" class="com.ecg.replyts.app.postprocessorchain.PostProcessorChain">
+    <bean id="postProcessorChain" class="com.ecg.replyts.app.postprocessorchain.PostProcessorChain" primary="true">
         <property name="postProcessors">
             <list value-type="com.ecg.replyts.app.postprocessorchain.PostProcessor">
                 <!-- The order here doesn't matter. PostProcessors are reordered by the PostProcessorChain. -->
@@ -31,7 +31,5 @@
 
     <bean id="graphiteExceptionLogger" class="ca.kijiji.replyts.logging.ExceptionMetricsLogger"/>
 
-    <util:list id="javaMailMessageFixers" value-type="com.ecg.replyts.core.api.processing.MessageFixer">
-        <bean class="com.ecg.replyts.core.runtime.mailfixers.BrokenContentTypeFix"/>
-    </util:list>
+    <bean id="brokenContentTypeMessageFixer" class="com.ecg.replyts.core.runtime.mailfixers.BrokenContentTypeFix"/>
 </beans>

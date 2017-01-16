@@ -6,11 +6,19 @@ import com.ecg.replyts.core.api.model.conversation.command.*;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationDeletedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.processing.ModerationAction;
+import com.ecg.replyts.core.runtime.listener.ConversationEventListener;
 import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +32,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.joda.time.DateTime.now;
 import static org.junit.Assert.*;
 
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = ConversationRepositoryIntegrationTestBase.TestContext.class)
 abstract public class ConversationRepositoryIntegrationTestBase<R extends MutableConversationRepository> {
-
     protected R conversationRepository;
 
     protected String conversationId1;
@@ -34,11 +43,12 @@ abstract public class ConversationRepositoryIntegrationTestBase<R extends Mutabl
     protected String conversationId1BuyerSecret;
     protected String conversationId2SellerSecret;
     protected String conversationId2BuyerSecret;
-    protected List<ConversationEvent> emittedEvents = new ArrayList<>();
 
-    protected ConversationEventListeners conversationEventListeners =
-            new ConversationEventListeners(singletonList(
-                    (conversation, conversationEvents) -> emittedEvents.addAll(conversationEvents)));
+    @Autowired
+    protected List<ConversationEvent> emittedEvents;
+
+    @Autowired
+    protected ConversationEventListeners conversationEventListeners;
 
     @Before
     public void generateConversationIds() {
@@ -202,5 +212,19 @@ abstract public class ConversationRepositoryIntegrationTestBase<R extends Mutabl
 
     public R getConversationRepository() {
         return conversationRepository;
+    }
+
+    @Configuration
+    @Import(ConversationEventListeners.class)
+    static class TestContext {
+        @Bean
+        public List<ConversationEvent> emittedEvents() {
+            return new ArrayList<>();
+        }
+
+        @Bean
+        public List<ConversationEventListener> conversationEventListenerList(List<ConversationEvent> emittedEvents) {
+            return singletonList((conversation, conversationEvents) -> emittedEvents.addAll(conversationEvents));
+        }
     }
 }

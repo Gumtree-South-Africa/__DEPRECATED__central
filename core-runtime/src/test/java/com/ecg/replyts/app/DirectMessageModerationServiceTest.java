@@ -4,6 +4,7 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ModerationAction;
@@ -15,47 +16,58 @@ import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
 
-import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Import(DirectMessageModerationService.class)
 public class DirectMessageModerationServiceTest {
-
-    @Mock
+    @MockBean
     private MutableConversationRepository conversationRepository;
-    @Mock
+
+    @MockBean
     private ProcessingFlow flow;
-    @Mock
+
+    @MockBean
     private SearchIndexer searchIndexer;
-    @Mock
+
+    @MockBean
     private MailRepository mailRepository;
 
-    @Mock
+    @MockBean
+    private HeldMailRepository heldMailRepository;
+
+    @MockBean
     private DefaultMutableConversation c;
 
-    @Mock
+    @MockBean
     private Message m;
 
-    @Mock
+    @MockBean
     private MessageProcessedListener listener;
 
-    @Mock
+    @MockBean
     private ConversationEventListeners conversationEventListeners;
 
+    @Autowired
     private DirectMessageModerationService mms;
+
     private byte[] INBOUND_MAIL;
 
     @Before
     public void setUp() {
-        mms = new DirectMessageModerationService(conversationRepository, flow, mailRepository, searchIndexer, asList(listener), conversationEventListeners);
         when(conversationRepository.getById("1")).thenReturn(c);
         INBOUND_MAIL = "From: foo\nDelivered-To: bar\n\nhello".getBytes();
+        when(heldMailRepository.read("1")).thenReturn(INBOUND_MAIL);
         when(mailRepository.readInboundMail("1")).thenReturn(INBOUND_MAIL);
 
         when(c.getId()).thenReturn("1");

@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    <!-- Ideally we register below filters this way as well as it allows per-test filter factories to be registered,
+         thus avoiding side-effects which the below filters might cause on tests unrelated to them -->
+    <context:component-scan base-package="com.ecg.replyts" resource-pattern="**/*IntegrationFilterFactory.class "/>
 
-    <bean class="com.ecg.replyts.integration.test.filter.SubjectKeywordFilterFactory"></bean>
-
-    <!-- Plugins required by API tests to ensure ReplyTS Config API will handle
-   		various confgurations correctly. -->
+    <!-- Plugins required by API tests to ensure ReplyTS Config API will handle various confgurations correctly -->
+    <bean class="com.ecg.replyts.integration.test.filter.SubjectKeywordFilterFactory"/>
     <bean class="com.ecg.replyts.integration.test.filter.ExampleFilterFactory"/>
     <bean class="com.ecg.replyts.integration.test.filter.RejectingConfigurationFilterFactory"/>
 
-    <!-- Expose Message and conversation Id in the outbound mail, to make automation testing easier. -->
+    <!-- Expose Message and conversation Id in the outbound mail, to make automation testing easier -->
     <bean class="com.ecg.replyts.integration.test.postprocessor.IdLeakingPostProcessor"/>
 
-    <!-- Listener that has a static helper method to block test execution until ReplyTS has fully processed the mail. -->
+    <!-- Listener that has a static helper method to block test execution until ReplyTS has fully processed the mail -->
     <bean class="com.ecg.replyts.integration.test.AwaitMailSentProcessedListener"/>
 
-
-    <!-- provide embedded clients for riak services -->
+    <!-- Provide embedded clients for riak services (TODO: component-scan in combination with @Profile(EMBEDDED)) -->
     <bean class="com.ecg.replyts.integration.riak.EmbeddedRiakClientConfiguration"/>
 
     <bean class="com.ecg.replyts.integration.elasticsearch.EmbeddedElasticSearchClientConfiguration"/>
@@ -25,5 +26,4 @@
     <bean class="com.ecg.replyts.integration.AlwaysHappyClusterMonitor"/>
 
     <bean class="com.ecg.replyts.integration.smtp.CapturingMailDeliveryService" primary="true"/>
-
 </beans>

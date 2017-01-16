@@ -1,7 +1,5 @@
 package nl.marktplaats.filter.bankaccount;
 
-import com.ecg.replyts.core.api.model.MailCloakingService;
-import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
@@ -10,9 +8,8 @@ import org.mockito.Mock;
 import static org.junit.Assert.*;
 
 public class BankAccountFilterFactoryTest {
-
-    @Mock DescriptionBuilder descriptionBuilder;
-    @Mock MailRepository mailRepository;
+    @Mock
+    DescriptionBuilder descriptionBuilder;
 
     @Test
     public void testParseConfiguration() throws Exception {

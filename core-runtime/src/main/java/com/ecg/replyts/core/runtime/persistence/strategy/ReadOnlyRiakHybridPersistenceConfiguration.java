@@ -6,6 +6,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
+import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
@@ -17,7 +18,10 @@ import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraCon
 import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.QuietReadOnlyRiakConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.HybridHeldMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.ReadOnlyRiakMailRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.RiakHeldMailRepository;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -96,6 +100,17 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
         // Mail storage has been deprecated in Cassandra - only persisting to Riak
 
         return new ReadOnlyRiakMailRepository(bucketNamePrefix, riakClient);
+    }
+
+    @Bean
+    public HeldMailRepository heldMailRepository(Session cassandraSession, MailRepository mailRepository) {
+        CassandraHeldMailRepository cassandraHeldMailRepository = new CassandraHeldMailRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+        RiakHeldMailRepository riakHeldMailRepository = new RiakHeldMailRepository(mailRepository);
+
+        // We can just use the regular HybridHeldMailRepository; it delegates to RiakHeldMailRepository whose write() and
+        // remove() implementations are empty on account of delegating read() to mailRepository (see above)
+
+        return new HybridHeldMailRepository(cassandraHeldMailRepository, riakHeldMailRepository);
     }
 
     @Bean

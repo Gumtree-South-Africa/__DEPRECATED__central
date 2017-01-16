@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-@ConditionalOnExpression("${mails.cleanup.on.conversation.deleted.enabled:true}")
+@ConditionalOnExpression("'${mails.cleanup.on.conversation.deleted.enabled:true}' == 'true' && ('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))")
 public class MailsCleanupOnConversationDeletedListener implements ConversationEventListener {
     private final MailRepository mailRepository;
 

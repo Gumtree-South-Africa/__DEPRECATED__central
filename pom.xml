@@ -356,7 +356,8 @@
         <zookeeper.version>3.4.8</zookeeper.version>
         <rabbitmq.version>3.5.4</rabbitmq.version>
         <replyts.version>2.19.7</replyts.version>
-        <spring-cloud-consul.version>1.0.0.RELEASE</spring-cloud-consul.version>
+        <spring-boot.version>1.4.1.RELEASE</spring-boot.version>
+        <spring-cloud-consul.version>1.1.2.RELEASE</spring-cloud-consul.version>
         <json-lib.version>2.2.3</json-lib.version>
         <assertj-core.version>3.2.0</assertj-core.version>
         <bouncycastle-version>1.50</bouncycastle-version>
@@ -404,13 +405,14 @@
         <metrics.version>3.1.2</metrics.version>
         <mime4j-version>0.7.2</mime4j-version>
         <mockito-version>1.10.19</mockito-version>
+        <powermock-version>1.6.6</powermock-version>
         <jmockit-version>1.12</jmockit-version>
         <quartz-version>2.2.1</quartz-version>
         <restassured-version>2.6.0</restassured-version>
         <awaitility-version>1.7.0</awaitility-version>
         <riak-client.version>1.4.4</riak-client.version>
         <slf4j-version>1.7.21</slf4j-version>
-        <spring-version>4.3.1.RELEASE</spring-version>
+        <spring-version>4.3.4.RELEASE</spring-version>
         <subethasmtp-version>3.1.7</subethasmtp-version>
         <tagsoup-version>1.2.1</tagsoup-version>
         <commons-lang.version>2.6</commons-lang.version>
@@ -848,7 +850,36 @@
                         <groupId>org.springframework.security</groupId>
                         <artifactId>spring-security-crypto</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-aop</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework.integration</groupId>
+                        <artifactId>spring-integration-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework.cloud</groupId>
+                        <artifactId>spring-cloud-context</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework.cloud</groupId>
+                        <artifactId>spring-cloud-starter-ribbon</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-databind</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcpkix-jdk15on</artifactId>
+                    </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-context</artifactId>
+                <version>${spring-cloud-consul.version}</version>
             </dependency>
 
             <dependency>
@@ -890,6 +921,19 @@
             </dependency>
 
             <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring-boot.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>6.9.10</version>
@@ -900,6 +944,30 @@
                 <artifactId>mockito-all</artifactId>
                 <version>${mockito-version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-junit4</artifactId>
+                <version>${powermock-version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.objenesis</groupId>
+                        <artifactId>objenesis</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito</artifactId>
+                <version>${powermock-version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.objenesis</groupId>
+                        <artifactId>objenesis</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -1278,26 +1346,6 @@
                     <exclusion>
                         <artifactId>asm</artifactId>
                         <groupId>org.ow2.asm</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-handler</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-codec</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-transport</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-buffer</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-common</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

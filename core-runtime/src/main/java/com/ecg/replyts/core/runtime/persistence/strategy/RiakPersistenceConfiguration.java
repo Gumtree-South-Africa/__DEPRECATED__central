@@ -8,6 +8,7 @@ import com.basho.riak.client.raw.pbc.PBClientConfig;
 import com.basho.riak.client.raw.pbc.PBClusterConfig;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
+import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.ReplyTS;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
@@ -16,6 +17,7 @@ import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
 import com.ecg.replyts.core.runtime.persistence.config.RiakConfigurationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.DiffingRiakMailRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.RiakHeldMailRepository;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -59,6 +61,11 @@ public class RiakPersistenceConfiguration {
     @Bean
     public MailRepository mailRepository() throws RiakRetryFailedException {
         return new DiffingRiakMailRepository(bucketNamePrefix, riakClient);
+    }
+
+    @Bean
+    public HeldMailRepository heldMailRepository(MailRepository mailRepository) {
+        return new RiakHeldMailRepository(mailRepository);
     }
 
     @Bean

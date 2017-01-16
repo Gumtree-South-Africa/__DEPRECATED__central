@@ -12,32 +12,42 @@ import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Import(ProcessingFlow.class)
 public class ProcessingFlowTest {
-    @Mock
+    @MockBean
     private PreProcessorManager preProcessor;
-    @Mock
+
+    @MockBean
     private FilterChain filterChain;
-    @Mock
+
+    @MockBean
     private PostProcessorChain postProcessor;
-    @Mock
+
+    @MockBean
     private MailDeliveryService mailDeliveryService;
-    @Mock
+
+    @MockBean
     private MessageProcessingContext context;
-    @Mock
+
+    @MockBean
     private MutableMail mail;
 
+    @Autowired
     private ProcessingFlow flow;
 
     @Before
     public void setUp() throws Exception {
-        flow = new ProcessingFlow(mailDeliveryService, postProcessor, filterChain, preProcessor, ImmutableList.of());
         when(context.getOutgoingMail()).thenReturn(mail);
     }
 

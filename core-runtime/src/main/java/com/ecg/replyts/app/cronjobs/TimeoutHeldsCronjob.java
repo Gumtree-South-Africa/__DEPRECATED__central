@@ -6,50 +6,41 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
-class TimeoutHeldsCronjob implements CronJobExecutor {
+import javax.annotation.PostConstruct;
 
+@Component
+@ConditionalOnProperty(value = "replyts2.sendHeld.timeoutEnabled", havingValue = "true")
+public class TimeoutHeldsCronjob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(TimeoutHeldsCronjob.class);
 
-    private final boolean cronJobEnabled;
-    private final Timeframe workingSlot;
-    private final MessageSender messageSender;
+    @Autowired
+    @Qualifier("timeoutHeldsCronJobTimeframe")
+    private Timeframe workingSlot;
 
     @Autowired
-    TimeoutHeldsCronjob(
-            @Value("${replyts2.sendHeld.timeoutEnabled:false}") boolean cronJobEnabled,
-            MessageSender messageSender,
-            @Qualifier("timeoutHeldsCronJobTimeframe") Timeframe timeframe
-    ) {
-        this.cronJobEnabled = cronJobEnabled;
-        this.messageSender = messageSender;
-        this.workingSlot = timeframe;
+    private MessageSender messageSender;
 
-        if (cronJobEnabled) {
-            LOG.info("ENABLED Auto Sending of Held Mails after retention time. Agents Working Hours: {}h-{}h. Retention time: {}h",
-                    timeframe.getCsWorkingHoursStart(),
-                    timeframe.getCsWorkingHoursEnd(),
-                    timeframe.getRetentionTime());
-        } else {
-            LOG.info("DISABLED Auto Sending of Held Mails after retention time");
-        }
+    @PostConstruct
+    public void log() {
+        LOG.info("ENABLED Auto Sending of Held Mails after retention time. Agents Working Hours: {}h-{}h. Retention time: {}h",
+          workingSlot.getCsWorkingHoursStart(),
+          workingSlot.getCsWorkingHoursEnd(),
+          workingSlot.getRetentionTime());
     }
 
     @Override
     public void execute() throws Exception {
         if (workingSlot.operateNow()) {
-            // agents are working right now, we do not want to autosend mails.
+            // Agents are working right now, we do not want to auto-send mails
             messageSender.work();
         }
     }
 
     @Override
     public String getPreferredCronExpression() {
-        // feature is disabled, we do not need this cronjob.
-        if (!cronJobEnabled) {
-            return CronExpressionBuilder.never();
-        }
         return CronExpressionBuilder.everyNMinutes(30);
     }
 }

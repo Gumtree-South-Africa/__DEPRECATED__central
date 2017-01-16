@@ -2,7 +2,6 @@ package com.ecg.replyts.app;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedCommand;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.processing.Termination;
@@ -28,88 +27,63 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * persistUnassignableMail method is invoked.
  */
 @Component
-class ProcessingFinalizer {
-
+public class ProcessingFinalizer {
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingFinalizer.class);
+
     private static final Counter TOO_MANY_MESSAGES_IN_CONVERSATION = TimingReports.newCounter("conversation-too-many-messages");
     private static final Histogram CONVERSATION_MESSAGE_COUNT = TimingReports.newHistogram("conversation-message-count");
-    private static final int MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION = 500;
 
-    private final MutableConversationRepository conversationRepository;
-    private final MailRepository mailRepository;
-    private final SearchIndexer searchIndexer;
-    private final ExcessiveConversationSizeConstraint conversationSizeConstraint;
-    private final ConversationEventListeners conversationEventListeners;
-    private final boolean skipMailStorage;
-    private final MailPublisher mailPublisher;
+    protected static final int MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION = 500;
 
     @Autowired
-    ProcessingFinalizer(MutableConversationRepository conversationRepository, MailRepository mailRepository,
-                        SearchIndexer searchIndexer, ConversationEventListeners conversationEventListeners,
-                        MailPublisher mailPublisher, boolean skipMailStorage) {
-        this(conversationRepository, mailRepository, searchIndexer,
-                new ExcessiveConversationSizeConstraint(MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION),
-                conversationEventListeners, mailPublisher, skipMailStorage);
-    }
+    private MutableConversationRepository conversationRepository;
 
-    ProcessingFinalizer(MutableConversationRepository conversationRepository, MailRepository mailRepository,
-                        SearchIndexer searchIndexer, ExcessiveConversationSizeConstraint constraint,
-                        ConversationEventListeners conversationEventListeners, MailPublisher mailPublisher,
-                        boolean skipMailStorage) {
-        this.conversationRepository = conversationRepository;
-        this.mailRepository = mailRepository;
-        this.searchIndexer = searchIndexer;
-        conversationSizeConstraint = constraint;
-        this.conversationEventListeners = conversationEventListeners;
-        this.skipMailStorage = skipMailStorage;
-        this.mailPublisher = mailPublisher;
-    }
+    @Autowired(required = false)
+    private MailRepository mailRepository;
 
+    @Autowired
+    private SearchIndexer searchIndexer;
 
-    void persistAndIndex(DefaultMutableConversation conversation, String messageId, byte[] incomingMailContent,
-                         Optional<byte[]> outgoingMailContent, Termination termination) {
+    @Autowired
+    private ConversationEventListeners conversationEventListeners;
+
+    @Autowired(required = false)
+    private MailPublisher mailPublisher;
+
+    public void persistAndIndex(DefaultMutableConversation conversation, String messageId, byte[] incomingMailContent, Optional<byte[]> outgoingMailContent, Termination termination) {
         checkNotNull(termination);
         checkNotNull(conversation);
 
-        if (conversationSizeConstraint.tooManyMessagesIn(conversation)) {
+        if (conversation.getMessages().size() > MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION) {
             LOG.warn("Too many messages in conversation {}. Don't persist update on conversation!", conversation);
+
             TOO_MANY_MESSAGES_IN_CONVERSATION.inc();
+
             return;
         }
 
-        conversation.applyCommand(new MessageTerminatedCommand(
-                conversation.getId(),
-                messageId,
-                termination.getIssuer(),
-                termination.getReason(),
-                termination.getEndState()));
-
+        conversation.applyCommand(new MessageTerminatedCommand(conversation.getId(), messageId,
+          termination.getIssuer(), termination.getReason(), termination.getEndState()));
         conversation.commit(conversationRepository, conversationEventListeners);
+
         processEmail(messageId, incomingMailContent, outgoingMailContent);
 
-        reportConversationSizeInMetrics(conversation);
+        CONVERSATION_MESSAGE_COUNT.update(conversation.getMessages().size());
 
         try {
-            searchIndexer.updateSearchAsync(ImmutableList.<Conversation>of(conversation));
+            searchIndexer.updateSearchAsync(ImmutableList.of(conversation));
         } catch (RuntimeException e) {
             LOG.error("Search update failed for conversation", e);
         }
-
     }
 
     private void processEmail(String messageId, byte[] incomingMailContent, Optional<byte[]> outgoingMailContent) {
-        if (skipMailStorage) {
-            LOG.trace("Skipping persistence step, you can configure it with persistence.skip property");
-        } else {
+        if (mailRepository != null) {
             mailRepository.persistMail(messageId, incomingMailContent, outgoingMailContent);
         }
+
         if (mailPublisher != null) {
             mailPublisher.publishMail(messageId, incomingMailContent, outgoingMailContent);
         }
     }
-
-    private void reportConversationSizeInMetrics(DefaultMutableConversation conversation) {
-        CONVERSATION_MESSAGE_COUNT.update(conversation.getMessages().size());
-    }
-
 }

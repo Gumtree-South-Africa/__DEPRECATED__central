@@ -5,9 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ecg.replyts.app.postprocessorchain.PostProcessor;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-
-import de.mobile.util.StringUtils;
-
+import org.springframework.util.StringUtils;
 
 public class SmsPostProcessor implements PostProcessor {
 	

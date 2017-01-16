@@ -14,36 +14,27 @@ import com.ecg.replyts.core.runtime.configadmin.ConfigurationAdmin;
 import com.ecg.replyts.core.runtime.configadmin.PluginInstanceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.String.format;
 
-/**
- * Process the filters.
- */
-class FilterListProcessor {
-
+@Component
+public class FilterListProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(FilterListProcessor.class);
 
-    private final ConfigurationAdmin<Filter> filterConfig;
-    private final Metrics metrics;
+    @Autowired
+    @Qualifier("filterConfigurationAdmin")
+    private ConfigurationAdmin<Filter> filterConfig;
 
-    FilterListProcessor(ConfigurationAdmin<Filter> filterConfig) {
-        this(filterConfig, new Metrics());
-    }
+    @Autowired
+    private FilterListMetrics metrics;
 
-    FilterListProcessor(ConfigurationAdmin<Filter> filterConfig, Metrics metrics) {
-        this.filterConfig = filterConfig;
-        this.metrics = metrics;
-    }
-
-    /**
-     * @throws ProcessingTimeExceededException If processing time exceeded.
-     */
     List<ProcessingFeedback> processAllFilters(MessageProcessingContext context) throws ProcessingTimeExceededException {
-
         List<ProcessingFeedback> allFeedback = new ArrayList<>();
         ProcessingTimeGuard timeGuard = context.getProcessingTimeGuard();
 

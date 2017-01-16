@@ -12,10 +12,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ProcessingTimeGuardTest {
-
     public static final long ONE_SECOND = 1L;
-
-    private ProcessingTimeGuard processingTimeGuard;
 
     private final Date date = new Date(1000L);
 
@@ -39,10 +36,6 @@ public class ProcessingTimeGuardTest {
 
     @Test
     public void zeroIsInfiniteProcessing() {
-        when(clock.now()).thenReturn(new Date(1000000L));
-
         new ProcessingTimeGuard(date, 0L, clock).check();
-        // no exception expected here
     }
-
 }

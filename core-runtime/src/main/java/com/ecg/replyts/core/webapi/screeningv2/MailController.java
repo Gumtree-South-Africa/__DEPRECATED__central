@@ -4,6 +4,7 @@ import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.webapi.commands.GetRawMailCommand;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +18,8 @@ import javax.servlet.http.HttpServletResponse;
  * were sent out, are called outbound.
  */
 @Controller
-class MailController {
+@ConditionalOnExpression("'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')")
+public class MailController {
     private final MailRepository mailRepository;
 
     @Autowired

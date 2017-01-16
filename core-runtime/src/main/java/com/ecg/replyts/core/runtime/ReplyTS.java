@@ -1,5 +1,7 @@
 package com.ecg.replyts.core.runtime;
 
+import com.ecg.replyts.core.api.processing.MessageFixer;
+import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import com.hazelcast.config.Config;
@@ -7,6 +9,7 @@ import com.hazelcast.config.FileSystemXmlConfig;
 import com.hazelcast.config.XmlConfigBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
@@ -14,27 +17,31 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.joining;
 
 @Configuration
-@Import({StartupExperience.class, EmbeddedWebserver.class})
+@Import({ StartupExperience.class, EmbeddedWebserver.class })
 public class ReplyTS {
     private static final Logger LOG = LoggerFactory.getLogger(ReplyTS.class);
 
-    /**
-     * Spring profile which instantiates externally dependent beans
-     */
     public static final String PRODUCTIVE_PROFILE = "productive";
-
-    /**
-     * Spring profile which instantiates embedded/test beans.
-     */
     public static final String EMBEDDED_PROFILE = "embedded";
-    /**
-     * Spring profile which instantiates migration related beans.
-     */
     public static final String MIGRATION_PROFILE = "migration";
+
+    @Autowired(required = false)
+    private List<MessageProcessedListener> messageProcessedListeners = emptyList();
+
+    @Autowired(required = false)
+    private List<MessageFixer> javaMailMessageFixers = emptyList();
+
+    // TODO: Move this to ParentConfiguration (for non-cloud environments) and CloudDiscoveryConfiguration (for cloud-
+    //       based deployments we want to initialize Hazelcast programmatically)
 
     @Bean
     public Config hazelcastConfiguration(@Value("${confDir}/hazelcast.xml") String location) throws IOException {
@@ -58,12 +65,23 @@ public class ReplyTS {
         return experience.running(webserver.getPort());
     }
 
+    @PostConstruct
+    public void reportThings() {
+        LOG.info("With MessageProcessedListeners: {}", messageProcessedListeners.stream()
+          .map(listener -> listener.getClass().getCanonicalName())
+          .collect(joining(", ")));
+
+        LOG.info("With Mail Fixers: {}", javaMailMessageFixers.stream()
+          .map(fixer -> fixer.getClass().getCanonicalName())
+          .collect(joining(", ")));
+    }
+
     public static void main(String[] args) throws Exception {
         try {
             AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[]{
-                    "classpath:server-context.xml",
-                    "classpath:runtime-context.xml",
-                    "classpath*:/plugin-inf/*.xml",
+              "classpath:server-context.xml",
+              "classpath:runtime-context.xml",
+              "classpath*:/plugin-inf/*.xml",
             }, false, new AnnotationConfigApplicationContext(ParentConfiguration.class));
 
             context.getEnvironment().setActiveProfiles(PRODUCTIVE_PROFILE);

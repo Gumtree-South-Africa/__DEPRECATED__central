@@ -11,14 +11,14 @@ import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 
-@Component
-public class PostProcessorChain {
+import static java.util.Collections.emptyList;
 
+@Component("postProcessorChain")
+public class PostProcessorChain {
     private static final transient Logger LOG = LoggerFactory.getLogger(PostProcessorChain.class);
 
-    // Autowired as a field instead of a constructor parameter to allow overriding explicitly in plugins
-    @Autowired
-    private List<PostProcessor> postProcessors;
+    @Autowired(required = false)
+    private List<PostProcessor> postProcessors = emptyList();
 
     @PostConstruct
     public void orderPostProcessors() {

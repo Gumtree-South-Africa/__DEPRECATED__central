@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.cloud.bus.BusAutoConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.*;
@@ -18,7 +21,7 @@ import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static com.ecg.replyts.core.runtime.ReplyTS.EMBEDDED_PROFILE;
 import static org.hamcrest.Matchers.equalTo;
@@ -28,11 +31,11 @@ import static org.junit.Assert.assertNotNull;
 import javax.annotation.PostConstruct;
 import java.util.*;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ContextHierarchy({
-    @ContextConfiguration(classes = HealthControllerTest.TestConfiguration.class),
-    @ContextConfiguration(classes = HealthControllerTest.DiscoveryConfiguration.class),
-    @ContextConfiguration(locations = "classpath:server-context.xml")
+  @ContextConfiguration(classes = HealthControllerTest.TestConfiguration.class),
+  @ContextConfiguration(classes = HealthControllerTest.DiscoveryConfiguration.class),
+  @ContextConfiguration(locations = "classpath:server-context.xml")
 })
 @ActiveProfiles(EMBEDDED_PROFILE)
 public class HealthControllerTest {
@@ -87,7 +90,7 @@ public class HealthControllerTest {
     @Configuration
     @PropertySource("discovery.properties")
     @EnableDiscoveryClient
-    @EnableAutoConfiguration
+    @EnableAutoConfiguration(exclude = { FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class })
     public static class DiscoveryConfiguration {
         @Autowired
         private ConfigurableEnvironment environment;

@@ -1,6 +1,7 @@
 package com.ecg.replyts.app;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedCommand;
 import com.ecg.replyts.core.api.persistence.MailRepository;
@@ -13,58 +14,58 @@ import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Import(ProcessingFinalizer.class)
 public class ProcessingFinalizerTest {
-
-    @Mock
+    @MockBean
     private MutableConversationRepository conversationRepository;
 
-    @Mock
+    @MockBean
     private MailRepository mailRepository;
 
-    @Mock
+    @MockBean
     private SearchIndexer searchIndexer;
 
-    @Mock
+    @MockBean
     private DefaultMutableConversation conv;
 
-    @Mock
+    @MockBean
     private Termination termination;
 
-    @Mock
-    private ExcessiveConversationSizeConstraint constraint;
-
-    @Mock
+    @MockBean
     private ConversationEventListeners conversationEventListeners;
 
-    @Mock
+    @MockBean
     private MailPublisher mailProcessedListener;
 
+    @Autowired
     private ProcessingFinalizer messagePersister;
 
     @Before
     public void setUp() throws Exception {
-        when(constraint.tooManyMessagesIn(any(Conversation.class))).thenReturn(false);
-        messagePersister = new ProcessingFinalizer(conversationRepository, mailRepository, searchIndexer, constraint,
-                conversationEventListeners, mailProcessedListener, false);
+        when(conv.getMessages()).thenReturn(Collections.EMPTY_LIST);
         when(termination.getEndState()).thenReturn(MessageState.ORPHANED);
         when(termination.getIssuer()).thenReturn(Object.class);
         when(conv.getId()).thenReturn("a");
     }
 
-
     @Test
     public void alwaysTerminatesMessageWhenCompleted() {
-        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.<byte[]>absent(), termination);
+        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.absent(), termination);
         verify(conv).applyCommand(any(MessageTerminatedCommand.class));
     }
 
@@ -74,7 +75,6 @@ public class ProcessingFinalizerTest {
 
         verify(mailRepository).persistMail(anyString(), any(byte[].class), any(Optional.class));
     }
-
 
     @Test
     public void persistsData() {
@@ -89,7 +89,7 @@ public class ProcessingFinalizerTest {
 
     @Test
     public void skipsUpdatingIfConversationSizeExceedsConstraint() {
-        when(constraint.tooManyMessagesIn(any(Conversation.class))).thenReturn(true);
+        when(conv.getMessages()).thenReturn(Arrays.asList(new Message[ProcessingFinalizer.MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION + 1]));
 
         messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.of("outgoing".getBytes()), termination);
 
@@ -97,7 +97,7 @@ public class ProcessingFinalizerTest {
 
         verify(mailRepository, never()).persistMail(anyString(), any(byte[].class), any(Optional.class));
 
-        verify(searchIndexer, never()).updateSearchAsync(Arrays.<Conversation>asList(conv));
+        verify(searchIndexer, never()).updateSearchAsync(Arrays.asList(conv));
     }
 }
 

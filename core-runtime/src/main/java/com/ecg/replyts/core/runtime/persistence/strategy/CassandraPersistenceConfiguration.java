@@ -4,7 +4,8 @@ import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
-import com.ecg.replyts.core.api.persistence.MailRepository;
+import com.ecg.replyts.core.api.persistence.HeldMailRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -68,8 +69,8 @@ public class CassandraPersistenceConfiguration {
     }
 
     @Bean
-    public MailRepository mailRepository(Session cassandraSession) {
-        return null;
+    public HeldMailRepository heldMailRepository(Session cassandraSession) {
+        return new CassandraHeldMailRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
     @Bean

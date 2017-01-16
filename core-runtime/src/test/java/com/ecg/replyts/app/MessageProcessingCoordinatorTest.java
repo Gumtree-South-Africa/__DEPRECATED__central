@@ -14,80 +14,93 @@ import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PowerMockRunnerDelegate(SpringRunner.class)
+@ContextConfiguration(classes = MessageProcessingCoordinatorTest.TestContext.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@PrepareForTest(Mails.class)
+@PowerMockIgnore("javax.management.*")
 public class MessageProcessingCoordinatorTest {
-
-    @Mock
-    private Mails mails;
-
-    @Mock
+    @MockBean
     private ProcessingFinalizer persister;
 
-    @Mock
+    @MockBean
     private Guids guids;
 
-    @Mock
+    @MockBean
     private Mail mail;
 
-    @Mock
+    @MockBean
     private ProcessingFlow flow;
 
-    @Mock
-    private DefaultMutableConversation conversation;
-
-    @Mock
-    private MessageProcessedListener messageProcessedListener;
-
-    @Mock
+    @MockBean
     private ProcessingContextFactory processingContextFactory;
 
-    @Mock
+    @MockBean
     private MessageProcessingContext context;
 
+    @Autowired
+    private DefaultMutableConversation conversation;
 
-    @Mock
+    @Autowired
+    private MessageProcessedListener individualMessageProcessedListener;
+
+    @Autowired
+    private List<MessageProcessedListener> messageProcessedListeners;
+
+    @Autowired
     private DefaultMutableConversation deadConversation;
+
+    @Autowired
+    private MessageProcessingCoordinator coordinator;
 
     private final InputStream is = new ByteArrayInputStream("foo".getBytes());
 
-    private MessageProcessingCoordinator coordinator;
-
     private final static byte[] SENT_MAIL = "bar".getBytes();
 
-    @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws Exception {
+        mockStatic(Mails.class);
+
         when(guids.nextGuid()).thenReturn("1", "2", "3", "4", "5", "6", "7");
-        when(mails.readMail(any(byte[].class))).thenReturn(mail);
+        when(Mails.readMail(any(byte[].class))).thenReturn(mail);
         when(mail.getDeliveredTo()).thenReturn("foo@bar.com");
-        when(mails.writeToBuffer(any(Mail.class))).thenReturn(SENT_MAIL);
+        when(Mails.writeToBuffer(any(Mail.class))).thenReturn(SENT_MAIL);
         when(conversation.getImmutableConversation()).thenReturn(conversation);
         when(processingContextFactory.newContext(any(Mail.class), anyString())).thenReturn(context);
         when(context.getMessageId()).thenReturn("1");
         when(processingContextFactory.deadConversationForMessageIdConversationId(anyString(), anyString(), any(Optional.class))).thenReturn(deadConversation);
         when(context.getConversation()).thenReturn(conversation);
-
-        coordinator = new MessageProcessingCoordinator(guids, persister, mails, flow, singletonList(messageProcessedListener),
-                processingContextFactory);
     }
 
     @Test
     public void persistsUnparseableMail() throws Exception {
         ParsingException exception = new ParsingException("parse error");
-        doThrow(exception).when(mails).readMail(any(byte[].class));
+        when(Mails.readMail(any(byte[].class))).thenThrow(exception);
 
         coordinator.accept(is);
 
@@ -96,7 +109,7 @@ public class MessageProcessingCoordinatorTest {
 
     @Test
     public void doesNotOfferUnparseableMailToProcessingFlow() throws Exception {
-        doThrow(new ParsingException("parse error")).when(mails).readMail(any(byte[].class));
+        when(Mails.readMail(any(byte[].class))).thenThrow(new ParsingException("parse error"));
 
         coordinator.accept(is);
 
@@ -142,33 +155,27 @@ public class MessageProcessingCoordinatorTest {
     @Test
     public void invokeListenerAfterPersisting() throws Exception {
         coordinator.accept(is);
-        verify(messageProcessedListener)
+        verify(individualMessageProcessedListener)
                 .messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
     }
 
     @Test
     public void invokeListenerOnUnparseableMessage() throws ParsingException, IOException {
-        when(mails.readMail(any(byte[].class))).thenThrow(new ParsingException());
+        when(Mails.readMail(any(byte[].class))).thenThrow(new ParsingException());
 
         coordinator.accept(is);
 
-        verify(messageProcessedListener)
+        verify(individualMessageProcessedListener)
                 .messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
     }
 
     @Test
     public void skipCrashingListener() throws Exception {
-        coordinator = new MessageProcessingCoordinator(guids, persister, mails, flow,
-                asList(messageProcessedListener, messageProcessedListener),
-                processingContextFactory);
-
-        doThrow(new NoClassDefFoundError())
-                .doNothing()
-                .when(messageProcessedListener).messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
+        doThrow(new NoClassDefFoundError()).when(individualMessageProcessedListener).messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
 
         coordinator.accept(is);
 
-        verify(messageProcessedListener, times(2))
+        verify(individualMessageProcessedListener, times(1))
                 .messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
     }
 
@@ -183,4 +190,25 @@ public class MessageProcessingCoordinatorTest {
         }
     }
 
+    @Configuration
+    @Import(MessageProcessingCoordinator.class)
+    static class TestContext {
+        @MockBean
+        private MessageProcessedListener individualMessageProcessedListener;
+
+        @Bean
+        public List<MessageProcessedListener> messageProcessedListeners() {
+            return Arrays.asList(individualMessageProcessedListener);
+        }
+
+        @Bean
+        public DefaultMutableConversation conversation() {
+            return mock(DefaultMutableConversation.class);
+        }
+
+        @Bean
+        public DefaultMutableConversation deadConversation() {
+            return mock(DefaultMutableConversation.class);
+        }
+    }
 }

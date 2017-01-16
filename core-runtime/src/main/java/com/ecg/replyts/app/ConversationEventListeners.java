@@ -5,43 +5,41 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.listener.ConversationEventListener;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+
+@Component
 public class ConversationEventListeners {
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationEventListeners.class);
 
     private static final Counter EVENT_LISTENER_ERRORS_COUNTER = TimingReports.newCounter("event-listener-errors");
 
-    private static final Logger LOG = LoggerFactory.getLogger(ConversationEventListeners.class);
-
     @Autowired(required = false)
-    private List<ConversationEventListener> listeners;
+    private List<ConversationEventListener> listeners = emptyList();
 
-    public ConversationEventListeners() {
-        listeners = ImmutableList.of();
-    }
+    @PostConstruct
+    public void sortListeners() {
+        // TODO: We should annotate each ConversationEventListener with @Order(n) so that we can skip this altogether
 
-    public ConversationEventListeners(List<ConversationEventListener> listeners) {
-        List<ConversationEventListener> copy = new ArrayList<>(listeners);
-        Collections.sort(copy, (l1, l2) -> l1.getOrder() - l2.getOrder());
-        this.listeners = copy;
+        Collections.sort(this.listeners, (l1, l2) -> l1.getOrder() - l2.getOrder());
     }
 
     public void processEventListeners(ImmutableConversation conversation, List<ConversationEvent> conversationEvents) {
-            listeners.forEach(l -> {
-                try {
-                    l.eventsTriggered(conversation, conversationEvents);
-                } catch(Exception e) {
-                    LOG.error("Error while processing event listener {}", l, e);
-                    EVENT_LISTENER_ERRORS_COUNTER.inc();
-                }
-            });
+        listeners.forEach(l -> {
+            try {
+                l.eventsTriggered(conversation, conversationEvents);
+            } catch(Exception e) {
+                LOG.error("Error while processing event listener {}", l, e);
+                EVENT_LISTENER_ERRORS_COUNTER.inc();
+            }
+        });
     }
-
 }

@@ -5,6 +5,7 @@ import com.basho.riak.client.RiakRetryFailedException;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
+import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
@@ -19,7 +20,10 @@ import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRep
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.DiffingRiakMailRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.HybridHeldMailRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.RiakHeldMailRepository;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +104,16 @@ public class HybridPersistenceConfiguration {
     @Bean
     public MailRepository mailRepository() throws RiakRetryFailedException {
         // Mail storage has been deprecated in Cassandra - only persisting to Riak
+
         return new DiffingRiakMailRepository(bucketNamePrefix, riakClient);
+    }
+
+    @Bean
+    public HeldMailRepository heldMailRepository(Session cassandraSession, MailRepository mailRepository) {
+        CassandraHeldMailRepository cassandraHeldMailRepository = new CassandraHeldMailRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+        RiakHeldMailRepository riakHeldMailRepository = new RiakHeldMailRepository(mailRepository);
+
+        return new HybridHeldMailRepository(cassandraHeldMailRepository, riakHeldMailRepository);
     }
 
     @Bean

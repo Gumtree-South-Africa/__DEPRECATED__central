@@ -8,8 +8,6 @@ import org.joda.time.DateTime;
 import java.util.Optional;
 
 public class DiffingRiakMailRepository extends AbstractMailRepository implements MailRepository {
-
-
     private final MailBucket mailBucket;
 
     public DiffingRiakMailRepository(String bucketPrefix, IRiakClient riakClient) throws RiakRetryFailedException {
@@ -39,5 +37,4 @@ public class DiffingRiakMailRepository extends AbstractMailRepository implements
     public void deleteMail(String messageId) {
         mailBucket.delete(messageId);
     }
-
 }

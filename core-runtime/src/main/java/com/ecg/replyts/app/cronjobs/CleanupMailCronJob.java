@@ -6,29 +6,22 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
 
 import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinutes;
-import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.never;
 import static org.joda.time.DateTime.now;
 
+@Component
+@ConditionalOnExpression("'${replyts2.cronjob.cleanupMail.enabled:true}' == 'true' && ('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))")
 public class CleanupMailCronJob implements CronJobExecutor {
-
     private static final Logger LOG = LoggerFactory.getLogger(CleanupMailCronJob.class);
 
-    private final boolean cronJobEnabled;
-    private final MailRepository mailRepository;
-    private CleanupConfiguration config;
+    @Autowired
+    private MailRepository mailRepository;
 
     @Autowired
-    CleanupMailCronJob(
-            @Value("${replyts2.cronjob.cleanupMail.enabled:true}") boolean cronJobEnabled,
-            MailRepository mailRepository,
-            CleanupConfiguration config) {
-        this.cronJobEnabled = cronJobEnabled;
-        this.mailRepository = mailRepository;
-        this.config = config;
-    }
+    private CleanupConfiguration config;
 
     @Override
     public void execute() throws Exception {
@@ -40,9 +33,6 @@ public class CleanupMailCronJob implements CronJobExecutor {
 
     @Override
     public String getPreferredCronExpression() {
-        if (!cronJobEnabled) {
-            return never();
-        }
         return everyNMinutes(config.getEveryNMinutes());
     }
 }

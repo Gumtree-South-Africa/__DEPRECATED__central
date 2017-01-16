@@ -8,6 +8,8 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.google.common.base.Optional;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,13 +21,10 @@ import static com.ecg.replyts.core.api.model.conversation.command.NewConversatio
 /**
  * Creates a new Message Processing Context for a given mail and a predefined message id. The message id must be guaranteed to be uniuque.
  */
-class ProcessingContextFactory {
-
-    private final long maxMessageProcessingTimeSeconds;
-
-    ProcessingContextFactory(long maxMessageProcessingTimeSeconds) {
-        this.maxMessageProcessingTimeSeconds = maxMessageProcessingTimeSeconds;
-    }
+@Component
+public class ProcessingContextFactory {
+    @Value("${replyts.maxMessageProcessingTimeSeconds:0}")
+    private long maxMessageProcessingTimeSeconds;
 
     /**
      * Creates and returns a new MessageProcessingContext, that holds the given mail and the given message id. messageId must be globally unique.
@@ -46,18 +45,19 @@ class ProcessingContextFactory {
         }
 
         AddMessageCommand addMessage = anAddMessageCommand(conversationId, messageId)
-                .withMessageDirection(MessageDirection.UNKNOWN)
-                .withTextParts(textParts)
-                .withHeaders(findHeaders(mail))
-                .build();
+          .withMessageDirection(MessageDirection.UNKNOWN)
+          .withTextParts(textParts)
+          .withHeaders(findHeaders(mail))
+          .build();
 
         DefaultMutableConversation deadConversation = DefaultMutableConversation.create(newConversation);
+
         deadConversation.applyCommand(addMessage);
+
         return deadConversation;
     }
 
     private Map<String, String> findHeaders(Optional<Mail> mail) {
         return mail.isPresent() ? mail.get().getUniqueHeaders() : Collections.<String, String>emptyMap();
     }
-
 }

@@ -9,6 +9,7 @@ import com.ecg.replyts.core.api.model.conversation.command.NewConversationComman
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
+import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
@@ -26,8 +27,14 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,34 +47,49 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = FilterChainTest.TestContext.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Import({ FilterChain.class, FilterListProcessor.class })
 public class FilterChainTest {
-
     // TODO: test enabled filters that give evaluation feedback
 
     private static final String CONVERSATION_ID = "MY_CONVERSATION";
     private static final String MESSAGE_ID = "MY_MESSAGE";
 
-    @Mock
-    private ConfigurationAdmin<Filter> filterConfig;
-    @Mock
-    private ConfigurationAdmin<ResultInspector> inspectorConfig;
-    @Mock
+    @MockBean
     private MutableConversationRepository mutableConversationRepository;
-    @Mock
+
+    @MockBean
     private MutableMail mail;
-    @Mock
+
+    @MockBean
     private Message message;
-    @Mock
-    private PluginInstanceReference<Filter> filterRef;
-    @Mock
+
+    @MockBean
     private PluginConfiguration pluginConfiguration;
 
+    @MockBean
+    private HeldMailRepository heldMailRepository;
+
+    @MockBean
+    private FilterListMetrics metrics;
+
+    @Autowired
+    private ConfigurationAdmin<Filter> filterConfig;
+
+    @Autowired
+    private ConfigurationAdmin<ResultInspector> inspectorConfig;
+
+    @Autowired
+    private PluginInstanceReference<Filter> filterRef;
+
+    @Autowired
     private FilterChain chain;
+
     private TestMessageProcessingContext testMessageProcessingContext;
 
     public static class ExampleFilterFactory implements BasePluginFactory<Object> {
-
         @Override
         public Object createPlugin(String instanceName, JsonNode configuration) {
             throw new UnsupportedOperationException();
@@ -76,7 +98,6 @@ public class FilterChainTest {
 
     @Before
     public void setup() {
-        chain = new FilterChain(filterConfig, inspectorConfig);
         MutableConversation conversation = setUpConversation();
 
         when(mail.makeMutableCopy()).thenReturn(mail);
@@ -317,6 +338,24 @@ public class FilterChainTest {
 
         public int getTerminateProcessingCounter() {
             return terminateProcessingCounter;
+        }
+    }
+
+    @Configuration
+    static class TestContext {
+        @Bean
+        public ConfigurationAdmin<Filter> filterConfigurationAdmin() {
+            return mock(ConfigurationAdmin.class);
+        }
+
+        @Bean
+        public ConfigurationAdmin<ResultInspector> resultInspectorConfigAdmin() {
+            return mock(ConfigurationAdmin.class);
+        }
+
+        @Bean
+        public PluginInstanceReference<Filter> filterRef() {
+            return mock(PluginInstanceReference.class);
         }
     }
 }
