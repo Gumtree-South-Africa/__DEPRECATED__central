@@ -1,5 +1,6 @@
 package com.ecg.replyts.core.webapi.screeningv2;
 
+import com.codahale.metrics.Timer;
 import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.core.api.model.CloakedReceiverContext;
 import com.ecg.replyts.core.api.model.MailCloakingService;
@@ -16,6 +17,7 @@ import com.ecg.replyts.core.api.webapi.commands.payloads.ChangeConversationState
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.ConversationRts;
+import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
@@ -24,15 +26,14 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 
-import static org.springframework.http.MediaType.*;
-import static org.springframework.web.bind.annotation.RequestMethod.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 /**
  * returns all informations, ReplyTS has for a specific conversation.
@@ -45,6 +46,7 @@ class ConversationController {
     private final MailCloakingService mailCloakingService;
     private final SearchIndexer searchIndexer;
     private final ConversationEventListeners conversationEventListeners;
+    private final Timer loadConversationTimer = TimingReports.newTimer("core-conversationController.loadConversation");
 
     @Autowired
     ConversationController(MutableConversationRepository conversationRepository,
@@ -64,13 +66,15 @@ class ConversationController {
      */
     @RequestMapping(value = GetConversationCommand.MAPPING, produces = APPLICATION_JSON_VALUE, method = GET)
     @ResponseBody
-    ResponseObject<?> loadConversation(@PathVariable String conversationId) {
-        MutableConversation conversation = conversationRepository.getById(conversationId);
-        ConversationRts conversationRts = converter.convertConversation(conversation);
+    public ResponseObject<?> loadConversation(@PathVariable String conversationId) {
+        try (Timer.Context ignored = loadConversationTimer.time()) {
+            MutableConversation conversation = conversationRepository.getById(conversationId);
+            ConversationRts conversationRts = converter.convertConversation(conversation);
 
-        return (conversationRts == null) ?
-                ResponseObject.of(RequestState.ENTITY_NOT_FOUND, "Not found " + conversationId) :
-                ResponseObject.of(conversationRts);
+            return (conversationRts == null) ?
+                    ResponseObject.of(RequestState.ENTITY_NOT_FOUND, "Not found " + conversationId) :
+                    ResponseObject.of(conversationRts);
+        }
     }
 
     @RequestMapping(value = "/conversation/{conversationId}", produces = APPLICATION_JSON_VALUE, method = PUT)
