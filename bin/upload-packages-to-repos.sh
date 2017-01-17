@@ -43,6 +43,7 @@ rm -rf distribution/target/distribution/conf
 mkdir -p distribution/target/distribution/conf
 cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
 mv distribution/target/distribution distribution/target/${PACKAGE_NAME}
+sed -i'' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
 tar czf ${BUILD_DIR}/${ARTIFACT_NAME} -C distribution/target/ ${PACKAGE_NAME}
 rm -rf distribution/target/${PACKAGE_NAME}
 echo "Created ${BUILD_DIR}/${ARTIFACT_NAME}"
@@ -65,6 +66,7 @@ if [[ -d distribution/conf/${TENANT}/prod ]]; then
     cp distribution/conf/${TENANT}/prod/* distribution/target/distribution/conf
     chmod 775 distribution/target/distribution/log
     mv distribution/target/distribution distribution/target/${PACKAGE_NAME}
+    sed -i'' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
     tar czf ${BUILD_DIR}/${ARTIFACT_NAME} -C distribution/target/ ${PACKAGE_NAME}
     rm -rf distribution/target/${PACKAGE_NAME}
     echo "Created ${BUILD_DIR}/${ARTIFACT_NAME}"
