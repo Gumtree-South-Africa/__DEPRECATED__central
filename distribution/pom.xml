@@ -104,7 +104,7 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>core-filter-belenblockeduser</artifactId>
+                    <artifactId>gtau-filter-belenblockeduser</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>

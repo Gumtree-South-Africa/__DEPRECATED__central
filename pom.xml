@@ -36,13 +36,12 @@
             <modules>
                 <module>coremods/gtau-coremod-autogatemaildelivery</module>
                 <module>coremods/gtau-coremod-readrepairindexer</module>
-
                 <module>filters/core-filter-bankaccount</module>
                 <module>filters/core-filter-belenblockedad</module>
-                <module>filters/core-filter-belenblockeduser</module>
                 <module>filters/core-filter-ebayservices</module>
                 <module>filters/core-filter-user</module>
                 <module>filters/core-filter-word</module>
+                <module>filters/gtau-filter-belenblockeduser</module>
                 <module>filters/gtau-filter-volume</module>
                 <module>filters/gtau-filter-blockedip</module>
                 <module>filters/gtau-filter-echelon</module>
