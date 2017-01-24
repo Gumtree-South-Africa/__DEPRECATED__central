@@ -71,10 +71,13 @@ public class CleanupConversationCronJob implements CronJobExecutor {
                     conversationId -> () -> {
                         try {
                             MutableConversation conversation = conversationRepository.getById(conversationId);
-                            conversation.applyCommand(new ConversationDeletedCommand(conversation.getId(), now()));
-                            ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
-                            logProgress(startedAt, logInterval, deleteCounter);
-
+                            if (conversation != null) {
+                                conversation.applyCommand(new ConversationDeletedCommand(conversation.getId(), now()));
+                                ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
+                                logProgress(startedAt, logInterval, deleteCounter);
+                            } else {
+                                LOG.warn("Cleanup: Could not get conversation from repository: " + conversationId);
+                            }
                         } catch (RuntimeException ex) {
                             LOG.error("Cleanup: Could not delete Conversation: " + conversationId, ex);
                         }
