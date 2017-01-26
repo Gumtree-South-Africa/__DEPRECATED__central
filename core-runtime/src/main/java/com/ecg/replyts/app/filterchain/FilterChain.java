@@ -63,7 +63,7 @@ public class FilterChain {
 
             MessageState terminationState = getTerminationStateFrom(overallResultState);
             if (terminationState != null) {
-                if (terminationState.equals(MessageState.HELD)) {
+                if (terminationState.equals(MessageState.HELD) || terminationState.equals(MessageState.BLOCKED)) {
                     heldMailRepository.write(context.getMessageId(), Mails.writeToBuffer(context.getMail()));
                 }
 
