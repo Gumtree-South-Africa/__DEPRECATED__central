@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -35,7 +36,7 @@ public class EventSerializerTest {
     private static final String AD_ID = "9876345";
     private static final String CONVERSATION_ID = "conv-5801";
     private static final String MESSAGE_ID = "message-5801a";
-    private static final DateTime TIMESTAMP = new DateTime(2012, 1, 10, 9, 11, 43);
+    private static final DateTime TIMESTAMP = new DateTime(2012, 1, 10, 8, 11, 43, DateTimeZone.UTC);
     private static final ObjectReader objectReader = new ObjectMapper().reader();
 
     private static final NewConversationCommand newConversationCommand =
