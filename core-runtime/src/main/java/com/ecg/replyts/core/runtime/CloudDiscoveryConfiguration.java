@@ -9,6 +9,7 @@ import com.github.danielwegener.logback.kafka.keying.RoundRobinKeyingStrategy;
 import com.google.common.collect.ImmutableMap;
 import net.logstash.logback.layout.LogstashAccessLayout;
 import net.logstash.logback.layout.LogstashLayout;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -61,8 +62,8 @@ public class CloudDiscoveryConfiguration {
     private static final String LOGGER_APPENDER_KAFKA_ACCESS_LOGS_TOPIC = "service.discovery.logger.appender.access.logs.topic";
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
-            "cassandra", "persistence.cassandra.endpoint",
-            "elasticsearch", "search.es.endpoints"
+      "cassandra", "persistence.cassandra.endpoint",
+      "elasticsearch", "search.es.endpoints"
     );
 
     private static final String LOG_APPENDER_SERVICE = "kafkalog";
@@ -123,9 +124,9 @@ public class CloudDiscoveryConfiguration {
             environment.getPropertySources().addFirst(propertySourceLocator.locate(environment));
         }
 
-        // This method will also introduce a 'tenant' field into each log line
+        // This will introduce a tenant, version, etc. field to be sent along with log lines
 
-        populateMDC();
+        mdcInjection();
 
         // Consul may override the (Kafka) logging related properties, so fetch them from the Environment here rather
         // than through @Value annotations at the top
@@ -149,7 +150,11 @@ public class CloudDiscoveryConfiguration {
             String accessLogsTopic = environment.getProperty(LOGGER_APPENDER_KAFKA_ACCESS_LOGS_TOPIC);
 
             if (StringUtils.hasText(accessLogsTopic)) {
-                fillInKafkaAppender(context, accessLogsTopic, accessLogAppender, new LogstashAccessLayout());
+                LogstashAccessLayout layout = new LogstashAccessLayout();
+
+                layout.setCustomFields(mdcToJson()); // Necessary as this layout doesn't have MDC support
+
+                fillInKafkaAppender(context, accessLogsTopic, accessLogAppender, layout);
             }
         }
     }
@@ -223,7 +228,7 @@ public class CloudDiscoveryConfiguration {
         }
     }
 
-    private void populateMDC() {
+    private void mdcInjection() {
         try {
             InetAddress address = InetAddress.getLocalHost();
 
@@ -237,4 +242,28 @@ public class CloudDiscoveryConfiguration {
         MDC.put("tenant", tenant);
     }
 
+    private String mdcToJson() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("{ ");
+
+        Map<String, String> contextMap = MDC.getCopyOfContextMap();
+
+        if (contextMap.size() > 0) {
+            contextMap.forEach((key, value) -> mdcToJsonField(buffer, key, value));
+            buffer.delete(buffer.length() - 2, buffer.length());
+        }
+
+        buffer.append(" }");
+
+        return buffer.toString();
+    }
+
+    private void mdcToJsonField(StringBuffer buffer, String key, String value) {
+        buffer.append('"');
+        buffer.append(StringEscapeUtils.escapeJson(key));
+        buffer.append("\": \"");
+        buffer.append(StringEscapeUtils.escapeJson(value));
+        buffer.append("\", ");
+    }
 }
