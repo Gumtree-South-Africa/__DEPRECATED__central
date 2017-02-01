@@ -109,11 +109,6 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>core-filter-ebayservices</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>core-filter-user</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -130,6 +125,11 @@
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>gtau-filter-blockedip</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-filter-ebayservices</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>

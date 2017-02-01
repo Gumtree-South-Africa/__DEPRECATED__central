@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>core-filter-ebayservices</artifactId>
+    <artifactId>gtau-filter-ebayservices</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -20,6 +20,10 @@
             <artifactId>core-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.ebay.ecg.australia</groupId>
+            <artifactId>gumtree-au-lbs2-client</artifactId>
+        </dependency>
         <dependency>
             <groupId>de.mobile.ebay.service</groupId>
             <artifactId>ebay-services</artifactId>
@@ -55,49 +59,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-test</id>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-            <id>core-tests</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>test</id>
-                                <phase>test</phase>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <configuration>
-                                    <includes>
-                                        <include>**</include>
-                                    </includes>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>
