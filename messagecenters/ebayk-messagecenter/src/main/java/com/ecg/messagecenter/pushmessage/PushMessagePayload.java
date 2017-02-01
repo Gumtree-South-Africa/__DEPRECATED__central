@@ -1,10 +1,9 @@
 package com.ecg.messagecenter.pushmessage;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import net.sf.json.JSONObject;
 import com.fasterxml.uuid.Generators;
 import com.fasterxml.uuid.impl.TimeBasedGenerator;
+import com.google.common.collect.ImmutableMap;
+import net.sf.json.JSONObject;
 
 import java.util.Map;
 import java.util.Optional;
@@ -26,34 +25,34 @@ public class PushMessagePayload {
     private final Map<String, String> details;
     private final Optional<Map<String, String>> gcmDetails;
     private final Optional<Map<String, String>> apnsDetails;
-    private final Map<String, String> utmDetails;
 
     PushMessagePayload(String email, String message, String activity, Map<String, String> details) {
         this(email, message, activity, details, Optional.<Integer>empty(), Optional.<Map<String, String>>empty(), Optional.<Map<String, String>>empty());
     }
 
     PushMessagePayload(String email, String message, String activity, Map<String, String> details, Optional<Integer> alertCounter, Optional<Map<String, String>> gcmDetails, Optional<Map<String, String>> apnsDetails) {
-        if (details == null) {
-            details = Maps.newHashMap();
+        ImmutableMap.Builder<String, String> detailsBuilder = new ImmutableMap.Builder<String, String>();
+        if (details != null) {
+            detailsBuilder.putAll(details);
         }
         this.gcmDetails = gcmDetails;
         this.apnsDetails = apnsDetails;
         this.email = email;
         this.message = message;
         this.activity = activity;
-        this.details = details;
         this.alertCounter = alertCounter;
 
         String pushNotificationId = uuidGenerator.generate().toString();
 
-        this.utmDetails = constructUtmDetails(pushNotificationId);
+        this.details = constructUtmDetails(detailsBuilder, pushNotificationId);
     }
 
-    private Map<String, String> constructUtmDetails(String pushNotificationId) {
-        return ImmutableMap.of("utm_source", "System",
-                "utm_medium", "PushNotification",
-                "utm_campaign", "NewMessage",
-                "utm_content", pushNotificationId);
+    private Map<String, String> constructUtmDetails(ImmutableMap.Builder<String, String> detailsBuilder, String pushNotificationId) {
+        detailsBuilder.put("utm_source", "System");
+        detailsBuilder.put("utm_medium", "PushNotification");
+        detailsBuilder.put("utm_campaign", "NewMessage");
+        detailsBuilder.put("utm_content", pushNotificationId);
+        return detailsBuilder.build();
     }
 
     public String getEmail() {
@@ -84,11 +83,7 @@ public class PushMessagePayload {
         return message;
     }
 
-    Map<String, String> getUtmDetails() {
-        return utmDetails;
-    }
-
-    String asJson() {
+    JSONObject asJson() {
         JSONObject json = new JSONObject();
 
         json.put("email", email);
@@ -114,9 +109,6 @@ public class PushMessagePayload {
             }
             json.put("apnsDetails", apnsDetails);
         }
-        json.put("utmDetails", utmDetails);
-
-        return json.toString();
+        return json;
     }
-
 }

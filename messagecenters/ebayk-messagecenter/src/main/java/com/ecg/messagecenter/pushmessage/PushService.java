@@ -70,7 +70,7 @@ public class PushService {
     private HttpUriRequest buildRequest(PushMessagePayload payload) throws UnsupportedEncodingException {
         HttpPost post = new HttpPost(pushMobileUrl + ENDPOINT_MESSAGES);
 
-        post.setEntity(new StringEntity(payload.asJson(), ContentType.create("application/json", "UTF-8")));
+        post.setEntity(new StringEntity(payload.asJson().toString(), ContentType.create("application/json", "UTF-8")));
         return post;
     }
 

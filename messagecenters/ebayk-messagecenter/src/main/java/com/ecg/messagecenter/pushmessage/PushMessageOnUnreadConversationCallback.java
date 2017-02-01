@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -87,12 +88,14 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     }
 
     private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, String email, Long unreadCount) {
+        HashMap<String, String> details = new HashMap<>();
+        details.put("conversationId", conversation.getId());
         return Optional.of(
                 new PushMessagePayload(
                         email,
                         createPushMessageText(conversation, message),
                         "CONVERSATION",
-                        ImmutableMap.of("conversationId", conversation.getId()),
+                        details,
                         Optional.of(unreadCount.intValue()),
                         Optional.of(gcmDetails(conversation, message)),
                         Optional.empty())
