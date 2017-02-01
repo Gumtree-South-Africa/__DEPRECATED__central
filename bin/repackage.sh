@@ -58,7 +58,7 @@ function repackage() {
   (cd tmp && sed -i'' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' bin/comaas)
 
   for prop in distribution/conf/${TENANT}/*; do
-    if [[ -f "$prop" || "$prop" == *import_into_consul || "$prop" == *comaasqa || "$prop" == *local || "$prop" == *bare || "$prop" == *sandbox || "$prop" == *migration* ]]; then
+    if [[ -f "$prop" || "$prop" == *import_into_consul || "$prop" == *comaasqa || "$prop" == *local || "$prop" == *bare || "$prop" == *sandbox || "$prop" == *migration* || "$prop" == *docker ]]; then
       continue
     fi
 
@@ -68,7 +68,36 @@ function repackage() {
     fi
     PACKAGE_BASE=${BUILDDIR}/${PACKAGE_NAME}
 
+    echo Repackaging for \"${TENANT}\" with properties \"${prop}\"
+
     case "$TENANT" in
+      gtuk)
+        # GTUK wants a debian package with systemd startup files.
+
+        mkdir -p tmp3/usr/lib/replyts2
+        cp -r tmp/bin tmp/lib tmp/conf tmp3/usr/lib/replyts2
+
+        mkdir -p tmp3/usr/lib/systemd/system
+        cp distribution/gumtree-replyts2-deb-package/src/deb/systemd/system/replyts2.service tmp3/usr/lib/systemd/system
+
+        cp distribution/gumtree-replyts2-deb-package/src/deb/replyts2-control/p* tmp3/
+
+        mkdir -p tmp3/DEBIAN
+        cp distribution/gumtree-replyts2-deb-package/src/deb/replyts2-control/control tmp3/DEBIAN
+        sed -i'' s/%VERSION%/1.0-${TIMESTAMP}/ tmp3/DEBIAN/control
+
+        if [[ -x dpkg-deb ]]; then
+          dpkg-deb --build tmp3 gumtree.uk.deb
+        else
+          docker run -ti -v $PWD:/build debian dpkg-deb --build /build/tmp3 /build/gumtree.uk.deb
+        fi
+
+        mv -v gumtree.uk.deb "$BUILDDIR/$PACKAGE_NAME.deb"
+
+        rm -rf tmp3
+
+        continue
+        ;;
       ebayk)
         repackage-mde-ebayk ebayk
         continue
