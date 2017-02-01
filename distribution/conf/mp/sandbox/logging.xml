@@ -5,37 +5,47 @@
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logDir}/replyts.log</file>
+    <appender name="DIFF-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logDir}/diff.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logDir}/replyts.log.%d</fileNamePattern>
-            <maxHistory>5</maxHistory>
+          <fileNamePattern>${logDir}/diff.%d{yyyy-MM-dd-HH}.log.zip</fileNamePattern>
+          <maxHistory>50</maxHistory>
         </rollingPolicy>
 
         <encoder>
-            <pattern>%d %-5level [%thread] %-35logger{35}: %msg %n</pattern>
+            <pattern>%d %msg %n</pattern>
         </encoder>
     </appender>
 
-    <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
+    <appender name="NEW-DIFF-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logDir}/new-diff.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+          <fileNamePattern>${logDir}/new-diff.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+          <maxHistory>10</maxHistory>
+        </rollingPolicy>
 
-    <logger name="com.ecg.replyts" level="DEBUG"/>
-    <logger name="com.ecg.de" level="DEBUG"/>
-    <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
-    <logger name="ca.kijiji" level="DEBUG"/>
+        <encoder>
+          <pattern>%d %msg %n</pattern>
+        </encoder>
+    </appender>
 
-    <logger name="org.springframework.cloud" level="DEBUG"/>
+    <logger name="com.ecg.replyts" level="DEBUG" />
+    <logger name="com.ecg.replyts2" level="DEBUG" />
+    <logger name="com.ecg.messagecenter" level="DEBUG" />
+    <logger name="com.ecg.messagebox" level="DEBUG" />
+    <logger name="nl.marktplaats.filter" level="DEBUG" />
+    <logger name="nl.marktplaats.postprocessor" level="DEBUG" />
+    <logger name="com.ebay.ecg.sanitychecks" level="INFO" />
 
-    <!-- Use confOverride property to add loggers as needed on the runtime environment -->
-    <if condition='isDefined("confOverride")'>
-        <then>
-            <include file="${confOverride}/logging.xml"/>
-        </then>
-    </if>
+    <logger name="diffLogger" level="DEBUG" additivity="false">
+          <appender-ref ref="DIFF-FILE"/>
+    </logger>
 
-    <root level="WARN">
-        <appender-ref ref="STDOUT"/>
-        <appender-ref ref="FILE"/>
+     <logger name="newDiffLogger" level="DEBUG" additivity="false">
+          <appender-ref ref="NEW-DIFF-FILE"/>
+     </logger>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
     </root>
-
 </included>
