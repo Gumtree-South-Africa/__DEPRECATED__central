@@ -54,7 +54,7 @@ public class HybridPersistenceConfiguration {
 
     // Cassandra
 
-    @Value("${persistence.cassandra.dc:#{null}}")
+    @Value("${persistence.cassandra.dc:#{systemEnvironment['region']}}")
     private String cassandraDataCenter;
 
     @Autowired

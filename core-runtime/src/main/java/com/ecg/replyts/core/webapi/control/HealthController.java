@@ -51,13 +51,13 @@ public class HealthController {
     @Value("${persistence.riak.bucket.name.prefix:}")
     private String riakBucketPrefix;
 
-    @Value("${persistence.cassandra.keyspace:}")
+    @Value("${persistence.cassandra.keyspace:replyts2}")
     private String cassandraKeyspace;
 
     @Value("${search.es.clustername:unknown}")
     private String searchClusterName;
 
-    @Value("${persistence.cassandra.dc:unknown}")
+    @Value("${persistence.cassandra.dc:#{systemEnvironment['region']}}")
     private String cassandraDc;
 
     @PostConstruct

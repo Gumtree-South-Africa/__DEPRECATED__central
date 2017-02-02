@@ -40,7 +40,7 @@ import static java.util.stream.Collectors.toList;
 public class CassandraPersistenceConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraPersistenceConfiguration.class);
 
-    @Value("${persistence.cassandra.dc:#{null}}")
+    @Value("${persistence.cassandra.dc:#{systemEnvironment['region']}}")
     private String cassandraDataCenter;
 
     @Autowired
@@ -92,7 +92,7 @@ public class CassandraPersistenceConfiguration {
     @Configuration
     @ConditionalOnExpression("#{'${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid')}")
     public static class CassandraClientConfiguration {
-        @Value("${persistence.cassandra.dc:#{null}}")
+        @Value("${persistence.cassandra.dc:#{systemEnvironment['region']}}")
         private String cassandraDataCenter;
 
         @Value("${persistence.cassandra.username:#{null}}")
@@ -101,7 +101,7 @@ public class CassandraPersistenceConfiguration {
         @Value("${persistence.cassandra.password:#{null}}")
         private String cassandraPassword;
 
-        @Value("${persistence.cassandra.keyspace:#{null}}")
+        @Value("${persistence.cassandra.keyspace:replyts2}")
         private String cassandraKeyspace;
 
         @Value("${persistence.cassandra.consistency.read:#{null}}")

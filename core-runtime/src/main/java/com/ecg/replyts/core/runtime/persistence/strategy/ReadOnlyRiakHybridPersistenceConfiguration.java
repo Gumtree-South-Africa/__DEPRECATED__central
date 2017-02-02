@@ -48,7 +48,7 @@ import org.springframework.context.annotation.Import;
 public class ReadOnlyRiakHybridPersistenceConfiguration {
     // Cassandra
 
-    @Value("${persistence.cassandra.dc:#{null}}")
+    @Value("${persistence.cassandra.dc:#{systemEnvironment['region']}}")
     private String cassandraDataCenter;
 
     @Autowired
