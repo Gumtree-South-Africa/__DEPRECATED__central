@@ -2,6 +2,14 @@
 #
 # If necessary, download Cassandra from http://archive.apache.org/dist/cassandra/2.1.13/
 
+# Usage: bin/setup-cassandra.sh <host> <keyspace> <isnondev>
+#   host:       The host to connect to, default: replyts.dev.kjdev.ca
+#   keyspace:   The keyspace to create, default: replyts2
+#   isnondev:   Allowed values: <empty>, 1, or 'prod', default: <empty>.
+#       empty:  create keyspace in dc 'datacenter1' with replication factor 1 (dev)
+#       1:      create keyspace in dc 'ams1' with replication factor 3 (qa, sandbox)
+#       prod:  create keyspace in dc 'ams1' and 'dus1' with replication factor 3 (prod)
+
 HOST=$1
 KEYSPACE=$2
 ISNONDEV=$3
@@ -27,7 +35,9 @@ if [ -z "$(which cqlsh)" ] ; then
     fi
 fi
 
-cqlsh ${HOST} 9042 -e "USE system;" || { echo "Cannot connect to Cassandra! Exiting."; exit 1; }
+echo "Creating keyspace $KEYSPACE on host $HOST"
+
+cqlsh ${HOST} 9042 -e "USE system;" || { echo "Cannot connect to Cassandra on $HOST! Exiting."; exit 1; }
 
 # Don't fail with an error - this is typically desirable behavior
 cqlsh ${HOST} 9042 -e "USE system; SELECT keyspace_name FROM schema_keyspaces WHERE keyspace_name = '$KEYSPACE';" | grep '0 rows' >/dev/null ||
@@ -36,9 +46,15 @@ cqlsh ${HOST} 9042 -e "USE system; SELECT keyspace_name FROM schema_keyspaces WH
 # cqlsh ${HOST} 9042 -e "DROP KEYSPACE IF EXISTS $KEYSPACE;"
 
 if [[ ! -z "$ISNONDEV" ]]; then
-    echo "Creating keyspace with replication factor of 3"
-    cqlsh ${HOST} 9042 -e  "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'ams1': '3'} AND durable_writes = true;"
+    if [[ "$ISNONDEV" -eq "prod" ]]; then
+        echo "Creating keyspace with replication factor of 3 in 'ams1' and 'dus1'"
+        cqlsh ${HOST} 9042 -e  "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'ams1': '3', 'dus1': '3'} AND durable_writes = true;"
+    else
+        echo "Creating keyspace with replication factor of 3 in 'ams1'"
+        cqlsh ${HOST} 9042 -e  "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'ams1': '3'} AND durable_writes = true;"
+    fi
 else
+    echo "Creating keyspace with replication factor of 1 in 'datacenter1'"
     cqlsh ${HOST} 9042 -e "CREATE KEYSPACE $KEYSPACE WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': 1} AND durable_writes = true;"
 fi
 cqlsh ${HOST} 9042 -k "$KEYSPACE" -f core-runtime/src/main/resources/cassandra_schema.cql
