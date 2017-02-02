@@ -211,7 +211,8 @@ CREATE TABLE IF NOT EXISTS core_email_opt_out (
 
 CREATE TABLE IF NOT EXISTS core_held_mail (
     message_id text PRIMARY KEY,
-    mail_data blob
+    mail_data blob,
+    mail_date timestamp
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
     AND comment = ''

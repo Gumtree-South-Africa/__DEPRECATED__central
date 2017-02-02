@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
 import com.ecg.replyts.core.runtime.persistence.StatementsBase;
+import org.joda.time.DateTime;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -47,8 +48,10 @@ public class CassandraHeldMailRepository implements HeldMailRepository, Cassandr
 
     @Override
     public void write(String messageId, byte[] content) {
+        DateTime mailDate = DateTime.now();
+
         try (Timer.Context ignored = writeTimer.time()) {
-            session.execute(Statements.UPDATE_INBOUND_MAIL.bind(this, ByteBuffer.wrap(content), messageId));
+            session.execute(Statements.UPDATE_INBOUND_MAIL.bind(this, ByteBuffer.wrap(content), mailDate.toDate(), messageId));
         }
     }
 
@@ -76,7 +79,7 @@ public class CassandraHeldMailRepository implements HeldMailRepository, Cassandr
 
     static class Statements extends StatementsBase {
         static Statements SELECT_INBOUND_MAIL = new Statements("SELECT message_id, mail_data FROM core_held_mail WHERE message_id = ?", false);
-        static Statements UPDATE_INBOUND_MAIL = new Statements("UPDATE core_held_mail SET mail_data = ? WHERE message_id = ?", true);
+        static Statements UPDATE_INBOUND_MAIL = new Statements("UPDATE core_held_mail SET mail_data = ?, mail_date = ? WHERE message_id = ?", true);
         static Statements DELETE_INBOUND_MAIL = new Statements("DELETE FROM core_held_mail WHERE message_id = ?", true);
 
         Statements(String cql, boolean modifying) {
