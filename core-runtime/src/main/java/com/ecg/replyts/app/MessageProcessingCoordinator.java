@@ -110,7 +110,7 @@ public class MessageProcessingCoordinator {
     }
 
     private void handleSuccess(MessageProcessingContext context, byte[] messageBytes) {
-        LOG.debug("Message {} (conversation: {})successfully sent.", context.getMessageId(), context.getConversation().getId());
+        LOG.debug("Message {} (conversation: {}) successfully sent.", context.getMessageId(), context.getConversation().getId());
 
         byte[] outgoing = Mails.writeToBuffer(context.getOutgoingMail());
 
