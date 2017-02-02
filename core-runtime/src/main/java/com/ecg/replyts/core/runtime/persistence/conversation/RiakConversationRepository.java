@@ -67,7 +67,7 @@ public class RiakConversationRepository implements MutableConversationRepository
     public List<ConversationEvent> getConversationEvents(String conversationId) {
         ConversationEvents conversationEvents = conversationBucket.byId(conversationId);
 
-        return conversationEvents.getEvents();
+        return conversationEvents != null ? conversationEvents.getEvents() : null;
     }
 
     @Override

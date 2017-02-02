@@ -15,8 +15,11 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -64,6 +67,19 @@ public class RiakConversationRepositoryTest {
     @Test
     public void getConversationByIdReturnsNullWhenConversationNotFound() {
         assertNull(repo.getById("nonexistamt"));
+    }
+
+    @Test
+    public void getConversationEvents() {
+        when(conversationBucket.byId("foo")).thenReturn(null);
+        assertNull(repo.getConversationEvents("foo"));
+    }
+
+    @Test
+    public void getConversationEventsNotEmpty() {
+        ConversationEvents events = new ConversationEvents(Arrays.asList(createdEvent));
+        when(conversationBucket.byId("foo")).thenReturn(events);
+        assertEquals(events.getEvents(), repo.getConversationEvents("foo"));
     }
 
     @Test
