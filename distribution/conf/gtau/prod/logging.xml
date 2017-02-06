@@ -25,7 +25,9 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
     </appender>
 
-    <logger name="com.ecg.replyts" level="INFO" />
+    <logger name="com.ecg.replyts" level="DEBUG" />
+    <logger name="com.ecg.messagecenter.cronjobs" level="DEBUG" />
+    <logger name="com.ecg.replyts.core.runtime.indexer" level="DEBUG" />
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
 
     <root level="ERROR">
