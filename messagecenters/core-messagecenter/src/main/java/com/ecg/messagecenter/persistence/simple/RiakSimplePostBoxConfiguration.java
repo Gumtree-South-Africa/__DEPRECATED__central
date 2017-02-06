@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.persistence.simple;
 
-import com.ecg.messagecenter.cronjobs.RiakSimplePostBoxCleanupCronJob;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,10 +7,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid') }")
 public class RiakSimplePostBoxConfiguration {
-    @Bean
-    public RiakSimplePostBoxCleanupCronJob cleanupCronJob() {
-        return new RiakSimplePostBoxCleanupCronJob();
-    }
 
     @Bean
     public RiakSimplePostBoxMerger postBoxMerger() {
