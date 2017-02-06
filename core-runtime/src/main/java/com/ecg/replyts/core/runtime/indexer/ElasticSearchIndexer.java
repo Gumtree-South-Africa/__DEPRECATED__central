@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.base.Optional.fromNullable;
+import static org.joda.time.DateTimeZone.UTC;
 
 class ElasticSearchIndexer implements Indexer {
 
@@ -58,10 +59,16 @@ class ElasticSearchIndexer implements Indexer {
 
     @Override
     public void fullIndex() {
-        healthCheck.reportFull(Status.OK, Message.shortInfo("Full Indexing started at " + new DateTime()));
+        String startMsg = "Full Indexing started at " + new DateTime().withZone(UTC);
+        LOG.debug(startMsg);
+        healthCheck.reportFull(Status.OK, Message.shortInfo(startMsg));
+
         try {
             doIndexFromDate(indexStartPoint.startTimeForFullIndex(), IndexingMode.FULL);
-            healthCheck.reportFull(Status.OK, Message.shortInfo("Full Indexing finished at " + new DateTime()));
+
+            String endMsg = "Full Indexing finished at " + new DateTime().withZone(UTC);
+            LOG.debug(endMsg);
+            healthCheck.reportFull(Status.OK, Message.shortInfo(endMsg));
         } catch (RuntimeException e) {
             healthCheck.reportFull(Status.CRITICAL, Message.fromException("Full Indexing failed", e));
             throw new RuntimeException(e);
@@ -70,12 +77,18 @@ class ElasticSearchIndexer implements Indexer {
 
     @Override
     public void deltaIndex() {
-        healthCheck.reportDelta(Status.OK, Message.shortInfo("Delta Indexing started at " + new DateTime()));
+        String startMsg = "Delta Indexing started at " + new DateTime().withZone(UTC);
+        LOG.debug(startMsg);
+        healthCheck.reportDelta(Status.OK, Message.shortInfo(startMsg));
+
         try {
             DateTime dateFrom = fromNullable(indexerClockRepository.get()).or(indexStartPoint.startTimeForFullIndex());
 
             doIndexFromDate(dateFrom, IndexingMode.DELTA);
-            healthCheck.reportDelta(Status.OK, Message.shortInfo("Delta Indexing finished at " + new DateTime()));
+
+            String endMsg = "Delta Indexing finished at " + new DateTime().withZone(UTC);
+            LOG.debug(endMsg);
+            healthCheck.reportDelta(Status.OK, Message.shortInfo(endMsg));
         } catch (RuntimeException e) {
             healthCheck.reportDelta(Status.CRITICAL, Message.fromException("Delta Indexing failed", e));
             throw new RuntimeException(e);
