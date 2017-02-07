@@ -32,6 +32,7 @@ declare -A HOSTS=(
   ["mde"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-team-releases/ecg/ecg-comaas/"
   ["kjca"]='http://comaas:bMv!Yne7Apj3F4pW@nexus.kjdev.ca/content/repositories/comaas/ecg/comaas/versions/'
   ["gtau"]=""
+  ["gtuk"]=""
 
   # Overrides for specific environments
   ["mp-prod"]="builder@deploy001.esh.ops.prod.icas.ecg.so"
@@ -45,6 +46,7 @@ declare -A METHODS=(
   ["mde"]="curl"
   ["kjca"]="curl"
   ["gtau"]="curl"
+  ["gtuk"]="curl"
 )
 
 function upload() {
