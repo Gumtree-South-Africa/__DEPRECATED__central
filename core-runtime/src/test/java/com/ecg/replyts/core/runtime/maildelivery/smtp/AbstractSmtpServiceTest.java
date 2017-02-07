@@ -7,10 +7,13 @@ package com.ecg.replyts.core.runtime.maildelivery.smtp;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.mail.MessagingException;
@@ -19,22 +22,24 @@ import javax.mail.internet.MimeMessage;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * @author alindhorst
  */
+@RunWith(SpringRunner.class)
 public class AbstractSmtpServiceTest {
 
     private AbstractSmtpService instance;
 
+    @MockBean
+    private SmtpDeliveryConfig config;
+
     @Before
     public void setup() {
-        SmtpDeliveryConfig config = new SmtpDeliveryConfig();
-        config.setHost("localhost");
+        when(config.getHost()).thenReturn("localhost");
+        when(config.getPort()).thenReturn(25);
+
         SmtpPing ping = new SmtpPing();
         instance = new AbstractSmtpService(ping, config) {
         };
@@ -52,10 +57,9 @@ public class AbstractSmtpServiceTest {
 
     @Test
     public void timeoutValuesAreUsed() throws Exception {
-        SmtpDeliveryConfig config = new SmtpDeliveryConfig();
-        config.setConnectTimeoutInMs(5000);
-        config.setReadTimeoutInMs(6000);
-        config.setWriteTimeoutInMs(7000);
+        when(config.getConnectTimeoutInMs()).thenReturn(5000);
+        when(config.getReadTimeoutInMs()).thenReturn(6000);
+        when(config.getWriteTimeoutInMs()).thenReturn(7000);
         SmtpPing ping = new SmtpPing();
         instance = new AbstractSmtpService(ping, config) {
         };

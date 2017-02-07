@@ -11,10 +11,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.mail.internet.MimeMessage;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertNotNull;
+import java.util.Properties;
+import java.util.function.Supplier;
 
-/**
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+
+/**-
  * @author mdarapour
  */
 public class AutogateAwareMailDeliveryServiceIntegrationTest {
@@ -22,21 +24,23 @@ public class AutogateAwareMailDeliveryServiceIntegrationTest {
     private final static Logger LOGGER = LoggerFactory.getLogger(AutogateAwareMailDeliveryServiceIntegrationTest.class);
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
+        Properties properties = new Properties();
+
+        // Header Injector
+        properties.put( "replyts.header-injector.headers", "Http-Url,Http-Account-Name,Http-Account-Password" );
+        properties.put( "replyts.header-injector.order", "250" );
+        // Autogate Delivery
+        properties.put( "replyts.autogate.header.url", "Http-Url" );
+        properties.put( "replyts.autogate.header.account", "Http-Account-Name" );
+        properties.put( "replyts.autogate.header.password", "Http-Account-Password" );
+        properties.put( "replyts2-maildeliveryservice.enabled", "false" );
+
+        return properties;
+    }).get());
 
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(DEFAULT_PORT);
-
-    @BeforeClass
-    public static void load() {
-        // Header Injector
-        System.setProperty( "replyts.header-injector.headers", "Http-Url,Http-Account-Name,Http-Account-Password" );
-        System.setProperty( "replyts.header-injector.order", "250" );
-        // Autogate Delivery
-        System.setProperty( "replyts.autogate.header.url", "Http-Url" );
-        System.setProperty( "replyts.autogate.header.account", "Http-Account-Name" );
-        System.setProperty( "replyts.autogate.header.password", "Http-Account-Password" );
-    }
 
     @Before
     public void setup() {

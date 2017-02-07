@@ -1,5 +1,8 @@
 package com.ecg.replyts.core.runtime.maildelivery.smtp;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import java.io.Serializable;
 
 
@@ -9,29 +12,36 @@ import java.io.Serializable;
  *
  * @author huttar
  */
+@Component
 public class SmtpDeliveryConfig implements Serializable {
     private static final long serialVersionUID = 2L;
 
+    @Value("${delivery.smtp.host}")
     private String host;
-    private String username = "";
-    private String password = "";
-    private int port = 25;
-    private int connectTimeoutInMs = 0;
-    private int readTimeoutInMs = 0;
-    private int writeTimeoutInMs = 0;
+
+    @Value("${delivery.smtp.username:}")
+    private String username;
+
+    @Value("${delivery.smtp.password:}")
+    private String password;
+
+    @Value("${delivery.smtp.port:25}")
+    private int port;
+
+    @Value("${delivery.smtp.timeout.connect.ms:10000}")
+    private int connectTimeoutInMs;
+
+    @Value("${delivery.smtp.timeout.read.ms:10000}")
+    private int readTimeoutInMs;
+
+    @Value("${delivery.smtp.timeout.write.ms:10000}")
+    private int writeTimeoutInMs;
 
     /**
      * @return the SMTP server's host
      */
     public String getHost() {
         return host;
-    }
-
-    /**
-     * @param host the SMTP server's host
-     */
-    public void setHost(String host) {
-        this.host = host;
     }
 
     /**
@@ -42,32 +52,14 @@ public class SmtpDeliveryConfig implements Serializable {
     }
 
     /**
-     * @param username username for smtp server
-     */
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    /**
      * @return password for smtp server
      */
     public String getPassword() {
         return password;
     }
 
-    /**
-     * @param password password for smtp server
-     */
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public boolean isLoginSpecified() {
         return username != null && !username.isEmpty();
-    }
-
-    public void setPort(int port) {
-        this.port = port;
     }
 
     public int getPort() {
@@ -78,23 +70,11 @@ public class SmtpDeliveryConfig implements Serializable {
         return connectTimeoutInMs;
     }
 
-    public void setConnectTimeoutInMs(int connectTimeoutInMs) {
-        this.connectTimeoutInMs = connectTimeoutInMs;
-    }
-
     public int getReadTimeoutInMs() {
         return readTimeoutInMs;
     }
 
-    public void setReadTimeoutInMs(int readTimeoutInMs) {
-        this.readTimeoutInMs = readTimeoutInMs;
-    }
-
     public int getWriteTimeoutInMs() {
         return writeTimeoutInMs;
-    }
-
-    public void setWriteTimeoutInMs(int writeTimeoutInMs) {
-        this.writeTimeoutInMs = writeTimeoutInMs;
     }
 }

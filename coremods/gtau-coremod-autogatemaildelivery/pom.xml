@@ -18,15 +18,16 @@
             <groupId>ecg.comaas</groupId>
             <artifactId>core-runtime</artifactId>
         </dependency>
-        <dependency>
-            <groupId>ecg.comaas</groupId>
-            <artifactId>gtau-postprocessor-headerinjector</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-integration-test-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>gtau-postprocessor-headerinjector</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

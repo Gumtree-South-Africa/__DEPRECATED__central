@@ -3,6 +3,7 @@ package com.ecg.replyts.core.runtime.maildelivery.smtp;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -18,6 +19,7 @@ import java.util.Properties;
  *
  * @author huttar
  */
+@Component
 public class MailTranscoderService {
 
     private Session sess = Session.getInstance(new Properties());

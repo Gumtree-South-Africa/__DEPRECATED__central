@@ -1,5 +1,7 @@
 package com.ecg.replyts.core.runtime.maildelivery.smtp;
 
+import org.springframework.stereotype.Component;
+
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
@@ -8,6 +10,7 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 
 
+@Component
 public class SmtpPing {
 
     /**

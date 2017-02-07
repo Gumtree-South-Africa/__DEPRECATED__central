@@ -1,14 +1,10 @@
 package com.ecg.replyts.autogatemaildelivery;
 
-import com.ecg.replyts.app.Mails;
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.model.mail.MailAddress;
-import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
-import com.ecg.replyts.core.runtime.maildelivery.smtp.SmtpDeliveryServiceConfiguration;
-import com.ecg.replyts.core.runtime.mailparser.StructuredMail;
+import com.ecg.replyts.core.runtime.maildelivery.smtp.*;
 import com.google.common.base.Strings;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -39,30 +35,32 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
     private MailDeliveryService smtpMailDeliveryService;
 
     @Autowired
-    public AutogateAwareMailDeliveryService(SmtpDeliveryServiceConfiguration smtpDeliveryServiceConfiguration,
-        @Value("${replyts.autogate.header.url:X-Cust-Http-Url}")
-        String autogateHttpUrlHeader,
-        @Value("${replyts.autogate.header.account:X-Cust-Http-Account-Name}")
-        String autogateHttpAccountName,
-        @Value("${replyts.autogate.header.password:X-Cust-Http-Account-Password}")
-        String autogateHttpAccountPassword,
-        @Value("${replyts.autogate.httpclient.proxyHost:}")
-        String proxyHost,
-        @Value("${replyts.autogate.httpclient.proxyPort:80}")
-        int proxyPort,
-        @Value("${replyts.autogate.httpclient.maxConnectionsPerRoute:100}")
-        int maxConnectionsPerRoute,
-        @Value("${replyts.autogate.httpclient.maxConnections:100}")
-        int maxConnections,
-        @Value("${replyts.autogate.httpclient.connectionTimeout:1000}")
-        int connectionTimeout,
-        @Value("${replyts.autogate.httpclient.socketTimeout:1000}")
-        int socketTimeout) {
+    public AutogateAwareMailDeliveryService(
+            MailTranscoderService mailTranscoderService, SmtpPing smtpPing,
+            SmtpDeliveryConfig smtpConfiguration,
+            @Value("${replyts.autogate.header.url:X-Cust-Http-Url}")
+            String autogateHttpUrlHeader,
+            @Value("${replyts.autogate.header.account:X-Cust-Http-Account-Name}")
+            String autogateHttpAccountName,
+            @Value("${replyts.autogate.header.password:X-Cust-Http-Account-Password}")
+            String autogateHttpAccountPassword,
+            @Value("${replyts.autogate.httpclient.proxyHost:}")
+            String proxyHost,
+            @Value("${replyts.autogate.httpclient.proxyPort:80}")
+            int proxyPort,
+            @Value("${replyts.autogate.httpclient.maxConnectionsPerRoute:100}")
+            int maxConnectionsPerRoute,
+            @Value("${replyts.autogate.httpclient.maxConnections:100}")
+            int maxConnections,
+            @Value("${replyts.autogate.httpclient.connectionTimeout:1000}")
+            int connectionTimeout,
+            @Value("${replyts.autogate.httpclient.socketTimeout:1000}")
+            int socketTimeout) {
         this.autogateHttpAccountName = autogateHttpAccountName;
         this.autogateHttpAccountPassword = autogateHttpAccountPassword;
         this.autogateHttpUrlHeader = autogateHttpUrlHeader;
 
-        smtpMailDeliveryService = smtpDeliveryServiceConfiguration.buildMailDeliveryService();
+        smtpMailDeliveryService = new SmtpMailDeliveryService(mailTranscoderService, smtpPing, smtpConfiguration);
         httpClient = buildHttpClient(proxyHost, proxyPort, socketTimeout, connectionTimeout, maxConnections, maxConnectionsPerRoute);
     }
 
