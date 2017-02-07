@@ -86,13 +86,15 @@ function repackage() {
         cp distribution/gumtree-replyts2-deb-package/src/deb/replyts2-control/control tmp3/DEBIAN
         sed -i'' s/%VERSION%/1.0-${TIMESTAMP}/ tmp3/DEBIAN/control
 
-        if [[ -x dpkg-deb ]]; then
-          dpkg-deb --build tmp3 gumtree.uk.deb
+        path_to_dpkg_deb=$(which dpkg-deb)
+        if [ -x "$path_to_dpkg_deb" ]; then
+          rm gumtree.uk.deb
+          "$path_to_dpkg_deb" --build tmp3 gumtree.uk.deb
         else
-          docker run -ti -v $PWD:/build debian dpkg-deb --build /build/tmp3 /build/gumtree.uk.deb
+          docker run -v $PWD:/build debian dpkg-deb --build /build/tmp3 /build/gumtree.uk.deb
         fi
 
-        mv -v gumtree.uk.deb "$BUILDDIR/$PACKAGE_NAME.deb"
+        mv -vf gumtree.uk.deb "$BUILDDIR/$PACKAGE_NAME.deb"
 
         rm -rf tmp3
 
