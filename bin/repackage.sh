@@ -88,7 +88,7 @@ function repackage() {
 
         path_to_dpkg_deb=$(which dpkg-deb)
         if [ -x "$path_to_dpkg_deb" ]; then
-          rm gumtree.uk.deb
+          rm -f gumtree.uk.deb
           "$path_to_dpkg_deb" --build tmp3 gumtree.uk.deb
         else
           docker run -v $PWD:/build debian dpkg-deb --build /build/tmp3 /build/gumtree.uk.deb
