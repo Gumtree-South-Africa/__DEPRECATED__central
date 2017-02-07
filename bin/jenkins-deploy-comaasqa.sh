@@ -12,13 +12,13 @@ STAGGER=30000000000
 
 function usage() {
   cat <<- EOF
-  Usage: jenkins-deploy-comaasqa.sh <tenant> <build_dir> <artifact_name> <git_hash>
+  Usage: jenkins-deploy-comaasqa.sh <tenant> <build_dir> <artifact_name> <git_hash> <timestamp>
 EOF
   exit
 }
 
 function parseArgs() {
-  # check amount of args
+  # check number of args
   [[ $# == 0 ]] && usage
 
   TENANT=$1
@@ -150,4 +150,14 @@ function deploy() {
 }
 
 parseArgs $@
+
+if [[ "$TENANT" == "gtuk" ]]; then
+    echo
+    echo
+    echo "Skipping gtuk for now, edit this in 'jenkins-deploy-comaasqa.sh'"
+    echo
+    echo
+    exit 0
+fi
+
 deploy
