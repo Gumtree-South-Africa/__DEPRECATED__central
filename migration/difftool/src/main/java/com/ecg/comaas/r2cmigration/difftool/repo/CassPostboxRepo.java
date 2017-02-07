@@ -10,7 +10,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.util.*;
@@ -22,6 +24,7 @@ import static com.ecg.replyts.core.runtime.TimingReports.*;
 
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 
+@Repository
 public class CassPostboxRepo {
     private static final Logger LOG = LoggerFactory.getLogger(CassPostboxRepo.class);
 
@@ -55,18 +58,25 @@ public class CassPostboxRepo {
     PreparedStatement selectPostboxModifiedBetweenByDate = null;
     PreparedStatement countPostboxes = null;
 
-    public CassPostboxRepo(Session session) {
+    private final ConsistencyLevel cassandraReadConsistency;
+    private final ConsistencyLevel cassandraWriteConsistency;
+
+    public CassPostboxRepo(@Qualifier("cassandraSession") Session session,
+                           @Value("${persistence.cassandra.consistency.read:#{null}}") ConsistencyLevel cassandraReadConsistency,
+                           @Value("${persistence.cassandra.consistency.write:#{null}}") ConsistencyLevel cassandraWriteConsistency) {
         this.session = session;
         this.selectPostbox = session.prepare(SELECT_POSTBOX_Q);
         this.selectPostboxUnreadCount = session.prepare(SELECT_POSTBOX_UNREAD_COUNTS_CONVERSATION_IDS_Q);
         this.selectPostboxModifiedBetweenByDate = session.prepare(SELECT_POSTBOX_WHERE_MODIFICATION_BETWEEN);
         this.countPostboxes = session.prepare(COUNT_POSTBOX_WHERE_MODIFICATION_BETWEEN);
+        this.cassandraReadConsistency = cassandraReadConsistency;
+        this.cassandraWriteConsistency = cassandraWriteConsistency;
         newGauge("cassandra.postboxRepo-streamConversationModificationsByHour", () -> streamGauge.get());
     }
 
     public PostBox getById(String email) {
         try (Timer.Context ignored = byIdTimer.time()) {
-            ResultSet resultSet = session.execute(CassConversationRepo.bind(selectPostboxUnreadCount, email));
+            ResultSet resultSet = session.execute(bind(selectPostboxUnreadCount, email));
 
             Map<String, Integer> conversationUnreadCounts = StreamUtils.toStream(resultSet).collect(Collectors.toMap(
                     row -> row.getString("conversation_id"),
@@ -76,7 +86,7 @@ public class CassPostboxRepo {
             List<AbstractConversationThread> conversationThreads = new ArrayList<>();
             AtomicLong newRepliesCount = new AtomicLong();
 
-            ResultSet result = session.execute(CassConversationRepo.bind(selectPostbox, email));
+            ResultSet result = session.execute(bind(selectPostbox, email));
 
             result.forEach(row -> {
                 String conversationId = row.getString("conversation_id");
@@ -94,6 +104,11 @@ public class CassPostboxRepo {
             });
             return new PostBox(email, Optional.of(newRepliesCount.get()), conversationThreads, maxAgeDays);
         }
+    }
+
+    public Statement bind(PreparedStatement statement, Object... values) {
+        BoundStatement bs = statement.bind(values);
+        return bs.setConsistencyLevel(cassandraReadConsistency).setSerialConsistencyLevel(cassandraWriteConsistency);
     }
 
     private Optional<AbstractConversationThread> toConversationThread(String postboxId, String
@@ -119,14 +134,14 @@ public class CassPostboxRepo {
     // This does not really give any info on how many postboxes there is in the time slice
     // but it does give some ideas how many we are going to pass through.
     public long getPostboxModificationCountByQuery(Date fromDate, Date toDate) {
-        Statement bound = CassConversationRepo.bind(countPostboxes, fromDate, toDate);
+        Statement bound = bind(countPostboxes, fromDate, toDate);
         ResultSet resultset = session.execute(bound);
         Row row = resultset.one();
         return row.getLong(0);
     }
 
     public Stream<String> streamMessageBoxIds(Date fromDate, Date toDate) {
-        Statement bound = CassConversationRepo.bind(selectPostboxModifiedBetweenByDate, fromDate, toDate);
+        Statement bound = bind(selectPostboxModifiedBetweenByDate, fromDate, toDate);
         ResultSet resultset = session.execute(bound);
         return toStream(resultset).map(row -> row.getString(FIELD_POSTBOX_ID));
 

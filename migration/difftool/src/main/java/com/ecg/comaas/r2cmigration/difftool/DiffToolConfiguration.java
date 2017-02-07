@@ -1,7 +1,5 @@
 package com.ecg.comaas.r2cmigration.difftool;
 
-import com.datastax.driver.core.Session;
-import com.ecg.comaas.r2cmigration.difftool.repo.CassPostboxRepo;
 import com.ecg.de.kleinanzeigen.replyts.graphite.GraphiteExporter;
 import com.ecg.messagecenter.persistence.JsonToPostBoxConverter;
 import com.ecg.messagecenter.persistence.PostBoxToJsonConverter;
@@ -100,12 +98,6 @@ public class DiffToolConfiguration {
     @Bean
     public RiakSimplePostBoxMerger postBoxMerger() {
         return new RiakSimplePostBoxMerger();
-    }
-
-    // Uses the same consistency as Conversation repo
-    @Bean
-    public CassPostboxRepo postBoxRepository(Session cassandraSession) {
-        return new CassPostboxRepo(cassandraSession);
     }
 
     @Bean

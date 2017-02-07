@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.util.AbstractMap;
@@ -46,8 +47,14 @@ public class CassConversationRepo {
 
     private Session session;
 
+    private final ConsistencyLevel cassandraReadConsistency;
+    private final ConsistencyLevel cassandraWriteConsistency;
+
     @Autowired
-    public CassConversationRepo(@Qualifier("cassandraSession") Session session, JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
+    public CassConversationRepo(@Qualifier("cassandraSession") Session session,
+                                JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer,
+                                @Value("${persistence.cassandra.consistency.read:#{null}}") ConsistencyLevel cassandraReadConsistency,
+                                @Value("${persistence.cassandra.consistency.write:#{null}}") ConsistencyLevel cassandraWriteConsistency) {
         try {
             this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
             this.session = session;
@@ -55,6 +62,8 @@ public class CassConversationRepo {
             this.getByDate = session.prepare(SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN);
             this.getCount = session.prepare(COUNT_FROM_CONVERSATION_MOD_IDX);
             this.getCountByDay = session.prepare(COUNT_FROM_CONVERSATION_MOD_IDX_BY_DAY);
+            this.cassandraReadConsistency = cassandraReadConsistency;
+            this.cassandraWriteConsistency = cassandraWriteConsistency;
         } catch (Exception e) {
             LOG.error("Fail to connect to cassandra: ", e);
             throw new RuntimeException(e);
@@ -75,9 +84,9 @@ public class CassConversationRepo {
         }
     }
 
-    public static Statement bind(PreparedStatement statement, Object... values) {
+    public Statement bind(PreparedStatement statement, Object... values) {
         BoundStatement bs = statement.bind(values);
-        return bs.setConsistencyLevel(ConsistencyLevel.QUORUM).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
+        return bs.setConsistencyLevel(cassandraReadConsistency).setSerialConsistencyLevel(cassandraWriteConsistency);
     }
 
     public long getConversationModCount(DateTime startDate, DateTime endDate) {
