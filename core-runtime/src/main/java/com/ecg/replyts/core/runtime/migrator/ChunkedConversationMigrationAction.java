@@ -183,7 +183,7 @@ public class ChunkedConversationMigrationAction {
 
             submittedBatchCounter.incrementAndGet();
             LOG.trace("Migrating conversation ids: {}", conversationIds.toString());
-            LOG.debug("Migrating {} conversation, migrated so far {}", conversationIds.size(), submittedBatchCounter.get());
+            LOG.debug("Migrating a batch of {} conversations, submitted batches so far: {}", conversationIds.size(), submittedBatchCounter.get());
 
             List<Conversation> conversations = new ArrayList<>();
 
