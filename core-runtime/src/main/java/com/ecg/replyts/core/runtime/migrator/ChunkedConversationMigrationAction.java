@@ -4,7 +4,7 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.indexer.*;
+import com.ecg.replyts.core.runtime.indexer.IndexingMode;
 import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationRepository;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterators;
@@ -19,12 +19,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import static com.ecg.replyts.core.runtime.TimingReports.*;
+import static com.ecg.replyts.core.runtime.TimingReports.newGauge;
 import static com.ecg.replyts.core.runtime.migrator.Util.waitForCompletion;
 
 public class ChunkedConversationMigrationAction {
@@ -183,7 +185,7 @@ public class ChunkedConversationMigrationAction {
 
             submittedBatchCounter.incrementAndGet();
             LOG.trace("Migrating conversation ids: {}", conversationIds.toString());
-            LOG.debug("Migrating a batch of {} conversations, submitted batches so far: {}", conversationIds.size(), submittedBatchCounter.get());
+            LOG.debug("Migrating a batch of {} conversations, submitted batches so far: {}/{}", conversationIds.size(), submittedBatchCounter.get(), getTotalBatches());
 
             List<Conversation> conversations = new ArrayList<>();
 
