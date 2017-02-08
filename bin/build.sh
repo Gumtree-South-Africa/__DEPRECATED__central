@@ -85,7 +85,7 @@ function parseCmd() {
                ;;
             T) log "Building for tenant $OPTARG"; TENANT="$OPTARG"
                ;;
-            R) log "Building and testing for tenant $OPTARG"; TENANT="$OPTARG"; TENANT_ONLY=1; RUN_TESTS=1;
+            R) log "Building and testing for tenant modules $OPTARG"; TENANT="$OPTARG"; TENANT_ONLY=1; RUN_TESTS=1;
                ;;
             P) log "Build and Package tenant $OPTARG"; PACKAGE="$OPTARG"
                ;;
