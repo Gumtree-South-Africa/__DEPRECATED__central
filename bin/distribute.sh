@@ -39,13 +39,7 @@ if [[ "$TENANT" == "mp" ]] ; then
       continue
     fi
 
-    # Deploy for mp demo, upload for all other environments/tenants
-    if [[ "$DESTINATION" == "demo" ]] ; then
-      # This requires the deploy.py script to be on the PATH
-      deploy.py --redeploy --config distribution/conf/mp/demo/deploy.conf --logdir . --component ${PKG} --ignore-lb
-    else
-      `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} ${DESTINATION}
-    fi
+  `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} ${DESTINATION}
   done
 fi
 
