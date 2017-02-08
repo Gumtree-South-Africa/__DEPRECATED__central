@@ -25,7 +25,7 @@ from logback-test.xml.
         </encoder>
     </appender>
 
-    <logger name="com.ecg" level="DEBUG"/>
+    <logger name="com.ecg" level="INFO"/>
 
     <logger name="difftool.mismatch" level="DEBUG">
         <appender-ref ref="MISMATCHFILE"/>
