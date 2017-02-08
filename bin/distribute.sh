@@ -5,7 +5,7 @@ set -o errexit
 
 function usage() {
   cat <<- EOF
-  Usage: distribute.sh <tenant> <git_hash> <artifact> <timestamp> <build_dir>
+  Usage: distribute.sh <tenant> <git_hash> <artifact> <timestamp>
 EOF
   exit
 }
@@ -17,7 +17,8 @@ readonly TENANT=$1
 readonly GIT_HASH=$2
 readonly ARTIFACT_NAME=$3
 readonly TIMESTAMP=$4
-readonly BUILD_DIR=$5
+
+readonly BUILD_DIR="builds"
 
 # Repackage into packages for each TENANT environment
 `dirname $0`/repackage.sh ${TENANT} ${GIT_HASH} ${BUILD_DIR}/${ARTIFACT_NAME} ${TIMESTAMP}

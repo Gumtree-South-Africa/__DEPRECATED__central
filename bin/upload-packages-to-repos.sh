@@ -3,15 +3,16 @@
 set -o nounset
 set -o errexit
 
-if [ $# -ne 4 ]; then
-    echo "Usage: ${0##*/} <tenant> <git_hash> <timestamp> <build_dir>" 1>&2
+if [ $# -ne 3 ]; then
+    echo "Usage: ${0##*/} <tenant> <git_hash> <timestamp>" 1>&2
     exit 1
 fi
 
 TENANT=$1
 GIT_HASH=$2
 TIMESTAMP=$3
-BUILD_DIR=$4
+
+BUILD_DIR="builds"
 
 
 # Nomad packages:

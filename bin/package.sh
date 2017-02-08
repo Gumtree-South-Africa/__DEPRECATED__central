@@ -7,7 +7,7 @@ set -o errexit
 
 function usage() {
     cat <<- EOF
-    Usage: package.sh <tenant> <git hash> <timestamp> <build dir:'builds'>
+    Usage: package.sh <tenant> <git hash> <timestamp>
 EOF
     exit
 }
@@ -19,11 +19,7 @@ function parseArgs() {
     GIT_HASH="$2"
     TIMESTAMP="$3"
 
-    if [ $# -eq 4 ]; then
-        DESTINATION=${4}
-    else
-        DESTINATION="builds"
-    fi
+    DESTINATION="builds"
     mkdir -p ${DESTINATION}
 }
 

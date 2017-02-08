@@ -80,7 +80,7 @@
                         },
                         "Artifacts": [
                             {
-                                "GetterSource": "http://buildmaster001/job/repo-server/ws/TIMESTAMP-GIT_HASH/ARTIFACT",
+                                "GetterSource": "https://repositories-cloud.ecg.so/platforms/comaas/files/%TENANT%/sandbox/TIMESTAMP/comaas-%TENANT%-comaasqa-TIMESTAMP-GIT_HASH-nomad.tar.gz",
                                 "GetterOptions": {
                                     "checksum": "md5"
                                 },
