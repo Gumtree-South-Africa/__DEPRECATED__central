@@ -20,7 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
  * @author mdarapour
  */
 public class AutogateAwareMailDeliveryServiceIntegrationTest {
-    private final static int DEFAULT_PORT       = 12347;
+    private final static int DEFAULT_PORT = 12347;
     private final static Logger LOGGER = LoggerFactory.getLogger(AutogateAwareMailDeliveryServiceIntegrationTest.class);
 
     @Rule
@@ -28,13 +28,12 @@ public class AutogateAwareMailDeliveryServiceIntegrationTest {
         Properties properties = new Properties();
 
         // Header Injector
-        properties.put( "replyts.header-injector.headers", "Http-Url,Http-Account-Name,Http-Account-Password" );
-        properties.put( "replyts.header-injector.order", "250" );
+        properties.put("replyts.header-injector.headers", "Http-Url,Http-Account-Name,Http-Account-Password");
+        properties.put("replyts.header-injector.order", "250");
         // Autogate Delivery
-        properties.put( "replyts.autogate.header.url", "Http-Url" );
-        properties.put( "replyts.autogate.header.account", "Http-Account-Name" );
-        properties.put( "replyts.autogate.header.password", "Http-Account-Password" );
-        properties.put( "replyts2-maildeliveryservice.enabled", "false" );
+        properties.put("replyts.autogate.header.url", "Http-Url");
+        properties.put("replyts.autogate.header.account", "Http-Account-Name");
+        properties.put("replyts.autogate.header.password", "Http-Account-Password");
 
         return properties;
     }).get());

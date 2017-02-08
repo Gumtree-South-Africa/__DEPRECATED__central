@@ -4,7 +4,6 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
-import com.ecg.replyts.core.runtime.maildelivery.smtp.*;
 import com.google.common.base.Strings;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -18,26 +17,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 /**
  * Mail Delivery Service performs HTTP Posts of Leads to Autogate dataconnect service when the 
  * specific URL header has been set - otherwise sends as normal mail message.
  */
-@Component("buildMailDeliveryService")
+@Primary
+@Component
 public class AutogateAwareMailDeliveryService implements MailDeliveryService {
     private final static Logger LOG = LoggerFactory.getLogger(AutogateAwareMailDeliveryService.class);
 
     private String autogateHttpUrlHeader;
+
     private String autogateHttpAccountName;
+
     private String autogateHttpAccountPassword;
+
     private HttpClient httpClient;
+
     private MailDeliveryService smtpMailDeliveryService;
 
     @Autowired
     public AutogateAwareMailDeliveryService(
-            MailTranscoderService mailTranscoderService, SmtpPing smtpPing,
-            SmtpDeliveryConfig smtpConfiguration,
+            @Qualifier("smtpMailDeliveryService") MailDeliveryService smtpMailDeliveryService,
             @Value("${replyts.autogate.header.url:X-Cust-Http-Url}")
             String autogateHttpUrlHeader,
             @Value("${replyts.autogate.header.account:X-Cust-Http-Account-Name}")
@@ -56,11 +61,12 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
             int connectionTimeout,
             @Value("${replyts.autogate.httpclient.socketTimeout:1000}")
             int socketTimeout) {
+        this.smtpMailDeliveryService = smtpMailDeliveryService;
+
         this.autogateHttpAccountName = autogateHttpAccountName;
         this.autogateHttpAccountPassword = autogateHttpAccountPassword;
         this.autogateHttpUrlHeader = autogateHttpUrlHeader;
 
-        smtpMailDeliveryService = new SmtpMailDeliveryService(mailTranscoderService, smtpPing, smtpConfiguration);
         httpClient = buildHttpClient(proxyHost, proxyPort, socketTimeout, connectionTimeout, maxConnections, maxConnectionsPerRoute);
     }
 

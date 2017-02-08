@@ -5,13 +5,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 
-
-/**
- * Configures the {@link SmtpMailDeliveryService} by providing all the information necessary
- * to connect and use an SMTP server
- *
- * @author huttar
- */
 @Component
 public class SmtpDeliveryConfig implements Serializable {
     private static final long serialVersionUID = 2L;

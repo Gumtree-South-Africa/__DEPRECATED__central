@@ -3,37 +3,67 @@ package com.ecg.replyts.core.runtime.maildelivery.smtp;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.util.Properties;
 
-/**
- * {@link MailDeliveryService} implementation that sends a mail via SMTP protocol
- *
- * @author huttar
- */
 @Component
-@ConditionalOnExpression("${replyts2-maildeliveryservice.enabled:true}")
-public class SmtpMailDeliveryService extends AbstractSmtpService implements MailDeliveryService {
+@Qualifier("smtpMailDeliveryService")
+public class SmtpMailDeliveryService implements MailDeliveryService {
+    private static final Logger LOG = LoggerFactory.getLogger(SmtpMailDeliveryService.class);
 
+    @Autowired
     private MailTranscoderService mailTranscoderService;
 
     @Autowired
-    public SmtpMailDeliveryService(MailTranscoderService mailTranscoderService, SmtpPing smtpPing, SmtpDeliveryConfig config) {
-        super(smtpPing, config);
-        this.mailTranscoderService = mailTranscoderService;
+    private SmtpDeliveryConfig config;
+
+    private JavaMailSenderImpl sender;
+
+    @PostConstruct
+    private void setConfig() {
+        sender = new JavaMailSenderImpl();
+
+        sender.setHost(config.getHost());
+        sender.setPort(config.getPort());
+
+        Properties properties = new Properties();
+
+        properties.setProperty("mail.smtp.connectiontimeout", String.valueOf(config.getConnectTimeoutInMs()));
+        properties.setProperty("mail.smtp.timeout", String.valueOf(config.getReadTimeoutInMs()));
+        properties.setProperty("mail.smtp.writetimeout", String.valueOf(config.getWriteTimeoutInMs()));
+
+        sender.setJavaMailProperties(properties);
+
+        if (config.isLoginSpecified()) {
+            sender.setUsername(config.getUsername());
+            sender.setPassword(config.getPassword());
+
+            LOG.info(String.format("Mail Delivery SMTP Configuration: %s@%s", config.getUsername(), config.getHost()));
+        } else {
+            LOG.info(String.format("Mail Delivery SMTP Configuration: <anonymous>@%s", config.getHost()));
+        }
     }
 
     @Override
     public void deliverMail(Mail m) throws MailDeliveryException {
         try {
-            send(mailTranscoderService.toJavaMail(m));
-        } catch (MessagingException | MailException ex) {
-            throw new MailDeliveryException(ex);
+            MimeMessage message = mailTranscoderService.toJavaMail(m);
+
+            sender.send(message);
+        } catch (MessagingException | MailException e) {
+            LOG.error("Unable to send mail message", e);
+
+            throw new MailDeliveryException(e);
         }
     }
-
 }

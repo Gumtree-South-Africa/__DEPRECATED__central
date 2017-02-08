@@ -5,7 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
-import com.ecg.replyts.integration.smtp.CapturingMailDeliveryService;
+import com.ecg.replyts.integration.smtp.CapturingMailDeliveryAspect;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.joda.time.DateTime;
@@ -30,7 +30,7 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
     private static final Logger LOG = LoggerFactory.getLogger(AwaitMailSentProcessedListener.class);
 
     @Autowired
-    private CapturingMailDeliveryService deliveryService;
+    private CapturingMailDeliveryAspect deliveryAspect;
 
     private static final Map<String, ProcessedMail> RECEIVED_MAILS_MAP = new ConcurrentHashMap<>();
 
@@ -113,7 +113,7 @@ public class AwaitMailSentProcessedListener implements MessageProcessedListener 
         Mail m = null;
         try {
             if (message.getState() == MessageState.SENT) {
-                m = deliveryService.getLastSentMail();
+                m = deliveryAspect.getLastSentMail();
             }
             RECEIVED_MAILS.add(new ProcessedMail(message, m, conversation));
             String key = message.getHeaders().get(MailBuilder.UNIQUE_IDENTIFIER_HEADER);

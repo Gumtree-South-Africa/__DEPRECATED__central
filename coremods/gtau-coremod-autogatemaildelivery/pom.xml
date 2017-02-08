@@ -10,6 +10,7 @@
         <version>${revision}</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
+
     <artifactId>gtau-coremod-autogatemaildelivery</artifactId>
     <packaging>jar</packaging>
 
@@ -47,5 +48,4 @@
             <classifier>standalone</classifier>
         </dependency>
     </dependencies>
-
 </project>
