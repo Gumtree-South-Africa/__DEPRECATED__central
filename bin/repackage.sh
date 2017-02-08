@@ -94,7 +94,8 @@ function repackage() {
           docker run -v $PWD:/build debian dpkg-deb --build /build/tmp3 /build/gumtree.uk.deb
         fi
 
-        mv -vf gumtree.uk.deb "$BUILDDIR/$PACKAGE_NAME.deb"
+        # This package name is a GTUK requirement.
+        mv -vf gumtree.uk.deb "$BUILDDIR/comaas-gtuk_${TIMESTAMP}-${GIT_HASH}_all.deb"
 
         rm -rf tmp3
 
