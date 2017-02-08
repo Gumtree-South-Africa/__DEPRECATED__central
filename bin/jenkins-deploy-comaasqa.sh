@@ -12,7 +12,7 @@ STAGGER=30000000000
 
 function usage() {
   cat <<- EOF
-  Usage: jenkins-deploy-comaasqa.sh <tenant> <build_dir> <artifact_name> <git_hash> <timestamp>
+  Usage: jenkins-deploy-comaasqa.sh <tenant> <artifact_name> <git_hash> <timestamp>
 EOF
   exit
 }
@@ -22,11 +22,12 @@ function parseArgs() {
   [[ $# == 0 ]] && usage
 
   TENANT=$1
-  BUILD_DIR=$2
-  ARTIFACT_NAME=$3
-  GIT_HASH=$4
-  TIMESTAMP=$5
+  ARTIFACT_NAME=$2
+  GIT_HASH=$3
+  TIMESTAMP=$4
 }
+
+BUILD_DIR="builds"
 
 function deploy() {
   # Send the job to Nomad
