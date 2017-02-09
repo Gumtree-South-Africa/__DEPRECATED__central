@@ -61,6 +61,7 @@ public class PostBox<T extends AbstractConversationThread> {
         for (int i = 0; i < conversationThreads.size(); i++) {
             if (conversationThreads.get(i).getConversationId().equals(conversationId)) {
                 indexToRemove = i;
+                break;
             }
         }
         if (indexToRemove != -1) {
