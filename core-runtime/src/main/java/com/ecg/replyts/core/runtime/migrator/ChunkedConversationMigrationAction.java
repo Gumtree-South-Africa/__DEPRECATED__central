@@ -156,23 +156,20 @@ public class ChunkedConversationMigrationAction {
             watch = Stopwatch.createStarted();
             processedBatchCounter.set(0);
             submittedBatchCounter.set(0);
-
-            long convCount = conversationRepository.getConversationCount(dateFrom.toDateTime(DateTimeZone.UTC),
-                    dateTo.toDateTime(DateTimeZone.UTC));
+            totalConvIds.set(0);
 
             Stream<String> convIdStream = conversationRepository.streamConversationsModifiedBetween(dateFrom.toDateTime(DateTimeZone.UTC),
                     dateTo.toDateTime(DateTimeZone.UTC));
 
-            totalConvIds.set(convCount);
-
             Iterators.partition(convIdStream.iterator(), idBatchSize).forEachRemaining(convIdIdx -> {
                 results.add(executor.submit(() -> {
                     fetchConversations(convIdIdx);
+                    totalConvIds.addAndGet(convIdIdx.size());
                 }));
             });
 
             waitForCompletion(results, processedBatchCounter, LOG);
-            LOG.info("Conversation migration from {} to {} date completed,  {} conversations migrated", dateFrom, dateTo, convCount);
+            LOG.info("Conversation migration from {} to {} date completed,  {} conversations migrated", dateFrom, dateTo, totalConvIds.get());
             watch.stop();
         } finally {
             hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock

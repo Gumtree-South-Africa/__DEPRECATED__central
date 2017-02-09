@@ -155,27 +155,24 @@ public class ChunkedPostboxMigrationAction {
         try {
             List<Future> results = new ArrayList<>();
             watch = Stopwatch.createStarted();
-
+            totalPostboxCounter.set(0);
             processedBatchCounter.set(0);
             submittedBatchCounter.set(0);
-
-            long postboxesCounter = postboxRepository.getMessagesCount(dateFrom.toDateTime(DateTimeZone.UTC), dateTo.toDateTime(DateTimeZone.UTC));
 
             Stream<String> postboxStream = postboxRepository.streamPostBoxIds(dateFrom.toDateTime(DateTimeZone.UTC),
                     dateTo.toDateTime(DateTimeZone.UTC));
 
-            totalPostboxCounter.set(postboxesCounter);
-
             Iterators.partition(postboxStream.iterator(), idBatchSize).forEachRemaining(pboxIdBatch -> {
                 results.add(executor.submit(() -> {
                     submittedBatchCounter.incrementAndGet();
+                    totalPostboxCounter.addAndGet(pboxIdBatch.size());
                     fetchPostboxes(pboxIdBatch);
                 }));
             });
 
             waitForCompletion(results, processedBatchCounter, LOG);
             watch.stop();
-            LOG.info("Migrate postboxes from {} to {} date completed, migrated {} postboxes", dateFrom, dateTo, postboxesCounter);
+            LOG.info("Migrate postboxes from {} to {} date completed, migrated {} postboxes", dateFrom, dateTo, totalPostboxCounter.get());
         } finally {
             hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock
         }
