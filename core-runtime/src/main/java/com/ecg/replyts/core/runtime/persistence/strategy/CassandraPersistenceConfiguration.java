@@ -5,7 +5,6 @@ import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
-import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -15,6 +14,7 @@ import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepos
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import com.google.common.base.Splitter;
 import com.google.common.io.Closeables;
@@ -116,6 +116,9 @@ public class CassandraPersistenceConfiguration {
         @Value("${persistence.cassandra.jobs.idleTimeoutSeconds:#{null}}")
         private Integer idleTimeoutSecondsForJobs;
 
+        @Value("${persistence.cassandra.read.timeout.ms:61000}")
+        private Integer readTimeoutMillis;
+
         private Collection<InetSocketAddress> cassandraContactPoints;
         private Session cassandraSession;
         private Cluster cassandraCluster;
@@ -155,8 +158,15 @@ public class CassandraPersistenceConfiguration {
 
         private Object[] buildClusterAndSession(Integer idleTimeoutSeconds) {
             LOG.info("Connecting to Cassandra dc {}, contactpoints {}, user '{}'", cassandraDataCenter, cassandraContactPoints, cassandraUsername);
+            LOG.debug("Setting Cassandra readTimeoutMillis to {}", readTimeoutMillis);
             Cluster.Builder builder = Cluster.
                     builder().
+                    withSocketOptions(
+                            new SocketOptions().
+                                    // this sets timeouts for both reads and writes and should be larger than the value
+                                    // configured on the Cassandra server
+                                            setReadTimeoutMillis(readTimeoutMillis)
+                    ).
                     withLoadBalancingPolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(cassandraDataCenter).build()).
                     addContactPointsWithPorts(cassandraContactPoints);
             if (StringUtils.hasLength(cassandraUsername)) {
