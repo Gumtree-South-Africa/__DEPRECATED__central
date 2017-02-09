@@ -199,7 +199,7 @@ public class ChunkedConversationMigrationAction {
                         conversations.add(conversation);
                     }
                 } catch (Exception e) {
-                    LOG.error(String.format("Migrator could not load conversation {} from repository - skipping it", convId), e);
+                    LOG.error("Migrator could not load conversation {} from repository - skipping it", convId, e);
                     FAILED_CONVERSATION_IDS.info(convId);
                 }
             }
