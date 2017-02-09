@@ -157,7 +157,7 @@ public class CassandraPersistenceConfiguration {
             LOG.info("Connecting to Cassandra dc {}, contactpoints {}, user '{}'", cassandraDataCenter, cassandraContactPoints, cassandraUsername);
             Cluster.Builder builder = Cluster.
                     builder().
-                    withLoadBalancingPolicy(new DCAwareRoundRobinPolicy(cassandraDataCenter)).
+                    withLoadBalancingPolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(cassandraDataCenter).build()).
                     addContactPointsWithPorts(cassandraContactPoints);
             if (StringUtils.hasLength(cassandraUsername)) {
                 builder.withAuthProvider(new PlainTextAuthProvider(cassandraUsername, cassandraPassword));
