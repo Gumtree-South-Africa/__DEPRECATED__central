@@ -84,7 +84,7 @@ function repackage() {
 
         mkdir -p tmp3/DEBIAN
         cp distribution/gumtree-replyts2-deb-package/src/deb/replyts2-control/control tmp3/DEBIAN
-        sed -i'' s/%VERSION%/1.0-${TIMESTAMP}/ tmp3/DEBIAN/control
+        sed -i'' s/%VERSION%/5.0-${TIMESTAMP}/ tmp3/DEBIAN/control
 
         path_to_dpkg_deb=$(which dpkg-deb)
         if [ -x "$path_to_dpkg_deb" ]; then
