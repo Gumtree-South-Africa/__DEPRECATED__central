@@ -40,14 +40,15 @@ if [ ! -f /usr/bin/apt-get ] ; then
           -storepass 'comaas' -keypass 'comaas'
 
         # Install eBay SSL CA v2
-
         curl -sO "http://pki.corp.ebay.com/root-certs-pem.zip" && unzip root-certs-pem.zip
-
         for f in root-certs-pem/*.pem; do
-            keytool -importcert -keystore comaas.jks -storepass 'comaas' -file $f -alias $f -noprompt
+            keytool -importcert -keystore comaas.jks -storepass 'comaas' -file ${f} -alias ${f} -noprompt
         done
-
         rm -rf root-certs-pem.zip root-certs-pem
+
+        # Install Gumtree AU nexus CA
+        openssl s_client -showcerts -connect nexus.au.ecg.so:443 </dev/null 2>/dev/null | openssl x509 -outform PEM | \
+          keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias nexusau -noprompt
     fi
 else
     # If we are running on a builder environment then the certificates should have been installed in
