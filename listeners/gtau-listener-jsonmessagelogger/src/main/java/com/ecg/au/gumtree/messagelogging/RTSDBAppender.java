@@ -14,11 +14,17 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 /**
  * @author mdarapour
  */
 public class RTSDBAppender extends DBAppenderBase<ILoggingEvent> {
     private static final JsonNode EMPTY_NODE = new TextNode("-");
+
+    private static final Logger LOG = LoggerFactory.getLogger(RTSDBAppender.class);
 
     protected static final String insertSQL;
 
@@ -66,6 +72,7 @@ public class RTSDBAppender extends DBAppenderBase<ILoggingEvent> {
                 log("WARN: Failed to insert json event");
                 addWarn("Failed to insert json event");
             }
+            LOG.debug("Successfully wrote event");
         } catch (Throwable ex) {
             log("ERROR: Could not log the event", ex);
             throw ex;
@@ -105,8 +112,11 @@ public class RTSDBAppender extends DBAppenderBase<ILoggingEvent> {
 
     private void log(final String message, final Throwable ex) {
         System.err.println(message);
-        if(ex!=null)
+        if (ex!=null) {
             ex.printStackTrace();
+        }
+
+        LOG.error(message, ex);
     }
 
     private String asText(JsonNode node) {
