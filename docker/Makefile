@@ -19,6 +19,7 @@ import:
 	@$(PROPS2CONSUL) -tenant mp -file ../distribution/conf/mp/import_into_consul/docker.properties
 	@$(PROPS2CONSUL) -tenant ebayk -file ../distribution/conf/ebayk/import_into_consul/docker.properties
 	@$(PROPS2CONSUL) -tenant gtuk -file ../distribution/conf/gtuk/import_into_consul/docker.properties
+	@$(PROPS2CONSUL) -tenant mp -file ../distribution/conf/mde/import_into_consul/docker.properties
 
 logs:
 	@$(DOCKER_COMPOSE) logs -f
