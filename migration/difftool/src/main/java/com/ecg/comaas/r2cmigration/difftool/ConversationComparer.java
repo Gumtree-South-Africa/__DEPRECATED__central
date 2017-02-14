@@ -32,7 +32,7 @@ public class ConversationComparer {
         if (diffTool.riakConversationCounter.getCount() != 0 && timepassed != 0) {
             speed = diffTool.riakConversationCounter.getCount() / timepassed;
         }
-        LOG.info("Compared {} Riak conversations, {} ConversationEvents, completed in {}s, speed {} conversations/s",
+        LOG.info("Compared {} Riak conversations, {} ConversationEvents, completed in {} seconds, speed {} conversations/s",
                 diffTool.riakConversationCounter.getCount(),
                 diffTool.riakEventCounter.getCount(), timepassed, speed);
     }
@@ -52,7 +52,7 @@ public class ConversationComparer {
         if (diffTool.cassConversationCounter.getCount() != 0 && timepassed != 0) {
             speed = diffTool.cassConversationCounter.getCount() / timepassed;
         }
-        LOG.info("Compared {} cassandra Conversations, {} ConversationEvents, completed in {}s, speed {} conversations/s",
+        LOG.info("Compared {} cassandra Conversations, {} ConversationEvents, completed in {} seconds, speed {} conversations/s",
                 diffTool.cassConversationCounter.getCount(), diffTool.cassEventCounter.getCount(), timepassed, speed);
 
         // This times out when count reaches about 100K
