@@ -27,7 +27,7 @@ Build the new image:
 `docker build -t cas_temp .`
 
 Run the newly created image:
-`docker run --rm -p 9042:9042 --name cassandra cas`
+`docker run --rm -p 9042:9042 --name cassandra cas_temp`
 Wait for Cassandra to settle (INFO  18:54:45 Listening for thrift clients...)
 
 Now run the `setup-cassandra.sh` script against this container:
@@ -35,9 +35,11 @@ Now run the `setup-cassandra.sh` script against this container:
 Note that you might need to change the volume to point to where you checked out the Comaas code.
 
 The original container now has the `replyts2` keyspace in a directory inside the container. Commit this container as an image:
-`docker commit cassandra registry.ecg.so/cassandra_data:0.0.1`
+`docker commit cassandra registry.ecg.so/cassandra_data:0.0.2`
 
 Push the image to our repository:
-`docker push registry.ecg.so/cassandra_data:0.0.1`
+`docker push registry.ecg.so/cassandra_data:0.0.2`
+
+Update the version number in `docker-compose.yml`.
 
 We're done.
