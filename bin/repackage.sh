@@ -55,7 +55,7 @@ function repackage() {
   mkdir -p tmp
   mkdir -p tmp2
   tar xfz ${ARTIFACT} -C tmp/
-  (cd tmp && sed -i'' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' bin/comaas)
+  (cd tmp && sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' bin/comaas)
 
   for prop in distribution/conf/${TENANT}/*; do
     if [[ -f "$prop" || "$prop" == *import_into_consul || "$prop" == *comaasqa || "$prop" == *local || "$prop" == *bare || "$prop" == *sandbox || "$prop" == *migration* || "$prop" == *docker ]]; then
@@ -84,7 +84,7 @@ function repackage() {
 
         mkdir -p tmp3/DEBIAN
         cp distribution/gumtree-replyts2-deb-package/src/deb/replyts2-control/control tmp3/DEBIAN
-        sed -i'' s/%VERSION%/5.0-${TIMESTAMP}/ tmp3/DEBIAN/control
+        sed -i'.bak' s/%VERSION%/5.0-${TIMESTAMP}/ tmp3/DEBIAN/control
 
         path_to_dpkg_deb=$(which dpkg-deb)
         if [ -x "$path_to_dpkg_deb" ]; then

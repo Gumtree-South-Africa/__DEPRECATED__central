@@ -28,7 +28,7 @@ function package() {
     # and for repackaging and distribution to the tenants' legacy environments.
     ./bin/build.sh -T ${TENANT} -P comaasqa
     tar xf distribution/target/distribution-${TENANT}-comaasqa.tar.gz -C distribution/target
-    sed -i'' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
+    sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
 
     # Create a zip with all the tenant's configuration to be imported into Consul
     ARTIFACT_NAME="comaas-${TENANT}-configuration-${TIMESTAMP}-${GIT_HASH}.tar.gz"

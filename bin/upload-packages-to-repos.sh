@@ -43,7 +43,7 @@ ARTIFACT_NAME="${PACKAGE_NAME}.tar.gz"
 rm -rf distribution/target/distribution/conf
 mkdir -p distribution/target/distribution/conf
 cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
-sed -i'' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
+sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
 mv distribution/target/distribution distribution/target/${PACKAGE_NAME}
 tar czf ${BUILD_DIR}/${ARTIFACT_NAME} -C distribution/target/ ${PACKAGE_NAME}
 rm -rf distribution/target/${PACKAGE_NAME}
@@ -66,7 +66,7 @@ if [[ -d distribution/conf/${TENANT}/prod ]]; then
     mkdir -p distribution/target/distribution/conf
     cp distribution/conf/${TENANT}/prod/* distribution/target/distribution/conf
     chmod 775 distribution/target/distribution/log
-    sed -i'' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
+    sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
     mv distribution/target/distribution distribution/target/${PACKAGE_NAME}
     tar czf ${BUILD_DIR}/${ARTIFACT_NAME} -C distribution/target/ ${PACKAGE_NAME}
     rm -rf distribution/target/${PACKAGE_NAME}
