@@ -19,7 +19,7 @@
         <join>
             <multicast enabled="false"></multicast>
             <tcp-ip enabled="true">
-                <members>core001,core002,core003</members>
+                <members>mp-core001,mp-core002,mp-core003</members>
             </tcp-ip>
         </join>
     </network>
