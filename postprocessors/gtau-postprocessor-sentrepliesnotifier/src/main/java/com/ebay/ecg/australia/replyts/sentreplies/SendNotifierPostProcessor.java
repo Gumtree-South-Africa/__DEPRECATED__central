@@ -82,12 +82,14 @@ public class SendNotifierPostProcessor implements PostProcessor {
 
         // If this is the first message from the buyer to the seller
         if (1 == conversation.getMessages().size()) {
+            LOGGER.debug("Notify clients as it is the first message in conversation.");
             return true;
         }
 
         // Check if notify override has been set.
         // In this case always notify the client.
         if (isNotifyOverride(conversation)) {
+            LOGGER.debug("Notify clients because 'always notify flag' is set.");
             return true;
         }
 
@@ -103,11 +105,14 @@ public class SendNotifierPostProcessor implements PostProcessor {
         if (isNotifyOverride(conversation)) {
             sb.append("&o=true");
         }
+        LOGGER.debug("Notify URL [{}].", sb.toString());
         return sb.toString();
     }
 
     private boolean isNotifyOverride(Conversation conversation) {
+        LOGGER.debug("Conversation custom values [{}].", conversation.getCustomValues());
         Object isNotifyOverrideFlag = conversation.getCustomValues().get(ALWAYS_NOTIFY_FLAG);
+        LOGGER.debug("Always notify flag [{}].", isNotifyOverrideFlag);
         return (isNotifyOverrideFlag != null && Boolean.valueOf(isNotifyOverrideFlag.toString()));
     }
 
