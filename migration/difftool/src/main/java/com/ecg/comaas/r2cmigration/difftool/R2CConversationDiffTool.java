@@ -14,6 +14,7 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.conversation.ConversationEvents;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
 
 import org.apache.commons.lang3.StringUtils;
@@ -216,6 +217,10 @@ public class R2CConversationDiffTool {
                     convIds.add(convId);
 
                     List<ConversationEvent> cassConvEvents = cassConvEventsEntry.getValue();
+                    if(cassConvEvents==null) {
+                        LOG.info("No conversation events are found for Cassandra convId {} ", convId);
+                        continue;
+                    }
 
                     cassConversationCounter.inc();
                     cassEventCounter.inc(cassConvEvents.size());
@@ -237,7 +242,8 @@ public class R2CConversationDiffTool {
                         for (int i = 0; i < cassConvEvents.size(); i++) {
                             ConversationEvent cassEvent = cassConvEvents.get(i);
                             ConversationEvent riakEvent = riakEvents.get(i);
-
+                            Preconditions.checkNotNull(cassEvent, "Some Cassandra events are null");
+                            Preconditions.checkNotNull(riakEvent, "Some Riak events are null");
                             if (!cassEvent.equals(riakEvent)) {
                                 logC2RMismatch(convId, cassEvent, riakEvent);
                             }
@@ -267,7 +273,7 @@ public class R2CConversationDiffTool {
 
     private String conEventListToString(List<ConversationEvent> conversations) {
         StringBuilder objstr = new StringBuilder();
-        conversations.stream().sorted(MODIFICATION_DATE.reversed()).forEachOrdered(c -> objstr.append(c + "\n"));
+        conversations.stream().filter(Objects::nonNull).sorted(MODIFICATION_DATE.reversed()).forEachOrdered(c -> objstr.append(c + "\n"));
         return objstr.toString();
     }
 

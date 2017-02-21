@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.*;
 
 import static com.ecg.comaas.r2cmigration.difftool.ConversationComparer.*;
@@ -63,7 +64,7 @@ public class Comparer {
     private static final Logger LOG = LoggerFactory.getLogger(Comparer.class);
 
     static void waitForCompletion(List<Future> tasks) {
-        tasks.parallelStream().forEach(t -> {
+        tasks.parallelStream().filter(Objects::nonNull).forEach(t -> {
             try {
                 t.get();
             } catch (InterruptedException in) {
