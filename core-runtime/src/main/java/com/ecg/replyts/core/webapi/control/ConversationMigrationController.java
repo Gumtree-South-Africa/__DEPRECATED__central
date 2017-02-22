@@ -1,7 +1,6 @@
 package com.ecg.replyts.core.webapi.control;
 
 import com.ecg.replyts.core.runtime.migrator.ChunkedConversationMigrationAction;
-
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import org.joda.time.LocalDateTime;
@@ -11,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +37,7 @@ public class ConversationMigrationController {
     @ResponseBody
     public String migrateConversations(@PathVariable String ids) {
         final List<String> conversations = CSV_SPLITTER.splitToList(ids);
-        LOG.info("Invoke index conversation via Web interface for conversations {} ", conversations);
+        LOG.info("Invoke index conversation via Web interface using deep comparison for {} conversations with ids: {} ", conversations.size(), conversations);
         boolean hasExecuted = migrator.migrateChunk(conversations);
         if (hasExecuted) {
             status = String.format("Migrating conversations %s started.", ids);
@@ -84,12 +85,12 @@ public class ConversationMigrationController {
         LOG.info("Invoke getStatus via Web interface");
         if (status != null) {
             return String.format("<pre>Running: %s \n" +
-                    "Completed: %d%% \n" +
-                    "Processing rate: %s \n" +
-                    "Expected completion in %d s \n" +
-                    "Time taken %ds \n" +
-                    "Conversations batches migrated %d, of %d total \n" +
-                    "Total conversations in the time slice %d \n</pre>",
+                            "Completed: %d%% \n" +
+                            "Processing rate: %s \n" +
+                            "Expected completion in %d s \n" +
+                            "Time taken %ds \n" +
+                            "Conversations batches migrated %d, of %d total \n" +
+                            "Total conversations in the time slice %d \n</pre>",
                     status,
                     migrator.getPercentCompleted(),
                     migrator.getRateConversationsPerSec(),
@@ -97,7 +98,7 @@ public class ConversationMigrationController {
                     migrator.getTimeTaken(TimeUnit.SECONDS),
                     migrator.getConversationsBatchesMigrated(),
                     migrator.getTotalBatches(),
-                    migrator.getTotalConversations()) ;
+                    migrator.getTotalConversations());
         }
         return "Nothing has been executed";
     }

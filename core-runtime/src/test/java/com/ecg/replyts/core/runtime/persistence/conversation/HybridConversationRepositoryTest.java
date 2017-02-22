@@ -13,21 +13,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HybridConversationRepositoryTest {
     @Mock
-    private CassandraConversationRepository cassandraRepository;
+    private DefaultCassandraConversationRepository cassandraRepository;
     @Mock
     private RiakConversationRepository riakRepository;
     @Mock
@@ -35,6 +37,60 @@ public class HybridConversationRepositoryTest {
 
     @InjectMocks
     private HybridConversationRepository repository;
+
+    @Test
+    public void testGetIdWithDeepComparisonRiakHasMore() {
+        String conversationId = "123";
+        ConversationCreatedEvent createdEvent = new ConversationCreatedEvent(conversationId, null, null, null, null, null, DateTime.now(), ConversationState.ACTIVE, new HashMap<>());
+        MessageAddedEvent m1 = new MessageAddedEvent("m1", MessageDirection.BUYER_TO_SELLER, DateTime.now(), null, null, null, FilterResultState.OK, ModerationResultState.GOOD, null, null, null, null);
+        MessageAddedEvent m2 = new MessageAddedEvent("m2", MessageDirection.BUYER_TO_SELLER, DateTime.now(), null, null, null, FilterResultState.OK, ModerationResultState.GOOD, null, null, null, null);
+
+        when(riakRepository.getConversationEvents(eq(conversationId))).thenReturn(new ArrayList<>(Arrays.asList(createdEvent, m1, m2)));
+        when(cassandraRepository.getConversationEvents(eq(conversationId))).thenReturn(Arrays.asList(createdEvent, m1));
+
+        when(migrationState.tryClaim(any(Class.class), anyString())).thenReturn(true);
+
+        assertNull(repository.getByIdWithDeepComparison(conversationId));
+
+        verify(cassandraRepository).commit(eq(conversationId), eq(Arrays.asList(m2)));
+        verify(riakRepository, never()).commit(anyString(), anyList());
+    }
+
+    @Test
+    public void testGetIdWithDeepComparisonCassandraHasMore() {
+        String conversationId = "123";
+        ConversationCreatedEvent createdEvent = new ConversationCreatedEvent(conversationId, null, null, null, null, null, DateTime.now(), ConversationState.ACTIVE, new HashMap<>());
+        MessageAddedEvent m1 = new MessageAddedEvent("m1", MessageDirection.BUYER_TO_SELLER, DateTime.now(), null, null, null, FilterResultState.OK, ModerationResultState.GOOD, null, null, null, null);
+        MessageAddedEvent m2 = new MessageAddedEvent("m2", MessageDirection.BUYER_TO_SELLER, DateTime.now(), null, null, null, FilterResultState.OK, ModerationResultState.GOOD, null, null, null, null);
+
+        when(riakRepository.getConversationEvents(eq(conversationId))).thenReturn(new ArrayList<>(Arrays.asList(createdEvent, m1)));
+        when(cassandraRepository.getConversationEvents(eq(conversationId))).thenReturn(Arrays.asList(createdEvent, m1, m2));
+
+        when(migrationState.tryClaim(any(Class.class), anyString())).thenReturn(true);
+
+        assertNull(repository.getByIdWithDeepComparison(conversationId));
+
+        verify(cassandraRepository, never()).commit(anyString(), anyListOf(ConversationEvent.class));
+        verify(riakRepository, never()).commit(anyString(), anyListOf(ConversationEvent.class));
+    }
+
+    @Test
+    public void testGetIdWithDeepComparisonEqualConversationEventsInRiakAndCassandra() {
+        String conversationId = "123";
+        ConversationCreatedEvent createdEvent = new ConversationCreatedEvent(conversationId, null, null, null, null, null, DateTime.now(), ConversationState.ACTIVE, new HashMap<>());
+        MessageAddedEvent m1 = new MessageAddedEvent("m1", MessageDirection.BUYER_TO_SELLER, DateTime.now(), null, null, null, FilterResultState.OK, ModerationResultState.GOOD, null, null, null, null);
+        MessageAddedEvent m2 = new MessageAddedEvent("m2", MessageDirection.BUYER_TO_SELLER, DateTime.now(), null, null, null, FilterResultState.OK, ModerationResultState.GOOD, null, null, null, null);
+
+        when(riakRepository.getConversationEvents(eq(conversationId))).thenReturn(new ArrayList<>(Arrays.asList(createdEvent, m1,m2)));
+        when(cassandraRepository.getConversationEvents(eq(conversationId))).thenReturn(Arrays.asList(createdEvent, m1, m2));
+
+        when(migrationState.tryClaim(any(Class.class), anyString())).thenReturn(true);
+
+        assertNull(repository.getByIdWithDeepComparison(conversationId));
+
+        verify(cassandraRepository, never()).commit(anyString(), anyListOf(ConversationEvent.class));
+        verify(riakRepository, never()).commit(anyString(), anyListOf(ConversationEvent.class));
+    }
 
     @Test
     public void testGetByIdMigration() {

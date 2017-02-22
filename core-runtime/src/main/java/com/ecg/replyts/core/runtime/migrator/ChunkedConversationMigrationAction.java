@@ -14,7 +14,6 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,6 +23,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newGauge;
@@ -45,10 +45,8 @@ public class ChunkedConversationMigrationAction {
     private final int conversationMaxAgeDays;
     private Stopwatch watch;
 
-    @Autowired
     private final ThreadPoolExecutor executor;
 
-    @Autowired
     private final HazelcastInstance hazelcast;
 
     private final int idBatchSize;
@@ -113,7 +111,7 @@ public class ChunkedConversationMigrationAction {
 
     public boolean migrateChunk(List<String> conversationIds) {
         String msg = String.format(" migrateChunk for the list of conversation ids %s ", conversationIds);
-        return execute(() -> fetchConversations(conversationIds), msg);
+        return execute(() -> migrateConversationsWithDeepComparison(conversationIds), msg);
     }
 
     public boolean migrateConversationsFromDate(LocalDateTime dateFrom) {
@@ -139,7 +137,7 @@ public class ChunkedConversationMigrationAction {
                 LOG.info("Executing {}", msg);
                 return true;
             } else {
-                LOG.info("Skipped execution {}", msg);
+                LOG.info("Skipped execution {} due to no lock", msg);
                 return false;
             }
         } catch (Exception e) {
@@ -150,7 +148,7 @@ public class ChunkedConversationMigrationAction {
         }
     }
 
-    public void migrateConversationsBetweenDates(LocalDateTime dateFrom, LocalDateTime dateTo) {
+    private void migrateConversationsBetweenDates(LocalDateTime dateFrom, LocalDateTime dateTo) {
         try {
             List<Future> results = new ArrayList<>();
             watch = Stopwatch.createStarted();
@@ -161,12 +159,11 @@ public class ChunkedConversationMigrationAction {
             Stream<String> convIdStream = conversationRepository.streamConversationsModifiedBetween(dateFrom.toDateTime(DateTimeZone.UTC),
                     dateTo.toDateTime(DateTimeZone.UTC));
 
-            Iterators.partition(convIdStream.iterator(), idBatchSize).forEachRemaining(convIdIdx -> {
-                results.add(executor.submit(() -> {
-                    fetchConversations(convIdIdx);
-                    totalConvIds.addAndGet(convIdIdx.size());
-                }));
-            });
+            Iterators.partition(convIdStream.iterator(), idBatchSize).forEachRemaining(convIdIdx ->
+                    results.add(executor.submit(() -> {
+                        migrateConversations(convIdIdx, conversationRepository::getById);
+                        totalConvIds.addAndGet(convIdIdx.size());
+                    })));
 
             waitForCompletion(results, processedBatchCounter, LOG);
             LOG.info("Conversation migration from {} to {} date completed,  {} conversations migrated", dateFrom, dateTo, totalConvIds.get());
@@ -176,8 +173,25 @@ public class ChunkedConversationMigrationAction {
         }
     }
 
+    // These are not partitioned because we probably cannot even fit 1000 conversationIds in a single valid HTTP call
+    private void migrateConversationsWithDeepComparison(List<String> conversationIds) {
+        try {
+            watch = Stopwatch.createStarted();
 
-    public void fetchConversations(List<String> conversationIds) {
+            List<Future> results = new ArrayList<>();
+            results.add(executor.submit(() -> migrateConversations(conversationIds, conversationRepository::getByIdWithDeepComparison)));
+            AtomicInteger counter = new AtomicInteger(0);
+            waitForCompletion(results, counter, LOG);
+            totalConvIds.addAndGet(counter.get());
+            LOG.info("Chunk of conversation migration completed, migrated {} out of {} conversations", counter, conversationIds.size());
+            watch.stop();
+        } finally {
+            hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock
+        }
+    }
+
+    // This migrates conversations by retrieving them in hybrid mode
+    private void migrateConversations(List<String> conversationIds, Function<String, MutableConversation> conversationGetter) {
         try (Timer.Context ignored = BATCH_MIGRATION_TIMER.time()) {
 
             submittedBatchCounter.incrementAndGet();
@@ -185,19 +199,17 @@ public class ChunkedConversationMigrationAction {
             LOG.debug("Migrating a batch of {} conversations, submitted batches so far: {}/{}", conversationIds.size(), submittedBatchCounter.get(), getTotalBatches());
 
             List<Conversation> conversations = new ArrayList<>();
-
-            for (String convId : conversationIds) {
-
+            for (String conversationId : conversationIds) {
                 try {
-                    MutableConversation conversation = conversationRepository.getById(convId);
+                    MutableConversation conversation = conversationGetter.apply(conversationId);
                     // might be null for very old conversation that have been removed by the cleanup job while the indexer
-                    // was running.
+                    // was running, or using the deep comparison getter.
                     if (conversation != null) {
                         conversations.add(conversation);
                     }
                 } catch (Exception e) {
-                    LOG.error("Migrator could not load conversation {} from repository - skipping it", convId, e);
-                    FAILED_CONVERSATION_IDS.info(convId);
+                    LOG.error("Migrator could not load conversation {} from repository - skipping it", conversationId, e);
+                    FAILED_CONVERSATION_IDS.info(conversationId);
                 }
             }
 
@@ -206,10 +218,9 @@ public class ChunkedConversationMigrationAction {
             }
 
             if (conversations.size() != conversationIds.size()) {
-                LOG.warn("At least some conversation IDs were not found in the database, {} conversations expected, but only {} retrieved",
-                        conversationIds.size(), conversations.size());
+                LOG.warn("At least some conversation IDs were not found in the database, {} conversations expected, but only {} retrieved\n" +
+                        "Note that this does not need to be an error.", conversationIds.size(), conversations.size());
             }
-
         }
     }
 

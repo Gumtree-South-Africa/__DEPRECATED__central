@@ -13,8 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -24,16 +24,42 @@ public class HybridConversationRepository implements MutableConversationReposito
     private final Counter migrateConversationCounter = TimingReports.newCounter("migration.migrate-conversation");
     private final Timer migrationConversationLagTimer = TimingReports.newTimer("migration.migrate-conversation-lag");
 
-    private CassandraConversationRepository cassandraConversationRepository;
+    private DefaultCassandraConversationRepository cassandraConversationRepository;
 
     private RiakConversationRepository riakConversationRepository;
 
     private HybridMigrationClusterState migrationState;
 
-    public HybridConversationRepository(CassandraConversationRepository cassandraConversationRepository, RiakConversationRepository riakConversationRepository, HybridMigrationClusterState migrationState) {
+    public HybridConversationRepository(DefaultCassandraConversationRepository cassandraConversationRepository, RiakConversationRepository riakConversationRepository, HybridMigrationClusterState migrationState) {
         this.cassandraConversationRepository = cassandraConversationRepository;
         this.riakConversationRepository = riakConversationRepository;
         this.migrationState = migrationState;
+    }
+
+    public MutableConversation getByIdWithDeepComparison(String conversationId) {
+//        DateTime now = new DateTime(); let's see what this does without the lenient date first
+
+        List<ConversationEvent> conversationEventsInRiak = riakConversationRepository.getConversationEvents(conversationId);
+        List<ConversationEvent> conversationEventsInCassandra = cassandraConversationRepository.getConversationEvents(conversationId);
+
+        // Check if all events in Cassandra are also in Riak
+        for (ConversationEvent eventInCassandra : conversationEventsInCassandra) {
+            if (!conversationEventsInRiak.contains(eventInCassandra)) {
+                LOG.warn("Cassandra has an event that is not in Riak for conversationId {}, Cassandra conversationEventId {}, {}", conversationId, eventInCassandra.getEventId(), eventInCassandra);
+                return null;
+            } else {
+                conversationEventsInRiak.remove(eventInCassandra);
+            }
+        }
+
+        if (conversationEventsInRiak.size() > 0) {
+            LOG.debug("ConversationId: {}, more events in Riak than in Cassandra", conversationId);
+            cassandraConversationRepository.commit(conversationId, conversationEventsInRiak);
+        } else {
+            LOG.debug("ConversationId: {}, events in Cassandra and Riak have same size", conversationId);
+        }
+
+        return null;
     }
 
     @Override
@@ -41,7 +67,7 @@ public class HybridConversationRepository implements MutableConversationReposito
         MutableConversation conversation = cassandraConversationRepository.getById(conversationId);
 
         if (conversation == null) {
-             conversation = riakConversationRepository.getById(conversationId);
+            conversation = riakConversationRepository.getById(conversationId);
 
             if (conversation != null) {
                 migrateEventsToCassandra(conversationId);
@@ -60,6 +86,21 @@ public class HybridConversationRepository implements MutableConversationReposito
 
             if (conversation != null) {
                 migrateEventsToCassandra(conversation.getId());
+            }
+        }
+
+        return conversation;
+    }
+
+    @Override
+    public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
+        Optional<Conversation> conversation = cassandraConversationRepository.findExistingConversationFor(key);
+
+        if (!conversation.isPresent()) {
+            conversation = riakConversationRepository.findExistingConversationFor(key);
+
+            if (conversation.isPresent()) {
+                migrateEventsToCassandra(conversation.get().getId());
             }
         }
 
@@ -96,21 +137,6 @@ public class HybridConversationRepository implements MutableConversationReposito
     }
 
     @Override
-    public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
-        Optional<Conversation> conversation = cassandraConversationRepository.findExistingConversationFor(key);
-
-        if (!conversation.isPresent()) {
-            conversation = riakConversationRepository.findExistingConversationFor(key);
-
-            if (conversation.isPresent()) {
-                migrateEventsToCassandra(conversation.get().getId());
-            }
-        }
-
-        return conversation;
-    }
-
-    @Override
     public void commit(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
         List<ConversationEvent> cassandraToBeCommittedEvents = toBeCommittedEvents;
 
@@ -124,8 +150,8 @@ public class HybridConversationRepository implements MutableConversationReposito
                 final List<ConversationEvent> combinedEvents = new ArrayList<>(existingEvents);
 
                 toBeCommittedEvents.stream()
-                  .filter(event -> !combinedEvents.contains(event))
-                  .forEach(event -> combinedEvents.add(event));
+                        .filter(event -> !combinedEvents.contains(event))
+                        .forEach(event -> combinedEvents.add(event));
 
                 cassandraToBeCommittedEvents = combinedEvents;
             }
@@ -172,10 +198,5 @@ public class HybridConversationRepository implements MutableConversationReposito
         }
 
         return true;
-    }
-
-    // Defer to Riak as the single source of truth; once both are in sync, switch to persistence.strategy = cassandra
-    public long getConversationCount(DateTime start, DateTime end) {
-        return riakConversationRepository.getConversationCount(start,end);
     }
 }
