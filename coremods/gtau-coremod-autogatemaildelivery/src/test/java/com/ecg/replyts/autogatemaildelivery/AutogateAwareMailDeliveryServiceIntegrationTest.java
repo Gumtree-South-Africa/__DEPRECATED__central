@@ -2,6 +2,7 @@ package com.ecg.replyts.autogatemaildelivery;
 
 import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
@@ -20,7 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
  * @author mdarapour
  */
 public class AutogateAwareMailDeliveryServiceIntegrationTest {
-    private final static int DEFAULT_PORT = 12347;
+    private final static int HTTP_PORT = OpenPortFinder.findFreePort();
     private final static Logger LOGGER = LoggerFactory.getLogger(AutogateAwareMailDeliveryServiceIntegrationTest.class);
 
     @Rule
@@ -39,7 +40,7 @@ public class AutogateAwareMailDeliveryServiceIntegrationTest {
     }).get());
 
     @ClassRule
-    public static WireMockClassRule wireMockRule = new WireMockClassRule(DEFAULT_PORT);
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(HTTP_PORT);
 
     @Before
     public void setup() {
@@ -72,7 +73,7 @@ public class AutogateAwareMailDeliveryServiceIntegrationTest {
                 .to("seller@bar.com")
                 .adId("213")
                 .plainBody("hello seller")
-                .header("HTTP-URL", "http://localhost:" + DEFAULT_PORT)
+                .header("HTTP-URL", "http://localhost:" + HTTP_PORT)
                 .header("Http-Account-Name".toUpperCase(), "test-account")
                 .header("Http-Account-Password".toUpperCase(), "test-account"));
 

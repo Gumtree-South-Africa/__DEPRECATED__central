@@ -4,6 +4,7 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
+import com.ecg.replyts.core.runtime.mailparser.MailEnhancer;
 import com.google.common.base.Strings;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -40,9 +41,12 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
 
     private MailDeliveryService smtpMailDeliveryService;
 
+    private MailEnhancer mailEnhancer;
+
     @Autowired
     public AutogateAwareMailDeliveryService(
             @Qualifier("smtpMailDeliveryService") MailDeliveryService smtpMailDeliveryService,
+            MailEnhancer mailEnhancer,
             @Value("${replyts.autogate.header.url:X-Cust-Http-Url}")
             String autogateHttpUrlHeader,
             @Value("${replyts.autogate.header.account:X-Cust-Http-Account-Name}")
@@ -62,7 +66,7 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
             @Value("${replyts.autogate.httpclient.socketTimeout:1000}")
             int socketTimeout) {
         this.smtpMailDeliveryService = smtpMailDeliveryService;
-
+        this.mailEnhancer = mailEnhancer;
         this.autogateHttpAccountName = autogateHttpAccountName;
         this.autogateHttpAccountPassword = autogateHttpAccountPassword;
         this.autogateHttpUrlHeader = autogateHttpUrlHeader;
@@ -93,54 +97,62 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
                 LOG.info("X-Robot header present, not sending mail");
                 return;
             } else {
-                smtpMailDeliveryService.deliverMail(m);
+                smtpMailDeliveryService.deliverMail(this.mailEnhancer.process(m));
             }
         } else {
-            try {
-                LOG.info("Autogate HTTP found - posting Lead to Autogate");
+            postHttpLead(m, postUrl);
+        }
+    }
 
-                // set headers
-                final String accountName = m.getUniqueHeader(autogateHttpAccountName);
-                final String accountPassword = m.getUniqueHeader(autogateHttpAccountPassword);
-                final HttpPost httpPost = new HttpPost(postUrl);
-                httpPost.setHeader("AccountName", accountName);
-                httpPost.setHeader("Password", accountPassword);
 
-                // set body
-                final StringBuilder sb = new StringBuilder();
-                for(TypedContent<String> textPart : m.getTextParts(false)) {
-                    sb.append(textPart.getContent());
-                }
-                final StringEntity se = new StringEntity(sb.toString(), HTTP.UTF_8);
-                se.setContentType("text/xml");
-                httpPost.setHeader("Content-Type","text/xml;charset=UTF-8");
-                httpPost.setEntity(se);
+    /**
+     * Send HTTP Post lead to the professional sellers
+     */
+    private void postHttpLead(Mail m, String postUrl) throws MailDeliveryException {
+        try {
+            LOG.info("Autogate HTTP found - posting Lead to Autogate");
 
-                // perform HTTP post
-                LOG.info("Performing post to to Autogate");
-                final HttpResponse response = httpClient.execute(httpPost);
+            // set headers
+            final String accountName = m.getUniqueHeader(autogateHttpAccountName);
+            final String accountPassword = m.getUniqueHeader(autogateHttpAccountPassword);
+            final HttpPost httpPost = new HttpPost(postUrl);
+            httpPost.setHeader("AccountName", accountName);
+            httpPost.setHeader("Password", accountPassword);
 
-                // check results
-                final HttpEntity httpEntity = response.getEntity();
-                String httpEntityString = null;
-                if(httpEntity != null) {
-                    httpEntityString = EntityUtils.toString(httpEntity);
-                }
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ||
-                        response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
-                    LOG.info("Lead succesfully posted to Autogate, messageId=" + m.getMessageId()
-                            + ", responseCode=" + response.getStatusLine().getStatusCode()
-                            + ", response=" + httpEntityString);
-                } else {
-                    LOG.error("Failed to post Lead to Autogate, messageId=" + m.getMessageId()
-                            + ", responseCode=" + response.getStatusLine().getStatusCode()
-                            + ", requestBody=" + sb.toString()
-                            + ", response=" + httpEntityString);
-                }
-            } catch (Exception e) {
-                LOG.error("Failed to deliver mail messageId=" + m.getMessageId(), e);
-                throw new MailDeliveryException("Failed to deliver mail messageId=" + m.getMessageId(), e);
+            // set body
+            final StringBuilder sb = new StringBuilder();
+            for(TypedContent<String> textPart : m.getTextParts(false)) {
+                sb.append(textPart.getContent());
             }
+            final StringEntity se = new StringEntity(sb.toString(), HTTP.UTF_8);
+            se.setContentType("text/xml");
+            httpPost.setHeader("Content-Type","text/xml;charset=UTF-8");
+            httpPost.setEntity(se);
+
+            // perform HTTP post
+            LOG.info("Performing post to to Autogate");
+            final HttpResponse response = httpClient.execute(httpPost);
+
+            // check results
+            final HttpEntity httpEntity = response.getEntity();
+            String httpEntityString = null;
+            if(httpEntity != null) {
+                httpEntityString = EntityUtils.toString(httpEntity);
+            }
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ||
+                    response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
+                LOG.info("Lead succesfully posted to Autogate, messageId=" + m.getMessageId()
+                        + ", responseCode=" + response.getStatusLine().getStatusCode()
+                        + ", response=" + httpEntityString);
+            } else {
+                LOG.error("Failed to post Lead to Autogate, messageId=" + m.getMessageId()
+                        + ", responseCode=" + response.getStatusLine().getStatusCode()
+                        + ", requestBody=" + sb.toString()
+                        + ", response=" + httpEntityString);
+            }
+        } catch (Exception e) {
+            LOG.error("Failed to deliver mail messageId=" + m.getMessageId(), e);
+            throw new MailDeliveryException("Failed to deliver mail messageId=" + m.getMessageId(), e);
         }
     }
 }
