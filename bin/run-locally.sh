@@ -58,7 +58,7 @@ function startComaas() {
     cd distribution/target
     tar xfz distribution-${TENANT}-bare.tar.gz
     cd distribution
-    sed -i'.bak'     "s/:9042$/:${CASSANDRA_CONTAINER_PORT}/" conf/replyts.properties
+    sed -i'.bak' "s/:9042$/:${CASSANDRA_CONTAINER_PORT}/" conf/replyts.properties
 
     log "Writing comaas output to ${COMAAS_OUT}"
     COMAAS_HTTP_PORT=$(findOpenPort)
