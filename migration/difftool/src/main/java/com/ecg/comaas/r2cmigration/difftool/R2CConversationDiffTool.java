@@ -5,18 +5,15 @@ import com.basho.riak.client.RiakException;
 import com.basho.riak.client.RiakRetryFailedException;
 import com.basho.riak.client.bucket.Bucket;
 import com.basho.riak.client.query.StreamingOperation;
-import com.codahale.metrics.*;
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.comaas.r2cmigration.difftool.repo.CassConversationRepo;
 import com.ecg.comaas.r2cmigration.difftool.repo.RiakConversationRepo;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
-
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.conversation.ConversationEvents;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
-
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -25,10 +22,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
-import static com.ecg.replyts.core.runtime.TimingReports.*;
+import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 
 
 public class R2CConversationDiffTool {
@@ -37,8 +36,11 @@ public class R2CConversationDiffTool {
     private static final Logger LOG = LoggerFactory.getLogger(R2CConversationDiffTool.class);
     private static final Logger MISMATCH_LOG = LoggerFactory.getLogger("conversation.mismatch");
 
-    final static Counter RIAK_TO_CASS_EVENT_MISMATCH_COUNTER = TimingReports.newCounter("riak-mismatch-counter");
-    final static Counter CASS_TO_RIAK_EVENT_MISMATCH_COUNTER = TimingReports.newCounter("cass-mismatch-counter");
+    final static Counter RIAK_TO_CASS_CONV_MISMATCH_COUNTER = TimingReports.newCounter("riak-conversation-mismatch-counter");
+    final static Counter CASS_TO_RIAK_CONV_MISMATCH_COUNTER = TimingReports.newCounter("cass-conversation-mismatch-counter");
+
+    final static Counter RIAK_TO_CASS_EVENT_MISMATCH_COUNTER = TimingReports.newCounter("riak-conversationeevent-mismatch-counter");
+    final static Counter CASS_TO_RIAK_EVENT_MISMATCH_COUNTER = TimingReports.newCounter("cass-conversationeevent-mismatch-counter");
 
     private final static Timer RIAK_TO_CASS_BATCH_COMPARE_TIMER = TimingReports.newTimer("riak-to-cass.batch-compare-timer");
     private final static Timer CASS_TO_RIAK_BATCH_COMPARE_TIMER = TimingReports.newTimer("cass-to-riak.batch-compare-timer");
@@ -153,9 +155,10 @@ public class R2CConversationDiffTool {
                     riakConversationCounter.inc();
                     riakEventCounter.inc(riakConvEvents.size());
 
+                    boolean same = true;
                     if (cassConvEvents.size() != riakConvEvents.size()) {
                         logConvEventDifference(convId, cassConvEvents, riakConvEvents, true);
-
+                        same = false;
                     } else {
                         Collections.sort(riakConvEvents, MODIFIED_DATE_EVENTID);
                         Collections.sort(cassConvEvents, MODIFIED_DATE_EVENTID);
@@ -168,8 +171,12 @@ public class R2CConversationDiffTool {
                                 MISMATCH_LOG.info("convid: {}, cassEventId: {}, riakEventId: {}", convId, cassConvEvent.getEventId(), riakConvEvent.getEventId());
                                 isRiakMatchesCassandra = false;
                                 RIAK_TO_CASS_EVENT_MISMATCH_COUNTER.inc();
+                                same = false;
                             }
                         }
+                    }
+                    if (!same) {
+                        RIAK_TO_CASS_CONV_MISMATCH_COUNTER.inc();
                     }
                 }
             }
@@ -217,7 +224,7 @@ public class R2CConversationDiffTool {
                     convIds.add(convId);
 
                     List<ConversationEvent> cassConvEvents = cassConvEventsEntry.getValue();
-                    if(cassConvEvents==null) {
+                    if (cassConvEvents == null) {
                         LOG.info("No conversation events are found for Cassandra convId {} ", convId);
                         continue;
                     }
@@ -233,8 +240,10 @@ public class R2CConversationDiffTool {
                     if (riakEvents == null && cassConvEventsEntry == null) {
                         continue;
                     }
+                    boolean same = true;
                     if (cassConvEvents.size() != riakEvents.size()) {
                         logConvEventDifference(convId, cassConvEvents, riakEvents, false);
+                        same = false;
                     } else {
                         Collections.sort(riakEvents, MODIFIED_DATE_EVENTID);
                         Collections.sort(cassConvEvents, MODIFIED_DATE_EVENTID);
@@ -246,8 +255,12 @@ public class R2CConversationDiffTool {
                             Preconditions.checkNotNull(riakEvent, "Some Riak events are null");
                             if (!cassEvent.equals(riakEvent)) {
                                 logC2RMismatch(convId, cassEvent, riakEvent);
+                                same = false;
                             }
                         }
+                    }
+                    if (!same) {
+                        CASS_TO_RIAK_CONV_MISMATCH_COUNTER.inc();
                     }
                 }
             }

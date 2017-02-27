@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static com.ecg.comaas.r2cmigration.difftool.Comparer.*;
+import static com.ecg.comaas.r2cmigration.difftool.Comparer.waitForCompletion;
 
 public class ConversationComparer {
 
@@ -23,7 +23,8 @@ public class ConversationComparer {
         if (!diffTool.isRiakMatchesCassandra) {
             LOG.info("DATA in Riak and Cassandra IS DIFFERENT");
             LOG.info("Riak content does not match that of Cassandra. See the logs for details.");
-            LOG.info("Number of conversation events that do not match after Riak to Cassandra comparison {}", diffTool.RIAK_TO_CASS_EVENT_MISMATCH_COUNTER.getCount());
+            LOG.info("Riak to Cassandra comparison - mismatching conversations: {}, conversation events: {}",
+                    R2CConversationDiffTool.RIAK_TO_CASS_CONV_MISMATCH_COUNTER.getCount(), R2CConversationDiffTool.RIAK_TO_CASS_EVENT_MISMATCH_COUNTER.getCount());
         }
 
         long timepassed = timerStage.elapsed(TimeUnit.SECONDS);
@@ -44,7 +45,8 @@ public class ConversationComparer {
         if (!diffTool.isCassandraMatchesRiak) {
             LOG.info("DATA in Cassandra and Riak IS DIFFERENT");
             LOG.info("Cassandra content does not match that of Riak. See the logs for details.");
-            LOG.info("Number of conversation events that do not match after Cassandra to Riak comparison {}", diffTool.CASS_TO_RIAK_EVENT_MISMATCH_COUNTER.getCount());
+            LOG.info("Cassandra to Riak comparison - mismatching conversations: {}, conversation events: {}",
+                    R2CConversationDiffTool.CASS_TO_RIAK_CONV_MISMATCH_COUNTER.getCount(), R2CConversationDiffTool.CASS_TO_RIAK_EVENT_MISMATCH_COUNTER.getCount());
         }
 
         long timepassed = timerStage.elapsed(TimeUnit.SECONDS);
@@ -56,8 +58,7 @@ public class ConversationComparer {
                 diffTool.cassConversationCounter.getCount(), diffTool.cassEventCounter.getCount(), timepassed, speed);
 
         // This times out when count reaches about 100K
-        if(fetchConvCount) {
-
+        if (fetchConvCount) {
             long convIdxCountByDate = diffTool.getCassandraConversationModByDayCount();
             long convIdxCount = diffTool.getCassandraConversationCount();
 
