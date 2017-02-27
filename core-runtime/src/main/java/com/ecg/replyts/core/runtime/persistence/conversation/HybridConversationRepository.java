@@ -42,6 +42,11 @@ public class HybridConversationRepository implements MutableConversationReposito
         List<ConversationEvent> conversationEventsInRiak = riakConversationRepository.getConversationEvents(conversationId);
         List<ConversationEvent> conversationEventsInCassandra = cassandraConversationRepository.getConversationEvents(conversationId);
 
+        if (conversationEventsInRiak == null) {
+            LOG.debug("No conversationEvents found for conversationId {}, skipping", conversationId);
+            return null;
+        }
+
         // Check if all events in Cassandra are also in Riak
         for (ConversationEvent eventInCassandra : conversationEventsInCassandra) {
             if (!conversationEventsInRiak.contains(eventInCassandra)) {
