@@ -280,7 +280,7 @@ public class R2CConversationDiffTool {
     private void logConvEventDifference(String convId, List<ConversationEvent> cassConvEvents,
                                         List<ConversationEvent> riakEvents, boolean riakToCassandra) {
 
-        LOG.warn("Riak {} and Cassandra {} number of conversationEvents mismatch for conversationId {}: ",
+        LOG.warn("Mismatching number of conversationEvents for conversationId {} - Riak has {} and Cassandra has {}",
                 riakEvents.size(), cassConvEvents.size(), convId);
         MISMATCH_LOG.info("Cassandra Events Size {}, events:\n{} ", cassConvEvents.size(), conEventListToString(cassConvEvents));
         MISMATCH_LOG.info("Riak Events Size {}, events:\n{}\n", riakEvents.size(), conEventListToString(riakEvents));
