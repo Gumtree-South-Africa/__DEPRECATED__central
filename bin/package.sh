@@ -24,17 +24,16 @@ function parseArgs() {
 }
 
 function package() {
-    # Create the artifact with the comaasqa properties. This will be used for a Nomad deploy on comaasqa
-    # and for repackaging and distribution to the tenants' legacy environments.
+    # Create the artifact with the comaas-qa properties. This will be used as a base package to create
+    # packages from for other Comaas environments, as well as for repackaging and distribution to
+    # the tenants' legacy environments.
     ./bin/build.sh -T ${TENANT} -P comaasqa
     tar xf distribution/target/distribution-${TENANT}-comaasqa.tar.gz -C distribution/target
-    sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
 
     # Create a zip with all the tenant's configuration to be imported into Consul
     ARTIFACT_NAME="comaas-${TENANT}-configuration-${TIMESTAMP}-${GIT_HASH}.tar.gz"
     tar zcf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/conf/${TENANT} ./import_into_consul
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
-
 
     # Remove the root directory from the comaasqa package for Nomad
     ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}-nomad"
@@ -46,6 +45,9 @@ function package() {
     cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
     tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
+
+    # hardcode the logDir to /opt/replyts/logs for deploy.py packages
+    sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
 
     # Now create a package with cloud sandbox properties that will be deployed using deploy.py
     ARTIFACT_NAME="comaas-${TENANT}_sandbox-${TIMESTAMP}-${GIT_HASH}"
