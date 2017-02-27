@@ -37,20 +37,23 @@ public class HybridConversationRepository implements MutableConversationReposito
     }
 
     public MutableConversation getByIdWithDeepComparison(String conversationId) {
+        LOG.debug("Comparing Riak and Cassandra contents for conversationId {}", conversationId);
+
 //        DateTime now = new DateTime(); let's see what this does without the lenient date first
 
         List<ConversationEvent> conversationEventsInRiak = riakConversationRepository.getConversationEvents(conversationId);
         List<ConversationEvent> conversationEventsInCassandra = cassandraConversationRepository.getConversationEvents(conversationId);
 
         if (conversationEventsInRiak == null) {
-            LOG.debug("No conversationEvents found for conversationId {}, skipping", conversationId);
+            LOG.debug("No conversationEvents found in Riak for conversationId {}, skipping", conversationId);
             return null;
         }
 
         // Check if all events in Cassandra are also in Riak
         for (ConversationEvent eventInCassandra : conversationEventsInCassandra) {
             if (!conversationEventsInRiak.contains(eventInCassandra)) {
-                LOG.warn("Cassandra has an event that is not in Riak for conversationId {}, Cassandra conversationEventId {}, {}", conversationId, eventInCassandra.getEventId(), eventInCassandra);
+                LOG.warn("Cassandra has an event that is not in Riak for conversationId {}, Cassandra conversationEventId {}, event: {}, skipping",
+                        conversationId, eventInCassandra.getEventId(), eventInCassandra);
                 return null;
             } else {
                 conversationEventsInRiak.remove(eventInCassandra);
@@ -58,10 +61,10 @@ public class HybridConversationRepository implements MutableConversationReposito
         }
 
         if (conversationEventsInRiak.size() > 0) {
-            LOG.debug("ConversationId: {}, more events in Riak than in Cassandra", conversationId);
+            LOG.debug("ConversationId: {}, more events in Riak than in Cassandra, saving {} new events", conversationId, conversationEventsInRiak.size());
             cassandraConversationRepository.commit(conversationId, conversationEventsInRiak);
         } else {
-            LOG.debug("ConversationId: {}, events in Cassandra and Riak have same size", conversationId);
+            LOG.debug("ConversationId: {}, events in Cassandra and Riak are equal", conversationId);
         }
 
         return null;
