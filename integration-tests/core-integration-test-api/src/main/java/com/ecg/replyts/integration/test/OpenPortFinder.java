@@ -13,18 +13,14 @@ public final class OpenPortFinder {
     private static final int RANGE_SIZE = 1000;
 
     private static final String RANGE_CLAIM_TOPLEVEL_CHECK = "integration-tests";
-    private static final String RANGE_CLAIM_TOPLEVEL_SUFFIX = "target" + File.separator + "_port_";
+    private static final String RANGE_CLAIM_TOPLEVEL_SUFFIX = "comaas-tests-portlock" + File.separator + "_range_";
 
     private static File lockedFile = null;
     private static int lockedRangeStart = -1;
     private static int lastClaimedPort = -1;
 
     static {
-        File parent = new File("pom.xml").getAbsoluteFile();
-
-        do {
-            parent = parent.getParentFile();
-        } while (!(new File(parent, RANGE_CLAIM_TOPLEVEL_CHECK)).isDirectory());
+        File parent = new File("/tmp").getAbsoluteFile();
 
         for (int i = RANGE_START; i < 65535; i += RANGE_SIZE) {
             File attemptedLock = new File(parent.getAbsolutePath() + File.separator + RANGE_CLAIM_TOPLEVEL_SUFFIX + i);
