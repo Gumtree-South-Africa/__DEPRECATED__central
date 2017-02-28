@@ -51,9 +51,9 @@ function deploy() {
 
   # First PUT the configuration into Consul
   properties-to-consul \
-    -tenant "${TENANT}" \
     -file "./import_into_consul/comaas-qa.properties" \
-    -consul "http://localhost:8500/"
+    -consul "http://localhost:8500/" \
+    -env "comaas-qa"
 
   # Extract the Evaluation ID on return or fail if there isn't one
   EVALUATIONID=$(curl -s -X POST -d @comaas_deploy_jenkins.json http://consul001:4646/v1/jobs --header "Content-Type:application/json" | jq -r '.EvalID')
