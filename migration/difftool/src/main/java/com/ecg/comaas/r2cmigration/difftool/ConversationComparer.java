@@ -15,6 +15,10 @@ public class ConversationComparer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConversationComparer.class);
 
+    static void compareRiakToCassandraConv(R2CConversationDiffTool convDiff, String... conversationIds) throws RiakException {
+        convDiff.compareRiakToCassandra(conversationIds);
+    }
+
     static void compareRiakToCassandraConv(R2CConversationDiffTool diffTool) throws RiakException {
         Stopwatch timerStage = Stopwatch.createStarted();
         List<Future> tasks = diffTool.compareRiakToCassandra();
@@ -36,6 +40,10 @@ public class ConversationComparer {
         LOG.info("Compared {} Riak conversations, {} ConversationEvents, completed in {} seconds, speed {} conversations/s",
                 diffTool.riakConversationCounter.getCount(),
                 diffTool.riakEventCounter.getCount(), timepassed, speed);
+    }
+
+    static void compareCassandraToRiakConv(R2CConversationDiffTool convDiff, String... conversationIds) throws RiakException {
+        convDiff.compareCassandraToRiak(conversationIds);
     }
 
     static void compareCassToRiakConv(R2CConversationDiffTool diffTool, boolean fetchConvCount) throws RiakException {

@@ -6,7 +6,6 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,10 +70,6 @@ public class CassConversationRepo {
     }
 
     public List<ConversationEvent> getById(String conversationId) {
-        return getConversationEvents(conversationId);
-    }
-
-    private List<ConversationEvent> getConversationEvents(String conversationId) {
         try (Timer.Context ignored = GET_BY_ID_CASS_TIMER.time()) {
             Statement statement = bind(getByConvID, conversationId);
             ResultSet resultset = session.execute(statement);
@@ -117,7 +112,7 @@ public class CassConversationRepo {
 
     private Map.Entry<String, List<ConversationEvent>> getConversationEvents(Row row) {
         String conversationId = row.getString(FIELD_CONVERSATION_ID);
-        return new AbstractMap.SimpleImmutableEntry<String, List<ConversationEvent>>(conversationId, getConversationEvents(conversationId));
+        return new AbstractMap.SimpleImmutableEntry<>(conversationId, getById(conversationId));
     }
 
     public Stream<Map.Entry<String, List<ConversationEvent>>> findEventsModifiedBetween(DateTime start, DateTime end) {

@@ -1,8 +1,10 @@
 package com.ecg.comaas.r2cmigration.difftool;
 
 import com.basho.riak.client.RiakException;
+import com.ecg.comaas.r2cmigration.difftool.util.CommaSeparatedListOptionHandler;
 import com.ecg.comaas.r2cmigration.difftool.util.DateTimeOptionHandler;
 import com.google.common.base.Stopwatch;
+import org.apache.commons.lang3.NotImplementedException;
 import org.joda.time.DateTime;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -17,22 +19,19 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.*;
-
-import static com.ecg.comaas.r2cmigration.difftool.ConversationComparer.*;
-import static com.ecg.comaas.r2cmigration.difftool.PostboxComparer.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class Comparer {
 
-    @Autowired
-    private ExecutorService executor;
+    private final ExecutorService executor;
 
-    @Autowired
-    private R2CConversationDiffTool convDiff;
+    private final R2CConversationDiffTool convDiff;
 
-    @Autowired
-    private R2CPostboxDiffTool pboxDiff;
+    private final R2CPostboxDiffTool pboxDiff;
 
     @Component
     static class Options {
@@ -59,9 +58,19 @@ public class Comparer {
 
         @Option(name = "-startDate", handler = DateTimeOptionHandler.class, usage = "Start validation at DateTime (defaults to current DateTime - TTL period)")
         DateTime startDateTime;
+
+        @Option(name = "-ids", forbids = {"-endDate", "-startDate"}, handler = CommaSeparatedListOptionHandler.class, usage = "List of conversationIds, comma separated. DO NOT use with more than a handful of IDs! You have been warned.")
+        String[] conversationIds;
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(Comparer.class);
+
+    @Autowired
+    public Comparer(ExecutorService executor, R2CConversationDiffTool convDiff, R2CPostboxDiffTool pboxDiff) {
+        this.executor = executor;
+        this.convDiff = convDiff;
+        this.pboxDiff = pboxDiff;
+    }
 
     static void waitForCompletion(List<Future> tasks) {
         tasks.parallelStream().filter(Objects::nonNull).forEach(t -> {
@@ -96,14 +105,14 @@ public class Comparer {
                 System.exit(0);
             }
             Comparer comparer = context.getBean(Comparer.class);
-            comparer.execute(context, diffToolOpts);
+            comparer.execute(diffToolOpts);
             LOG.info("Comparison completed in {}ms", timerTotal.elapsed(TimeUnit.MILLISECONDS));
         } catch (Exception e) {
             LOG.error("Diff tool fails with ", e);
         }
     }
 
-    void execute(ConfigurableApplicationContext context, Options diffToolOpts) throws RiakException, InterruptedException {
+    private void execute(Options diffToolOpts) throws RiakException, InterruptedException {
         switch (diffToolOpts.what) {
             case "conv":
                 convDiff.setDateRange(diffToolOpts.startDateTime, diffToolOpts.endDateTime, diffToolOpts.timezoneShiftInMinutes);
@@ -113,15 +122,26 @@ public class Comparer {
                 }
 
                 if (diffToolOpts.riakToCassandra) {
-                    compareRiakToCassandraConv(convDiff);
+                    if (diffToolOpts.conversationIds != null) {
+                        ConversationComparer.compareRiakToCassandraConv(convDiff, diffToolOpts.conversationIds);
+                    } else {
+                        ConversationComparer.compareRiakToCassandraConv(convDiff);
+                    }
                 }
 
                 if (diffToolOpts.cassandraToRiak) {
-                    compareCassToRiakConv(convDiff, diffToolOpts.fetchRecordCount);
+                    if (diffToolOpts.conversationIds != null) {
+                        ConversationComparer.compareCassandraToRiakConv(convDiff, diffToolOpts.conversationIds);
+                    } else {
+                        ConversationComparer.compareCassToRiakConv(convDiff, diffToolOpts.fetchRecordCount);
+                    }
                 }
                 break;
             case "mbox":
-                pboxDiff.setDateRange(diffToolOpts.startDateTime, diffToolOpts.endDateTime,  diffToolOpts.timezoneShiftInMinutes);
+                if (diffToolOpts.conversationIds != null) {
+                    throw new NotImplementedException("Postbox cannot be compared by conversationId, only by date range");
+                }
+                pboxDiff.setDateRange(diffToolOpts.startDateTime, diffToolOpts.endDateTime, diffToolOpts.timezoneShiftInMinutes);
                 pboxDiff.setVerbose(diffToolOpts.verbose);
 
                 if (diffToolOpts.fetchRecordCount) {
@@ -129,11 +149,11 @@ public class Comparer {
                 }
 
                 if (diffToolOpts.riakToCassandra) {
-                    compareRiakToCassandra(pboxDiff);
+                    PostboxComparer.compareRiakToCassandra(pboxDiff);
                 }
 
                 if (diffToolOpts.cassandraToRiak) {
-                    compareCassToRiak(pboxDiff);
+                    PostboxComparer.compareCassToRiak(pboxDiff);
                 }
                 break;
             default:
@@ -142,4 +162,6 @@ public class Comparer {
         executor.shutdown();
         executor.awaitTermination(5, TimeUnit.SECONDS);
     }
+
+
 }
