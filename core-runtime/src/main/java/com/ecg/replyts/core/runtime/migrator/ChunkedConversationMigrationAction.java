@@ -109,11 +109,6 @@ public class ChunkedConversationMigrationAction {
         return migrateConversationsFromDate(getStartingTime());
     }
 
-    public boolean migrateChunk(List<String> conversationIds) {
-        String msg = String.format(" migrateChunk for the list of conversation ids %s ", conversationIds);
-        return execute(() -> migrateConversationsWithDeepComparison(conversationIds), msg);
-    }
-
     public boolean migrateConversationsFromDate(LocalDateTime dateFrom) {
         String msg = String.format(" migrateConversationsFromDate %s ", dateFrom);
         return execute(() -> migrateConversationsBetweenDates(dateFrom, new LocalDateTime()), msg);
@@ -173,21 +168,8 @@ public class ChunkedConversationMigrationAction {
         }
     }
 
-    // These are not partitioned because we probably cannot even fit 1000 conversationIds in a single valid HTTP call
-    private void migrateConversationsWithDeepComparison(List<String> conversationIds) {
-        try {
-            watch = Stopwatch.createStarted();
-
-            List<Future> results = new ArrayList<>();
-            results.add(executor.submit(() -> migrateConversations(conversationIds, conversationRepository::getByIdWithDeepComparison)));
-            AtomicInteger counter = new AtomicInteger(0);
-            waitForCompletion(results, counter, LOG);
-            totalConvIds.addAndGet(counter.get());
-            LOG.info("Chunk of conversation migration completed, migrated {} out of {} conversations", counter, conversationIds.size());
-            watch.stop();
-        } finally {
-            hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock
-        }
+    public String migrateConversationsWithDeepComparison(String conversationId) {
+        return conversationRepository.getByIdWithDeepComparison(conversationId);
     }
 
     // This migrates conversations by retrieving them in hybrid mode

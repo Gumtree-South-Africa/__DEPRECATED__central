@@ -9,6 +9,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.command.*;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventId;
+import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -49,6 +50,36 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
     @After
     public void cleanupTables() {
         casdb.cleanTables(session, KEYSPACE);
+    }
+
+    @Test
+    public void shouldNotStoreSameEventTwice() {
+        DateTime timeNow = now();
+        DateTime firstMsgReceivedAtDateTime = new DateTime(timeNow.getYear(), timeNow.getMonthOfYear(), timeNow.getDayOfMonth(), 9, 11, 43);
+
+        given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
+        List<ConversationEvent> conversationEvents = getConversationRepository().getConversationEvents(conversationId1);
+        assertEquals(2, conversationEvents.size());
+
+        conversationRepository.commit(conversationId1, conversationEvents);
+        conversationEvents = getConversationRepository().getConversationEvents(conversationId1);
+        assertEquals(2, conversationEvents.size());
+    }
+
+    @Test
+    public void shouldAddNewEvents() {
+        DateTime timeNow = now();
+        DateTime firstMsgReceivedAtDateTime = new DateTime(timeNow.getYear(), timeNow.getMonthOfYear(), timeNow.getDayOfMonth(), 9, 11, 43);
+
+        given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
+        List<ConversationEvent> conversationEvents = getConversationRepository().getConversationEvents(conversationId1);
+        assertEquals(2, conversationEvents.size());
+
+        conversationEvents.add(new MessageAddedEvent(newAddMessageCommand(conversationId1, "hoops", DateTime.now())));
+        conversationRepository.commit(conversationId1, conversationEvents);
+
+        conversationEvents = getConversationRepository().getConversationEvents(conversationId1);
+        assertEquals(3, conversationEvents.size());
     }
 
     @Test

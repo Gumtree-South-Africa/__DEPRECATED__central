@@ -36,8 +36,8 @@ public class HybridConversationRepository implements MutableConversationReposito
         this.migrationState = migrationState;
     }
 
-    public MutableConversation getByIdWithDeepComparison(String conversationId) {
-        LOG.debug("Comparing Riak and Cassandra contents for conversationId {}", conversationId);
+    public String getByIdWithDeepComparison(String conversationId) {
+        LOG.debug("Deep comparing Riak and Cassandra contents for conversationId {}", conversationId);
 
 //        DateTime now = new DateTime(); let's see what this does without the lenient date first
 
@@ -45,29 +45,32 @@ public class HybridConversationRepository implements MutableConversationReposito
         List<ConversationEvent> conversationEventsInCassandra = cassandraConversationRepository.getConversationEvents(conversationId);
 
         if (conversationEventsInRiak == null) {
-            LOG.debug("No conversationEvents found in Riak for conversationId {}, skipping", conversationId);
-            return null;
+            String msg = String.format("No conversationEvents found in Riak for conversationId %s, skipping", conversationId);
+            LOG.warn(msg);
+            throw new IllegalStateException(msg);
         }
 
         // Check if all events in Cassandra are also in Riak
         for (ConversationEvent eventInCassandra : conversationEventsInCassandra) {
             if (!conversationEventsInRiak.contains(eventInCassandra)) {
-                LOG.warn("Cassandra has an event that is not in Riak for conversationId {}, Cassandra conversationEventId {}, event: {}, skipping",
+                String msg = String.format("Cassandra has an event that is not in Riak for conversationId %s, Cassandra conversationEventId %s, event: %s, skipping",
                         conversationId, eventInCassandra.getEventId(), eventInCassandra);
-                return null;
+                LOG.warn(msg);
+                throw new IllegalStateException(msg);
             } else {
                 conversationEventsInRiak.remove(eventInCassandra);
             }
         }
 
+        String msg;
         if (conversationEventsInRiak.size() > 0) {
-            LOG.debug("ConversationId: {}, more events in Riak than in Cassandra, saving {} new events", conversationId, conversationEventsInRiak.size());
             cassandraConversationRepository.commit(conversationId, conversationEventsInRiak);
+            msg = String.format("ConversationId: %s, more events in Riak than in Cassandra, saving %s new events", conversationId, conversationEventsInRiak.size());
         } else {
-            LOG.debug("ConversationId: {}, events in Cassandra and Riak are equal", conversationId);
+            msg = String.format("ConversationId: %s, events in Cassandra and Riak are equal", conversationId);
         }
-
-        return null;
+        LOG.info(msg);
+        return msg;
     }
 
     @Override
@@ -152,9 +155,12 @@ public class HybridConversationRepository implements MutableConversationReposito
         // isn't already going on
 
         if (cassandraConversationRepository.getLastModifiedDate(conversationId) == null) {
+            // conversation does not exist in cassandra
+
             List<ConversationEvent> existingEvents = riakConversationRepository.getConversationEvents(conversationId);
 
             if (existingEvents != null && !existingEvents.isEmpty()) {
+                // conversation exists in riak, combine riak events with new events and save to cassandra
                 final List<ConversationEvent> combinedEvents = new ArrayList<>(existingEvents);
 
                 toBeCommittedEvents.stream()
@@ -164,15 +170,18 @@ public class HybridConversationRepository implements MutableConversationReposito
                 cassandraToBeCommittedEvents = combinedEvents;
             }
 
-            // If migration is already in progress we still have to commit the additional events provided to this call
+            // conversation may or may not exist in riak
 
+            // If migration is already in progress we still have to commit the additional events provided to this call
             if (!migrateEventsToCassandra(conversationId, cassandraToBeCommittedEvents)) {
                 cassandraConversationRepository.commit(conversationId, toBeCommittedEvents);
             }
         } else {
+            // conversation already in cassandra, just save the new events
             cassandraConversationRepository.commit(conversationId, toBeCommittedEvents);
         }
 
+        // save to riak
         riakConversationRepository.commit(conversationId, toBeCommittedEvents);
     }
 

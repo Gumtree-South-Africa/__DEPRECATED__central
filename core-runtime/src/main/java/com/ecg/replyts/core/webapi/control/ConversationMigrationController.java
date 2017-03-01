@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Controller
@@ -33,16 +32,18 @@ public class ConversationMigrationController {
     @Autowired
     private ChunkedConversationMigrationAction migrator;
 
-    @RequestMapping("conversations/{ids}")
+    @RequestMapping("conversations/{id}")
     @ResponseBody
-    public String migrateConversations(@PathVariable String ids) {
-        final List<String> conversations = CSV_SPLITTER.splitToList(ids);
-        LOG.info("Invoke index conversation via Web interface using deep comparison for {} conversations with ids: {} ", conversations.size(), conversations);
-        boolean hasExecuted = migrator.migrateChunk(conversations);
-        if (hasExecuted) {
-            status = String.format("Migrating conversations %s started.", ids);
+    public String migrateConversationsWithDeepComparisonSync(@PathVariable String conversationId) {
+        try {
+            LOG.info("Invoke index conversation via web interface using deep comparison for conversationId: {} ", conversationId);
+            String result = migrator.migrateConversationsWithDeepComparison(conversationId);
+            LOG.info("Migration succeeded for conversationId {}, with result {}", conversationId, result);
+            return result;
+        } catch (Exception e) {
+            LOG.warn("Migration failed for conversationId {}", conversationId, e);
+            return String.format("Migration failed for conversationId %s\n%s", conversationId, e.getMessage());
         }
-        return hasExecuted ? status : DEFAULT_NO_EXECUTION_MESSAGE;
     }
 
     @RequestMapping("conversationsBetween/{fromDate}/{toDate}")
@@ -71,7 +72,7 @@ public class ConversationMigrationController {
     @RequestMapping("allconversations")
     @ResponseBody
     public String migrateAllConversations() {
-        LOG.info("Invoke migrateConversations via Web interface");
+        LOG.info("Invoke migrateAllConversations via Web interface");
         boolean hasExecuted = migrator.migrateAllConversations();
         if (hasExecuted) {
             status = "Migrating all conversations started.";
