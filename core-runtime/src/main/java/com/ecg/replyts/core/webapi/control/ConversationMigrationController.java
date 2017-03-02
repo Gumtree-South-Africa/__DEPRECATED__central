@@ -32,7 +32,7 @@ public class ConversationMigrationController {
     @Autowired
     private ChunkedConversationMigrationAction migrator;
 
-    @RequestMapping("conversations/{id}")
+    @RequestMapping("conversation/{conversationId}")
     @ResponseBody
     public String migrateConversationsWithDeepComparisonSync(@PathVariable String conversationId) {
         try {
