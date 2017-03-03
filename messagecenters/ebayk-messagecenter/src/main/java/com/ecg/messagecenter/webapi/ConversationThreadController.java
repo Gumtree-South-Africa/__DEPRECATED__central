@@ -76,46 +76,41 @@ class ConversationThreadController {
                 return entityNotFound(response);
             }
 
-            boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
-            if(needToMarkAsRead) {
-                postBox.decrementNewReplies();
-                postBoxRepository.write(postBox);
+            if (shouldMarkAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages()) {
+
+                PostBox postBoxToUpdate = updatePostBox(email, conversationId, postBox);
+                postBoxRepository.write(postBoxToUpdate);
             }
 
-            if(needToMarkAsRead) {
-                markConversationAsRead(email, conversationId, postBox);
+            Conversation conversation = conversationRepository.getById(conversationId);
+            // can only happen if both buckets diverge
+            if (conversation == null) {
+                LOGGER.warn("Inconsistency: Conversation id #{} exists in 'postbox' bucket but not inside 'conversations' bucket", conversationId);
+                return entityNotFound(response);
             }
-            return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response);
+
+            Optional<PostBoxSingleConversationThreadResponse> created = PostBoxSingleConversationThreadResponse.create(postBox.getNewRepliesCounter().getValue(),
+                    email, conversation);
+            if (created.isPresent()) {
+                API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
+                return ResponseObject.of(created.get());
+            } else {
+                LOGGER.info("Conversation id #{} is empty but was accessed from list-view, should normally not be reachable by UI", conversationId);
+                return entityNotFound(response);
+            }
+
 
         } finally {
             timerContext.stop();
         }
     }
 
-    private ResponseObject<?> lookupConversation(long numUnread, String email, String conversationId, HttpServletResponse response) {
-        Conversation conversation = conversationRepository.getById(conversationId);
-        // can only happen if both buckets diverge
-        if (conversation == null) {
-            LOGGER.warn("Inconsistency: Conversation id #{} exists in 'postbox' bucket but not inside 'conversations' bucket", conversationId);
-            return entityNotFound(response);
-        }
-
-        Optional<PostBoxSingleConversationThreadResponse> created = PostBoxSingleConversationThreadResponse.create(numUnread, email, conversation);
-        if (created.isPresent()) {
-            API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
-            return ResponseObject.of(created.get());
-        } else {
-            LOGGER.info("Conversation id #{} is empty but was accessed from list-view, should normally not be reachable by UI", conversationId);
-            return entityNotFound(response);
-        }
-
-    }
-
-    private long markConversationAsRead(String email, String conversationId, PostBox<ConversationThread> postBox) {
+    private PostBox updatePostBox(String email, String conversationId, PostBox postBox) {
+        postBox.decrementNewReplies();
         List<ConversationThread> threadsToUpdate = new ArrayList<ConversationThread>();
 
-        boolean needsUpdate = false;
-        for (ConversationThread item : postBox.getConversationThreads()) {
+        List<ConversationThread> cthread = postBox.getConversationThreads();
+        for (ConversationThread item : cthread) {
 
             if (item.getConversationId().equals(conversationId) && item.isContainsUnreadMessages()) {
 
@@ -135,33 +130,21 @@ class ConversationThreadController {
                         item.getUserIdSeller())
                 );
 
-                needsUpdate = true;
-
             } else {
                 threadsToUpdate.add(item);
             }
         }
 
-        long numUnreadCounter;
-
-        //optimization to not cause too many write actions (potential for conflicts)
-        if (needsUpdate) {
-            PostBox postBoxToUpdate = new PostBox(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate, maxAgeDays);
-            postBoxRepository.write(postBoxToUpdate);
-            numUnreadCounter = postBoxToUpdate.getUnreadConversationsCapped().size();
-        } else {
-            numUnreadCounter = postBox.getUnreadConversationsCapped().size();
-        }
-
-        return numUnreadCounter;
+        return new PostBox(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate, maxAgeDays);
     }
+
 
     private ResponseObject<?> entityNotFound(HttpServletResponse response) {
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         return ResponseObject.of(RequestState.ENTITY_NOT_FOUND);
     }
 
-    private boolean markAsRead(HttpServletRequest request) {
+    private boolean shouldMarkAsRead(HttpServletRequest request) {
         return request.getMethod().equals(RequestMethod.PUT.name());
     }
 }
