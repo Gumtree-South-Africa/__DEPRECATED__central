@@ -19,7 +19,7 @@ import java.net.URL;
  */
 public class SendNotifierPostProcessor implements PostProcessor {
 
-    public static final String ALWAYS_NOTIFY_FLAG = "Always-Notify-Flag";
+    public static final String ALWAYS_NOTIFY_FLAG = "always-notify-flag";
 
     private static final String XML_BODY_CONTENT = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
