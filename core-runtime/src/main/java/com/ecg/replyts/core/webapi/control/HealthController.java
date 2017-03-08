@@ -48,6 +48,9 @@ public class HealthController {
     @Value("#{'${persistence.cassandra.endpoint:unknown}'.split(',')}")
     private List<String> cassandraHosts;
 
+    @Value("#{'${search.es.endpoints:unknown}'.split(',')}")
+    private List<String> elasticSearchHosts;
+
     @Value("${persistence.riak.bucket.name.prefix:}")
     private String riakBucketPrefix;
 
@@ -98,6 +101,10 @@ public class HealthController {
             return conversationRepositorySource;
         }
 
+        public List<String> getElasticSearchHosts() {
+            return elasticSearchHosts;
+        }
+
         public List<String> getRiakHosts() {
             return riakHosts;
         }
@@ -143,7 +150,7 @@ public class HealthController {
             searchClient.admin().cluster().prepareNodesInfo().execute().get().forEach(info -> versions.add(info.getVersion().toString()));
 
             return StringUtils.collectionToDelimitedString(versions, ", ");
-        } catch (ExecutionException|ElasticsearchException e) {
+        } catch (ExecutionException | ElasticsearchException e) {
             LOG.error("Could not get ES version", e);
             return "error";
         }
