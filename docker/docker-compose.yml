@@ -23,11 +23,11 @@ services:
     ports:
     - "9200:9200"
     - "9300:9300"
-  # riak:
-  #   image: basho/riak-kv:2.1.4
-  #   ports:
-  #   - "8087:8087"
-  #   - "8089:8089"
+  riak:
+    image: basho/riak-kv:2.1.4
+    ports:
+    - "8087:8087"
+    - "8089:8089"
   graphite:
     image:  hopsoft/graphite-statsd
     ports:
