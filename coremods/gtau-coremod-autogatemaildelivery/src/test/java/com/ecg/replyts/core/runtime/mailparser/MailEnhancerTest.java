@@ -27,7 +27,7 @@ public class MailEnhancerTest {
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
         Properties properties = new Properties();
-        
+
         // Header Injector
         properties.put( "replyts.header-injector.headers", "Http-Url,Http-Account-Name,Http-Account-Password,X-Reply-Channel,Email-From-Override,Email-To-Override,Email-Cc-Override,Email-Bcc-Override" );
         properties.put( "replyts.header-injector.order", "250" );
@@ -87,6 +87,10 @@ public class MailEnhancerTest {
         assertEquals("from@gumtree.com", mail.getHeader("From", ","));
         assertEquals("to@gumtree.com", mail.getHeader("To", ","));
         assertEquals("cc@gumtree.com", mail.getHeader("Cc", ","));
+        assertNull(mail.getHeader("Email-From-Override"));
+        assertNull(mail.getHeader("Email-To-Override"));
+        assertNull(mail.getHeader("Email-Cc-Override"));
+        assertNull(mail.getHeader("Email-Bcc-Override"));
 
         // BCC does not appear
         testRunner.clearMessages();
@@ -113,6 +117,11 @@ public class MailEnhancerTest {
         assertEquals("from@gumtree.com", mail.getHeader("From", ","));
         assertEquals("to1@gumtree.com, to2@gumtree.com", mail.getHeader("To", ","));
         assertEquals("cc1@gumtree.com, cc2@gumtree.com", mail.getHeader("Cc", ","));
+        // Verify that the headers are removed
+        assertNull(mail.getHeader("Email-From-Override"));
+        assertNull(mail.getHeader("Email-To-Override"));
+        assertNull(mail.getHeader("Email-Cc-Override"));
+        assertNull(mail.getHeader("Email-Bcc-Override"));
 
         // BCC does not appear
         testRunner.clearMessages();

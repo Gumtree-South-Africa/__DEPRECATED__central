@@ -68,6 +68,7 @@ public class MailEnhancer {
 
     private boolean amendMailHeader(StructuredMutableMail mail, String headerKey, String overrideHeader) {
         String overrideValue = mail.getUniqueHeader(overrideHeader);
+        mail.removeHeader(overrideHeader); // Clean up the header even if its empty
         if (!StringUtils.hasText(overrideValue)) {
             return false; // Do nothing when no overrides are found
         }
