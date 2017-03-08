@@ -19,7 +19,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,6 +52,26 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
     @After
     public void cleanupTables() {
         casdb.cleanTables(session, KEYSPACE);
+    }
+
+    @Test
+    public void shouldStoreManyEvents() {
+        String conversationId = UUID.randomUUID().toString();
+
+        int nrOfEvents = 100;
+
+        List<ConversationCommand> commands = new ArrayList<>();
+        commands.add(newConversationCommand(conversationId));
+
+        for (int i = nrOfEvents; i > 1; i--) {
+            DateTime date = now().minusDays(i);
+            commands.add(newAddMessageCommand(conversationId, UUID.randomUUID().toString(), date));
+        }
+        ConversationCommand[] stockArr = new ConversationCommand[commands.size()];
+        given(commands.toArray(stockArr));
+
+        List<ConversationEvent> conversationEvents = getConversationRepository().getConversationEvents(conversationId);
+        assertEquals(nrOfEvents, conversationEvents.size());
     }
 
     @Test

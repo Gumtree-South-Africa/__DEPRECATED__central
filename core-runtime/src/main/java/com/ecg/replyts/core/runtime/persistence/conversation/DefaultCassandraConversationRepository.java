@@ -1,5 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.conversation;
 
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.utils.UUIDs;
@@ -22,6 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -34,6 +37,8 @@ import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
  * Cassandra backed conversation repository.
  */
 public class DefaultCassandraConversationRepository implements CassandraRepository, CassandraConversationRepository {
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultCassandraConversationRepository.class);
+
     private static final String FIELD_CONVERSATION_ID = "conversation_id";
     private static final String FIELD_MODIFICATION_DATE = "modification_date";
     private static final String FIELD_EVENT_ID = "event_id";
@@ -58,6 +63,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     private final Timer findByIndexKeyTimer = TimingReports.newTimer("cassandra.conversationRepo-findByIndexKey");
     private final Timer deleteTimer = TimingReports.newTimer("cassandra.conversationRepo-delete");
     private final Timer deleteOldModificationDateTimer = TimingReports.newTimer("cassandra.conversationRepo-deleteOldModificationDate");
+    private final Histogram committedBatchSizeHistogram = TimingReports.newHistogram("cassandra.conversationRepo-commit-batch-size");
 
     private ObjectMapper objectMapper;
 
@@ -252,6 +258,9 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
             }
 
             batch.setConsistencyLevel(getWriteConsistency()).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
+
+            committedBatchSizeHistogram.update(batch.size());
+            LOG.debug("Saving conversation {}, with {} events and batch size {} to Cassandra", conversationId, toBeCommittedEvents.size(), batch.size());
 
             session.execute(batch);
         }
