@@ -2,11 +2,9 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationModificationDate;
-import com.ecg.replyts.core.api.model.conversation.ConversationState;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.command.*;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventId;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
@@ -19,9 +17,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -72,6 +68,28 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
 
         List<ConversationEvent> conversationEvents = getConversationRepository().getConversationEvents(conversationId);
         assertEquals(nrOfEvents, conversationEvents.size());
+    }
+
+    @Test
+    public void conversationEventsCommittedInWrongOrderAreSortedAndUpdateLastModifiedDate() {
+        DateTime t = now();
+        ConversationEvent conversationCreatedEvent = new ConversationCreatedEvent(conversationId1, "ad1", "b1", "s1", "bs", "ss", t.minusDays(3), ConversationState.ACTIVE, new HashMap<>());
+        ConversationEvent messageAddedEvent = new MessageAddedEvent("m1", MessageDirection.BUYER_TO_SELLER, t.minusDays(2), MessageState.SENT, "", "", FilterResultState.OK, ModerationResultState.GOOD, null, "", null, null);
+        ConversationEvent messageAddedEventLater = new MessageAddedEvent("m2", MessageDirection.BUYER_TO_SELLER, t.minusDays(1), MessageState.SENT, "", "", FilterResultState.OK, ModerationResultState.GOOD, null, "", null, null);
+
+        conversationRepository.commit(conversationId1, Collections.singletonList(messageAddedEvent));
+
+        assertEquals(t.minusDays(2), getConversationRepository().getLastModifiedDate(conversationId1));
+        assertEquals(1, getConversationRepository().getConversationEvents(conversationId1).size());
+
+        conversationRepository.commit(conversationId1, Arrays.asList(conversationCreatedEvent, messageAddedEventLater));
+
+        assertEquals(t.minusDays(1), getConversationRepository().getLastModifiedDate(conversationId1));
+        List<ConversationEvent> conversationEvents = getConversationRepository().getConversationEvents(conversationId1);
+        assertEquals(3, conversationEvents.size());
+        assertTrue(conversationEvents.get(0) instanceof ConversationCreatedEvent);
+        assertEquals("m1", ((MessageAddedEvent) conversationEvents.get(1)).getMessageId());
+        assertEquals("m2", ((MessageAddedEvent) conversationEvents.get(2)).getMessageId());
     }
 
     @Test
