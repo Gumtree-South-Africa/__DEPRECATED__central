@@ -14,10 +14,12 @@ import org.springframework.core.env.MapPropertySource;
 import javax.annotation.PostConstruct;
 
 @Configuration
-@PropertySource("file:${confDir}/replyts.properties")
+@PropertySource(name = ParentConfiguration.CONF_DIR_PROPERTY_SOURCE, value = "file:${confDir}/replyts.properties")
 @Import(CloudDiscoveryConfiguration.class)
 public class ParentConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(ParentConfiguration.class);
+
+    public static final String CONF_DIR_PROPERTY_SOURCE = "confDirProperties";
 
     @Autowired
     private ConfigurableEnvironment environment;

@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
 
@@ -42,10 +43,7 @@ import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -69,16 +67,16 @@ public class CloudDiscoveryConfiguration {
     private static final String LOG_APPENDER_SERVICE = "kafkalog";
 
     @Autowired
-    ConsulLifecycle lifecycle;
-
-    @Autowired(required = false)
-    ConsulPropertySourceLocator propertySourceLocator;
+    private ConsulLifecycle lifecycle;
 
     @Autowired
-    ConfigurableEnvironment environment;
+    private ConsulPropertySourceLocator propertySourceLocator;
 
     @Autowired
-    DiscoveryClient discoveryClient;
+    private ConfigurableEnvironment environment;
+
+    @Autowired
+    private DiscoveryClient discoveryClient;
 
     @Value("${replyts.tenant:unknown}")
     private String tenant;
@@ -91,7 +89,7 @@ public class CloudDiscoveryConfiguration {
     }
 
     @PostConstruct
-    void initializeDiscovery() {
+    private void initializeDiscovery() {
         // XXX: Temporary fix until we switch to Spring Boot (this jumpstarts the lifecycle which fetches the properties)
 
         lifecycle.onApplicationEvent(new EmbeddedServletContainerInitializedEvent(
@@ -114,15 +112,9 @@ public class CloudDiscoveryConfiguration {
                 }
         ));
 
-        LOG.info("Auto-discovering cloud services and overriding appropriate properties");
+        // This will add properties from Consul KV and select Consul services
 
-        environment.getPropertySources().addFirst(new MapPropertySource("Auto-discovered services", discoverServices()));
-
-        // Initialize the property source locator if KV-lookups are enabled (service.discovery.enabled)
-
-        if (propertySourceLocator != null) {
-            environment.getPropertySources().addFirst(propertySourceLocator.locate(environment));
-        }
+        discoverProperties();
 
         // This will introduce a tenant, version, etc. field to be sent along with log lines
 
@@ -159,7 +151,44 @@ public class CloudDiscoveryConfiguration {
         }
     }
 
-    Map<String, Object> discoverServices() {
+    private void discoverProperties() {
+        LOG.info("Auto-discovering cloud properties and services");
+
+        org.springframework.core.env.PropertySource<?> kvPropertySource = propertySourceLocator.locate(environment);
+        Map<String, Object> discoveredProperties = discoverServices();
+
+        discoveredProperties.forEach((key, value) -> {
+            if (kvPropertySource.containsProperty(key)) {
+                LOG.warn("Auto-discovered service {} already exists in Consul KV store - using value from Consul KV store: {}", key, kvPropertySource.getProperty(key));
+            }
+        });
+
+        // Cloud properties take precedence over discovered services
+
+        environment.getPropertySources().addAfter(ParentConfiguration.CONF_DIR_PROPERTY_SOURCE, kvPropertySource);
+        environment.getPropertySources().addAfter(kvPropertySource.getName(), new MapPropertySource("discoveredServicesProperties", discoverServices()));
+
+        Iterator<org.springframework.core.env.PropertySource<?>> iterator = environment.getPropertySources().iterator();
+
+        Map<String, Object> effectiveProperties = new HashMap<>();
+
+        for (int i = 0; iterator.hasNext(); i++) {
+            org.springframework.core.env.PropertySource<?> source = iterator.next();
+
+            LOG.info("Property source #{} = {} (\"{}\")", i, source.getClass().getName(), source.getName());
+
+            if (source instanceof EnumerablePropertySource) {
+                Arrays.stream(((EnumerablePropertySource) source).getPropertyNames())
+                  .forEach(name -> effectiveProperties.put(name, source.getProperty(name)));
+            } else {
+                throw new IllegalStateException("Could not enumerate property source #{}!");
+            }
+        }
+
+        effectiveProperties.forEach((key, value) -> LOG.info("Property {} = {}", key, value));
+    }
+
+    private Map<String, Object> discoverServices() {
         Map<String, Object> gatheredProperties = new HashMap<>();
 
         DISCOVERABLE_SERVICE_PROPERTIES.forEach((service, property) -> {
@@ -204,9 +233,7 @@ public class CloudDiscoveryConfiguration {
     private void fillInKafkaAppender(LoggerContext context, String topic, KafkaAppender appender, LayoutBase layout) {
         List<String> instances = new ArrayList<>();
 
-        discoveryClient.getInstances(LOG_APPENDER_SERVICE).forEach(instance -> {
-            instances.add(instance.getHost() + ":" + instance.getPort());
-        });
+        discoveryClient.getInstances(LOG_APPENDER_SERVICE).forEach(instance -> instances.add(instance.getHost() + ":" + instance.getPort()));
 
         if (instances.size() > 0) {
             String instance = instances.get(0);

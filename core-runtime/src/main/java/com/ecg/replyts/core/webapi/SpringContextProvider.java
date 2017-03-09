@@ -36,10 +36,8 @@ public class SpringContextProvider implements ContextProvider {
     public Handler create() {
         context = new XmlWebApplicationContext();
 
-        context.setConfigLocations(contextLocations);
         context.setParent(parentContext);
-
-        ((ConfigurableEnvironment) parentContext.getEnvironment()).getPropertySources().forEach(source -> context.getEnvironment().getPropertySources().addFirst(source));
+        context.setConfigLocations(contextLocations);
 
         DispatcherServlet dispatcherServlet = new DispatcherServlet(context);
         ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS | ServletContextHandler.NO_SECURITY);
