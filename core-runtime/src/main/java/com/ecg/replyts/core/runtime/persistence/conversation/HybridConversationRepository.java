@@ -11,6 +11,7 @@ import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,9 @@ import java.util.stream.Stream;
 
 public class HybridConversationRepository implements MutableConversationRepository {
     private static final Logger LOG = LoggerFactory.getLogger(HybridConversationRepository.class);
+
+    @Value("${persistence.cassandra.commit.max.batch.size:40}")
+    private int maxBatchSizeCassandra;
 
     private final Counter migrateConversationCounter = TimingReports.newCounter("migration.migrate-conversation");
     private final Timer migrationConversationLagTimer = TimingReports.newTimer("migration.migrate-conversation-lag");
@@ -38,8 +42,6 @@ public class HybridConversationRepository implements MutableConversationReposito
 
     public String getByIdWithDeepComparison(String conversationId) {
         LOG.debug("Deep comparing Riak and Cassandra contents for conversationId {}", conversationId);
-
-//        DateTime now = new DateTime(); let's see what this does without the lenient date first
 
         List<ConversationEvent> conversationEventsInRiak = riakConversationRepository.getConversationEvents(conversationId);
         List<ConversationEvent> conversationEventsInCassandra = cassandraConversationRepository.getConversationEvents(conversationId);
@@ -64,7 +66,7 @@ public class HybridConversationRepository implements MutableConversationReposito
 
         String msg;
         if (conversationEventsInRiak.size() > 0) {
-            cassandraConversationRepository.commit(conversationId, conversationEventsInRiak);
+            commitToCassandraInBatches(conversationId, conversationEventsInRiak);
             msg = String.format("ConversationId: %s, more events in Riak than in Cassandra, saving %s new events", conversationId, conversationEventsInRiak.size());
         } else {
             msg = String.format("ConversationId: %s, events in Cassandra and Riak are equal", conversationId);
@@ -195,7 +197,7 @@ public class HybridConversationRepository implements MutableConversationReposito
         return migrateEventsToCassandra(conversationId, null);
     }
 
-    private boolean migrateEventsToCassandra(String conversationId, List<ConversationEvent> events) {
+    boolean migrateEventsToCassandra(String conversationId, List<ConversationEvent> events) {
         // Essentially do a cross-cluster synchronize on this particular Conversation id to avoid duplication
 
         if (!migrationState.tryClaim(Conversation.class, conversationId)) {
@@ -209,11 +211,23 @@ public class HybridConversationRepository implements MutableConversationReposito
                 events = riakConversationRepository.getConversationEvents(conversationId);
             }
 
-            cassandraConversationRepository.commit(conversationId, events);
+            commitToCassandraInBatches(conversationId, events);
         } finally {
             migrateConversationCounter.inc();
         }
 
         return true;
+    }
+
+    private void commitToCassandraInBatches(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
+        if (maxBatchSizeCassandra <= 0) {
+            maxBatchSizeCassandra = 40;
+        }
+        while (toBeCommittedEvents.size() > maxBatchSizeCassandra) {
+            List<ConversationEvent> sublist = toBeCommittedEvents.subList(0, maxBatchSizeCassandra);
+            cassandraConversationRepository.commit(conversationId, sublist);
+            sublist.clear();
+        }
+        cassandraConversationRepository.commit(conversationId, toBeCommittedEvents);
     }
 }

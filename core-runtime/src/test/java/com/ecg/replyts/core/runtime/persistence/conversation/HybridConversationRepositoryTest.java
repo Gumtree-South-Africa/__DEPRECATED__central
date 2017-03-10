@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +38,22 @@ public class HybridConversationRepositoryTest {
 
     @InjectMocks
     private HybridConversationRepository repository;
+
+    @Test
+    public void testMigrationHappensInBatches() {
+        String conversationId = "123aaa";
+        ReflectionTestUtils.setField(repository, "maxBatchSizeCassandra", 20);
+
+        List<ConversationEvent> events = new ArrayList<>();
+        events.add(new ConversationCreatedEvent(conversationId, null, null, null, null, null, DateTime.now(), ConversationState.ACTIVE, new HashMap<>()));
+        for (int i = 0; i < 65; i++) {
+            events.add(new MessageAddedEvent("m" + i, MessageDirection.BUYER_TO_SELLER, DateTime.now(), null, null, null, FilterResultState.OK, ModerationResultState.GOOD, null, null, null, null));
+        }
+
+        when(migrationState.tryClaim(any(Class.class), anyString())).thenReturn(true);
+        repository.migrateEventsToCassandra(conversationId, events);
+        verify(cassandraRepository, times(4)).commit(eq(conversationId), anyListOf(ConversationEvent.class));
+    }
 
     @Test
     public void testGetIdWithDeepComparisonRiakHasMore() {
