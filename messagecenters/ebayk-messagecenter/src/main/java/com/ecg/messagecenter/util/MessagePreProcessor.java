@@ -1,6 +1,8 @@
 package com.ecg.messagecenter.util;
 
 import com.google.common.collect.ImmutableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -10,6 +12,8 @@ import java.util.regex.Pattern;
  * @author maldana@ebay-kleinanzeigen.de
  */
 public class MessagePreProcessor {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MessagePreProcessor.class);
 
     enum LinebreakAdderRules {
 
@@ -76,8 +80,6 @@ public class MessagePreProcessor {
             Pattern.compile("Artikel bereits verkauft.*?[|].*?Kontakt(\\[.*?\\])?", Pattern.DOTALL | Pattern.MULTILINE),
             Pattern.compile("Beantworten Sie diese Nachricht einfach.*?[|].*?Kontakt(\\[.*?\\])?", Pattern.DOTALL | Pattern.MULTILINE),
             MESSAGEBOX_OFFER_PATTERN
-
-
     );
 
     public String removeFromMessageboxReply(String input) {
@@ -96,8 +98,8 @@ public class MessagePreProcessor {
             result = matcher.replaceAll(item.getReplacement()).trim();
             long end = System.currentTimeMillis();
             long duration = end - start;
-            if (duration > 10) {
-                System.out.println("Long running regex, Length: " + result.length() + " Time: " + duration + " Pattern: " + item.getPattern().toString());
+            if (duration > 20 && LOG.isDebugEnabled()) {
+                LOG.debug("Long running regex, Length: " + result.length() + " Time: " + duration + " Pattern: " + item.getPattern().toString());
             }
         }
 
@@ -107,11 +109,10 @@ public class MessagePreProcessor {
             result = matcher.replaceAll("").trim();
             long end = System.currentTimeMillis();
             long duration = end - start;
-            if (duration > 10) {
-                System.out.println("Long running regex, Length: " + result.length() + " Time: " + duration + " Pattern: " + pattern.toString());
+            if (duration > 20 && LOG.isDebugEnabled()) {
+                LOG.debug("Long running regex, Length: " + result.length() + " Time: " + duration + " Pattern: " + pattern.toString());
             }
         }
         return result;
     }
-
 }
