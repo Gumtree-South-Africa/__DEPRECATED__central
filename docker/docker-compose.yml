@@ -18,11 +18,16 @@ services:
     image: registry.ecg.so/cassandra_data:0.0.2
     ports:
     - "9042:9042"
+    environment:
+      SERVICE_9042_NAME: cassandra
   elasticsearch:
     image: elasticsearch:1.7.5
     ports:
     - "9200:9200"
     - "9300:9300"
+    environment:
+      SERVICE_9200_NAME: elasticsearch
+      SERVICE_9200_CHECK_SCRIPT: curl -s http://elasticsearch:9200/_cat/health?h=status | grep -q green
   riak:
     image: basho/riak-kv:2.1.4
     ports:
