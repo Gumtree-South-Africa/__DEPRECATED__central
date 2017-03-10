@@ -9,11 +9,15 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import java.util.Optional;
+
+import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
 
 /**
  * User: maldana
@@ -22,6 +26,7 @@ import java.util.Optional;
  *
  * @author maldana@ebay.de
  */
+@Component
 public class PushService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PushService.class);
@@ -32,16 +37,18 @@ public class PushService {
 
     private static final String ENDPOINT_MESSAGES = "/messages";
 
-
-    public PushService(String pushMobileUrl) {
-        this.httpClient = HttpClientBuilder.buildHttpClient(1000, 1000, 2000, 40, 40);
+    public PushService(@Value("${replyts2-messagecenter-plugin.pushmobile.url:http://push-mobile.service.kconsul}") String pushMobileUrl,
+                       @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.connect.millis:1000}") int connectTimeout,
+                       @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.socket.millis:4000}") int socketTimeout,
+                       @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.connectionManager.millis:1000}") int connectionManagerTimeout,
+                       @Value("${replyts2-messagecenter-plugin.pushmobile.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
+                       @Value("${replyts2-messagecenter-plugin.pushmobile.maxTotalConnections:40}") int maxTotalConnections) {
+        this.httpClient = buildHttpClient(connectTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
         this.pushMobileUrl = pushMobileUrl;
     }
 
     public Result sendPushMessage(final PushMessagePayload payload) {
-
         try {
-
             HttpUriRequest request = buildRequest(payload);
             return httpClient.execute(request, new ResponseHandler<Result>() {
                 @Override
@@ -60,8 +67,6 @@ public class PushService {
                     }
                 }
             });
-
-
         } catch (Exception e) {
             return Result.error(payload, e);
         }
@@ -90,7 +95,6 @@ public class PushService {
             this.e = e;
         }
 
-
         public static Result ok(PushMessagePayload payload) {
             return new Result(payload, Status.OK, Optional.<Exception>empty());
         }
@@ -115,5 +119,4 @@ public class PushService {
             return e;
         }
     }
-
 }

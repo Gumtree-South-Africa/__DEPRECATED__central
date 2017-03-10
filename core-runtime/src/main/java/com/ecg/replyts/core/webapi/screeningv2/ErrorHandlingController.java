@@ -36,6 +36,8 @@ public final class ErrorHandlingController implements HandlerExceptionResolver {
                 try (PrintWriter writer = response.getWriter()) {
                     writer.write(resp);
                 }
+            } else {
+                LOG.debug("Exception encountered but response already committed. Check client timeout settings! Request was: " + request.getRequestURI());
             }
         } catch (Exception e) {
             LOG.error("Error handling error ;) ", e);

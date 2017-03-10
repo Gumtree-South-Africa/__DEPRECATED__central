@@ -26,37 +26,26 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class PostBoxUpdateListener implements MessageProcessedListener {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
+
     private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
     private static final Counter PROCESSING_FAILED = TimingReports.newCounter("message-box.postBoxUpdateListener.failed") ;
 
-
     private static final String CUSTOM_VALUE_AD_API_USERID = "ad-api-user-id";
-
-    private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
     private final UserNotificationRules userNotificationRules;
     private final SimplePostBoxInitializer postBoxInitializer;
     private final PushService pushService;
     private final AdImageLookup adImageLookup;
-    private final String apiHost;
-    private final Integer apiPort;
-    private final String pushMobileUrl;
-
 
     @Autowired
-    public PostBoxUpdateListener(
-            @Value("${replyts2-messagecenter-plugin.api.host:kapi.mobile.rz}") String apiHost,
-            @Value("${replyts2-messagecenter-plugin.api.port:80}") Integer apiPort,
-            @Value("${replyts2-messagecenter-plugin.pushmobile.url:http://push-mobile.service.kconsul}") String pushMobileUrl,
-            SimplePostBoxInitializer postBoxInitializer) {
-        this.apiHost = apiHost;
-        this.apiPort = apiPort;
-        this.pushMobileUrl = pushMobileUrl;
-
+    public PostBoxUpdateListener(AdImageLookup adImageLookup,
+                                 PushService pushService,
+                                 SimplePostBoxInitializer postBoxInitializer) {
         this.postBoxInitializer = postBoxInitializer;
-        this.adImageLookup = new AdImageLookup(apiHost, apiPort);
-        this.pushService = new PushService(pushMobileUrl);
+        this.adImageLookup = adImageLookup;
+        this.pushService = pushService;
         this.userNotificationRules = new UserNotificationRules();
     }
 

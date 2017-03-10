@@ -12,6 +12,9 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -22,33 +25,35 @@ import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClien
 /**
  * @author maldana@ebay-kleinanzeigen.de
  */
+@Component
 public class AdImageLookup {
 
     private static final Logger LOG = LoggerFactory.getLogger(AdImageLookup.class);
 
     private final HttpClient httpClient;
-    private final HttpHost kmobilepushHost;
+    private final HttpHost kapiHost;
 
-    public AdImageLookup(String kapiHost, Integer kapiPort) {
-        // very low timeouts to not hurt backend
-        this.httpClient = buildHttpClient(1000, 1000, 2000, 40, 40);
-        this.kmobilepushHost = new HttpHost(kapiHost, kapiPort);
+    @Autowired
+    public AdImageLookup(@Value("${replyts2-messagecenter-plugin.api.host:kapi.mobile.rz}") String kapiHost,
+                         @Value("${replyts2-messagecenter-plugin.api.port:80}") int kapiPort,
+                         @Value("${replyts2-messagecenter-plugin.adimagelookup.timeout.connect.millis:1000}") int connectTimeout,
+                         @Value("${replyts2-messagecenter-plugin.adimagelookup.timeout.socket.millis:4000}") int socketTimeout,
+                         @Value("${replyts2-messagecenter-plugin.adimagelookup.timeout.connectionManager.millis:1000}") int connectionManagerTimeout,
+                         @Value("${replyts2-messagecenter-plugin.adimagelookup.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
+                         @Value("${replyts2-messagecenter-plugin.adimagelookup.maxTotalConnections:40}") int maxTotalConnections) {
+        this.kapiHost = new HttpHost(kapiHost, kapiPort);
+        this.httpClient = buildHttpClient(connectTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
     }
 
-
     public String lookupAdImageUrl(Long adId) {
-
         try {
-
             HttpRequest request = buildRequest(adId);
-            return httpClient.execute(kmobilepushHost, request, new AdImageUrlResponseHandler());
-
+            return httpClient.execute(kapiHost, request, new AdImageUrlResponseHandler());
         } catch (Exception e) {
             LOG.error("Error fetching image-url for ad #" + adId + " " + e.getMessage(), e);
             return "";
         }
     }
-
 
     private HttpRequest buildRequest(Long adId) throws UnsupportedEncodingException {
         HttpGet get = new HttpGet("/api/ads/" + adId + ".json?_in=pictures");
@@ -91,5 +96,4 @@ public class AdImageLookup {
             return "";
         }
     }
-
 }
