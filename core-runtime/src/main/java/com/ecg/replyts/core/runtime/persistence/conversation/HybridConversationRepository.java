@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 public class HybridConversationRepository implements MutableConversationRepository {
     private static final Logger LOG = LoggerFactory.getLogger(HybridConversationRepository.class);
 
-    @Value("${persistence.cassandra.commit.max.batch.size:40}")
+    @Value("${persistence.cassandra.commit.max.batch.size:20}")
     private int maxBatchSizeCassandra;
 
     private final Counter migrateConversationCounter = TimingReports.newCounter("migration.migrate-conversation");
@@ -220,8 +220,10 @@ public class HybridConversationRepository implements MutableConversationReposito
     }
 
     private void commitToCassandraInBatches(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
+        LOG.info("Committing conversationId {} with {} events in batches of {}", conversationId, toBeCommittedEvents.size(), maxBatchSizeCassandra);
+
         if (maxBatchSizeCassandra <= 0) {
-            maxBatchSizeCassandra = 40;
+            maxBatchSizeCassandra = 20;
         }
         while (toBeCommittedEvents.size() > maxBatchSizeCassandra) {
             List<ConversationEvent> sublist = toBeCommittedEvents.subList(0, maxBatchSizeCassandra);
