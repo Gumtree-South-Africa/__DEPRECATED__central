@@ -8,6 +8,7 @@
     <context:component-scan base-package="com.ecg.messagecenter.persistence" />
     <context:component-scan base-package="com.ecg.messagecenter.cronjobs" />
 
+    <bean class="com.ecg.messagecenter.pushmessage.KmobilePushService"/>
     <bean class="com.ecg.messagecenter.listeners.PostBoxUpdateListener"/>
 
     <bean class="com.ecg.messagecenter.webapi.MessageCenterApiConfiguration"/>

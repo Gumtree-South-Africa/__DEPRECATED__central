@@ -50,19 +50,19 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
                                  @Value("${push-mobile.enabled:true}") boolean pushEnabled,
                                  @Value("${push-mobile.host:}") String pushHost,
-                                 @Value("${push-mobile.port:80}") Integer pushPort,
                                  @Value("${api.image.lookup.enabled:false}") Boolean apiEnabled,
                                  @Value("${api.host:api.gumtree.com.au}") String apiHost,
                                  @Value("${api.port:80}") Integer apiPort,
                                  @Value("${api.connectionTimeout:1500}") Integer connectionTimeout,
                                  @Value("${api.connectionManagerTimeout:1500}") Integer connectionManagerTimeout,
-                                 @Value("${api.socketTimeout:2500}") Integer socketTimeout,
+                                 @Value("${api.socketTimeout:4000}") Integer socketTimeout,
                                  @Value("${api.maxConnectionsPerHost:40}") Integer maxConnectionsPerHost,
-                                 @Value("${api.maxConnectionsPerHost:40}") Integer maxTotalConnections) {
+                                 @Value("${api.maxConnectionsPerHost:40}") Integer maxTotalConnections,
+                                 KmobilePushService kmobilePushService) {
         this.postBoxInitializer = postBoxInitializer;
         this.adInfoLookup = new AdInfoLookup(apiHost, apiPort, connectionTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
         if (pushEnabled && !Strings.isNullOrEmpty(pushHost)) {
-            this.pushService = new KmobilePushService(pushHost, pushPort);
+            this.pushService = kmobilePushService;
         } else {
             this.pushService = null;
         }

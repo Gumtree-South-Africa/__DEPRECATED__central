@@ -10,6 +10,8 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -23,26 +25,29 @@ import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClien
  *
  * @author maldana@ebay.de
  */
+@Component
 public class KmobilePushService extends PushService {
 
     private static final Logger LOG = LoggerFactory.getLogger(KmobilePushService.class);
 
     private final HttpClient httpClient;
-    private final HttpHost kmobilepushHost;
+    private final HttpHost pushHttpHost;
 
-    public KmobilePushService(String kmobilepushHost, Integer kmobilepushPort) {
-
-
-        this.httpClient = buildHttpClient(4000, 4000, 8000, 40, 40);
-        this.kmobilepushHost = new HttpHost(kmobilepushHost, kmobilepushPort);
+    public KmobilePushService(@Value("${push-mobile.host:}") String pushHost,
+                              @Value("${push-mobile.port:80}") int pushPort,
+                              @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.connect.millis:4000}") int connectTimeout,
+                              @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.socket.millis:8000}") int socketTimeout,
+                              @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.connectionManager.millis:4000}") int connectionManagerTimeout,
+                              @Value("${replyts2-messagecenter-plugin.pushmobile.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
+                              @Value("${replyts2-messagecenter-plugin.pushmobile.maxTotalConnections:40}") int maxTotalConnections) {
+        this.pushHttpHost = new HttpHost(pushHost, pushPort);
+        this.httpClient = buildHttpClient(connectTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
     }
 
     public Result sendPushMessage(final PushMessagePayload payload) {
-
         try {
-
             HttpRequest request = buildRequest(payload);
-            return httpClient.execute(kmobilepushHost, request, new ResponseHandler<Result>() {
+            return httpClient.execute(pushHttpHost, request, new ResponseHandler<Result>() {
                 @Override
                 public Result handleResponse(HttpResponse response) throws IOException {
                     int code = response.getStatusLine().getStatusCode();
@@ -57,8 +62,6 @@ public class KmobilePushService extends PushService {
                     }
                 }
             });
-
-
         } catch (Exception e) {
             return Result.error(payload, e);
         }
@@ -72,5 +75,4 @@ public class KmobilePushService extends PushService {
         post.setHeader("Authorization", "Basic a2Nyb246ZmQzMWxvcWE=");
         return post;
     }
-
 }
