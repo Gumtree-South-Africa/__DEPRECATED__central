@@ -16,6 +16,7 @@ import java.util.Map;
  */
 public class CharsetAliaser extends CharsetProvider {
     private final Map<String, Charset> aliasToTarget;
+    private final static String WRONG_CP_ENCODING = "cp-";
 
     public CharsetAliaser() {
         this.aliasToTarget = ImmutableSortedMap.of(
@@ -30,8 +31,25 @@ public class CharsetAliaser extends CharsetProvider {
         return aliasToTarget.values().iterator();
     }
 
+    /**
+     * ebayk & gtau has emails sent in CP-XXX encoding (e.g. CP-850), which Java knows as CPXXX encoding,
+     * This method maps the former to the latter.
+     *
+     * @param charsetName
+     * @return
+     */
     @Override
     public Charset charsetForName(String charsetName) {
+        if (charsetName != null) {
+
+            charsetName = charsetName.trim().toLowerCase();
+            if (charsetName.startsWith(WRONG_CP_ENCODING)) {
+
+                charsetName = charsetName.replace("-", "");
+                return Charset.forName(charsetName);
+            }
+        }
+
         return aliasToTarget.get(charsetName);
     }
 
