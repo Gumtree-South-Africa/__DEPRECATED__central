@@ -76,7 +76,7 @@ class ChunkedIndexerAction implements IndexerAction {
                 if (!conversationIds.isEmpty()) {
                     submittedConvCounter.inc(conversationIds.size());
                     LOG.debug("Indexing conversations from {}, to {}", slice.lowerEndpoint(), slice.upperEndpoint());
-                    LOG.debug("Indexing conversation ids: {}", conversationIds.toString());
+                    LOG.trace("Indexing conversation ids: {}", conversationIds.toString());
                     LOG.debug("Indexing {} conversation, total indexed so far {}", conversationIds.size(), submittedConvCounter.getCount());
                     journal.completedChunk();
                     indexerChunkHandler.indexChunk(conversationIds);

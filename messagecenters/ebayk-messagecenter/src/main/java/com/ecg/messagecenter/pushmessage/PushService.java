@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-
 import java.util.Optional;
 
 import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
@@ -33,7 +32,6 @@ public class PushService {
 
     private final HttpClient httpClient;
     private final String pushMobileUrl;
-    private final IntegraBackdoorLogger backdoorLogger = new IntegraBackdoorLogger();
 
     private static final String ENDPOINT_MESSAGES = "/messages";
 
@@ -56,10 +54,8 @@ public class PushService {
                     int code = response.getStatusLine().getStatusCode();
                     switch (code) {
                         case 200:
-                            backdoorLogger.notice(payload);
                             return Result.ok(payload);
                         case 404:
-                            backdoorLogger.notice(payload);
                             return Result.notFound(payload);
                         default:
                             // application wise only 200 (sending success) + 404 (non-registered device) make sense to us

@@ -1,7 +1,9 @@
 package com.ecg.replyts.core.runtime.maildelivery.smtp;
 
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
+import com.ecg.replyts.core.runtime.mailparser.StructuredMail;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -69,13 +71,14 @@ public class SmtpMailDeliveryServiceTest {
     @Test(expected = MailDeliveryException.class)
     public void mailErrorsThrowExceptions() throws Exception {
         MimeMessage message = mock(MimeMessage.class);
+        Mail m = mock(StructuredMail.class);
 
         ReflectionTestUtils.setField(mailDeliveryService, "sender", sender);
 
-        when(mailTranscoderService.toJavaMail(null)).thenReturn(message);
+        when(mailTranscoderService.toJavaMail(m)).thenReturn(message);
         doThrow(new MailSendException("Relay access denied")).when(sender).send(message);
 
-        mailDeliveryService.deliverMail(null);
+        mailDeliveryService.deliverMail(m);
     }
 
     @Configuration

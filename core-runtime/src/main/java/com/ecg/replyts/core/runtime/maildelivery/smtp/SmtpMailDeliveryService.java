@@ -61,7 +61,7 @@ public class SmtpMailDeliveryService implements MailDeliveryService {
 
             sender.send(message);
         } catch (MessagingException | MailException e) {
-            LOG.error("Unable to send mail message", e);
+            LOG.error("Unable to send mail message. To: {}, Delivered-To: {}, From: {}, messageId: {}", m.getTo(), m.getDeliveredTo(), m.getFrom(), m.getMessageId(), e);
 
             throw new MailDeliveryException(e);
         }
