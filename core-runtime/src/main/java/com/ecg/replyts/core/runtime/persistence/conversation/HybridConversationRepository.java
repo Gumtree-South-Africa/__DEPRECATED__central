@@ -76,6 +76,14 @@ public class HybridConversationRepository implements MutableConversationReposito
         return msg;
     }
 
+    private String humanReadableByteCount(long bytes) {
+        int unit = 1024;
+        if (bytes < unit) return bytes + " B";
+        int exp = (int) (Math.log(bytes) / Math.log(unit));
+        String pre = "KMGTPE".charAt(exp - 1) + "i";
+        return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+    }
+
     private void commitToCassandraInBatches(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
         LOG.info("Committing conversationId {} with {} events in batches of {}", conversationId, toBeCommittedEvents.size(), maxBatchSizeCassandra);
 
@@ -89,9 +97,9 @@ public class HybridConversationRepository implements MutableConversationReposito
                 subList.forEach(event -> {
                     if (event instanceof MessageAddedEvent) {
                         int sum = ((MessageAddedEvent) event).getTextParts().stream().mapToInt(textPart -> textPart.getBytes().length).sum();
-                        LOG.debug("Committing event. id: {} type: {} textPart size: {}", event.getEventId(), event.getClass().getName(), sum);
+                        LOG.debug("Committing event. id: {} type: {} textPart size: {}", event.getEventId(), event.getClass().getName(), humanReadableByteCount(sum));
                     } else {
-                        LOG.debug("Committing event. id: {} type: {}");
+                        LOG.debug("Committing event. id: {} type: {}", event.getEventId(), event.getClass().getName());
                     }
                 });
             }
