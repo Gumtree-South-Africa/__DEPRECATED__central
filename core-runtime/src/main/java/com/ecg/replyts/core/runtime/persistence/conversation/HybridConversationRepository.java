@@ -5,6 +5,7 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
+import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
@@ -73,6 +74,33 @@ public class HybridConversationRepository implements MutableConversationReposito
         }
         LOG.info(msg);
         return msg;
+    }
+
+    private void commitToCassandraInBatches(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
+        LOG.info("Committing conversationId {} with {} events in batches of {}", conversationId, toBeCommittedEvents.size(), maxBatchSizeCassandra);
+
+        if (maxBatchSizeCassandra <= 0) {
+            maxBatchSizeCassandra = 20;
+        }
+        while (toBeCommittedEvents.size() > maxBatchSizeCassandra) {
+            List<ConversationEvent> subList = toBeCommittedEvents.subList(0, maxBatchSizeCassandra);
+
+            if (LOG.isDebugEnabled()) {
+                subList.forEach(event -> {
+                    if (event instanceof MessageAddedEvent) {
+                        int sum = ((MessageAddedEvent) event).getTextParts().stream().mapToInt(textPart -> textPart.getBytes().length).sum();
+                        LOG.debug("Committing event. id: {} type: {} textPart size: {}", event.getEventId(), event.getClass().getName(), sum);
+                    } else {
+                        LOG.debug("Committing event. id: {} type: {}");
+                    }
+                });
+            }
+
+            cassandraConversationRepository.commit(conversationId, subList);
+
+            subList.clear();
+        }
+        cassandraConversationRepository.commit(conversationId, toBeCommittedEvents);
     }
 
     @Override
@@ -211,25 +239,11 @@ public class HybridConversationRepository implements MutableConversationReposito
                 events = riakConversationRepository.getConversationEvents(conversationId);
             }
 
-            commitToCassandraInBatches(conversationId, events);
+            cassandraConversationRepository.commit(conversationId, events);
         } finally {
             migrateConversationCounter.inc();
         }
 
         return true;
-    }
-
-    private void commitToCassandraInBatches(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
-        LOG.info("Committing conversationId {} with {} events in batches of {}", conversationId, toBeCommittedEvents.size(), maxBatchSizeCassandra);
-
-        if (maxBatchSizeCassandra <= 0) {
-            maxBatchSizeCassandra = 20;
-        }
-        while (toBeCommittedEvents.size() > maxBatchSizeCassandra) {
-            List<ConversationEvent> sublist = toBeCommittedEvents.subList(0, maxBatchSizeCassandra);
-            cassandraConversationRepository.commit(conversationId, sublist);
-            sublist.clear();
-        }
-        cassandraConversationRepository.commit(conversationId, toBeCommittedEvents);
     }
 }
