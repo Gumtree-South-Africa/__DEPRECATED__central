@@ -16,7 +16,7 @@ import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
-import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
+import com.ecg.replyts.core.runtime.persistence.config.RiakConfigurationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;
@@ -87,8 +87,8 @@ public class HybridPersistenceConfiguration {
     }
 
     @Bean
-    public ConfigurationRepository configurationRepository(Session cassandraSession) throws RiakRetryFailedException {
-        return new CassandraConfigurationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+    public ConfigurationRepository configurationRepository() throws RiakRetryFailedException {
+        return new RiakConfigurationRepository(riakClient);
     }
 
     @Bean
