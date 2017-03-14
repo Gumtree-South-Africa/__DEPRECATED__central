@@ -1,37 +1,27 @@
 <included>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %-35logger{35}: %msg %n</pattern>
+            <pattern>%d %-5level [%thread] %-35logger{35}: %msg %n</pattern>
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logDir}/replyts.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logDir}/archived/replyts.log.%d</fileNamePattern>
-            <maxHistory>5</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %-35logger{35}: %msg %n</pattern>
-        </encoder>
-    </appender>
-
-    <appender name="LOGSTASH" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logDir}/logstash.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logDir}/archived/logstash.log.%d</fileNamePattern>
-            <maxHistory>5</maxHistory>
-        </rollingPolicy>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
-    </appender>
-
-    <logger name="com.ecg.replyts" level="INFO" />
+    <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
+    <logger name="com.ecg.replyts" level="DEBUG"/>
+    <logger name="com.ecg.de" level="DEBUG"/>
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
+    <logger name="com.ecg.replyts.core.runtime.cluster.monitor" level="INFO"/>
 
-    <root level="ERROR">
-        <appender-ref ref="STDOUT" />
-        <appender-ref ref="FILE" />
-        <appender-ref ref="LOGSTASH" />
+    <logger name="org.springframework.cloud" level="INFO"/>
+
+    <!-- Use confOverride property to add loggers as needed on the runtime environment -->
+    <if condition='isDefined("confOverride")'>
+        <then>
+            <include file="${confOverride}/logging.xml"/>
+        </then>
+    </if>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
     </root>
 
     <logger name="message-json-log" level="INFO">
@@ -42,7 +32,7 @@
                 <user>box</user>
                 <password>box</password>
             </connectionSource>
-            <sqlDialect class="ch.qos.logback.core.db.dialect.MySQLDialect" />
+            <sqlDialect class="ch.qos.logback.core.db.dialect.MySQLDialect"/>
         </appender>
 
         <root level="INFO">
