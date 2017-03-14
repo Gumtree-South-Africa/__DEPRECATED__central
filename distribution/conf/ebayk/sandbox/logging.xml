@@ -5,25 +5,8 @@
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logDir}/replyts.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logDir}/replyts.log.%d</fileNamePattern>
-            <maxHistory>5</maxHistory>
-        </rollingPolicy>
-
-        <encoder>
-            <pattern>%d %-5level [%thread] %-35logger{35}: %msg %n</pattern>
-        </encoder>
-    </appender>
-
-    <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
-
-    <logger name="com.ecg.replyts" level="DEBUG"/>
-    <logger name="com.ecg.de" level="DEBUG"/>
+    <logger name="com.ecg" level="DEBUG"/>
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
-    <logger name="ca.kijiji" level="DEBUG"/>
-
     <logger name="org.springframework.cloud" level="DEBUG"/>
 
     <!-- Use confOverride property to add loggers as needed on the runtime environment -->
@@ -33,9 +16,8 @@
         </then>
     </if>
 
-    <root level="WARN">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
-        <appender-ref ref="FILE"/>
     </root>
 
 </included>
