@@ -36,9 +36,9 @@ public class AdImageLookup {
     @Autowired
     public AdImageLookup(@Value("${replyts2-messagecenter-plugin.api.host:kapi.mobile.rz}") String kapiHost,
                          @Value("${replyts2-messagecenter-plugin.api.port:80}") int kapiPort,
-                         @Value("${replyts2-messagecenter-plugin.adimagelookup.timeout.connect.millis:1000}") int connectTimeout,
+                         @Value("${replyts2-messagecenter-plugin.adimagelookup.timeout.connect.millis:2000}") int connectTimeout,
                          @Value("${replyts2-messagecenter-plugin.adimagelookup.timeout.socket.millis:4000}") int socketTimeout,
-                         @Value("${replyts2-messagecenter-plugin.adimagelookup.timeout.connectionManager.millis:1000}") int connectionManagerTimeout,
+                         @Value("${replyts2-messagecenter-plugin.adimagelookup.timeout.connectionManager.millis:2000}") int connectionManagerTimeout,
                          @Value("${replyts2-messagecenter-plugin.adimagelookup.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
                          @Value("${replyts2-messagecenter-plugin.adimagelookup.maxTotalConnections:40}") int maxTotalConnections) {
         this.kapiHost = new HttpHost(kapiHost, kapiPort);

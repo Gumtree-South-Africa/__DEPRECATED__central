@@ -107,7 +107,8 @@ public class ProcessingFlow {
             doTimedSend(context);
             LOG.info("Successful recovery.");
         } catch (MailDeliveryException deliveryException) {
-            throw new RuntimeException(deliveryException);
+            String msg = String.format("Failed to process mail '%s' from '%s' to '%s'", context.getMessageId(), context.getOriginalFrom(), context.getOriginalTo());
+            throw new RuntimeException(msg, deliveryException);
         }
     }
 

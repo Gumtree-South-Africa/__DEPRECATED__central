@@ -36,9 +36,9 @@ public class PushService {
     private static final String ENDPOINT_MESSAGES = "/messages";
 
     public PushService(@Value("${replyts2-messagecenter-plugin.pushmobile.url:http://push-mobile.service.kconsul}") String pushMobileUrl,
-                       @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.connect.millis:1000}") int connectTimeout,
+                       @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.connect.millis:2000}") int connectTimeout,
                        @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.socket.millis:4000}") int socketTimeout,
-                       @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.connectionManager.millis:1000}") int connectionManagerTimeout,
+                       @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.connectionManager.millis:2000}") int connectionManagerTimeout,
                        @Value("${replyts2-messagecenter-plugin.pushmobile.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
                        @Value("${replyts2-messagecenter-plugin.pushmobile.maxTotalConnections:40}") int maxTotalConnections) {
         this.httpClient = buildHttpClient(connectTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
