@@ -26,7 +26,11 @@ class DeltaIndexingCronJob implements CronJobExecutor {
         this.cronJobEnabled = cronJobEnabled;
         this.indexer = indexer;
         this.intervalMinutes = intervalMinutes;
-        LOG.info("Delta Indexing Cronjob executes every {} minutes. ", intervalMinutes);
+        if (cronJobEnabled) {
+            LOG.info("Delta Indexing Cronjob executes every {} minutes", intervalMinutes);
+        } else {
+            LOG.info("Delta Indexing Cronjob is disabled");
+        }
     }
 
     @Override
