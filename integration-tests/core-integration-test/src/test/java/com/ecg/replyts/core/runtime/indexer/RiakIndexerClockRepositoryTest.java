@@ -7,7 +7,7 @@ public class RiakIndexerClockRepositoryTest extends AbstractIndexerClockReposito
 
     @Override
     protected RiakIndexerClockRepository createClockRepository() throws Exception {
-        return new RiakIndexerClockRepository(new EmbeddedRiakClient());
+        return new RiakIndexerClockRepository(new EmbeddedRiakClient(), "");
     }
 
     @After

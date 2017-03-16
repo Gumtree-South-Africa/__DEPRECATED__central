@@ -9,6 +9,7 @@ import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
+import com.ecg.replyts.core.runtime.indexer.RiakIndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
@@ -88,12 +89,12 @@ public class HybridPersistenceConfiguration {
 
     @Bean
     public ConfigurationRepository configurationRepository() throws RiakRetryFailedException {
-        return new RiakConfigurationRepository(riakClient);
+        return new RiakConfigurationRepository(riakClient, bucketNamePrefix);
     }
 
     @Bean
-    public IndexerClockRepository indexerClockRepository(Session cassandraSessionForJobs) throws RiakRetryFailedException {
-        return new CassandraIndexerClockRepository(cassandraDataCenter, cassandraSessionForJobs);
+    public IndexerClockRepository indexerClockRepository() throws RiakRetryFailedException {
+        return new RiakIndexerClockRepository(riakClient, bucketNamePrefix);
     }
 
     @Bean

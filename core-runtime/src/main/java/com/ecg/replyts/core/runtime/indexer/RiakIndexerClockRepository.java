@@ -14,10 +14,6 @@ public class RiakIndexerClockRepository implements IndexerClockRepository {
 
     private final Bucket indexerClockBucket;
 
-    public RiakIndexerClockRepository(IRiakClient riakClient) throws RiakRetryFailedException {
-        this(riakClient, "");
-    }
-
     public RiakIndexerClockRepository(IRiakClient riakClient, String bucketNamePrefix) throws RiakRetryFailedException {
         indexerClockBucket = riakClient.createBucket(bucketNamePrefix + INDEXER_CLOCK_BUCKET).allowSiblings(false).execute();
     }
