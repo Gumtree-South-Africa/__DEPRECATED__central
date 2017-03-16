@@ -20,6 +20,10 @@
             <artifactId>core-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>core-runtime</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
         </dependency>

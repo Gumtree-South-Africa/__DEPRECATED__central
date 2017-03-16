@@ -1,9 +1,13 @@
 package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Timer;
+import com.codahale.metrics.Timer.Context;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -20,10 +24,13 @@ class Wordfilter implements Filter {
     static final String CATEGORY_ID = "categoryid";
 
     private static final Logger LOG = LoggerFactory.getLogger(Wordfilter.class);
+    private static final Timer REGEX_TIMER = TimingReports.newTimer("core.wordfilter.regex.timing");
+    private static final Counter SKIPPED_REGEX_COUNTER = TimingReports.newCounter("core.wordfilter.regex.counter.skipped");
 
     private final List<PatternEntry> patterns;
     private final boolean ignoreDuplicatePatterns;
     private final long regexProcessingTimeoutMs;
+
 
     Wordfilter(FilterConfig filterConfig, long regexProcessingTimeoutMs) {
         this.regexProcessingTimeoutMs = regexProcessingTimeoutMs;
@@ -50,7 +57,7 @@ class Wordfilter implements Filter {
     }
 
     private List<FilterFeedback> filterByPatterns(String processText, MessageProcessingContext context, Optional<String> conversationCategoryId) {
-        ImmutableList.Builder<FilterFeedback> feedbacks = ImmutableList.builder();
+        Builder<FilterFeedback> feedbacks = ImmutableList.builder();
 
         Set<String> foundPatterns = ignoreDuplicatePatterns ? new PreviousPatternsExtractor(context.getConversation(), context.getMessage()).previouselyFiredPatterns() : Collections.<String>emptySet();
 
@@ -72,10 +79,11 @@ class Wordfilter implements Filter {
 
     private void applyPattern(Builder<FilterFeedback> feedbacks, PatternEntry p, Matcher matcher, Set<String> previouselyFoundPatterns) {
         boolean foundMatch = false;
-        try {
+        try (Context autoClosed = REGEX_TIMER.time()) {
             foundMatch = matcher.find();
         } catch (RuntimeException e) {
-            LOG.error("Skipping Regular Expression '" + p.getPattern() + "': ", e);
+            LOG.info("Skipping Regular Expression '" + p.getPattern() + "': ", e);
+            SKIPPED_REGEX_COUNTER.inc();
         }
 
         if (foundMatch) {
