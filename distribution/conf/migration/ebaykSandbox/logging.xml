@@ -1,0 +1,42 @@
+<!--
+
+LOOKS LIKE A BROKEN CONFIG? It's not, this is just a fragment that will be included
+from logback-test.xml.
+
+-->
+<included>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %-35logger{35}: %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${logDir}/difftool.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %-35logger{35}: %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="MISMATCHFILE" class="ch.qos.logback.core.FileAppender">
+        <file>${logDir}/difftool-mismatch.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS}: %msg %n</pattern>
+        </encoder>
+    </appender>
+
+
+
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="com.datastax" level="INFO"/>
+    <logger name="com.ecg" level="DEBUG"/>
+
+    <logger name="difftool.mismatch" level="DEBUG">
+        <appender-ref ref="MISMATCHFILE"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</included>
