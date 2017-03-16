@@ -29,13 +29,13 @@ echo
 read -rsp $'Press any key to continue...\n' -n1 key
 echo
 echo -n "Getting releases... "
-get_releases.py https://repositories-cloud.ecg.so/ --username=repo_comaas --password=V9Knbsi4Nm --path=/${TENANT}/${ENV} --target=/opt/tarballs/ecg-comaas/ --platform=comaas --limit 10
+get_releases.py https://repositories-cloud.ecg.so/ --username=repo_comaas --password=V9Knbsi4Nm --path=/${TENANT}/${ENV} --target=/opt/tarballs/ecg-comaas/ --platform=comaas --hash=${HEW_HASH}
 echo "done."
 cd $(find /opt/tarballs/ecg-comaas/ -name \*${NEW_HASH}\* | head -1 | xargs dirname)
 
 readonly FILE_COUNT=$(ls -lash *${NEW_HASH}*.tar.gz | wc -l)
 if [[ $FILE_COUNT -ne 2 ]]; then
-  echo "Required files not found in ${PWD}. Maybe we need to download older artifacts?"
+  echo "Required files not found in ${PWD}. Was this artifact deployed to ecg.repositories.so? Check Jenkins: https://buildmaster.ams1.cloud.ops.qa.comaas.ecg.so/job/comaas_upload_to_repos/"
   exit 1
 fi
 
