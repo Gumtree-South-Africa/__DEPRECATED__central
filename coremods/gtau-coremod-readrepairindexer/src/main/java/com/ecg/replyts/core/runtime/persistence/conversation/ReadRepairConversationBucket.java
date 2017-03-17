@@ -25,7 +25,7 @@ public class ReadRepairConversationBucket extends ConversationBucket {
     private final RiakConversationEventConflictResolver resolver;
 
     public ReadRepairConversationBucket(IRiakClient riakClient, String bucketName) {
-        super(riakClient, bucketName);
+        super(riakClient, bucketName, true, false);
         try {
             this.bucket = riakClient.fetchBucket(bucketName).execute();
 

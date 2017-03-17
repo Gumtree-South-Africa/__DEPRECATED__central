@@ -1,0 +1,70 @@
+Return-Path: <mohhussain@ebay.com>
+Delivered-To: Seller.2rroe2llmbu0@reply.gumtree.com
+Received: from reply.gumtree.com (localhost [127.0.0.1])
+by reply.gumtree.com (Postfix) with ESMTP id E409E400660
+for <Seller.2rroe2llmbu0@reply.gumtree.com>; Thu, 8 Oct 2015 15:20:19 +0100 (BST)
+Received: from gt-rtscore001.intern.gumtree.com (gt-rtscore001.intern.gumtree.com [10.32.227.131])
+by reply.gumtree.com (Postfix) with ESMTPS id DA763400557
+for <Seller.2rroe2llmbu0@reply.gumtree.com>; Thu, 8 Oct 2015 15:20:19 +0100 (BST)
+Received: from gt-rtscore001.intern.gumtree.com (localhost [127.0.0.1])
+by gt-rtscore001.intern.gumtree.com (Postfix) with ESMTP id C34DC38C08A
+for <Seller.2rroe2llmbu0@reply.gumtree.com>; Thu, 8 Oct 2015 15:20:19 +0100 (BST)
+Received: from dub-mipot-002.corp.ebay.com (unknown [193.28.178.24])
+by gt-rtscore001.intern.gumtree.com (Postfix) with ESMTPS id AAAEA38C084
+for <Seller.2rroe2llmbu0@reply.gumtree.com>; Thu, 8 Oct 2015 15:20:19 +0100 (BST)
+DomainKey-Signature: s=ebaycorp; d=ebay.com; c=nofws; q=dns;
+h=X-EBay-Corp:X-IronPort-AV:Received:Received:From:To:
+Subject:Thread-Topic:Thread-Index:Date:Message-ID:
+In-Reply-To:Accept-Language:Content-Language:
+X-MS-Has-Attach:X-MS-TNEF-Correlator:x-originating-ip:
+Content-Type:Content-ID:Content-Transfer-Encoding:
+MIME-Version:X-CFilter;
+b=fjKtd6GL7tZaJBd3XufR32esBQFr67NDZGeEyR9rgc2gBQr65VScT4TG
+PQdu4z0y4+YrvUUZDJs/dbULh49GOFhZruvf7ycm1MIgzompxgBSXI9VG
+DDWG1IcJH08Xb3tO5yi/iGgtz0GFU/ozQbA+adG02qiXLuzBITWG15/QG
+M=;
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+d=ebay.com; i=@ebay.com; q=dns/txt; s=ebaycorp;
+t=1444314019; x=1475850019;
+h=from:to:subject:date:message-id:in-reply-to:content-id:
+content-transfer-encoding:mime-version;
+bh=cU5o5KnT2xYCuZ3TolVqmTTCjY2RxoDvHRfw8Gm/SUI=;
+b=C+SUw3dU9rkw+8H8V3o4W38H7/0jVwqORP5CpGizzXdJ4kQSxRlsp0yN
+6AUEiaPpF6QaCBZuJWKRg+M55hWSE2SoOJdGHl5Uo7rcMV8TVJHsYnbZB
+psR+g0x6CDRNQmqDobPjbYgTUz8y+HFdjaESfkmHMaeIjGmKecUJS+Ji7
+M=;
+X-EBay-Corp: Yes
+X-IronPort-AV: E=Sophos;i="5.17,655,1437433200";
+d="scan'208";a="7706613"
+Received: from dub-vteml-002.corp.ebay.com (HELO DUB-EXMHT-001.corp.ebay.com) ([10.243.104.53])
+by dub-mipot-002.corp.ebay.com with ESMTP; 08 Oct 2015 15:20:18 +0100
+Received: from DUB-EXDDA-S12.corp.ebay.com ([fe80::65fa:8be6:9970:de95]) by
+DUB-EXMHT-001.corp.ebay.com ([fe80::e581:f9ef:8275:aaea%14]) with mapi id
+14.03.0235.001; Thu, 8 Oct 2015 15:20:18 +0100
+From: "Hussain, Mohammed" <mohhussain@ebay.com>
+To: Andrey via Gumtree Mail <Seller.2rroe2llmbu0@reply.gumtree.com>
+Subject: Re: Mohammed replied to your ad: Computer desk
+Thread-Topic: Mohammed replied to your ad: Computer desk
+Thread-Index: AQHRAdQ6Tby+TZ3iG0eFzhII1U1g2Z5hpUCA
+Date: Thu, 8 Oct 2015 14:20:17 +0000
+Message-ID: <D23C3A16.11EC0%mohhussain@ebay.com>
+In-Reply-To: <mmwlneheog51g6hz4r27y74timit6lfiw6dop4wh4d1joe7l8k2@reply.gumtree.com>
+Accept-Language: en-GB, en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-originating-ip: [10.243.57.245]
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <5AADBC816ECF494896ED002A0ABA9772@corp.ebay.com>
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-CFilter: Scanned
+X-Virus-Scanned: ClamAV using ClamSMTP
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+Yes I think so.
+
+On 08/10/2015 15:18, "Andrey via Gumtree Mail"
+<Seller.2rroe2llmbu0@reply.gumtree.com> wrote:
+
+>Hey, are you there?

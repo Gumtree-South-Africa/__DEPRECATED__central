@@ -12,7 +12,7 @@ import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -20,30 +20,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinutes;
-import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.never;
 import static com.ecg.replyts.core.runtime.persistence.FetchIndexHelper.logInterval;
 import static org.joda.time.DateTime.now;
 
 @Component
+@ConditionalOnExpression("'${replyts2.cronjob.cleanupConversation.enabled:true}' == 'true'")
 public class CleanupConversationCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CleanupConversationCronJob.class);
 
-    private final boolean cronJobEnabled;
-    private final MutableConversationRepository conversationRepository;
-    private final CleanupConfiguration config;
-    private final ConversationEventListeners conversationEventListeners;
+    @Autowired
+    private MutableConversationRepository conversationRepository;
 
     @Autowired
-    CleanupConversationCronJob(
-            @Value("${replyts2.cronjob.cleanupConversation.enabled:true}") boolean cronJobEnabled,
-            MutableConversationRepository conversationRepository,
-            CleanupConfiguration config,
-            ConversationEventListeners conversationEventListeners) {
-        this.cronJobEnabled = cronJobEnabled;
-        this.conversationRepository = conversationRepository;
-        this.config = config;
-        this.conversationEventListeners = conversationEventListeners;
-    }
+    private CleanupConfiguration config;
+
+    @Autowired
+    private ConversationEventListeners conversationEventListeners;
 
     @Override
     public void execute() throws Exception {
@@ -102,9 +94,6 @@ public class CleanupConversationCronJob implements CronJobExecutor {
 
     @Override
     public String getPreferredCronExpression() {
-        if (!cronJobEnabled) {
-            return never();
-        }
         return everyNMinutes(config.getEveryNMinutes(), config.getOffsetConversations());
     }
 }

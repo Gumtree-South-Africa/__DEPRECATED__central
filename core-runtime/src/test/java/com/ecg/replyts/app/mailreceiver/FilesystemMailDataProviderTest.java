@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.ecg.replyts.app.mailreceiver;
 
 import com.ecg.replyts.app.MessageProcessingCoordinator;
@@ -21,7 +17,9 @@ import java.io.InputStream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -133,6 +131,8 @@ public class FilesystemMailDataProviderTest {
         File failed = new File(failuresDir, FilesystemMailDataProvider.FAILED_PREFIX + FilesystemMailDataProvider.FAILED_PREFIX + FilesystemMailDataProvider.FAILED_PREFIX + FilesystemMailDataProvider.FAILED_PREFIX + FilesystemMailDataProvider.FAILED_PREFIX + FilesystemMailDataProvider.FAILED_PREFIX + "file");
         failed.createNewFile();
         failed.setLastModified(System.currentTimeMillis() - 60 * 1000 * 5);
+
+        assertTrue(failed.getName().matches("^(?:f_){6}(?!f_).*$"));
 
         instance.new FileProcessor().performFileProcessing();
 

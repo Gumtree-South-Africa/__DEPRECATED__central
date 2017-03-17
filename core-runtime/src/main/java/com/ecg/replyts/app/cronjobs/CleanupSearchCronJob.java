@@ -8,41 +8,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
 
 import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinutes;
-import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.never;
 import static org.joda.time.DateTime.now;
 
+@Component
+@ConditionalOnExpression("'${replyts2.cronjob.cleanupSearch.enabled:true}' == 'true'")
 public class CleanupSearchCronJob implements CronJobExecutor {
-
     private static final Logger LOG = LoggerFactory.getLogger(CleanupSearchCronJob.class);
 
-    private final boolean cronJobEnabled;
-    private final MutableSearchService searchService;
-    private final int maxAgeDays;
-    private final int minuteInterval;
-
+    @Value("${replyts2.cronjob.cleanupSearch.minuteInterval:30}")
+    private int minuteInterval;
 
     @Autowired
-    CleanupSearchCronJob(
-            @Value("${replyts2.cronjob.cleanupSearch.enabled:true}") boolean cronJobEnabled,
-            MutableSearchService searchService,
-            @Value("${replyts.maxConversationAgeDays}") int maxAgeDays,
-            @Value("${replyts2.cronjob.cleanupSearch.minuteInterval:30}") int minuteInterval ) {
-        this.cronJobEnabled = cronJobEnabled;
-        this.searchService = searchService;
-        this.maxAgeDays = maxAgeDays;
-        this.minuteInterval = minuteInterval;
-    }
+    private CleanupConfiguration config;
+
+    @Autowired
+    private MutableSearchService searchService;
 
     @Override
     public void execute() throws Exception {
-        DateTime deleteEverythingBefore = now().minusDays(maxAgeDays);
+        DateTime deleteEverythingBefore = now().minusDays(config.getMaxConversationAgeDays());
 
-        LOG.info("Deleting SearchIndex older than {} days: everything before '{}'", maxAgeDays, deleteEverythingBefore);
+        LOG.info("Deleting SearchIndex older than {} days: everything before '{}'", config.getMaxConversationAgeDays(), deleteEverythingBefore);
 
         try {
-            searchService.delete(Range.closed(new DateTime(0), now().minusDays(maxAgeDays)));
+            searchService.delete(Range.closed(new DateTime(0), now().minusDays(config.getMaxConversationAgeDays())));
         } catch (RuntimeException e) {
             LOG.error("Cleanup: ElasticSearch cleanup failed", e);
         }
@@ -50,9 +43,6 @@ public class CleanupSearchCronJob implements CronJobExecutor {
 
     @Override
     public String getPreferredCronExpression() {
-        if (!cronJobEnabled) {
-            return never();
-        }
         return everyNMinutes(minuteInterval);
     }
 }

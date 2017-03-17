@@ -11,32 +11,28 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>ebayk-postprocessor-buyeralias</artifactId>
+    <artifactId>gtuk-postprocessor-bodyanonymizer</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
-        <dependency>
-            <groupId>ecg.comaas</groupId>
-            <artifactId>core-api</artifactId>
-        </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-runtime</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>ecg.comaas</groupId>
-            <artifactId>core-integration-test-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>core-integration-test-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

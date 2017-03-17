@@ -10,12 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Describes all required fields for searching a message
- */
 public class SearchMessagePayload {
-
-
     public String getAttachments() {
         return attachments;
     }
@@ -24,33 +19,20 @@ public class SearchMessagePayload {
         this.attachments = attachments;
     }
 
-    /**
-     * enum containing all supported ways of sorting the search result
-     */
     public enum ResultOrdering {
-        /**
-         * Older mails will be displayed first (default)
-         */
-        OLDEST_FIRST, /**
-         * Newer mails will be displayed first
-         */
+        OLDEST_FIRST,
         NEWEST_FIRST
     }
 
     /**
-     * enum describing the role of a special mail address. To be used in combination with the userEmail field.
+     * Describes the role of a special mail address. To be used in combination with the userEmail field.
      */
     public enum ConcernedUserRole {
-        /**
-         * mail address can be both: sender or receiver
-         */ANY, /**
-         * mail address is sender
-         */SENDER, /**
-         */SENDER_ANONYMOUS, /**
-         * mail address is receiver
-         */RECEIVER, /**
-         * mail address is receiver
-         */RECEIVER_ANONYMOUS;
+         ANY, // mail address can be both: sender or receiver
+         SENDER,
+         SENDER_ANONYMOUS,
+         RECEIVER,
+         RECEIVER_ANONYMOUS;
 
         public static final ConcernedUserRole DEFAULT = ANY;
     }
@@ -79,7 +61,15 @@ public class SearchMessagePayload {
     private ResultOrdering ordering = ResultOrdering.OLDEST_FIRST;
     private int count;
     private int offset;
+    private boolean useFilterQuery;
 
+    public boolean isUseFilterQuery() {
+        return useFilterQuery;
+    }
+
+    public void setUseFilterQuery(boolean useFilterQuery) {
+        this.useFilterQuery = useFilterQuery;
+    }
 
     public List<MessageRtsState> getMessageStates() {
         return messageStates;
@@ -207,6 +197,4 @@ public class SearchMessagePayload {
     public void setLastEditor(String lastEditor) {
         this.lastEditor = lastEditor;
     }
-
-
 }

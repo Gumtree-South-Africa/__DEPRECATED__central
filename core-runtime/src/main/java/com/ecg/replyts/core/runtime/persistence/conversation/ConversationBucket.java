@@ -18,15 +18,14 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Set;
 import java.util.Spliterator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.ecg.replyts.core.runtime.persistence.FetchIndexHelper.fetchResult;
 import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.timestampInMinutes;
-import static java.util.stream.Collectors.toSet;
 
 class ConversationBucket {
-
     private static final Timer DELETE_CONVERSATION_TIMER = TimingReports.newTimer("cleanupConversation");
 
     private static final ConversationEvents DEFAULT_EMPTY_CONVERSATION_EVENT = new ConversationEvents(null);
@@ -40,23 +39,19 @@ class ConversationBucket {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConversationBucket.class);
 
-    ConversationBucket(IRiakClient riakClient, String bucketName) {
+    ConversationBucket(IRiakClient riakClient, String bucketName, boolean allowSiblings, boolean lastWriteWins) {
         try {
-            Bucket conversationBucket = riakClient.fetchBucket(bucketName).execute();
+            this.bucket = riakClient
+              .updateBucket(riakClient.fetchBucket(bucketName).execute())
+              .allowSiblings(allowSiblings)
+              .lastWriteWins(lastWriteWins)
+              .execute();
 
-            // Force siblings set to true.
-            conversationBucket = riakClient
-                    .updateBucket(conversationBucket)
-                    .allowSiblings(true)
-                    .execute();
-            this.bucket = conversationBucket;
-            ConversationJsonSerializer conversationJsonSerializer = new ConversationJsonSerializer();
-            converter = new ConversationEventsConverter(bucketName, conversationJsonSerializer);
+            converter = new ConversationEventsConverter(bucketName, new ConversationJsonSerializer());
             resolver = new RiakConversationEventConflictResolver();
         } catch (RiakRetryFailedException e) {
             throw new RuntimeException("Could not create/update conversation bucket", e);
         }
-
     }
 
     public ConversationEvents byId(String conversationId) {
@@ -141,7 +136,7 @@ class ConversationBucket {
             List<IndexEntry> indexEntries = fetchResult(bucket.fetchIndex(IntIndex.named(SECONDARY_INDEX_MODIFIED_AT)), before, maxRows);
             return indexEntries.stream()
                     .map(IndexEntry::getObjectKey)
-                    .collect(toSet());
+                    .collect(Collectors.toSet());
         } catch (RiakException e) {
             throw new RuntimeException("ConversationBucket: modified before '" + before + "' max rows '" + maxRows + "' search failed", e);
         }
@@ -158,5 +153,4 @@ class ConversationBucket {
             throw new RuntimeException("could not delete conversation #" + id, e);
         }
     }
-
 }

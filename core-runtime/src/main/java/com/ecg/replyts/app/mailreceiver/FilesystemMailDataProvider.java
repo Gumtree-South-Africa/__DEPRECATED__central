@@ -6,31 +6,38 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.cluster.ClusterMode;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-class FilesystemMailDataProvider implements MailDataProvider {
-
-
-    static final String FAILED_PREFIX = "f_";
-    static final String FAILED_DIRECTORY_NAME = "failed";
-    private static final Logger LOG = org.slf4j.LoggerFactory.getLogger(FilesystemMailDataProvider.class);
-    static final String INCOMING_FILE_PREFIX = "pre_";
-    static final String PROCESSING_FILE_PREFIX = "inwork_";
-    private static final IncomingMailFileFilter INCOMING_FILE_FILTER = new IncomingMailFileFilter(INCOMING_FILE_PREFIX);
-    private final File mailDataDir;
-    private final int watchRetryDelay;
-    private final ClusterModeManager clusterModeManager;
-    private final File failedDir;
-    private MessageProcessingCoordinator consumer;
-    private final FileFilter failedFileFilter;
+public class FilesystemMailDataProvider implements MailDataProvider {
+    private static final Logger LOG = LoggerFactory.getLogger(FilesystemMailDataProvider.class);
 
     private static final Counter FAILED_COUNTER = TimingReports.newCounter("processing_failed");
+    private static final Counter ABANDONED_RETRY_COUNTER = TimingReports.newCounter("processing_failed_abandoned");
+
+    protected static final String FAILED_PREFIX = "f_";
+    protected static final String FAILED_DIRECTORY_NAME = "failed";
+    protected static final String INCOMING_FILE_PREFIX = "pre_";
+    protected static final String PROCESSING_FILE_PREFIX = "inwork_";
+
+    private static final IncomingMailFileFilter INCOMING_FILE_FILTER = new IncomingMailFileFilter(INCOMING_FILE_PREFIX);
+
+    private final File mailDataDir;
+    private final File failedDir;
+    private final FileFilter failedFileFilter;
+    private final String abandonedFileNameMatchPattern;
+    private final int watchRetryDelay;
+
+    private final ClusterModeManager clusterModeManager;
+
+    private MessageProcessingCoordinator consumer;
 
     public FilesystemMailDataProvider(File mailDataDir, int retryDelay, int retryCounter, int watchRetryDelay, MessageProcessingCoordinator consumer, ClusterModeManager clusterModeManager) {
-        LOG.info("Watching dropfolder ["+mailDataDir.getAbsolutePath()+"] every "+ watchRetryDelay + " ms.");
+        LOG.info("Watching dropfolder {} every {} ms", mailDataDir.getAbsolutePath(), watchRetryDelay);
+
         this.mailDataDir = mailDataDir;
         this.watchRetryDelay = watchRetryDelay;
         this.clusterModeManager = clusterModeManager;
@@ -38,22 +45,19 @@ class FilesystemMailDataProvider implements MailDataProvider {
         this.consumer = consumer;
 
         if (!this.failedDir.exists() && !this.failedDir.mkdirs()) {
-            throw new IllegalStateException(
-                    "Couldn't create 'failure' directory, will stop.");
+            throw new IllegalStateException("Couldn't create 'failure' directory, will stop.");
         }
 
         String failedFileNameFilterPattern = "^(?!(" + FAILED_PREFIX + "){" + (retryCounter + 1) + "})" + FAILED_PREFIX + ".*$";
 
-        this.failedFileFilter = new FailedMailFileFilter(Pattern.compile(
-                failedFileNameFilterPattern), retryDelay);
+        this.failedFileFilter = new FailedMailFileFilter(Pattern.compile(failedFileNameFilterPattern), retryDelay);
+        this.abandonedFileNameMatchPattern = "^(?:" + FAILED_PREFIX + "){" + (retryCounter + 1) + "}(?!" + FAILED_PREFIX + ").*$";
 
-        LOG.info("Scanning Folder {} for files starting with {}", mailDataDir.
-                getAbsolutePath(), INCOMING_FILE_PREFIX);
+        LOG.info("Scanning Folder {} for files starting with {}", mailDataDir.getAbsolutePath(), INCOMING_FILE_PREFIX);
     }
 
     @Override
     public void run() {
-
         FileProcessor processor = new FileProcessor();
         if (!processor.performFileProcessing()) {
             sleep();
@@ -70,16 +74,19 @@ class FilesystemMailDataProvider implements MailDataProvider {
     }
 
     private void process(File tempFilename, File originalFilename) {
-
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(tempFilename))) {
-
             consumer.accept(inputStream);
-
         } catch (Exception e) {
             FAILED_COUNTER.inc();
 
             File failedFilename = new File(failedDir, FAILED_PREFIX + originalFilename.getName());
-            LOG.error("Mail processing failed. Storing mail in failed folder as '" + failedFilename.getName() + "'", e);
+
+            if (failedFilename.getName().matches(abandonedFileNameMatchPattern)) {
+                ABANDONED_RETRY_COUNTER.inc();
+                LOG.error("Mail processing abandoned for file: '" + failedFilename.getName() + "'", e);
+            } else {
+                LOG.warn("Mail processing failed. Storing mail in failed folder as '" + failedFilename.getName() + "'", e);
+            }
 
             if (!tempFilename.renameTo(failedFilename)) {
                 LOG.error("Failed to move failed mail to 'failed' directory " + tempFilename.getName());
@@ -99,12 +106,11 @@ class FilesystemMailDataProvider implements MailDataProvider {
     }
 
     class FileProcessor {
-
         boolean performFileProcessing() {
-
             if (doNotProcessMessagesNow()) {
                 return false;
             }
+
             File[] files = mailDataDir.listFiles(INCOMING_FILE_FILTER);
             File[] failedFiles = failedDir.listFiles(failedFileFilter);
             File[] allFiles = new File[files.length + failedFiles.length];

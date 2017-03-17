@@ -11,10 +11,6 @@ import java.util.List;
 import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.timestampInMinutes;
 
 public abstract class FetchIndexHelper {
-
-
-    private FetchIndexHelper() { /* hide me */}
-
     public static List<IndexEntry> fetchResult(FetchIndex<Number> fetchIndex, DateTime time, int maxResults) throws RiakException {
         Preconditions.checkNotNull(fetchIndex, time);
         // FIXME: The getAll() call put all results into one list. When the amount of data is quite big, it might be possible that we run out of memory!

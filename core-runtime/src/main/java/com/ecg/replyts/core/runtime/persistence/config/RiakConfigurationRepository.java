@@ -18,10 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RiakConfigurationRepository implements ConfigurationRepository {
-
-
     private static final Logger LOG = LoggerFactory.getLogger(RiakConfigurationRepository.class);
+
     private static final String DEFAULT_CONFIG_BUCKET_NAME = "config";
+
     private final ConfigurationConverter converter;
 
     private DomainBucket<Configurations> configurationBucket;

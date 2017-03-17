@@ -16,7 +16,7 @@ public class RiakConversationRepositoryIntegrationTest extends ConversationRepos
     @Override
     protected RiakConversationRepository createConversationRepository() {
         IRiakClient riakClient = new EmbeddedRiakClient();
-        return new RiakConversationRepository(riakClient);
+        return new RiakConversationRepository(riakClient, true, false);
     }
 
     @Test

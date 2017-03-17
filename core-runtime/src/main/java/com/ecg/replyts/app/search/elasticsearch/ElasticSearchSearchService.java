@@ -25,28 +25,15 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static com.ecg.replyts.app.search.elasticsearch.SearchTransformer.translate;
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 
+public class ElasticSearchSearchService implements SearchService, MutableSearchService {
+    private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchSearchService.class);
 
-/**
- * SearchService implementation using Elastic Search as backend.
- * <p/>
- * <b>NOTE:</b> This is a first implementation, which uses queries only. No filters are being used yet. However, this
- * would most likely cause a performance issue on production systems. Thus, this code should never make it there ;-)
- * Instead, most of the search criteria should be reimnplemented using filters (refer to the Elastic Search website for
- * background information on performance differences between queries and filters). This, unfortunately, has proven to be
- * difficult as the filter keywords aren't analyzed before being applied to any results. Hence this "incomplete" first
- * version of the service.
- *
- * @author alindhorst
- */
-class ElasticSearchSearchService implements SearchService, MutableSearchService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticSearchSearchService.class);
     private static final Timer SEARCH_TIMER = TimingReports.newTimer("es-doSearch");
     private static final Timer GROUP_SEARCH_TIMER = TimingReports.newTimer("es-doGroupSearch");
-    static final String TYPE_NAME = "message";
+
+    protected static final String TYPE_NAME = "message";
 
     private final Client client;
     private final String indexName;
@@ -60,9 +47,11 @@ class ElasticSearchSearchService implements SearchService, MutableSearchService 
 
     @Override
     public RtsSearchResponse search(SearchMessagePayload searchMessageCommand) {
+        SearchRequestBuilder searchRequestBuilder = searchMessageCommand.isUseFilterQuery()
+          ? new FilterSearchTransformer(searchMessageCommand, client, indexName).intoQuery()
+          : new QuerySearchTransformer(searchMessageCommand, client, indexName).intoQuery();
 
-        SearchRequestBuilder searchRequestBuilder = translate(searchMessageCommand, client, indexName).intoQuery();
-        LOGGER.trace("\n\nRequest:\n\n {}", searchRequestBuilder);
+        LOG.trace("\n\nRequest:\n\n {}", searchRequestBuilder);
 
         SearchResponse searchResponse = executeSearch(searchRequestBuilder, SEARCH_TIMER);
 
@@ -71,9 +60,11 @@ class ElasticSearchSearchService implements SearchService, MutableSearchService 
 
     @Override
     public RtsSearchGroupResponse search(SearchMessageGroupPayload searchMessageCommand) {
+        SearchRequestBuilder searchRequestBuilder = searchMessageCommand.isUseFilterQuery()
+          ? new FilterSearchTransformer(searchMessageCommand, client, indexName).intoQuery()
+          : new QuerySearchTransformer(searchMessageCommand, client, indexName).intoQuery();
 
-        SearchRequestBuilder searchRequestBuilder = translate(searchMessageCommand, client, indexName).intoQuery();
-        LOGGER.trace("\n\nRequest:\n\n {}", searchRequestBuilder);
+        LOG.trace("\n\nRequest:\n\n {}", searchRequestBuilder);
 
         SearchResponse searchResponse = executeSearch(searchRequestBuilder, GROUP_SEARCH_TIMER);
 
@@ -81,12 +72,12 @@ class ElasticSearchSearchService implements SearchService, MutableSearchService 
     }
 
     private SearchResponse executeSearch(SearchRequestBuilder searchRequestBuilder, Timer searchTimer) {
-        try (Timer.Context timer = searchTimer.time()) {
+        try (Timer.Context ignore = searchTimer.time()) {
             SearchResponse response = searchRequestBuilder.execute().actionGet(timeoutMs, TimeUnit.MILLISECONDS);
-            LOGGER.trace("\n\nResponse:\n\n{}", response);
+            LOG.trace("\n\nResponse:\n\n{}", response);
             return response;
         } catch (Exception exception) {
-            LOGGER.error("Couldn't perform elastic search", exception);
+            LOG.error("Couldn't perform elastic search", exception);
             throw new RuntimeException(exception);
         }
     }
@@ -127,7 +118,7 @@ class ElasticSearchSearchService implements SearchService, MutableSearchService 
                 storedIds.add(new RtsSearchResponse.IDHolder(messageDocumentId.getMessageId(),
                         messageDocumentId.getConversationId()));
             } catch (RuntimeException exception) {
-                LOGGER.error("Could not extract message/conv from searchresult: {} ", hit.getId(), exception);
+                LOG.error("Could not extract message/conv from searchresult: {} ", hit.getId(), exception);
             }
         }
     }

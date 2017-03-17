@@ -1,0 +1,69 @@
+Return-Path: <javirodrigue@ebay.com>
+Delivered-To: Seller.cp0b98vsiovs@reply.qa9.gumtree.com
+Received: from qagt-rts009.qa.gt.ecg.so (localhost [127.0.0.1])
+	by qagt-rts009.qa.gt.ecg.so (Postfix) with ESMTP id 1862E1008DA
+	for <Seller.cp0b98vsiovs@reply.qa9.gumtree.com>; Mon, 14 Sep 2015 13:57:58 +0100 (BST)
+Received: from qagt-mail001.qa.gt.ecg.so (unknown [10.40.8.141])
+	by qagt-rts009.qa.gt.ecg.so (Postfix) with ESMTPS id 0812F100080
+	for <Seller.cp0b98vsiovs@reply.qa9.gumtree.com>; Mon, 14 Sep 2015 13:57:58 +0100 (BST)
+Received: from [193.28.178.23] (helo=dub-mipot-001.corp.ebay.com)
+	by qagt-mail001.qa.gt.ecg.so with esmtp (Exim 4.84)
+	(envelope-from <javirodrigue@ebay.com>)
+	id 1ZbTKX-0003fK-Nv
+	for Seller.cp0b98vsiovs@reply.qa9.gumtree.com; Mon, 14 Sep 2015 13:57:57 +0100
+DomainKey-Signature: s=ebaycorp; d=ebay.com; c=nofws; q=dns;
+  h=X-EBay-Corp:X-IronPort-AV:Received:Received:From:To:
+   Subject:Thread-Topic:Thread-Index:Date:Message-ID:
+   In-Reply-To:Accept-Language:Content-Language:
+   X-MS-Has-Attach:X-MS-TNEF-Correlator:x-originating-ip:
+   Content-Type:Content-ID:Content-Transfer-Encoding:
+   MIME-Version:X-CFilter;
+  b=USmAhSzDQbE0doUHsnhtlrYe2YFo7KZnHhwLjZn/yycZvyS01lyRyJxA
+   5tHiG8KNdSl0LrBa1oJNcQveXhAFHNGhStTc3Dh0a1XTy+kTzAhas2mdw
+   Fte10SL3qUL+48anvG5mUg563x0jxdgFZbKG55oOR1OSNLQdvVz04P5eU
+   M=;
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=ebay.com; i=@ebay.com; q=dns/txt; s=ebaycorp;
+  t=1442235477; x=1473771477;
+  h=from:to:subject:date:message-id:in-reply-to:content-id:
+   content-transfer-encoding:mime-version;
+  bh=qN011K6fwlMgQIg51Qeo88l79iriLn8HcBix1J1Khkg=;
+  b=p7TbIcWq4Olren1JzktDkxE61JufPXcoEugJrlzHFX1XzBPiBe82sh9F
+   8wwJV/mwEMCJP10HlCouQ2MgSeUA7d0PkYN5uMDzYyLFyho3p2adTcIhg
+   hkRthkWnXGbhxYDXyM6s8Sa7a9Qiza+4n9HaJiu8qMxTxEI7NB36k4JkS
+   E=;
+X-EBay-Corp: Yes
+X-IronPort-AV: E=Sophos;i="5.17,528,1437433200";
+   d="scan'208";a="7501655"
+Received: from dub-vteml-001.corp.ebay.com (HELO DUB-EXMHT-004.corp.ebay.com) ([10.243.104.52])
+  by dub-mipot-001.corp.ebay.com with ESMTP; 14 Sep 2015 13:57:56 +0100
+Received: from DUB-EXDDA-S31.corp.ebay.com ([169.254.7.204]) by
+ DUB-EXMHT-004.corp.ebay.com ([fe80::7c69:ae59:7052:635a%14]) with mapi id
+ 14.03.0235.001; Mon, 14 Sep 2015 13:57:55 +0100
+From: "Rivas, Javier" <javirodrigue@ebay.com>
+To: Thomas via Gumtree Mail <Seller.cp0b98vsiovs@reply.qa9.gumtree.com>
+Subject: Re: jessica replied to your ad: This is just a test ad
+Thread-Topic: jessica replied to your ad: This is just a test ad
+Thread-Index: AQHQ7KmJzblW9Z4Sgk6yjiaEey6qPp48AKIA
+Date: Mon, 14 Sep 2015 12:57:54 +0000
+Message-ID: <D21C82D7.1FC33%javirodrigue@ebay.com>
+In-Reply-To: <mie7dsn6m6vvvc2jbe14rr9vlas1vnyj31h22v1pqidjck8m0o0@reply.qa9.gumtree.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-originating-ip: [10.243.57.242]
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <91C58A657ED67F44AAF189DC2520F614@corp.ebay.com>
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-CFilter: Scanned
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+This should not be processed by rts2
+
+On 9/11/15, 4:50 PM, "Thomas via Gumtree Mail"
+<Seller.cp0b98vsiovs@reply.qa9.gumtree.com> wrote:
+
+>can't believe it's working!=20
+

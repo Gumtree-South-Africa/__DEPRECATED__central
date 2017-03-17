@@ -14,7 +14,6 @@
             <id>gtau</id>
 
             <repositories>
-
                 <repository>
                     <id>gtauNexus</id>
                     <url>https://nexus.au.ecg.so/repository/Releases/</url>
@@ -25,7 +24,6 @@
                         <enabled>false</enabled>
                     </snapshots>
                 </repository>
-
             </repositories>
 
             <properties>
@@ -36,6 +34,7 @@
             <modules>
                 <module>coremods/gtau-coremod-autogatemaildelivery</module>
                 <module>coremods/gtau-coremod-readrepairindexer</module>
+
                 <module>filters/core-filter-bankaccount</module>
                 <module>filters/core-filter-belenblockedad</module>
                 <module>filters/core-filter-user</module>
@@ -64,19 +63,52 @@
         <profile>
             <id>gtuk</id>
 
+            <repositories>
+                <repository>
+                    <id>gtukNexus</id>
+                    <url>http://nexus.ci.gt.ecg.so/nexus/content/repositories/public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+
             <properties>
                 <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>gtuk</profile-classifier>
             </properties>
 
             <modules>
-                <module>filters/core-filter-bankaccount</module>
-                <module>filters/core-filter-belenblockedad</module>
-                <module>filters/core-filter-belenblockeduser</module>
-                <module>filters/core-filter-ebayservices</module>
-                <module>filters/core-filter-user</module>
-                <module>filters/core-filter-volume</module>
-                <module>filters/core-filter-word</module>
+                <module>coremods/gtuk-coremod-shared</module>
+                <module>coremods/gtuk-coremod-healthcheck</module>
+
+                <!--
+
+                <module>filters/gtuk-filter-blacklist</module>
+                <module>filters/gtuk-filter-category</module>
+                <module>filters/gtuk-filter-flagged</module>
+                <module>filters/gtuk-filter-geoip</module>
+                <module>filters/gtuk-filter-geoiplookup</module>
+                <module>filters/gtuk-filter-knowngood</module>
+                <module>filters/gtuk-filter-url</module>
+                <module>filters/gtuk-filter-velocity</module>
+                <module>filters/gtuk-filter-watchlist</module>
+
+                -->
+
+                <module>filters/gtuk-filter-word</module>
+
+                <module>listeners/gtuk-listener-eventpublisher</module>
+                <module>listeners/gtuk-listener-statsnotifier</module>
+                <module>listeners/gtuk-listener-reporting</module>
+
+                <module>postprocessors/core-postprocessor-buyeralias</module>
+                <module>postprocessors/gtuk-postprocessor-bodyanonymizer</module>
+
+                <module>messagecenters/gtuk-messagecenter</module>
 
                 <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>
@@ -200,7 +232,7 @@
                 <module>listeners/ebayk-listener-dailyreport</module>
                 <module>listeners/ebayk-listener-jsonlogging</module>
 
-                <module>postprocessors/ebayk-postprocessor-buyeralias</module>
+                <module>postprocessors/core-postprocessor-buyeralias</module>
                 <module>postprocessors/ebayk-postprocessor-linkproxy</module>
                 <module>postprocessors/ebayk-postprocessor-openimmodeanonymizer</module>
 
@@ -359,6 +391,7 @@
         <spring-boot.version>1.4.1.RELEASE</spring-boot.version>
         <spring-cloud-consul.version>1.1.2.RELEASE</spring-cloud-consul.version>
         <json-lib.version>2.2.3</json-lib.version>
+        <jsonassert.version>1.4.0</jsonassert.version>
         <assertj-core.version>3.2.0</assertj-core.version>
         <bouncycastle-version>1.50</bouncycastle-version>
         <bouncycastle-jdk>jdk15on</bouncycastle-jdk>
@@ -433,13 +466,25 @@
         <tika-version>1.12</tika-version>
         <apache-activemq.version>5.7.0</apache-activemq.version>
         <glassfish-jersey.version>2.7</glassfish-jersey.version>
+        <glassfish.grizzly.version>2.3.21</glassfish.grizzly.version>
         <hystrix-version>1.5.2</hystrix-version>
+        <asynchttpclient.version>1.9.38</asynchttpclient.version>
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
         <gumtree-au-events.version>1.54</gumtree-au-events.version>
         <wiremock.version>1.58</wiremock.version>
         <gumtree-au-lbs2-client-version>0.3</gumtree-au-lbs2-client-version>
+
+        <!-- gtuk artifact dependencies -->
+        <gt.version>3.0-SNAPSHOT</gt.version>
+        <gt.replies.models.version>4.28186</gt.replies.models.version>
+        <gt.gumshield.api.version>4.28187</gt.gumshield.api.version>
+        <gt.comaas.models.version>1.4</gt.comaas.models.version>
+        <gt.gumtree.common.version>4.28186</gt.gumtree.common.version>
+        <gt.google.analytics.version>${gt.version}</gt.google.analytics.version>
+        <gt.category.api.client.version>${gt.version}</gt.category.api.client.version>
+        <gt.geoip.lib.version>1.0.0</gt.geoip.lib.version>
 
         <!-- mde artifact versions -->
         <mde-demand-reporting-client.version>1.17</mde-demand-reporting-client.version>
@@ -502,6 +547,141 @@
                 <groupId>org.jsoup</groupId>
                 <artifactId>jsoup</artifactId>
                 <version>${jsoup.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>gumtree-common</groupId>
+                <artifactId>util</artifactId>
+                <version>${gt.gumtree.common.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-aop</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-codec</groupId>
+                        <artifactId>commons-codec</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-beanutils</groupId>
+                        <artifactId>commons-beanutils</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.gumtree.google-analytics</groupId>
+                <artifactId>core</artifactId>
+                <version>${gt.google.analytics.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.codehaus.jackson</groupId>
+                        <artifactId>jackson-core-asl</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.jackson</groupId>
+                        <artifactId>jackson-mapper-asl</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-lang3</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.gumtree.gumshield.api</groupId>
+                <artifactId>client</artifactId>
+                <version>${gt.gumshield.api.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-beanutils</groupId>
+                        <artifactId>commons-beanutils</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.jackson</groupId>
+                        <artifactId>jackson-core-asl</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.jackson</groupId>
+                        <artifactId>jackson-mapper-asl</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.gumtree.comaas</groupId>
+                <artifactId>comaas-domain</artifactId>
+                <version>${gt.comaas.models.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.json</groupId>
+                        <artifactId>json</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.code.gson</groupId>
+                        <artifactId>gson</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.gumtree.replies</groupId>
+                <artifactId>json-mapping</artifactId>
+                <version>${gt.replies.models.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>ch.qos.logback</groupId>
+                        <artifactId>logback-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.gumtree.api.category</groupId>
+                <artifactId>read-api</artifactId>
+                <version>${gt.category.api.client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.gumtree.api.category</groupId>
+                <artifactId>read-client</artifactId>
+                <version>${gt.category.api.client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.gumtree.libs</groupId>
+                <artifactId>geoip-lib</artifactId>
+                <version>${gt.geoip.lib.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-beans</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.grizzly</groupId>
+                <artifactId>connection-pool</artifactId>
+                <version>${glassfish.grizzly.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.grizzly</groupId>
+                <artifactId>grizzly-websockets</artifactId>
+                <version>${glassfish.grizzly.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ning</groupId>
+                <artifactId>async-http-client</artifactId>
+                <version>${asynchttpclient.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.netflix.archaius</groupId>
@@ -687,6 +867,11 @@
             <dependency>
                 <groupId>ecg.comaas</groupId>
                 <artifactId>kjca-messagecenter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ecg.comaas</groupId>
+                <artifactId>gtuk-messagecenter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -931,6 +1116,13 @@
                         <groupId>commons-collections</groupId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.skyscreamer</groupId>
+                <artifactId>jsonassert</artifactId>
+                <version>${jsonassert.version}</version>
+                <scope>test</scope>
             </dependency>
 
             <dependency>
@@ -1282,6 +1474,16 @@
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-servlet</artifactId>
+                <version>${metrics.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dropwizard.metrics</groupId>
+                <artifactId>metrics-servlets</artifactId>
+                <version>${metrics.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.dropwizard.metrics</groupId>
+                <artifactId>metrics-healthchecks</artifactId>
                 <version>${metrics.version}</version>
             </dependency>
             <dependency>

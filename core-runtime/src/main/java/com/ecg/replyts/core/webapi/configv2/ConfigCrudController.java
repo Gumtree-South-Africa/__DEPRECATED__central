@@ -11,10 +11,12 @@ import com.ecg.replyts.core.api.util.JsonObjects.Builder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +27,8 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static java.lang.String.format;
 
 /**
  * Handles reading and manipulating configuration of plugins. Configurations are read from database. <b>If you are not
@@ -77,13 +81,11 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Controller
 public class ConfigCrudController implements HandlerExceptionResolver {
-
     private static final Logger LOG = LoggerFactory.getLogger(ConfigCrudController.class);
 
     private ConfigurationRepository configRepository;
 
     private ConfigurationUpdateNotifier configUpdateNotifier;
-
 
     @Autowired
     ConfigCrudController(ConfigurationRepository repository, ConfigurationUpdateNotifier updateNotifier) {
@@ -91,11 +93,11 @@ public class ConfigCrudController implements HandlerExceptionResolver {
         configUpdateNotifier = updateNotifier;
     }
 
-
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ObjectNode listConfigurations() {
         ArrayNode an = JsonObjects.newJsonArray();
+        // TODO: Order by priority
         for (PluginConfiguration c : configRepository.getConfigurations()) {
             Builder config = JsonObjects.builder()
                     .attr("pluginFactory", c.getId().getPluginFactory().getName())
@@ -108,7 +110,6 @@ public class ConfigCrudController implements HandlerExceptionResolver {
         }
         return JsonObjects.builder().attr("configs", an).build();
     }
-
 
     @ResponseBody
     @RequestMapping(value = "/{pluginFactory}/{instanceId}", method = RequestMethod.PUT, consumes = "*/*")
@@ -133,6 +134,60 @@ public class ConfigCrudController implements HandlerExceptionResolver {
     }
 
     @ResponseBody
+    @RequestMapping(value = "/", method = RequestMethod.PUT, consumes = "*/*")
+    public ObjectNode replaceConfigurations(@RequestBody ArrayNode body) throws Exception {
+        // Verify whether the configurations are correct
+
+        body.forEach(node -> {
+            assertArrayElement(node, "pluginFactory", TextNode.class);
+            assertArrayElement(node, "instanceId", TextNode.class);
+            assertArrayElement(node, "configuration", ObjectNode.class);
+        });
+
+        // Remove all old plugins, then extract and add the replacements and confirm
+
+        configRepository.getConfigurations().forEach(c -> configRepository.deleteConfiguration(c.getId()));
+
+        for (JsonNode node : body) {
+            String pluginFactory = node.get("pluginFactory").textValue();
+            String instanceId = node.get("instanceId").textValue();
+            JsonNode configuration = node.get("configuration");
+
+            PluginConfiguration config = extract(pluginFactory, instanceId, configuration);
+
+            if (!configUpdateNotifier.validateConfiguration(config)) {
+                throw new IllegalArgumentException(format("PluginFactory %s not found", pluginFactory));
+            }
+
+            LOG.info("Saving Config update {}", config.getId());
+
+            configRepository.persistConfiguration(config);
+        };
+
+        configUpdateNotifier.confirmConfigurationUpdate();
+
+        return JsonObjects.builder()
+          .attr("count", body.size())
+          .success().build();
+    }
+
+    private void assertArrayElement(JsonNode element, String fieldName, Class<? extends JsonNode> clazz) {
+        if (!(element instanceof ObjectNode)) {
+            throw new IllegalArgumentException("Array element is not an Object");
+        }
+
+        JsonNode field = element.get(fieldName);
+
+        if (!field.getClass().equals(clazz)) {
+            throw new IllegalArgumentException(format("Array element's contents does not contain %s as a %s class", fieldName, clazz));
+        }
+
+        if (field instanceof TextNode && !StringUtils.hasText(field.textValue())) {
+            throw new IllegalArgumentException(format("Array element's contents contains field %s but it contains an empty value", fieldName));
+        }
+    }
+
+    @ResponseBody
     @RequestMapping(value = "/{pluginFactory}/{instanceId}", method = RequestMethod.DELETE, consumes = "*/*")
     public ObjectNode deleteConfiguration(@PathVariable String pluginFactory, @PathVariable String instanceId) throws Exception {
         ConfigurationId cid = toId(pluginFactory, instanceId);
@@ -141,7 +196,6 @@ public class ConfigCrudController implements HandlerExceptionResolver {
         return JsonObjects.builder().success().build();
 
     }
-
 
     private PluginConfiguration extract(String pluginFactory, String instanceId, JsonNode body) throws Exception {
         JsonNode configuration = body.get("configuration");
@@ -155,7 +209,6 @@ public class ConfigCrudController implements HandlerExceptionResolver {
 
         return config;
     }
-
 
     private static String getContent(JsonNode body, String fieldname, String alternative) {
         JsonNode fn = body.get(fieldname);
@@ -183,6 +236,4 @@ public class ConfigCrudController implements HandlerExceptionResolver {
         }
         return null;
     }
-
-
 }

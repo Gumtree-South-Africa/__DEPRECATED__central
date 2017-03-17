@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 
-@Configuration
 @ComaasPlugin
+@Configuration("core-messagecenter")
 public class PluginConfiguration {
     @Configuration
     @ComponentScan("com.ecg.messagebox")

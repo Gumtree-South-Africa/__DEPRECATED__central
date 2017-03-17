@@ -7,16 +7,10 @@ import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.google.common.base.Optional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Context for the processing of a message. contains all information available for a message (including conversation, the original mail and so on)
- */
 public class MessageProcessingContext {
 
     /**
@@ -37,6 +31,8 @@ public class MessageProcessingContext {
     private final Set<String> skipDeliveryChannels = new HashSet<>();
 
     private final ProcessingTimeGuard processingTimeGuard;
+
+    private final Map<String, Object> filterContext = new HashMap<>();
 
     public MessageProcessingContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard) {
 
@@ -199,5 +195,9 @@ public class MessageProcessingContext {
      */
     public ProcessingTimeGuard getProcessingTimeGuard() {
         return processingTimeGuard;
+    }
+
+    public Map<String, Object> getFilterContext() {
+        return filterContext;
     }
 }

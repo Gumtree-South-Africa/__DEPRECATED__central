@@ -34,9 +34,9 @@ public class ConversationBucketTest {
     @Before
     public void setUp() throws Exception {
         when(riakClient.fetchBucket("conversation").execute()).thenReturn(bucket);
-        when(riakClient.updateBucket(bucket).allowSiblings(true).execute()).thenReturn(bucket);
+        when(riakClient.updateBucket(bucket).allowSiblings(true).lastWriteWins(false).execute()).thenReturn(bucket);
 
-        conversationBucket = new ConversationBucket(riakClient, "conversation");
+        conversationBucket = new ConversationBucket(riakClient, "conversation", true, false);
     }
 
     @SuppressWarnings("unchecked")

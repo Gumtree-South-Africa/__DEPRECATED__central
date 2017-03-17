@@ -1,0 +1,432 @@
+Return-Path: <javirodrigue@ebay.com>
+Delivered-To: Buyer.1vaktc7z1e81v@reply.qa3.gumtree.com
+Received: from qagt-rts003b.qa.gt.ecg.so (localhost [127.0.0.1])
+	by qagt-rts003b.qa.gt.ecg.so (Postfix) with ESMTP id 7110C390
+	for <Buyer.1vaktc7z1e81v@reply.qa3.gumtree.com>; Wed, 10 Feb 2016 15:49:35 +0000 (GMT)
+Received: from qagt-mx003.qa.gt.ecg.so (qagt-lb001-vlan200.qa.gt.ecg.so [10.40.20.252])
+	by qagt-rts003b.qa.gt.ecg.so (Postfix) with ESMTPS id 5E85B4E
+	for <Buyer.1vaktc7z1e81v@reply.qa3.gumtree.com>; Wed, 10 Feb 2016 15:49:35 +0000 (GMT)
+Received: from [10.40.8.141] (helo=qagt-mail001.qa.gt.ecg.so)
+	by qagt-mx003.qa.gt.ecg.so with esmtps (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+	(Exim 4.84)
+	(envelope-from <javirodrigue@ebay.com>)
+	id 1aTX1L-0001gK-AJ
+	for Buyer.1vaktc7z1e81v@reply.qa3.gumtree.com; Wed, 10 Feb 2016 15:49:35 +0000
+Received: from [193.28.178.24] (helo=dub-mipot-002.corp.ebay.com)
+	by qagt-mail001.qa.gt.ecg.so with esmtp (Exim 4.84)
+	(envelope-from <javirodrigue@ebay.com>)
+	id 1aTX1L-0007J9-5V
+	for Buyer.1vaktc7z1e81v@reply.qa3.gumtree.com; Wed, 10 Feb 2016 15:49:35 +0000
+DomainKey-Signature: s=ebaycorp; d=ebay.com; c=nofws; q=dns;
+  h=X-EBay-Corp:X-IronPort-AV:Received:Received:From:To:
+   Subject:Thread-Topic:Thread-Index:Date:Message-ID:
+   In-Reply-To:Accept-Language:Content-Language:
+   X-MS-Has-Attach:X-MS-TNEF-Correlator:x-originating-ip:
+   Content-Type:MIME-Version:X-CFilter;
+  b=jTYfSBnynC40onhwviCNsWfrynlaOps0lOXvMgb/HVG/qWjcM+QEJSir
+   NW1owXYtawOlzGdUqaXAjNKfZ84qz+5ZyI5acJJ1+Ikl/PM+b6wq3BJ2e
+   emnsISg4XddKR4MVUte8KdD9upoNPXaQbx6PeIUML47y9JNzJVEmQ6n1M
+   0=;
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=ebay.com; i=@ebay.com; q=dns/txt; s=ebaycorp;
+  t=1455119375; x=1486655375;
+  h=from:to:subject:date:message-id:in-reply-to:mime-version;
+  bh=mYEWPtAq4RRrPFAYwaYwD83FwRyWVW4Lfrq0AK9iySY=;
+  b=aLB9AmTBtum2viDYxQ5wJ9K20/D49gpu5ZRqYbqaD4sEhkt65Y5BqqK6
+   frbwDkNzmj74jo45uP8kBCzzVVAJ/qgoPfoNJL/V3nwid6q69O5rj4lCS
+   72LklJZmkcX4eDplHR78XIocSdgiNiVG9f56VYVoLPT545ShnSB4m7Y5e
+   E=;
+X-EBay-Corp: Yes
+X-IronPort-AV: E=Sophos;i="5.22,426,1449532800";
+   d="scan'208,217";a="896024"
+Received: from dub-vteml-001.corp.ebay.com (HELO DUB-EXMHT-001.corp.ebay.com) ([10.243.104.52])
+  by dub-mipot-002.corp.ebay.com with ESMTP; 10 Feb 2016 15:49:32 +0000
+Received: from DUB-EXDDA-S31.corp.ebay.com ([169.254.7.168]) by
+ DUB-EXMHT-001.corp.ebay.com ([fe80::e581:f9ef:8275:aaea%14]) with mapi id
+ 14.03.0266.001; Wed, 10 Feb 2016 15:49:32 +0000
+From: "Rivas, Javier" <javirodrigue@ebay.com>
+To: mohhusain via Gumtree Mail <Buyer.1vaktc7z1e81v@reply.qa3.gumtree.com>
+Subject: Re: mohhusain replied to your ad: Apprentice needed
+Thread-Topic: mohhusain replied to your ad: Apprentice needed
+Thread-Index: AQHRYzKkiHvXkeWhDkKdi7YG0Bnf0J8lbt2A
+Date: Wed, 10 Feb 2016 15:49:32 +0000
+Message-ID: <D2E10C85.20984%javirodrigue@ebay.com>
+In-Reply-To: <mn3z5umrl6kbhzovyhnqkcm9jxg2zud3qaikgx05nq5jrv0ddsn@reply.qa3.gumtree.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-originating-ip: [10.243.57.241]
+Content-Type: multipart/alternative;
+	boundary="_000_D2E10C8520984javirodrigueebaycom_"
+MIME-Version: 1.0
+X-CFilter: Scanned
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+--_000_D2E10C8520984javirodrigueebaycom_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+Hello
+
+From: mohhusain via Gumtree Mail <Buyer.1vaktc7z1e81v@reply.qa3.gumtree.com=
+<mailto:Buyer.1vaktc7z1e81v@reply.qa3.gumtree.com>>
+Date: Tuesday, February 9, 2016 at 12:08 PM
+To: "Rodriguez, Javier" <javirodrigue@ebay.com<mailto:javirodrigue@ebay.com=
+>>
+Subject: mohhusain replied to your ad: Apprentice needed
+
+
+
+
+Dear Mum,
+
+
+
+You have received a reply to your ad: "Apprentice needed"<https://www.qa3.g=
+umtree.com/p/jobs/apprentice-needed/1000857808?utm_source=3Dsystemedm&utm_m=
+edium=3Demail&utm_campaign=3Dadreply> posted in Apprenticeships in London.
+
+
+
+
+
+From: mohhusain
+
+
+
+hello
+
+
+
+
+
+This message has been sent through Gumtree mail, which keeps your email add=
+ress private. We recommend that you always reply via Gumtree messenger<http=
+://help.gumtree.com/articles/General_Information/How-to-use-Gumtree-Message=
+-Centre> instead of private email addresses. If there is anything about the=
+ message that you think is suspicious, do not reply and make sure to report=
+ it to us<http://help.gumtree.com/articles/General_Information/Reporting-is=
+sues-to-Gumtree?retURL=3D%2Fapex%2FknowledgeFAQs%3Fc%3DReport_ads%26k%3D&po=
+pup=3Dfalse&at=3DHow>. We want to look out for you so we look into all repo=
+rts and get back to you asap.
+
+
+
+To make sure you have the best experience with us, here are a few top safet=
+y tips when buying and selling on Gumtree:
+
+
+
+     Try to meet face to face to have a look at the item you are buying an=
+d check the payment you are receiving
+     If you can't meet face to face use the PayPal 'Pay for goods and serv=
+ices' option to transfer money. This is covered by PayPal's Buyer Protectio=
+n<https://www.paypal.com/uk/webapps/mpp/paypal-safety-and-security?locale.x=
+=3Den_GB> scheme.
+     Never click on links sent in an email or to login to Gumtree. These c=
+ould be fraudulent so we always recommend to avoid - you should always acce=
+ss your account via the Gumtree homepage<https://www.gumtree.com/>
+     Always check out our Stay Safe<http://help.gumtree.com/knowledgeFAQs?=
+c=3DBuying&k=3D> pages for more tips and latest safety info
+
+
+
+
+From
+
+
+
+The Gumtree Team
+
+
+
+
+--_000_D2E10C8520984javirodrigueebaycom_
+Content-Type: text/html; charset="us-ascii"
+Content-ID: <BBD845881D59C9419F2CE066893B9C9E@corp.ebay.com>
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dus-ascii"=
+>
+</head>
+<body style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; -webkit-lin=
+e-break: after-white-space; color: rgb(0, 0, 0); font-size: 14px; font-fami=
+ly: Calibri, sans-serif;">
+<div>Hello</div>
+<div><br>
+</div>
+<span id=3D"OLK_SRC_BODY_SECTION">
+<div style=3D"font-family:Calibri; font-size:11pt; text-align:left; color:b=
+lack; BORDER-BOTTOM: medium none; BORDER-LEFT: medium none; PADDING-BOTTOM:=
+ 0in; PADDING-LEFT: 0in; PADDING-RIGHT: 0in; BORDER-TOP: #b5c4df 1pt solid;=
+ BORDER-RIGHT: medium none; PADDING-TOP: 3pt">
+<span style=3D"font-weight:bold">From: </span>mohhusain via Gumtree Mail &l=
+t;<a href=3D"mailto:Buyer.1vaktc7z1e81v@reply.qa3.gumtree.com">Buyer.1vaktc=
+7z1e81v@reply.qa3.gumtree.com</a>&gt;<br>
+<span style=3D"font-weight:bold">Date: </span>Tuesday, February 9, 2016 at =
+12:08 PM<br>
+<span style=3D"font-weight:bold">To: </span>&quot;Rodriguez, Javier&quot; &=
+lt;<a href=3D"mailto:javirodrigue@ebay.com">javirodrigue@ebay.com</a>&gt;<b=
+r>
+<span style=3D"font-weight:bold">Subject: </span>mohhusain replied to your =
+ad: Apprentice needed<br>
+</div>
+<div><br>
+</div>
+<div>
+<title></title>
+<style type=3D"text/css">
+        *{margin:0px;padding:0px;}
+        html, body{width:100%;}
+        table tr td {margin:0;padding:0;}
+        a { text-decoration:none;border:0;}
+    </style>
+<div width=3D"100%" style=3D"background-color:#ffffff;margin:0px;padding:0p=
+x;color:#3c3241000;">
+<table cellpadding=3D"0" cellspacing=3D"0" style=3D"line-height:0;backgroun=
+d-color:#ffffff;" bgcolor=3D"#ffffff">
+<tbody>
+<tr style=3D"line-height:0;">
+<td width=3D"50%" style=3D"line-height:0;"></td>
+<td style=3D"line-height:0;" width=3D"600">
+<table cellpadding=3D"0" cellspacing=3D"0" style=3D"line-height:0;" width=
+=3D"600">
+<tbody>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"28" height=
+=3D"34" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"548" height=
+=3D"34" bgcolor=3D"#ffffff" valign=3D"top">
+<p style=3D"font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#3c=
+3241;margin:0;padding:0;line-height:14px;margin-bottom:0;">
+Dear <strong>Mum</strong>,</p>
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"28" height=
+=3D"34" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+</tr>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"28" height=
+=3D"34" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"548" height=
+=3D"34" bgcolor=3D"#ffffff" valign=3D"top">
+<p style=3D"font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#3c=
+3241;margin:0;padding:0;line-height:14px;margin-bottom:0;">
+You have received a reply to your ad: <a href=3D"https://www.qa3.gumtree.co=
+m/p/jobs/apprentice-needed/1000857808?utm_source=3Dsystemedm&amp;utm_medium=
+=3Demail&amp;utm_campaign=3Dadreply" style=3D"color:#3997ba;text-decoration=
+:none">
+<span style=3D"color:#3997ba">&quot;Apprentice needed&quot;</span></a> post=
+ed in Apprenticeships in London.</p>
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"24" height=
+=3D"34" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+</tr>
+</tbody>
+</table>
+<table cellpadding=3D"0" cellspacing=3D"0" width=3D"600" style=3D"line-heig=
+ht:0;border-bottom-color:#d6d6d6;border-bottom-width:1px;border-bottom-styl=
+e:solid;">
+<tbody>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"600" height=
+=3D"10" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+</tr>
+</tbody>
+</table>
+<table cellpadding=3D"0" cellspacing=3D"0" style=3D"line-height:0;" width=
+=3D"600">
+<tbody>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"600" height=
+=3D"24" bgcolor=3D"#ffffff" valign=3D"top" colspan=3D"3">
+</td>
+</tr>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"28" height=
+=3D"34" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"548" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+<p style=3D"font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#3c=
+3241;margin:0;padding:0;line-height:20px;font-weight:normal;margin-bottom:0=
+;">
+<span style=3D"font-weight:bold;">From:</span> mohhusain</p>
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"24" height=
+=3D"34" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+</tr>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"28" height=
+=3D"34" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"548" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+<p style=3D"font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#3c=
+3241;margin:0;padding:0;line-height:20px;font-weight:normal;margin-bottom:0=
+;">
+hello</p>
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"24" height=
+=3D"34" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+</tr>
+<tr style=3D"line-height:0;">
+</tr>
+</tbody>
+</table>
+<table cellpadding=3D"0" cellspacing=3D"0" width=3D"600" style=3D"line-heig=
+ht:0;border-bottom-color:#ffffff;border-bottom-width:1px;border-bottom-styl=
+e:solid;">
+<tbody>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"600" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+</tr>
+</tbody>
+</table>
+<table cellpadding=3D"0" cellspacing=3D"0" width=3D"600" style=3D"line-heig=
+ht:0;border-top-color:#d6d6d6;border-top-width:1px;border-top-style:solid">
+<tbody>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"600" height=
+=3D"24" bgcolor=3D"#ffffff" valign=3D"top" colspan=3D"3">
+</td>
+</tr>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"28" height=
+=3D"75" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"548" height=
+=3D"75" bgcolor=3D"#ffffff" valign=3D"top">
+<p style=3D"font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#3c=
+3241;margin:0;padding:0;line-height:20px;font-weight:normal;margin-bottom:0=
+;">
+This message has been sent through Gumtree mail, which keeps your email add=
+ress private. We recommend that you always reply via
+<a href=3D"http://help.gumtree.com/articles/General_Information/How-to-use-=
+Gumtree-Message-Centre" style=3D"color:#3997ba;text-decoration:none">
+<span style=3D"color:#3997ba">Gumtree messenger</span></a> instead of priva=
+te email addresses. If there is anything about the message that you think i=
+s suspicious, do not reply and make sure to
+<a href=3D"http://help.gumtree.com/articles/General_Information/Reporting-i=
+ssues-to-Gumtree?retURL=3D%2Fapex%2FknowledgeFAQs%3Fc%3DReport_ads%26k%3D&a=
+mp;popup=3Dfalse&amp;at=3DHow" style=3D"color:#3997ba;text-decoration:none"=
+>
+<span style=3D"color:#3997ba">report it to us</span></a>. We want to look o=
+ut for you so we look into all reports and get back to you asap.</p>
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"24" height=
+=3D"75" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+</tr>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"28" height=
+=3D"30" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"548" height=
+=3D"30" bgcolor=3D"#ffffff" valign=3D"top">
+<h2 style=3D"font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#3=
+c3241;margin:0;padding:0;line-height:20px;font-weight:bold;margin-bottom:0;=
+">
+To make sure you have the best experience with us, here are a few top safet=
+y tips when buying and selling on Gumtree:</h2>
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"24" height=
+=3D"30" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+</tr>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"28" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"548" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+<ul style=3D"font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#3=
+c3241;margin:0;padding:0;line-height:20px;font-weight:normal;margin-left:30=
+px;">
+<li>Try to meet face to face to have a look at the item you are buying and =
+check the payment you are receiving
+</li><li>If you can't meet face to face use the PayPal 'Pay for goods and s=
+ervices' option to transfer money. This is covered by
+<a href=3D"https://www.paypal.com/uk/webapps/mpp/paypal-safety-and-security=
+?locale.x=3Den_GB" style=3D"color:#3997ba;text-decoration:none">
+<span style=3D"color:#3997ba">PayPal's Buyer Protection</span></a> scheme. =
+</li><li>Never click on links sent in an email or to login to Gumtree. Thes=
+e could be fraudulent so we always recommend to avoid - you should always a=
+ccess your account via the
+<a href=3D"https://www.gumtree.com/" style=3D"color:#3997ba;text-decoration=
+:none"><span style=3D"color:#3997ba">Gumtree homepage</span></a></li><li>Al=
+ways check out our <a href=3D"http://help.gumtree.com/knowledgeFAQs?c=3DBuy=
+ing&amp;k=3D" style=3D"color:#3997ba;text-decoration:none">
+<span style=3D"color:#3997ba">Stay Safe</span></a> pages for more tips and =
+latest safety info
+</li></ul>
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"24" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+</tr>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"600" height=
+=3D"21" bgcolor=3D"#ffffff" valign=3D"top" colspan=3D"3">
+</td>
+</tr>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"28" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"548" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+<p style=3D"font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#3c=
+3241;margin:0;padding:0;line-height:20px;font-weight:normal;margin-bottom:0=
+;">
+From</p>
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"24" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+</tr>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"28" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"548" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+<p style=3D"font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#3c=
+3241;margin:0;padding:0;line-height:20px;font-weight:normal;margin-bottom:0=
+;">
+The Gumtree Team</p>
+</td>
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"24" height=
+=3D"20" bgcolor=3D"#ffffff" valign=3D"top">
+</td>
+</tr>
+<tr style=3D"line-height:0;">
+<td style=3D"line-height:0;background-color:#ffffff;" width=3D"600" height=
+=3D"21" bgcolor=3D"#ffffff" valign=3D"top" colspan=3D"3">
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+<td width=3D"50%" style=3D"line-height:0;"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</span>
+</body>
+</html>
+
+--_000_D2E10C8520984javirodrigueebaycom_--

@@ -46,16 +46,18 @@ public class RiakConversationRepository implements MutableConversationRepository
     private final Timer createdBetweenTimer = TimingReports.newTimer("conversationRepo-createdBetween");
 
 
-    public RiakConversationRepository(IRiakClient riakClient) {
-        this(riakClient, DEFAULT_BUCKET_NAME, DEFAULT_SECRET_BUCKET_NAME, DEFAULT_INDEX_BUCKET_NAME);
+    public RiakConversationRepository(IRiakClient riakClient, boolean allowSiblings, boolean lastWriteWins) {
+        this(riakClient, DEFAULT_BUCKET_NAME, DEFAULT_SECRET_BUCKET_NAME, DEFAULT_INDEX_BUCKET_NAME, allowSiblings, lastWriteWins);
     }
 
-    public RiakConversationRepository(IRiakClient riakClient, String bucketNamePrefix) {
-        this(riakClient, bucketNamePrefix + DEFAULT_BUCKET_NAME, bucketNamePrefix + DEFAULT_SECRET_BUCKET_NAME, bucketNamePrefix + DEFAULT_INDEX_BUCKET_NAME);
+    public RiakConversationRepository(IRiakClient riakClient, String bucketNamePrefix, boolean allowSiblings, boolean lastWriteWins) {
+        this(riakClient, bucketNamePrefix + DEFAULT_BUCKET_NAME, bucketNamePrefix + DEFAULT_SECRET_BUCKET_NAME, bucketNamePrefix + DEFAULT_INDEX_BUCKET_NAME, allowSiblings, lastWriteWins);
     }
 
-    public RiakConversationRepository(IRiakClient riakClient, String bucketName, String secretBucketName, String indexBucketName) {
-        this(new ConversationSecretBucket(riakClient, secretBucketName), new ConversationBucket(riakClient, bucketName), new ConversationIndexBucket(riakClient, indexBucketName));
+    public RiakConversationRepository(IRiakClient riakClient, String bucketName, String secretBucketName, String indexBucketName, boolean allowSiblings, boolean lastWriteWins) {
+        this(new ConversationSecretBucket(riakClient, secretBucketName),
+          new ConversationBucket(riakClient, bucketName, allowSiblings, lastWriteWins),
+          new ConversationIndexBucket(riakClient, indexBucketName));
     }
 
     RiakConversationRepository(ConversationSecretBucket conversationSecretBucket, ConversationBucket conversationBucket, ConversationIndexBucket conversationIndexBucket) {

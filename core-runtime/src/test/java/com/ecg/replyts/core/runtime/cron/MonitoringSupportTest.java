@@ -34,13 +34,13 @@ public class MonitoringSupportTest {
 
     private static class CronJobExecutorA extends SampleCronJobExecutor {
         private CronJobExecutorA() {
-            super(CronExpressionBuilder.never());
+            super("0 0 0 1 1 ? 2099");
         }
     }
 
     private static class CronJobExecutorB extends SampleCronJobExecutor {
         private CronJobExecutorB() {
-            super(CronExpressionBuilder.never());
+            super("0 0 0 1 1 ? 2099");
         }
     }
 

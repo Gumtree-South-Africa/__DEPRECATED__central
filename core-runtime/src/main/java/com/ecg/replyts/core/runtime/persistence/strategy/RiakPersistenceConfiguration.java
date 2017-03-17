@@ -42,20 +42,34 @@ public class RiakPersistenceConfiguration {
     @Value("${persistence.riak.bucket.name.prefix:}")
     private String bucketNamePrefix = "";
 
+    // Temporary property allowing just the config bucket name to be prefixed - used by GTUK to run against one Riak but two 'config' buckets
+
+    @Value("${persistence.riak.config.bucket.name.prefix:}")
+    private String configBucketNamePrefix = "";
+
+    @Value("#{'${persistence.riak.config.bucket.name.prefix:}' != ''}")
+    private Boolean useConfigBucketNamePrefix;
+
     @Value("#{'${persistence.riak.bucket.name.prefix:}' != ''}")
     private Boolean useBucketNamePrefix;
+
+    @Value("${persistence.riak.bucket.allowsiblings:true}")
+    private boolean allowSiblings;
+
+    @Value("${persistence.riak.bucket.lastwritewins:false}")
+    private boolean lastWriteWins;
 
     @Autowired
     private IRiakClient riakClient;
 
     @Bean
     public ConversationRepository conversationRepository() {
-        return useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix) : new RiakConversationRepository(riakClient);
+        return useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins) : new RiakConversationRepository(riakClient, allowSiblings, lastWriteWins);
     }
 
     @Bean
     public ConfigurationRepository configurationRepository() throws RiakRetryFailedException {
-        return useBucketNamePrefix ? new RiakConfigurationRepository(riakClient, bucketNamePrefix) : new RiakConfigurationRepository(riakClient);
+        return useBucketNamePrefix || useConfigBucketNamePrefix ? new RiakConfigurationRepository(riakClient, bucketNamePrefix + configBucketNamePrefix) : new RiakConfigurationRepository(riakClient);
     }
 
     @Bean

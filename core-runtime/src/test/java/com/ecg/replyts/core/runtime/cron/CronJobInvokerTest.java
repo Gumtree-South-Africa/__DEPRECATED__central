@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 
 public class CronJobInvokerTest {
     @Spy
-    private SampleCronJobExecutor cje = new SampleCronJobExecutor(CronExpressionBuilder.never());
+    private SampleCronJobExecutor cje = new SampleCronJobExecutor("0 0 0 1 1 ? 2099");
 
     @Mock
     private HazelcastInstance hci;

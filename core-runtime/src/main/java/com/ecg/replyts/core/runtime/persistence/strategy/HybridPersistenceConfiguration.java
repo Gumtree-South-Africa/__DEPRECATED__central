@@ -71,6 +71,12 @@ public class HybridPersistenceConfiguration {
     @Value("#{'${persistence.riak.bucket.name.prefix:}' != ''}")
     private Boolean useBucketNamePrefix;
 
+    @Value("${persistence.riak.bucket.allowsiblings:true}")
+    private boolean allowSiblings;
+
+    @Value("${persistence.riak.bucket.lastwritewins:false}")
+    private boolean lastWriteWins;
+
     @Autowired
     private IRiakClient riakClient;
 
@@ -80,7 +86,7 @@ public class HybridPersistenceConfiguration {
     @Bean
     public HybridConversationRepository conversationRepository(Session cassandraSession, HybridMigrationClusterState migrationState) {
         DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
-        RiakConversationRepository riakRepository = useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix) : new RiakConversationRepository(riakClient);
+        RiakConversationRepository riakRepository = useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins) : new RiakConversationRepository(riakClient, allowSiblings, lastWriteWins);
 
         cassandraRepository.setObjectMapperConfigurer(objectMapperConfigurer);
 

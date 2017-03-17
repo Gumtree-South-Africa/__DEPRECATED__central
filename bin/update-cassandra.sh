@@ -3,9 +3,11 @@
 # Quick and dirty way to run arbitrary Cassandra commands on a bunch of tenant C* keyspaces
 
 read -r -d '' QUERY << EOF
-CREATE TABLE IF NOT EXISTS core_held_mail (
+DROP TABLE core_held_mail;
+CREATE TABLE core_held_mail (
     message_id text PRIMARY KEY,
-    mail_data blob
+    mail_data blob,
+    mail_date timestamp
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
     AND comment = ''
@@ -34,7 +36,7 @@ for TENANT in mo mp ; do
 		KEYSPACE="${TENANT}_comaas"
 	fi
 
-	for ENV in lp qa ; do
+	for ENV in qa ; do
 		HOST="$PREFIX.comaas-$ENV"
 		COMMAND=`echo 'cqlsh -k "'"$KEYSPACE"'" $(ifconfig eth0 | grep "inet\ " | cut -d: -f2 | cut -d" " -f1) -e "'"$ESCAPED_QUERY"'"'`
 
