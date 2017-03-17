@@ -1,6 +1,7 @@
 package com.ecg.comaas.r2cmigration.difftool;
 
 import com.basho.riak.client.RiakException;
+import com.ecg.comaas.r2cmigration.difftool.repo.CassConfigurationRepo;
 import com.ecg.comaas.r2cmigration.difftool.util.CommaSeparatedListOptionHandler;
 import com.ecg.comaas.r2cmigration.difftool.util.DateTimeOptionHandler;
 import com.google.common.base.Stopwatch;
@@ -17,6 +18,10 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -28,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 public class Comparer {
 
     private final ExecutorService executor;
+
+    private final CassConfigurationRepo configurationRepo;
 
     private final R2CConversationDiffTool convDiff;
 
@@ -50,8 +57,11 @@ public class Comparer {
         @Option(name = "-tz", usage = "Add/remove tz minutes from the time range")
         int timezoneShiftInMinutes = 0;
 
-        @Option(name = "-what", required = true, usage = "What to validate [conv,mbox]")
+        @Option(name = "-what", required = true, usage = "What to validate/load [conv, mbox, config]")
         String what;
+
+        @Option(name = "-configFile", forbids = {"-endDate", "-startDate", "-r2c", "-c2r", "-tz", "-rc", "-ids"}, usage = "File to load the Configuration from")
+        String configFile;
 
         @Option(name = "-endDate", handler = DateTimeOptionHandler.class, usage = "End validation at DateTime (defaults to current DateTime)")
         DateTime endDateTime;
@@ -66,10 +76,16 @@ public class Comparer {
     private static final Logger LOG = LoggerFactory.getLogger(Comparer.class);
 
     @Autowired
-    public Comparer(ExecutorService executor, R2CConversationDiffTool convDiff, R2CPostboxDiffTool pboxDiff) {
+    public Comparer(ExecutorService executor, R2CConversationDiffTool convDiff, R2CPostboxDiffTool pboxDiff, CassConfigurationRepo configurationRepo) {
         this.executor = executor;
         this.convDiff = convDiff;
         this.pboxDiff = pboxDiff;
+        this.configurationRepo = configurationRepo;
+    }
+
+    private byte[] readFileToByteArray(String configFile) throws IOException {
+        Path path = Paths.get(configFile);
+        return Files.readAllBytes(path);
     }
 
     static void waitForCompletion(List<Future> tasks) {
@@ -159,8 +175,22 @@ public class Comparer {
                     PostboxComparer.compareCassToRiak(pboxDiff);
                 }
                 break;
-            default:
-                throw new UnsupportedOperationException("Please define -what option!");
+            case "config":
+                if (diffToolOpts.configFile != null) {
+
+                    try {
+
+                        configurationRepo.insertIntoConfiguration(this.readFileToByteArray(diffToolOpts.configFile));
+                        LOG.info("Config file {} loaded successfully", diffToolOpts.configFile);
+                    } catch (IOException io) {
+                        LOG.error("Failed to read file {}", diffToolOpts.configFile, io);
+                    }
+                }
+                break;
+            default: {
+                String msg = String.format("'%s' unsupported or missing -what operation", diffToolOpts.what);
+                throw new UnsupportedOperationException(msg);
+            }
         }
         executor.shutdown();
         executor.awaitTermination(5, TimeUnit.SECONDS);
