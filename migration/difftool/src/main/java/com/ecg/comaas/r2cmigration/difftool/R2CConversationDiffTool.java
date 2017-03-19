@@ -16,7 +16,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +31,7 @@ import java.util.stream.Stream;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 
 
-public class R2CConversationDiffTool {
-
+public class R2CConversationDiffTool extends AbstractDiffTool {
 
     private static final Logger LOG = LoggerFactory.getLogger(R2CConversationDiffTool.class);
     private static final Logger MISMATCH_LOG = LoggerFactory.getLogger("conversation.mismatch");
@@ -59,11 +57,7 @@ public class R2CConversationDiffTool {
     volatile boolean isRiakMatchesCassandra = true;
     volatile boolean isCassandraMatchesRiak = true;
 
-    private DateTime endDate;
-    private DateTime startDate;
-    private int tzShiftInMin;
     private int idBatchSize;
-    private int maxEntityAge;
 
     @Autowired
     private RiakConversationRepo riakConversationRepository;
@@ -81,27 +75,6 @@ public class R2CConversationDiffTool {
         cassEventCounter = newCounter("cassEventCounter");
         riakEventCounter = newCounter("riakEventCounter");
         riakConversationCounter = newCounter("riakConversationCounter");
-    }
-
-    void setDateRange(DateTime startDate, DateTime endDate, int tzShiftInMin) {
-        this.tzShiftInMin = tzShiftInMin;
-        if (endDate != null) {
-            this.endDate = endDate;
-        } else {
-            this.endDate = new DateTime(DateTimeZone.UTC);
-        }
-        if (startDate != null) {
-            this.startDate = startDate;
-        } else {
-            this.startDate = this.endDate.minusDays(maxEntityAge);
-        }
-        Preconditions.checkArgument(this.endDate.isBeforeNow());
-        Preconditions.checkArgument(this.startDate.isBefore(this.endDate));
-        if (startDate != null) {
-            LOG.info("Compare between {} and {}", this.startDate, this.endDate);
-        } else {
-            LOG.info("Comparing last {} days, starting from {}", maxEntityAge, this.startDate);
-        }
     }
 
     long getConversationsCountInTimeSlice(boolean riakToCass) throws RiakException {

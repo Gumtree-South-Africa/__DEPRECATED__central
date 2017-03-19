@@ -91,9 +91,9 @@ public class Comparer {
         Stopwatch timerTotal = Stopwatch.createStarted();
         // To avoid confusing warn message
         System.setProperty("com.datastax.driver.FORCE_NIO", "true");
-
-        try (ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(DiffToolConfiguration.class)) {
-
+        ConfigurableApplicationContext context = null;
+        try {
+            context = new AnnotationConfigApplicationContext(DiffToolConfiguration.class);
             Options diffToolOpts = context.getBean(Options.class);
             CmdLineParser parser = new CmdLineParser(diffToolOpts);
             try {
@@ -102,13 +102,16 @@ public class Comparer {
                 // handling of wrong arguments
                 System.err.println(e.getMessage());
                 parser.printUsage(System.err);
-                System.exit(0);
+                throw (e);
             }
-            Comparer comparer = context.getBean(Comparer.class);
-            comparer.execute(diffToolOpts);
+            context.getBean(Comparer.class).execute(diffToolOpts);
             LOG.info("Comparison completed in {}ms", timerTotal.elapsed(TimeUnit.MILLISECONDS));
         } catch (Exception e) {
             LOG.error("Diff tool fails with ", e);
+        } finally {
+            if (context != null) {
+                context.close();
+            }
         }
     }
 

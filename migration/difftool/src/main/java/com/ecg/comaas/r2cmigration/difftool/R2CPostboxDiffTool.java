@@ -3,30 +3,30 @@ package com.ecg.comaas.r2cmigration.difftool;
 import com.basho.riak.client.IndexEntry;
 import com.basho.riak.client.RiakException;
 import com.basho.riak.client.query.StreamingOperation;
-import com.codahale.metrics.*;
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.comaas.r2cmigration.difftool.repo.CassPostboxRepo;
 import com.ecg.comaas.r2cmigration.difftool.repo.RiakPostboxRepo;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 
-public class R2CPostboxDiffTool {
+public class R2CPostboxDiffTool extends AbstractDiffTool {
 
 
     private static final Logger LOG = LoggerFactory.getLogger(R2CPostboxDiffTool.class);
@@ -49,10 +49,6 @@ public class R2CPostboxDiffTool {
     volatile boolean isRiakMatchesCassandra = true;
     volatile boolean isCassandraMatchesRiak = true;
     private int idBatchSize;
-    private int maxEntityAge;
-    private DateTime endDate;
-    private DateTime startDate;
-    private int tzShiftInMin;
     private boolean verbose;
 
     @Autowired
@@ -72,31 +68,6 @@ public class R2CPostboxDiffTool {
         cassPostboxCounter = newCounter("cassPostboxCounter");
         riakPostboxCounter = newCounter("riakPostboxCounter");
         emptyRiakPostboxCounter = newCounter("emptyRiakPostboxCounter");
-    }
-
-    public void setDateRange(DateTime startDate, DateTime endDate, int tzShiftInMin) {
-        this.tzShiftInMin = tzShiftInMin;
-        if (endDate != null) {
-            this.endDate = endDate;
-        } else {
-            this.endDate = new DateTime(DateTimeZone.UTC);
-        }
-        if (startDate != null) {
-            this.startDate = startDate;
-        } else {
-            this.startDate = this.endDate.minusDays(maxEntityAge);
-        }
-        boolean beforeNow = this.endDate.isBeforeNow();
-        if (!beforeNow) {
-            LOG.warn("Difftool will fail because endDate is not before now(), which is {}", DateTime.now());
-        }
-        Preconditions.checkArgument(beforeNow);
-        Preconditions.checkArgument(this.startDate.isBefore(this.endDate));
-        if (startDate != null) {
-            LOG.info("Compare between {} and {}", this.endDate, this.startDate);
-        } else {
-            LOG.info("Comparing last {} days, starting from {}", maxEntityAge, this.startDate);
-        }
     }
 
     public long getMessagesCountInTimeSlice(boolean riakToCass) throws RiakException {
@@ -225,7 +196,7 @@ public class R2CPostboxDiffTool {
 
                                 AbstractConversationThread riakAc = riakCt.get(i);
                                 AbstractConversationThread cassAc = cassCt.get(i);
-                                if (! riakAc.equals(cassAc)) {
+                                if (!riakAc.equals(cassAc)) {
                                     LOG.debug("AbstractConv are different: riak {}\n cass {}", riakAc, cassAc);
                                 }
                                 return false;
@@ -286,4 +257,5 @@ public class R2CPostboxDiffTool {
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
+
 }

@@ -3,7 +3,9 @@ package com.ecg.comaas.r2cmigration.difftool;
 import com.ecg.de.kleinanzeigen.replyts.graphite.GraphiteExporter;
 import com.ecg.messagecenter.persistence.JsonToPostBoxConverter;
 import com.ecg.messagecenter.persistence.PostBoxToJsonConverter;
-import com.ecg.messagecenter.persistence.simple.*;
+import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxConflictResolver;
+import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxConverter;
+import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxMerger;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
 import com.ecg.replyts.core.runtime.persistence.strategy.CassandraPersistenceConfiguration;
@@ -102,7 +104,7 @@ public class DiffToolConfiguration {
 
     @Bean
     public ExecutorService executorService() {
-        return new InstrumentedExecutorService( new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS,
+        return new InstrumentedExecutorService(new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(workQueueSize),
                 new InstrumentedCallerRunsPolicy("executorRun", "")), "executor", "");
     }
