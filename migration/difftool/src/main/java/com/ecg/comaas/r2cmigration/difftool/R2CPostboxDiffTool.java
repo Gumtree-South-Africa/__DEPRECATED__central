@@ -86,7 +86,11 @@ public class R2CPostboxDiffTool {
         } else {
             this.startDate = this.endDate.minusDays(maxEntityAge);
         }
-        Preconditions.checkArgument(this.endDate.isBeforeNow());
+        boolean beforeNow = this.endDate.isBeforeNow();
+        if (!beforeNow) {
+            LOG.warn("Difftool will fail because endDate is not before now(), which is {}", DateTime.now());
+        }
+        Preconditions.checkArgument(beforeNow);
         Preconditions.checkArgument(this.startDate.isBefore(this.endDate));
         if (startDate != null) {
             LOG.info("Compare between {} and {}", this.endDate, this.startDate);
