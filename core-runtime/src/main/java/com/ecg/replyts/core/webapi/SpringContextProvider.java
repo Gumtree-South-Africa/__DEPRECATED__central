@@ -5,18 +5,19 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.AbstractRefreshableWebApplicationContext;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
 public class SpringContextProvider implements ContextProvider {
     private String path;
 
-    private XmlWebApplicationContext context;
+    private AbstractRefreshableWebApplicationContext context;
 
     private ApplicationContext parentContext;
-
-    private String[] contextLocations;
 
     /**
      * @param path             context path (e.g. /apiv2)
@@ -25,39 +26,51 @@ public class SpringContextProvider implements ContextProvider {
      */
     public SpringContextProvider(String path, String[] contextLocations, ApplicationContext parentContext) {
         this.path = path;
-        this.contextLocations = contextLocations;
         this.parentContext = parentContext;
 
-        if (parentContext instanceof WebApplicationContext)
+        if (parentContext instanceof WebApplicationContext) {
             throw new IllegalArgumentException("Trying to create a web context within a web context");
-    }
+        }
 
-    @Override
-    public Handler create() {
-        context = new XmlWebApplicationContext();
+        XmlWebApplicationContext context = new XmlWebApplicationContext();
 
         context.setParent(parentContext);
         context.setConfigLocations(contextLocations);
 
+        this.context = context;
+    }
+
+    /**
+     * @param path               context path (e.g. /apiv2)
+     * @param configurationClass path to spring context xml files for this spring webapp
+     * @param parentContext      parent app context to be set to the {@link DispatcherServlet}'s context.
+     */
+    public SpringContextProvider(String path, Class configurationClass, ApplicationContext parentContext) {
+        this.path = path;
+        this.parentContext = parentContext;
+
+        if (parentContext instanceof WebApplicationContext) {
+            throw new IllegalArgumentException("Trying to create a web context within a web context");
+        }
+
+        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+
+        context.setParent(parentContext);
+        context.register(configurationClass);
+
+        this.context = context;
+    }
+
+    @Override
+    public Handler create() {
         DispatcherServlet dispatcherServlet = new DispatcherServlet(context);
         ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS | ServletContextHandler.NO_SECURITY);
 
-        // TODO: add proper error handling. We tried the thing below but the only effect we found was that no error page is returned now.
-
-        /*
-
-        ErrorPageErrorHandler eh = new ErrorPageErrorHandler();
-
-        eh.addErrorPage(500, "/error500");
-        eh.addErrorPage(404, "/error404");
-
-        sch.setErrorHandler(eh);
-
-        */
-
         contextHandler.setContextPath(path);
         contextHandler.addServlet(new ServletHolder(dispatcherServlet), "/*");
+        contextHandler.addEventListener(new ContextLoaderListener(context));
 
+        context.setServletContext(contextHandler.getServletContext());
         context.refresh();
 
         return contextHandler;

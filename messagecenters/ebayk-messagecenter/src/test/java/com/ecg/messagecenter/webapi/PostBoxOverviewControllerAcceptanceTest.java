@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class PostBoxOverviewControllerAcceptanceTest {
     private final Properties testProperties = new Properties() {{
+        put("replyts.tenant", "ebayk");
         put("persistence.strategy", "riak");
     }};
 

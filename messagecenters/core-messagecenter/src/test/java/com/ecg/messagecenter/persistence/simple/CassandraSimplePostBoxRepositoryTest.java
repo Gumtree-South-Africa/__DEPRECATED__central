@@ -93,7 +93,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         @Bean
         public Session cassandraSession() {
             String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
-            String[] schemas = new String[] { "cassandra_schema.cql", "cassandra_core_messagecenter_schema.cql" };
+            String[] schemas = new String[] { "cassandra_schema.cql", "cassandra_messagecenter_schema.cql"};
 
             return CassandraIntegrationTestProvisioner.getInstance().loadSchema(keyspace, schemas);
         }

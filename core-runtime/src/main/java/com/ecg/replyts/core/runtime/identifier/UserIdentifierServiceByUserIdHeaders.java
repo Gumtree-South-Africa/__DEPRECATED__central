@@ -2,10 +2,14 @@ package com.ecg.replyts.core.runtime.identifier;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
 public class UserIdentifierServiceByUserIdHeaders implements UserIdentifierService {
+    private static final Logger LOG = LoggerFactory.getLogger(ClusterModeManager.class);
 
     private final String buyerUserIdName;
 
@@ -14,11 +18,11 @@ public class UserIdentifierServiceByUserIdHeaders implements UserIdentifierServi
     public UserIdentifierServiceByUserIdHeaders(String buyerUserIdName, String sellerUserIdName) {
         this.buyerUserIdName = buyerUserIdName;
         this.sellerUserIdName = sellerUserIdName;
+        LOG.info("buyerUserIdName is [{}] sellerUserIdName is [{}]", this.buyerUserIdName, this.sellerUserIdName);
     }
 
     public UserIdentifierServiceByUserIdHeaders() {
-        this.buyerUserIdName = DEFAULT_BUYER_USER_ID_NAME;
-        this.sellerUserIdName = DEFAULT_SELLER_USER_ID_NAME;
+        this(DEFAULT_BUYER_USER_ID_NAME, DEFAULT_SELLER_USER_ID_NAME);
     }
 
     @Override

@@ -19,7 +19,7 @@
     <network>
         <!-- This is necessary for Hazelcast to work in parallel unit tests -->
 
-        <port auto-increment="true" port-count="100">5702</port>
+        <port auto-increment="true" port-count="100">5704</port>
 
         <join>
             <multicast enabled="false"/>

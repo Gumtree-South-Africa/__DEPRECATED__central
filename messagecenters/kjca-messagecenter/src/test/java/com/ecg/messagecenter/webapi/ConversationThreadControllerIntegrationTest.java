@@ -15,7 +15,6 @@ import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 
 public class ConversationThreadControllerIntegrationTest {
-
     private static final MailBuilder MAIL = aNewMail()
             .from("buyer1@buyer.com")
             .to("seller1@seller.com")
@@ -23,6 +22,7 @@ public class ConversationThreadControllerIntegrationTest {
             .plainBody("First contact from buyer.");
 
     private final Properties testProperties = new Properties() {{
+        put("replyts.tenant", "kjca");
         put("persistence.strategy", "riak");
     }};
 

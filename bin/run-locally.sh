@@ -90,7 +90,7 @@ function main() {
    log "Starting comaas for tenant $TENANT"
    local start=$(date +"%s")
 
-   if [[ "$TENANT" == "mp" ]] ; then
+   if [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "mde" ]] ; then
        startCassandra
        sleep 5 # give the cassandra container some time to settle
 

@@ -22,22 +22,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 17:33
- *
- * @author maldana@ebay.de
- */
+@Component
 public class PostBoxUpdateListener implements MessageProcessedListener {
+    private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
     private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
     private static final Counter PROCESSING_FAILED = TimingReports.newCounter("message-box.postBoxUpdateListener.failed");
     private static final Counter PROCESSING_SKIPPED_PRO_AD = TimingReports.newCounter("message-box.postBoxUpdateListener.skipped.pro");
-
-    private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
     private final UserNotificationRules userNotificationRules;
     private final SimplePostBoxInitializer postBoxInitializer;

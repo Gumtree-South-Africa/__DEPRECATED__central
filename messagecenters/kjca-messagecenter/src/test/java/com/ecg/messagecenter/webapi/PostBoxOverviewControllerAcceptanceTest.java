@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.hasItems;
 
 public class PostBoxOverviewControllerAcceptanceTest {
     private final Properties testProperties = new Properties() {{
+        put("replyts.tenant", "kjca");
         put("persistence.strategy", "riak");
     }};
 

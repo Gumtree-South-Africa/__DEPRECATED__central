@@ -15,17 +15,10 @@ import com.google.common.collect.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 17:33
- *
- * @author maldana@ebay.de
- */
+@Component
 public class PostBoxUpdateListener implements MessageProcessedListener {
-
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
     private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");

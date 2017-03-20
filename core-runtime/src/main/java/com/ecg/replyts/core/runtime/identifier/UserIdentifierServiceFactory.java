@@ -1,9 +1,16 @@
 package com.ecg.replyts.core.runtime.identifier;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
+import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.Set;
+
 public class UserIdentifierServiceFactory {
+    private static final Logger LOG = LoggerFactory.getLogger(ClusterModeManager.class);
+    private final Set<String> TENANTS_ENABLED_FOR_USER_ID = Sets.newHashSet("mp", "mde");
 
     @Value("${messagebox.userid.userIdentifierStrategy:BY_USER_ID}")
     private UserIdentifierType userIdentifierType;
@@ -19,20 +26,22 @@ public class UserIdentifierServiceFactory {
         this.userIdentifierType = type;
     }
 
-    public UserIdentifierServiceFactory() {}
-
+    public UserIdentifierServiceFactory() {
+    }
 
     public UserIdentifierService createUserIdentifierService() {
+        LOG.info("creating UserIdentifierService for tenant {}. Data userIdentifierType=[{}], buyerUserIdName=[{}] sellerUserIdName=[{}]", tenant, userIdentifierType, buyerUserIdName, sellerUserIdName);
         if (userIdentifierType == UserIdentifierType.BY_MAIL && userIdDisabledForTenant()) {
+            LOG.info("tenant {} use UserIdentifierServiceByMailAddress", tenant);
             return new UserIdentifierServiceByMailAddress();
         } else {
+            LOG.info("tenant {} use UserIdentifierServiceByUserIdHeaders", tenant);
             return new UserIdentifierServiceByUserIdHeaders(buyerUserIdName, sellerUserIdName);
         }
     }
 
-    /* Only enable user identification by user id for marktplaats since other tenants are not ready yet  */
     private boolean userIdDisabledForTenant() {
-        return !tenant.equals("mp");
+        return !TENANTS_ENABLED_FOR_USER_ID.contains(tenant);
     }
 
 }

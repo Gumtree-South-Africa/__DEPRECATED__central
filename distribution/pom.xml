@@ -203,7 +203,7 @@
             <dependencies>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>mp-messagecenter</artifactId>
+                    <artifactId>core-messagecenter</artifactId>
                     <version>${project.version}</version>
                     <exclusions>
                         <exclusion>
@@ -413,6 +413,12 @@
             </properties>
 
             <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-messagecenter</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>mde-filter-badword</artifactId>

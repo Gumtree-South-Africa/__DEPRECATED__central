@@ -5,15 +5,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * User: maldana
- * Date: 12.02.14
- * Time: 17:28
- *
- * @author maldana@ebay.de
- */
-class HttpRequestAccessInterceptor extends HandlerInterceptorAdapter {
-
+public class HttpRequestAccessInterceptor extends HandlerInterceptorAdapter {
     private static ThreadLocal<HttpServletRequest> requestThreadLocal = new ThreadLocal<HttpServletRequest>();
 
     @Override

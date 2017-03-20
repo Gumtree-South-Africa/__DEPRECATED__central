@@ -20,17 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import static com.ecg.messagecenter.util.MessageType.isAutogate;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 17:33
- *
- * @author maldana@ebay.de
- */
+@Component
 public class PostBoxUpdateListener implements MessageProcessedListener {
+    private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
     private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
@@ -38,8 +34,6 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private static final Counter MESSGAE_XML = TimingReports.newCounter("message-box.postBoxUpdateListener.xml");
     private static final Counter MESSGAE_AUTOGATE = TimingReports.newCounter("message-box.postBoxUpdateListener.autogate") ;
     private static final String INITIAL_CONVERSATION_MESSAGE = "Gumtree prompted this buyer";
-
-    private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
     private final UserNotificationRules userNotificationRules;
     private final SimplePostBoxInitializer postBoxInitializer;

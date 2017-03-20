@@ -7,11 +7,7 @@ import com.ecg.replyts.core.runtime.cluster.ClusterMode;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import org.slf4j.Logger;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -34,7 +30,7 @@ class FilesystemMailDataProvider implements MailDataProvider {
     private static final Counter FAILED_COUNTER = TimingReports.newCounter("processing_failed");
 
     public FilesystemMailDataProvider(File mailDataDir, int retryDelay, int retryCounter, int watchRetryDelay, MessageProcessingCoordinator consumer, ClusterModeManager clusterModeManager) {
-        LOG.info("Watching dropfolder every "+ watchRetryDelay + " ms.");
+        LOG.info("Watching dropfolder ["+mailDataDir.getAbsolutePath()+"] every "+ watchRetryDelay + " ms.");
         this.mailDataDir = mailDataDir;
         this.watchRetryDelay = watchRetryDelay;
         this.clusterModeManager = clusterModeManager;

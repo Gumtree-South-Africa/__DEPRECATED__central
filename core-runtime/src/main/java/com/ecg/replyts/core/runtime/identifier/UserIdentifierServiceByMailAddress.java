@@ -7,9 +7,9 @@ import java.util.Optional;
 
 public class UserIdentifierServiceByMailAddress implements UserIdentifierService {
 
-    private String buyerUserIdName;
+    private final String buyerUserIdName;
 
-    private String sellerUserIdName;
+    private final String sellerUserIdName;
 
     public UserIdentifierServiceByMailAddress(String buyerUserIdName, String sellerUserIdName) {
         this.buyerUserIdName = buyerUserIdName;
@@ -17,8 +17,7 @@ public class UserIdentifierServiceByMailAddress implements UserIdentifierService
     }
 
     public UserIdentifierServiceByMailAddress() {
-        this.buyerUserIdName = DEFAULT_BUYER_USER_ID_NAME;
-        this.sellerUserIdName = DEFAULT_SELLER_USER_ID_NAME;
+        this(DEFAULT_BUYER_USER_ID_NAME, DEFAULT_SELLER_USER_ID_NAME);
     }
 
     @Override

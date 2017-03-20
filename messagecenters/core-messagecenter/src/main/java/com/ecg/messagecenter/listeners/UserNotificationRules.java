@@ -6,13 +6,12 @@ import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.SENT;
 
-class UserNotificationRules {
-
-    boolean buyerShouldBeNotified(Message message) {
+public class UserNotificationRules {
+    public boolean buyerShouldBeNotified(Message message) {
         return message.getState() == SENT && message.getMessageDirection() == SELLER_TO_BUYER;
     }
 
-    boolean sellerShouldBeNotified(Message message) {
+    public boolean sellerShouldBeNotified(Message message) {
         return message.getState() == SENT && message.getMessageDirection() == BUYER_TO_SELLER;
     }
 }
