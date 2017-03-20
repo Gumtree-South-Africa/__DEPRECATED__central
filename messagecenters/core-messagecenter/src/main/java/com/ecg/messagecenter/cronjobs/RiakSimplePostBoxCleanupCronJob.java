@@ -8,13 +8,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinutes;
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnExpression("#{('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')) && '${replyts2.cleanup.postboxes.enabled}' == 'true'}")
+@ConditionalOnProperty(name = "replyts2.cleanup.postboxes.enabled", havingValue = "true")
+@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')}")
 public class RiakSimplePostBoxCleanupCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(RiakSimplePostBoxCleanupCronJob.class);
 
