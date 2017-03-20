@@ -58,13 +58,13 @@ public class HybridConversationBlockRepository implements ConversationBlockRepos
     public void cleanup(DateTime time) {
         try {
             riakRepository.cleanup(time);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             LOG.error("Error while performing Riak ConversationBlock cleanup", e);
         }
 
         try {
             cassandraRepository.cleanup(time);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             LOG.error("Error while performing Cassandra ConversationBlock cleanup", e);
         }
     }

@@ -187,11 +187,20 @@ public class HybridConversationRepository implements MutableConversationReposito
 
     @Override
     public void commit(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
+
+        // save to riak
+        try {
+            riakConversationRepository.commit(conversationId, toBeCommittedEvents);
+        } catch (Exception e) {
+
+            LOG.error("Failed to save {} conversationEvents for conversation {} to riak, reason {}", toBeCommittedEvents.size(), conversationId, e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
+        
         List<ConversationEvent> cassandraToBeCommittedEvents = toBeCommittedEvents;
 
         // Also perform a migration of historic events in case 1) there aren't any yet for this conversation, 2) this
         // isn't already going on
-
         if (cassandraConversationRepository.getLastModifiedDate(conversationId) == null) {
             // conversation does not exist in cassandra
 
@@ -219,8 +228,6 @@ public class HybridConversationRepository implements MutableConversationReposito
             cassandraConversationRepository.commit(conversationId, toBeCommittedEvents);
         }
 
-        // save to riak
-        riakConversationRepository.commit(conversationId, toBeCommittedEvents);
     }
 
     @Override
