@@ -22,7 +22,7 @@ abstract class AbstractDiffTool {
             LOG.warn("Difftool will fail because endDate is not before now(), which is {}", DateTime.now(DateTimeZone.UTC));
             throw new IllegalStateException("Incorrect parameters");
         }
-        Preconditions.checkArgument(this.startDate.isBefore(endDate));
-        LOG.info("Compare between {} and {}", startDate, endDate);
+        Preconditions.checkArgument(this.startDate.isBefore(this.endDate));
+        LOG.info("Compare between {} and {}", this.startDate, this.endDate);
     }
 }
