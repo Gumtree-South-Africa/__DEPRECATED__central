@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -27,7 +28,8 @@ import java.util.stream.Stream;
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnExpression("#{('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid')) && '${replyts2.cleanup.conversation.enabled}' == 'true'}")
+@ConditionalOnProperty(name = "replyts2.cleanup.conversation.enabled", havingValue = "true")
+@ConditionalOnExpression("#{'${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid')}")
 public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraCleanupConversationCronJob.class);
 
