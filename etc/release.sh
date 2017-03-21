@@ -23,13 +23,13 @@ readonly CUR_HASH=$(curl -s ${TENANTS[${TENANT}]}-core001:8080/health | jq .vers
 
 echo "Post this to the #ecg-comaas-$TENANT channel in Slack:"
 echo
-echo "We're going to release Comaas for $TENANT version $NEW_HASH to $ENV. Current version on $ENV is $CUR_HASH."
+echo "We're going to release Comaas for $TENANT version \`$NEW_HASH\` to $ENV in $LOCATION. Current version on $ENV is \`$CUR_HASH\`."
 echo "The diff can be found here: https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/compare/$CUR_HASH...$NEW_HASH"
 echo
 read -rsp $'Press any key to continue...\n' -n1 key
 echo
 echo -n "Getting releases... "
-get_releases.py https://repositories-cloud.ecg.so/ --username=repo_comaas --password=V9Knbsi4Nm --path=/${TENANT}/${ENV} --target=/opt/tarballs/ecg-comaas/ --platform=comaas --hash=${HEW_HASH}
+get_releases.py http://repositories-cloud.ecg.so/ --username=repo_comaas --password=V9Knbsi4Nm --path=/${TENANT}/${ENV} --target=/opt/tarballs/ecg-comaas/ --platform=comaas --hash=${NEW_HASH}
 echo "done."
 cd $(find /opt/tarballs/ecg-comaas/ -name \*${NEW_HASH}\* | head -1 | xargs dirname)
 
@@ -49,5 +49,5 @@ echo "done."
 
 echo "Post this to the #ecg-comaas-$TENANT channel in Slack:"
 echo
-echo "We've successfully deployed Comaas for ${TENANT} version ${NEW_HASH} to ${ENV}."
+echo "We've successfully deployed Comaas for ${TENANT} version \`${NEW_HASH}\` to ${ENV}."
 echo
