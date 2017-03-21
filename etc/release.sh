@@ -10,7 +10,6 @@ fi
 
 readonly TENANT=$1
 readonly NEW_HASH=$2
-readonly ENV=${ENVIRONMENT}
 declare -A TENANTS=(
   ["mp"]="mp"
   ["ebayk"]="ek"
@@ -19,6 +18,11 @@ declare -A TENANTS=(
   ["gtau"]="au"
   ["gtuk"]="uk"
 )
+declare -A ENVS=(
+  ["lp"]="sandbox"
+  ["prod"]="prod"
+)
+readonly ENV=${ENVS[$ENVIRONMENT]}
 readonly CUR_HASH=$(curl -s ${TENANTS[${TENANT}]}-core001:8080/health | jq .version | cut -d\" -f2)
 
 echo "Post this to the #ecg-comaas-$TENANT channel in Slack:"
@@ -34,7 +38,7 @@ echo "done."
 cd $(find /opt/tarballs/ecg-comaas/ -name \*${NEW_HASH}\* | head -1 | xargs dirname)
 
 readonly FILE_COUNT=$(ls -lash *${NEW_HASH}*.tar.gz | wc -l)
-if [[ $FILE_COUNT -ne 2 ]]; then
+if [[ $FILE_COUNT -lt 2 ]]; then
   echo "Required files not found in ${PWD}. Was this artifact deployed to ecg.repositories.so? Check Jenkins: https://buildmaster.ams1.cloud.ops.qa.comaas.ecg.so/job/comaas_upload_to_repos/"
   exit 1
 fi
