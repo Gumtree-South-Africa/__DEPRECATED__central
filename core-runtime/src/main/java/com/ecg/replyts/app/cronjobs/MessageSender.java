@@ -61,7 +61,7 @@ class MessageSender {
         smp.setOffset(0);
         smp.setCount(20000);
         RtsSearchResponse searchResponse = searchService.search(smp);
-
+        LOG.info("About to change state for {} documents " , searchResponse.getCount());
         for (IDHolder idHolder : searchResponse.getResult()) {
             try {
                 moderationService.changeMessageState(conversationRepository.getById(idHolder.getConversationId()), idHolder.getMessageId(), new ModerationAction(ModerationResultState.TIMED_OUT, Optional.<String>absent()));

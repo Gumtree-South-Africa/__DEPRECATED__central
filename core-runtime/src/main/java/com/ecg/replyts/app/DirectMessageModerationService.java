@@ -18,6 +18,8 @@ import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversation
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +38,8 @@ import static org.joda.time.DateTime.now;
 public class DirectMessageModerationService implements ModerationService {
     // Choose a quite long time, post processing shouldn't be the processing problem
     private static final long MAX_MESSAGE_PROCESSING_TIME_SECONDS = 300L;
+
+    private static final Logger LOG = LoggerFactory.getLogger(DirectMessageModerationService.class);
 
     @Autowired
     private MutableConversationRepository conversationRepository;
@@ -61,7 +65,7 @@ public class DirectMessageModerationService implements ModerationService {
     @Override
     public void changeMessageState(MutableConversation conversation, String messageId, ModerationAction moderationAction) {
         Preconditions.checkArgument(moderationAction.getModerationResultState().isAcceptableOutcome(), "Moderation State " + moderationAction.getModerationResultState() + " is not an acceptable moderation outcome");
-
+        LOG.debug("Attempting to changing state {} for conversation {}  message {} ", moderationAction, conversation.getId(), messageId);
         conversation.applyCommand(new MessageModeratedCommand(conversation.getId(), messageId, now(), moderationAction));
 
         if (moderationAction.getModerationResultState().allowsSending()) {

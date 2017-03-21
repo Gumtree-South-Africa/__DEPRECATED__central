@@ -34,6 +34,7 @@ public class TimeoutHeldsCronjob implements CronJobExecutor {
     @Override
     public void execute() throws Exception {
         if (workingSlot.operateNow()) {
+            LOG.info("Starting a scheduled held mail removal");
             // Agents are working right now, we do not want to auto-send mails
             messageSender.work();
         }
