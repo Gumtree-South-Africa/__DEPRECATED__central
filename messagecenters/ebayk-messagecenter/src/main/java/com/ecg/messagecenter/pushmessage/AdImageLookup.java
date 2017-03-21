@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.Base64;
 
 import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
 
@@ -32,10 +33,13 @@ public class AdImageLookup {
 
     private final HttpClient httpClient;
     private final HttpHost kapiHost;
+    private final String basicAuthValue;
 
     @Autowired
     public AdImageLookup(@Value("${replyts2-messagecenter-plugin.api.host:kapi.mobile.rz}") String kapiHost,
                          @Value("${replyts2-messagecenter-plugin.api.port:80}") int kapiPort,
+                         @Value("${replyts2-messagecenter-plugin.api.user:comaas}") String apiUser,
+                         @Value("${replyts2-messagecenter-plugin.api.password:}") String apiPassword,
                          @Value("${replyts2-messagecenter-plugin.adimagelookup.timeout.connect.millis:2000}") int connectTimeout,
                          @Value("${replyts2-messagecenter-plugin.adimagelookup.timeout.socket.millis:4000}") int socketTimeout,
                          @Value("${replyts2-messagecenter-plugin.adimagelookup.timeout.connectionManager.millis:2000}") int connectionManagerTimeout,
@@ -43,6 +47,7 @@ public class AdImageLookup {
                          @Value("${replyts2-messagecenter-plugin.adimagelookup.maxTotalConnections:40}") int maxTotalConnections) {
         this.kapiHost = new HttpHost(kapiHost, kapiPort);
         this.httpClient = buildHttpClient(connectTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
+        this.basicAuthValue = Base64.getEncoder().encodeToString((apiUser + ":" + apiPassword).getBytes());
     }
 
     public String lookupAdImageUrl(Long adId) {
@@ -59,8 +64,7 @@ public class AdImageLookup {
         HttpGet get = new HttpGet("/api/ads/" + adId + ".json?_in=pictures");
 
         // auth-setting via header much easier as doing yucky handling basic auth aspect in http-client builder
-        // todo: currently 'mweb' api-user is used, change this to 'kcron' after api has new user 'kcron' deployed
-        get.setHeader("Authorization", "Basic bXdlYjp0aGlmZ3IzNHQ=");
+        get.setHeader("Authorization", "Basic " + basicAuthValue);
         return get;
     }
 
