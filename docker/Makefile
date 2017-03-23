@@ -13,14 +13,10 @@ down:
 	@$(DOCKER_COMPOSE) down --remove-orphans --volumes
 
 ui:
-	@$(BROWSE) http://localhost:8082 http://localhost:8500 http://localhost:8090
+	@$(BROWSE) http://localhost:8500
 
 import:
-	@$(PROPS2CONSUL) -file ../distribution/conf/mp/import_into_consul/docker.properties
-	@$(PROPS2CONSUL) -file ../distribution/conf/ebayk/import_into_consul/docker.properties
-	@$(PROPS2CONSUL) -file ../distribution/conf/gtuk/import_into_consul/docker.properties
-	@$(PROPS2CONSUL) -file ../distribution/conf/mde/import_into_consul/docker.properties
+	@find ../distribution/conf -name docker.properties | xargs -n1 $(PROPS2CONSUL) -file
 
 logs:
 	@$(DOCKER_COMPOSE) logs -f
-

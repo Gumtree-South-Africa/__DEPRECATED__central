@@ -59,4 +59,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-# rabbitmq
+  postgres: # this is needed for GTUK
+    image: postgres
+    ports:
+      - "5432:5432"
