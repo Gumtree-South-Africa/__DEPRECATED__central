@@ -140,8 +140,10 @@ public class RobotService {
     }
 
     private void updateConversation(MutableConversation conversation, MessagePayload payload) throws IOException, MimeException {
-        String messageId = guids.nextGuid();
+        final String messageId = guids.nextGuid();
         Mails mails = new Mails();
+
+        LOGGER.debug("Begin adding Message ID: " + messageId + " to conversation " + conversation.getId());
 
         AddMessageCommandBuilder builder = anAddMessageCommand(conversation.getId(), messageId)
                 .withTextParts(Arrays.asList(payload.getMessage()))
@@ -159,14 +161,17 @@ public class RobotService {
         // Does the payload have a rich message?
         addRichMessageDetailsToHeader(builder, payload.getRichTextMessage(), Header.RichTextMessage, Header.RichTextLinks);
 
-
         conversation.applyCommand(builder.build());
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
 
         mailRepository.persistMail(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)), Optional.<byte[]>absent());
 
+        LOGGER.debug("Done persisting message " + messageId + ".");
+
         moderationService.changeMessageState(conversation, messageId, new ModerationAction(ModerationResultState.GOOD, Optional.<String>absent()));
+
+        LOGGER.debug("Done changing message state of " + messageId + " to GOOD.");
     }
 
     protected Mail aRobotMail(Conversation conversation, MessagePayload payload) throws MimeException {

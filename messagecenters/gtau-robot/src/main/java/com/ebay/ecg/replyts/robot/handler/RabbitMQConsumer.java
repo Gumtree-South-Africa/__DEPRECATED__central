@@ -41,9 +41,7 @@ public class RabbitMQConsumer implements EventHandler {
             GeneratedMessage message = (GeneratedMessage) e;
             try {
                 if (message.getClass().getName().contains(RobotCommands.PostMessageCommand.class.getSimpleName())) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Command message received " + message.getClass().getName() + ":" + message.toString());
-                    }
+                    LOG.debug("Command message received " + message.getClass().getName() + ":" + message.toString());
 
                     Timer.Context timerContext = CONSUMER_ROBOT_POST_TO_CONVERSATION_BY_ID.time();
 
@@ -60,14 +58,15 @@ public class RabbitMQConsumer implements EventHandler {
                     setRichMessageDetails(messageInfo, payload);
 
                     try {
-                        robotService.addMessageToConversation(postMessageCommand.getMessageInfo().getConversationId(), payload);
+                        final String conversationId = postMessageCommand.getMessageInfo().getConversationId();
+                        LOG.debug("Gumbot Message received for ConversationID: " + conversationId);
+
+                        robotService.addMessageToConversation(conversationId, payload);
                     } finally {
                         timerContext.stop();
                     }
 
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Message " + message.getClass().getName() + " written successfully");
-                    }
+                    LOG.debug("Message " + message.getClass().getName() + " written successfully");
                 }
             } catch (Exception ex) {
                 LOG.error("Error writing message to event log", ex);
