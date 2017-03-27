@@ -36,31 +36,23 @@ public class CassandraSimplePostBoxRepositoryTest {
     private SimplePostBoxRepository postBoxRepository;
 
     @Test
-    public void persistsEmptyPostbox() {
-        String pboxid = "emptyfoo@bar.com";
-        PostBox box = new PostBox(pboxid, Optional.empty(), Collections.<AbstractConversationThread>emptyList(), 25);
-        postBoxRepository.write(box);
-        assertNull("Expected empty postbox", postBoxRepository.byId(pboxid));
-    }
-
-    @Test
     public void persistsPostbox() {
-        String pboxid = "bar@bar.com";
-        PostBox box = new PostBox(pboxid, Optional.empty(), Arrays.asList(createConversationThread(now(), "345")), 25);
+        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Collections.<AbstractConversationThread>emptyList(), 25);
+
         postBoxRepository.write(box);
-        assertNotNull("Postbox is not created", postBoxRepository.byId(pboxid));
+
+        assertNotNull(postBoxRepository.byId("foo@bar.com"));
     }
 
     @Test
     public void cleansUpPostbox() {
-        DateTime now = now();
-        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Arrays.asList(createConversationThread(now, "123")), 25);
+        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Arrays.asList(createConversationThread(now(), "123")), 25);
 
         postBoxRepository.write(box);
 
-        postBoxRepository.cleanup(now);
+        postBoxRepository.cleanup(now());
 
-        assertNull("PostBox contains conversation threads", postBoxRepository.byId("foo@bar.com"));
+        assertEquals("PostBox contains no conversation threads anymore", 0, postBoxRepository.byId("foo@bar.com").getConversationThreads().size());
     }
 
     @Test
@@ -71,7 +63,7 @@ public class CassandraSimplePostBoxRepositoryTest {
 
         postBoxRepository.cleanup(now().minusHours(1));
 
-        assertEquals("Number of conversation threads are not equal to 1", 1, postBoxRepository.byId("foo@bar.com").getConversationThreads().size());
+        assertEquals("PostBox still contains its 1 conversation thread", 1, postBoxRepository.byId("foo@bar.com").getConversationThreads().size());
     }
 
     private AbstractConversationThread createConversationThread(DateTime date, String conversationId) {
@@ -93,7 +85,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         @Bean
         public Session cassandraSession() {
             String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
-            String[] schemas = new String[] { "cassandra_schema.cql", "cassandra_messagecenter_schema.cql"};
+            String[] schemas = new String[] { "cassandra_schema.cql", "cassandra_messagecenter_schema.cql" };
 
             return CassandraIntegrationTestProvisioner.getInstance().loadSchema(keyspace, schemas);
         }

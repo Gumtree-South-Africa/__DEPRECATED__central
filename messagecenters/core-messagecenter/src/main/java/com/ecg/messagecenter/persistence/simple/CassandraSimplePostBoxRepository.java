@@ -107,29 +107,22 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
                 toConversationThread(email, conversationId, jsonValue, unreadCount).map(conversationThreads::add);
             });
+            LOG.debug("Found {} threads ({} unread) for PostBox with email {} in Cassandra", conversationThreads.size(), newRepliesCount, email);
 
-            if (conversationThreads.isEmpty()) {
-                LOG.debug("No threads found in Cassandra with which to construct a PostBox for email {}", email);
-
-                return null;
-            } else {
-                LOG.debug("Found {} threads ({} unread) for PostBox with email {} in Cassandra", conversationThreads.size(), newRepliesCount, email);
-
-                return new PostBox(email, Optional.of(newRepliesCount.get()), conversationThreads, maxAgeDays);
-            }
+            return new PostBox(email, Optional.of(newRepliesCount.get()), conversationThreads, maxAgeDays);
         }
     }
 
     private void processThreads(String email, Consumer<Row> action) {
         session.execute(Statements.SELECT_POSTBOX.bind(this, email))
-          .forEach(action);
+                .forEach(action);
     }
 
     private Map<String, Integer> gatherUnreadCounts(String email) {
         ResultSet results = session.execute(Statements.SELECT_POSTBOX_UNREAD_COUNTS_CONVERSATION_IDS.bind(this, email));
 
         return StreamSupport.stream(results.spliterator(), false)
-          .collect(Collectors.toMap(row -> row.getString("conversation_id"), row -> row.getInt("num_unread")));
+                .collect(Collectors.toMap(row -> row.getString("conversation_id"), row -> row.getInt("num_unread")));
     }
 
     private Optional<AbstractConversationThread> toConversationThread(String postboxId, String conversationId, String jsonValue, int numUnreadMessages) {
@@ -313,8 +306,8 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             // Return the result as the cumulative number of unread messages in the related PostBox
 
             return gatherUnreadCounts(email).values().stream()
-              .mapToLong(i -> i)
-              .sum();
+                    .mapToLong(i -> i)
+                    .sum();
         }
     }
 

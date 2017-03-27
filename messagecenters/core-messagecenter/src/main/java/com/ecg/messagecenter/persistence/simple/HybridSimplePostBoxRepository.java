@@ -7,6 +7,7 @@ import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -36,10 +37,10 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
     public PostBox byId(String email) {
         PostBox postBox = cassandraRepository.byId(email);
 
-        if (postBox == null) {
+        if (postBox.getConversationThreads().isEmpty()) {
             postBox = riakRepository.byId(email);
 
-            if (postBox != null && !postBox.getConversationThreads().isEmpty()) {
+            if (!postBox.getConversationThreads().isEmpty()) {
                 migratePostBoxNecessaryCounter.inc();
 
                 // Essentially do a cross-cluster synchronize on this particular PostBox email to avoid duplication
