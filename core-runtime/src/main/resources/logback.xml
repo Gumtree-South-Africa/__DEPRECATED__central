@@ -1,3 +1,13 @@
 <configuration scan="true" scanPeriod="30 seconds">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d %-5level [%thread] %-35logger{35}: %msg %n</pattern>
+        </encoder>
+    </appender>
+
     <include file="${confDir}/logging.xml"/>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
 </configuration>

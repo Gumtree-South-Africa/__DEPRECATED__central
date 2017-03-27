@@ -1,42 +1,9 @@
 <included>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %-35logger{35}: %msg %n</pattern>
-        </encoder>
-    </appender>
-
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logDir}/replyts.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logDir}/archived/replyts.log.%d</fileNamePattern>
-            <maxHistory>5</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %-35logger{35}: %msg %n</pattern>
-        </encoder>
-    </appender>
-    
-    <appender name="LOGSTASH" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logDir}/logstash.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logDir}/archived/logstash.log.%d</fileNamePattern>
-            <maxHistory>5</maxHistory>
-        </rollingPolicy>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
-    </appender>
-
     <logger name="com.ecg.replyts" level="DEBUG" />
     <logger name="com.ecg.messagecenter.cronjobs" level="DEBUG" />
     <logger name="com.ecg.replyts.core.runtime.indexer" level="DEBUG" />
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
     <logger name="com.ecg.au.gumtree.messagelogging" level="DEBUG"/>
-
-    <root level="INFO">
-        <appender-ref ref="STDOUT" />
-        <appender-ref ref="FILE" />
-        <appender-ref ref="LOGSTASH" />
-    </root>
-
     <logger name="message-json-log" level="INFO">
         <appender name="DWH_DAILY" class="com.ecg.au.gumtree.messagelogging.RTSDBAppender">
             <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">

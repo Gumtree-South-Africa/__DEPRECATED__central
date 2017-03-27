@@ -1,29 +1,9 @@
 <included>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d %-5level [%thread] %-35logger{35}: %msg %n</pattern>
-        </encoder>
-    </appender>
-
     <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
-
     <logger name="com.ecg.replyts" level="INFO"/>
     <logger name="com.ecg.replyts.core.runtime" level="DEBUG"/>
     <logger name="com.ecg.de" level="INFO"/>
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
     <logger name="ca.kijiji" level="INFO"/>
-
     <logger name="org.springframework.cloud" level="INFO"/>
-
-    <!-- Use confOverride property to add loggers as needed on the runtime environment -->
-    <if condition='isDefined("confOverride")'>
-        <then>
-            <include file="${confOverride}/logging.xml"/>
-        </then>
-    </if>
-
-    <root level="INFO">
-        <appender-ref ref="STDOUT"/>
-    </root>
-
 </included>
