@@ -46,6 +46,7 @@
                 <module>filters/gtau-filter-echelon</module>
 
                 <module>listeners/gtau-listener-jsonmessagelogger</module>
+                <module>listeners/gtau-listener-message-event</module>
 
                 <module>messagecenters/gtau-messagecenter</module>
                 <module>messagecenters/gtau-robot</module>
@@ -472,7 +473,7 @@
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
-        <gumtree-au-events.version>1.54</gumtree-au-events.version>
+        <gumtree-au-events.version>1.56</gumtree-au-events.version>
         <wiremock.version>1.58</wiremock.version>
         <gumtree-au-lbs2-client-version>0.3</gumtree-au-lbs2-client-version>
 
@@ -512,6 +513,17 @@
             </dependency>
             <dependency>
                 <groupId>com.ebay.ecg.box.australia.events</groupId>
+                <artifactId>core</artifactId>
+                <version>${gumtree-au-events.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.rabbitmq</groupId>
+                        <artifactId>amqp-client</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.ebay.ecg.box.australia.events</groupId>
                 <artifactId>events</artifactId>
                 <version>${gumtree-au-events.version}</version>
                 <exclusions>
@@ -524,6 +536,17 @@
             <dependency>
                 <groupId>com.ebay.ecg.box.australia.events</groupId>
                 <artifactId>rabbitmq</artifactId>
+                <version>${gumtree-au-events.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.rabbitmq</groupId>
+                        <artifactId>amqp-client</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.ebay.ecg.box.australia.events</groupId>
+                <artifactId>udp</artifactId>
                 <version>${gumtree-au-events.version}</version>
                 <exclusions>
                     <exclusion>

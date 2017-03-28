@@ -1,0 +1,36 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>ecg.comaas</groupId>
+        <artifactId>comaas</artifactId>
+        <version>${revision}</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>gtau-listener-message-event</artifactId>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>core-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ebay.ecg.box.australia.events</groupId>
+            <artifactId>rabbitmq</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ebay.ecg.box.australia.events</groupId>
+            <artifactId>core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ebay.ecg.box.australia.events</groupId>
+            <artifactId>events</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ebay.ecg.box.australia.events</groupId>
+            <artifactId>udp</artifactId>
+        </dependency>
+    </dependencies>
+</project>
