@@ -32,7 +32,7 @@ declare -A HOSTS=(
   ["mde"]="https://comaas-uploader:ohy9Te#hah9U@autodeploy.corp.mobile.de/storage/hosted-mobile-deployment-team-releases/ecg/ecg-comaas/"
   ["kjca"]='http://comaas:bMv!Yne7Apj3F4pW@nexus.kjdev.ca/content/repositories/comaas/ecg/comaas/versions/'
   ["gtau"]=""
-  ["gtuk"]=""
+  ["gtuk"]="-"
 
   # Overrides for specific environments
   ["mp-prod"]="builder@deploy001.esh.ops.prod.icas.ecg.so"
@@ -46,7 +46,7 @@ declare -A METHODS=(
   ["mde"]="curl"
   ["kjca"]="curl"
   ["gtau"]="curl"
-  ["gtuk"]="curl"
+  ["gtuk"]="-"
 )
 
 function upload() {
@@ -111,4 +111,16 @@ function upload() {
 }
 
 parseArgs $@
-upload
+
+if [ ${TENANT} == "gtuk" ]; then
+    echo "Uploading the GTUK debian package to repositories.ecg.so"
+    DEB_PACK="builds/*${GIT_HASH}*.deb"
+    if [ ! -f ${DEB_PACK} ]; then
+        echo "Package to upload not found: $DEB_PACK"
+        exit 1
+    fi
+    ./bin/upload_ecg_repos.sh ${TENANT} ${DEB_PACK} ${TIMESTAMP} legacy
+else
+    upload
+fi
+
