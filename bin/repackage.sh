@@ -96,7 +96,7 @@ function repackage() {
 
         # This package name is a GTUK requirement.
         tar xf distribution/target/distribution-gtuk-comaasqa.tar.gz distribution/lib/core-runtime-${GIT_HASH}.jar
-        GTUK_VERSION=$(unzip -p distribution/lib/core-runtime-b21fda0.jar META-INF/MANIFEST.MF | grep Build-Date | awk '{print $2}' | tr -d '\r')
+        GTUK_VERSION=$(unzip -p distribution/lib/core-runtime-${GIT_HASH}.jar META-INF/MANIFEST.MF | grep Build-Date | awk '{print $2}' | tr -d '\r')
         rm -rf distribution/lib/
         mv -vf gumtree.uk.deb "$BUILDDIR/gumtree-replyts2_5.0-${GTUK_VERSION}-${GIT_HASH}_all.deb"
 
