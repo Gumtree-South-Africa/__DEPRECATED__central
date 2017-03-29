@@ -104,5 +104,5 @@ public interface Message {
 
     Optional<String> getLastEditor();
 
-    Optional<UUID> getEventTimeUUID();
+    UUID getEventTimeUUID();
 }

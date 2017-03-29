@@ -1,9 +1,8 @@
 package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.ecg.replyts.core.api.model.conversation.*;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
-import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
+import com.ecg.replyts.core.api.model.conversation.event.*;
+import com.ecg.replyts.core.api.util.Assert;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import org.joda.time.DateTime;
@@ -13,12 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
@@ -160,5 +157,56 @@ public class HybridConversationRepositoryTest {
 
         verify(riakRepository).commit(eq("123"), eq(expectedEventsForBoth));
         verify(cassandraRepository).commit(eq("123"), eq(expectedEventsForBoth));
+    }
+
+    @Test
+    public void testFixEventOrder() {
+        ConversationEvent newConversationCreatedEvent = new ConversationCreatedEvent("123", null, null, null, null, null, DateTime.now(), ConversationState.ACTIVE, new HashMap<>());
+        ConversationEvent newConvEvent1 = new MessageAddedEvent("456", MessageDirection.BUYER_TO_SELLER, DateTime.now(), null, null, null, FilterResultState.OK, ModerationResultState.GOOD, null, null, null, null);
+        ConversationEvent newConvEvent2 = new MessageAddedEvent("789", MessageDirection.BUYER_TO_SELLER, DateTime.now(), null, null, null, FilterResultState.OK, ModerationResultState.GOOD, null, null, null, null);
+        ConversationEvent newConvEvent3 = new MessageModeratedEvent("999", DateTime.now(), ModerationResultState.GOOD, null);
+
+        // Test no changes (events were in the correct order)
+        List<ConversationEvent> events = Arrays.asList(newConversationCreatedEvent, newConvEvent1, newConvEvent2, newConvEvent3);
+        List<ConversationEvent> eventsbeforeFix = events;
+        events = repository.fixEventOrder(events);
+        assertEquals(eventsbeforeFix, events);
+        verifyEventOrder(events);
+
+        // Out of order
+        events = Arrays.asList(newConversationCreatedEvent,newConvEvent2, newConvEvent1, newConvEvent3);
+        events = repository.fixEventOrder(events);
+        verifyEventOrder(events);
+
+        // Out of order with ConversationCreatedEvent out of place
+        events = Arrays.asList(newConvEvent2, newConversationCreatedEvent, newConvEvent1, newConvEvent3);
+        events = repository.fixEventOrder(events);
+        verifyEventOrder(events);
+
+        // Out of order with no ConversationCreatedEvent
+        events = Arrays.asList(newConvEvent2, newConversationCreatedEvent, newConvEvent1, newConvEvent3);
+        events = repository.fixEventOrder(events);
+        verifyEventOrder(events);
+
+        // CreateConversationEvent with later timestamp
+        newConversationCreatedEvent = new ConversationCreatedEvent("123", null, null, null, null, null, DateTime.now(), ConversationState.ACTIVE, new HashMap<>());
+
+        events = Arrays.asList(newConversationCreatedEvent, newConvEvent1, newConvEvent2, newConvEvent3);
+        events = repository.fixEventOrder(events);
+        verifyEventOrder(events);
+    }
+
+    private void verifyEventOrder(List<ConversationEvent> events) {
+        ConversationEvent lastce  = null;
+        for(ConversationEvent e: events) {
+            if(lastce==null) {
+                lastce = e;
+                continue;
+            }
+            if(lastce.getEventTimeUUID().timestamp()>= e.getEventTimeUUID().timestamp()) {
+                fail(String.format("Events out of order! %s/%d and next %s/%d", lastce.getEventId(), lastce.getEventTimeUUID().timestamp(), e.getEventId(), e.getEventTimeUUID().timestamp()));
+            }
+            lastce = e;
+        }
     }
 }

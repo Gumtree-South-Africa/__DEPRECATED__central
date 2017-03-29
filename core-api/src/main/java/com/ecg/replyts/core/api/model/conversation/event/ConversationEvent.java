@@ -31,10 +31,11 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class ConversationEvent {
 
+    // Not to be confused with eventid from Cassandra, as this one is different!
     private final String eventId;
     private final DateTime conversationModifiedAt;
-
-    private Optional<UUID> eventTimeUUID;
+    
+    private UUID eventTimeUUID;
 
     /**
      * marks the version of this data format. can be used in future to handle old and new data formats.
@@ -47,7 +48,7 @@ public abstract class ConversationEvent {
         Assert.notNull(conversationModifiedAt);
         this.eventId = eventId;
         this.conversationModifiedAt = conversationModifiedAt;
-        this.eventTimeUUID = Optional.of(UUIDs.timeBased());
+        this.eventTimeUUID = UUIDs.timeBased();
     }
 
     public DateTime getConversationModifiedAt() {
@@ -66,12 +67,12 @@ public abstract class ConversationEvent {
     }
 
     @JsonIgnore
-    public Optional<UUID> getEventTimeUUID() {
+    public UUID getEventTimeUUID() {
         return eventTimeUUID;
     }
 
     public void setEventTimeUUID(UUID eventTimeUUID) {
-        this.eventTimeUUID = Optional.of(eventTimeUUID);
+        this.eventTimeUUID = eventTimeUUID;
     }
 
     @Override

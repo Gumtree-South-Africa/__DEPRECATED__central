@@ -2,8 +2,10 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
+import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
@@ -14,10 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class HybridConversationRepository implements MutableConversationRepository {
@@ -196,7 +195,7 @@ public class HybridConversationRepository implements MutableConversationReposito
             LOG.error("Failed to save {} conversationEvents for conversation {} to riak, reason {}", toBeCommittedEvents.size(), conversationId, e.getMessage(), e);
             throw new RuntimeException(e);
         }
-        
+
         List<ConversationEvent> cassandraToBeCommittedEvents = toBeCommittedEvents;
 
         // Also perform a migration of historic events in case 1) there aren't any yet for this conversation, 2) this
@@ -253,7 +252,7 @@ public class HybridConversationRepository implements MutableConversationReposito
             if (events == null) {
                 events = riakConversationRepository.getConversationEvents(conversationId);
             }
-
+            events = fixEventOrder(events);
             cassandraConversationRepository.commit(conversationId, events);
         } finally {
             migrateConversationCounter.inc();
@@ -261,4 +260,38 @@ public class HybridConversationRepository implements MutableConversationReposito
 
         return true;
     }
+
+    // Make sure that timeUUID of each conversation matches the order of the conversation event in the list
+    List<ConversationEvent> fixEventOrder(List<ConversationEvent> cevents) {
+        // Assume the order of things is correct, but UUID might not be
+        List<ConversationEvent> orderedEvents = new ArrayList<>(cevents);
+        ConversationEvent firstEvent = orderedEvents.get(0);
+
+        // Make sure ConversationCreatedEvent is always first
+        if (!(firstEvent instanceof ConversationCreatedEvent)) {
+
+            Optional<ConversationEvent> cce = orderedEvents.parallelStream().filter(e -> e instanceof ConversationCreatedEvent).findFirst();
+            if (cce.isPresent()) {
+                ConversationEvent ce = cce.get();
+                orderedEvents.remove(ce);
+                orderedEvents.add(0, ce);
+                LOG.debug("Moving ConversationCreatedEvent to be the first on the list for event {}", ce.getEventId());
+            }
+        }
+        UUID prevUUID = null;
+        for (ConversationEvent e : orderedEvents) {
+
+            if (prevUUID == null) {
+                prevUUID = e.getEventTimeUUID();
+                continue;
+            }
+            if (prevUUID.timestamp() >= e.getEventTimeUUID().timestamp()) {
+                LOG.debug("Correcting event order for event {}", e.getEventId());
+                e.setEventTimeUUID(UUIDs.timeBased());
+            }
+            prevUUID = e.getEventTimeUUID();
+        }
+        return orderedEvents;
+    }
+
 }

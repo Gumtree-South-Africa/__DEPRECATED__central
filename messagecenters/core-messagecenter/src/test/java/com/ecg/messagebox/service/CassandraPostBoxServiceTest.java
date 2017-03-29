@@ -277,7 +277,7 @@ public class CassandraPostBoxServiceTest {
     private Message newMessage(String id, MessageDirection direction, MessageState state, String subject) {
         return aMessage()
                 .withId(id)
-                .withEventTimeUUID(Optional.of(UUID.randomUUID()))
+                .withEventTimeUUID(UUID.randomUUID())
                 .withMessageDirection(direction)
                 .withState(state)
                 .withReceivedAt(new DateTime(2016, 1, 30, 20, 11, 52, DateTimeZone.forID("Europe/Amsterdam")))
@@ -291,7 +291,7 @@ public class CassandraPostBoxServiceTest {
     private Message newMessageWithHeaders(String id, MessageDirection direction, MessageState state, Map<String, String> headers) {
         return aMessage()
                 .withId(id)
-                .withEventTimeUUID(Optional.of(UUIDs.timeBased()))
+                .withEventTimeUUID(UUIDs.timeBased())
                 .withMessageDirection(direction)
                 .withState(state)
                 .withReceivedAt(new DateTime(2016, 1, 30, 20, 11, 52, DateTimeZone.forID("Europe/Amsterdam")))

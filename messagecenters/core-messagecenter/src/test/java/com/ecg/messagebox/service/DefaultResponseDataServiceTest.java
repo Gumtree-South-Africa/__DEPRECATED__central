@@ -140,7 +140,7 @@ public class DefaultResponseDataServiceTest {
     private Message newMessage(String id, MessageDirection direction, MessageState state, String subject) {
         return aMessage()
                 .withId(id)
-                .withEventTimeUUID(of(UUID.randomUUID()))
+                .withEventTimeUUID(UUID.randomUUID())
                 .withMessageDirection(direction)
                 .withState(state)
                 .withReceivedAt(new DateTime(2016, 1, 30, 20, 11, 52, DateTimeZone.forID("Europe/Amsterdam")))

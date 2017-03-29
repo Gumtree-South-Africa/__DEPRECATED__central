@@ -29,7 +29,7 @@ public class ImmutableMessage implements Message {
     private final Optional<String> lastEditor;
     private final int version;
 
-    private Optional<UUID> eventTimeUUID;
+    private UUID eventTimeUUID;
 
     ImmutableMessage(Builder bdr) {
         Preconditions.checkNotNull(bdr.messageDirection);
@@ -143,7 +143,7 @@ public class ImmutableMessage implements Message {
     }
 
     @Override
-    public Optional<UUID> getEventTimeUUID() {
+    public UUID getEventTimeUUID() {
         return eventTimeUUID;
     }
 
@@ -188,7 +188,7 @@ public class ImmutableMessage implements Message {
         private Map<String, String> headers = new HashMap<>();
         private List<ProcessingFeedback> processingFeedback = new ArrayList<>();
         private Optional<String> lastEditor = Optional.empty();
-        private Optional<UUID> eventTimeUUID = Optional.empty();
+        private UUID eventTimeUUID;
         private String senderMessageIdHeader;
         private String inResponseToMessageId;
         public List<String> attachments;
@@ -314,7 +314,7 @@ public class ImmutableMessage implements Message {
             return this;
         }
 
-        public Builder withEventTimeUUID(Optional<UUID> eventTimeUUID) {
+        public Builder withEventTimeUUID(UUID eventTimeUUID) {
             this.eventTimeUUID = eventTimeUUID;
             return this;
         }

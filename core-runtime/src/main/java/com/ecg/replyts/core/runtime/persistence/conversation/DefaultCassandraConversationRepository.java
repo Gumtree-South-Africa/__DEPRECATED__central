@@ -235,7 +235,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
 
             for (ConversationEvent conversationEvent : toBeCommittedEvents) {
                 try {
-                    UUID eventId = conversationEvent.getEventTimeUUID().get();
+                    UUID eventId = conversationEvent.getEventTimeUUID();
                     DateTime currentTime = new DateTime(UUIDs.unixTimestamp(eventId));
                     String jsonEventStr = objectMapper.writeValueAsString(conversationEvent);
                     batch.add(Statements.INSERT_CONVERSATION_EVENTS.bind(
