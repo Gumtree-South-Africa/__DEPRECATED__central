@@ -92,6 +92,9 @@ function main() {
 
    if [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "mde" ]] ; then
        startCassandra
+
+       # RP: instead of this we should use the registry.ecg.so/comaas_cassandra_data image, which already has a keyspace set up.
+
        sleep 5 # give the cassandra container some time to settle
 
        for i in $(seq 1 ${ATTEMPTS}); do
