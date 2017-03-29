@@ -16,9 +16,10 @@ BUILD_DIR="builds"
 
 
 # Nomad packages:
-./bin/upload_ecg_repos.sh ${TENANT} ${BUILD_DIR}/comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}-nomad.tar.gz ${TIMESTAMP} sandbox
-./bin/upload_ecg_repos.sh ${TENANT} ${BUILD_DIR}/comaas-${TENANT}-sandbox-${TIMESTAMP}-${GIT_HASH}-nomad.tar.gz ${TIMESTAMP} sandbox
-
+cp -v ${BUILD_DIR}/comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}-nomad.tar.gz ${BUILD_DIR}/comaas-${TENANT}-comaasqa-${GIT_HASH}-nomad.tar.gz
+./bin/upload_ecg_repos.sh ${TENANT} ${BUILD_DIR}/comaas-${TENANT}-comaasqa-${GIT_HASH}-nomad.tar.gz ${GIT_HASH} sandbox
+cp -v ${BUILD_DIR}/comaas-${TENANT}-sandbox-${TIMESTAMP}-${GIT_HASH}-nomad.tar.gz ${BUILD_DIR}/comaas-${TENANT}-sandbox-${GIT_HASH}-nomad.tar.gz
+./bin/upload_ecg_repos.sh ${TENANT} ${BUILD_DIR}/comaas-${TENANT}-sandbox-${GIT_HASH}-nomad.tar.gz ${GIT_HASH} sandbox
 
 # properties:
 
