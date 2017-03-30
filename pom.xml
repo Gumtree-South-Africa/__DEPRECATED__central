@@ -499,6 +499,7 @@
         <kjca-tracing.version>8</kjca-tracing.version>
         <sentry-version>7.1.0</sentry-version>
         <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
+        <revision>1.0-IMA</revision>
     </properties>
 
 

@@ -8,6 +8,7 @@ import com.ebay.ecg.replyts.robot.service.RobotService;
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -53,7 +54,7 @@ class RobotApiConfiguration {
         webserver.context(new SpringContextProvider("/gtau-robot", new String[]{"classpath:gtau-robot-context.xml"}, applicationContext));
     }
 
-    @Bean
+    @Bean(name = "rabbitMQConfigConsumer")
     public RabbitMQConfiguration getRabbitMQConfiguration() {
         RabbitMQConfiguration rabbitMQConfiguration = new RabbitMQConfiguration();
         rabbitMQConfiguration.setHost(host);
@@ -80,7 +81,7 @@ class RobotApiConfiguration {
 
     @Bean(destroyMethod = "close")
     public RabbitMQEventHandlerConsumer getRabbitMQEventHandlerConsumer(
-            RabbitMQConfiguration config, RabbitMQConsumerConfiguration consumerConfiguration
+            @Qualifier("rabbitMQConfigConsumer") RabbitMQConfiguration config, RabbitMQConsumerConfiguration consumerConfiguration
     ) throws Exception {
         return new RabbitMQEventHandlerConsumer(config, consumerConfiguration);
     }
