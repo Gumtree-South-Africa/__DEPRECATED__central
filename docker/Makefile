@@ -1,6 +1,7 @@
 DOCKER_COMPOSE  = docker-compose
 BROWSE          = open
-PROPS2CONSUL	= properties-to-consul
+PROPS2CONSUL    = properties-to-consul
+CASS_IMG_VER    = 0.0.3
 
 .PHONY: start up down ui import logs
 
@@ -20,3 +21,9 @@ import:
 
 logs:
 	@$(DOCKER_COMPOSE) logs -f
+
+cassandra-image:
+	@find .. -name \*cql -not -path "../docker/*" -exec cp {} cassandra/ \;
+	@docker build -t registry.ecg.so/comaas_cassandra_data:$(CASS_IMG_VER) cassandra
+	@rm -f cassandra/*cql
+	@docker push registry.ecg.so/comaas_cassandra_data:$(CASS_IMG_VER)
