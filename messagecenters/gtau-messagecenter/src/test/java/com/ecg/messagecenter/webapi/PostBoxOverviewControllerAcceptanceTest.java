@@ -18,6 +18,7 @@ public class PostBoxOverviewControllerAcceptanceTest {
     private final Properties testProperties = new Properties() {{
         put("replyts.tenant", "gtau");
         put("persistence.strategy", "riak");
+        put("messages.conversations.enrichment.on.read", "true");
     }};
 
     @Rule

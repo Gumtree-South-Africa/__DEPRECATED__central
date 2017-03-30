@@ -25,8 +25,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ecg.messagecenter.util.ConversationThreadEnricher.CONVERSATION_ENRICHER_READ_TIMER_NAME;
-
 public class PostBoxResponseBuilder {
 
     private static final Counter LIST_AGGREGATE_HIT = TimingReports.newCounter("message-box.list-aggregate-hit");
@@ -136,8 +134,7 @@ public class PostBoxResponseBuilder {
         try {
             for (ConversationThread conversationThread : conversationThreads) {
                 Optional<PostBoxListItemResponse> singlePostBoxItem = createSinglePostBoxItem(email,
-                        conversationThreadEnricher.enrich(conversationThread, Optional.empty(),
-                                CONVERSATION_ENRICHER_READ_TIMER_NAME));
+                        conversationThreadEnricher.enrichOnRead(conversationThread, Optional.empty()));
                 // postbox + conversation buckets are decoupled -> possibility of getting out of sync
                 if (singlePostBoxItem.isPresent()) {
                     postBoxResponse.addItem(singlePostBoxItem.get());
