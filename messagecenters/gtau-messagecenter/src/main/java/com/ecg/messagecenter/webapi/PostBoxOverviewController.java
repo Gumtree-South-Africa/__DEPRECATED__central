@@ -4,6 +4,7 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.util.ConversationThreadEnricher;
 import com.ecg.messagecenter.webapi.requests.MessageCenterDeletePostBoxConversationCommandNew;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
@@ -43,9 +44,10 @@ class PostBoxOverviewController {
     @Autowired
     public PostBoxOverviewController(
             ConversationRepository conversationRepository,
-            SimplePostBoxRepository postBoxRepository) {
+            SimplePostBoxRepository postBoxRepository,
+            ConversationThreadEnricher conversationThreadEnricher) {
         this.postBoxRepository = postBoxRepository;
-        this.responseBuilder = new PostBoxResponseBuilder(conversationRepository);
+        this.responseBuilder = new PostBoxResponseBuilder(conversationRepository, conversationThreadEnricher);
     }
 
     @InitBinder
@@ -65,8 +67,8 @@ class PostBoxOverviewController {
             @PathVariable String email,
             @RequestParam(value = "newCounterMode", defaultValue = "false") boolean newCounterMode,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size,
-            @RequestParam(value ="page", defaultValue = "0", required = false) Integer page,
-            @RequestParam(value ="robotEnabled", defaultValue = "true", required = false) boolean robotEnabled,
+            @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
+            @RequestParam(value = "robotEnabled", defaultValue = "true", required = false) boolean robotEnabled,
             HttpServletRequest request) {
 
         Timer.Context timerContext = API_POSTBOX_BY_EMAIL.time();
@@ -81,7 +83,7 @@ class PostBoxOverviewController {
                 postBoxRepository.write(postBox);
             }
 
-            if(robotEnabled) {
+            if (robotEnabled) {
                 return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
             } else {
                 return responseBuilder.buildPostBoxResponseRobotExcluded(email, size, page, postBox, newCounterMode);
@@ -99,7 +101,7 @@ class PostBoxOverviewController {
             @PathVariable("email") String email,
             @RequestParam(value = "ids", defaultValue = "") String[] ids,
             @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
-            @RequestParam(value ="page", defaultValue = "0", required = false) Integer page,
+            @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size) {
         Timer.Context timerContext = API_POSTBOX_CONVERSATION_DELETE_BY_ID.time();
 

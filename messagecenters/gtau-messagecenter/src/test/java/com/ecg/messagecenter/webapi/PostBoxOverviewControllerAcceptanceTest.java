@@ -7,12 +7,11 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
 import java.util.Properties;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 
 public class PostBoxOverviewControllerAcceptanceTest {
@@ -43,6 +42,9 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations[0].email", equalTo("seller1@seller.com"))
                 .body("body.conversations[0].adId", equalTo("232323"))
                 .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer."))
+                .body("body.conversations[0].buyerAnonymousEmail", containsString("Buyer."))
+                .body("body.conversations[0].sellerAnonymousEmail", containsString("Seller."))
+                .body("body.conversations[0].status", equalTo("ACTIVE"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller1@seller.com");
     }
 
@@ -166,7 +168,10 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations[0].unread", equalTo(true))
                 .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer."))
                 .body("body.conversations[0].buyerId", equalTo("buyer11@buyer.com"))
-                .body("body.conversations[0].sellerId", equalTo("seller11@seller.com"))
+                .body("body.conversations[0].sellerId", equalTo("seller11@seller.com")).log().body()
+                .body("body.conversations[0].buyerAnonymousEmail", containsString("Buyer."))
+                .body("body.conversations[0].sellerAnonymousEmail", containsString("Seller."))
+                .body("body.conversations[0].status", equalTo("ACTIVE"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller11@seller.com");
 
         RestAssured.given()
@@ -175,7 +180,10 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.numUnread", equalTo(1))
                 .body("body.conversations.size()", equalTo(1))
                 .body("body.conversations[0].unread", equalTo(true))
-                .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer."))
+                .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer.")).log().body()
+                .body("body.conversations[0].buyerAnonymousEmail", containsString("Buyer."))
+                .body("body.conversations[0].sellerAnonymousEmail", containsString("Seller."))
+                .body("body.conversations[0].status", equalTo("ACTIVE"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller11@seller.com?robotEnabled=false");
 
         testRule.deliver(
@@ -197,6 +205,9 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations.size()", equalTo(1))
                 .body("body.conversations[0].unread", equalTo(true))
                 .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer."))
+                .body("body.conversations[0].buyerAnonymousEmail", containsString("Buyer."))
+                .body("body.conversations[0].sellerAnonymousEmail", containsString("Seller."))
+                .body("body.conversations[0].status", equalTo("ACTIVE"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller11@seller.com");
 
         // Called by API
@@ -207,6 +218,9 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations.size()", equalTo(1))
                 .body("body.conversations[0].unread", equalTo(true))
                 .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer."))
+                .body("body.conversations[0].buyerAnonymousEmail", containsString("Buyer."))
+                .body("body.conversations[0].sellerAnonymousEmail", containsString("Seller."))
+                .body("body.conversations[0].status", equalTo("ACTIVE"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller11@seller.com?robotEnabled=false");
 
         // Buyer View
@@ -218,6 +232,9 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations.size()", equalTo(1))
                 .body("body.conversations[0].unread", equalTo(true))
                 .body("body.conversations[0].textShortTrimmed", equalTo("A message from Gumtree Robot."))
+                .body("body.conversations[0].buyerAnonymousEmail", containsString("Buyer."))
+                .body("body.conversations[0].sellerAnonymousEmail", containsString("Seller."))
+                .body("body.conversations[0].status", equalTo("ACTIVE"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/buyer11@buyer.com");
 
         RestAssured.given()
@@ -227,6 +244,9 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations.size()", equalTo(1))
                 .body("body.conversations[0].unread", equalTo(true)) //TODO users would still get the robot message counter
                 .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer."))
+                .body("body.conversations[0].buyerAnonymousEmail", containsString("Buyer."))
+                .body("body.conversations[0].sellerAnonymousEmail", containsString("Seller."))
+                .body("body.conversations[0].status", equalTo("ACTIVE"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/buyer11@buyer.com?robotEnabled=false");
     }
 
@@ -238,7 +258,7 @@ public class PostBoxOverviewControllerAcceptanceTest {
                         .to("seller13@seller.com")
                         .adId("232323233")
                         .plainBody("I would like to offer $10.")
-                        .header(Header.OfferId.getValue(),"GTAU")
+                        .header(Header.OfferId.getValue(), "GTAU")
         );
 
         RestAssured.given()
@@ -249,6 +269,9 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations[0].unread", equalTo(true))
                 .body("body.conversations[0].textShortTrimmed", equalTo("I would like to offer $10."))
                 .body("body.conversations[0].offerId", equalTo("GTAU"))
+                .body("body.conversations[0].buyerAnonymousEmail", containsString("Buyer."))
+                .body("body.conversations[0].sellerAnonymousEmail", containsString("Seller."))
+                .body("body.conversations[0].status", equalTo("ACTIVE"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller13@seller.com");
     }
 
@@ -260,7 +283,7 @@ public class PostBoxOverviewControllerAcceptanceTest {
                         .to("seller14@seller.com")
                         .adId("2323232334")
                         .plainBody("I would like to offer $10.")
-                        .header(Header.OfferId.getValue(),"GTAU")
+                        .header(Header.OfferId.getValue(), "GTAU")
         );
         String anonymizedBuyer = testRule.waitForMail().getFrom()[0].toString();
 
@@ -272,6 +295,9 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations[0].unread", equalTo(true))
                 .body("body.conversations[0].textShortTrimmed", equalTo("I would like to offer $10."))
                 .body("body.conversations[0].offerId", equalTo("GTAU"))
+                .body("body.conversations[0].buyerAnonymousEmail", containsString("Buyer."))
+                .body("body.conversations[0].sellerAnonymousEmail", containsString("Seller."))
+                .body("body.conversations[0].status", equalTo("ACTIVE"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller14@seller.com");
 
         testRule.deliver(
@@ -291,6 +317,9 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations[0].unread", equalTo(false))
                 .body("body.conversations[0].textShortTrimmed", equalTo("Reply to the enquiry."))
                 .body("body.conversations[0].offerId", equalTo(null))
+                .body("body.conversations[0].buyerAnonymousEmail", containsString("Buyer."))
+                .body("body.conversations[0].sellerAnonymousEmail", containsString("Seller."))
+                .body("body.conversations[0].status", equalTo("ACTIVE"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller14@seller.com");
     }
 }

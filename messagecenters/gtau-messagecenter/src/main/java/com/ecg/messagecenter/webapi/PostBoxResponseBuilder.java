@@ -1,10 +1,12 @@
 package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.cleanup.TextCleaner;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.Header;
 import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.util.ConversationThreadEnricher;
 import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
@@ -27,11 +29,14 @@ public class PostBoxResponseBuilder {
 
     private static final Counter LIST_AGGREGATE_HIT = TimingReports.newCounter("message-box.list-aggregate-hit");
     private static final Counter LIST_AGGREGATE_MISS = TimingReports.newCounter("message-box.list-aggregate-miss");
+    private static final Timer INIT_CONVERSATION_PAYLOAD_TIMER = TimingReports.newTimer("message-box.init-conversation-payload-timer");
 
     private final ConversationRepository conversationRepository;
+    private final ConversationThreadEnricher conversationThreadEnricher;
 
-    public PostBoxResponseBuilder(ConversationRepository conversationRepository) {
+    public PostBoxResponseBuilder(ConversationRepository conversationRepository, ConversationThreadEnricher conversationThreadEnricher) {
         this.conversationRepository = conversationRepository;
+        this.conversationThreadEnricher = conversationThreadEnricher;
     }
 
     ResponseObject<PostBoxResponse> buildPostBoxResponse(String email, int size, int page, PostBox postBox, boolean newCounterMode) {
@@ -50,22 +55,22 @@ public class PostBoxResponseBuilder {
         return ResponseObject.of(postBoxResponse);
     }
 
-    ResponseObject<PostBoxResponse> buildPostBoxResponseRobotExcluded(String email, int size, int page,PostBox postBox, boolean newCounterMode) {
+    ResponseObject<PostBoxResponse> buildPostBoxResponseRobotExcluded(String email, int size, int page, PostBox postBox, boolean newCounterMode) {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         List<ConversationThread> conversationThreads = postBox.getConversationThreads();
         Conversation conversation;
         List<ConversationThread> normalConversationThreads = Lists.newArrayList();
-        for(ConversationThread conversationThread : conversationThreads) {
+        for (ConversationThread conversationThread : conversationThreads) {
             conversation = conversationRepository.getById(conversationThread.getConversationId());
-            if(conversation == null) {
+            if (conversation == null) {
                 continue;
             }
 
             List<Message> normalMessages = Lists.newArrayList();
             // for this conversation only include sent messages that are non-robot
-            for(Message message : conversation.getMessages()) {
-                if(message.getHeaders().get(Header.Robot.getValue()) == null && message.getState().equals(MessageState.SENT)) {
+            for (Message message : conversation.getMessages()) {
+                if (message.getHeaders().get(Header.Robot.getValue()) == null && message.getState().equals(MessageState.SENT)) {
                     normalMessages.add(message);
                 }
             }
@@ -85,10 +90,13 @@ public class PostBoxResponseBuilder {
                         conversationThread.getBuyerId(),
                         conversationThread.getSellerId(),
                         conversationThread.getMessageDirection(),
-                        Optional.<String>empty(),
-                        Optional.<String>empty(),
+                        Optional.empty(),
+                        Optional.empty(),
                         lastMessage.getAttachmentFilenames(),
-                        conversationThread.getLastMessageId()
+                        conversationThread.getLastMessageId(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty()
                 ));
             }
         }
@@ -121,13 +129,19 @@ public class PostBoxResponseBuilder {
 
     private void initConversationsPayload(String email, List<ConversationThread> conversationThreads, PostBoxResponse postBoxResponse) {
 
+        Timer.Context timerContext = INIT_CONVERSATION_PAYLOAD_TIMER.time();
 
-        for (ConversationThread conversationThread : conversationThreads) {
-            Optional<PostBoxListItemResponse> singlePostBoxItem = createSinglePostBoxItem(email, conversationThread);
-            // postbox + conversation buckets are decoupled -> possibility of getting out of sync
-            if (singlePostBoxItem.isPresent()) {
-                postBoxResponse.addItem(singlePostBoxItem.get());
+        try {
+            for (ConversationThread conversationThread : conversationThreads) {
+                Optional<PostBoxListItemResponse> singlePostBoxItem = createSinglePostBoxItem(email,
+                        conversationThreadEnricher.enrich(conversationThread, Optional.empty()));
+                // postbox + conversation buckets are decoupled -> possibility of getting out of sync
+                if (singlePostBoxItem.isPresent()) {
+                    postBoxResponse.addItem(singlePostBoxItem.get());
+                }
             }
+        } finally {
+            timerContext.stop();
         }
     }
 
@@ -148,9 +162,8 @@ public class PostBoxResponseBuilder {
 
         return PostBoxListItemResponse.createNonAggregateListViewItem(email,
                 conversationThread.isContainsUnreadMessages(),
-                conversation);
+                conversation, conversationThread);
     }
-
 
 
 }
