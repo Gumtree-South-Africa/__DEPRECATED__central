@@ -18,6 +18,9 @@ public class ConversationThread extends AbstractConversationThread {
     private Optional<String> offerId;
     private List<String> lastMessageAttachments;
     private Optional<String> lastMessageId;
+    private Optional<String> buyerAnonymousEmail;
+    private Optional<String> sellerAnonymousEmail;
+    private Optional<String> status;
 
     public ConversationThread(
             @JsonProperty("adId") String adId,
@@ -55,6 +58,53 @@ public class ConversationThread extends AbstractConversationThread {
         this.offerId = offerId;
         this.lastMessageAttachments = lastMessageAttachments;
         this.lastMessageId = lastMessageId;
+        this.buyerAnonymousEmail = Optional.empty();
+        this.sellerAnonymousEmail = Optional.empty();
+        this.status = Optional.empty();
+    }
+
+    public ConversationThread(
+            @JsonProperty("adId") String adId,
+            @JsonProperty("conversationId") String conversationId,
+            @JsonProperty("createdAt") DateTime createdAt,
+            @JsonProperty("modifiedAt") DateTime modifiedAt,
+            @JsonProperty("receivedAt") DateTime receivedAt,
+            @JsonProperty("containsUnreadMessages") boolean containsUnreadMessages,
+            @JsonProperty("previewLastMessage") Optional<String> previewLastMessage,
+            @JsonProperty("buyerName") Optional<String> buyerName,
+            @JsonProperty("sellerName") Optional<String> sellerName,
+            @JsonProperty("buyerId") Optional<String> buyerId,
+            @JsonProperty("sellerId") Optional<String> sellerId,
+            @JsonProperty("messageDirection") Optional<String> messageDirection,
+            @JsonProperty("robot") Optional<String> robot,
+            @JsonProperty("offerId") Optional<String> offerId,
+            @JsonProperty("lastMessageAttachments") List<String> lastMessageAttachments,
+            @JsonProperty("lastMessageId") Optional<String> lastMessageId,
+            @JsonProperty("buyerAnonymousEmail") Optional<String> buyerAnonymousEmail,
+            @JsonProperty("sellerAnonymousEmail") Optional<String> sellerAnonymousEmail,
+            @JsonProperty("status") Optional<String> status) {
+        super(
+                adId,
+                conversationId,
+                createdAt,
+                modifiedAt,
+                receivedAt,
+                containsUnreadMessages,
+                previewLastMessage,
+                buyerName,
+                sellerName,
+                buyerId,
+                messageDirection
+        );
+
+        this.sellerId = sellerId;
+        this.robot = robot;
+        this.offerId = offerId;
+        this.lastMessageAttachments = lastMessageAttachments;
+        this.lastMessageId = lastMessageId;
+        this.buyerAnonymousEmail = buyerAnonymousEmail;
+        this.sellerAnonymousEmail = sellerAnonymousEmail;
+        this.status = status;
     }
 
     @Override
@@ -64,7 +114,7 @@ public class ConversationThread extends AbstractConversationThread {
         if (!actualMessage.isPresent())
             actualMessage = previewLastMessage;
 
-        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), true, actualMessage, buyerName, sellerName, buyerId, sellerId, messageDirection, robot, offerId, lastMessageAttachments, lastMessageId);
+        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), true, actualMessage, buyerName, sellerName, buyerId, sellerId, messageDirection, robot, offerId, lastMessageAttachments, lastMessageId, buyerAnonymousEmail, sellerAnonymousEmail, status);
     }
 
     public Optional<String> getSellerId() { return sellerId; }
@@ -81,6 +131,30 @@ public class ConversationThread extends AbstractConversationThread {
 
     public Optional<String> getLastMessageId() {
         return lastMessageId;
+    }
+
+    public Optional<String> getBuyerAnonymousEmail() {
+        return buyerAnonymousEmail;
+    }
+
+    public Optional<String> getSellerAnonymousEmail() {
+        return sellerAnonymousEmail;
+    }
+
+    public Optional<String> getStatus() {
+        return status;
+    }
+
+    public void setBuyerAnonymousEmail(Optional<String> buyerAnonymousEmail) {
+        this.buyerAnonymousEmail = buyerAnonymousEmail;
+    }
+
+    public void setSellerAnonymousEmail(Optional<String> sellerAnonymousEmail) {
+        this.sellerAnonymousEmail = sellerAnonymousEmail;
+    }
+
+    public void setStatus(Optional<String> status) {
+        this.status = status;
     }
 
     @Override

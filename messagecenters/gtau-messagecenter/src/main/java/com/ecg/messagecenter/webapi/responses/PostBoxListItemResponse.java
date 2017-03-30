@@ -10,7 +10,6 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 import com.google.common.base.Preconditions;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -22,8 +21,11 @@ public class PostBoxListItemResponse {
     private String buyerName;
     private String sellerName;
     private String buyerId;
+    private String buyerAnonymousEmail;
     private String sellerId;
+    private String sellerAnonymousEmail;
     private String adId;
+    private String status;
 
     private ConversationRole role;
     private boolean unread;
@@ -35,18 +37,21 @@ public class PostBoxListItemResponse {
     }
 
     public PostBoxListItemResponse(String email, ConversationThread conversationThread) {
-        Preconditions.checkArgument(conversationThread.containsNewListAggregateData(),"Only supported for data stored as list-aggregate");
+        Preconditions.checkArgument(conversationThread.containsNewListAggregateData(), "Only supported for data stored as list-aggregate");
 
         this.email = email;
         this.unread = conversationThread.isContainsUnreadMessages();
         this.id = conversationThread.getConversationId();
-        this.buyerName = conversationThread.getBuyerName().isPresent() ? conversationThread.getBuyerName().get(): "";
-        this.sellerName = conversationThread.getSellerName().isPresent() ? conversationThread.getSellerName().get(): "";
+        this.buyerName = conversationThread.getBuyerName().isPresent() ? conversationThread.getBuyerName().get() : "";
+        this.sellerName = conversationThread.getSellerName().isPresent() ? conversationThread.getSellerName().get() : "";
         this.adId = conversationThread.getAdId();
         this.role = ConversationBoundnessFinder.lookupUsersRole(email, conversationThread);
         this.buyerId = conversationThread.getBuyerId().orElse("");
+        this.buyerAnonymousEmail = conversationThread.getBuyerAnonymousEmail().orElse("");
         this.sellerId = conversationThread.getSellerId().orElse("");
+        this.sellerAnonymousEmail = conversationThread.getSellerAnonymousEmail().orElse("");
         this.attachments = conversationThread.getLastMessageAttachments();
+        this.status = conversationThread.getStatus().orElse("");
 
         this.lastMessage = new MessageResponse(
                 MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(conversationThread.getReceivedAt()),
@@ -56,8 +61,8 @@ public class PostBoxListItemResponse {
                 conversationThread.getPreviewLastMessage().get(),
                 Optional.empty(),
                 MessageResponse.Attachment.transform(
-                  conversationThread.getLastMessageAttachments(),
-                  Optional.ofNullable(conversationThread.getLastMessageId()).orElse(Optional.<String>empty()).orElse(null)),
+                        conversationThread.getLastMessageAttachments(),
+                        Optional.ofNullable(conversationThread.getLastMessageId()).orElse(Optional.<String>empty()).orElse(null)),
                 Collections.emptyList(),
                 Optional.<RobotMessageResponse>empty());
     }
@@ -65,7 +70,10 @@ public class PostBoxListItemResponse {
     // old style lookup when we didn't have a complete search aggregate on the list-view
     // todo: marked on calendar around June we deprecated this and throw it out (work with '...' placeholders if not data available)
     @Deprecated
-    public static Optional<PostBoxListItemResponse> createNonAggregateListViewItem(String email, boolean isUnread, Conversation conversationRts) {
+    public static Optional<PostBoxListItemResponse> createNonAggregateListViewItem(String email,
+                                                                                   boolean isUnread,
+                                                                                   Conversation conversationRts,
+                                                                                   ConversationThread conversationThread) {
         PostBoxListItemResponse response = new PostBoxListItemResponse();
         response.email = email;
         response.unread = isUnread;
@@ -75,7 +83,10 @@ public class PostBoxListItemResponse {
         response.adId = conversationRts.getAdId();
         response.role = ConversationBoundnessFinder.lookupUsersRole(email, conversationRts);
         response.sellerId = conversationRts.getSellerId();
+        response.sellerAnonymousEmail = conversationThread.getSellerAnonymousEmail().orElse(null);
         response.buyerId = conversationRts.getBuyerId();
+        response.buyerAnonymousEmail = conversationThread.getBuyerAnonymousEmail().orElse(null);
+        response.status = conversationThread.getStatus().orElse(null);
 
         MessagesResponseFactory factory = new MessagesResponseFactory(new MessagesDiffer());
         Optional<MessageResponse> messageResponse = factory.latestMessage(email, conversationRts);
@@ -139,6 +150,7 @@ public class PostBoxListItemResponse {
     public String getRobot() {
         return lastMessage.getRobot();
     }
+
     public String getOfferId() {
         return lastMessage.getOfferId();
     }
@@ -149,5 +161,17 @@ public class PostBoxListItemResponse {
 
     public String getSellerId() {
         return sellerId;
+    }
+
+    public String getBuyerAnonymousEmail() {
+        return buyerAnonymousEmail;
+    }
+
+    public String getSellerAnonymousEmail() {
+        return sellerAnonymousEmail;
+    }
+
+    public String getStatus() {
+        return status;
     }
 }
