@@ -611,6 +611,10 @@
                         <groupId>org.apache.commons</groupId>
                         <artifactId>commons-lang3</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.codahale.metrics</groupId>
+                        <artifactId>metrics-core</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -733,6 +737,12 @@
                 <groupId>com.ning</groupId>
                 <artifactId>async-http-client</artifactId>
                 <version>${asynchttpclient.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.netflix.archaius</groupId>
@@ -1802,6 +1812,12 @@
                 <artifactId>awaitility</artifactId>
                 <version>${awaitility-version}</version>
                 <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.objenesis</groupId>
+                        <artifactId>objenesis</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <!-- mde artifacts -->
