@@ -24,7 +24,7 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
     @Value("${replyts.maxPreviewMessageCharacters:250}")
     protected int maxChars;
 
-    @Value("${replyts.maxConversationAgeDays}")
+    @Value("${replyts.maxConversationAgeDays:180}")
     protected int maxAgeDays;
 
     public void moveConversationToPostBox(

@@ -44,7 +44,7 @@ class ConversationThreadController {
     @Autowired
     private ConversationRepository conversationRepository;
 
-    @Value("${replyts.maxConversationAgeDays}")
+    @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;
 
     @InitBinder

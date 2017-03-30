@@ -31,7 +31,7 @@ class ElasticSearchIndexer implements Indexer {
     @Autowired
     ElasticSearchIndexer(
             IndexerHealthCheck healthCheck,
-            @Value("${replyts.maxConversationAgeDays}") int maxAgeDays,
+            @Value("${replyts.maxConversationAgeDays:180}") int maxAgeDays,
             IndexerClockRepository indexerClockRepository,
             SingleRunGuard singleRunGuard,
             IndexerAction indexerAction,

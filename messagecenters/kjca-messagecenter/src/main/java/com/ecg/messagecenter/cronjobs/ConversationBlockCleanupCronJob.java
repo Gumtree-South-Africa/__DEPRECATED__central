@@ -29,7 +29,7 @@ public class ConversationBlockCleanupCronJob implements CronJobExecutor {
     @Autowired
     private ConversationBlockRepository conversationBlockRepo;
 
-    @Value("${replyts.maxConversationAgeDays}")
+    @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;
 
     @Override

@@ -40,7 +40,7 @@ public class PostBoxRepository {
     @Autowired
     PostBoxRepository(IRiakClient riakClient,
                       @Value("${persistence.riak.bucket.name.prefix:}") String bucketPrefix,
-                      @Value("${replyts.maxConversationAgeDays}") int maxConversationAgeDays,
+                      @Value("${replyts.maxConversationAgeDays:180}") int maxConversationAgeDays,
                       @Value("${persistence.riak.bucket.allowsiblings:true}") boolean allowSiblings,
                       @Value("${persistence.riak.bucket.lastwritewins:false}") boolean lastWriteWins) {
         try {

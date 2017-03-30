@@ -35,7 +35,7 @@ public class PostBoxInitializer {
     @Autowired
     public PostBoxInitializer(PostBoxRepository postBoxRepository,
                               @Value("${replyts.maxPreviewMessageCharacters:250}") int maxChars,
-                              @Value("${replyts.maxConversationAgeDays}") int maxConversationAgeDays) {
+                              @Value("${replyts.maxConversationAgeDays:180}") int maxConversationAgeDays) {
         this.postBoxRepository = postBoxRepository;
         this.messageResponseFactory = new MessagesResponseFactory(new MessagesDiffer());
         this.maxChars = maxChars;

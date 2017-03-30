@@ -71,7 +71,7 @@ public class ConversationThreadController {
     private final GumshieldApi gumshieldApi;
     private final ConversationEventListeners conversationEventListeners;
 
-    @Value("${replyts.maxConversationAgeDays}")
+    @Value("${replyts.maxConversationAgeDays:180}")
     private int maxConversationAgeDays;
 
     @Autowired

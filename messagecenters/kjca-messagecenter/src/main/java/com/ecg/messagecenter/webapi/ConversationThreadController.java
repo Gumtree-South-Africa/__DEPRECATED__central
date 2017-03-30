@@ -67,7 +67,7 @@ class ConversationThreadController {
     @Autowired
     private TextAnonymizer textAnonymizer;
 
-    @Value("${replyts.maxConversationAgeDays}")
+    @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;
 
     @InitBinder
