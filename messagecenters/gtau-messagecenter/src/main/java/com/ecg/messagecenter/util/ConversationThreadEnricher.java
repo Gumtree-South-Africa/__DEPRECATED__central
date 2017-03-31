@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.util;
 
-import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.replyts.core.api.model.MailCloakingService;
@@ -24,8 +23,8 @@ public class ConversationThreadEnricher {
     private final MailCloakingService mailCloakingService;
     private final ConversationRepository conversationRepository;
 
-    private static final Counter CONVERSATION_ENRICHER_COUNTER = TimingReports.newCounter("webapi-conversation-enricher-counts");
-    private static final Timer CONVERSATION_ENRICHER_TIMER = TimingReports.newTimer("webapi-conversation-enricher-timer");
+    public static final String CONVERSATION_ENRICHER_READ_TIMER_NAME = "postbox-conversation-enricher-read-timer";
+    public static final String CONVERSATION_ENRICHER_WRITE_TIMER_NAME = "postbox-conversation-enricher-write-timer";
 
     @Autowired
     public ConversationThreadEnricher(MailCloakingService mailCloakingService, ConversationRepository conversationRepository) {
@@ -45,6 +44,25 @@ public class ConversationThreadEnricher {
     }
 
     /**
+     * Enriches a {@link ConversationThread} object with additional information similarly to {@link #enrich(ConversationThread, Optional)}
+     * method in addition to measure the time taken to execute the call.
+     *
+     * @param conversationThread {@link ConversationThread} instance
+     * @param conversation       {@link Conversation} instance
+     * @return {@link ConversationThread} instance enriched
+     */
+    public ConversationThread enrich(ConversationThread conversationThread, Optional<Conversation> conversation, String metricName) {
+
+        Timer.Context timerContext = TimingReports.newTimer(metricName).time();
+
+        try {
+            return enrich(conversationThread, conversation);
+        } finally {
+            timerContext.stop();
+        }
+    }
+
+    /**
      * Enriches a {@link ConversationThread} if {@code buyerAnonymousEmail}, {@code sellerAnonymousEmail} or {@code status}
      * are not initialized.
      *
@@ -61,23 +79,12 @@ public class ConversationThreadEnricher {
             return conversationThread;
         }
 
-        // count number of time enrichment is being applied
-        CONVERSATION_ENRICHER_COUNTER.inc();
+        Conversation conv = conversation.orElse(conversationRepository.getById(conversationThread.getConversationId()));
 
-        // conversation enricher timer
-        Timer.Context timerContext = CONVERSATION_ENRICHER_TIMER.time();
-
-        try {
-            Conversation conv = conversation.orElse(conversationRepository.getById(conversationThread.getConversationId()));
-
-            if (conv != null) {
-                conversationThread.setBuyerAnonymousEmail(Optional.ofNullable(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conv).getAddress()));
-                conversationThread.setSellerAnonymousEmail(Optional.ofNullable(mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conv).getAddress()));
-                conversationThread.setStatus(Optional.ofNullable(conv.getState().name()));
-            }
-
-        } finally {
-            timerContext.stop();
+        if (conv != null) {
+            conversationThread.setBuyerAnonymousEmail(Optional.ofNullable(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conv).getAddress()));
+            conversationThread.setSellerAnonymousEmail(Optional.ofNullable(mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conv).getAddress()));
+            conversationThread.setStatus(Optional.ofNullable(conv.getState().name()));
         }
 
         return conversationThread;

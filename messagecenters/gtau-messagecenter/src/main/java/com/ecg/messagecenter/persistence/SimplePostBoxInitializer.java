@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+import static com.ecg.messagecenter.util.ConversationThreadEnricher.CONVERSATION_ENRICHER_WRITE_TIMER_NAME;
 import static org.joda.time.DateTime.now;
 
 /**
@@ -59,6 +60,6 @@ public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<C
                         Optional.empty(),
                         Optional.empty(),
                         Optional.empty()),
-                Optional.ofNullable(conversation));
+                Optional.ofNullable(conversation), CONVERSATION_ENRICHER_WRITE_TIMER_NAME);
     }
 }
