@@ -10,9 +10,9 @@ services:
     volumes:
       - "/var/run/docker.sock:/tmp/docker.sock"
   mail:
-    image: nicktriller/mail-sink
+    image: mailhog/mailhog
     ports:
-    - "8090:8080" # web ui
+    - "8090:8025" # web ui
     - "8025:1025"
   cassandra:
     image: registry.ecg.so/comaas_cassandra_data:0.0.3
