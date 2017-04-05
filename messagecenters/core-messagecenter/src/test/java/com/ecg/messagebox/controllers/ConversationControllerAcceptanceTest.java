@@ -1,11 +1,9 @@
 package com.ecg.messagebox.controllers;
 
 import com.ecg.replyts.integration.test.MailBuilder;
-import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import org.junit.Rule;
 import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
@@ -23,9 +21,6 @@ public class ConversationControllerAcceptanceTest extends ReplyTsIntegrationTest
             .header("X-Message-Metadata", "message metadata")
             .adId("232323")
             .plainBody("first contact from buyer");
-
-    @Rule
-    public ReplyTsIntegrationTestRule testRule = getTestRuleForNewModel();
 
     @Test
     public void getConversation() throws Exception {
@@ -65,18 +60,20 @@ public class ConversationControllerAcceptanceTest extends ReplyTsIntegrationTest
         RestAssured.given()
                 .filter(new RequestLoggingFilter())
                 .filter(new ResponseLoggingFilter())
-                .expect()
+                .when()
+                .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/conversations/" + convId)
+                .then()
                 .statusCode(200)
                 .body("body.id", equalTo(convId))
-                .body("body.unreadMessagesCount", equalTo(1))
-                .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/conversations/" + convId);
+                .body("body.unreadMessagesCount", equalTo(1));
 
         // mark conversation as read
         RestAssured.given()
-                .expect()
+                .when()
+                .post("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/conversations/" + convId + "?action=mark-as-read")
+                .then()
                 .statusCode(200)
                 .body("body.id", equalTo(convId))
-                .body("body.unreadMessagesCount", equalTo(0))
-                .post("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/conversations/" + convId + "?action=mark-as-read");
+                .body("body.unreadMessagesCount", equalTo(0));
     }
 }

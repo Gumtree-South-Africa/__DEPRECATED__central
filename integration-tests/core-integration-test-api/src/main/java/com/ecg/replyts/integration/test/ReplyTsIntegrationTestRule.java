@@ -128,6 +128,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
             testProperties.put("persistence.skip.mail.storage", true);
         }
 
+        if (!testProperties.containsKey("replyts.tenant")) {
+            testProperties.put("replyts.tenant", "unknown");
+        }
+
         String configResourceDirectory = configurationResourceDirectory != null ? configurationResourceDirectory : ReplytsRunner.DEFAULT_CONFIG_RESOURCE_DIRECTORY;
         this.testRunner = new IntegrationTestRunner(testProperties, configResourceDirectory);
     }

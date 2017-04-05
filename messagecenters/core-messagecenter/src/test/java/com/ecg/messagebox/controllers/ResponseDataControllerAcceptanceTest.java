@@ -1,31 +1,16 @@
 package com.ecg.messagebox.controllers;
 
-import com.ecg.replyts.core.runtime.identifier.UserIdentifierType;
-import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
-import java.util.Properties;
-import java.util.function.Supplier;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static org.hamcrest.Matchers.equalTo;
 
 @Ignore
-public class ResponseDataControllerAcceptanceTest {
-
-    @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
-
-        properties.put("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_USER_ID.toString());
-        properties.put("userIdentifierService", UserIdentifierType.BY_USER_ID.toString());
-
-        return properties;
-    }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql");
+public class ResponseDataControllerAcceptanceTest extends ReplyTsIntegrationTestRuleHelper {
 
     @Test
     public void readMessages() throws Exception {

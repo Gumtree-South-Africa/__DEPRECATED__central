@@ -27,9 +27,6 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
             .adId("232323")
             .plainBody("first contact from buyer 3");
 
-    @Rule
-    public ReplyTsIntegrationTestRule testRule = getTestRuleForNewModel();
-
     @Test
     public void getConversations() {
         String convId1 = testRule.deliver(MAIL1).getConversation().getId();

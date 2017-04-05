@@ -10,9 +10,6 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class UnreadCountsControllerAcceptanceTest extends ReplyTsIntegrationTestRuleHelper {
 
-    @Rule
-    public ReplyTsIntegrationTestRule testRule = getTestRuleForNewModel();
-
     @Test
     public void getUserUnreadCounts() {
         // create conversation 1
