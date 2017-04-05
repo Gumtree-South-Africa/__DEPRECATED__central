@@ -42,7 +42,7 @@ public class MessageEventConfiguration {
     @Bean(name = "rabbitMQConfigProducer")
     public RabbitMQConfiguration getRabbitMQConfigProducer() {
         System.out.println("Creating configuration with these parameters:");
-        System.out.println("[host=" + host + ",port="  + port + ",endpoint=" + endpoint);
+        System.out.println("host=" + host + ",port="  + port + ",endpoint=" + endpoint);
 
         final RabbitMQConfiguration config = new RabbitMQConfiguration();
         config.setHost(host);

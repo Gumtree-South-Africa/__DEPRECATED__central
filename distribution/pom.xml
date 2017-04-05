@@ -205,6 +205,12 @@
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>gtau-listener-message-event</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>gtau-messagecenter</artifactId>
                     <version>${project.version}</version>
                 </dependency>
