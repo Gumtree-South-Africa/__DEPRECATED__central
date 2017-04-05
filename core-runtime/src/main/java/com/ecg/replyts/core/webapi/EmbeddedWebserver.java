@@ -165,7 +165,7 @@ public class EmbeddedWebserver {
     }
 
     private Handler instrument(Handler handler) {
-        if(instrument) {
+        if (instrument) {
             HostReportingServletHandler instrumentedHandler = new HostReportingServletHandler(MetricsService.getInstance().getRegistry());
             LOG.debug("Instrumenting handler: ", handler);
             instrumentedHandler.setHandler(handler);
@@ -196,6 +196,7 @@ public class EmbeddedWebserver {
             throw new IllegalStateException("This EmbeddedWebserver already has a request-logging handler associated with it");
         }
 
+
         if (accessLogAppender != null && accessLogAppender.isStarted()) {
             LOG.info("Found valid Kafka appender for access logging");
 
@@ -204,12 +205,18 @@ public class EmbeddedWebserver {
             logger.getStatusManager().add(new OnConsoleStatusListener());
             logger.addAppender(accessLogAppender);
 
+            // Also start a file logger if configured
+            if (new File(logbackAccessFileName).exists()) {
+                LOG.info("Found config file for access logging: " + logbackAccessFileName);
+                logger.setFileName(logbackAccessFileName);
+            }
+
             return startRequestLogHandler(logger);
         } else if (new File(logbackAccessFileName).exists()) {
-            LOG.info("Found config file for access logging: " + logbackAccessFileName);
 
             RequestLogImpl logger = new RequestLogImpl();
 
+            LOG.info("Found config file for access logging: " + logbackAccessFileName);
             logger.setFileName(logbackAccessFileName);
 
             return startRequestLogHandler(logger);
