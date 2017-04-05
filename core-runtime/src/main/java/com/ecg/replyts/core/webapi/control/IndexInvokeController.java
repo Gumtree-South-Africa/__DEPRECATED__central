@@ -7,20 +7,31 @@ import com.ecg.replyts.core.api.util.JsonObjects.Builder;
 import com.ecg.replyts.core.runtime.indexer.IndexerChunkHandler;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
+import com.google.common.io.CharStreams;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Controller
 class IndexInvokeController {
@@ -37,17 +48,32 @@ class IndexInvokeController {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(2, new ThreadFactoryBuilder().setDaemon(true).setNameFormat("invokeIndexController-%s").build());
 
-    @RequestMapping("/startFullIndex")
+    @RequestMapping(value = "/startFullIndex", method = GET)
     @ResponseBody
-    public String invokeFullIndex() {
-        LOG.info("Invoke Full Index via Web interface");
+    public String startFullIndex() throws Exception {
+        try (InputStream input = getClass().getResourceAsStream("/reindex.html")) {
+            return CharStreams.toString(new InputStreamReader(input, Charsets.UTF_8));
+        }
+    }
+
+    @RequestMapping(value = "/invokeReindex", method = POST)
+    @ResponseBody
+    public String invokeReindex(@RequestParam String user,
+                                @RequestParam String reason,
+                                @RequestParam boolean confirmed) {
+        if (!confirmed || StringUtils.isBlank(user) || StringUtils.isBlank(reason)) {
+            return "Please give a user & reason for full reindex and check the 'confirm' checkbox.";
+        }
+
+        LOG.info("Invoke Full Index via Web interface for user '{}' with reason '{}'", user, reason);
         executorService.execute(new Runnable() {
             @Override
             public void run() {
                 indexer.fullIndex();
             }
         });
-        return "full index started.";
+
+        return String.format("Full reindex started for user '%s' with reason '%s'.", user, reason);
     }
 
     @RequestMapping("/indexConversations")

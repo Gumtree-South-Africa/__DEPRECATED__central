@@ -1,0 +1,44 @@
+<html>
+<head>
+    <title>COMaaS</title>
+    <style type="text/css">
+        body {
+            font-family: sans-serif;
+            font-size: 12px;
+        }
+
+        pre {
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+<strong>
+<pre>
+   __________  __  ___            _____
+  / ____/ __ \/  |/  /___ _____ _/ ___/
+ / /   / / / / /|_/ / __ `/ __ `/\__ \
+/ /___/ /_/ / /  / / /_/ / /_/ /___/ /
+\____/\____/_/  /_/\__,_/\__,_//____/
+
+</pre>
+</strong>
+<hr/>
+COMaaS Management Console
+<div id="reindex-form">
+<form action="/invokeReindex" method="POST" autocomplete="off">
+    <label for="user">User that starts full reindex:</label>
+    <input type="text" name="user" id="user" autocomplete="off"/>
+
+    <label for="reason">Reason:</label>
+    <input type="text" name="reason" id="reason" autocomplete="off"/>
+
+    <label for="confirmed">Confirmed:</label>
+    <input type="checkbox" id="confirmed" name="confirmed" />
+    <input type="submit"/>
+</form>
+</div>
+
+</body>
+</html>
