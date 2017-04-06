@@ -6,9 +6,11 @@ import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
-import com.ecg.replyts.integration.elasticsearch.EsUtils;
+import com.ecg.replyts.integration.test.support.Waiter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.joda.time.DateTime;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -23,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -177,7 +180,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         return testRunner.getHttpPort();
     }
 
-    public Client getSearchClient() {
+    private Client getSearchClient() {
         return testRunner.getSearchClient();
     }
 
@@ -190,7 +193,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     public Configuration.ConfigurationId registerConfig(Class<? extends BasePluginFactory> type, ObjectNode config) {
         Configuration.ConfigurationId c = new Configuration.ConfigurationId(type.getName(), "instance-" + COUNTER.incrementAndGet());
         LOG.info("Created config " + c);
-        client.putConfiguration(new Configuration(c, PluginState.ENABLED, 100l, config));
+        client.putConfiguration(new Configuration(c, PluginState.ENABLED, 100L, config));
         return c;
     }
 
@@ -231,7 +234,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            f.renameTo(new File(f.getParent(), "pre_" + f.getName()));
+            assert f.renameTo(new File(f.getParent(), "pre_" + f.getName()));
         }
         return AwaitMailSentProcessedListener.awaitMailIdentifiedBy(mailIdentifier, deliveryTimeoutSeconds);
     }
@@ -277,7 +280,15 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     }
 
     public void waitUntilIndexedInEs(AwaitMailSentProcessedListener.ProcessedMail mail) {
-        EsUtils.waitUntilIndexed(mail, getSearchClient());
+        Client searchClient = getSearchClient();
+        String id = mail.getConversation().getId() + "/" + mail.getMessage().getId();
+        SearchRequestBuilder searchRequestBuilder = searchClient.prepareSearch("replyts")
+                .setTypes("message")
+                .setQuery(QueryBuilders.termQuery("_id", id));
+
+        Waiter.await(
+                () -> searchClient.search(searchRequestBuilder.request()).actionGet().getHits().getTotalHits() > 0).
+                within(10, TimeUnit.SECONDS);
     }
 
     public FileSystemMailSender getMailSender() {

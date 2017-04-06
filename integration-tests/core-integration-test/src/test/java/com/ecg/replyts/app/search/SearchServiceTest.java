@@ -20,8 +20,6 @@ import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,9 +33,7 @@ import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePay
 import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload.ResultOrdering.OLDEST_FIRST;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.jayway.restassured.path.json.JsonPath.from;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -73,7 +69,7 @@ public class SearchServiceTest {
     @Test
     public void checkSearchByAdId() throws IOException, InterruptedException {
         //send a mail
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
                         from(uuid + "@from.com").to(uuid + "@to.com").
                         plainBody("checkSearchByAdId " + uuid).
@@ -98,7 +94,7 @@ public class SearchServiceTest {
     @Test
     public void checkSearchByConversationCustomValue() throws InterruptedException {
         //send a mail
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
                         from(uuid + "@from.com").to(uuid + "@to.com").adId("23").
                         plainBody("checkSearchByConversationCustomValue " + uuid).
@@ -129,11 +125,11 @@ public class SearchServiceTest {
         int count = 2;
 
         for (int i = 0; i <= count; i++) { //count + 1 mails
-            ensureDocIndexed(rule.deliver(
-                    MailBuilder.aNewMail().
-                            from(uuid + "@from.com").to(uuid + "@to.com").
-                            plainBody("checkSearchUsingCount " + uuid).adId(uuid)
-            ));
+            rule.waitUntilIndexedInEs(rule.deliver(
+                            MailBuilder.aNewMail().
+                                    from(uuid + "@from.com").to(uuid + "@to.com").
+                                    plainBody("checkSearchUsingCount " + uuid).adId(uuid)
+                    ));
 
         }
 
@@ -161,12 +157,12 @@ public class SearchServiceTest {
 
         List<List<String>> result;
         try {
-            ensureDocIndexed(rule.deliver(
-                    MailBuilder.aNewMail().
-                            from(uuid + "@from.com").to(uuid + "@to.com").
-                            plainBody("checkSearchByFilterInstance " + uuid).
-                            adId(uuid).subject("DROPPED mail")
-            ));
+            rule.waitUntilIndexedInEs(rule.deliver(
+                            MailBuilder.aNewMail().
+                                    from(uuid + "@from.com").to(uuid + "@to.com").
+                                    plainBody("checkSearchByFilterInstance " + uuid).
+                                    adId(uuid).subject("DROPPED mail")
+                    ));
 
             Builder builder = builder().attr("count", 500).attr("filterInstance", instanceName);
             String response = RestAssured.expect().that().statusCode(HttpStatus.SC_OK).
@@ -192,12 +188,12 @@ public class SearchServiceTest {
 
         List<List<String>> result;
         try {
-            ensureDocIndexed(rule.deliver(
-                    MailBuilder.aNewMail().
-                            from(uuid + "@from.com").to(uuid + "@to.com").
-                            plainBody("checkSearchByFilterName " + uuid).
-                            adId(uuid.toString()).subject("DROPPED mail")
-            ));
+            rule.waitUntilIndexedInEs(rule.deliver(
+                            MailBuilder.aNewMail().
+                                    from(uuid + "@from.com").to(uuid + "@to.com").
+                                    plainBody("checkSearchByFilterName " + uuid).
+                                    adId(uuid.toString()).subject("DROPPED mail")
+                    ));
 
             Builder builder = builder().attr("count", 500).attr("filterName", filterName);
             String response = RestAssured.expect().that().statusCode(HttpStatus.SC_OK).
@@ -220,7 +216,7 @@ public class SearchServiceTest {
         //send a mail
         String fromEmail = uuid + "@from.com";
 
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
                         from(fromEmail).to(uuid + "@to.com").
                         plainBody("checkSearchByFrom " + uuid).adId(uuid)
@@ -248,7 +244,7 @@ public class SearchServiceTest {
         //send a mail
         String fromEmail = uuid + "@from.com";
 
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
                         from(fromEmail).to(uuid + "@to.com").
                         plainBody("checkSearchByFrom " + uuid).adId(uuid)
@@ -273,7 +269,7 @@ public class SearchServiceTest {
         //send a mail
         String toEmail = uuid + "@to.com";
 
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
                         from(uuid + "@from.com").to(toEmail).
                         plainBody("checkSearchByFrom " + uuid).adId(uuid)
@@ -301,7 +297,7 @@ public class SearchServiceTest {
         //send a mail
         String toEmail = uuid + "@to.com";
 
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
                         from(uuid + "@from.com").to(toEmail).
                         plainBody("checkSearchByFrom " + uuid).adId(uuid)
@@ -330,7 +326,7 @@ public class SearchServiceTest {
                         plainBody("checkSearchByHumanResultState " + uuid).
                         adId(uuid).subject("Check")
         );
-        ensureDocIndexed(check);
+        rule.waitUntilIndexedInEs(check);
 
 
         Builder builder = builder().attr("count", 500).attr("humanResultState", ModerationResultState.UNCHECKED.name());
@@ -350,7 +346,7 @@ public class SearchServiceTest {
     @Test
     public void checkSearchByMessageState() {
         //send a mail
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
                         from(uuid + "@from.com").to(uuid + "@to.com").
                         plainBody("checkSearchByMessageState " + uuid).
@@ -377,7 +373,7 @@ public class SearchServiceTest {
         String text = "checkSearchByMessageTextKeyword " + uuid;
         String[] words = {"checkSearchByMessageTextKeyword", uuid};
 
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
                         from(uuid + "@from.com").to(uuid + "@to.com").
                         plainBody(text).
@@ -400,11 +396,11 @@ public class SearchServiceTest {
         int count = 2;
 
         for (int i = 0; i < count; i++) {
-            ensureDocIndexed(rule.deliver(
-                    MailBuilder.aNewMail().
-                            from(uuid + "@from.com").to(uuid + "@to.com").
-                            plainBody("checkSearchUsingOffset " + uuid).adId(uuid)
-            ));
+            rule.waitUntilIndexedInEs(rule.deliver(
+                            MailBuilder.aNewMail().
+                                    from(uuid + "@from.com").to(uuid + "@to.com").
+                                    plainBody("checkSearchUsingOffset " + uuid).adId(uuid)
+                    ));
         }
 
         int offset = 1;
@@ -431,11 +427,11 @@ public class SearchServiceTest {
         int count = 2;
 
         for (int i = 0; i < count; i++) {
-            ensureDocIndexed(rule.deliver(
-                    MailBuilder.aNewMail().
-                            from(uuid + i + "@from.com").to(uuid + "@to.com").
-                            plainBody("checkSearchUsingAscOrdering " + uuid).adId(uuid)
-            ));
+            rule.waitUntilIndexedInEs(rule.deliver(
+                            MailBuilder.aNewMail().
+                                    from(uuid + i + "@from.com").to(uuid + "@to.com").
+                                    plainBody("checkSearchUsingAscOrdering " + uuid).adId(uuid)
+                    ));
 
         }
 
@@ -462,11 +458,11 @@ public class SearchServiceTest {
         int count = 2;
 
         for (int i = 0; i < count; i++) {
-            ensureDocIndexed(rule.deliver(
-                    MailBuilder.aNewMail().
-                            from(uuid + i + "@from.com").to(uuid + "@to.com").
-                            plainBody("checkSearchUsingDescOrdering " + uuid).adId(uuid)
-            ));
+            rule.waitUntilIndexedInEs(rule.deliver(
+                            MailBuilder.aNewMail().
+                                    from(uuid + i + "@from.com").to(uuid + "@to.com").
+                                    plainBody("checkSearchUsingDescOrdering " + uuid).adId(uuid)
+                    ));
 
         }
 
@@ -490,7 +486,6 @@ public class SearchServiceTest {
 
     @Test
     public void checkSearchUsingFromDate() {
-
         //this one will be ignored
         rule.deliver(
                 MailBuilder.aNewMail().
@@ -501,7 +496,7 @@ public class SearchServiceTest {
         long start = System.currentTimeMillis();
         String match = "2 - checkSearchUsingFromDate " + uuid;
         //this one we'll check for
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
                         from(uuid + "@from.com").to(uuid + "@to.com").
                         plainBody(match).adId(uuid)
@@ -515,32 +510,6 @@ public class SearchServiceTest {
         List<String> hits = from(response).getList("body.text");
         assertThat(hits.size(), is(1));
         assertThat(hits.get(0), is(match));
-    }
-
-
-    private void ensureDocIndexed(ProcessedMail item) {
-        String id = item.getConversation().getId() + "/" + item.getMessage().getId();
-
-        long end = System.currentTimeMillis() + 10000;
-        while (System.currentTimeMillis() < end) {
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            SearchRequestBuilder searchRequestBuilder = rule.getSearchClient().prepareSearch("replyts")
-                    .setTypes("message")
-                    .setQuery(QueryBuilders.termQuery("_id", id));
-
-            boolean exists = rule.getSearchClient().search(searchRequestBuilder.request()).actionGet().getHits().getTotalHits() > 0;
-
-            if (exists) {
-                return;
-            }
-        }
-
-        throw new IllegalStateException("mail was not indexed :(");
-
     }
 
 }

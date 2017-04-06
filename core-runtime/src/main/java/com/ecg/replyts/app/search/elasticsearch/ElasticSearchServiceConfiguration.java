@@ -4,10 +4,12 @@ import org.elasticsearch.client.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 /**
  * @author alindhorst (original author)
  */
+@Component
 public class ElasticSearchServiceConfiguration {
 
     @Value("${search.es.indexname:replyts}")
@@ -15,7 +17,7 @@ public class ElasticSearchServiceConfiguration {
 
     @Value("${search.es.timeout.ms:20000}")
     private long timeoutMs;
-    
+
     @Bean
     @Autowired
     public ElasticSearchSearchService searchService(Client client) {

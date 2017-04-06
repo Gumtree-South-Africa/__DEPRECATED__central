@@ -61,15 +61,6 @@ public class SearchMessagePayload {
     private ResultOrdering ordering = ResultOrdering.OLDEST_FIRST;
     private int count;
     private int offset;
-    private boolean useFilterQuery;
-
-    public boolean isUseFilterQuery() {
-        return useFilterQuery;
-    }
-
-    public void setUseFilterQuery(boolean useFilterQuery) {
-        this.useFilterQuery = useFilterQuery;
-    }
 
     public List<MessageRtsState> getMessageStates() {
         return messageStates;

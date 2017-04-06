@@ -118,10 +118,6 @@
             <artifactId>logback-classic</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.logstash.logback</groupId>
-            <artifactId>logstash-logback-encoder</artifactId>
-        </dependency>
-        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-access</artifactId>
         </dependency>
@@ -291,11 +287,6 @@
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.skyscreamer</groupId>
-            <artifactId>jsonassert</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

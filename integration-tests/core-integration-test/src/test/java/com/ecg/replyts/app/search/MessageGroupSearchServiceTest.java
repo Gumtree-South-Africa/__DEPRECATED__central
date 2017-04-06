@@ -23,8 +23,6 @@ import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,7 +33,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static com.ecg.replyts.core.api.util.JsonObjects.builder;
@@ -43,17 +40,14 @@ import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePay
 import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload.ResultOrdering.OLDEST_FIRST;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.jayway.restassured.path.json.JsonPath.from;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class MessageGroupSearchServiceTest {
 
     private static final String URL_TEMPLATE = "http://localhost:%d/screeningv2/" + SearchMessageGroupCommand.MAPPING;
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageGroupSearchServiceTest.class);
-    private static final Long TIMEOUT_MS = 10000l;
+    private static final Long TIMEOUT_MS = 10000L;
     private String url;
 
     @Rule
@@ -67,7 +61,7 @@ public class MessageGroupSearchServiceTest {
     private ConfigurationId createFilter(Class<? extends FilterFactory> clazz, String instanceName) {
         ConfigurationId id = new ConfigurationId(clazz.getName(), instanceName);
         Configuration configuration = new Configuration(
-                id, PluginState.ENABLED, 100l, JsonObjects.builder().attr("count", 25).attr("foo", "bar2").build());
+                id, PluginState.ENABLED, 100L, JsonObjects.builder().attr("count", 25).attr("foo", "bar2").build());
         rule.getConfigClient().putConfiguration(configuration);
         return id;
     }
@@ -81,14 +75,13 @@ public class MessageGroupSearchServiceTest {
         //send a mail
         UUID uuid = UUID.randomUUID();
         String from = uuid.toString() + "@from.com";
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail()
                         .from(from)
                         .to(uuid.toString() + "@to.com")
                         .plainBody("groupByFromEmail_searchByAdId_singleEmail " + uuid.toString())
                         .adId(uuid.toString())
-                )
-        );
+        ));
 
 
         //Build JSON Request
@@ -134,26 +127,24 @@ public class MessageGroupSearchServiceTest {
 
         // first user sent 3 replies
         for (int i = 0; i < 3; i++) {
-            ensureDocIndexed(rule.deliver(
-                            MailBuilder.aNewMail()
-                                    .from(froms.get(0))
-                                    .to(adId + "@to.com")
-                                    .plainBody("groupByFromEmail_searchByAdId_twoGroups " + adId)
-                                    .adId(adId)
-                    )
-            );
+            rule.waitUntilIndexedInEs(rule.deliver(
+                        MailBuilder.aNewMail()
+                                .from(froms.get(0))
+                                .to(adId + "@to.com")
+                                .plainBody("groupByFromEmail_searchByAdId_twoGroups " + adId)
+                                .adId(adId)
+                ));
         }
 
         // second user sent only 2 replies
         for (int i = 0; i < 2; i++) {
-            ensureDocIndexed(rule.deliver(
-                            MailBuilder.aNewMail()
-                                    .from(froms.get(1))
-                                    .to(adId + "@to.com")
-                                    .plainBody("checkSearchByAdId " + adId)
-                                    .adId(adId)
-                    )
-            );
+            rule.waitUntilIndexedInEs(rule.deliver(
+                        MailBuilder.aNewMail()
+                                .from(froms.get(1))
+                                .to(adId + "@to.com")
+                                .plainBody("checkSearchByAdId " + adId)
+                                .adId(adId)
+                ));
         }
 
         //Build JSON Request
@@ -204,14 +195,13 @@ public class MessageGroupSearchServiceTest {
         String from = uuid + "@from.com";
 
         for (int i = 0; i < 11; i++) {
-            ensureDocIndexed(rule.deliver(
-                            MailBuilder.aNewMail()
-                                    .from(from)
-                                    .to(uuid + "@to.com")
-                                    .plainBody("groupByFromMail_11emailsSent_10emailsInGroup " + uuid)
-                                    .adId(uuid)
-                    )
-            );
+            rule.waitUntilIndexedInEs(rule.deliver(
+                        MailBuilder.aNewMail()
+                                .from(from)
+                                .to(uuid + "@to.com")
+                                .plainBody("groupByFromMail_11emailsSent_10emailsInGroup " + uuid)
+                                .adId(uuid)
+                ));
         }
 
         //Build JSON Request
@@ -260,16 +250,15 @@ public class MessageGroupSearchServiceTest {
 
 
         try {
-            ensureDocIndexed(rule.deliver(
-                            MailBuilder
-                                    .aNewMail()
-                                    .from(uuid + "@from.com")
-                                    .to(uuid + "@to.com")
-                                    .plainBody("groupByFromMail_checkSearchByFilterInstance " + uuid)
-                                    .adId(uuid)
-                                    .subject("DROPPED mail")
-                    )
-            );
+            rule.waitUntilIndexedInEs(rule.deliver(
+                        MailBuilder
+                                .aNewMail()
+                                .from(uuid + "@from.com")
+                                .to(uuid + "@to.com")
+                                .plainBody("groupByFromMail_checkSearchByFilterInstance " + uuid)
+                                .adId(uuid)
+                                .subject("DROPPED mail")
+                ));
 
             Builder builder = builder()
                     .attr("groupBy", SearchMessageGroupPayload.FROM_EMAIL_ES_FIELDNAME)
@@ -311,15 +300,15 @@ public class MessageGroupSearchServiceTest {
         waitForFilterConfigToBeAdded(filterConfigId);
 
         try {
-            ensureDocIndexed(rule.deliver(
-                    MailBuilder
-                            .aNewMail()
-                            .from(uuid + "@from.com")
-                            .to(uuid + "@to.com")
-                            .plainBody("groupByFromMail_checkSearchByFilterName " + uuid)
-                            .adId(uuid)
-                            .subject("DROPPED mail")
-            ));
+            rule.waitUntilIndexedInEs(rule.deliver(
+                        MailBuilder
+                                .aNewMail()
+                                .from(uuid + "@from.com")
+                                .to(uuid + "@to.com")
+                                .plainBody("groupByFromMail_checkSearchByFilterName " + uuid)
+                                .adId(uuid)
+                                .subject("DROPPED mail")
+                ));
 
             Builder builder = builder()
                     .attr("groupBy", SearchMessageGroupPayload.FROM_EMAIL_ES_FIELDNAME)
@@ -357,7 +346,7 @@ public class MessageGroupSearchServiceTest {
         String uuid = UUID.randomUUID().toString();
         String fromEmail = uuid + "@from.com";
 
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder
                         .aNewMail()
                         .from(fromEmail)
@@ -403,7 +392,7 @@ public class MessageGroupSearchServiceTest {
         String uuid = UUID.randomUUID().toString();
         String toEmail = uuid + "@to.com";
 
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder
                         .aNewMail()
                         .from(uuid + "@from.com")
@@ -457,7 +446,7 @@ public class MessageGroupSearchServiceTest {
                         .adId(uuid)
                         .subject("Check")
         );
-        ensureDocIndexed(check);
+        rule.waitUntilIndexedInEs(check);
 
 
         Builder builder = builder()
@@ -487,13 +476,11 @@ public class MessageGroupSearchServiceTest {
         }
     }
 
-
-
     @Test
     public void groupByFromMail_checkSearchByMessageState() {
         //send a mail
         String uuid = UUID.randomUUID().toString();
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder
                         .aNewMail()
                         .from(uuid + "@from.com")
@@ -535,7 +522,7 @@ public class MessageGroupSearchServiceTest {
         String text = "groupByFromMail_checkSearchByMessageTextKeyword " + uuid;
         String[] words = {"groupByFromMail_checkSearchByMessageTextKeyword", uuid};
 
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder
                         .aNewMail()
                         .from(uuid + "@from.com")
@@ -575,14 +562,14 @@ public class MessageGroupSearchServiceTest {
         String uuid = UUID.randomUUID().toString();
 
         for (int i = 0; i < 2; i++) {
-            ensureDocIndexed(rule.deliver(
-                    MailBuilder
-                            .aNewMail()
-                            .from(uuid + "@from.com")
-                            .to(uuid + "@to.com")
-                            .plainBody("checkSearchUsingOffset " + uuid)
-                            .adId(uuid)
-            ));
+            rule.waitUntilIndexedInEs(rule.deliver(
+                        MailBuilder
+                                .aNewMail()
+                                .from(uuid + "@from.com")
+                                .to(uuid + "@to.com")
+                                .plainBody("checkSearchUsingOffset " + uuid)
+                                .adId(uuid)
+                ));
         }
 
         Builder builder = builder()
@@ -622,14 +609,14 @@ public class MessageGroupSearchServiceTest {
         String uuid = UUID.randomUUID().toString();
 
         for (int i = 0; i < count; i++) {
-            ensureDocIndexed(rule.deliver(
-                    MailBuilder
-                            .aNewMail()
-                            .from(uuid + "@from.com")
-                            .to(uuid + i + "@to.com")
-                            .plainBody("checkSearchUsingAscOrdering " + uuid)
-                            .adId(uuid)
-            ));
+            rule.waitUntilIndexedInEs(rule.deliver(
+                        MailBuilder
+                                .aNewMail()
+                                .from(uuid + "@from.com")
+                                .to(uuid + i + "@to.com")
+                                .plainBody("checkSearchUsingAscOrdering " + uuid)
+                                .adId(uuid)
+                ));
 
         }
 
@@ -667,14 +654,14 @@ public class MessageGroupSearchServiceTest {
         int count = 2;
 
         for (int i = 0; i < count; i++) {
-            ensureDocIndexed(rule.deliver(
-                    MailBuilder
-                            .aNewMail()
-                            .from(uuid + "@from.com")
-                            .to(uuid + i + "@to.com")
-                            .plainBody("checkSearchUsingDescOrdering " + uuid)
-                            .adId(uuid)
-            ));
+            rule.waitUntilIndexedInEs(rule.deliver(
+                        MailBuilder
+                                .aNewMail()
+                                .from(uuid + "@from.com")
+                                .to(uuid + i + "@to.com")
+                                .plainBody("checkSearchUsingDescOrdering " + uuid)
+                                .adId(uuid)
+                ));
 
         }
 
@@ -723,7 +710,7 @@ public class MessageGroupSearchServiceTest {
         long start = System.currentTimeMillis();
         String secondMessageContents = "2 - checkSearchUsingFromDate " + uuid;
         //this one we'll check for
-        ensureDocIndexed(rule.deliver(
+        rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder
                         .aNewMail()
                         .from(uuid + "@from.com")
@@ -759,15 +746,14 @@ public class MessageGroupSearchServiceTest {
         //send a mail
         UUID uuid = UUID.randomUUID();
         String ip = "10.10.10.10";
-        ensureDocIndexed(rule.deliver(
-                        MailBuilder.aNewMail()
-                                .from(uuid.toString() + "@from.com")
-                                .to(uuid.toString() + "@to.com")
-                                .plainBody("groupByIP_searchByAdId_singleEmail " + uuid.toString())
-                                .adId(uuid.toString())
-                                .customHeader("Ip-Address", ip)
-                )
-        );
+        rule.waitUntilIndexedInEs(rule.deliver(
+                MailBuilder.aNewMail()
+                        .from(uuid.toString() + "@from.com")
+                        .to(uuid.toString() + "@to.com")
+                        .plainBody("groupByIP_searchByAdId_singleEmail " + uuid.toString())
+                        .adId(uuid.toString())
+                        .customHeader("Ip-Address", ip)
+        ));
 
 
         //Build JSON Request
@@ -813,28 +799,26 @@ public class MessageGroupSearchServiceTest {
 
         // first user sent 3 replies
         for (int i = 0; i < 3; i++) {
-            ensureDocIndexed(rule.deliver(
-                            MailBuilder.aNewMail()
-                                    .from(uuids.get(0) + "@from.com")
-                                    .to(adId + "@to.com")
-                                    .plainBody("groupByFromEmail_searchByAdId_twoGroups " + adId)
-                                    .adId(adId)
-                                    .customHeader("Ip-Address", ips.get(0))
-                    )
-            );
+            rule.waitUntilIndexedInEs(rule.deliver(
+                        MailBuilder.aNewMail()
+                                .from(uuids.get(0) + "@from.com")
+                                .to(adId + "@to.com")
+                                .plainBody("groupByFromEmail_searchByAdId_twoGroups " + adId)
+                                .adId(adId)
+                                .customHeader("Ip-Address", ips.get(0))
+                ));
         }
 
         // second user sent only 2 replies
         for (int i = 0; i < 2; i++) {
-            ensureDocIndexed(rule.deliver(
-                            MailBuilder.aNewMail()
-                                    .from(uuids.get(1) + "@from.com")
-                                    .to(adId + "@to.com")
-                                    .plainBody("checkSearchByAdId " + adId)
-                                    .adId(adId)
-                                    .customHeader("Ip-Address", ips.get(1))
-                    )
-            );
+            rule.waitUntilIndexedInEs(rule.deliver(
+                        MailBuilder.aNewMail()
+                                .from(uuids.get(1) + "@from.com")
+                                .to(adId + "@to.com")
+                                .plainBody("checkSearchByAdId " + adId)
+                                .adId(adId)
+                                .customHeader("Ip-Address", ips.get(1))
+                ));
         }
 
         //Build JSON Request
@@ -879,59 +863,27 @@ public class MessageGroupSearchServiceTest {
         assertThat(secondGroupPagination.get("totalCount"), is(2));
     }
 
-
-    private void ensureDocIndexed(ProcessedMail item) {
-        String id = item.getConversation().getId() + "/" + item.getMessage().getId();
-
-        long end = System.currentTimeMillis() + 10000;
-        while (System.currentTimeMillis() < end) {
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            SearchRequestBuilder searchRequestBuilder = rule.getSearchClient().prepareSearch("replyts")
-                    .setTypes("message")
-                    .setQuery(QueryBuilders.termQuery("_id", id));
-
-            boolean exists = rule.getSearchClient().search(searchRequestBuilder.request()).actionGet().getHits().getTotalHits() > 0;
-
-            if (exists) {
-                return;
-            }
-        }
-
-        throw new IllegalStateException("mail was not indexed :(");
-
-    }
-
     private void waitForFilterConfigToBeAdded(final ConfigurationId filterConfigId) {
-        Waiter.await(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                List<Configuration> configurations = rule.getConfigClient().listConfigurations();
-                for (Configuration configuration : configurations) {
-                    if (configuration.getConfigurationId().getInstanceId().equals(filterConfigId.getInstanceId())) {
-                        return true;
-                    }
+        Waiter.await(() -> {
+            List<Configuration> configurations = rule.getConfigClient().listConfigurations();
+            for (Configuration configuration : configurations) {
+                if (configuration.getConfigurationId().getInstanceId().equals(filterConfigId.getInstanceId())) {
+                    return true;
                 }
-                return false;
             }
+            return false;
         }).within(TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
 
     private void waitForFilterConfigToBeDeleted(final ConfigurationId filterConfigId) {
-        Waiter.await(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                List<Configuration> configurations = rule.getConfigClient().listConfigurations();
-                for (Configuration configuration : configurations) {
-                    if (configuration.getConfigurationId().getInstanceId().equals(filterConfigId.getInstanceId())) {
-                        return false;
-                    }
+        Waiter.await(() -> {
+            List<Configuration> configurations = rule.getConfigClient().listConfigurations();
+            for (Configuration configuration : configurations) {
+                if (configuration.getConfigurationId().getInstanceId().equals(filterConfigId.getInstanceId())) {
+                    return false;
                 }
-                return true;
             }
+            return true;
         }).within(TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
 

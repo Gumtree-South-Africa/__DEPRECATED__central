@@ -25,15 +25,15 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.ecg.replyts.app.search.elasticsearch.SearchTransformer.translate;
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 
-public class ElasticSearchSearchService implements SearchService, MutableSearchService {
-    private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchSearchService.class);
+class ElasticSearchSearchService implements SearchService, MutableSearchService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchSearchService.class);
     private static final Timer SEARCH_TIMER = TimingReports.newTimer("es-doSearch");
     private static final Timer GROUP_SEARCH_TIMER = TimingReports.newTimer("es-doGroupSearch");
-
-    protected static final String TYPE_NAME = "message";
+    static final String TYPE_NAME = "message";
 
     private final Client client;
     private final String indexName;
@@ -47,10 +47,8 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
 
     @Override
     public RtsSearchResponse search(SearchMessagePayload searchMessageCommand) {
-        SearchRequestBuilder searchRequestBuilder = searchMessageCommand.isUseFilterQuery()
-          ? new FilterSearchTransformer(searchMessageCommand, client, indexName).intoQuery()
-          : new QuerySearchTransformer(searchMessageCommand, client, indexName).intoQuery();
 
+        SearchRequestBuilder searchRequestBuilder = translate(searchMessageCommand, client, indexName).intoQuery();
         LOG.trace("\n\nRequest:\n\n {}", searchRequestBuilder);
 
         SearchResponse searchResponse = executeSearch(searchRequestBuilder, SEARCH_TIMER);
@@ -60,10 +58,8 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
 
     @Override
     public RtsSearchGroupResponse search(SearchMessageGroupPayload searchMessageCommand) {
-        SearchRequestBuilder searchRequestBuilder = searchMessageCommand.isUseFilterQuery()
-          ? new FilterSearchTransformer(searchMessageCommand, client, indexName).intoQuery()
-          : new QuerySearchTransformer(searchMessageCommand, client, indexName).intoQuery();
 
+        SearchRequestBuilder searchRequestBuilder = translate(searchMessageCommand, client, indexName).intoQuery();
         LOG.trace("\n\nRequest:\n\n {}", searchRequestBuilder);
 
         SearchResponse searchResponse = executeSearch(searchRequestBuilder, GROUP_SEARCH_TIMER);
@@ -140,4 +136,3 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
                 .actionGet();
     }
 }
-
