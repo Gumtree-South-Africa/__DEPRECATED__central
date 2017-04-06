@@ -8,14 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnProperty(name = "replyts2.cleanup.conversation.enabled", havingValue = "true")
-@ConditionalOnExpression("#{'${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid')}")
+@ConditionalOnExpression("('${replyts2.cleanup.conversation.enabled:false}' == 'true' || '${replyts2.cleanup.postboxes.enabled:false}' == 'true') && " +
+                         "('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))")
 public class CleanupDateCalculator {
     private static final Logger LOG = LoggerFactory.getLogger(CleanupDateCalculator.class);
 
@@ -30,9 +29,6 @@ public class CleanupDateCalculator {
      * Gets the cleanup date based on the maxAgeDays and the lastProcessedDate for the provided job. We round both
      * to the given rounding field (e.g. dayOfMonth or hourOfDay).
      *
-     * @param maxAgeDays
-     * @param jobName
-     * @param roundingTo
      * @return next rounded cleanup date (or null in case nothing should be cleaned up)
      */
     public DateTime getCleanupDate(int maxAgeDays, String jobName, DateTimeFieldType roundingTo) {
