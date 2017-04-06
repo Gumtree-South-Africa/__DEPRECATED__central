@@ -16,25 +16,25 @@ import org.springframework.context.annotation.Bean;
  */
 public class MessageEventConfiguration {
 
-    @Value("${rabbitmq-producer.host}")
+    @Value("${rabbitmq-producer.host:${rabbitmq.host}}")
     private String host;
 
-    @Value("${rabbitmq-producer.port}")
+    @Value("${rabbitmq-producer.port:${rabbitmq.port}}")
     private Integer port;
 
-    @Value("${rabbitmq-producer.username}")
+    @Value("${rabbitmq-producer.username:${rabbitmq.username}}")
     private String username;
 
-    @Value("${rabbitmq-producer.password}")
+    @Value("${rabbitmq-producer.password:${rabbitmq.password}}")
     private String password;
 
-    @Value("${rabbitmq-producer.connectionTimeout}")
+    @Value("${rabbitmq-producer.connectionTimeout:${rabbitmq.connectionTimeout}}")
     private Integer connectionTimeout;
 
-    @Value("${rabbitmq-producer.virtualHost}")
+    @Value("${rabbitmq-producer.virtualHost:${rabbitmq.virtualHost}}")
     private String virtualHost;
 
-    @Value("${rabbitmq-producer.endpoint}")
+    @Value("${rabbitmq-producer.endpoint:${rabbitmq.endpoint}}")
     private String endpoint;
 
     /* Start Producer Configuration */
