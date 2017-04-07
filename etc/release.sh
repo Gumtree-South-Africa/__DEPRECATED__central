@@ -3,6 +3,9 @@
 # This is a temporary way of releasing comaas on deploy.py based hosts. Remove once we're deploying to Nomad.
 # This is a "manual" script, that just automates a number of steps.
 
+set -o nounset
+set -o errexit
+
 if [ "$#" -ne 2 ]; then
   echo "Usage: $0 tenant git_hash"
   exit 1
