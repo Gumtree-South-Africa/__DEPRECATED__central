@@ -230,7 +230,8 @@ public class ImmutableConversation implements Conversation { // NOSONAR
         if (event instanceof ConversationDeletedEvent) {
             return updateInternal((ConversationDeletedEvent) event);
         }
-        LOG.info("Ignoring unknown event of type {}: {}", event.getClass().getName(), event);
+        String stacktrace = Arrays.toString(new Throwable().getStackTrace());
+        LOG.warn("Ignoring unknown event of type {}: {} Callstack {}", event.getClass().getName(), event, stacktrace);
         return this;
     }
 
