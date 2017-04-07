@@ -35,12 +35,12 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class VolumeFilterClusterIntegrationTest {
-    private VolumeFilter volumeFilter1;
-    private VolumeFilter volumeFilter2;
+
+    private final Quota singleMessageQuota = new Quota(1, 1, TimeUnit.MINUTES, 100, 0, TimeUnit.MINUTES);
 
     private HazelcastInstance hazelcastInstance1;
     private HazelcastInstance hazelcastInstance2;
-    private Quota singleMessageQuota;
+    private Activation activation;
 
     @Mock
     private MessageProcessingContext messageProcessingContext;
@@ -53,7 +53,6 @@ public class VolumeFilterClusterIntegrationTest {
 
     @Mock
     private Conversation conversation;
-    private Activation activation;
 
     @Before
     public void setUp() throws Exception {
@@ -70,8 +69,6 @@ public class VolumeFilterClusterIntegrationTest {
         );
         hazelcastInstance1 = Hazelcast.newHazelcastInstance(config);
         hazelcastInstance2 = Hazelcast.newHazelcastInstance(config);
-
-        singleMessageQuota = new Quota(1, 1, TimeUnit.MINUTES, 100, 0, TimeUnit.MINUTES);
 
         JsonNode jsonNode = new ObjectMapper().readTree("{\"runFor\": {}}");
         activation = new Activation(jsonNode);
@@ -90,8 +87,8 @@ public class VolumeFilterClusterIntegrationTest {
 
     @Test
     public void twoNodes_differentInstances_separateCalculation() throws Exception {
-        volumeFilter1 = new VolumeFilter("vf-test-diffInstances-1", hazelcastInstance1, ImmutableList.of(singleMessageQuota), false, activation);
-        volumeFilter2 = new VolumeFilter("vf-test-diffInstances-2", hazelcastInstance2, ImmutableList.of(singleMessageQuota), false, activation);
+        VolumeFilter volumeFilter1 = new VolumeFilter("vf-test-diffInstances-1", hazelcastInstance1, ImmutableList.of(singleMessageQuota), false, activation);
+        VolumeFilter volumeFilter2 = new VolumeFilter("vf-test-diffInstances-2", hazelcastInstance2, ImmutableList.of(singleMessageQuota), false, activation);
 
         assertThat(volumeFilter1.doFilter(messageProcessingContext), empty());
         assertThat(volumeFilter2.doFilter(messageProcessingContext), empty());
@@ -100,8 +97,8 @@ public class VolumeFilterClusterIntegrationTest {
     @Test
     public void twoNodes_sameInstances_combinedCalculation() throws Exception {
         String testSpecificFilterName = "vf-test-sameInstance".concat(String.valueOf(System.currentTimeMillis()));
-        volumeFilter1 = new VolumeFilter(testSpecificFilterName, hazelcastInstance1, ImmutableList.of(singleMessageQuota), false, activation);
-        volumeFilter2 = new VolumeFilter(testSpecificFilterName, hazelcastInstance2, ImmutableList.of(singleMessageQuota), false, activation);
+        VolumeFilter volumeFilter1 = new VolumeFilter(testSpecificFilterName, hazelcastInstance1, ImmutableList.of(singleMessageQuota), false, activation);
+        VolumeFilter volumeFilter2 = new VolumeFilter(testSpecificFilterName, hazelcastInstance2, ImmutableList.of(singleMessageQuota), false, activation);
 
         assertThat(volumeFilter1.doFilter(messageProcessingContext), empty());
         assertThat(volumeFilter2.doFilter(messageProcessingContext).size(), is(1));
