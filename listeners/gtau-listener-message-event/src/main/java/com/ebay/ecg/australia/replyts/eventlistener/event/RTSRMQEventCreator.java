@@ -6,6 +6,7 @@ import com.ebay.ecg.australia.events.origin.OriginDefinition;
 import com.ebay.ecg.australia.events.rabbitmq.RabbitMQEventHandlerClient;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +94,7 @@ public class RTSRMQEventCreator {
                     messageConvInfoBuilder.setMessageReceivedAt(messageReceivedAt);
                 }
 
-                if(message.getMessageDirection() != null) {
+                if(message.getMessageDirection() != null && message.getMessageDirection() != MessageDirection.UNKNOWN) {
                     messageDirection = Entities.MessageDirection.valueOf(message.getMessageDirection().name());
                     messageConvInfoBuilder.setMessageDirection(messageDirection);
                 }
