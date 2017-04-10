@@ -88,37 +88,39 @@ public class VolumeFilterIntegrationTest {
         // Send 2 messages, hopefully within 8 seconds
         long start = System.currentTimeMillis();
         String from = "foo" + start + "@bar.com";
+        MailBuilder mailBuilder = MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar");
+
         for (int i = 0; i < 2; i++) {
-            AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
-            assertEquals(MessageState.SENT, response.getMessage().getState());
+            AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(mailBuilder);
+            assertEquals("Expecting message state == SENT", MessageState.SENT, response.getMessage().getState());
         }
         long end = System.currentTimeMillis();
 
-        long elapsed = end-start;
+        long elapsed = end - start;
         if (elapsed < 7000) {
             LOG.error("Flickering test alert: this might fail because sending 2 mails took {} milliseconds", elapsed);
         }
 
         // We've now violated the quota, so sending another message should fail
-        AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
+        AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(mailBuilder);
         if (!response.getMessage().getProcessingFeedback().isEmpty()) {
             LOG.error("Flickering test alert, ProcessedMail is: \n" + response);
         }
-        assertEquals(1, response.getMessage().getProcessingFeedback().size());
+        assertEquals("Expecting quota violation, failure to send", 1, response.getMessage().getProcessingFeedback().size());
 
         // Wait until the quota window has elapsed but the ttl on the in-memory violation store has not yet
         TimeUnit.SECONDS.sleep(10);
 
         // The violation has not expired yet, even though we're outside the quota window (due to the ttl), sending a message should fail
-        response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
-        assertEquals(1, response.getMessage().getProcessingFeedback().size());
+        response = rule.deliver(mailBuilder);
+        assertEquals("Expecting TTL violation, failure to send", 1, response.getMessage().getProcessingFeedback().size());
 
         // Get outside the ttl
         TimeUnit.SECONDS.sleep(10);
 
         // And we should be able to send messages again
-        response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
-        assertEquals(MessageState.SENT, response.getMessage().getState());
+        response = rule.deliver(mailBuilder);
+        assertEquals("Expecting message sent after TTL", MessageState.SENT, response.getMessage().getState());
     }
 
     @Test
