@@ -13,8 +13,8 @@ public class Util {
     public static void waitForCompletion(List<Future> tasks, AtomicInteger counter, Logger log) {
         tasks.parallelStream().forEach(t -> {
             try {
-                t.get();
                 counter.incrementAndGet();
+                t.get();
             } catch (InterruptedException in) {
                 log.error("Not completed", in);
                 Thread.currentThread().interrupt();

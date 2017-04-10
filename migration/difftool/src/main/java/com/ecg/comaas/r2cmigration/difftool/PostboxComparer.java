@@ -27,8 +27,11 @@ public class PostboxComparer {
             speed = diffTool.riakPostboxCounter.getCount() / timepassed;
         }
 
-        LOG.info("Compared {} Riak postboxes, number of empty postboxes is {}, completed in {}s, speed {} postboxes/s",
-                diffTool.riakPostboxCounter.getCount(), diffTool.emptyRiakPostboxCounter.getCount(), timepassed, speed);
+        LOG.info("Compared {} Riak postboxes, number of non-empty postboxes is {}, with {} total cass conversation threads, and " +
+                        "with {} total riak conversation threads completed in {}s, speed {} postboxes/s",
+                diffTool.riakPostboxCounter.getCount(),  diffTool.riakPostboxCounter.getCount()-diffTool.emptyRiakPostboxCounter.getCount(),
+                diffTool.CASS_PBOX_CONVERSATION_THREAD_COUNTER.getCount(),
+                diffTool.RIAK_PBOX_CONVERSATION_THREAD_COUNTER.getCount(), timepassed, speed);
 
         if (!diffTool.isRiakMatchesCassandra) {
             LOG.info("DATA in Riak and Cassandra IS DIFFERENT");
@@ -49,7 +52,10 @@ public class PostboxComparer {
             speed = diffTool.cassPostboxCounter.getCount() / timepassed;
         }
 
-        LOG.info("Compared {} cassandra postboxes in {}s, speed {} postboxes/s", diffTool.cassPostboxCounter.getCount(), timepassed, speed);
+        LOG.info("Compared {} cassandra postboxes, with {} total cassandra conversation threads, and " +
+                        "with {} total riak conversation threads in {}s, speed {} postboxes/s",
+                diffTool.cassPostboxCounter.getCount(), diffTool.CASS_PBOX_CONVERSATION_THREAD_COUNTER.getCount(),
+                diffTool.RIAK_PBOX_CONVERSATION_THREAD_COUNTER.getCount(), timepassed, speed);
 
         if (!diffTool.isCassandraMatchesRiak) {
             LOG.info("DATA in Cassandra and Riak IS DIFFERENT");

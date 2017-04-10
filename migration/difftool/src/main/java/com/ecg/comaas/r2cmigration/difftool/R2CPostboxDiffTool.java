@@ -34,6 +34,9 @@ public class R2CPostboxDiffTool extends AbstractDiffTool {
 
     final static Counter RIAK_TO_CASS_POSTBOX_MISMATCH_COUNTER = TimingReports.newCounter("riak-postbox-mismatch-counter");
     final static Counter CASS_TO_RIAK_POSTBOX_MISMATCH_COUNTER = TimingReports.newCounter("cass-postbox-mismatch-counter");
+    public final static Counter CASS_PBOX_CONVERSATION_THREAD_COUNTER = TimingReports.newCounter("cass-postbox-conversationthreads-counter");
+    public final static Counter RIAK_PBOX_CONVERSATION_THREAD_COUNTER = TimingReports.newCounter("riak-postbox-conversationthreads-counter");
+
 
     private final static Timer RIAK_TO_CASS_BATCH_COMPARE_TIMER = TimingReports.newTimer("riak-to-cass.postbox.batch-compare-timer");
     private final static Timer CASS_TO_RIAK_BATCH_COMPARE_TIMER = TimingReports.newTimer("cass-to-riak.postbox.batch-compare-timer");
@@ -109,12 +112,17 @@ public class R2CPostboxDiffTool extends AbstractDiffTool {
 
             PostBox riakPbox = riakRepo.getById(pboxId);
             // We are skipping empty riak postboxes, no point in comparing.
-            if (riakToCassandra && (riakPbox.getConversationThreads().isEmpty())) {
+            if (riakToCassandra && riakPbox.getConversationThreads().isEmpty()) {
                 emptyRiakPostboxCounter.inc();
                 return;
             }
+            RIAK_PBOX_CONVERSATION_THREAD_COUNTER.inc(riakPbox.getConversationThreads().size());
 
             PostBox cassPbox = cassRepo.getById(pboxId);
+            if(cassPbox.getConversationThreads().size()==0) {
+                LOG.info("Unexpected: found no conversation threads in cassandra postbox {}", pboxId);
+            }
+            CASS_PBOX_CONVERSATION_THREAD_COUNTER.inc(cassPbox.getConversationThreads().size());
 
             LOG.debug("Comparing postboxes for id '{}' ", pboxId);
             boolean mismatch = false;

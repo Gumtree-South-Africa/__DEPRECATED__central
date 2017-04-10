@@ -34,11 +34,15 @@ public class ChunkedPostboxMigrationAction {
     private static final Logger LOG = LoggerFactory.getLogger(ChunkedPostboxMigrationAction.class);
     private static final Logger FAILED_POSTBOX_IDS = LoggerFactory.getLogger("FailedToFetchPostboxes");
 
-    private AtomicLong submittedBatchCounter = new AtomicLong();
-    private AtomicInteger processedBatchCounter = new AtomicInteger();
-    private AtomicLong totalPostboxCounter = new AtomicLong();
+    private final AtomicLong submittedBatchCounter = new AtomicLong();
+    private final AtomicInteger processedBatchCounter = new AtomicInteger();
+    private final AtomicLong totalPostboxCounter = new AtomicLong();
+    private final AtomicLong nonemptyPostboxCounter = new AtomicLong();
+    private final AtomicLong migratedConversationThreadCounter = new AtomicLong();
 
-    private final Timer BATCH_MIGRATION_TIMER = TimingReports.newTimer("migration.migrated-postboxes-timer");
+    private final Timer BATCH_MIGRATION_TIMER = TimingReports.newTimer("migration.migrated-postbox-batches-timer");
+    private final Timer RECORD_MIGRATION_TIMER = TimingReports.newTimer("migration.migrated-postbox-record-timer");
+
 
     private final HybridSimplePostBoxRepository postboxRepository;
     private final int conversationMaxAgeDays;
@@ -68,6 +72,7 @@ public class ChunkedPostboxMigrationAction {
         this.conversationMaxAgeDays = conversationMaxAgeDays;
         newGauge("migration.processed-batch-counter", () -> processedBatchCounter.get());
         newGauge("migration.postboxes-counter", () -> totalPostboxCounter.get());
+        newGauge("migration.nonempty-postboxes-counter", () -> nonemptyPostboxCounter.get());
         newGauge("migration.submitted-batch-counter", () -> submittedBatchCounter.get());
     }
 
@@ -158,6 +163,8 @@ public class ChunkedPostboxMigrationAction {
             totalPostboxCounter.set(0);
             processedBatchCounter.set(0);
             submittedBatchCounter.set(0);
+            nonemptyPostboxCounter.set(0);
+            migratedConversationThreadCounter.set(0);
 
             Stream<String> postboxStream = postboxRepository.streamPostBoxIds(dateFrom.toDateTime(DateTimeZone.UTC),
                     dateTo.toDateTime(DateTimeZone.UTC));
@@ -172,7 +179,12 @@ public class ChunkedPostboxMigrationAction {
 
             waitForCompletion(results, processedBatchCounter, LOG);
             watch.stop();
-            LOG.info("Migrate postboxes from {} to {} date completed, migrated {} postboxes", dateFrom, dateTo, totalPostboxCounter.get());
+            LOG.info("Migrate postboxes from {} to {} date completed, migrated total {} postboxes, nonempty {} postboxes, " +
+                            "conversation threads {}, " +
+                            "batches submitted:{}, processed:{}",
+                    dateFrom, dateTo, totalPostboxCounter.get(), nonemptyPostboxCounter.get(),
+                    migratedConversationThreadCounter.get(),
+                    submittedBatchCounter.get(), processedBatchCounter.get());
         } finally {
             hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock
         }
@@ -184,13 +196,21 @@ public class ChunkedPostboxMigrationAction {
 
             int fetchedPostboxCounter = 0;
             for (String postboxId : postboxIds) {
-                try {
+
+                try (Timer.Context timer = RECORD_MIGRATION_TIMER.time()) {
+
                     PostBox postbox = postboxRepository.byId(postboxId);
                     // might be null for very old postbox that have been removed by the cleanup job while the indexer
                     // was running.
                     if (postbox != null) {
                         fetchedPostboxCounter++;
+                        int cThreads = postbox.getConversationThreads().size();
+                        if (cThreads > 0) {
+                            migratedConversationThreadCounter.addAndGet(cThreads);
+                            nonemptyPostboxCounter.incrementAndGet();
+                        }
                     }
+
                 } catch (Exception e) {
                     LOG.error(String.format("Migrator could not load postbox {} from repository - skipping it", postboxId), e);
                     FAILED_POSTBOX_IDS.info(postboxId);
