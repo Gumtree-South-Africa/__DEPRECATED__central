@@ -17,7 +17,7 @@
     <network>
         <port auto-increment="false">5701</port>
         <join>
-            <multicast enabled="false"></multicast>
+            <multicast enabled="false"/>
             <tcp-ip enabled="true">
                 <members>mp-core001,mp-core002,mp-core003</members>
             </tcp-ip>

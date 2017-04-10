@@ -16,7 +16,7 @@
     <network>
         <port auto-increment="false">13104</port>
         <join>
-            <multicast enabled="false"></multicast>
+            <multicast enabled="false"/>
             <tcp-ip enabled="true">
                 <members>core001,core002,core003</members>
             </tcp-ip>
