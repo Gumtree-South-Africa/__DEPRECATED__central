@@ -1,2 +1,9 @@
 <included>
+    <logger name="com.ecg.replyts" level="DEBUG"/>
+    <logger name="com.ecg.replyts2" level="DEBUG"/>
+    <logger name="com.ecg.messagecenter" level="DEBUG"/>
+    <logger name="com.ecg.messagebox" level="DEBUG"/>
+    <logger name="nl.marktplaats.filter" level="DEBUG"/>
+    <logger name="nl.marktplaats.postprocessor" level="DEBUG"/>
+    <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
 </included>

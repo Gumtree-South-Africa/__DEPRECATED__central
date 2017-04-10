@@ -10,8 +10,7 @@
         </rollingPolicy>
 
         <encoder>
-            <!-- see https://logback.qos.ch/manual/layouts.html#AccessPatternLayout -->
-            <pattern>[%t] %a "%r" %i{Host} %s [%b b] [%D ms] %I "%i{User-Agent}"</pattern>
+            <pattern>%h %l %u [%t] "%r" %s %b "%i{Referer}" "%i{User-Agent}" "%D ms"</pattern>
         </encoder>
     </appender>
 
