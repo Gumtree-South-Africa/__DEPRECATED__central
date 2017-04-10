@@ -33,6 +33,7 @@ public class ConversationResponseConverterTest {
     private static final int UNREAD_MSGS_COUNT = 5;
 
     private static final String EMAIL_SUBJECT = "email subject";
+    private static final String CONVERSATION_TITLE = "conversation title";
 
     private static final Participant PARTICIPANT_1 = new Participant("buyerId", "buyerName", "buyer@email.com", ParticipantRole.BUYER);
     private static final Participant PARTICIPANT_2 = new Participant("sellerId", "sellerName", "seller@email.com", ParticipantRole.SELLER);
@@ -71,7 +72,7 @@ public class ConversationResponseConverterTest {
                 RECEIVE,
                 asList(PARTICIPANT_1, PARTICIPANT_2),
                 MSG_SELLER,
-                new ConversationMetadata(now(), EMAIL_SUBJECT))
+                new ConversationMetadata(now(), EMAIL_SUBJECT, CONVERSATION_TITLE))
                 .addMessages(asList(MSG_BUYER, MSG_SELLER))
                 .addNumUnreadMessages(UNREAD_MSGS_COUNT);
 
@@ -84,6 +85,7 @@ public class ConversationResponseConverterTest {
                 messageRespMock,
                 toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
                 EMAIL_SUBJECT,
+                CONVERSATION_TITLE,
                 UNREAD_MSGS_COUNT,
                 Optional.of(asList(messageRespMock, messageRespMock)));
 
@@ -110,7 +112,7 @@ public class ConversationResponseConverterTest {
                 RECEIVE,
                 asList(PARTICIPANT_1, PARTICIPANT_2),
                 MSG_SELLER,
-                new ConversationMetadata(now(), EMAIL_SUBJECT))
+                new ConversationMetadata(now(), EMAIL_SUBJECT, CONVERSATION_TITLE))
                 .addMessages(asList(MSG_BUYER, MSG_SELLER))
                 .addNumUnreadMessages(UNREAD_MSGS_COUNT);
 
@@ -123,6 +125,7 @@ public class ConversationResponseConverterTest {
                 messageRespMock,
                 toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
                 EMAIL_SUBJECT,
+                CONVERSATION_TITLE,
                 UNREAD_MSGS_COUNT,
                 Optional.empty());
 
@@ -135,6 +138,41 @@ public class ConversationResponseConverterTest {
         verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_1);
         verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_2);
         verify(msgRespConverterMock).toMessageResponse(MSG_SELLER);
+        assertThat(actual, is(expected));
+    }
+
+    @Test
+    public void toConversationResponseWithoutTitle() {
+        ConversationThread conversation = new ConversationThread(
+                CONVERSATION_ID,
+                AD_ID,
+                ACTIVE,
+                RECEIVE,
+                asList(PARTICIPANT_1, PARTICIPANT_2),
+                MSG_SELLER,
+                new ConversationMetadata(now(), EMAIL_SUBJECT, null))
+                .addMessages(asList(MSG_BUYER, MSG_SELLER))
+                .addNumUnreadMessages(UNREAD_MSGS_COUNT);
+
+        ConversationResponse expected = new ConversationResponse(
+                CONVERSATION_ID,
+                AD_ID,
+                "active",
+                "receive",
+                asList(participantRespMock, participantRespMock),
+                messageRespMock,
+                toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
+                EMAIL_SUBJECT,
+                null,
+                UNREAD_MSGS_COUNT,
+                Optional.empty());
+
+        when(msgRespConverterMock.toMessageResponse(MSG_SELLER)).thenReturn(messageRespMock);
+        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_1)).thenReturn(participantRespMock);
+        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_2)).thenReturn(participantRespMock);
+
+        ConversationResponse actual = convRespConverter.toConversationResponse(conversation);
+
         assertThat(actual, is(expected));
     }
 }

@@ -346,7 +346,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
                         new Participant(userId1, "user name 1", "u1@test.nl", BUYER),
                         new Participant(userId2, "user name 2", "u2@test.nl", SELLER)
                 ),
-                messages.get(messages.size() - 1), new ConversationMetadata(now(), "email subject"));
+                messages.get(messages.size() - 1), new ConversationMetadata(now(), "email subject", "conversation title"));
         conversation.addNumUnreadMessages(messages.size());
         conversation.addMessages(messages);
 

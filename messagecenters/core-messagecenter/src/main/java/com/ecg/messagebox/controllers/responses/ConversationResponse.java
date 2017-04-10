@@ -19,6 +19,7 @@ public class ConversationResponse {
     private final String emailSubject;
     private final int unreadMessagesCount;
     private final Optional<List<MessageResponse>> messages;
+    private final String title;
 
     public ConversationResponse(String id,
                                 String adId,
@@ -28,6 +29,7 @@ public class ConversationResponse {
                                 MessageResponse latestMessage,
                                 String creationDate,
                                 String emailSubject,
+                                String title,
                                 int unreadMessagesCount,
                                 Optional<List<MessageResponse>> messages) {
         this.id = id;
@@ -38,6 +40,7 @@ public class ConversationResponse {
         this.latestMessage = latestMessage;
         this.creationDate = creationDate;
         this.emailSubject = emailSubject;
+        this.title = title;
         this.unreadMessagesCount = unreadMessagesCount;
         this.messages = messages;
     }
@@ -74,6 +77,10 @@ public class ConversationResponse {
         return emailSubject;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
     public int getUnreadMessagesCount() {
         return unreadMessagesCount;
     }
@@ -95,6 +102,7 @@ public class ConversationResponse {
                 && Objects.equals(latestMessage, that.latestMessage)
                 && Objects.equals(creationDate, that.creationDate)
                 && Objects.equals(emailSubject, that.emailSubject)
+                && Objects.equals(title, that.title)
                 && unreadMessagesCount == that.unreadMessagesCount
                 && Objects.equals(messages, that.messages);
     }
@@ -102,6 +110,6 @@ public class ConversationResponse {
     @Override
     public int hashCode() {
         return Objects.hash(id, adId, visibility, messageNotification, participants,
-                latestMessage, creationDate, emailSubject, unreadMessagesCount, messages);
+                latestMessage, creationDate, emailSubject, title, unreadMessagesCount, messages);
     }
 }

@@ -53,6 +53,7 @@ public class ConversationResponseConverter {
                 msgRespConverter.toMessageResponse(conversation.getLatestMessage()),
                 creationDateStr,
                 conversation.getMetadata().getEmailSubject(),
+                conversation.getMetadata().getTitle().orElse(null),
                 conversation.getNumUnreadMessages(),
                 messageResponsesOpt);
     }

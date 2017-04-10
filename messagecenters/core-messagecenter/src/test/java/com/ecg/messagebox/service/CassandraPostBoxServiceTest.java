@@ -119,6 +119,7 @@ public class CassandraPostBoxServiceTest {
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
         headers.put("X-Message-Metadata", "metadata");
+        headers.put("X-Conversation-Title", "conversation title");
         headers.put("Subject", "subject");
 
         Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
@@ -165,6 +166,7 @@ public class CassandraPostBoxServiceTest {
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
         headers.put("X-Message-ID", "f866b110-857b-11e6-9367-5bbf510138cd");
+        headers.put("X-Conversation-Title", "title");
         headers.put("Subject", "subject");
         Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
 
@@ -184,7 +186,7 @@ public class CassandraPostBoxServiceTest {
                 MessageNotification.RECEIVE,
                 participants,
                 newMessage,
-                new ConversationMetadata(now(), "subject"));
+                new ConversationMetadata(now(), "subject", "title"));
 
         service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true);
 
@@ -310,7 +312,7 @@ public class CassandraPostBoxServiceTest {
                 Arrays.asList(new Participant(USER_ID_1, "user1", "user1@email.test", ParticipantRole.BUYER),
                         new Participant(USER_ID_2, "user2", "user2@email.test", ParticipantRole.SELLER)),
                 new com.ecg.messagebox.model.Message(UUIDs.timeBased(), MessageType.CHAT, new MessageMetadata("text", "senderUserId")),
-                new ConversationMetadata(DateTime.now(), "subject")
+                new ConversationMetadata(DateTime.now(), "subject", "title")
         );
     }
 

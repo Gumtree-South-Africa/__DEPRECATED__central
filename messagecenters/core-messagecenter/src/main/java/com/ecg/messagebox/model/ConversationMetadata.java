@@ -13,12 +13,16 @@ public class ConversationMetadata {
 
     private String emailSubject;
     private Optional<DateTime> creationDate = Optional.empty();
+    private Optional<String> title = Optional.empty();
 
     @JsonCreator
     public ConversationMetadata(@JsonProperty("creationDate") DateTime creationDate,
-                                @JsonProperty("emailSubject") String emailSubject) {
+                                @JsonProperty("emailSubject") String emailSubject,
+                                @JsonProperty("title") String title
+                                ) {
         this.creationDate = Optional.ofNullable(creationDate);
         this.emailSubject = emailSubject;
+        this.title = Optional.ofNullable(title);
     }
 
     public String getEmailSubject() {
@@ -29,18 +33,24 @@ public class ConversationMetadata {
         return creationDate;
     }
 
+    public Optional<String> getTitle() {
+        return title;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ConversationMetadata that = (ConversationMetadata) o;
         return Objects.equals(emailSubject, that.emailSubject)
-                && Objects.equals(creationDate.map(BaseDateTime::getMillis), that.creationDate.map(BaseDateTime::getMillis));
+                && Objects.equals(creationDate.map(BaseDateTime::getMillis), that.creationDate.map(BaseDateTime::getMillis))
+                && Objects.equals(title, that.title)
+        ;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(emailSubject, creationDate);
+        return Objects.hash(emailSubject, creationDate, title);
     }
 
     @Override
@@ -48,6 +58,7 @@ public class ConversationMetadata {
         return MoreObjects.toStringHelper(this)
                 .add("emailSubject", emailSubject)
                 .add("creationDate", creationDate)
+                .add("title", title)
                 .toString();
     }
 }
