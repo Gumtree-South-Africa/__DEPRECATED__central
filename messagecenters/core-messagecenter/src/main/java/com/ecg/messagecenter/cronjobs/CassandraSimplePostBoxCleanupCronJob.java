@@ -17,8 +17,10 @@ import org.springframework.stereotype.Component;
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnProperty(name = "replyts2.cleanup.postboxes.enabled", havingValue = "true")
-@ConditionalOnExpression("#{'${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid')}")
+@ConditionalOnExpression("#{" +
+            "('${replyts2.cleanup.postboxes.enabled}' == 'true' || '${replyts2.cleanup.postboxes.enabled}' == '${region}') && " +
+            "('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))" +
+        "}")
 public class CassandraSimplePostBoxCleanupCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraSimplePostBoxCleanupCronJob.class);
 

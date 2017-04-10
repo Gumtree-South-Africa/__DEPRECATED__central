@@ -14,8 +14,10 @@ import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinu
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnProperty(name = "replyts2.cronjob.cleanupMail.enabled", havingValue = "true")
-@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')}")
+@ConditionalOnExpression("#{" +
+            "('${replyts2.cronjob.cleanupMail.enabled}' == 'true' || '${replyts2.cronjob.cleanupMail.enabled}' == '${region}') && " +
+            "('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))" +
+        "}")
 public class CleanupMailCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CleanupMailCronJob.class);
 

@@ -111,6 +111,9 @@ function parseCmd() {
 function main() {
     local start=$(date +"%s")
 
+    # export region as on salt-managed environments
+    export region=localhost
+
     MVN_ARGS="$MVN_ARGS -s etc/settings.xml -T0.5C"
     MVN_TASKS="clean compile test-compile"
     PROFILES=""

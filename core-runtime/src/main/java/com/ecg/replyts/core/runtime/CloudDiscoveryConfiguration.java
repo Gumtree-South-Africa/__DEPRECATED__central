@@ -113,16 +113,13 @@ public class CloudDiscoveryConfiguration {
         ));
 
         // This will add properties from Consul KV and select Consul services
-
         discoverProperties();
 
         // This will introduce a tenant, version, etc. field to be sent along with log lines
-
         mdcInjection();
 
         // Consul may override the (Kafka) logging related properties, so fetch them from the Environment here rather
         // than through @Value annotations at the top
-
         if (Boolean.valueOf(environment.getProperty(LOGGER_APPENDER_KAFKA_ENABLED, "false"))) {
             LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 
@@ -164,7 +161,6 @@ public class CloudDiscoveryConfiguration {
         });
 
         // Cloud properties take precedence over discovered services
-
         environment.getPropertySources().addAfter(ParentConfiguration.CONF_DIR_PROPERTY_SOURCE, kvPropertySource);
         environment.getPropertySources().addAfter(kvPropertySource.getName(), new MapPropertySource("discoveredServicesProperties", discoverServices()));
 

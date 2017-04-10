@@ -2,11 +2,11 @@ package com.ecg.replyts.app.cronjobs.cleanup.conversation;
 
 import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.app.cronjobs.cleanup.CleanupDateCalculator;
-import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.api.cron.CronJobExecutor;
 import com.ecg.replyts.core.api.model.conversation.ConversationModificationDate;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationDeletedCommand;
+import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.google.common.collect.Iterators;
@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -28,8 +27,10 @@ import java.util.stream.Stream;
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnProperty(name = "replyts2.cleanup.conversation.enabled", havingValue = "true")
-@ConditionalOnExpression("#{'${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid')}")
+@ConditionalOnExpression("#{" +
+            "'${replyts2.cleanup.conversation.enabled}' == '${region}' && " +
+            "('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))" +
+        "}")
 public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraCleanupConversationCronJob.class);
 

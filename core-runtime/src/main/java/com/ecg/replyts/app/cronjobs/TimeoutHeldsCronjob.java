@@ -6,13 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
 @Component
-@ConditionalOnProperty(value = "replyts2.sendHeld.timeoutEnabled", havingValue = "true")
+@ConditionalOnExpression("#{'${replyts2.sendHeld.timeoutEnabled}' == 'true' || '${replyts2.sendHeld.timeoutEnabled}' == '${region}'}")
 public class TimeoutHeldsCronjob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(TimeoutHeldsCronjob.class);
 

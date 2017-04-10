@@ -15,7 +15,7 @@ import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinu
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnExpression("'${replyts2.cronjob.cleanupSearch.enabled:true}' == 'true'")
+@ConditionalOnExpression("#{'${replyts2.cronjob.cleanupSearch.enabled:true}' == 'true' || '${replyts2.cronjob.cleanupSearch.enabled:true}' == '${region}'}")
 public class CleanupSearchCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CleanupSearchCronJob.class);
 
