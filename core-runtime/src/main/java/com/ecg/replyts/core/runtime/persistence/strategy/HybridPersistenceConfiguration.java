@@ -7,7 +7,6 @@ import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
-import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.RiakIndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -18,6 +17,7 @@ import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigur
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.config.RiakConfigurationRepository;
+import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;
@@ -35,6 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
 
 /**
  * Hybrid persistence configuration which facilitates reading from Riak and writing to both Riak and Cassandra.
@@ -83,14 +84,24 @@ public class HybridPersistenceConfiguration {
     @Autowired
     private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
 
+    private DefaultCassandraConversationRepository cassandraConversationRepository;
+
     @Bean
+    @Order(1)
     public HybridConversationRepository conversationRepository(Session cassandraSession, HybridMigrationClusterState migrationState) {
-        DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+        cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+        cassandraConversationRepository.setObjectMapperConfigurer(objectMapperConfigurer);
+
         RiakConversationRepository riakRepository = useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins) : new RiakConversationRepository(riakClient, allowSiblings, lastWriteWins);
 
-        cassandraRepository.setObjectMapperConfigurer(objectMapperConfigurer);
+        return new HybridConversationRepository(cassandraConversationRepository, riakRepository, migrationState);
+    }
 
-        return new HybridConversationRepository(cassandraRepository, riakRepository, migrationState);
+    @Bean
+    // Order makes sure that the 'normal' use cases use the HybridConversationRepository
+    @Order(2)
+    public CassandraConversationRepository cassandraConversationRepository() {
+        return cassandraConversationRepository;
     }
 
     @Bean
@@ -133,7 +144,6 @@ public class HybridPersistenceConfiguration {
     public EmailOptOutRepository emailOptOutRepository(Session cassandraSession) {
         return new EmailOptOutRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
-
 
     @Bean
     public ConversationMigrator conversationMigrator() {
