@@ -10,6 +10,8 @@ import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
 import com.ecg.messagebox.util.StreamUtils;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -28,6 +30,7 @@ import static java.util.stream.Collectors.toList;
 
 @Component
 public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultCassandraPostBoxRepository.class);
 
     private final Timer getPaginatedConversationIdsTimer = newTimer("cassandra.postBoxRepo.v2.getPaginatedConversationIds");
     private final Timer getPostBoxTimer = newTimer("cassandra.postBoxRepo.v2.getPostBox");
@@ -130,6 +133,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Override
     public Optional<ConversationThread> getConversationWithMessages(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit) {
+        LOG.trace("Retrieving conversationThread for conversationId {}, userId {}", conversationId, userId);
         try (Timer.Context ignored = getConversationWithMessagesTimer.time()) {
             Row row = session.execute(Statements.SELECT_CONVERSATION.bind(this, userId, conversationId)).one();
             if (row != null) {
@@ -143,6 +147,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
                 return of(conversation);
             } else {
+                LOG.trace("Could not get conversationThread for conversationId {}, userId {}", conversationId, userId);
                 return empty();
             }
         }

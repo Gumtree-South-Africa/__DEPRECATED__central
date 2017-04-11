@@ -7,6 +7,8 @@ import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Controller
 public class ConversationController {
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationController.class);
 
     private static final String CONVERSATION_RESOURCE = "/users/{userId}/conversations/{conversationId}";
 
@@ -52,10 +55,12 @@ public class ConversationController {
             @RequestParam(value = "limit", defaultValue = "500", required = false) int limit,
             HttpServletResponse response
     ) {
+        LOG.trace("Retrieving conversation with conversationID: {}, userId: {}", conversationId, userId);
         try (Timer.Context ignored = getConversationTimer.time()) {
             Optional<ConversationResponse> conversationResponse = postBoxService
                     .getConversation(userId, conversationId, messageIdCursorOpt, limit)
                     .map(responseConverter::toConversationResponseWithMessages);
+            LOG.trace("Conversation not found with conversationID: {}, userId: {}", conversationId, userId);
             return wrapResponse(conversationResponse, response);
         }
     }

@@ -6,6 +6,8 @@
     </appender>
 
     <logger name="com.ecg.messagecenter" level="INFO"/>
+    <logger name="com.ecg.messagebox.persistence" level="TRACE"/>
+    <logger name="com.ecg.messagebox.controllers" level="TRACE"/>
 
     <root level="info">
         <appender-ref ref="STDOUT"/>
