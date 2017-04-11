@@ -11,7 +11,7 @@ readonly COMAAS_OUT="$PWD/comaas.out"
 readonly CASSANDRA_DIR="$PWD/../cassandra_tmp"
 readonly CASSANDRA_PID="$PWD/cassandra.pid"
 readonly CASSANDRA_HOME=$CASSANDRA_DIR
-readonly ATTEMPTS=30
+readonly ATTEMPTS=60
 readonly HEALTH_CHECK_DELAY=3
 readonly HOST='localhost'
 
