@@ -97,7 +97,7 @@ public class VolumeFilterIntegrationTest {
         long end = System.currentTimeMillis();
 
         long elapsed = end - start;
-        if (elapsed < 7000) {
+        if (elapsed > 7000) {
             LOG.error("Flickering test alert: this might fail because sending 2 mails took {} milliseconds", elapsed);
         }
 
