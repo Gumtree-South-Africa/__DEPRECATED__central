@@ -92,22 +92,20 @@ function main() {
 
    if [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "mde" ]] ; then
        startCassandra
-
-       # RP: instead of this we should use the registry.ecg.so/comaas_cassandra_data image, which already has a keyspace set up.
+       log "Waiting for Cassandra to become available"
 
        sleep 5 # give the cassandra container some time to settle
 
        for i in $(seq 1 ${ATTEMPTS}); do
-         set +o errexit
-         docker run --rm --volume ${PWD}:/code --workdir /code --link ${CASSANDRA_CONTAINER_NAME}:cassandra ${CASSANDRA_IMAGE_NAME} bin/setup-cassandra.sh cassandra replyts2
-         ec=$?
-         set -o errexit
-         if [[ ${ec} -eq 0 ]]; then
+         health=$(docker inspect --format "{{json .State.Health.Status }}" ${CASSANDRA_CONTAINER_NAME})
+         if [[ ${health} == "\"healthy\"" ]]; then
+            log "Cassandra is up"
             break
          fi
+         sleep 1
        done
        if [[ ${i} -ge ${ATTEMPTS} ]]; then
-          fatal "Could not import keyspace into Cassandra."
+          fatal "Cassandra took too long to start up. Failing."
        fi
    fi
 

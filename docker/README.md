@@ -14,7 +14,7 @@ Graphite: [http://localhost:8082/](http://localhost:8082/)
 ## Create the Cassandra image with the replyts2 keyspace
 Note: only do this when the `.cql` files have changed, or when upgrading C* versions.
 
-Update the version number in the `Makefile` and in `docker-compose.yml`.
+Update the version number in the `Makefile`, in `docker-compose.yml`, and in `bin/_cassandra_docker.sh`.
 
 `make cassandra-image`
 

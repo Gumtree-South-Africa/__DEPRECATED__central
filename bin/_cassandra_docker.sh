@@ -4,7 +4,7 @@ if [ -z ${TENANT+x} ]; then
     TENANT="none"
 fi
 
-readonly CASSANDRA_IMAGE_NAME="cassandra:2.1.15"
+readonly CASSANDRA_IMAGE_NAME="registry.ecg.so/comaas_cassandra_data:0.0.4"
 readonly CASSANDRA_CONTAINER_NAME="cassandra_test_${TENANT//,/-}_$(date +'%s')"
 
 # This value will be overwritten when the container is started
