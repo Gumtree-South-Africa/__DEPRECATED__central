@@ -1,0 +1,103 @@
+Ihre Inseratsnummer 99 in dieser E-Mail ist ein Merkmal, dass diese Nachricht tatsächlich von mobile.de stammt.
+Mehr zum Thema.
+http://cms.mobile.de/de/informieren/sicherheit/sicherheit_beim_verkauf06.html
+
+-----------------------------------------------------------------------------------------
+
+Anfrage für Ihr Fahrzeug
+
+Sehr geehrter Kunde,
+
+Herr/Frau My Heinz Müller interessiert sich für Ihr Fahrzeug mit den Kenndaten:
+
+Fahrzeugbeschreibung: Volkswagen Passat
+Inseratsnummer:   99 
+http://suchen.mobile.de/fahrzeuge/details.html?id=99
+
+Unten finden Sie die Nachricht des Interessenten.
+
+mobile.de wünscht Ihnen viel Erfolg beim Verkauf Ihres Fahrzeugs!
+
+
+Mit freundlichen Grüßen
+
+
+Ihr mobile.de Team
+
+
+-----------------------------------------------------------------------------------------
+Nachricht vom Interessenten
+-----------------------------------------------------------------------------------------
+
+Nachricht vom: Donnerstag, April 06, 2017
+Name: My Heinz Müller
+Telefonnummer: 4563154436
+
+
+Nachricht:
+
+Das ist ein tolles Fahrzeug. foo bar 
+
+ Ich möchte es kaufen! 
+
+ Viele Grüße 
+
+ Der Käufer
+
+Finanzierung:
+
+Der Kunde interessiert sich für einen Finanzierungsvorschlag.:
+- Anzahlung (EUR):  5000
+- Monatliche Rate (EUR):  200
+
+-----------------------------------------------------------------------------------------
+
+Um dem Interessenten zu antworten, nutzen Sie bitte die Antwort-Funktion Ihres E-Mail-Programms.
+
+Bitte beachten Sie:
+
+Aus Sicherheitsgründen wird Ihre Nachricht zunächst von mobile.de empfangen und vor der Weiterleitung zum Interessenten geprüft und ggf. blockiert (z. B. bei Spam). Für weitere Informationen lesen Sie bitte die http://cms.mobile.de/de/unternehmen/datenschutz/datenschutz.htmlDatenschutzerklärung.
+
+mobile.de anonymisiert die E-Mail-Adressen von Sender und Empfänger, um die persönlichen Daten unserer Kunden vor Missbrauch zu schützen.
+
+Diese Nachricht als Spam oder Missbrauch melden.:
+http://www.mobile.de/home/contactMessageComplaintRTS.html?convId=$CONVERSATION_ID$&msgId=$MESSAGE_ID$
+
+Sicherheit bei mobile.de 
+
+Tipps zum Verkauf und wertvolle Sicherheits-Hinweise finden Sie im mobile.de Magazin.
+
+Sicherheit
+
+Vorsicht vor Phishing-E-Mails beim Verkauf! Das mobile.de Magazin zeigt Ihnen, wie Sie Risiken vermeiden können und sich am besten absichern.
+
+Informieren Sie sich
+http://www.mobile.de/magazin/ratgeber/sicherheit/index.html
+
+
+Ratgeber
+
+mobile.de unterstützt Sie beim Fahrzeugverkauf. Überzeugen Sie sich von unseren wertvollen Tipps rund um die Präsentation Ihres Unternehmens und Ihrer Fahrzeuge bei mobile.de.
+
+Jetzt informieren
+http://promo.mobile.de/sites/produkt_ueberblick/verkaufen
+
+
+-----------------------------------------------------------------------------------------
+Diese E-Mail ist ein Service der mobile.de GmbH.
+Marktplatz 1, D-14532 Europarc Dreilinden, Amtsgericht Potsdam HRB 18517 P, Umsatzsteuer Identifikationsnummer nach § 27a Umsatzsteuergesetz: DE203779911, Geschäftsführer: Malte Krüger, Kundenservice: 030 81097-500
+
+
+
+
+
+XML-Code für die automatisierte E-Mail-Bearbeitung: 
+
+<lead><vehicle><internalId>456789</internalId><make>Volkswagen</make><model>Passat</model><firstRegistration>12-2015</firstRegistration><mileage>30000</mileage><price>0</price><conditionType>USED</conditionType><type>PKW</type><customerNumber>8888000</customerNumber></vehicle><potentialBuyer><name>My Heinz Müller</name><email>$ANONYMIZED_SENDER_ADDRESS$</email><phone><internationalPrefix>49</internationalPrefix><number>30</number></phone><message>Das ist ein tolles Fahrzeug. foo bar 
+
+ Ich möchte es kaufen! 
+
+ Viele Grüße 
+
+ Der Käufer</message><buyerIdentifier>96a87fb983a07db92a537b972fb5d0cdfcc4c8364b67652ddc6308054e5b1e38</buyerIdentifier></potentialBuyer><source>MOBILE</source></lead>
+

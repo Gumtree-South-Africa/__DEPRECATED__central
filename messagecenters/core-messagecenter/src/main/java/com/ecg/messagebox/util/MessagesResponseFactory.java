@@ -8,7 +8,9 @@ import static com.ecg.messagebox.util.EmailHeaderFolder.unfold;
 public class MessagesResponseFactory {
 
     public String getCleanedMessage(Conversation conv, Message message) {
-        if (contactPosterForExistingConversation(message) || comesFromMessageBoxClient(message)) {
+        if (messageBodyMarkedByNonPrintableCharacters(message)) {
+            return MessageBodyExtractor.extractBodyMarkedByNonPrintableChars(message.getPlainTextBody());
+        } else if (contactPosterForExistingConversation(message) || comesFromMessageBoxClient(message)) {
             return getUserMessage(message);
         } else {
             return MessagePreProcessor.removeEmailClientReplyFragment(conv, message);
@@ -37,5 +39,10 @@ public class MessagesResponseFactory {
     private boolean contactPosterForExistingConversation(Message messageRts) {
         return messageRts.getHeaders().containsKey("X-Reply-Channel") &&
                 messageRts.getHeaders().get("X-Reply-Channel").startsWith("cp_");
+    }
+
+    private boolean messageBodyMarkedByNonPrintableCharacters(Message messageRts) {
+        return messageRts.getHeaders().containsKey("X-Cust-Msg-Body-Mark") &&
+                messageRts.getHeaders().get("X-Cust-Msg-Body-Mark").contains("non-printable-chars");
     }
 }

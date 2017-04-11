@@ -32,7 +32,12 @@ public class MessagePreProcessor {
                     "\\b(From|To|Sender|Receiver|Van|Aan) *: *([^<>\\s]+ +){1,6}(<|&lt;)?[^<>\\s]+@[^<>\\s]+((<|&lt;)[^<>\\s]+@[^<>\\s]+(>|&gt;))?(>|&gt;)?",
                     "\\b(From|To|Sender|Receiver|Van|Aan) *: *([^<>\\s]+ +){0,5}([^<>\\s]+)(<|&lt;)?[^<>\\s]+@[^<>\\s]+(>|&gt;)?",
                     "Op.{10,25}schreef[^<]{5,60}<a[^>]+href=\"mailto:[^\">]+@[^\">]+\"[^>]*>[^<]*</a",
-                    "Op.{10,25}schreef[^<]{5,60}(<|&lt;)?\\s*[^<>\\s]+@[^<>\\s]+(>|&gt;)?"})
+                    "Op.{10,25}schreef[^<]{5,60}(<|&lt;)?\\s*[^<>\\s]+@[^<>\\s]+(>|&gt;)?",
+                    "Am [0-9][0-9][0-9]?[0-9]?[./-].* schrieb.*",
+                    "On [0-9][0-9][0-9]?[0-9]?[./-].* wrote.*",
+                    "[0-9][0-9][0-9]?[0-9]?[./-].*buyer-.*@mail.mobile.de",
+                    "[0-9][0-9][0-9]?[0-9]?[./-].*seller-.*@mail.mobile.de"
+            })
             .map(Pattern::compile)
             .collect(Collectors.toList());
 
