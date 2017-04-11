@@ -90,13 +90,15 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
     @Override
     public PostBox byId(String email) {
+        final String emailLowerCase = email.toLowerCase();
+
         try (Timer.Context ignored = byIdTimer.time()) {
-            Map<String, Integer> unreadCounts = gatherUnreadCounts(email);
+            Map<String, Integer> unreadCounts = gatherUnreadCounts(emailLowerCase);
             List<AbstractConversationThread> conversationThreads = new ArrayList<>();
 
             AtomicLong newRepliesCount = new AtomicLong();
 
-            processThreads(email, row -> {
+            processThreads(emailLowerCase, row -> {
                 String conversationId = row.getString("conversation_id");
 
                 int unreadCount = unreadCounts.getOrDefault(conversationId, 0);
@@ -105,11 +107,11 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
                 String jsonValue = row.getString("json_value");
 
-                toConversationThread(email, conversationId, jsonValue, unreadCount).map(conversationThreads::add);
+                toConversationThread(emailLowerCase, conversationId, jsonValue, unreadCount).map(conversationThreads::add);
             });
             LOG.debug("Found {} threads ({} unread) for PostBox with email {} in Cassandra", conversationThreads.size(), newRepliesCount, email);
 
-            return new PostBox(email, Optional.of(newRepliesCount.get()), conversationThreads, maxAgeDays);
+            return new PostBox(emailLowerCase, Optional.of(newRepliesCount.get()), conversationThreads, maxAgeDays);
         }
     }
 
