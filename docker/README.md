@@ -1,10 +1,13 @@
 ## Run Docker instead of Vagrant
 ```
-bin/build.sh -T mp -P docker
 cd docker
 make up ui logs
 ```
-Now you are ready to start Comaas.
+Now you are ready to start Comaas:
+
+```
+bin/build.sh -T mp -P docker -E
+```
 
 ## UIs
 Consul: [http://localhost:8500/](http://localhost:8500/)
