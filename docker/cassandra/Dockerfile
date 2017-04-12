@@ -18,7 +18,8 @@ RUN cassandra \
     && cqlsh -k "replyts2" -f /tmp/cassandra_messagebox_schema.cql \
     && echo "Created schema: messagebox" \
     && cqlsh -k "replyts2" -f /tmp/cassandra_messagecenter_schema.cql \
-    && echo "Created schema: messagecenter"
+    && echo "Created schema: messagecenter" \
+    && nodetool flush replyts2
 
 HEALTHCHECK --interval=1s --timeout=1s --retries=1 CMD cqlsh -e "USE replyts2"
 
