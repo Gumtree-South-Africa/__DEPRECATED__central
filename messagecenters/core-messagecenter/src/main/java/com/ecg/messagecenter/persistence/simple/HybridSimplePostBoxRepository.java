@@ -17,9 +17,9 @@ import java.util.stream.Stream;
 public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepository {
     private static final Logger LOG = LoggerFactory.getLogger(HybridSimplePostBoxRepository.class);
 
-    public final Counter migratePostBoxCounter = TimingReports.newCounter("migration.migrate-postbox");
-    public final Counter migratePostBoxNecessaryCounter = TimingReports.newCounter("migration.migrate-postbox-necessary");
-    public final Counter migrateConversationThreadCounter = TimingReports.newCounter("migration.migrate-thread");
+    private final Counter migratePostBoxCounter = TimingReports.newCounter("migration.migrate-postbox");
+    private final Counter migratePostBoxNecessaryCounter = TimingReports.newCounter("migration.migrate-postbox-necessary");
+    private final Counter migrateConversationThreadCounter = TimingReports.newCounter("migration.migrate-thread");
 
     private RiakSimplePostBoxRepository riakRepository;
 
@@ -50,6 +50,9 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
                     cassandraRepository.write(postBox);
 
                     migratePostBoxCounter.inc();
+                    migrateConversationThreadCounter.inc(postBox.getConversationThreads().size());
+                } else {
+                    LOG.debug("Could not claim lock on email {}, not migrating PostBox", email);
                 }
             }
 
@@ -89,15 +92,9 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
             thread = riakRepository.threadById(email, conversationId);
 
             if (thread.isPresent()) {
-                // Essentially do a cross-cluster synchronize on this particular ConversationThread to avoid duplication
-
-                if (migrationState.tryClaim(thread.get().getClass(), "[" + email + "]" + conversationId)) {
-                    LOG.debug("Migrating ConversationThread {}/{} from Riak to Cassandra", email, conversationId);
-
-                    cassandraRepository.writeThread(email, thread.get());
-
-                    migrateConversationThreadCounter.inc();
-                }
+                LOG.debug("ConversationThread {} for postbox {} is in Riak but not in Cassandra, migrating the whole postbox");
+                // byId makes sure to migrate the postbox
+                byId(email);
             }
         }
 

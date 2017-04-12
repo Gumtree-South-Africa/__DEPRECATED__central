@@ -82,8 +82,11 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
               .execute();
 
             if (postBox == null) {
+                LOG.debug("Found no Postbox in Riak, returning an empty one for email {}", email);
                 postBox = new PostBox(email.toLowerCase(), Optional.of(0L), Lists.newArrayList(), maxAgeDays);
             }
+
+            LOG.debug("Found {} threads ({} unread) for PostBox with email {} in Riak", postBox.getConversationThreads().size(), postBox.getNewRepliesCounter(), email);
             return postBox;
         } catch (RiakRetryFailedException e) {
             throw new RuntimeException("could not load post-box by email #" + email, e);
