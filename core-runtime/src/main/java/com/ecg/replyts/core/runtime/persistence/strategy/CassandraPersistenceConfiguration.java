@@ -138,6 +138,7 @@ public class CassandraPersistenceConfiguration {
 
         @Bean(name = "cassandraSession")
         public Session cassandraSession() {
+            LOG.info("Creating main Cassandra session");
             Object[] clusterAndSession = buildClusterAndSession(idleTimeoutSeconds);
 
             cassandraCluster = (Cluster) clusterAndSession[0];
@@ -148,6 +149,7 @@ public class CassandraPersistenceConfiguration {
 
         @Bean(name = "cassandraSessionForJobs")
         public Session cassandraSessionForJobs() {
+            LOG.info("Creating Cassandra session for jobs");
             Object[] clusterAndSession = buildClusterAndSession(idleTimeoutSecondsForJobs);
 
             cassandraClusterForJobs = (Cluster) clusterAndSession[0];
