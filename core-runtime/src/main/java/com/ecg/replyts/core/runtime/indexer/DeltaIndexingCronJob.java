@@ -18,11 +18,22 @@ public class DeltaIndexingCronJob implements CronJobExecutor {
     @Value("${replyts.deltaindexer.intervalMinutes:10}")
     private int intervalMinutes;
 
+    @Value("${replyts2.cronjob.deltaindexer.enabled:true}")
+    private String enabled;
+
+    @Value("${region:unknown}")
+    private String region;
+
     @Autowired
     private Indexer indexer;
 
     @Override
     public void execute() throws Exception {
+        if (enabled.equals("false") || !enabled.equals(region)) {
+            LOG.info("Not running DeltaIndexingCronJob, enabled == {}", enabled);
+            return;
+        }
+
         indexer.deltaIndex();
     }
 
