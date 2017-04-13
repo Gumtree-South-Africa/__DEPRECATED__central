@@ -67,7 +67,6 @@
     <bean class="com.ecg.replyts.core.runtime.indexer.IndexerBulkHandler"/>
 
     <bean class="com.ecg.replyts.core.runtime.indexer.IndexerHealthCheck"/>
-    <bean class="com.ecg.replyts.core.runtime.indexer.DeltaIndexingCronJob"/>
 
     <bean class="com.ecg.replyts.core.runtime.sanitycheck.SanityCheckService"/>
     <bean class="com.ecg.replyts.core.runtime.ModuleSystemConfiguration"/>

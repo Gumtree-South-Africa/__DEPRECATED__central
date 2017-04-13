@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnExpression("#{'${replyts2.cronjob.deltaindexer.enabled:true}' == 'true' || '${replyts2.cronjob.cleanupSearch.enabled:true}' == '${region}'}")
+@ConditionalOnExpression("#{'${replyts2.cronjob.deltaindexer.enabled:true}' == 'true' || '${replyts2.cronjob.deltaindexer.enabled:true}' == '${region}'}")
 public class DeltaIndexingCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(DeltaIndexingCronJob.class);
 
