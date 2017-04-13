@@ -101,6 +101,7 @@
                 -->
 
                 <module>filters/gtuk-filter-word</module>
+                <module>filters/gtuk-filter-blacklist</module>
 
                 <module>listeners/gtuk-listener-eventpublisher</module>
                 <module>listeners/gtuk-listener-statsnotifier</module>
@@ -392,7 +393,7 @@
         <spring-boot.version>1.4.1.RELEASE</spring-boot.version>
         <spring-cloud-consul.version>1.1.2.RELEASE</spring-cloud-consul.version>
         <json-lib.version>2.2.3</json-lib.version>
-        <assertj-core.version>3.2.0</assertj-core.version>
+        <assertj-core.version>3.6.2</assertj-core.version>
         <bouncycastle-version>1.50</bouncycastle-version>
         <bouncycastle-jdk>jdk15on</bouncycastle-jdk>
         <cassandra-client-version>2.1.10</cassandra-client-version>
@@ -480,7 +481,7 @@
         <gt.version>3.0-SNAPSHOT</gt.version>
         <gt.replies.models.version>4.28186</gt.replies.models.version>
         <gt.gumshield.api.version>4.28187</gt.gumshield.api.version>
-        <gt.comaas.models.version>1.4</gt.comaas.models.version>
+        <gt.comaas.models.version>1.5</gt.comaas.models.version>
         <gt.gumtree.common.version>4.28186</gt.gumtree.common.version>
         <gt.google.analytics.version>${gt.version}</gt.google.analytics.version>
         <gt.category.api.client.version>${gt.version}</gt.category.api.client.version>
@@ -1809,6 +1810,12 @@
                         <artifactId>objenesis</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            
+            <dependency>
+                <groupId>ecg.comaas</groupId>
+                <artifactId>gtuk-coremod-shared</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
             <!-- mde artifacts -->

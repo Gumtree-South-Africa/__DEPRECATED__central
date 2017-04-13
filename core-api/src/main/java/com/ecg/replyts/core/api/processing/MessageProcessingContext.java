@@ -35,7 +35,6 @@ public class MessageProcessingContext {
     private final Map<String, Object> filterContext = new HashMap<>();
 
     public MessageProcessingContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard) {
-
         checkNotNull(processingTimeGuard);
 
         this.mail = mail;

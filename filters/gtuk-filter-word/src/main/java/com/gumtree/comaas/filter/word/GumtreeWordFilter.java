@@ -22,14 +22,14 @@ public class GumtreeWordFilter implements com.ecg.replyts.core.api.pluginconfigu
 
     private WordFilterConfig filterConfig;
 
-    public GumtreeWordFilter(Filter pluginConfig, WordFilterConfig filterConfig) {
+    GumtreeWordFilter(Filter pluginConfig, WordFilterConfig filterConfig) {
         this.pluginConfig = pluginConfig;
         this.filterConfig = filterConfig;
     }
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
-        Set<Integer> categoryBreadCrumb = (Set<Integer>) context.getFilterContext().get("categoryBreadCrumb");
+        Set<Long> categoryBreadCrumb = (Set<Long>) context.getFilterContext().get("categoryBreadCrumb");
 
         if (hasExemptedCategory(filterConfig.getExemptedCategories(), categoryBreadCrumb)) {
             return Collections.emptyList();
@@ -50,7 +50,7 @@ public class GumtreeWordFilter implements com.ecg.replyts.core.api.pluginconfigu
         Map<Rule, Pattern> compiledPatterns = patternBuilder.buildAndPrecompileFromWordFilterRules();
 
         compiledPatterns.forEach((rule, pattern) -> textsToCheck.stream()
-          .map(part -> pattern.matcher(part))
+          .map(pattern::matcher)
           .filter(m -> m.find() && !rule.getExceptions().contains(m.group()))
           .findFirst().ifPresent(m -> {
               String description = longDescription(getClass(), pluginConfig.getInstanceId(), filterConfig.getVersion(), "Matched: " + rule.getPattern());
