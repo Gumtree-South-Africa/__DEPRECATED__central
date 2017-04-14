@@ -24,22 +24,6 @@ function parseArgs() {
   cur=$(pwd -P) && cd $(dirname ${ARTIFACT}) && BUILDDIR=$(pwd -P) && cd ${cur}
 }
 
-function repackage-mde-ebayk() {
-   local TENANT=$1
-   rm -rf tmp2
-   mkdir -p tmp2/comaas-$TENANT
-   cp -r tmp/* tmp2/comaas-$TENANT/
-   rm -f tmp2/comaas-$TENANT/conf/* && cp "$prop"/* tmp2/comaas-$TENANT/conf/
-   cd tmp2
-   cd comaas-$TENANT/lib && ln -s core-runtime-* core-runtime.jar && cd ../..
-   tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
-   HOMEDIR=$PWD
-   cd ${BUILDDIR}
-   portable-md5 ${PACKAGE_NAME}.tar.gz > ${PACKAGE_NAME}.tar.gz.md5
-   cd $HOMEDIR
-   echo "Created package for $TENANT ${PACKAGE_BASE}.tar.gz"
-}
-
 function portable-md5() {
   local PACKAGE=$1
   if builtin command -v md5 > /dev/null; then
@@ -52,15 +36,10 @@ function portable-md5() {
 }
 
 function repackage() {
-  mkdir -p tmp
-  mkdir -p tmp2
-  tar xfz ${ARTIFACT} -C tmp/
-  (cd tmp && sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' bin/comaas)
-
-  for prop in distribution/conf/${TENANT}/*; do
-    if [[ -f "$prop" || "$prop" == *import_into_consul || "$prop" == *comaasqa || "$prop" == *local || "$prop" == *bare || "$prop" == *prod || "$prop" == *sandbox || "$prop" == *migration* || "$prop" == *docker ]]; then
-      continue
-    fi
+    mkdir -p tmp
+    mkdir -p tmp2
+    tar xfz ${ARTIFACT} -C tmp/
+    (cd tmp && sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' bin/comaas)
 
     PACKAGE_NAME=comaas-${TENANT}-$(basename "$prop")-${TIMESTAMP}-${GIT_HASH}
     if [[ "$prop" == *noenv ]]; then
@@ -105,7 +84,19 @@ function repackage() {
         continue
         ;;
       ebayk)
-        repackage-mde-ebayk ebayk
+        rm -rf tmp2
+        mkdir -p tmp2/comaas-$TENANT
+        cp -r tmp/* tmp2/comaas-$TENANT/
+        rm -f tmp2/comaas-$TENANT/conf/*
+#        cp "$prop"/* tmp2/comaas-$TENANT/conf/
+        cd tmp2
+        cd comaas-$TENANT/lib && ln -s core-runtime-* core-runtime.jar && cd ../..
+        tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
+        HOMEDIR=$PWD
+        cd ${BUILDDIR}
+        portable-md5 ${PACKAGE_NAME}.tar.gz > ${PACKAGE_NAME}.tar.gz.md5
+        cd $HOMEDIR
+        echo "Created package for $TENANT ${PACKAGE_BASE}.tar.gz"
         continue
         ;;
       kjca)
@@ -128,9 +119,7 @@ function repackage() {
         ;;
     esac
 
-  done
-
-  rm -rf tmp tmp2
+    rm -rf tmp tmp2
 }
 
 parseArgs $@
