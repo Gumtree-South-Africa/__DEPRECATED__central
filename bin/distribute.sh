@@ -31,11 +31,8 @@ fi
 `dirname $0`/repackage.sh ${TENANT} ${GIT_HASH} ${BUILD_DIR}/${ARTIFACT_NAME} ${TIMESTAMP}
 
 for PKG in $(ls ${BUILD_DIR}/comaas-${TENANT}*); do
-  PACKAGE_REGEX=".*/comaas-${TENANT}-(comaasqa|local|sandbox|prod|configuration).*"
+  PACKAGE_REGEX=".*/comaas-${TENANT}-legacy.*"
   [[ ${PKG} =~ ${PACKAGE_REGEX} ]] && continue
 
   `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP}
-  if [[ "${TENANT}" == "mde" ]]; then
-    `dirname $0`/upload.sh ${TENANT} ${GIT_HASH} ${PKG} ${TIMESTAMP} prod
-  fi
 done
