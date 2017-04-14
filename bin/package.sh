@@ -23,6 +23,17 @@ function parseArgs() {
     mkdir -p ${DESTINATION}
 }
 
+function createCloudPackage() {
+    ARTIFACT_NAME="comaas-${TENANT}_${1}-${TIMESTAMP}-${GIT_HASH}"
+    rm -rf distribution/target/distribution/conf
+    mkdir -p distribution/target/distribution/conf
+    cp distribution/conf/${TENANT}/${1}/* distribution/target/distribution/conf
+    cp -r distribution/target/distribution distribution/target/${ARTIFACT_NAME}
+    tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/ ${ARTIFACT_NAME}
+    rm -rf distribution/target/${ARTIFACT_NAME}
+    echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
+}
+
 function package() {
     # Create the artifact with the comaas-qa properties. This will be used as a base package to create
     # packages from for other Comaas environments, as well as for repackaging and distribution to
@@ -50,17 +61,10 @@ function package() {
     sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
 
     # Now create a package with cloud sandbox properties that will be deployed using deploy.py
-    ARTIFACT_NAME="comaas-${TENANT}_sandbox-${TIMESTAMP}-${GIT_HASH}"
-    rm -rf distribution/target/distribution/conf
-    mkdir distribution/target/distribution/conf
-    cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
-    mv distribution/target/distribution distribution/target/${ARTIFACT_NAME}
-    tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/ ${ARTIFACT_NAME}
-    echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
+    createCloudPackage sandbox
 
-    rm -rf distribution/target/${ARTIFACT_NAME}
-
-    # Insert here: package for cloud prod, similar to sandbox above
+    # Now create a package with cloud prod properties that will be deployed using deploy.py
+    createCloudPackage prod
 }
 
 parseArgs "$@"

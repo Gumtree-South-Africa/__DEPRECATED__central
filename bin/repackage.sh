@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # repackage.sh takes a comaas .tar.gz for a tenant and repackages it multiple times
-# as to end up with a package for each of the tenant's environments
+# as to end up with a package for each of the tenant's legacy environments
 
 set -o nounset
 set -o errexit
@@ -58,7 +58,7 @@ function repackage() {
   (cd tmp && sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' bin/comaas)
 
   for prop in distribution/conf/${TENANT}/*; do
-    if [[ -f "$prop" || "$prop" == *import_into_consul || "$prop" == *comaasqa || "$prop" == *local || "$prop" == *bare || "$prop" == *sandbox || "$prop" == *migration* || "$prop" == *docker ]]; then
+    if [[ -f "$prop" || "$prop" == *import_into_consul || "$prop" == *comaasqa || "$prop" == *local || "$prop" == *bare || "$prop" == *prod || "$prop" == *sandbox || "$prop" == *migration* || "$prop" == *docker ]]; then
       continue
     fi
 
@@ -121,28 +121,10 @@ function repackage() {
         echo -e "Main-Class: com.ecg.replyts.core.runtime.ReplyTS" >> ../META-INF/MANIFEST.MF
         cd .. && rm -rf lib && zip -r ${PACKAGE_BASE}.jar . && cd ..
         echo "Created ${PACKAGE_BASE}.jar"
-        ;;
-      mde)
-        repackage-mde-ebayk mde
-        continue
-        ;;
-      mp)
-        # Repackaging for MP
-        DISTRIB_ARTIFACT=nl.marktplaats.mp-replyts2_comaas-$(basename "$prop")-${TIMESTAMP}-${GIT_HASH_FULL}
-        rm -rf tmp2
-        mkdir -p tmp2/${DISTRIB_ARTIFACT}
-        cp -r tmp/* tmp2/${DISTRIB_ARTIFACT}/
-        rm -f tmp2/${DISTRIB_ARTIFACT}/conf/* && cp "$prop"/* tmp2/${DISTRIB_ARTIFACT}/conf/
-        cd tmp2
-        mv ${DISTRIB_ARTIFACT}/bin/comaas ${DISTRIB_ARTIFACT}/bin/mp-replyts2
-        tar cfz ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz . && cd ..
-        echo "Created ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz"
         continue
         ;;
       *)
-        rm -f tmp/conf/* && cp "$prop"/* tmp/conf/
-        cd tmp && tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
-        echo "Created ${PACKAGE_BASE}.tar.gz"
+        echo "Unknown tenant $TENANT"
         ;;
     esac
 
@@ -152,5 +134,11 @@ function repackage() {
 }
 
 parseArgs $@
+
+if [[ "$TENANT" == "mp" || "$TENANT" == "mde" ]] ; then
+    echo "Repackaging not supported for $TENANT, because it's already live in the cloud"
+    exit
+fi
+
 GIT_HASH_FULL=$(git rev-parse HEAD)
 repackage
