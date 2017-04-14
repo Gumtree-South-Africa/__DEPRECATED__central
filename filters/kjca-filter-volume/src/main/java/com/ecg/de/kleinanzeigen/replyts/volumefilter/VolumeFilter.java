@@ -8,14 +8,12 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.hazelcast.core.HazelcastInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -30,32 +28,30 @@ import java.util.concurrent.TimeoutException;
  * the X-ADID header (indicates initial reply sent from platform).
  */
 class VolumeFilter extends ActivableFilter {
-
     private static final Logger LOG = LoggerFactory.getLogger(VolumeFilter.class);
-    private static final String PROVIDER_NAME_PREFIX = "volumefilter_provider_";
     private static final int HAZELCAST_OP_RETRIES = 1;
 
     private final EventStreamProcessor processor;
     private final List<Quota> sortedQuotas;
-    private final SharedBrain brain;
+    private final SharedBrain sharedBrain;
     private final boolean ignoreFollowUps;
-
 
     VolumeFilter(
             String filterName,
-            HazelcastInstance hazelcastInstance,
+            SharedBrain sharedBrain,
             List<Quota> sortedQuotas,
             boolean ignoreFollowUps,
-            Activation activation
+            Activation activation,
+            EventStreamProcessor processor
     ) {
         super(activation);
 
         // Random integer added to processor name, so that it's never reused, and no conflicts arise when
         // a new instance is created due to a configuration update.
-        this.processor = new EventStreamProcessor(PROVIDER_NAME_PREFIX + filterName + "_" + new Random().nextInt(), sortedQuotas);
         this.sortedQuotas = sortedQuotas;
         this.ignoreFollowUps = ignoreFollowUps;
-        this.brain = new SharedBrain(filterName, hazelcastInstance, processor);
+        this.sharedBrain = sharedBrain;
+        this.processor = processor;
 
         LOG.info("Set up volume filter [{}] with ignoreFollowUps [{}] and quotas [{}]", filterName, ignoreFollowUps, sortedQuotas);
     }
@@ -72,7 +68,7 @@ class VolumeFilter extends ActivableFilter {
             return Collections.emptyList();
         }
 
-        brain.markSeen(senderMailAddress);
+        sharedBrain.markSeen(senderMailAddress);
 
         List<FilterFeedback> feedbacksFromRememberedScore = getRememberedScoreFeedbacks(senderMailAddress);
         if (feedbacksFromRememberedScore != null) {
@@ -104,7 +100,7 @@ class VolumeFilter extends ActivableFilter {
         try {
             violationRecord = getViolationFromMemoryCmd.run(() -> {
                 try {
-                    return brain.getViolationRecordFromMemory(senderMailAddress);
+                    return sharedBrain.getViolationRecordFromMemory(senderMailAddress);
                 } catch (InterruptedException | ExecutionException | TimeoutException e) {
                     throw new RuntimeException(e);
                 }
@@ -128,7 +124,7 @@ class VolumeFilter extends ActivableFilter {
         try {
             rememberViolationCmd.run(() -> {
                 try {
-                    brain.rememberViolation(
+                    sharedBrain.rememberViolation(
                             senderMailAddress,
                             q.getScore(),
                             violationDescription + " (triggered at " + LocalDateTime.now() + ")",
