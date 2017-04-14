@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-#
-# repackage.sh takes a comaas .tar.gz for a tenant and repackages it multiple times
-# as to end up with a package for each of the tenant's legacy environments
+
+# repackage.sh takes a comaas .tar.gz for a tenant and repackages for the tenant's legacy environment
 
 set -o nounset
 set -o errexit
@@ -41,13 +40,10 @@ function repackage() {
     tar xfz ${ARTIFACT} -C tmp/
     (cd tmp && sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' bin/comaas)
 
-    PACKAGE_NAME=comaas-${TENANT}-$(basename "$prop")-${TIMESTAMP}-${GIT_HASH}
-    if [[ "$prop" == *noenv ]]; then
-      PACKAGE_NAME=comaas-${TENANT}-${TIMESTAMP}-${GIT_HASH}
-    fi
+    PACKAGE_NAME=comaas-${TENANT}-legacy-${TIMESTAMP}-${GIT_HASH}
     PACKAGE_BASE=${BUILDDIR}/${PACKAGE_NAME}
 
-    echo Repackaging for \"${TENANT}\" with properties \"${prop}\"
+    echo Repackaging for \"${TENANT}\"
 
     case "$TENANT" in
       gtuk)
