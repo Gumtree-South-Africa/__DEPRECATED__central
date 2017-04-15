@@ -76,8 +76,6 @@ function repackage() {
         mv -vf gumtree.uk.deb "$BUILDDIR/gumtree-replyts2_5.0-${GTUK_VERSION}-${GIT_HASH}_all.deb"
 
         rm -rf tmp3
-
-        continue
         ;;
       ebayk)
         rm -rf tmp2
@@ -93,7 +91,6 @@ function repackage() {
         portable-md5 ${PACKAGE_NAME}.tar.gz > ${PACKAGE_NAME}.tar.gz.md5
         cd $HOMEDIR
         echo "Created package for $TENANT ${PACKAGE_BASE}.tar.gz"
-        continue
         ;;
       kjca)
         # Create a tar archive with all the libs
@@ -108,7 +105,6 @@ function repackage() {
         echo -e "Main-Class: com.ecg.replyts.core.runtime.ReplyTS" >> ../META-INF/MANIFEST.MF
         cd .. && rm -rf lib && zip -r ${PACKAGE_BASE}.jar . && cd ..
         echo "Created ${PACKAGE_BASE}.jar"
-        continue
         ;;
       *)
         echo "Unknown tenant $TENANT"
