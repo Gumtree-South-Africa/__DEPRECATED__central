@@ -65,6 +65,9 @@ function package() {
 
     # Now create a package with cloud prod properties that will be deployed using deploy.py
     createCloudPackage prod
+
+    # This is needed to save disk space on the builder nodes
+    rm -rf distribution/target/
 }
 
 parseArgs "$@"
