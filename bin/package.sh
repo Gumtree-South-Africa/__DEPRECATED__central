@@ -28,6 +28,8 @@ function createCloudPackage() {
     rm -rf distribution/target/distribution/conf
     mkdir -p distribution/target/distribution/conf
     cp distribution/conf/${TENANT}/${1}/* distribution/target/distribution/conf
+    chmod 0775 distribution/target/distribution/log
+    sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
     cp -r distribution/target/distribution distribution/target/${ARTIFACT_NAME}
     tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/ ${ARTIFACT_NAME}
     rm -rf distribution/target/${ARTIFACT_NAME}
@@ -47,12 +49,12 @@ function package() {
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
 
     # Remove the root directory from the comaasqa package for Nomad
-    ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${TIMESTAMP}-${GIT_HASH}-nomad"
+    ARTIFACT_NAME="comaas-${TENANT}-comaasqa-${GIT_HASH}-nomad"
     tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
 
     # Remove the root directory from the sandbox package for Nomad and add config
-    ARTIFACT_NAME="comaas-${TENANT}-sandbox-${TIMESTAMP}-${GIT_HASH}-nomad"
+    ARTIFACT_NAME="comaas-${TENANT}-sandbox-${GIT_HASH}-nomad"
     cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
     tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
@@ -67,7 +69,7 @@ function package() {
     createCloudPackage prod
 
     # This is needed to save disk space on the builder nodes
-    rm -rf distribution/target/
+    rm -rf distribution/target/distribution
 }
 
 parseArgs "$@"

@@ -24,6 +24,11 @@ DEST_URL="http://repositories-cloud.ecg.so/platforms/comaas/files/${TENANT}/${EN
 #    exit 1
 #fi
 
+if [ ! -f "$PACKAGE" ]; then
+    echo "Could not find file ${PACKAGE}. Aborting."
+    exit 1
+fi
+
 echo "Uploading ${PACKAGE} to ${URL} as user ${REPO_USER}"
 curl -s0vu ${REPO_USER}:${REPO_PASS} -X PUT -F filedata=@"${PACKAGE}" "${URL}" || exit 1
 
