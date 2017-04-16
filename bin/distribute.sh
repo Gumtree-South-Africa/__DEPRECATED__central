@@ -1,22 +1,19 @@
-#!/bin/bash -x
+#!/bin/bash
 
 set -o nounset
 set -o errexit
 
 function usage() {
-  cat <<- EOF
-  Usage: distribute.sh <tenant> <git_hash> <artifact> <timestamp>
-EOF
-  exit
+  echo "Usage: distribute.sh <tenant> <git_hash> <timestamp>"
+  exit 1
 }
 
-# check amount of args
-[[ $# == 0 ]] && usage
+# check number of args
+[[ $# != 3 ]] && usage
 
 readonly TENANT=$1
 readonly GIT_HASH=$2
-readonly ARTIFACT_NAME=$3
-readonly TIMESTAMP=$4
+readonly TIMESTAMP=$3
 
 readonly BUILD_DIR="builds"
 
@@ -28,7 +25,7 @@ if [[ "$TENANT" == "mp" || "$TENANT" == "mde" ]] ; then
 fi
 
 # Repackage into packages for each TENANT environment
-`dirname $0`/repackage.sh ${TENANT} ${GIT_HASH} ${BUILD_DIR}/${ARTIFACT_NAME} ${TIMESTAMP}
+`dirname $0`/repackage.sh ${TENANT} ${GIT_HASH} ${BUILD_DIR}/comaas-${TENANT}-comaasqa-${GITHASH}-nomad.tar.gz ${TIMESTAMP}
 
 for PKG in $(ls ${BUILD_DIR}/comaas-${TENANT}*); do
   PACKAGE_REGEX=".*/comaas-${TENANT}-legacy.*"
