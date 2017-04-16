@@ -11,23 +11,21 @@ COUNT=3
 STAGGER=30000000000
 
 function usage() {
-  cat <<- EOF
-  Usage: jenkins-deploy-comaasqa.sh <tenant> <artifact_name> <git_hash> <timestamp>
-EOF
+  echo "Usage: jenkins-deploy-comaasqa.sh <tenant> <artifact_name> <git_hash> <timestamp>"
   exit
 }
 
 function parseArgs() {
   # check number of args
-  [[ $# == 0 ]] && usage
+  [[ $# != 3 ]] && usage
 
-  TENANT=$1
-  ARTIFACT_NAME=$2
-  GIT_HASH=$3
-  TIMESTAMP=$4
+  readonly TENANT=$1
+  readonly GIT_HASH=$2
+  readonly TIMESTAMP=$3
 }
 
-BUILD_DIR="builds"
+readonly BUILD_DIR="builds"
+readonly ARTIFACT_NAME="comaas-$TENANT-comaasqa-$GIT_HASH-nomad.tar.gz"
 
 function deploy() {
   # Send the job to Nomad

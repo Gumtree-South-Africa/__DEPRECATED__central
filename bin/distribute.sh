@@ -24,7 +24,7 @@ if [[ "$TENANT" == "mp" || "$TENANT" == "mde" ]] ; then
     exit
 fi
 
-# Repackage into packages for each TENANT environment
+# Repackage into packages for the TENANT's environment
 `dirname $0`/repackage.sh ${TENANT} ${GIT_HASH} ${BUILD_DIR}/comaas-${TENANT}-comaasqa-${GITHASH}-nomad.tar.gz ${TIMESTAMP}
 
 for PKG in $(ls ${BUILD_DIR}/comaas-${TENANT}*); do
