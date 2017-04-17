@@ -22,10 +22,10 @@ function parseArgs() {
   readonly TENANT=$1
   readonly GIT_HASH=$2
   readonly TIMESTAMP=$3
+  readonly ARTIFACT_NAME="comaas-$TENANT-comaasqa-$GIT_HASH-nomad.tar.gz"
 }
 
 readonly BUILD_DIR="builds"
-readonly ARTIFACT_NAME="comaas-$TENANT-comaasqa-$GIT_HASH-nomad.tar.gz"
 
 function deploy() {
   # Send the job to Nomad
@@ -48,10 +48,7 @@ function deploy() {
   STAGGER_S=$((($STAGGER / 1000000000)))
 
   # First PUT the configuration into Consul
-  properties-to-consul \
-    -file "./import_into_consul/comaas-qa.properties" \
-    -consul "http://localhost:8500/" \
-    -env "comaas-qa"
+  properties-to-consul -file "./import_into_consul/comaas-qa.properties"
 
   # Extract the Evaluation ID on return or fail if there isn't one
   EVALUATIONID=$(curl -s -X POST -d @comaas_deploy_jenkins.json http://consul001:4646/v1/jobs --header "Content-Type:application/json" | jq -r '.EvalID')
@@ -149,14 +146,5 @@ function deploy() {
 }
 
 parseArgs $@
-
-if [[ "$TENANT" == "gtuk" ]]; then
-    echo
-    echo
-    echo "Skipping gtuk for now, edit this in 'jenkins-deploy-comaasqa.sh'"
-    echo
-    echo
-    exit 0
-fi
 
 deploy

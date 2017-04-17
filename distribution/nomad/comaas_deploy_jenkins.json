@@ -80,7 +80,7 @@
                         },
                         "Artifacts": [
                             {
-                                "GetterSource": "https://repositories-cloud.ecg.so/platforms/comaas/files/%TENANT%/sandbox/GIT_HASH/comaas-%TENANT%-comaasqa-GIT_HASH-nomad.tar.gz",
+                                "GetterSource": "https://repositories-cloud.ecg.so/platforms/comaas/files/%TENANT%/qa/GIT_HASH/comaas-%TENANT%-comaasqa-GIT_HASH-nomad.tar.gz",
                                 "GetterOptions": {
                                     "checksum": "md5"
                                 },
