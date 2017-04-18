@@ -24,7 +24,7 @@ public class PostBoxCleanupCronJob implements CronJobExecutor {
     @Autowired
     public PostBoxCleanupCronJob(PostBoxRepository postBoxRepository,
                                  @Value("${replyts.maxConversationAgeDays:180}") int maxAgeDays,
-                                 @Value("${replyts.CleanupCronJob.everyNMinutes}") int cronJobInterval) {
+                                 @Value("${replyts.CleanupCronJob.everyNMinutes:30}") int cronJobInterval) {
         this.postBoxRepository = postBoxRepository;
         this.maxAgeDays = maxAgeDays;
         this.cronJobInterval = cronJobInterval;
