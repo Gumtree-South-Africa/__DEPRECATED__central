@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -87,8 +88,9 @@ public class UserTrackingHandler {
     }
 
     private String getCustomVariableFromMessageOrContext(String name, MessageProcessingContext context) {
-        return Optional.ofNullable(context.getMessage().getHeaders().get(String.format("X-Cust-%s", name.toUpperCase())))
+        String value = Optional.ofNullable(context.getMessage().getHeaders().get(String.format("X-Cust-%s", name.toUpperCase())))
                 .orElse(context.getConversation().getCustomValues().get(name));
+        return StringUtils.isNotBlank(value) ? value.trim() : null;
     }
 
     private String getTrackingHeaderFromMessage(String key, Message message) {
