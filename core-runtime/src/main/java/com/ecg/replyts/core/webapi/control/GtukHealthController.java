@@ -39,7 +39,7 @@ public class GtukHealthController {
                 }
 
                 InputStream is = url.openStream();
-                version = "5.0-" + new Manifest(is).getMainAttributes().getValue(BUILD_DATE);
+                version = "5.0." + new Manifest(is).getMainAttributes().getValue(BUILD_DATE);
                 is.close();
                 break;
             }

@@ -57,11 +57,17 @@ function repackage() {
 
         cp distribution/gumtree-replyts2-deb-package/src/deb/replyts2-control/p* tmp3/
 
+        tar xf distribution/target/distribution-gtuk-comaasqa.tar.gz distribution/lib/core-runtime-${GIT_HASH}.jar
+        GTUK_VERSION=$(unzip -p distribution/lib/core-runtime-${GIT_HASH}.jar META-INF/MANIFEST.MF | grep Build-Date | awk '{print $2}' | tr -d '\r')
+        rm -rf distribution/lib/
+
         mkdir -p tmp3/DEBIAN
         cp distribution/gumtree-replyts2-deb-package/src/deb/replyts2-control/control tmp3/DEBIAN
-        sed -i'.bak' s/%VERSION%/5.0-${TIMESTAMP}/ tmp3/DEBIAN/control
+        sed -i'.bak' s/%VERSION%/5.0.${GTUK_VERSION}/ tmp3/DEBIAN/control
 
+        set +o errexit
         path_to_dpkg_deb=$(which dpkg-deb)
+        set -o errexit
         if [ -x "$path_to_dpkg_deb" ]; then
           rm -f gumtree.uk.deb
           "$path_to_dpkg_deb" --build tmp3 gumtree.uk.deb
@@ -70,10 +76,7 @@ function repackage() {
         fi
 
         # This package name is a GTUK requirement.
-        tar xf distribution/target/distribution-gtuk-comaasqa.tar.gz distribution/lib/core-runtime-${GIT_HASH}.jar
-        GTUK_VERSION=$(unzip -p distribution/lib/core-runtime-${GIT_HASH}.jar META-INF/MANIFEST.MF | grep Build-Date | awk '{print $2}' | tr -d '\r')
-        rm -rf distribution/lib/
-        mv -vf gumtree.uk.deb "$BUILDDIR/gumtree-replyts2_5.0-${GTUK_VERSION}-${GIT_HASH}_all.deb"
+        mv -vf gumtree.uk.deb "$BUILDDIR/gumtree-replyts2_5.0.${GTUK_VERSION}-${GIT_HASH}_all.deb"
 
         rm -rf tmp3
         ;;
