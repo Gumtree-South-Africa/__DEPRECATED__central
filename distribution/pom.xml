@@ -44,11 +44,6 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>gtuk-filter-geoip</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>gtuk-filter-geoiplookup</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -88,6 +83,11 @@
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>gtuk-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtuk-filter-geoip</artifactId>
                     <version>${project.version}</version>
                 </dependency>
 

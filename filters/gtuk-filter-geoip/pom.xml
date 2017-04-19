@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>gtuk-filter-flagged</artifactId>
+    <artifactId>gtuk-filter-geoip</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
