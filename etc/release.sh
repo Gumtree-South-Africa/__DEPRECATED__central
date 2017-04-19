@@ -38,7 +38,7 @@ echo
 echo -n "Getting releases... "
 get_releases.py http://repositories-cloud.ecg.so/ --username=repo_comaas --password=V9Knbsi4Nm --path=/${TENANT}/${ENV} --target=/opt/tarballs/ecg-comaas/ --platform=comaas --hash=${NEW_HASH}
 echo "done."
-cd $(find /opt/tarballs/ecg-comaas/ -name \*${NEW_HASH}\* | head -1 | xargs dirname)
+cd $(find /opt/tarballs/ecg-comaas/ -name \*${NEW_HASH}\* | head -1)
 
 readonly FILE_COUNT=$(ls -lash *${NEW_HASH}*.tar.gz | wc -l)
 if [[ $FILE_COUNT -lt 2 ]]; then
