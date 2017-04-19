@@ -100,7 +100,7 @@ public class ConversationThreadController {
         new TopLevelExceptionHandler(ex, response, writer).handle();
     }
 
-    @RequestMapping(value = MessageCenterReportConversationCommand.MAPPING, produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
+    @RequestMapping(value = MessageCenterReportConversationCommand.MAPPING, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.POST)
     @ResponseBody
     ResponseObject<?> reportConversationByEmailAndConversationId(
             @PathVariable("email") String email,
@@ -147,7 +147,7 @@ public class ConversationThreadController {
                 : conversationHeaders.get("flagged-seller-at");
     }
 
-    @RequestMapping(value = MessageCenterDeleteConversationCommand.MAPPING, produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
+    @RequestMapping(value = MessageCenterDeleteConversationCommand.MAPPING, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.DELETE)
     @ResponseBody
     ResponseObject<?> deleteConversationByEmailAndConversationId(
             @PathVariable("email") String email,
@@ -192,7 +192,7 @@ public class ConversationThreadController {
     }
 
     @RequestMapping(value = MessageCenterGetPostBoxConversationCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
     @ResponseBody
     ResponseObject<?> getPostBoxConversationByEmailAndConversationId(
             @PathVariable("email") String email,

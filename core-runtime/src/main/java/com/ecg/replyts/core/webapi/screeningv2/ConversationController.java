@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
@@ -64,7 +64,7 @@ class ConversationController {
     /**
      * return metadata and all messages for a conversation identified by the given ID.
      */
-    @RequestMapping(value = GetConversationCommand.MAPPING, produces = APPLICATION_JSON_VALUE, method = GET)
+    @RequestMapping(value = GetConversationCommand.MAPPING, produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
     @ResponseBody
     public ResponseObject<?> loadConversation(@PathVariable String conversationId) {
         try (Timer.Context ignored = loadConversationTimer.time()) {
@@ -77,7 +77,7 @@ class ConversationController {
         }
     }
 
-    @RequestMapping(value = "/conversation/{conversationId}", produces = APPLICATION_JSON_VALUE, method = PUT)
+    @RequestMapping(value = "/conversation/{conversationId}", produces = APPLICATION_JSON_UTF8_VALUE, method = PUT)
     @ResponseBody
     ResponseObject<?> closeConversation(@PathVariable String conversationId, @RequestBody ChangeConversationStatePayload changeConversationStatePayload) {
         Preconditions.checkArgument(ConversationState.CLOSED.equals(changeConversationStatePayload.getState()));
@@ -114,7 +114,7 @@ class ConversationController {
         return ResponseObject.of(converter.convertConversation(byId));
     }
 
-    @RequestMapping(value = "conversation/bymail", produces = APPLICATION_JSON_VALUE, method = GET)
+    @RequestMapping(value = "conversation/bymail", produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
     @ResponseBody
     ResponseObject<?> loadConversationByMail(@RequestParam("mail") String mailAddress) {
         MailAddress mail = new MailAddress(mailAddress);

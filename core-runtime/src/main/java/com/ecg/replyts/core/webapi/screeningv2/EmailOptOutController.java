@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import static com.ecg.replyts.core.api.model.user.event.EmailPreferenceCommand.TURN_OFF_EMAIL;
 import static com.ecg.replyts.core.api.model.user.event.EmailPreferenceCommand.TURN_ON_EMAIL;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
@@ -38,7 +38,7 @@ public class EmailOptOutController {
     @Autowired(required = false)
     private UserEventListener userEventListener;
 
-    @RequestMapping(value = "/email-notifications/{userId}/turn-on", produces = APPLICATION_JSON_VALUE, method = PUT)
+    @RequestMapping(value = "/email-notifications/{userId}/turn-on", produces = APPLICATION_JSON_UTF8_VALUE, method = PUT)
     @ResponseBody
     ResponseObject<?> emailTurnOn(@PathVariable String userId) {
         try (Timer.Context ignored = TURN_ON.time()) {
@@ -54,7 +54,7 @@ public class EmailOptOutController {
         }
     }
 
-    @RequestMapping(value = "/email-notifications/{userId}/turn-off", produces = APPLICATION_JSON_VALUE, method = PUT)
+    @RequestMapping(value = "/email-notifications/{userId}/turn-off", produces = APPLICATION_JSON_UTF8_VALUE, method = PUT)
     @ResponseBody
     ResponseObject<?> emailTurnOff(@PathVariable String userId) {
         try (Timer.Context ignored = TURN_OFF.time()) {
@@ -70,7 +70,7 @@ public class EmailOptOutController {
         }
     }
 
-    @RequestMapping(value = "/email-notifications/{userId}", produces = APPLICATION_JSON_VALUE, method = GET)
+    @RequestMapping(value = "/email-notifications/{userId}", produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
     @ResponseBody
     ResponseObject<?> isEmailTurnedOn(@PathVariable String userId) {
         try (Timer.Context ignored = STATUS.time()) {

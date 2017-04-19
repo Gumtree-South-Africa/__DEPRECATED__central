@@ -81,7 +81,7 @@ class ConversationThreadController {
     }
 
     @RequestMapping(value = MessageCenterGetPostBoxConversationCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
     @ResponseBody
     ResponseObject<?> getPostBoxConversationByEmailAndConversationId(
             @PathVariable("email") String email,

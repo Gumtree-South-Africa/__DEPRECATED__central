@@ -53,7 +53,7 @@ class MessageController {
     }
 
     @RequestMapping(value = PostMessageToConversationCommand.MAPPING,
-            consumes = MediaType.APPLICATION_JSON_VALUE, method = {RequestMethod.POST})
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, method = {RequestMethod.POST})
     @ResponseBody
     ResponseObject<?> postMessageToConversation(
             @PathVariable String conversationId,
@@ -72,7 +72,7 @@ class MessageController {
     }
 
     @RequestMapping(value = PostMessageToConversationsForAdCommand.MAPPING,
-            consumes = MediaType.APPLICATION_JSON_VALUE, method = {RequestMethod.POST})
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, method = {RequestMethod.POST})
     @ResponseBody
     ResponseObject<?> postMessageToConversationsForAd(
             @PathVariable String email,
@@ -89,7 +89,7 @@ class MessageController {
     }
 
     @RequestMapping(value = GetConversationsByAdIdAndEmailCommand.MAPPING,
-            consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.GET)
     @ResponseBody
     ResponseObject<?> getConversationsByAdIdAndEmail(
             @PathVariable String email,

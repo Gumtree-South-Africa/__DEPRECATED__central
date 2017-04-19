@@ -57,7 +57,7 @@ class PostBoxOverviewController {
 
 
     @RequestMapping(value = MessageCenterGetPostBoxCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
     @ResponseBody
     ResponseObject<PostBoxResponse> getPostBoxByEmail(
             @PathVariable String email,
@@ -88,7 +88,7 @@ class PostBoxOverviewController {
 
 
     @RequestMapping(value = MessageCenterDeletePostBoxConversationCommandNew.MAPPING,
-            produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.DELETE)
     @ResponseBody
     ResponseObject<PostBoxResponse> removePostBoxConversationByEmailAndBulkConversationIds(
             @PathVariable("email") String email,

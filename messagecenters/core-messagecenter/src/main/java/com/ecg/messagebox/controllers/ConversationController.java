@@ -18,7 +18,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Optional;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -46,7 +47,7 @@ public class ConversationController {
         new TopLevelExceptionHandler(ex, response, writer).handle();
     }
 
-    @RequestMapping(value = CONVERSATION_RESOURCE, produces = APPLICATION_JSON_VALUE, method = GET)
+    @RequestMapping(value = CONVERSATION_RESOURCE, produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
     @ResponseBody
     ResponseObject<?> getConversation(
             @PathVariable("userId") String userId,
@@ -65,7 +66,7 @@ public class ConversationController {
         }
     }
 
-    @RequestMapping(value = CONVERSATION_RESOURCE, produces = APPLICATION_JSON_VALUE, method = POST)
+    @RequestMapping(value = CONVERSATION_RESOURCE, produces = APPLICATION_JSON_UTF8_VALUE, method = POST)
     @ResponseBody
     ResponseObject<?> markConversationAsRead(
             @PathVariable("userId") String userId,

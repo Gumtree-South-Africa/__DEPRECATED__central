@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 @Controller
 public class MessageGroupController {
@@ -42,7 +42,7 @@ public class MessageGroupController {
      * Performs a message search and groups the results according to the request.
      * Search command must be described in the post payload.
      */
-    @RequestMapping(value = SearchMessageGroupCommand.MAPPING, consumes = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = SearchMessageGroupCommand.MAPPING, consumes = APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseObject<?> searchMessages(@RequestBody SearchMessageGroupPayload command) {
         RtsSearchGroupResponse searchResponse = searchService.search(command);

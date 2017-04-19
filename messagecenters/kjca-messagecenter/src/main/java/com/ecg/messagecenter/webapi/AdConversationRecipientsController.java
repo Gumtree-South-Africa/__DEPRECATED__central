@@ -85,7 +85,7 @@ class AdConversationRecipientsController {
      * @throws UnsupportedEncodingException
      */
     @RequestMapping(value = MessageCenterGetAdConversationRecipientsCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.GET)
     @ResponseBody
     ResponseObject<?> getBuyerContactsForAd(
             @PathVariable("urlEncodedSellerEmail") String urlEncodedSellerEmail,

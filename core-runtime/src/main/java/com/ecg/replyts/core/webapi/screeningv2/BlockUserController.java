@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import static com.ecg.replyts.core.api.model.user.event.BlockAction.BLOCK_USER;
 import static com.ecg.replyts.core.api.model.user.event.BlockAction.UNBLOCK_USER;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -37,7 +37,7 @@ public class BlockUserController {
     @Autowired(required = false)
     private UserEventListener userEventListener;
 
-    @RequestMapping(value = "/block-users/{blockerId}/{blockeeId}", produces = APPLICATION_JSON_VALUE, method = POST)
+    @RequestMapping(value = "/block-users/{blockerId}/{blockeeId}", produces = APPLICATION_JSON_UTF8_VALUE, method = POST)
     @ResponseBody
     ResponseObject<?> blockUser(@PathVariable String blockerId, @PathVariable String blockeeId) {
         try (Timer.Context ignored = BLOCK_USER_TIMER.time()) {
@@ -53,7 +53,7 @@ public class BlockUserController {
         }
     }
 
-    @RequestMapping(value = "/block-users/{blockerId}/{blockeeId}", produces = APPLICATION_JSON_VALUE, method = DELETE)
+    @RequestMapping(value = "/block-users/{blockerId}/{blockeeId}", produces = APPLICATION_JSON_UTF8_VALUE, method = DELETE)
     @ResponseBody
     ResponseObject<?> unblockUser(@PathVariable String blockerId, @PathVariable String blockeeId) {
         try (Timer.Context ignored = UNBLOCK_USER_TIMER.time()) {

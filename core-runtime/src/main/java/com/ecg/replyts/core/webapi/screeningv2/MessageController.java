@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
@@ -55,7 +55,7 @@ public class MessageController {
     /**
      * Sets a message to a new state. Messages are identified by their id and their conversation's id.
      */
-    @RequestMapping(value = ModerateMessageCommand.MAPPING, method = POST, consumes = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = ModerateMessageCommand.MAPPING, method = POST, consumes = APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseObject<?> changeMessageState(@PathVariable String conversationId,
                                                 @PathVariable String messageId,
@@ -89,7 +89,7 @@ public class MessageController {
     /**
      * Performs a message search. search command must be described in the post payload.
      */
-    @RequestMapping(value = SearchMessageCommand.MAPPING, consumes = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = SearchMessageCommand.MAPPING, consumes = APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseObject<?> searchMessages(@RequestBody SearchMessagePayload command) {
 

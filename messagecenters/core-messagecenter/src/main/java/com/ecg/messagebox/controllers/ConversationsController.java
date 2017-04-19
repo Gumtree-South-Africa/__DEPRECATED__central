@@ -21,7 +21,7 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -55,7 +55,7 @@ public class ConversationsController {
         new TopLevelExceptionHandler(ex, response, writer).handle();
     }
 
-    @RequestMapping(value = CONVERSATIONS_RESOURCE, produces = APPLICATION_JSON_VALUE, method = GET)
+    @RequestMapping(value = CONVERSATIONS_RESOURCE, produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
     @ResponseBody
     ResponseObject<?> getConversations(
             @PathVariable("userId") String userId,
@@ -70,7 +70,7 @@ public class ConversationsController {
         }
     }
 
-    @RequestMapping(value = CONVERSATIONS_RESOURCE, produces = APPLICATION_JSON_VALUE, method = POST)
+    @RequestMapping(value = CONVERSATIONS_RESOURCE, produces = APPLICATION_JSON_UTF8_VALUE, method = POST)
     @ResponseBody
     ResponseObject<?> executeActions(
             @PathVariable("userId") String userId,
@@ -97,7 +97,7 @@ public class ConversationsController {
         }
     }
 
-    @RequestMapping(value = CONVERSATION_IDS_BY_ADID_RESOURCE, produces = APPLICATION_JSON_VALUE, method = GET)
+    @RequestMapping(value = CONVERSATION_IDS_BY_ADID_RESOURCE, produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
     @ResponseBody
     ResponseObject<?> getConversationIds(
             @PathVariable("userId") String userId,

@@ -29,7 +29,7 @@ public class MailPartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/mail/{messageId}/{mailType}/parts", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/mail/{messageId}/{mailType}/parts", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     Object describeMail(@PathVariable("messageId") String messageId, @PathVariable("mailType") MailTypeRts type) {
 
         Mail mailContents = load(messageId, type);
