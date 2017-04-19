@@ -86,23 +86,10 @@
                 <module>coremods/gtuk-coremod-shared</module>
                 <module>coremods/gtuk-coremod-healthcheck</module>
 
-                <!--
-
-                <module>filters/gtuk-filter-blacklist</module>
-                <module>filters/gtuk-filter-category</module>
-                <module>filters/gtuk-filter-geoip</module>
-                <module>filters/gtuk-filter-flagged</module>
-                <module>filters/gtuk-filter-geoiplookup</module>
-                <module>filters/gtuk-filter-knowngood</module>
-                <module>filters/gtuk-filter-url</module>
-                <module>filters/gtuk-filter-velocity</module>
-                <module>filters/gtuk-filter-watchlist</module>
-
-                -->
-
                 <module>filters/gtuk-filter-word</module>
                 <module>filters/gtuk-filter-blacklist</module>
                 <module>filters/gtuk-filter-flagged</module>
+                <module>filters/gtuk-filter-category</module>
                 <module>filters/gtuk-filter-geoip</module>
 
                 <module>listeners/gtuk-listener-eventpublisher</module>
@@ -403,6 +390,7 @@
         <rxjava.version>1.1.2</rxjava.version>
         <servo.version>0.9.2</servo.version>
         <kafka.version>0.9.0.1</kafka.version>
+        <scala-library.version>2.11.11</scala-library.version>
         <zookeeper.version>3.4.8</zookeeper.version>
         <rabbitmq.version>3.5.4</rabbitmq.version>
         <replyts.version>2.19.7</replyts.version>
@@ -722,6 +710,16 @@
                 <groupId>com.gumtree.api.category</groupId>
                 <artifactId>read-api</artifactId>
                 <version>${gt.category.api.client.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.yammer.metrics</groupId>
+                        <artifactId>metrics-httpclient</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.scala-lang</groupId>
+                        <artifactId>scala-library</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.gumtree.api.category</groupId>
@@ -793,7 +791,7 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka_2.10</artifactId>
+                <artifactId>kafka_2.11</artifactId>
                 <version>${kafka.version}</version>
                 <exclusions>
                     <exclusion>
@@ -812,7 +810,16 @@
                         <groupId>net.sf.jopt-simple</groupId>
                         <artifactId>jopt-simple</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.scala-lang</groupId>
+                        <artifactId>scala-library</artifactId>
+                    </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+                <version>${scala-library.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>

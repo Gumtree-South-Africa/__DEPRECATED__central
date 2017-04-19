@@ -39,7 +39,22 @@
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>gtuk-filter-blacklist</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>gtuk-filter-category</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtuk-filter-flagged</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtuk-filter-geoip</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
@@ -70,6 +85,11 @@
 
                 -->
 
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtuk-filter-category</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>gtuk-filter-blacklist</artifactId>
@@ -688,16 +708,16 @@
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
-                     <groupId>ecg.comaas</groupId>
-                     <artifactId>ebayk-messagecenter</artifactId>
-                     <version>${project.version}</version>
-                     <exclusions>
-                         <exclusion>
-                             <groupId>commons-logging</groupId>
-                             <artifactId>commons-logging</artifactId>
-                         </exclusion>
-                     </exclusions>
-                 </dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>ebayk-messagecenter</artifactId>
+                    <version>${project.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>commons-logging</groupId>
+                            <artifactId>commons-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
             </dependencies>
         </profile>
     </profiles>
