@@ -90,7 +90,6 @@
 
                 <module>filters/gtuk-filter-blacklist</module>
                 <module>filters/gtuk-filter-category</module>
-                <module>filters/gtuk-filter-flagged</module>
                 <module>filters/gtuk-filter-geoip</module>
                 <module>filters/gtuk-filter-geoiplookup</module>
                 <module>filters/gtuk-filter-knowngood</module>
@@ -102,6 +101,7 @@
 
                 <module>filters/gtuk-filter-word</module>
                 <module>filters/gtuk-filter-blacklist</module>
+                <module>filters/gtuk-filter-flagged</module>
 
                 <module>listeners/gtuk-listener-eventpublisher</module>
                 <module>listeners/gtuk-listener-statsnotifier</module>
@@ -1811,7 +1811,7 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            
+
             <dependency>
                 <groupId>ecg.comaas</groupId>
                 <artifactId>gtuk-coremod-shared</artifactId>

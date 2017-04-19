@@ -53,17 +53,17 @@ public class MockFactory {
         private List<Message> messages = new ArrayList<>();
         private Map<String, String> conversationCustomHeaders = new HashMap<>();
 
-        ConversationBuilder withBuyer(final String buyerAddress) {
+        public ConversationBuilder withBuyer(final String buyerAddress) {
             this.buyerAddress = buyerAddress;
             return this;
         }
 
-        ConversationBuilder withSeller(final String sellerAddress) {
+        public ConversationBuilder withSeller(final String sellerAddress) {
             this.sellerAddress = sellerAddress;
             return this;
         }
 
-        ConversationBuilder addMessage(final Message message) {
+        public ConversationBuilder addMessage(final Message message) {
             this.messages.add(message);
             return this;
         }

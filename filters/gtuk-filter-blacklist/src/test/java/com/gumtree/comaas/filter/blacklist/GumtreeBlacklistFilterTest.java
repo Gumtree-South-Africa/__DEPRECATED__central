@@ -24,10 +24,13 @@ import com.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,10 +39,10 @@ import java.util.Set;
 import static com.gumtree.MockFactory.mockConversation;
 import static com.gumtree.MockFactory.mockMessage;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = GumtreeBlacklistFilterTest.TestContext.class)
 public class GumtreeBlacklistFilterTest {
     private static final String MESSAGE_ID = "123";
     private static final String RECIPIENT_BLACKLISTED_DESCRIPTION = "Recipient blacklisted";
@@ -47,35 +50,23 @@ public class GumtreeBlacklistFilterTest {
     private static final String DESCRIPTION = "description";
 
     private Set<Long> categoryBreadCrumb = ImmutableSet.of(123L, 234L);
-    private List<Long> exemptedCategories = ImmutableList.of(1234L, 4321L);
-
-    @Mock
-    private GumshieldApi gumshieldApi;
-
-    @Mock
-    private ChecklistApi checklistApi;
-
-    @SuppressWarnings("unused")
-    @Mock
-    private Filter pluginConfig;
+    private static List<Long> exemptedCategories = ImmutableList.of(1234L, 4321L);
 
     @Mock
     private Mail mail;
 
-    @InjectMocks
+    @Autowired
     private GumtreeBlacklistFilter filter;
 
+    @MockBean
+    private GumshieldApi gumshieldApi;
+
+    @MockBean
+    private ChecklistApi checklistApi;
+
     @Before
-    public void init() throws Exception {
+    public void init() {
         initialiseChecklistApiTestConditions();
-        BlacklistFilterConfig filterConfig = new BlacklistFilterConfig.Builder(State.ENABLED, 1, null, "ACCOUNT_HOLDER",
-                false, 10, 10, GumtreeCustomHeaders.BUYER_GOOD.getHeaderValue(),
-                GumtreeCustomHeaders.SELLER_GOOD.getHeaderValue(), "")
-                .withStub(true)
-                .withExemptedCategories(exemptedCategories)
-                .withStubBlacklistedUsers(Arrays.asList("badguy@hotmail.com", "badguy@yahoo.com"))
-                .build();
-        ReflectionTestUtils.setField(filter, "filterConfig", filterConfig);
     }
 
     @Test
@@ -285,7 +276,7 @@ public class GumtreeBlacklistFilterTest {
 
     private void assertJsonField(FilterFeedback reason, String field, String expected) throws Exception {
         JsonNode actualObj = new ObjectMapper().readTree(reason.getDescription());
-        assertThat(actualObj.get("description").textValue()).isEqualTo(expected);
+        assertThat(actualObj.get(field).textValue()).isEqualTo(expected);
     }
 
     private ProcessingTimeGuard testProcessingTimeGuard() {
@@ -342,5 +333,26 @@ public class GumtreeBlacklistFilterTest {
 
         when(checklistApi.findEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.HOST),
                 eq("1.1.1.1"))).thenThrow(new NotFoundHttpStatusException());
+    }
+
+    @Configuration
+    static class TestContext {
+        @Bean
+        public BlacklistFilterConfig filterConfig() throws Exception {
+            return new BlacklistFilterConfig.Builder(State.ENABLED, 1, null, "ACCOUNT_HOLDER",
+                    false, 10, 10, GumtreeCustomHeaders.BUYER_GOOD.getHeaderValue(),
+                    GumtreeCustomHeaders.SELLER_GOOD.getHeaderValue(), "")
+                    .withStub(true)
+                    .withExemptedCategories(exemptedCategories)
+                    .withStubBlacklistedUsers(Arrays.asList("badguy@hotmail.com", "badguy@yahoo.com"))
+                    .build();
+        }
+
+        @Bean
+        public GumtreeBlacklistFilter filter(BlacklistFilterConfig filterConfig) {
+            return new GumtreeBlacklistFilter()
+                    .withPluginConfig(mock(Filter.class))
+                    .withFilterConfig(filterConfig);
+        }
     }
 }
