@@ -210,7 +210,7 @@ Usage:
     -T <TENANT> -E - build, package and execute tenant's code
     -T <TENANT> -P <ENVNAME> -E - build, package and execute tenant's code with ENVNAME
 
-    where TENANT is one or more of [ebayk,mp,kjca,mde,gtau,bt],
+    where TENANT is one or more of [ebayk,mp,kjca,mde,gtau,bt,it],
     ENVNAME is the properties profile name. common values [local, comaasqa, bare]
 
     Examples: "$0 -t -T ebayk,mp " - build and test ebayk and mp distributions

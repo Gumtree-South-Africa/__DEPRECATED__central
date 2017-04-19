@@ -94,6 +94,7 @@ TENANT_SHORT_NAMES = {
     "gtau": "au",
     "mde": "mo",
     "kjca": "ca",
+    "it": "it",
 }
 ALLOWED_ENVIRONMENTS = ['dev', 'qa', 'sandbox', 'prod']
 

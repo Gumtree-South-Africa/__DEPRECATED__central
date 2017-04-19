@@ -642,6 +642,23 @@
         </profile>
 
         <profile>
+            <id>it</id>
+
+            <properties>
+                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                <profile-classifier>it</profile-classifier>
+            </properties>
+
+            <!-- TODO(gg): add dependencies here once they're imported -->
+            <!--<dependencies>-->
+            <!--<dependency></dependency>-->
+            <!--</dependencies>-->
+
+        </profile>
+
+
+
+        <profile>
             <id>bt</id>
 
             <properties>
@@ -811,7 +828,7 @@
                         <configuration>
                             <rules>
                                 <requireActiveProfile>
-                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,bt,migration</profiles>
+                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,bt,it,migration</profiles>
                                     <all>false</all>
                                 </requireActiveProfile>
                             </rules>

@@ -335,6 +335,20 @@
         </profile>
 
         <profile>
+            <id>it</id>
+            <repositories>
+                <repository>
+                    <id>kjit-nexus</id>
+                    <url>https://nexus.corp.mobile.de/nexus/content/repositories/hosted-kijiji-italia-releases/</url>
+                </repository>
+            </repositories>
+
+            <modules>
+                <module>filters/it-filter-blockedusers</module>
+            </modules>
+        </profile>
+
+        <profile>
             <id>bt</id>
 
             <repositories>
