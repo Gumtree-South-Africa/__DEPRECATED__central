@@ -1,6 +1,6 @@
 package com.ebay.columbus.replyts2.quickreply;
 
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,14 +33,14 @@ public class QuickReplyFilterIntegrationTest {
     }
 
     @Test public void quickReplyFilterDoesNotFireWhenHeaderIsMissing() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                         .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com")
                                 .htmlBody("this is a <b>word</b>! "));
         Assert.assertEquals(0, processedMail.getMessage().getProcessingFeedback().size());
     }
 
     @Test public void quickReplyTestProductionFailedMail() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                         .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com")
                                 .htmlBody("Sono attualmente in viaggio d'affari in Svizzera e voglio che tu inviare\n"
                                         +

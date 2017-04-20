@@ -1,6 +1,6 @@
 package com.ebay.columbus.replyts2.conversationmonitor;
 
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -28,7 +28,7 @@ public class ConversationMonitorIntegrationTest {
             }).get(), ConversationMonitorFilterConfiguration.class);
 
     @Test public void conversationMonitorFilterNoReplacedChars() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                         .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com")
                                         .htmlBody("12345"));
         Assert.assertEquals(0, processedMail.getMessage().getProcessingFeedback().size());

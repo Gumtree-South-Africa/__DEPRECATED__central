@@ -1,13 +1,10 @@
 package com.ebay.columbus.replyts2.conversationmonitor;
 
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 import java.util.Properties;
@@ -32,7 +29,7 @@ public class ConversationMonitorIntegrationTest {
             }).get(), ConversationMoniitorPostProcessorConfiguration.class);
 
     @Test public void conversationMonitorFilterNoReplacedChars() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                         .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com")
                                         .htmlBody("12345"));
         Assert.assertEquals(0, processedMail.getMessage().getProcessingFeedback().size());
@@ -40,7 +37,7 @@ public class ConversationMonitorIntegrationTest {
     }
 
     @Test public void conversationMonitorFilterWithReplacedChars() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                         .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com")
                                         .htmlBody("12345 $ &"));
         List<String> plaintextParts = processedMail.getOutboundMail().getPlaintextParts();
@@ -49,7 +46,7 @@ public class ConversationMonitorIntegrationTest {
     }
 
     @Test public void conversationMonitorFilterWithTriggerChars() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                         .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com")
                                         .htmlBody("12345 � &"));
         List<String> plaintextParts = processedMail.getOutboundMail().getPlaintextParts();

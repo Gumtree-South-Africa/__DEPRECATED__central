@@ -347,6 +347,8 @@
                 <module>postprocessors/core-postprocessor-buyeralias</module>
                 <module>postprocessors/it-postprocessor-conversationmonitor</module>
                 <module>postprocessors/it-postprocessor-quickreply</module>
+
+                <module>resultinspectors/it-resultinspector-reporting</module>
             </modules>
         </profile>
 
@@ -516,6 +518,9 @@
         <kjca-tracing.version>8</kjca-tracing.version>
         <sentry-version>7.1.0</sentry-version>
         <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
+
+        <!-- it artifact versions -->
+        <statsd.client.version>3.0.1</statsd.client.version>
     </properties>
 
 
@@ -1936,6 +1941,12 @@
                         <artifactId>log4j</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.timgroup</groupId>
+                <artifactId>java-statsd-client</artifactId>
+                <version>${statsd.client.version}</version>
             </dependency>
 
         </dependencies>
