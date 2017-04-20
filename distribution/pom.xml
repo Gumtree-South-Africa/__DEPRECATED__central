@@ -669,10 +669,28 @@
                 <profile-classifier>it</profile-classifier>
             </properties>
 
-            <!-- TODO(gg): add dependencies here once they're imported -->
-            <!--<dependencies>-->
-            <!--<dependency></dependency>-->
-            <!--</dependencies>-->
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-postprocessor-buyeralias</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>it-filter-blockedusers</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
 
         </profile>
 

@@ -333,7 +333,12 @@
             </repositories>
 
             <modules>
+                <module>filters/core-filter-word</module>
                 <module>filters/it-filter-blockedusers</module>
+
+                <module>postprocessors/core-postprocessor-buyeralias</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>
         </profile>
 
