@@ -238,6 +238,12 @@
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>core-eventpublisher-kafka-mail</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>core-resultinspector-threshold</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -270,7 +276,7 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>mp-eventpublisher-kafka-mail</artifactId>
+                    <artifactId>core-eventpublisher-kafka-mail</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>

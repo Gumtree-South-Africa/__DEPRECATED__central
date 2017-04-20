@@ -56,6 +56,8 @@
                 <module>postprocessors/gtau-postprocessor-idreplacer</module>
                 <module>postprocessors/gtau-postprocessor-sentrepliesnotifier</module>
 
+                <module>eventpublishers/core-eventpublisher-kafka-mail</module>
+
                 <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>
 
@@ -189,8 +191,8 @@
                 <module>postprocessors/mp-postprocessor-urlgateway</module>
                 <module>postprocessors/mp-postprocessor-messagingurl</module>
 
+                <module>eventpublishers/core-eventpublisher-kafka-mail</module>
                 <module>eventpublishers/mp-eventpublisher-kafka</module>
-                <module>eventpublishers/mp-eventpublisher-kafka-mail</module>
                 <module>eventpublishers/mp-eventpublisher-rabbitmq</module>
 
                 <module>resultinspectors/mp-resultinspector-threshold</module>

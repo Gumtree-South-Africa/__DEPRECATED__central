@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>mp-eventpublisher-kafka-mail</artifactId>
+    <artifactId>core-eventpublisher-kafka-mail</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>

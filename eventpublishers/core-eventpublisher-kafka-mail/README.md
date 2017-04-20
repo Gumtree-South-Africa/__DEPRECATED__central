@@ -1,4 +1,4 @@
-# mp-eventpublisher-kafka-mail
+# core-eventpublisher-kafka-mail
 
 Originally taken from https://github.corp.ebay.com/ReplyTS/replyts2-kafka-mail-publisher
 (original git hash: 825a73f88b0abcceb988abcfe2de905a4abcceab)
