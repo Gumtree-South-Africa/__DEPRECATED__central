@@ -18,10 +18,6 @@ public class HybridMigrationClusterState {
     /**
      * Try to claim a given ID on the Hazelcast cluster for up to 30 seconds. If we're the first to claim it, migrate it.
      * Subsequent attempts to retrieve this object from the primary store (Cassandra) should return again after this.
-     *
-     * @param clazz
-     * @param id
-     * @return boolean
      */
     public boolean tryClaim(Class clazz, String id) {
         IMap map = hazelcastInstance.getMap("instances-" + clazz.getName());

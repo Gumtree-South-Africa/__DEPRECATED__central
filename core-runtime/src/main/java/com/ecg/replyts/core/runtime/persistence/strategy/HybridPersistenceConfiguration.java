@@ -35,6 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 
 /**
@@ -84,22 +85,23 @@ public class HybridPersistenceConfiguration {
     @Autowired
     private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
 
+    @Value("${migration.conversations.deepMigration.enabled:false}")
+    private boolean deepMigrationEnabled;
+
     private DefaultCassandraConversationRepository cassandraConversationRepository;
 
     @Bean
-    @Order(1)
+    @Primary
     public HybridConversationRepository conversationRepository(Session cassandraSession, HybridMigrationClusterState migrationState) {
         cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
         cassandraConversationRepository.setObjectMapperConfigurer(objectMapperConfigurer);
 
         RiakConversationRepository riakRepository = useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins) : new RiakConversationRepository(riakClient, allowSiblings, lastWriteWins);
 
-        return new HybridConversationRepository(cassandraConversationRepository, riakRepository, migrationState);
+        return new HybridConversationRepository(cassandraConversationRepository, riakRepository, migrationState, deepMigrationEnabled);
     }
 
     @Bean
-    // Order makes sure that the 'normal' use cases use the HybridConversationRepository
-    @Order(2)
     public CassandraConversationRepository cassandraConversationRepository() {
         return cassandraConversationRepository;
     }

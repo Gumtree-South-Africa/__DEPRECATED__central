@@ -46,6 +46,9 @@ import org.springframework.context.annotation.Import;
 })
 @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid-riak-readonly")
 public class ReadOnlyRiakHybridPersistenceConfiguration {
+
+    private static final boolean NO_DEEP_MIGRATION = false;
+
     // Cassandra
 
     @Value("${persistence.cassandra.dc:#{systemEnvironment['region']}}")
@@ -83,7 +86,7 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
 
         cassandraRepository.setObjectMapperConfigurer(objectMapperConfigurer);
 
-        return new HybridConversationRepository(cassandraRepository, riakRepository, migrationState);
+        return new HybridConversationRepository(cassandraRepository, riakRepository, migrationState, NO_DEEP_MIGRATION);
     }
 
     @Bean

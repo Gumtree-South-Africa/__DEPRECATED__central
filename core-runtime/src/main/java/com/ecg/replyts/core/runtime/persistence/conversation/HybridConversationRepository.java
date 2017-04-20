@@ -19,76 +19,74 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.replay;
+
 public class HybridConversationRepository implements MutableConversationRepository {
     private static final Logger LOG = LoggerFactory.getLogger(HybridConversationRepository.class);
 
     @Value("${persistence.cassandra.commit.max.batch.size:20}")
-    private int maxBatchSizeCassandra;
+    private int maxBatchSizeCassandra = 20;
 
     private final Counter migrateConversationCounter = TimingReports.newCounter("migration.migrate-conversation");
     private final Timer migrationConversationLagTimer = TimingReports.newTimer("migration.migrate-conversation-lag");
 
-    private DefaultCassandraConversationRepository cassandraConversationRepository;
+    private final DefaultCassandraConversationRepository cassandraConversationRepository;
+    private final RiakConversationRepository riakConversationRepository;
+    private final HybridMigrationClusterState migrationState;
+    private final boolean deepMigrationEnabled;
 
-    private RiakConversationRepository riakConversationRepository;
-
-    private HybridMigrationClusterState migrationState;
-
-    public HybridConversationRepository(DefaultCassandraConversationRepository cassandraConversationRepository, RiakConversationRepository riakConversationRepository, HybridMigrationClusterState migrationState) {
+    public HybridConversationRepository(DefaultCassandraConversationRepository cassandraConversationRepository, RiakConversationRepository riakConversationRepository, HybridMigrationClusterState migrationState, boolean deepMigrationEnabled) {
         this.cassandraConversationRepository = cassandraConversationRepository;
         this.riakConversationRepository = riakConversationRepository;
         this.migrationState = migrationState;
+        this.deepMigrationEnabled = deepMigrationEnabled;
     }
 
-    public String getByIdWithDeepComparison(String conversationId) {
-        LOG.debug("Deep comparing Riak and Cassandra contents for conversationId {}", conversationId);
+    public MutableConversation getByIdWithDeepComparison(String conversationId) {
+        LOG.debug("Deep comparing Conversation {} in Riak and Cassandra", conversationId);
 
         List<ConversationEvent> conversationEventsInRiak = riakConversationRepository.getConversationEvents(conversationId);
         List<ConversationEvent> conversationEventsInCassandra = cassandraConversationRepository.getConversationEvents(conversationId);
 
         if (conversationEventsInRiak == null) {
-            String msg = String.format("No conversationEvents found in Riak for conversationId %s, skipping", conversationId);
-            LOG.warn(msg);
-            throw new IllegalStateException(msg);
+            LOG.warn("No conversationEvents found in Riak for conversationId {}, skipping", conversationId);
+            return null;
         }
 
-        // Check if all events in Cassandra are also in Riak
+        if (conversationEventsInRiak.size() == conversationEventsInCassandra.size()) {
+            LOG.debug("Conversation {} has equal number of conversationEvents ({}) in Riak and Cassandra, not migrating", conversationId, conversationEventsInRiak.size());
+            return new DefaultMutableConversation(replay(conversationEventsInRiak));
+        }
+
+        // Essentially do a cross-cluster synchronize on this particular Conversation id to avoid duplication
+        if (!migrationState.tryClaim(Conversation.class, conversationId)) {
+            LOG.warn("Could not claim lock on Conversation {}, not migrating it", conversationId);
+            return new DefaultMutableConversation(replay(conversationEventsInRiak));
+        }
+
+        // Get the events that are in Riak but not in Cassandra
+        List<ConversationEvent> originalConversationEventsInRiak = new ArrayList<>(conversationEventsInRiak);
         for (ConversationEvent eventInCassandra : conversationEventsInCassandra) {
-            if (!conversationEventsInRiak.contains(eventInCassandra)) {
-                String msg = String.format("Cassandra has an event that is not in Riak for conversationId %s, Cassandra conversationEventId %s, event: %s, skipping",
-                        conversationId, eventInCassandra.getEventId(), eventInCassandra);
-                LOG.warn(msg);
-                throw new IllegalStateException(msg);
-            } else {
-                conversationEventsInRiak.remove(eventInCassandra);
+            if (!conversationEventsInRiak.remove(eventInCassandra)) {
+                LOG.error("Conversation {} contains a conversationEvent in Cassandra but not in Riak: {}", conversationId, eventInCassandra);
             }
         }
 
-        String msg;
+        // save the conversationEvents from Riak to Cassandra
         if (conversationEventsInRiak.size() > 0) {
             commitToCassandraInBatches(conversationId, conversationEventsInRiak);
-            msg = String.format("ConversationId: %s, more events in Riak than in Cassandra, saving %s new events", conversationId, conversationEventsInRiak.size());
-        } else {
-            msg = String.format("ConversationId: %s, events in Cassandra and Riak are equal", conversationId);
         }
-        LOG.info(msg);
-        return msg;
-    }
 
-    private String humanReadableByteCount(long bytes) {
-        int unit = 1024;
-        if (bytes < unit) return bytes + " B";
-        int exp = (int) (Math.log(bytes) / Math.log(unit));
-        String pre = "KMGTPE".charAt(exp - 1) + "i";
-        return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+        // return the Riak state
+        return new DefaultMutableConversation(replay(originalConversationEventsInRiak));
     }
 
     private void commitToCassandraInBatches(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
+        if (toBeCommittedEvents == null || toBeCommittedEvents.size() == 0) {
+            return;
+        }
         LOG.info("Committing conversationId {} with {} events in batches of {}", conversationId, toBeCommittedEvents.size(), maxBatchSizeCassandra);
 
-        if (maxBatchSizeCassandra <= 0) {
-            maxBatchSizeCassandra = 20;
-        }
         while (toBeCommittedEvents.size() > maxBatchSizeCassandra) {
             List<ConversationEvent> subList = toBeCommittedEvents.subList(0, maxBatchSizeCassandra);
 
@@ -112,17 +110,22 @@ public class HybridConversationRepository implements MutableConversationReposito
 
     @Override
     public MutableConversation getById(String conversationId) {
-        MutableConversation conversation = cassandraConversationRepository.getById(conversationId);
+        MutableConversation conversationInCassandra = cassandraConversationRepository.getById(conversationId);
 
-        if (conversation == null) {
-            conversation = riakConversationRepository.getById(conversationId);
-
-            if (conversation != null) {
-                migrateEventsToCassandra(conversationId);
+        if (conversationInCassandra != null) {
+            if (deepMigrationEnabled) {
+                return getByIdWithDeepComparison(conversationId);
             }
+            return conversationInCassandra;
         }
 
-        return conversation;
+        MutableConversation conversationInRiak = riakConversationRepository.getById(conversationId);
+        if (conversationInRiak == null) {
+            return null;
+        }
+
+        migrateEventsToCassandra(conversationId);
+        return conversationInRiak;
     }
 
     @Override
@@ -239,19 +242,20 @@ public class HybridConversationRepository implements MutableConversationReposito
         return migrateEventsToCassandra(conversationId, null);
     }
 
-    boolean migrateEventsToCassandra(String conversationId, List<ConversationEvent> events) {
-        // Essentially do a cross-cluster synchronize on this particular Conversation id to avoid duplication
+    private boolean migrateEventsToCassandra(String conversationId, List<ConversationEvent> events) {
+        LOG.debug("Migrating events for Conversation with id {} from Riak to Cassandra", conversationId);
 
+        // Essentially do a cross-cluster synchronize on this particular Conversation id to avoid duplication
         if (!migrationState.tryClaim(Conversation.class, conversationId)) {
+            LOG.warn("Could not claim lock on Conversation {}, not migrating it", conversationId);
             return false;
         }
-
-        LOG.debug("Migrating all events for Conversation with id {} from Riak to Cassandra", conversationId);
 
         try (Timer.Context ignored = migrationConversationLagTimer.time()) {
             if (events == null) {
                 events = riakConversationRepository.getConversationEvents(conversationId);
             }
+            LOG.debug("Migrating Conversation {} with {} conversationEvents from Riak to Cassandra", conversationId, events.size());
             events = fixEventOrder(events);
             cassandraConversationRepository.commit(conversationId, events);
         } finally {
@@ -292,6 +296,14 @@ public class HybridConversationRepository implements MutableConversationReposito
             prevUUID = e.getEventTimeUUID();
         }
         return orderedEvents;
+    }
+
+    private String humanReadableByteCount(long bytes) {
+        int unit = 1024;
+        if (bytes < unit) return bytes + " B";
+        int exp = (int) (Math.log(bytes) / Math.log(unit));
+        String pre = "KMGTPE".charAt(exp - 1) + "i";
+        return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 
 }

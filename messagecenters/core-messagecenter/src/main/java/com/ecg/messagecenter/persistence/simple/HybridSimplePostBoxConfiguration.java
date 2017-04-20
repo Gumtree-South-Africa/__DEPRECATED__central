@@ -3,6 +3,7 @@ package com.ecg.messagecenter.persistence.simple;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +15,8 @@ import org.springframework.context.annotation.Primary;
 @ConditionalOnExpression("#{'${persistence.strategy}'.startsWith('hybrid')}")
 public class HybridSimplePostBoxConfiguration {
 
+    @Value("${migration.postboxes.deepMigration.enabled:false}")
+    private Boolean deepMigrationEnabled;
 
     @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid")
     @Bean
@@ -34,8 +37,11 @@ public class HybridSimplePostBoxConfiguration {
 
     @Bean
     @Primary
-    public HybridSimplePostBoxRepository simplePostBoxRepository(RiakSimplePostBoxRepository riakSimplePostBoxRepository, CassandraSimplePostBoxRepository cassandraSimplePostBoxRepository, HybridMigrationClusterState migrationState) {
-        return new HybridSimplePostBoxRepository(riakSimplePostBoxRepository, cassandraSimplePostBoxRepository, migrationState);
+    public HybridSimplePostBoxRepository simplePostBoxRepository(RiakSimplePostBoxRepository riakSimplePostBoxRepository,
+                                                                 CassandraSimplePostBoxRepository cassandraSimplePostBoxRepository,
+                                                                 HybridMigrationClusterState migrationState) {
+        return new HybridSimplePostBoxRepository(riakSimplePostBoxRepository, cassandraSimplePostBoxRepository,
+                migrationState, deepMigrationEnabled);
     }
 
 }

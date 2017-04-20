@@ -1,5 +1,6 @@
 package com.ecg.replyts.core.webapi.control;
 
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.runtime.migrator.ChunkedConversationMigrationAction;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -36,13 +37,13 @@ public class ConversationMigrationController {
     @ResponseBody
     public String migrateConversationsWithDeepComparisonSync(@PathVariable String conversationId) {
         try {
-            LOG.info("Invoke index conversation via web interface using deep comparison for conversationId: {} ", conversationId);
-            String result = migrator.migrateConversationsWithDeepComparison(conversationId);
-            LOG.info("Migration succeeded for conversationId {}, with result {}", conversationId, result);
-            return result;
+            LOG.info("Invoke index conversation via web interface using deep comparison for conversationId {}", conversationId);
+            MutableConversation result = migrator.migrateConversationsWithDeepComparison(conversationId);
+            LOG.info("Migration succeeded for conversationId {}", result);
+            return String.format("Done. Result: %s", result);
         } catch (Exception e) {
-            LOG.warn("Migration failed for conversationId {}", conversationId, e);
-            return String.format("Migration failed for conversationId %s\n%s", conversationId, e.getMessage());
+            LOG.error("Migration failed for conversationId {}", conversationId, e);
+            return String.format("Migration failed for conversationId %s\n%s", conversationId, e);
         }
     }
 

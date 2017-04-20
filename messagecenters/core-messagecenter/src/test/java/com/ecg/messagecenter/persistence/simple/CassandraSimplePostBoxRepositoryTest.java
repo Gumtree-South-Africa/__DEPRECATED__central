@@ -66,6 +66,32 @@ public class CassandraSimplePostBoxRepositoryTest {
         assertEquals("PostBox still contains its 1 conversation thread", 1, postBoxRepository.byId("foo@bar.com").getConversationThreads().size());
     }
 
+    @Test
+    public void writesThread() throws Exception {
+        String email = "foo@bar.com";
+        AbstractConversationThread convThread = createConversationThread(now(), "123");
+
+        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(email, convThread);
+
+        PostBox box = new PostBox(email, Optional.empty(), Arrays.asList(convThread), 25);
+        assertEquals("PostBox's conversationThread is updated", box, postBoxRepository.byId(email));
+    }
+
+    @Test
+    public void upsertsThread() throws Exception {
+        String email = "foo@bar.com";
+        DateTime now = now();
+        AbstractConversationThread convThread = createConversationThread(now.minusMinutes(1), "123");
+        AbstractConversationThread updatedConvThread = createConversationThread(now, "123");
+
+        PostBox box = new PostBox(email, Optional.empty(), Arrays.asList(convThread), 25);
+        postBoxRepository.write(box);
+
+        postBoxRepository.upsertThread(email, updatedConvThread, true);
+
+        assertEquals("PostBox's conversationThread is updated", now.getMillis(), postBoxRepository.byId(email).getLastModification().getMillis());
+    }
+
     private AbstractConversationThread createConversationThread(DateTime date, String conversationId) {
         return new PostBoxTest.ConversationThread("123", conversationId, date, date, date, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     }

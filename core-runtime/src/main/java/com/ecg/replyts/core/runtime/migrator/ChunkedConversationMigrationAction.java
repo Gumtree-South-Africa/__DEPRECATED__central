@@ -168,7 +168,7 @@ public class ChunkedConversationMigrationAction {
         }
     }
 
-    public String migrateConversationsWithDeepComparison(String conversationId) {
+    public MutableConversation migrateConversationsWithDeepComparison(String conversationId) {
         return conversationRepository.getByIdWithDeepComparison(conversationId);
     }
 

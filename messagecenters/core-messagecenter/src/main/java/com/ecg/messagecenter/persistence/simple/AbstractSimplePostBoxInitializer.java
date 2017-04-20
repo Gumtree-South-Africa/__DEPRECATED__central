@@ -53,7 +53,7 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
             return;
         }
 
-        // Update the conversation
+        // Update the conversation thread
 
         Message lastMessage = Iterables.getLast(conversation.getMessages());
 

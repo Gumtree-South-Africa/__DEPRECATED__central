@@ -31,6 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.replay;
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 
 /**
@@ -77,7 +78,12 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     @Override
     public MutableConversation getById(String conversationId) {
         try (Timer.Context ignored = getByIdTimer.time()) {
-            return replayEvents(getConversationEvents(conversationId));
+            List<ConversationEvent> events = getConversationEvents(conversationId);
+            LOG.debug("Found {} events for Conversation with id {} in Cassandra", events.size(), conversationId);
+            if (events.isEmpty()) {
+                return null;
+            }
+            return new DefaultMutableConversation(replay(events));
         }
     }
 
@@ -102,13 +108,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
             String conversationId = row.getString(FIELD_CONVERSATION_ID);
             throw new RuntimeException("Couldn't parse conversation event " + eventId + " in conversation " + conversationId, e);
         }
-    }
-
-    private MutableConversation replayEvents(List<ConversationEvent> events) {
-        if (events.isEmpty()) {
-            return null;
-        }
-        return new DefaultMutableConversation(ImmutableConversation.replay(events));
     }
 
     @Override
@@ -392,7 +391,10 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
 
             int positionOfEvent = Iterables.indexOf(cachedConversationEvents, event -> event.getEventId().equalsIgnoreCase(eventId));
             List<ConversationEvent> applicableEvents = cachedConversationEvents.subList(0, positionOfEvent + 1);
-            return replayEvents(applicableEvents);
+            if (applicableEvents.isEmpty()) {
+                return null;
+            }
+            return new DefaultMutableConversation(replay(applicableEvents));
         }
     }
 

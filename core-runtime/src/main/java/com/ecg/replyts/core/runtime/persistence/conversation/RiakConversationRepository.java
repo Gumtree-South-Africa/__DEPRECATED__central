@@ -31,7 +31,6 @@ public class RiakConversationRepository implements MutableConversationRepository
     static final String DEFAULT_SECRET_BUCKET_NAME = "conversation_secrets";
     static final String DEFAULT_INDEX_BUCKET_NAME = "conversation_index";
 
-
     private final ConversationBucket conversationBucket;
     private final ConversationSecretBucket conversationSecretBucket;
     private final ConversationIndexBucket conversationIndexBucket;
@@ -78,10 +77,11 @@ public class RiakConversationRepository implements MutableConversationRepository
         try {
             ConversationEvents conversationEvents = conversationBucket.byId(conversationId);
             if (conversationEvents == null) {
+                LOGGER.debug("Found no conversationEvents for Conversation with id {} in Riak", conversationId);
                 return null;
             }
+            LOGGER.debug("Found {} events for Conversation with id {} in Riak", conversationEvents.getEvents().size(), conversationId);
             return new DefaultMutableConversation(replay(conversationEvents.getEvents()));
-
         } finally {
             context.stop();
         }
