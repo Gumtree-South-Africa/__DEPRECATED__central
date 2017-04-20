@@ -690,6 +690,16 @@
                     <artifactId>it-filter-blockedusers</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>it-filter-conversationmonitor</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>it-postprocessor-conversationmonitor</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
 
         </profile>

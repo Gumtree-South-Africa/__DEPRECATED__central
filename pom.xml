@@ -335,10 +335,13 @@
             <modules>
                 <module>filters/core-filter-word</module>
                 <module>filters/it-filter-blockedusers</module>
+                <module>filters/it-filter-conversationmonitor</module>
 
-                <module>postprocessors/core-postprocessor-buyeralias</module>
 
                 <module>resultinspectors/core-resultinspector-threshold</module>
+
+                <module>postprocessors/core-postprocessor-buyeralias</module>
+                <module>postprocessors/it-postprocessor-conversationmonitor</module>
             </modules>
         </profile>
 
