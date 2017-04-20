@@ -25,7 +25,7 @@ public class ConversationMonitorIntegrationTest {
                 properties.put("replyts.conversation.monitor.error.size.threshold", "10");
                 properties.put("replyts.conversation.monitor.replaced.chars", "$|a,&|b");
                 return properties;
-            }).get(), ConversationMonitorTestConfiguration.class);
+            }).get(), ConversationMonitorFilterConfiguration.class);
 
     @Test public void conversationMonitorFilterNoReplacedChars() throws Exception {
         AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule

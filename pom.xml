@@ -340,12 +340,13 @@
                 <module>filters/core-filter-word</module>
                 <module>filters/it-filter-blockedusers</module>
                 <module>filters/it-filter-conversationmonitor</module>
-
+                <module>filters/it-filter-quickreply</module>
 
                 <module>resultinspectors/core-resultinspector-threshold</module>
 
                 <module>postprocessors/core-postprocessor-buyeralias</module>
                 <module>postprocessors/it-postprocessor-conversationmonitor</module>
+                <module>postprocessors/it-postprocessor-quickreply</module>
             </modules>
         </profile>
 

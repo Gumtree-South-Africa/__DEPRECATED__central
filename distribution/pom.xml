@@ -667,7 +667,17 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>it-filter-quickreply</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>it-postprocessor-conversationmonitor</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>it-postprocessor-quickreply</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
