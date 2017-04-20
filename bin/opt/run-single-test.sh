@@ -20,7 +20,7 @@ set -o errexit
 
 readonly DIR=$(dirname $0)
 
-source "${DIR}/_cassandra_docker.sh"
+source "${DIR}/../_cassandra_docker.sh"
 
 if [ ! -f comaas.jks ] ; then
     keytool -genkey -alias comaas -keyalg RSA -keystore comaas.jks -keysize 2048 \

@@ -109,6 +109,18 @@ function repackage() {
         cd .. && rm -rf lib && zip -r ${PACKAGE_BASE}.jar . && cd ..
         echo "Created ${PACKAGE_BASE}.jar"
         ;;
+      mp)
+        # Repackaging for MP
+        DISTRIB_ARTIFACT=nl.marktplaats.mp-replyts2_comaas-prod-${TIMESTAMP}-${GIT_HASH_FULL}
+        rm -rf tmp2
+        mkdir -p tmp2/${DISTRIB_ARTIFACT}
+        cp -r tmp/* tmp2/${DISTRIB_ARTIFACT}/
+        #rm -f tmp2/${DISTRIB_ARTIFACT}/conf/* && cp "prod"/* tmp2/${DISTRIB_ARTIFACT}/conf/
+        cd tmp2
+        mv ${DISTRIB_ARTIFACT}/bin/comaas ${DISTRIB_ARTIFACT}/bin/mp-replyts2
+        tar cfz ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz . && cd ..
+        echo "Created ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz"
+        ;;
       *)
         echo "Unknown tenant $TENANT"
         ;;
@@ -119,7 +131,7 @@ function repackage() {
 
 parseArgs $@
 
-if [[ "$TENANT" == "mp" || "$TENANT" == "mde" ]] ; then
+if [[ "$TENANT" == "mde" ]] ; then
     echo "Repackaging not supported for $TENANT, because it's already live in the cloud"
     exit
 fi

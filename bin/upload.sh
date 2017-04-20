@@ -68,8 +68,30 @@ if [ ${TENANT} == "gtuk" ]; then
     ./bin/upload_ecg_repos.sh ${TENANT} ${DEB_PACK} ${TIMESTAMP} legacy
     exit
 fi
+if [ ${TENANT} == "mp" ]; then
+    echo "Uploading the legacy MP package to the iCAS deployer"
+	readonly PREFIX="comaas"
+	readonly REMOTE_DIR=/opt/tarballs/ecg-comaas
+	readonly RELEASE_FOLDER="${PREFIX}-${TIMESTAMP}"
+	readonly KEEPVERSIONS=20
+	readonly HOST_VALUE="builder@deploy001.esh.ops.prod.icas.ecg.so"
 
-if [[ "$TENANT" == "mp" || "$TENANT" == mde ]] ; then
+
+	echo "Syncing $PACKAGE to ${HOST_VALUE} ..."
+
+	set -o xtrace
+	ssh ${HOST_VALUE} "mkdir -p ${REMOTE_DIR}/${RELEASE_FOLDER}"
+	rsync -avv --no-times --no-o --no-p --size-only \
+		${PACKAGE} \
+		${HOST_VALUE}:${REMOTE_DIR}/${RELEASE_FOLDER}/$(basename $PACKAGE)
+
+#	echo "Cleaning up old versions on ${HOST_VALUE} ..."
+#	ssh ${HOST_VALUE} "ls -td ${REMOTE_DIR}/${PREFIX}-* | sed -ne'1,${KEEPVERSIONS}!p' | xargs -r rm -rv"
+	set +o xtrace
+    exit
+fi
+
+if [[ "$TENANT" == mde ]] ; then
     echo "Uploading not supported for $TENANT, because it's already live in the cloud"
     exit
 fi
