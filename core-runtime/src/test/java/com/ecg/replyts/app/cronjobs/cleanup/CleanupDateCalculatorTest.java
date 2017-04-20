@@ -24,7 +24,8 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = CleanupDateCalculatorTest.TestContext.class)
 @TestPropertySource(properties = {
   "persistence.strategy = cassandra",
-  "replyts2.cleanup.conversation.enabled = true"
+  "replyts2.cleanup.conversation.enabled = localhost",
+  "region = localhost"
 })
 public class CleanupDateCalculatorTest {
     private static final String TEST_JOB_NAME = "test_job";

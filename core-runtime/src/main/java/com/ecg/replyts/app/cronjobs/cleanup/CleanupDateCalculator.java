@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnExpression("('${replyts2.cleanup.conversation.enabled:false}' == 'true' || '${replyts2.cleanup.postboxes.enabled:false}' == '${region}') && " +
+@ConditionalOnExpression("('${replyts2.cleanup.conversation.enabled:false}' == '${region}' || '${replyts2.cleanup.postboxes.enabled:false}' == '${region}') && " +
                          "('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))")
 public class CleanupDateCalculator {
     private static final Logger LOG = LoggerFactory.getLogger(CleanupDateCalculator.class);

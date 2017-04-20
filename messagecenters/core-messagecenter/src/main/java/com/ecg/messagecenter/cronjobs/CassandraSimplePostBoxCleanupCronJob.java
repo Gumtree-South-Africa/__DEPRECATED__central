@@ -18,7 +18,7 @@ import static org.joda.time.DateTime.now;
 
 @Component
 @ConditionalOnExpression("#{" +
-            "('${replyts2.cleanup.postboxes.enabled}' == 'true' || '${replyts2.cleanup.postboxes.enabled}' == '${region}') && " +
+            "'${replyts2.cleanup.postboxes.enabled}' == '${region}' && " +
             "('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))" +
         "}")
 public class CassandraSimplePostBoxCleanupCronJob implements CronJobExecutor {
