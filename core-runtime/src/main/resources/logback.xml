@@ -5,9 +5,10 @@
         </encoder>
     </appender>
 
-    <include file="${confDir}/logging.xml"/>
-
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
+
+   <include file="${confDir}/logging.xml"/>
+
 </configuration>
