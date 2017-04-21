@@ -22,6 +22,7 @@ declare -A TENANTS=(
   ["gtuk"]="uk"
 )
 declare -A ENVS=(
+  ["playground"]="sandbox"
   ["lp"]="sandbox"
   ["prod"]="prod"
 )
@@ -47,7 +48,7 @@ if [[ $FILE_COUNT -lt 2 ]]; then
 fi
 
 echo "Loading properties into Consul..."
-properties-to-consul -file *configuration*.tar.gz
+properties-to-consul -env=${ENV} -file *configuration*.tar.gz
 echo "done."
 
 echo "Starting deploy..."
