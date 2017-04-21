@@ -784,8 +784,12 @@
                     <useWildcardClassPath>true</useWildcardClassPath>
                     <repositoryName>lib</repositoryName>
                     <logsDirectory>log</logsDirectory>
-                    <extraJvmArguments>-DlogDir=@BASEDIR@/log -DconfDir=@BASEDIR@/conf -XX:-HeapDumpOnOutOfMemoryError
-                        -Djava.awt.headless=true -Dcom.datastax.driver.FORCE_NIO=true
+                    <extraJvmArguments>
+                        -DlogDir=${LOG_DIR:-@BASEDIR@/log}
+                        -DconfDir=${CONF_DIR:-@BASEDIR@/conf}
+                        -XX:-HeapDumpOnOutOfMemoryError
+                        -Djava.awt.headless=true
+                        -Dcom.datastax.driver.FORCE_NIO=true
                     </extraJvmArguments>
                     <programs>
                         <program>
