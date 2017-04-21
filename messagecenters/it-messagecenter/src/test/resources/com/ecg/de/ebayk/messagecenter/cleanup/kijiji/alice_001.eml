@@ -1,0 +1,729 @@
+Received: from PHX-EXMHT-001.corp.ebay.com (10.58.12.70) by
+ DUB-EXMHT-003.corp.ebay.com (10.243.51.216) with Microsoft SMTP Server (TLS)
+ id 14.3.266.1; Tue, 26 Jan 2016 19:09:15 +0000
+Received: from data.ebay.com (10.58.40.22) by PHX-EXMHT-001.corp.ebay.com
+ (10.58.44.52) with Microsoft SMTP Server (TLS) id 14.3.266.1; Tue, 26 Jan
+ 2016 12:09:12 -0700
+Authentication-Results: data.ebay.com; dkim=pass (signature verified) header.i=@kijiji.annunci.it
+X-SBRS: 2.7
+X-SenderGroup: WHITELIST
+X-IronPort-AV: E=Sophos;i="5.22,351,1449558000"; 
+   d="scan'208,217";a="612792446"
+Received: from kjmx003.kijiji.com ([195.78.84.203])  by data.ebay.com with
+ ESMTP; 26 Jan 2016 12:09:10 -0700
+Received: from localhost (localhost [127.0.0.1])    by kjmx003.kijiji.com
+ (Postfix) with ESMTP id 389AE29D8D for <andelfino@ebay.com>; Tue, 26 Jan 2016
+ 20:09:11 +0100 (CET)
+X-DKIM: Sendmail DKIM Filter v2.6.0 kjmx003.kijiji.com 389AE29D8D
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=kijiji.annunci.it;
+    s=dk; t=1453835351; bh=74blWNwBo2J4fgfZc4bzBCTSiVW+kr+PRcagNgC2z/w=;
+    h=Date:Subject:Mime-Version:Content-Type:Message-ID:To:From; b=4lhe
+    t7OqHB0C7ClHY9EDmV3ZJQGQQu+UTP4ZSwbw3U9zYLgsxzaH6oyYqgslHQ4dcJgJDWy
+    czwisHQVj8fZg+YGmVq5uSNvzY5yvu2N2/tBP5fNnROsfU4pv6Jtr9/Z+siTYjNF935
+    R6ZoyhcjfcF66BTt5O2bNr7KjSk2FsVLE=
+X-Virus-Scanned: Debian amavisd-new at kj-mail003.intern.kijiji.net
+Received: from kjmx003.kijiji.com ([127.0.0.1]) by localhost
+ (kj-mail003.intern.kijiji.net [127.0.0.1]) (amavisd-new, port 10024)   with
+ ESMTP id DYYYsBW4Lvrk for <andelfino@ebay.com>;    Tue, 26 Jan 2016 20:09:11
+ +0100 (CET)
+Received: from replyts002.ix5.kijiji.prod.ki.ecg.so (unknown [195.78.85.94])
+    by kjmx003.kijiji.com (Postfix) with ESMTP id D0D0A29DF6    for
+ <andelfino@ebay.com>; Tue, 26 Jan 2016 20:09:10 +0100 (CET)
+X-DKIM: Sendmail DKIM Filter v2.6.0 kjmx003.kijiji.com D0D0A29DF6
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=kijiji.annunci.it;
+    s=dk; t=1453835350; bh=74blWNwBo2J4fgfZc4bzBCTSiVW+kr+PRcagNgC2z/w=;
+    h=Date:Subject:Mime-Version:Content-Type:Message-ID:To:From; b=FaGV
+    Rko3geyaVHg1ZuYCvxLUfLdNylgmb8aux6+2RSoNOFSXXdfQyry93D1kSyf88jONz1v
+    A+bLYOQJINWnhVJt3O7Bb+RZeaMMS+/7dfWxtwh9S3BK0YuIsRbRLFkxy5G2kHi1yHg
+    AJRTnVlTW5uz5tfkO9fncrPTfwXAWdDsU=
+DomainKey-Signature: a=rsa-sha1; s=dk; d=kijiji.annunci.it; c=simple; q=dns;
+    b=BDayQtq+Td31lTquHMcQ2VYM7mttxpdWPR46w+UoPGcwe2i3TzH6OfsrHLHED0DcX
+    7l8egsTWCfoMi6Gdfch9EMjPmIMYtOLPfzU48QosnJNFI0nNyMc9+ZM9qn31xZ01K2n
+    42FQ/p4Ul7n7mrHFUQzO9QJhcTwhf1vyV/Y1tUs=
+Received: from replyts002.ix5.kijiji.prod.ki.ecg.so (localhost [127.0.0.1]) by
+ replyts002.ix5.kijiji.prod.ki.ecg.so (Postfix) with ESMTP id D21DBC070E    for
+ <andelfino@ebay.com>; Tue, 26 Jan 2016 20:09:09 +0100 (CET)
+Date: Tue, 26 Jan 2016 20:09:09 +0100
+Subject: R: Risposta a "Vendo parti aspirapolvere"
+MIME-Version: 1.0
+    boundary="-=Part.aebcf.ef8ade3b29d48311.1527f56ed9b.27f839102c15f307=-"
+Message-ID: <mnm5plx2u46uqxu1psq46x9y7unlu0j5gut8fyx5l3ftzp39i5g@kijiji.annunci.it>
+To: <andelfino@ebay.com>
+From: <inserzionista-3imt0194bvh7b@kijiji.annunci.it>
+Return-Path: inserzionista-3imt0194bvh7b@kijiji.annunci.it
+X-MS-Exchange-Organization-AVStamp-Mailbox: MSFTFF;1;0;0 0 0
+X-MS-Exchange-Organization-SCL: -1
+X-MS-Exchange-Organization-AuthSource: PHX-EXMHT-001.corp.ebay.com
+X-MS-Exchange-Organization-AuthAs: Anonymous
+Content-type: multipart/alternative;
+    boundary="B_3537354614_1691015831"
+
+> This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
+
+--B_3537354614_1691015831
+Content-type: text/plain;
+    charset="UTF-8"
+Content-transfer-encoding: quoted-printable
+
+L'annuncio parla di 10 euro.....dove hai visto 360 =E2=82=AC???
+
+----Messaggio originale----
+
+Data: 25-gen-2016 15.20
+
+Ogg: Risposta a "Vendo parti aspirapolvere"
+
+                                                           =20
+Andrea ha risposto al tuo annuncio=20
+=20
+=20
+=20
+Ciao,=20
+
+Andrea =C3=A8 interessato al tuo annuncio "Vendo parti aspirapolvere". Ecco il =
+suo messaggio:=20
+
+Non ti sembra tantino 360=E2=82=AC? E' anche rotto!=20
+
+Per rispondere a questo messaggio usa il tasto Rispondi del tuo programma d=
+i posta
+
+Lo hai gi=C3=A0 venduto?
+Per non ricevere pi=C3=B9 email cancella questo annuncio dalla tua area I miei =
+annunci=20
+
+Per tutelare ancor pi=C3=B9 la tua privacy, mascheriamo l'indirizzo email di ch=
+i si scambia messaggi in risposta agli annunci pubblicati sul sito. Lo facci=
+amo per aumentare la tua sicurezza ed evitare che ti arrivino messaggi di sp=
+am. Maggiori informazioni.=20
+
+Rispondendo a questa mail contatterai l'utente direttamente.=20
+
+Per vedere l'annuncio clicca sul link qui sotto:
+http://www.kijiji.it/post/75691378
+
+Se hai problemi ad accedere, copia e incolla i link nella barra di navigazi=
+one.
+
+
+Il team di Kijiji=20
+=20
+=20
+=20
+Scarica l'app=20
+Seguici su=20
+=20
+Copyright =C2=A9 2016 eBay International AG. Tutti i diritti riservati. I march=
+i registrati ed i segni distintivi sono di propriet=C3=A0 dei rispettivi titolar=
+i. L=E2=80=99uso di questo sito web implica  l=E2=80=99accettazione delle Condizioni d=E2=80=
+=99uso e delle Regole sulla privacy di Marktplaats BV.=20
+
+
+
+--B_3537354614_1691015831
+Content-type: text/html;
+    charset="UTF-8"
+Content-transfer-encoding: quoted-printable
+
+<html>
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8">
+</head>
+<body>
+L'annuncio parla di 10 euro.....dove hai visto 360 =E2=82=AC???<br>
+<br>
+<blockquote>----Messaggio originale----<br>
+<br>
+Data: 25-gen-2016 15.20<br>
+<br>
+Ogg: Risposta a &quot;Vendo parti aspirapolvere&quot;<br>
+<br>
+<!--
+   =20
+   =20
+   =20
+    <title>Andrea ha risposto al tuo annuncio</title>
+   =20
+    <style type=3D"text/css">
+        html,
+        body  {
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -webkit-text-size-adjust: none !important;
+            font-family: Arial,sans-serif;
+            font-size: 14px;
+            color: #333333;
+        }
+
+        * {
+            -ms-text-size-adjust: none !important;
+            -webkit-text-size-adjust: none !important;
+        }
+
+        .ExternalClass {
+            width: 100%;
+        }
+
+        .ExternalClass * {
+            line-height: 100%;
+        }
+
+        table,
+        td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        table {
+            border-spacing:0 !important;
+            table-layout: fixed !important;
+        }
+
+        img {
+            -ms-interpolation-mode:bicubic;
+            vertical-align: top;
+        }
+
+        .yshortcuts a {
+            border-bottom: none !important;
+        }
+
+        a {
+            color: #0063D1;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        a:active,
+        a:hover { color: #2982CE; }
+        a:visited { color: #363B96; }
+
+        p {
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-text {
+            font-size: 14px;
+        }
+
+        .reply-text {
+            font-size: 14px;
+            background-color:#cde1f7 !important;
+        }
+
+        .reply-text-blue {
+            font-size: 14px;
+            font-style: italic;
+            background-color:#cde1f7 !important;
+            color:#0665d9;
+        }
+
+        .link {
+            color: #0064d2;
+            text-decoration: none;
+        }
+
+        table {
+            border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspac=
+e:0pt;
+        }
+
+        .line {
+            display: block;
+            height: 1px;
+            border-top: 2px dotted #999999;
+        }
+
+        .separator td {
+            width: 100%;
+            font-size: 1px;
+        }
+
+        .preheader {
+            display: none !important;
+        }
+
+        #wrapper {
+            padding-top: 10px;
+            padding-bottom: 10px
+        }
+
+        #logo {
+            padding-left: 15px;
+        }
+
+        td.with-separator {
+            border-right: 1px solid #e9e9e8;
+        }
+
+        #co-brand {
+            display: block;
+            visibility: visible;
+            margin-right: 15px;
+        }
+        #co-brand.automobile-it {
+            margin: 15px 15px 15px 0;
+        }
+        #co-brand.automobile-it.mobile {
+            width: 0;
+            height: 0;
+            margin: 0;
+            display: none;
+            visibility: hidden;
+        }
+
+        /* --- PayPal --- */
+        #pp-item-bd-top {
+            height: 5px;
+            border-top: 2px solid #E9E9E8;
+            font-size: 1px;
+        }
+        #pp-item-bd-bottom {
+            height: 5px;
+            border-bottom: 2px solid #E9E9E8;
+            font-size: 1px;
+        }
+
+        .pp-item-data {
+            font-size: 14px;
+            color: #333333;
+        }
+        #pp-item-title.pp-item-data {
+            font-weight: bold;
+            color: #000066;
+        }
+
+        @media
+        screen and (max-device-width: 480px),
+        screen and (max-width: 480px){
+            /*
+                To hide contents on desktop put inline this style:
+                mso-hide:all;display:none;max-height:0;overflow:hidden;
+                and then add the class show-on-mobile
+            */
+            *[class*=3Dshow-on-mobile]{
+                display: block !important;
+                max-height: none !important;
+            }
+
+            .responsive-table,
+            .responsive-table > tbody > tr,
+            .responsive-table > tbody > tr > td {
+                display: block !important;
+                width: 100% !important;
+            }
+
+            .responsive-table > tbody > tr > .hide-on-mobile,
+            .hide-on-mobile{
+                display: none !important;
+            }
+
+            .collapse-on-mobile{
+                float: none !important;
+                clear: both !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .autoheight-on-mobile{
+                height: auto !important;
+            }
+
+            body[yahoo] .deviceWidth {
+                width: 96% !important;
+            }
+
+            body[yahoo] #man-link {
+                display: none !important;
+            }
+
+            body[yahoo] #logo {
+                padding: 0 !important;
+            }
+            body[yahoo] #logo-wrapper {
+                width: 100%;
+                float: left !important;
+                clear: both !important;
+            }
+
+            body[yahoo] td.with-separator {
+                border-right: 1px solid #e9e9e8;
+                border: none !important;
+            }
+
+            body[yahoo] #co-brand {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            body[yahoo] #co-brand.automobile-it {
+                width: 0;
+                height: 0;
+                margin: 0 !important;
+            }
+            body[yahoo] #co-brand.automobile-it.mobile {
+                width: 70px !important;
+                height: 70px !important;
+                display: block !important;
+                visibility: visible !important;
+                float: right;
+            }
+
+            body[yahoo] .email-text {
+                font-size: 14px !important;
+            }
+
+            body[yahoo] #confirm {
+                width: 100% !important;
+                height: 36px !important;
+            }
+            body[yahoo] #confirm a {
+                font-size: 18px !important;
+            }
+
+
+            /* --- PayPal --- */
+            body[yahoo] .pp-item-data {
+                font-size: 14px !important;
+            }
+            body[yahoo] #pp-item-desc {
+                display: none !important;
+            }
+
+            body[yahoo] #pp-item-title-desc-loc {
+                clear: both;
+                float: left;
+                width: 100%;
+
+                border:1px solid #ffffff;
+            }
+            body[yahoo] #pp-item-title-desc {
+                clear: both;
+                float: left;
+                width: 100%;
+            }
+            body[yahoo] #pp-item-loc {
+                clear: both;
+                float: left;
+                width: 100%;
+            }
+            body[yahoo] #pp-item-loc .pp-item-data {
+                float: left;
+                text-align: left;
+            }
+            body[yahoo] #pp-item-img {
+                clear: both;
+                float: left;
+                width: 100%;
+                border:1px solid #ffffff;
+            }
+            body[yahoo] #pp-item-img td {
+                text-align: center;
+            }
+            body[yahoo] #pp-item-img img {
+                max-width: 400px;
+                width: 100%;
+            }
+            #logo{
+                margin-bottom: 10px;
+            }
+        }
+
+        @media
+        screen and (max-device-width: 380px),
+        screen and (max-width: 380px) {
+            /*
+                To hide contents on desktop put inline this style:
+                mso-hide:all;display:none;max-height:0;overflow:hidden;
+                and then add the class show-on-mobile
+            */
+            *[class*=3Dshow-on-narrow-mobile] {
+                display: block !important;
+                max-height: none !important;
+            }
+
+            .hide-on-narrow-mobile {
+                display: none !important;
+            }
+        }
+    </style>
+   =20
+-->
+<div style=3D"display:none; white-space:nowrap; font:15px courier; color:#fff=
+fff; line-height:0; width:600px !important; min-width:600px !important; max-=
+width:600px !important;">
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp=
+; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbs=
+p; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </div>
+<!-- Wrapper -->
+<table style=3D"border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rsp=
+ace: 0pt; min-width:320px !important;" align=3D"center" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" width=3D"100%">
+<tbody>
+<tr>
+<td id=3D"wrapper" style=3D"padding-top: 10px;padding-bottom: 10px;" bgcolor=3D"#=
+ffffff" valign=3D"top" width=3D"100%">
+<!-- Email Header -->
+<table class=3D"deviceWidth" style=3D"border-collapse: collapse;mso-table-lspac=
+e: 0pt;mso-table-rspace: 0pt;" align=3D"center" border=3D"0" cellpadding=3D"0" cel=
+lspacing=3D"0" width=3D"600">
+<tbody>
+<tr>
+<td bgcolor=3D"#ffffff" width=3D"100%"><!-- #logo -->
+<table id=3D"logo-wrapper" style=3D"border-collapse: collapse;mso-table-lspace:=
+ 0pt;mso-table-rspace: 0pt;" align=3D"right" border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0">
+<tbody>
+<tr>
+<td><img id=3D"logo" src=3D"https://static.annuncicdn.it/it/images/emails/kijij=
+i-it-20150714.png" alt=3D"Ciao, un utente
+=C3=A8 interessato al tuo annuncio \" \?:nontisembratantino360&euro;?e&#039;anc=
+...?=3D"" border=3D"0" height=3D"70" width=3D"105">
+</td>
+</tr>
+</tbody>
+</table>
+<!--  #logo --><!-- #title -->
+<table id=3D"title-wrapper" style=3D"border-collapse: collapse;mso-table-lspace=
+: 0pt;mso-table-rspace: 0pt;" align=3D"left" border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0">
+<tbody>
+<tr>
+<td id=3D"title" class=3D"autoheight-on-mobile" height=3D"70" valign=3D"bottom">
+<p style=3D"margin: 0;padding: 0;font-size: 18px;font-weight: bold;">Andrea h=
+a risposto al tuo annuncio</p>
+</td>
+</tr>
+</tbody>
+</table>
+<!--  #title --></td>
+</tr>
+</tbody>
+</table>
+<!--  Email Header --><!-- .separator -->
+<table class=3D"deviceWidth separator" style=3D"border-collapse: collapse;mso-t=
+able-lspace: 0pt;mso-table-rspace: 0pt;" align=3D"center" border=3D"0" cellpaddi=
+ng=3D"0" cellspacing=3D"0" width=3D"600">
+<tbody>
+<tr>
+<td style=3D"width: 100%;font-size: 1px;" bgcolor=3D"#ffffff" height=3D"10" width=
+=3D"100%">
+&nbsp;</td>
+</tr>
+<tr>
+<td style=3D"width: 100%;font-size: 1px;" bgcolor=3D"#E9E9E8" height=3D"5" width=3D=
+"100%">
+&nbsp;</td>
+</tr>
+<tr>
+<td style=3D"width: 100%;font-size: 1px;" bgcolor=3D"#ffffff" height=3D"10" width=
+=3D"100%">
+&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<!--  .separator --><!-- Email Body -->
+<table class=3D"deviceWidth" style=3D"border-collapse: collapse;mso-table-lspac=
+e: 0pt;mso-table-rspace: 0pt;" align=3D"center" border=3D"0" cellpadding=3D"0" cel=
+lspacing=3D"0" width=3D"600">
+<tbody>
+<tr>
+<td style=3D"border: 1px solid #E9E9E8;padding: 20px 15px 60px 15px;" bgcolor=
+=3D"#ffffff">
+<table style=3D"border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rsp=
+ace: 0pt;" align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"=
+100%">
+<tbody>
+<tr>
+<td>
+<p class=3D"email-text" style=3D"margin: 0;padding: 0;font-size: 14px;">Ciao, <=
+br>
+<br>
+Andrea =C3=A8 interessato al tuo annuncio <b>&quot;Vendo parti aspirapolvere&qu=
+ot;</b>. Ecco il suo messaggio:
+</p>
+</td>
+</tr>
+<tr>
+<td>
+<p class=3D"reply-text" style=3D"margin:0px; margin-top: 10px;padding-left:10px=
+;padding-right:10px; font-size: 14px;background-color:#cde1f7;">
+<br>
+<em>Non ti sembra tantino 360=E2=82=AC? E' anche rotto!</em> <br>
+<br>
+</p>
+<p class=3D"reply-text-blue" style=3D"margin-bottom:10px;font-size: 14px;font-s=
+tyle: italic;color:#0665d9;padding-left:10px;padding-right:10px; padding-bot=
+tom:10px; background-color:#cde1f7;">
+Per rispondere a questo messaggio usa il tasto <strong>Rispondi</strong> de=
+l tuo programma di posta<br>
+</p>
+</td>
+</tr>
+<tr>
+<td>
+<p class=3D"reply-text-sell" style=3D"margin:0px; padding:0px; font-size: 14px;=
+"><br>
+<strong>Lo hai gi=C3=A0 venduto?</strong><br>
+Per non ricevere pi=C3=B9 email <a href=3D"http://www.kijiji.it/miei-annunci">can=
+cella questo annuncio dalla tua area I miei annunci</a>
+</p>
+</td>
+</tr>
+<tr>
+<td>
+<p class=3D"email-text" style=3D"margin: 0;padding: 0;font-size: 14px;"><br>
+Per tutelare ancor pi=C3=B9 la tua privacy, mascheriamo l'indirizzo email di ch=
+i si scambia messaggi in risposta agli annunci pubblicati sul sito. Lo facci=
+amo per aumentare la tua sicurezza ed evitare che ti arrivino messaggi di sp=
+am.
+<a href=3D"http://www.kijiji.it/aiuto/default/email">Maggiori informazioni</a=
+>. </p>
+</td>
+</tr>
+<tr>
+<td>
+<p class=3D"email-text" style=3D"margin: 0;padding: 0;font-size: 14px;"><br>
+Rispondendo a questa mail contatterai l'utente direttamente. <br>
+<br>
+Per vedere l'annuncio clicca sul link qui sotto:<br>
+<a href=3D"http://www.kijiji.it/post/75691378?utm_source=3Dsystememail&amp;utm_=
+medium=3Dcore&amp;utm_campaign=3Dreply">http://www.kijiji.it/post/75691378</a><b=
+r>
+<br>
+Se hai problemi ad accedere, copia e incolla i link nella barra di navigazi=
+one.<br>
+<br>
+<br>
+<em>Il team di Kijiji</em> </p>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<!--  Email Body --><!-- .separator -->
+<table class=3D"deviceWidth separator" style=3D"border-collapse: collapse;mso-t=
+able-lspace: 0pt;mso-table-rspace: 0pt;" align=3D"center" border=3D"0" cellpaddi=
+ng=3D"0" cellspacing=3D"0" width=3D"600">
+<tbody>
+<tr>
+<td style=3D"width: 100%;font-size: 1px;" bgcolor=3D"#ffffff" height=3D"10" width=
+=3D"100%">
+&nbsp;</td>
+</tr>
+<tr>
+<td style=3D"width: 100%;font-size: 1px;" bgcolor=3D"#E9E9E8" height=3D"5" width=3D=
+"100%">
+&nbsp;</td>
+</tr>
+<tr>
+<td style=3D"width: 100%;font-size: 1px;" bgcolor=3D"#ffffff" height=3D"10" width=
+=3D"100%">
+&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<!--  .separator --><!-- Social/Apps Buttons -->
+<table class=3D"deviceWidth" style=3D"border-collapse: collapse;mso-table-lspac=
+e: 0pt;mso-table-rspace: 0pt;" align=3D"center" border=3D"0" cellpadding=3D"0" cel=
+lspacing=3D"0" width=3D"600">
+<tbody>
+<tr>
+<td bgcolor=3D"#ffffff" width=3D"100%"><!-- apps -->
+<table style=3D"border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rsp=
+ace: 0pt;" align=3D"left" border=3D"0" cellpadding=3D"0" cellspacing=3D"0">
+<tbody>
+<tr>
+<td style=3D"vertical-align: middle; padding-right: 5px;"><a href=3D"https://ap=
+p.adjust.com/nfhqnm" title=3D"Scarica l'applicazione per iPhone"><img src=3D"htt=
+ps://static.annuncicdn.it/it/images/emails/apple-btn-20150714.png" alt=3D"Scar=
+ica l'applicazione per iPhone" border=3D"0" height=3D"26" width=3D"26">
+</a></td>
+<td style=3D"vertical-align: middle; padding-right: 5px;"><a href=3D"https://ap=
+p.adjust.com/nfhqnm" title=3D"Scarica l'applicazione per Android"><img src=3D"ht=
+tps://static.annuncicdn.it/it/images/emails/android-btn-20150714.png" alt=3D"S=
+carica l'applicazione per Android" border=3D"0" height=3D"26" width=3D"26">
+</a></td>
+<td class=3D"hide-on-mobile" style=3D"vertical-align: middle;"><strong>Scarica =
+l'app</strong>
+</td>
+</tr>
+</tbody>
+</table>
+<!--  /apps --><!-- social -->
+<table style=3D"border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rsp=
+ace: 0pt;" align=3D"right" border=3D"0" cellpadding=3D"0" cellspacing=3D"0">
+<tbody>
+<tr>
+<td class=3D"hide-on-mobile" style=3D"vertical-align: middle; padding-right: 5p=
+x;"><strong>Seguici su</strong>
+</td>
+<td style=3D"vertical-align: middle; padding-right: 5px;"><a href=3D"http://www=
+.facebook.com/207404152618996" title=3D"Seguici su Facebook"><img src=3D"https:/=
+/static.annuncicdn.it/it/images/emails/facebook-btn-20150714.png" alt=3D"Segui=
+ci su Facebook" border=3D"0" height=3D"26" width=3D"26">
+</a></td>
+<td style=3D"vertical-align: middle; padding-right: 5px;"><a href=3D"https://tw=
+itter.com/kijiji_it" title=3D"Seguici su Twitter"><img src=3D"https://static.ann=
+uncicdn.it/it/images/emails/twitter-btn-20150714.png" alt=3D"Seguici su Twitte=
+r" border=3D"0" height=3D"26" width=3D"26">
+</a></td>
+<td style=3D"vertical-align: middle;"><a href=3D"http://www.youtube.com/kijijit=
+alia" title=3D"Seguici su Youtube"><img src=3D"https://static.annuncicdn.it/it/i=
+mages/emails/youtube-btn-20150714.png" alt=3D"Seguici su Youtube" border=3D"0" h=
+eight=3D"26" width=3D"26">
+</a></td>
+</tr>
+</tbody>
+</table>
+<!-- /social --></td>
+</tr>
+</tbody>
+</table>
+<!-- Social/Apps Buttons --><!-- Email Footer -->
+<table class=3D"deviceWidth" style=3D"border-collapse: collapse;mso-table-lspac=
+e: 0pt;mso-table-rspace: 0pt;" align=3D"center" border=3D"0" cellpadding=3D"0" cel=
+lspacing=3D"0" width=3D"600">
+<tbody>
+<tr>
+<td style=3D"width: 100%;font-size: 1px;" bgcolor=3D"#ffffff" height=3D"10" width=
+=3D"100%">
+&nbsp;</td>
+</tr>
+<tr>
+<td align=3D"center" bgcolor=3D"#ffffff" width=3D"100%">
+<p id=3D"copyright" style=3D"margin: 0;padding: 0;font-size: 10px;color: #99999=
+9;">Copyright =C2=A9 2016 eBay International AG. Tutti i diritti riservati. I ma=
+rchi registrati ed i segni distintivi sono di propriet=C3=A0 dei rispettivi tito=
+lari. L=E2=80=99uso di questo sito web implica
+ l=E2=80=99accettazione delle <a href=3D"http://www.kijiji.it/aiuto/default/condizi=
+oni">Condizioni d=E2=80=99uso</a> e delle
+<a href=3D"http://www.kijiji.it/aiuto/default/privacy">Regole sulla privacy</=
+a> di Marktplaats BV.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<!--  Email Footer --></td>
+</tr>
+</tbody>
+</table>
+<!-- End Wrapper --><br>
+</blockquote>
+<br>
+</body>
+</html>
+
+
+--B_3537354614_1691015831--
+
+

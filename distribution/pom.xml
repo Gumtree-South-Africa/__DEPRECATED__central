@@ -690,6 +690,11 @@
                     <artifactId>it-resultinspector-reporting</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>it-messagecenter</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
 
         </profile>

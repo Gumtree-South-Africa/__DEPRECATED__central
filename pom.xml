@@ -343,6 +343,8 @@
                 <module>filters/it-filter-conversationmonitor</module>
                 <module>filters/it-filter-quickreply</module>
 
+                <module>messagecenters/it-messagecenter</module>
+
                 <module>resultinspectors/core-resultinspector-threshold</module>
 
                 <module>postprocessors/core-postprocessor-buyeralias</module>
@@ -522,6 +524,7 @@
 
         <!-- it artifact versions -->
         <statsd.client.version>3.0.1</statsd.client.version>
+        <thymeleaf.version>2.1.4.RELEASE</thymeleaf.version>
     </properties>
 
 
@@ -1949,6 +1952,13 @@
                 <artifactId>java-statsd-client</artifactId>
                 <version>${statsd.client.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.thymeleaf</groupId>
+                <artifactId>thymeleaf</artifactId>
+                <version>${thymeleaf.version}</version>
+            </dependency>
+
 
         </dependencies>
     </dependencyManagement>

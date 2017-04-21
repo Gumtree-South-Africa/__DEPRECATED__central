@@ -1,0 +1,636 @@
+                                                                                                                                                                                                                                                               
+Delivered-To: aludden+kijiji@gmail.com
+Received: by 10.28.220.132 with SMTP id t126csp1106791wmg;
+        Fri, 23 Oct 2015 06:10:45 -0700 (PDT)
+X-Received: by 10.180.74.177 with SMTP id u17mr4758973wiv.5.1445605845160;
+        Fri, 23 Oct 2015 06:10:45 -0700 (PDT)
+Return-Path: <utente-lkl8f8g0j9hl@kijiji.annunci.it>
+Received: from kjmx003.kijiji.com (kjmx003.kijiji.com. [195.78.84.203])
+        by mx.google.com with ESMTP id p9si24779241wjz.177.2015.10.23.06.10.45
+        for <aludden+kijiji@gmail.com>;
+        Fri, 23 Oct 2015 06:10:45 -0700 (PDT)
+Received-SPF: pass (google.com: domain of utente-lkl8f8g0j9hl@kijiji.annunci.it designates 195.78.84.203 as permitted sender) client-ip=195.78.84.203;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of utente-lkl8f8g0j9hl@kijiji.annunci.it designates 195.78.84.203 as permitted sender) smtp.mailfrom=utente-lkl8f8g0j9hl@kijiji.annunci.it;
+       dkim=pass header.i=@kijiji.annunci.it;
+       dkim=pass header.i=@kijiji.annunci.it
+Received: from localhost (localhost [127.0.0.1])
+	by kjmx003.kijiji.com (Postfix) with ESMTP id D260829DD6
+	for <aludden+kijiji@gmail.com>; Fri, 23 Oct 2015 15:10:44 +0200 (CEST)
+X-DKIM: Sendmail DKIM Filter v2.6.0 kjmx003.kijiji.com D260829DD6
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=kijiji.annunci.it;
+	s=dk; t=1445605844; bh=io8epiYMIEYwdC6kSUoJi1VxM3mlYeA4kcTpPNiwakA=;
+	h=Date:Subject:MIME-Version:Content-Type:Message-ID:To:From; b=LLX8
+	SGbB7u9JllEDjk4HQ6kFeo8xYLmJuwYNJHl3b9Kvid1E87kb+4xo1CDv/gXyBTBHSxf
+	J+/gSbGyFZTlFSwWRIh3tpPEx5QQCEqx3OOsbAnpKhqBGiuxxF5o8p7Astm0mJLYZDB
+	6VbxYIzg75ZYERvrwRsx6dxCRybUcwAO0=
+X-Virus-Scanned: Debian amavisd-new at kj-mail003.intern.kijiji.net
+Received: from kjmx003.kijiji.com ([127.0.0.1])
+	by localhost (kj-mail003.intern.kijiji.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 7+eFDF5yn5gG for <aludden+kijiji@gmail.com>;
+	Fri, 23 Oct 2015 15:10:44 +0200 (CEST)
+Received: from replyts003.ix5.kijiji.prod.ki.ecg.so (unknown [195.78.85.94])
+	by kjmx003.kijiji.com (Postfix) with ESMTP id 8134B29DB2
+	for <aludden+kijiji@gmail.com>; Fri, 23 Oct 2015 15:10:44 +0200 (CEST)
+X-DKIM: Sendmail DKIM Filter v2.6.0 kjmx003.kijiji.com 8134B29DB2
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=kijiji.annunci.it;
+	s=dk; t=1445605844; bh=io8epiYMIEYwdC6kSUoJi1VxM3mlYeA4kcTpPNiwakA=;
+	h=Date:Subject:MIME-Version:Content-Type:Message-ID:To:From; b=LLX8
+	SGbB7u9JllEDjk4HQ6kFeo8xYLmJuwYNJHl3b9Kvid1E87kb+4xo1CDv/gXyBTBHSxf
+	J+/gSbGyFZTlFSwWRIh3tpPEx5QQCEqx3OOsbAnpKhqBGiuxxF5o8p7Astm0mJLYZDB
+	6VbxYIzg75ZYERvrwRsx6dxCRybUcwAO0=
+DomainKey-Signature: a=rsa-sha1; s=dk; d=kijiji.annunci.it; c=simple; q=dns;
+	b=Jtv06hD1e81b1v7RkMz61aDQUci9095QHVQEhr2OGY85bh9nUM15TNE5Zqn8CbzG5
+	bLiR8avQh3zFsDOg1+oU1Ev+o6zDT8b2Mb84DGNyDzDRVdKED4f4+gqpyjDAYIZtUzl
+	0DKT9JU3KaL79yKIRHmYlcrCntYIReYHLvqdzig=
+Received: from replyts003.ix5.kijiji.prod.ki.ecg.so (localhost [127.0.0.1])
+	by replyts003.ix5.kijiji.prod.ki.ecg.so (Postfix) with ESMTP id 5D435160AAD
+	for <aludden+kijiji@gmail.com>; Fri, 23 Oct 2015 15:10:44 +0200 (CEST)
+Date: Fri, 23 Oct 2015 15:10:43 +0200
+Subject: =?utf-8?B?UmlzcG9zdGEgYSAiQmFieXNpdHRlciBwZXIgMiBiYW1iaW5pIg==?=
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+	boundary="b1_7039865704dfcfcd719b6645d738923d"
+Message-ID: <1hiwydw8ye50s9n2gi1765ws040@kijiji.annunci.it>
+To: aludden+kijiji@gmail.com
+From: Risposta  da Kijiji <utente-lkl8f8g0j9hl@kijiji.annunci.it>
+
+
+--b1_7039865704dfcfcd719b6645d738923d
+Content-Type: text/plain; charset = "UTF-8"
+Content-Transfer-Encoding: 8bit
+
+Ciao, un utente
+è interessato al tuo annuncio "":
+
+Salve sono Marianna, 28 anni. Sono una persona seria, paziente ed affidabile. Ho esperienza di ben
+10 anni nel settore e sono ben referenziata. Sono amante dei bambini..penso che siano la gioia
+pi&ugrave; bella della vita. Spero prendiate in considerazione la mia candidatura e mi concediate un
+colloquio.&nbsp;
+Cordiali saluti&nbsp;
+Marianna
+
+Per tutelare ancor più la tua privacy, mascheriamo l'indirizzo email di chi si scambia messaggi in
+risposta agli annunci pubblicati sul sito. Lo facciamo per aumentare la tua sicurezza ed evitare che
+ti arrivino messaggi di spam.
+Per maggiori informazioni visita questo link: http://www.kijiji.it/aiuto/default/email
+
+Rispondendo a questa mail contatterai l'utente direttamente.
+
+Pensi che questa risposta sia uno spam? Contatta il nostro servizio clienti al link qui sotto:
+http://www.kijiji.it/aiuto/default/contattaci
+
+Per vedere il tuo annuncio clicca sul link qui sotto:
+http://www.kijiji.it/post/86696500
+
+Se hai problemi ad accedere, copia e incolla i link nella barra di navigazione.
+
+Grazie per aver scelto Kijiji
+
+Il team di Kijiji eBay Annunci
+
+-------------------------------------------------------------------
+Copyright © 2015 eBay International AG. Tutti i diritti riservati. I marchi registrati ed i segni
+distintivi sono di proprietà dei rispettivi titolari. L'uso di questo sito web implica
+l'accettazione delle Condizioni d'uso e delle Regole sulla privacy di Marktplaats BV.
+
+
+--b1_7039865704dfcfcd719b6645d738923d
+Content-Type: text/html; charset = "UTF-8"
+Content-Transfer-Encoding: 8bit
+
+<!DOCTYPE HTML>
+<html xmlns:v="urn:schemas-microsoft-com:vml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>Marianna ha risposto al tuo annuncio</title>
+    
+    <style type="text/css">
+        html,
+        body  {
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -webkit-text-size-adjust: none !important;
+            font-family: Arial,sans-serif;
+            font-size: 14px;
+            color: #333333;
+        }
+
+        * {
+            -ms-text-size-adjust: none !important;
+            -webkit-text-size-adjust: none !important;
+        }
+
+        .ExternalClass {
+            width: 100%;
+        }
+
+        .ExternalClass * {
+            line-height: 100%;
+        }
+
+        table,
+        td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        table {
+            border-spacing:0 !important;
+            table-layout: fixed !important;
+        }
+
+        img {
+            -ms-interpolation-mode:bicubic;
+            vertical-align: top;
+        }
+
+        .yshortcuts a {
+            border-bottom: none !important;
+        }
+
+        a {
+            color: #0063D1;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        a:active,
+        a:hover { color: #2982CE; }
+        a:visited { color: #363B96; }
+
+        p {
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-text {
+            font-size: 14px;
+        }
+
+        .reply-text {
+            font-size: 14px;
+            background-color:#cde1f7 !important;
+        }
+
+        .reply-text-blue {
+            font-size: 14px;
+            font-style: italic;
+            background-color:#cde1f7 !important;
+            color:#0665d9;
+        }
+
+        .link {
+            color: #0064d2;
+            text-decoration: none;
+        }
+
+        table {
+            border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;
+        }
+
+        .line {
+            display: block;
+            height: 1px;
+            border-top: 2px dotted #999999;
+        }
+
+        .separator td {
+            width: 100%;
+            font-size: 1px;
+        }
+
+        .preheader {
+            display: none !important;
+        }
+
+        #wrapper {
+            padding-top: 10px;
+            padding-bottom: 10px
+        }
+
+        #logo {
+            padding-left: 15px;
+        }
+
+        td.with-separator {
+            border-right: 1px solid #e9e9e8;
+        }
+
+        #co-brand {
+            display: block;
+            visibility: visible;
+            margin-right: 15px;
+        }
+        #co-brand.automobile-it {
+            margin: 15px 15px 15px 0;
+        }
+        #co-brand.automobile-it.mobile {
+            width: 0;
+            height: 0;
+            margin: 0;
+            display: none;
+            visibility: hidden;
+        }
+
+        /* --- PayPal --- */
+        #pp-item-bd-top {
+            height: 5px;
+            border-top: 2px solid #E9E9E8;
+            font-size: 1px;
+        }
+        #pp-item-bd-bottom {
+            height: 5px;
+            border-bottom: 2px solid #E9E9E8;
+            font-size: 1px;
+        }
+
+        .pp-item-data {
+            font-size: 14px;
+            color: #333333;
+        }
+        #pp-item-title.pp-item-data {
+            font-weight: bold;
+            color: #000066;
+        }
+
+        @media
+        screen and (max-device-width: 480px),
+        screen and (max-width: 480px){
+            /*
+                To hide contents on desktop put inline this style:
+                mso-hide:all;display:none;max-height:0;overflow:hidden;
+                and then add the class show-on-mobile
+            */
+            *[class*=show-on-mobile]{
+                display: block !important;
+                max-height: none !important;
+            }
+
+            .responsive-table,
+            .responsive-table > tbody > tr,
+            .responsive-table > tbody > tr > td {
+                display: block !important;
+                width: 100% !important;
+            }
+
+            .responsive-table > tbody > tr > .hide-on-mobile,
+            .hide-on-mobile{
+                display: none !important;
+            }
+
+            .collapse-on-mobile{
+                float: none !important;
+                clear: both !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .autoheight-on-mobile{
+                height: auto !important;
+            }
+
+            body[yahoo] .deviceWidth {
+                width: 96% !important;
+            }
+
+            body[yahoo] #man-link {
+                display: none !important;
+            }
+
+            body[yahoo] #logo {
+                padding: 0 !important;
+            }
+            body[yahoo] #logo-wrapper {
+                width: 100%;
+                float: left !important;
+                clear: both !important;
+            }
+
+            body[yahoo] td.with-separator {
+                border-right: 1px solid #e9e9e8;
+                border: none !important;
+            }
+
+            body[yahoo] #co-brand {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            body[yahoo] #co-brand.automobile-it {
+                width: 0;
+                height: 0;
+                margin: 0 !important;
+            }
+            body[yahoo] #co-brand.automobile-it.mobile {
+                width: 70px !important;
+                height: 70px !important;
+                display: block !important;
+                visibility: visible !important;
+                float: right;
+            }
+
+            body[yahoo] .email-text {
+                font-size: 14px !important;
+            }
+
+            body[yahoo] #confirm {
+                width: 100% !important;
+                height: 36px !important;
+            }
+            body[yahoo] #confirm a {
+                font-size: 18px !important;
+            }
+
+
+            /* --- PayPal --- */
+            body[yahoo] .pp-item-data {
+                font-size: 14px !important;
+            }
+            body[yahoo] #pp-item-desc {
+                display: none !important;
+            }
+
+            body[yahoo] #pp-item-title-desc-loc {
+                clear: both;
+                float: left;
+                width: 100%;
+
+                border:1px solid #ffffff;
+            }
+            body[yahoo] #pp-item-title-desc {
+                clear: both;
+                float: left;
+                width: 100%;
+            }
+            body[yahoo] #pp-item-loc {
+                clear: both;
+                float: left;
+                width: 100%;
+            }
+            body[yahoo] #pp-item-loc .pp-item-data {
+                float: left;
+                text-align: left;
+            }
+            body[yahoo] #pp-item-img {
+                clear: both;
+                float: left;
+                width: 100%;
+                border:1px solid #ffffff;
+            }
+            body[yahoo] #pp-item-img td {
+                text-align: center;
+            }
+            body[yahoo] #pp-item-img img {
+                max-width: 400px;
+                width: 100%;
+            }
+            #logo{
+                margin-bottom: 10px;
+            }
+        }
+
+        @media
+        screen and (max-device-width: 380px),
+        screen and (max-width: 380px) {
+            /*
+                To hide contents on desktop put inline this style:
+                mso-hide:all;display:none;max-height:0;overflow:hidden;
+                and then add the class show-on-mobile
+            */
+            *[class*=show-on-narrow-mobile] {
+                display: block !important;
+                max-height: none !important;
+            }
+
+            .hide-on-narrow-mobile {
+                display: none !important;
+            }
+        }
+    </style>
+    
+</head>
+
+
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" yahoo="fix" style="width: 100%;background-color: #ffffff;margin: 0;padding: 0;-webkit-font-smoothing: antialiased;-webkit-text-size-adjust: none !important;font-family: Arial,sans-serif;font-size: 14px;color: #333333;">
+<div style="display:none; white-space:nowrap; font:15px courier; color:#ffffff; line-height:0; width:600px !important; min-width:600px !important; max-width:600px !important;">
+    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+</div>
+<!-- Wrapper -->
+<table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt; min-width:320px !important;">
+    <tr>
+        <td id="wrapper" width="100%" valign="top" bgcolor="#ffffff" style="padding-top: 10px;padding-bottom: 10px;">
+            <!-- Email Header -->
+            <table width="600" border="0" cellpadding="0" cellspacing="0" align="center" class="deviceWidth" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;">
+                <tr>
+                    <td width="100%" bgcolor="#ffffff">
+                        <!-- #logo -->
+                        <table border="0" cellpadding="0" cellspacing="0" align="right" id="logo-wrapper" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;">
+                            <tr>
+                                                                <td>
+                                    <img id="logo" src="https://static.annuncicdn.it/it/images/emails/kijiji-it-20150714.png" alt="Ciao, un utente
+è interessato al tuo annuncio \"\":
+
+Salve sono Marianna, 28 anni. Sono una perso..." border="0" width="105" height="70">
+                                </td>
+                                                            </tr>
+                        </table>
+                        <!--  #logo -->
+                        <!-- #title -->
+                        <table border="0" cellpadding="0" cellspacing="0" align="left" id="title-wrapper" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;">
+                            <tr>
+                                <td id="title" height="70" valign="bottom" class="autoheight-on-mobile">
+                                    <p style="margin: 0;padding: 0;font-size: 18px;font-weight: bold;">Marianna ha risposto al tuo annuncio</p>
+                                </td>
+                            </tr>
+                        </table>
+                        <!--  #title -->
+                    </td>
+                </tr>
+            </table>
+            <!--  Email Header -->
+
+            <!-- .separator -->
+            <table width="600" border="0" cellpadding="0" cellspacing="0" align="center" class="deviceWidth separator" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;">
+                <tr>
+                    <td width="100%" height="10" bgcolor="#ffffff" style="width: 100%;font-size: 1px;">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td width="100%" height="5" bgcolor="#E9E9E8" style="width: 100%;font-size: 1px;">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td width="100%" height="10" bgcolor="#ffffff" style="width: 100%;font-size: 1px;">&nbsp;</td>
+                </tr>
+            </table>
+            <!--  .separator -->
+
+            <!-- Email Body -->
+            <table width="600" border="0" cellpadding="0" cellspacing="0" align="center" class="deviceWidth" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;">
+                <tr>
+                    <td bgcolor="#ffffff" style="border: 1px solid #E9E9E8;padding: 20px 15px 60px 15px;">
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;">
+    <tr>
+        <td>
+            <p class="email-text" style="margin: 0;padding: 0;font-size: 14px;">
+                Ciao,
+                <br /><br />
+                                                            Marianna
+                                        &egrave; interessato al tuo annuncio <b>"Babysitter per 2 bambini"</b>. Ecco il suo messaggio:
+                            </p>
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <p class="reply-text" style="margin:0px; margin-top: 10px;padding-left:10px;padding-right:10px; font-size: 14px;background-color:#cde1f7;">
+                <br>
+                <em>Salve sono Marianna, 28 anni. Sono una persona seria, paziente ed affidabile. Ho esperienza di ben 10 anni nel settore e sono ben referenziata. Sono amante dei bambini..penso che siano la gioia pi&ugrave; bella della vita. Spero prendiate in considerazione la mia candidatura e mi concediate un colloquio.&nbsp;<br />
+Cordiali saluti&nbsp;<br />
+Marianna</em>
+                <br><br>
+            </p>
+            <p class="reply-text-blue" style="margin-bottom:10px;font-size: 14px;font-style: italic;color:#0665d9;padding-left:10px;padding-right:10px; padding-bottom:10px; background-color:#cde1f7;">
+                Per rispondere a questo messaggio usa il tasto <strong>Rispondi</strong> del tuo programma di posta<br>
+            </p>
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <p class="reply-text-sell" style="margin:0px; padding:0px; font-size: 14px;">
+            <br />
+                <strong>Lo hai gi&agrave; venduto?</strong><br />
+                Per non ricevere pi&ugrave; email <a href="http://www.kijiji.it/miei-annunci">cancella questo annuncio dalla tua area I miei annunci</a>
+            </p>
+        </td>
+    </tr>
+
+        <tr>
+        <td>
+            <p class="email-text" style="margin: 0;padding: 0;font-size: 14px;"><br />
+                Per tutelare ancor pi&ugrave; la tua privacy, mascheriamo l'indirizzo email di chi si scambia messaggi in risposta agli annunci pubblicati sul sito. Lo facciamo per aumentare la tua sicurezza ed evitare che ti arrivino messaggi di spam.
+                <a href="http://www.kijiji.it/aiuto/default/email">Maggiori informazioni</a>.
+            </p>
+        </td>
+    </tr>
+                        
+    <tr>
+        <td>
+            <p class="email-text" style="margin: 0;padding: 0;font-size: 14px;"><br/>
+                Rispondendo a questa mail contatterai l'utente direttamente. <br/>
+                <br/>
+                Per vedere l'annuncio clicca sul link qui sotto:<br>
+                <a href="http://www.kijiji.it/post/86696500?utm_source=systememail&utm_medium=core&utm_campaign=reply">http://www.kijiji.it/post/86696500</a><br/>
+                <br/>
+                Se hai problemi ad accedere, copia e incolla i link nella barra di navigazione.<br />
+                <br /><br />
+                <em>Il team di Kijiji</em>
+
+                            </p>
+        </td>
+    </tr>
+</table>
+                    </td>
+                </tr>
+            </table>
+            <!--  Email Body -->
+
+            <!-- .separator -->
+            <table width="600" border="0" cellpadding="0" cellspacing="0" align="center" class="deviceWidth separator" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;">
+                <tr>
+                    <td width="100%" height="10" bgcolor="#ffffff" style="width: 100%;font-size: 1px;">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td width="100%" height="5" bgcolor="#E9E9E8" style="width: 100%;font-size: 1px;">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td width="100%" height="10" bgcolor="#ffffff" style="width: 100%;font-size: 1px;">&nbsp;</td>
+                </tr>
+            </table>
+            <!--  .separator -->
+
+            <!-- Social/Apps Buttons -->
+            <table width="600" border="0" cellpadding="0" cellspacing="0" align="center" class="deviceWidth" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;">
+                <tr>
+                    <td width="100%" bgcolor="#ffffff">
+                        <!-- apps -->
+                        <table border="0" cellpadding="0" cellspacing="0" align="left" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;">
+                            <tr>
+                                <td style="vertical-align: middle; padding-right: 5px;">
+                                    <a href="https://itunes.apple.com/it/app/ebay-annunci/id385447972" title="Scarica l'applicazione per iPhone">
+                                        <img src="https://static.annuncicdn.it/it/images/emails/apple-btn-20150714.png" alt="Scarica l'applicazione per iPhone" border="0" width="26" height="26">
+                                    </a>
+                                </td>
+                                <td style="vertical-align: middle; padding-right: 5px;">
+                                    <a href="https://play.google.com/store/apps/details?id=com.ebay.annunci" title="Scarica l'applicazione per Android">
+                                        <img src="https://static.annuncicdn.it/it/images/emails/android-btn-20150714.png" alt="Scarica l'applicazione per Android" border="0" width="26" height="26">
+                                    </a>
+                                </td>
+                                <td class="hide-on-mobile" style="vertical-align: middle;">
+                                    <strong>Scarica l'app</strong>
+                                </td>
+                            </tr>
+                        </table>
+                        <!--  /apps -->
+
+                        <!-- social -->
+                        <table border="0" cellpadding="0" cellspacing="0" align="right" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;">
+                            <tr>
+                                <td class="hide-on-mobile" style="vertical-align: middle; padding-right: 5px;">
+                                    <strong>Seguici su</strong>
+                                </td>
+                                <td style="vertical-align: middle; padding-right: 5px;">
+                                    <a href="http://www.facebook.com/207404152618996" title="Seguici su Facebook">
+                                        <img src="https://static.annuncicdn.it/it/images/emails/facebook-btn-20150714.png" alt="Seguici su Facebook" border="0" width="26" height="26">
+                                    </a>
+                                </td>
+                                <td style="vertical-align: middle; padding-right: 5px;">
+                                    <a href="https://twitter.com/kijiji_it" title="Seguici su Twitter">
+                                        <img src="https://static.annuncicdn.it/it/images/emails/twitter-btn-20150714.png" alt="Seguici su Twitter" border="0" width="26" height="26">
+                                    </a>
+                                </td>
+                                <td style="vertical-align: middle;">
+                                    <a href="http://www.youtube.com/kijijitalia" title="Seguici su Youtube">
+                                        <img src="https://static.annuncicdn.it/it/images/emails/youtube-btn-20150714.png" alt="Seguici su Youtube" border="0" width="26" height="26">
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- /social -->
+                    </td>
+                </tr>
+            </table>
+            <!-- Social/Apps Buttons -->
+
+            <!-- Email Footer -->
+            <table width="600" border="0" cellpadding="0" cellspacing="0" align="center" class="deviceWidth" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;">
+                <tr>
+                    <td width="100%" height="10" bgcolor="#ffffff" style="width: 100%;font-size: 1px;">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td width="100%" bgcolor="#ffffff" align="center">
+                        <p id="copyright" style="margin: 0;padding: 0;font-size: 10px;color: #999999;">Copyright &copy; 2015 eBay International AG. Tutti i diritti riservati. I marchi registrati ed i segni distintivi sono di propriet&agrave; dei rispettivi titolari. L&rsquo;uso di questo sito web implica l&rsquo;accettazione delle <a href="http://www.kijiji.it/aiuto/default/condizioni">Condizioni d&rsquo;uso</a> e delle <a href="http://www.kijiji.it/aiuto/default/privacy">Regole sulla privacy</a> di Marktplaats BV.</p>
+                    </td>
+                </tr>
+            </table>
+            <!--  Email Footer -->
+        </td>
+    </tr>
+</table>
+<!-- End Wrapper -->
+
+</body>
+</html>
+
+
+
+--b1_7039865704dfcfcd719b6645d738923d--
+
