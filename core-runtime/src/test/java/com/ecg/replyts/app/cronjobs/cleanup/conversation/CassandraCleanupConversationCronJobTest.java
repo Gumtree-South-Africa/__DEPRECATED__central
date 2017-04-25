@@ -59,7 +59,7 @@ public class CassandraCleanupConversationCronJobTest {
         DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).dayOfMonth().roundFloorCopy().toDateTime();
         when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
-        ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed);
+        ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed, dateToBeProcessed.getMillis());
         List<ConversationModificationDate> modificationDates = Arrays.asList(modificationDate);
         Stream<ConversationModificationDate> modificationDatesStream = modificationDates.stream();
         when(conversationRepository.streamConversationModificationsByDay(dateToBeProcessed.getYear(),
@@ -81,7 +81,7 @@ public class CassandraCleanupConversationCronJobTest {
         DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).dayOfMonth().roundFloorCopy().toDateTime();
         when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
-        ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed);
+        ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed, dateToBeProcessed.getMillis());
         List<ConversationModificationDate> modificationDates = Arrays.asList(modificationDate);
         Stream<ConversationModificationDate> modificationDatesStream = modificationDates.stream();
         when(conversationRepository.streamConversationModificationsByDay(dateToBeProcessed.getYear(),
@@ -104,7 +104,7 @@ public class CassandraCleanupConversationCronJobTest {
         DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).dayOfMonth().roundFloorCopy().toDateTime();
         when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
-        ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed);
+        ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed, dateToBeProcessed.getMillis());
         List<ConversationModificationDate> modificationDates = Arrays.asList(modificationDate);
         Stream<ConversationModificationDate> modificationDatesStream = modificationDates.stream();
         when(conversationRepository.streamConversationModificationsByDay(dateToBeProcessed.getYear(),

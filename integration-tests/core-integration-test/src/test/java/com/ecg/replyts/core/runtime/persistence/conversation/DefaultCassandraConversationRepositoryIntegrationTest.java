@@ -152,7 +152,7 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
     @Test
     public void shouldDeleteOldConversationModificationIdx() {
         DateTime firstMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 11, 43);
-        ConversationModificationDate firstConversationModificationDate = new ConversationModificationDate(conversationId1, firstMsgReceivedAtDateTime);
+        ConversationModificationDate firstConversationModificationDate = new ConversationModificationDate(conversationId1, firstMsgReceivedAtDateTime, firstMsgReceivedAtDateTime.getMillis());
         given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
 
         getConversationRepository().deleteOldConversationModificationDate(firstConversationModificationDate);
@@ -167,12 +167,12 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
     public void shouldStreamConversationModificationsByDay() {
         // create conversation
         DateTime firstMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 11, 43);
-        ConversationModificationDate firstConversationModificationDate = new ConversationModificationDate(conversationId1, firstMsgReceivedAtDateTime);
+        ConversationModificationDate firstConversationModificationDate = new ConversationModificationDate(conversationId1, firstMsgReceivedAtDateTime, firstMsgReceivedAtDateTime.getMillis());
         given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
 
         // update conversation
         DateTime secondMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 12, 22, 5);
-        ConversationModificationDate secondConversationModificationDate = new ConversationModificationDate(conversationId1, secondMsgReceivedAtDateTime);
+        ConversationModificationDate secondConversationModificationDate = new ConversationModificationDate(conversationId1, secondMsgReceivedAtDateTime, secondMsgReceivedAtDateTime.getMillis());
         DefaultMutableConversation conversation = (DefaultMutableConversation) conversationRepository.getById(conversationId1);
         conversation.applyCommand(newAddMessageCommand(conversationId1, "msg456", secondMsgReceivedAtDateTime));
         conversation.commit(conversationRepository, conversationEventListeners);
