@@ -518,6 +518,11 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>mde-listener-pushnotification</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>mde-postprocessor-sms</artifactId>
                     <version>${project.version}</version>
                 </dependency>

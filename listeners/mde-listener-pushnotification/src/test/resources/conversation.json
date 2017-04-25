@@ -1,0 +1,23 @@
+{
+  "version": 5,
+  "id": "b:2srfkgv:287p61161",
+  "adId": "COMA4022",
+  "buyerId": "Smith-114@ebay.de",
+  "sellerId": "hermann-114@ebay.de",
+  "buyerSecret": "rgx1n3n5kkmx0",
+  "closedByBuyer": false,
+  "closedBySeller": false,
+  "sellerSecret": "d0fkswpz5qn28",
+  "state": "ACTIVE",
+  "customValues": {
+    "to-userid": "222022",
+    "buyer_device_id": "BUYER_DEVICE_ID",
+    "seller_customer_id": "222022",
+    "seller-name": "MrHermann",
+    "buyer-name": "MrSmith",
+    "from-userid": "111022",
+    "buyer_customer_id": "111022"
+  },
+  "messages":[],
+  "deleted": false
+}

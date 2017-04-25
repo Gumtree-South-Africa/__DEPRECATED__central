@@ -13,6 +13,8 @@ import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -23,7 +25,9 @@ import static com.ecg.replyts.core.api.model.conversation.MessageState.SENT;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 
+/* This listener is order-dependent, it should start before MdePushNotificationListener */
 @Component
+@Order(value = 500)
 public class PostBoxUpdateListener implements MessageProcessedListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxUpdateListener.class);
