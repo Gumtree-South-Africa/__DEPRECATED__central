@@ -18,6 +18,10 @@ public class HybridSimplePostBoxConfiguration {
     @Value("${migration.postboxes.deepMigration.enabled:false}")
     private Boolean deepMigrationEnabled;
 
+    @Value("${migration.postboxes.delete.cthread.enabled:false}")
+    private Boolean postboxDeleteCthreadEnabled;
+
+
     @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid")
     @Bean
     public RiakSimplePostBoxRepository riakSimplePostBoxRepository() {
@@ -41,7 +45,7 @@ public class HybridSimplePostBoxConfiguration {
                                                                  CassandraSimplePostBoxRepository cassandraSimplePostBoxRepository,
                                                                  HybridMigrationClusterState migrationState) {
         return new HybridSimplePostBoxRepository(riakSimplePostBoxRepository, cassandraSimplePostBoxRepository,
-                migrationState, deepMigrationEnabled);
+                migrationState, deepMigrationEnabled, postboxDeleteCthreadEnabled);
     }
 
 }

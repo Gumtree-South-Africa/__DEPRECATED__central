@@ -96,15 +96,17 @@ public class RiakConversationRepository implements MutableConversationRepository
                 return null;
             }
             MutableConversation foundConversation = getById(replayedEvent.getConversationId());
+
             if (foundConversation == null) {
                 // see https://github.scm.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two-datacenter-operations
                 LOGGER.warn("could not load conversation {}, even tough there is a conversation secret referring to it: {}. " +
                                 "Recreating empty conversation (this is normal behaviour if you use two datacenters and have a " +
                                 "connection loss between them. if this is not the case right now, this might be an indicator for something going wrong)",
                         replayedEvent.getConversationId(), secret);
-
+                LOGGER.debug("Found conversation with id {} by secret in Riak", replayedEvent.getConversationId());
                 return DefaultMutableConversation.create(replayedEvent);
             } else {
+                LOGGER.debug("Found conversation with id {} by secret in Riak", foundConversation.getId());
                 return foundConversation;
             }
 
@@ -150,6 +152,7 @@ public class RiakConversationRepository implements MutableConversationRepository
             setupConversationIfNewlyCreated(toBeCommittedEvents);
             conversationBucket.write(conversationId, toBeCommittedEvents);
         } finally {
+            LOGGER.debug("Saving conversation {}, with {} events to Rial", conversationId, toBeCommittedEvents.size());
             context.stop();
         }
     }
@@ -194,6 +197,7 @@ public class RiakConversationRepository implements MutableConversationRepository
 
     @Override
     public void deleteConversation(Conversation c) {
+        LOGGER.debug("Deleting conversation {} with {} events from Riak", c.getId(), c.getMessages().size());
         if (c.getState() != ConversationState.DEAD_ON_ARRIVAL) {
             conversationSecretBucket.delete(c.getBuyerSecret());
             conversationSecretBucket.delete(c.getSellerSecret());

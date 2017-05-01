@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import static org.mockito.Mockito.*;
 public class HybridSimplePostBoxRepositoryTest {
 
     private static final boolean WITH_DEEP_MIGRATION = true;
+    private static final boolean DELETE_CTHREAD_ENABLED = true;
 
     @Mock
     private RiakSimplePostBoxRepository riakRepository;
@@ -35,8 +37,10 @@ public class HybridSimplePostBoxRepositoryTest {
 
     @Before
     public void setup() {
-        normalRepository = new HybridSimplePostBoxRepository(riakRepository, cassandraRepository, migrationState, WITH_DEEP_MIGRATION);
-        deepMigrationRepository = new HybridSimplePostBoxRepository(riakRepository, cassandraRepository, migrationState, WITH_DEEP_MIGRATION);
+        normalRepository = new HybridSimplePostBoxRepository(riakRepository, cassandraRepository, migrationState,
+                WITH_DEEP_MIGRATION, DELETE_CTHREAD_ENABLED);
+        deepMigrationRepository = new HybridSimplePostBoxRepository(riakRepository, cassandraRepository, migrationState,
+                WITH_DEEP_MIGRATION, DELETE_CTHREAD_ENABLED);
     }
 
     @Test
@@ -67,7 +71,7 @@ public class HybridSimplePostBoxRepositoryTest {
         List riakConvThreads = newArrayList(c2, c3);
 
         when(cassandraRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), cassConvThreads, 10));
-        when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads,10));
+        when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(true);
 
         deepMigrationRepository.byId(email);
@@ -83,7 +87,7 @@ public class HybridSimplePostBoxRepositoryTest {
         List riakConvThreads = newArrayList(c1);
 
         when(cassandraRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), Collections.emptyList(), 10));
-        when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads,10));
+        when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(false);
 
         normalRepository.byId(email);
@@ -103,7 +107,7 @@ public class HybridSimplePostBoxRepositoryTest {
         List riakConvThreads = newArrayList(c1, c2Updated, c3);
 
         when(cassandraRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), cassConvThreads, 10));
-        when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads,10));
+        when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(true);
 
         deepMigrationRepository.byId(email);
@@ -123,13 +127,35 @@ public class HybridSimplePostBoxRepositoryTest {
         List riakConvThreads = newArrayList(c1);
 
         when(cassandraRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), cassConvThreads, 10));
-        when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads,10));
+        when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(true);
 
         deepMigrationRepository.byId(email);
 
         verify(cassandraRepository).byId(email);
-        verify(cassandraRepository).deleteThread(email, "c2");
+        verify(cassandraRepository).deleteConversationThreads(email, Arrays.asList("c2"));
+        verifyNoMoreInteractions(cassandraRepository);
+    }
+
+    @Test
+    public void deepMigrationDoNotRemoveConversationThreadsFromCassandra() throws Exception {
+
+        deepMigrationRepository = new HybridSimplePostBoxRepository(riakRepository, cassandraRepository, migrationState,
+                WITH_DEEP_MIGRATION, false);
+
+        String email = "test@example.com";
+        AbstractConversationThread c1 = createConversationThread(DateTime.now().minusHours(1), "c1");
+        AbstractConversationThread c2 = createConversationThread(DateTime.now().minusMinutes(10), "c2");
+        List cassConvThreads = newArrayList(c1, c2);
+        List riakConvThreads = newArrayList(c1);
+
+        when(cassandraRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), cassConvThreads, 10));
+        when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
+        when(migrationState.tryClaim(PostBox.class, email)).thenReturn(true);
+
+        deepMigrationRepository.byId(email);
+
+        verify(cassandraRepository).byId(email);
         verifyNoMoreInteractions(cassandraRepository);
     }
 
@@ -140,7 +166,7 @@ public class HybridSimplePostBoxRepositoryTest {
         List riakConvThreads = newArrayList(c1);
 
         when(cassandraRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), Collections.emptyList(), 10));
-        when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads,10));
+        when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(false);
 
         deepMigrationRepository.byId(email);

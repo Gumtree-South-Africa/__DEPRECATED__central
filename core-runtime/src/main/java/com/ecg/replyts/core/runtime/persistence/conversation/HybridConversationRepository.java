@@ -68,6 +68,7 @@ public class HybridConversationRepository implements MutableConversationReposito
         List<ConversationEvent> originalConversationEventsInRiak = new ArrayList<>(conversationEventsInRiak);
         for (ConversationEvent eventInCassandra : conversationEventsInCassandra) {
             if (!conversationEventsInRiak.remove(eventInCassandra)) {
+                LOG.error("Total conversations in riak: {} in Cassandra: {}", conversationEventsInRiak.size(), conversationEventsInCassandra.size());
                 LOG.error("Conversation {} contains a conversationEvent in Cassandra but not in Riak: {}", conversationId, eventInCassandra);
             }
         }

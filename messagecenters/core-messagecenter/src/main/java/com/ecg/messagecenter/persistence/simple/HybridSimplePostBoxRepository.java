@@ -28,12 +28,15 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
 
     private final HybridMigrationClusterState migrationState;
     private final boolean deepMigrationEnabled;
+    private final boolean postboxDeleteCthreadEnable;
 
-    public HybridSimplePostBoxRepository(RiakSimplePostBoxRepository riakRepository, CassandraSimplePostBoxRepository cassandraRepository, HybridMigrationClusterState migrationState, boolean deepMigrationEnabled) {
+    public HybridSimplePostBoxRepository(RiakSimplePostBoxRepository riakRepository, CassandraSimplePostBoxRepository cassandraRepository,
+                                         HybridMigrationClusterState migrationState, boolean deepMigrationEnabled, boolean postboxDeleteCthreadEnable) {
         this.riakRepository = riakRepository;
         this.cassandraRepository = cassandraRepository;
         this.migrationState = migrationState;
         this.deepMigrationEnabled = deepMigrationEnabled;
+        this.postboxDeleteCthreadEnable = postboxDeleteCthreadEnable;
     }
 
     @Override
@@ -74,7 +77,7 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
         PostBox<AbstractConversationThread> postBoxInRiak = riakRepository.byId(email);
 
         if (!postBoxInRiak.getLastModification().isAfter(postBoxInCassandra.getLastModification()) &&
-             postBoxInRiak.getConversationThreads().size() == postBoxInCassandra.getConversationThreads().size()) {
+                postBoxInRiak.getConversationThreads().size() == postBoxInCassandra.getConversationThreads().size()) {
             LOG.debug("Postbox for email {} doesn't have a newer modificationDate in Riak ({}) than in Cassandra ({}) and the number of conversationThreads ({}) is equal, not migrating it",
                     email, postBoxInRiak.getLastModification(), postBoxInCassandra.getLastModification(), postBoxInRiak.getConversationThreads().size());
             return postBoxInRiak;
@@ -120,11 +123,16 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
                 LOG.debug("Updating Postbox {} in Cassandra with convThread from Riak: {}", email, convThreadR.fullToString());
                 cassandraRepository.writeThread(email, convThreadR);
             }
+
             // delete the removed convThreads from Cassandra
-            for (String cid : threadsIdsToDelete) {
-                LOG.debug("Removing convThread {} from Postbox {} in Cassandra", cid, email);
-                cassandraRepository.deleteThread(email, cid);
+            if (postboxDeleteCthreadEnable && threadsIdsToDelete.size() > 0) {
+                LOG.debug("Removing {} convThreads from Postbox {} in Cassandra", threadsIdsToDelete.size(), email);
+                cassandraRepository.deleteConversationThreads(email, threadsIdsToDelete);
+            } else {
+                LOG.debug("Extra {} convThreads from Postbox {} in Cassandra", threadsIdsToDelete.size(), email);
             }
+        } catch (RuntimeException e) {
+            LOG.error("Exception caught in deepcompare - {}", e);
         }
 
         LOG.debug("Done with deep comparing Postbox {} in Riak and Cassandra", email);

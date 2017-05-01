@@ -47,6 +47,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     private final Timer streamConversationThreadModificationsByHourTimer = TimingReports.newTimer("cassandra.postboxRepo-streamConversationModificationsByHour");
     private final Timer deleteOldConversationThreadModificationDateTimer = TimingReports.newTimer("cassandra.postBoxRepo-deleteOldConversationThreadModificationDate");
     private final Timer deleteConversationThreadWithModificationIdxTimer = TimingReports.newTimer("cassandra.postBoxRepo-deleteConversationThreadWithModificationIdx");
+    private final Timer deleteConversationThreadBatchTimer = TimingReports.newTimer("cassandra.postBoxRepo-deleteConversationThreadBatch");
     private final Timer getLastModifiedDateTimer = TimingReports.newTimer("cassandra.postboxRepo-getLastModifiedDate");
     private final Timer threadByIdTimer = TimingReports.newTimer("cassandra.postBoxRepo-threadById");
     private final Timer upsertThreadTimer = TimingReports.newTimer("cassandra.postBoxRepo-upsertThread");
@@ -317,6 +318,18 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
             deleteConversationThreadStatements(batch, postboxId, conversationId);
 
+            batch.setConsistencyLevel(writeConsistency).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
+
+            session.execute(batch);
+        }
+    }
+
+    public void deleteConversationThreads(String email, List<String> convIds) {
+        try (Timer.Context ignored = deleteConversationThreadBatchTimer.time()) {
+            BatchStatement batch = new BatchStatement();
+            for(String conv: convIds) {
+                deleteConversationThreadStatements(batch, email, conv);
+            }
             batch.setConsistencyLevel(writeConsistency).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
 
             session.execute(batch);
