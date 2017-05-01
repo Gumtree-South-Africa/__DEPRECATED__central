@@ -39,17 +39,7 @@
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>gtuk-filter-blacklist</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>gtuk-filter-category</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>gtuk-filter-flagged</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
@@ -85,6 +75,16 @@
 
                 -->
 
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtuk-filter-blacklist</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtuk-filter-flagged</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>gtuk-filter-word</artifactId>
