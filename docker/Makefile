@@ -1,6 +1,6 @@
 DOCKER_COMPOSE  = docker-compose
 BROWSE          = open
-PROPS2CONSUL    = properties-to-consul
+PROPS2CONSUL    = ./properties-to-consul
 CASS_IMG_VER    = 0.0.5
 
 .PHONY: start up down ui import logs
