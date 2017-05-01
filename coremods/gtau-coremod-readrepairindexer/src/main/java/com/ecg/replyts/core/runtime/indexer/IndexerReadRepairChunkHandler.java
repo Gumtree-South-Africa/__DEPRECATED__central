@@ -6,7 +6,6 @@ import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
-import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakReadRepairConversationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,14 +27,13 @@ public class IndexerReadRepairChunkHandler extends IndexerChunkHandler {
 
     @Autowired
     public IndexerReadRepairChunkHandler(
-            RiakConversationRepository conversationRepository,
+            ConversationRepository conversationRepository,
             RiakReadRepairConversationRepository readRepairConversationRepository,
             SearchIndexer indexer) {
         super(conversationRepository, indexer, 5000);
         this.conversationRepository = readRepairConversationRepository;
         this.indexer = indexer;
     }
-
 
     public void indexChunk(List<String> conversationIds) {
         if (conversationIds.isEmpty()) {
@@ -61,6 +59,5 @@ public class IndexerReadRepairChunkHandler extends IndexerChunkHandler {
         } finally {
             timer.stop();
         }
-
     }
 }
