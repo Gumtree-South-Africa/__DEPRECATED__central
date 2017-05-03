@@ -1,9 +1,8 @@
 package com.ecg.messagebox.controllers;
 
 import com.ecg.replyts.integration.test.MailBuilder;
-import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
-import org.junit.Rule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
@@ -53,6 +52,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
     }
 
     @Test
+    @Ignore("RP: This test is fragile and fails the build too often, see COMAAS-436")
     public void changeVisibilities() {
         String convId1 = testRule.deliver(MAIL1).getConversation().getId();
         testRule.waitForMail();
