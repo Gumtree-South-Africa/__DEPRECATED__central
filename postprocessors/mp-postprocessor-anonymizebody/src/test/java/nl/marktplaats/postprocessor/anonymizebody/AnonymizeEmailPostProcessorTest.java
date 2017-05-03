@@ -10,6 +10,7 @@ import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.persistence.PersistenceException;
+import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import com.google.common.net.MediaType;
@@ -28,7 +29,9 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class AnonymizeEmailPostProcessorTest {
@@ -129,6 +132,25 @@ public class AnonymizeEmailPostProcessorTest {
         assertThat(argument.getValue(), equalTo(
                 "This is my email address "+ unanonymizedSender
                         + " thanks. To: " + anonymizedSender + ". From:  " + anonymizedSender + "."));
+    }
+
+    @Test
+    public void testReplaceBodyOnlyForVanCaseWithLTGT() throws IOException {
+        String text = loadFileAsString("/nl/marktplaats/postprocessor/anonymizebody/emailAnswer.txt");
+        String cutString = "<b>Van:</b> petra barbier &lt;dollydot94@hotmail.com&gt;<br>";
+        assertTrue(text.contains(cutString));
+
+        MutableMail mail = prepareMailWithPainText(text);
+
+        // call method under test a
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+
+        assertFalse(argument.getValue().contains(cutString));
     }
 
     @Test
@@ -753,6 +775,12 @@ public class AnonymizeEmailPostProcessorTest {
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
         verify(messageContent).overrideContent(argument.capture());
         assertThat(argument.getValue(), equalTo(html.replace("{{{sender}}}", anonymizedSender)));
+    }
+
+    private String loadFileAsString(String fileName) throws IOException {
+        try (InputStream is = getClass().getResourceAsStream(fileName)) {
+            return CharStreams.toString(new InputStreamReader(is, Charsets.UTF_8));
+        }
     }
 
     private String[] extractContentParts(Mail mail) {
