@@ -8,7 +8,6 @@ import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.api.category.CategoryModel;
 import com.gumtree.api.category.domain.Category;
-import com.gumtree.api.category.stub.StubCategoryModel;
 import com.gumtree.filters.comaas.config.CategoryFilterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +26,10 @@ public class GumtreeCategoryBreadcrumbFilter implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(GumtreeCategoryBreadcrumbFilter.class);
     private Timer timer = TimingReports.newTimer("category-process-time");
 
-    private final CategoryModel categoryModel = new StubCategoryModel();
-
     private static final String CATEGORYID = "categoryid";
+
+    private CategoryModel categoryModel;
+
     private CategoryFilterConfig filterConfig;
 
     @Override
@@ -50,6 +50,11 @@ public class GumtreeCategoryBreadcrumbFilter implements Filter {
 
     public GumtreeCategoryBreadcrumbFilter withFilterConfig(CategoryFilterConfig filterConfig) {
         this.filterConfig = filterConfig;
+        return this;
+    }
+
+    GumtreeCategoryBreadcrumbFilter withCategoryModel(CategoryModel categoryModel) {
+        this.categoryModel = categoryModel;
         return this;
     }
 }

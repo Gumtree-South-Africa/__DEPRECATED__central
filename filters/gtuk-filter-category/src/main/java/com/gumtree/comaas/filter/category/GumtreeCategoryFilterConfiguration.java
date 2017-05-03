@@ -2,21 +2,60 @@ package com.gumtree.comaas.filter.category;
 
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gumtree.api.category.CategoryModel;
+import com.gumtree.api.category.CategoryReadApi;
+import com.gumtree.api.config.CategoryModelFactory;
+import com.gumtree.api.config.CategoryReadApiFactory;
 import com.gumtree.filters.comaas.config.CategoryFilterConfig;
-import com.gumtree.filters.comaas.json.ConfigMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @ComaasPlugin
 @Configuration
 public class GumtreeCategoryFilterConfiguration {
+    @Value("${gumtree.category.api.hostname:localhost}")
+    private String hostname;
+
+    @Value("${gumtree.category.api.port:9000}")
+    private Integer port;
+
+    @Value("${gumtree.category.api.socket.timeout:5000}")
+    private Integer socketTimeout;
+
+    @Value("${gumtree.category.api.connection.timeout:15000}")
+    private Integer connectionTimeout;
+
+    @Value("${gumtree.category.api.retry.count:1}")
+    private Integer retryCount;
+
+    @Value("${gumtree.category.api.cache.reload.interval:5000}")
+    private Integer cacheCheckInterval;
+
     @Bean
-    public FilterFactory filterFactory() {
+    public CategoryReadApi categoryReadApi() {
+        return new CategoryReadApiFactory(hostname, port, socketTimeout, connectionTimeout, retryCount).create();
+    }
+
+    @Bean
+    public CategoryModel unfilteredCategoryModel(CategoryReadApi categoryReadApi) {
+        return new CategoryModelFactory(categoryReadApi, cacheCheckInterval).createWithoutFilters();
+    }
+
+    @Bean
+    public FilterFactory filterFactory(CategoryModel categoryModel) {
         return (instanceName, configuration) -> {
-            JsonNode configurationNode = configuration.get("configuration");
-            CategoryFilterConfig filterConfig = ConfigMapper.asObject(configurationNode.toString(), CategoryFilterConfig.class);
-            return new GumtreeCategoryBreadcrumbFilter().withFilterConfig(filterConfig);
+            try {
+                JsonNode configurationNode = configuration.get("configuration");
+                CategoryFilterConfig filterConfig;
+                filterConfig = new ObjectMapper().treeToValue(configurationNode, CategoryFilterConfig.class);
+                return new GumtreeCategoryBreadcrumbFilter().withFilterConfig(filterConfig).withCategoryModel(categoryModel);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Could not configure plugin GumtreeCategoryFilterConfiguration", e);
+            }
         };
     }
 }
