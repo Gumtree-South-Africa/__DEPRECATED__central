@@ -54,12 +54,19 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                                  @Value("${api.maxConnectionsPerHost:40}") Integer maxTotalConnections,
                                  KmobilePushService kmobilePushService) {
         this.postBoxInitializer = postBoxInitializer;
-        this.adInfoLookup = new AdInfoLookup(apiHost, apiPort, connectionTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
+
+        if (apiEnabled) {
+            this.adInfoLookup = new AdInfoLookup(apiHost, apiPort, connectionTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
+        } else {
+            this.adInfoLookup = null;
+        }
+
         if (pushEnabled && !Strings.isNullOrEmpty(pushHost)) {
             this.pushService = kmobilePushService;
         } else {
             this.pushService = null;
         }
+
         this.userNotificationRules = new UserNotificationRules();
     }
 

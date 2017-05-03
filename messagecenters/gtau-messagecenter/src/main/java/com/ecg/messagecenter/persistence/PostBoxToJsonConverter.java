@@ -68,6 +68,15 @@ public class PostBoxToJsonConverter implements AbstractPostBoxToJsonConverter<Co
             if (thread.getLastMessageId().isPresent()) {
                 builder.attr("lastMessageId", thread.getLastMessageId().get());
             }
+            if (thread.getBuyerAnonymousEmail().isPresent()) {
+                builder.attr("buyerAnonymousEmail", thread.getBuyerAnonymousEmail().get());
+            }
+            if (thread.getSellerAnonymousEmail().isPresent()) {
+                builder.attr("sellerAnonymousEmail", thread.getSellerAnonymousEmail().get());
+            }
+            if (thread.getStatus().isPresent()) {
+                builder.attr("status", thread.getStatus().get());
+            }
 
             threads.add(builder.build());
         }

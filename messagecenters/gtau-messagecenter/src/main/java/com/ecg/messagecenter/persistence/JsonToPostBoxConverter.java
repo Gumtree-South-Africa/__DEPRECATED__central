@@ -40,7 +40,10 @@ public class JsonToPostBoxConverter implements AbstractJsonToPostBoxConverter<Co
                     lookupStringValue(threadNode, "robot"),
                     lookupStringValue(threadNode, "offerId"),
                     lookupListValue(threadNode, "lastMessageAttachments"),
-                    lookupStringValue(threadNode, "lastMessageId"))
+                    lookupStringValue(threadNode, "lastMessageId"),
+                    lookupStringValue(threadNode, "buyerAnonymousEmail"),
+                    lookupStringValue(threadNode, "sellerAnonymousEmail"),
+                    lookupStringValue(threadNode, "status"))
             );
         }
 

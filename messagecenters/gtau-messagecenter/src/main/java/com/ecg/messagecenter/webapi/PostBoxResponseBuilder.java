@@ -94,9 +94,9 @@ public class PostBoxResponseBuilder {
                         Optional.empty(),
                         lastMessage.getAttachmentFilenames(),
                         conversationThread.getLastMessageId(),
-                        Optional.empty(),
-                        Optional.empty(),
-                        Optional.empty()
+                        conversationThread.getBuyerAnonymousEmail(),
+                        conversationThread.getSellerAnonymousEmail(),
+                        conversationThread.getStatus()
                 ));
             }
         }

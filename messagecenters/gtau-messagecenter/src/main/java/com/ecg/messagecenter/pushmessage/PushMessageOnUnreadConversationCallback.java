@@ -65,7 +65,14 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
 
     void sendPushMessage(String email, Long unreadCount) {
         try {
-            Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.lookupAdIInfo(Long.parseLong(conversation.getAdId()));
+            Optional<AdInfoLookup.AdInfo> adInfo = Optional.ofNullable(adInfoLookup).map(
+                    new Function<AdInfoLookup, AdInfoLookup.AdInfo>() {
+                        @Nullable
+                        @Override
+                        public AdInfoLookup.AdInfo apply(AdInfoLookup input) {
+                            return input.lookupAdIInfo(Long.parseLong(conversation.getAdId())).orElse(null);
+                        }
+                    });
 
             Optional<PushMessagePayload> payload = createPayloadBasedOnNotificationRules(conversation, message, email, unreadCount, adInfo);
 
