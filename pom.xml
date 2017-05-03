@@ -92,6 +92,7 @@
                 <module>filters/gtuk-filter-category</module>
                 <module>filters/gtuk-filter-geoip</module>
                 <module>filters/gtuk-filter-url</module>
+                <module>filters/gtuk-filter-geoiplookup</module>
                 <module>filters/gtuk-filter-knowngood</module>
                 <module>filters/gtuk-filter-watchlist</module>
 

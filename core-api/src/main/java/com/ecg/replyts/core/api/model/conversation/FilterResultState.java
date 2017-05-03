@@ -20,7 +20,7 @@ public enum FilterResultState {
     HELD {
         @Override
         public boolean isTransitionByFiltersAllowedTo(FilterResultState otherState) {
-            switch (otherState) { // NOSONAR
+            switch (otherState) {
                 case ACCEPT_AND_TERMINATE:
                 case HELD:
                 case DROPPED:
