@@ -29,10 +29,12 @@ public class IntegrationTestRunner extends ExternalResource {
     private FileSystemMailSender mailSender;
 
     private Boolean isRunning = false;
+    private Class<?>[] configurations;
 
-    public IntegrationTestRunner(Properties testProperties, String configResourceDirectory) {
+    public IntegrationTestRunner(Properties testProperties, String configResourceDirectory, Class<?> ... configurations) {
         this.testProperties = testProperties;
         this.configResourceDirectory = configResourceDirectory;
+        this.configurations = configurations;
     }
 
     public void start() {
@@ -42,7 +44,7 @@ public class IntegrationTestRunner extends ExternalResource {
         try {
             LOGGER.info("Starting COMaaS");
 
-            replytsRunner = new ReplytsRunner(testProperties, configResourceDirectory);
+            replytsRunner = new ReplytsRunner(testProperties, configResourceDirectory, configurations);
             mailSender = new FileSystemMailSender(replytsRunner.getDropFolder());
 
             isRunning = true;

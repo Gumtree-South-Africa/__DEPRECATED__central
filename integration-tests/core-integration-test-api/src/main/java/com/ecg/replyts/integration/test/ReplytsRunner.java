@@ -6,18 +6,17 @@ import com.google.common.io.Files;
 import org.elasticsearch.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 public final class ReplytsRunner {
     private static final Logger LOG = LoggerFactory.getLogger(ReplytsRunner.class);
@@ -33,22 +32,18 @@ public final class ReplytsRunner {
 
     private Wiser wiser = new Wiser(smtpOutPort);
 
-    private AbstractApplicationContext context;
+    private AnnotationConfigApplicationContext context;
 
     private Client searchClient;
 
-    public ReplytsRunner(Properties testProperties, String configResourcePrefix) {
+    public ReplytsRunner(Properties testProperties, String configResourcePrefix, Class<?>[] configurations) {
         wiser.start();
 
         if (!wiser.getServer().isRunning())
             throw new IllegalStateException("SMTP server thread is not running");
 
         try {
-            context = new ClassPathXmlApplicationContext(new String[] {
-                "classpath:server-context.xml",
-                "classpath:runtime-context.xml",
-                "classpath*:/plugin-inf/*.xml",
-            }, false);
+            context = new AnnotationConfigApplicationContext();
 
             context.getEnvironment().setActiveProfiles(ReplyTS.EMBEDDED_PROFILE);
 
@@ -80,6 +75,20 @@ public final class ReplytsRunner {
 
             context.registerShutdownHook();
 
+            PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(context.getClassLoader());
+            List<Resource> resources = new ArrayList<>();
+            resources.addAll(Arrays.asList(pmrl.getResources("classpath:server-context.xml")));
+            resources.addAll(Arrays.asList(pmrl.getResources("classpath:runtime-context.xml")));
+            resources.addAll(Arrays.asList(pmrl.getResources("classpath*:/plugin-inf/*.xml")));
+
+            for (Resource r : resources) {
+                XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);
+                reader.loadBeanDefinitions(r);
+            }
+
+            if (configurations != null && configurations.length != 0) {
+                context.register(configurations);
+            }
             context.refresh();
 
             if (context.getBean("started", Boolean.class) != true) {
