@@ -4,6 +4,7 @@ import com.ecg.replyts.integration.test.MailBuilder;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
@@ -53,6 +54,7 @@ public class ConversationControllerAcceptanceTest extends ReplyTsIntegrationTest
     }
 
     @Test
+    @Ignore("RP: This test is fragile and fails the build too often, see COMAAS-435")
     public void markConversationAsRead() throws Exception {
         String convId = testRule.deliver(MAIL1).getConversation().getId();
         testRule.waitForMail();

@@ -27,6 +27,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
             .plainBody("first contact from buyer 3");
 
     @Test
+    @Ignore("RP: This test is fragile and fails the build too often, see COMAAS-436")
     public void getConversations() {
         String convId1 = testRule.deliver(MAIL1).getConversation().getId();
         testRule.waitForMail();
