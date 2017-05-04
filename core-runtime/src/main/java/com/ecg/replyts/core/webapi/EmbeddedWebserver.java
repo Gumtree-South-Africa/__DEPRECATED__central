@@ -72,9 +72,9 @@ public class EmbeddedWebserver {
     public EmbeddedWebserver(
             @Value("${replyts.ssl.enabled:false}") boolean isSSLEnabled,
             @Value("${replyts.http.port:8081}") Integer httpPortNumber,
-            @Value("${replyts.http.timeout:null}") Long httpTimeoutMs,
-            @Value("${replyts.http.maxThreads:null}") Integer maxThreads,
-            @Value("${replyts.http.maxThreadQueueSize:null}") Integer maxThreadQueueSize,
+            @Value("${replyts.http.timeout:5000}") Long httpTimeoutMs,
+            @Value("${replyts.http.maxThreads:100}") Integer maxThreads,
+            @Value("${replyts.http.maxThreadQueueSize:200}") Integer maxThreadQueueSize,
             @Value("${replyts.jetty.gzip.enabled:false}") boolean gzipEnabled,
             @Value("${replyts.jetty.instrument:true}") boolean instrumented,
             Environment environment) {
@@ -83,16 +83,16 @@ public class EmbeddedWebserver {
         this.instrument = instrumented;
 
         ThreadPoolBuilder builder = new ThreadPoolBuilder()
-                .withMaxThreads(Optional.ofNullable(maxThreads))
+                .withMaxThreads(maxThreads)
                 .withInstrumentation(instrumented)
-                .withQueueSize(Optional.ofNullable(maxThreadQueueSize));
+                .withQueueSize(maxThreadQueueSize);
 
         if (isSSLEnabled) {
             SSLConfiguration sslConfiguration = SSLConfiguration.createSSLConfiguration(environment);
-            SSLServerFactory factory = new SSLServerFactory(httpPortNumber, Optional.ofNullable(httpTimeoutMs), builder, sslConfiguration);
+            SSLServerFactory factory = new SSLServerFactory(httpPortNumber, httpTimeoutMs, builder, sslConfiguration);
             server = factory.createServer();
         } else {
-            HttpServerFactory factory = new HttpServerFactory(httpPortNumber, Optional.ofNullable(httpTimeoutMs), builder);
+            HttpServerFactory factory = new HttpServerFactory(httpPortNumber, httpTimeoutMs, builder);
             server = factory.createServer();
         }
 

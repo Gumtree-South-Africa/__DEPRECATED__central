@@ -23,19 +23,17 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Optional;
 
 public class SSLServerFactory {
-
     private static final String KEY_STORE_ALIAS = "replyts";
     private static final String DEFAULT_KEY_STORE_PASSWORD = "replyts";
 
-    private final Optional<Long> httpTimeoutMs;
+    private final long httpTimeoutMs;
     private final ThreadPoolBuilder threadPoolBuilder;
     private final SSLConfiguration sslConfig;
     private final int httpPortNumber;
 
-    public SSLServerFactory(int httpPortNumber, Optional<Long> httpTimeoutMs, ThreadPoolBuilder threadPoolBuilder, SSLConfiguration sslConfig) {
+    public SSLServerFactory(int httpPortNumber, long httpTimeoutMs, ThreadPoolBuilder threadPoolBuilder, SSLConfiguration sslConfig) {
         this.httpTimeoutMs = httpTimeoutMs;
         this.threadPoolBuilder = threadPoolBuilder;
         this.sslConfig = sslConfig;
@@ -50,12 +48,12 @@ public class SSLServerFactory {
             final ServerConnector serverConnector = createServerConnector(server, sslConfig, sslContextFactory, httpsConfig);
             if(sslConfig.isAllowHttp()) {
                 final ServerConnector httpConnector = new ServerConnector(server);
-                httpTimeoutMs.ifPresent(timeoutMs -> {
-                    // Set blocking-timeout to 0 means to use the idle timeout,
-                    // see http://download.eclipse.org/jetty/9.3.3.v20150827/apidocs/org/eclipse/jetty/server/HttpConfiguration.html#setBlockingTimeout-long-
-                    httpsConfig.setBlockingTimeout(0L);
-                    httpConnector.setIdleTimeout(timeoutMs);
-                });
+
+                // Set blocking-timeout to 0 means to use the idle timeout,
+                // see http://download.eclipse.org/jetty/9.3.3.v20150827/apidocs/org/eclipse/jetty/server/HttpConfiguration.html#setBlockingTimeout-long-
+                httpsConfig.setBlockingTimeout(0L);
+                httpConnector.setIdleTimeout(httpTimeoutMs);
+
                 httpConnector.setPort(httpPortNumber);
                 server.setConnectors(new Connector[]{ httpConnector, serverConnector });
                 return server;
