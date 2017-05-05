@@ -3,6 +3,7 @@ package com.gumtree.comaas.common.filter;
 import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.gumtree.gumshield.api.client.GumshieldApi;
 import com.gumtree.gumshield.api.client.impl.RemoteGumshieldApiFactoryBean;
+import com.gumtree.gumshield.api.client.spec.UserApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,5 +29,10 @@ public class GumtreeGumshieldApiConfiguration {
         factoryBean.setSocketTimeout(apiSocketTimeout);
 
         return factoryBean.getObject();
+    }
+
+    @Bean
+    public UserApi userApi(RemoteGumshieldApiFactoryBean factoryBean) throws Exception {
+        return factoryBean.getObject().userApi();
     }
 }

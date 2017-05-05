@@ -91,6 +91,7 @@
                 <module>filters/gtuk-filter-flagged</module>
                 <module>filters/gtuk-filter-category</module>
                 <module>filters/gtuk-filter-geoip</module>
+                <module>filters/gtuk-filter-knowngood</module>
 
                 <module>listeners/gtuk-listener-eventpublisher</module>
                 <module>listeners/gtuk-listener-statsnotifier</module>

@@ -64,11 +64,6 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>gtuk-filter-knowngood</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>gtuk-filter-url</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -108,6 +103,11 @@
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>gtuk-filter-geoip</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtuk-filter-knowngood</artifactId>
                     <version>${project.version}</version>
                 </dependency>
 
