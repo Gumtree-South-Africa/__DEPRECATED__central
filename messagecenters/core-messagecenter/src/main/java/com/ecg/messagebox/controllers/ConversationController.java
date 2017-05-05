@@ -61,7 +61,9 @@ public class ConversationController {
             Optional<ConversationResponse> conversationResponse = postBoxService
                     .getConversation(userId, conversationId, messageIdCursorOpt, limit)
                     .map(responseConverter::toConversationResponseWithMessages);
-            LOG.trace("Conversation not found with conversationID: {}, userId: {}", conversationId, userId);
+            if (!conversationResponse.isPresent()) {
+                LOG.trace("Conversation not found with conversationID: {}, userId: {}", conversationId, userId);
+            }
             return wrapResponse(conversationResponse, response);
         }
     }
