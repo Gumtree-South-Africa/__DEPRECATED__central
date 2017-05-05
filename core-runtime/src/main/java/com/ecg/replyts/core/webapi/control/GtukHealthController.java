@@ -20,7 +20,7 @@ import java.util.jar.Manifest;
  * Remove this class when we do the gtuk deploys in the cloud.
  */
 @RestController
-@RequestMapping(value = "/health-gtuk")
+@RequestMapping(value = "/internal/properties/package/version")
 public class GtukHealthController {
     private static final Logger LOG = LoggerFactory.getLogger(GtukHealthController.class);
 
