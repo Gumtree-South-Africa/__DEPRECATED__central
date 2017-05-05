@@ -118,7 +118,7 @@ public class ConfigCrudController implements HandlerExceptionResolver {
             throw new RuntimeException("InstanceId is required");
         }
 
-        PluginConfiguration config = extract(pluginFactory, instanceId, body);
+        PluginConfiguration config = extract(pluginFactory, instanceId, body, body.get("configuration"));
 
         if (!configUpdateNotifier.validateConfiguration(config)) {
             throw new RuntimeException("PluginFactory " + pluginFactory + " not found");
@@ -153,7 +153,7 @@ public class ConfigCrudController implements HandlerExceptionResolver {
             String instanceId = node.get("instanceId").textValue();
             JsonNode configuration = node.get("configuration");
 
-            PluginConfiguration config = extract(pluginFactory, instanceId, configuration);
+            PluginConfiguration config = extract(pluginFactory, instanceId, configuration, configuration);
 
             if (!configUpdateNotifier.validateConfiguration(config)) {
                 throw new IllegalArgumentException(format("PluginFactory %s not found", pluginFactory));
@@ -197,17 +197,15 @@ public class ConfigCrudController implements HandlerExceptionResolver {
 
     }
 
-    private PluginConfiguration extract(String pluginFactory, String instanceId, JsonNode body) throws Exception {
-        JsonNode configuration = body.get("configuration");
+    private PluginConfiguration extract(String pluginFactory, String instanceId, JsonNode body, JsonNode configuration) throws Exception {
         if (configuration == null) {
             throw new IllegalStateException("payload needs a configuration node where the filter configuration is in");
         }
-        long priority = Long.valueOf(getContent(body, "priority", "0"));
-        PluginState state = PluginState.valueOf(getContent(body, "state", PluginState.ENABLED.name()));
-        ConfigurationId cid = toId(pluginFactory, instanceId);
-        PluginConfiguration config = new PluginConfiguration(cid, priority, state, 1l, configuration);
 
-        return config;
+        Long priority = Long.valueOf(getContent(body, "priority", "0"));
+        PluginState state = PluginState.valueOf(getContent(body, "state", PluginState.ENABLED.name()));
+
+        return new PluginConfiguration(toId(pluginFactory, instanceId), priority, state, 1l, configuration);
     }
 
     private static String getContent(JsonNode body, String fieldname, String alternative) {
