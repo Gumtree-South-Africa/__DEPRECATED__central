@@ -10,7 +10,9 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.jar.Manifest;
 
 /**
@@ -48,8 +50,8 @@ public class GtukHealthController {
         LOG.debug("GTUK version has been set to {}", version);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
-    public String get() {
-        return String.format("{\"metadata\":{\"version\":\"%s\"}}", version);
+    @RequestMapping(method = RequestMethod.GET, produces = "application/json")
+    public Map get() {
+        return Collections.singletonMap("metadata", Collections.singletonMap("version", version));
     }
 }
