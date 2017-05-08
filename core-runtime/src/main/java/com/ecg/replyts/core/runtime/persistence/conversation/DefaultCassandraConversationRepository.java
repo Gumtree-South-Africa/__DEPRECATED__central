@@ -438,7 +438,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
      * @return the DELETE statement
      */
     private Statement getDeleteCoreConversationModificationDescIdxByDayStatement(int year, int month, int day, Long modificationTimestamp, String conversationId) {
-        return QueryBuilder.delete().from("core_conversation_modification_desc_idx_by_day")
+        Statement deleteStatement =  QueryBuilder.delete().from("core_conversation_modification_desc_idx_by_day")
                 .where(QueryBuilder.eq("year", year))
                 .and(QueryBuilder.eq("month", month))
                 .and(QueryBuilder.eq("day", day))
@@ -446,6 +446,8 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
                 .and(QueryBuilder.eq("conversation_id", conversationId))
                 .setConsistencyLevel(getWriteConsistency())
                 .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
+        LOG.trace("DELETE for {}/{}/{}/{}/{} with statement {}", year, month, day, modificationTimestamp, conversationId, deleteStatement.toString());
+        return deleteStatement;
     }
 
     static class Statements extends StatementsBase {
