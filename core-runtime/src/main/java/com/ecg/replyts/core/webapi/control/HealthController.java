@@ -20,7 +20,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 @RestController
-@RequestMapping(value = "/health")
+// RP: added /internal/healthcheck for GTUK legacy deploy. Can be removed after we move to the Cloud.
+@RequestMapping(value = {"/health", "/internal/healthcheck"})
 public class HealthController {
     private static final Logger LOG = LoggerFactory.getLogger(HealthController.class);
 
