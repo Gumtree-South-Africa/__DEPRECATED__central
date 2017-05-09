@@ -38,7 +38,7 @@ function repackage() {
     mkdir -p tmp
     mkdir -p tmp2
     tar xfz ${ARTIFACT} -C tmp/
-    (cd tmp && sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' bin/comaas)
+    cd tmp
 
     PACKAGE_NAME=comaas-${TENANT}-legacy-${TIMESTAMP}-${GIT_HASH}
     PACKAGE_BASE=${BUILDDIR}/${PACKAGE_NAME}

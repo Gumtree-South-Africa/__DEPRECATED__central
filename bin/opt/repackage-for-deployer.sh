@@ -46,8 +46,6 @@ function repackage() {
   rm -rf conf
   mkdir -p conf
   cp ../../conf/$TENANT/$ENV/* conf
-  # Set the logDir to a known writable location
-  sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' bin/comaas
   cd ..
   # now in distribution/target/
   mkdir -p repackage/${REPACKAGED_ARTIFACT_NAME}/

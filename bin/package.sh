@@ -29,7 +29,6 @@ function createCloudPackage() {
     mkdir -p distribution/target/distribution/conf
     cp distribution/conf/${TENANT}/${1}/* distribution/target/distribution/conf
     chmod 0775 distribution/target/distribution/log
-    sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
     cp -r distribution/target/distribution distribution/target/${ARTIFACT_NAME}
     tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/ ${ARTIFACT_NAME}
     rm -rf distribution/target/${ARTIFACT_NAME}
@@ -58,9 +57,6 @@ function package() {
     cp distribution/conf/${TENANT}/sandbox/* distribution/target/distribution/conf
     tar czf ${DESTINATION}/${ARTIFACT_NAME}.tar.gz -C distribution/target/distribution .
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
-
-    # hardcode the logDir to /opt/replyts/logs for deploy.py packages
-    sed -i'.bak' 's~-DlogDir="\$BASEDIR"/log~-DlogDir="/opt/replyts/logs"~' distribution/target/distribution/bin/comaas
 
     # Now create a package with cloud sandbox properties that will be deployed using deploy.py
     createCloudPackage sandbox
