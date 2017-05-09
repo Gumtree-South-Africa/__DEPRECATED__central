@@ -6,4 +6,5 @@
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
     <logger name="com.ecg.replyts.core.runtime.cluster.monitor" level="INFO"/>
     <logger name="org.springframework.cloud" level="DEBUG"/>
+    <logger name="de.mobile.ebay.service.impl" level="OFF"/>
 </included>
