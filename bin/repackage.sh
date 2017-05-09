@@ -38,7 +38,6 @@ function repackage() {
     mkdir -p tmp
     mkdir -p tmp2
     tar xfz ${ARTIFACT} -C tmp/
-    cd tmp
 
     PACKAGE_NAME=comaas-${TENANT}-legacy-${TIMESTAMP}-${GIT_HASH}
     PACKAGE_BASE=${BUILDDIR}/${PACKAGE_NAME}
@@ -115,7 +114,6 @@ function repackage() {
         rm -rf tmp2
         mkdir -p tmp2/${DISTRIB_ARTIFACT}
         cp -r tmp/* tmp2/${DISTRIB_ARTIFACT}/
-        #rm -f tmp2/${DISTRIB_ARTIFACT}/conf/* && cp "prod"/* tmp2/${DISTRIB_ARTIFACT}/conf/
         cd tmp2
         mv ${DISTRIB_ARTIFACT}/bin/comaas ${DISTRIB_ARTIFACT}/bin/mp-replyts2
         tar cfz ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz . && cd ..
