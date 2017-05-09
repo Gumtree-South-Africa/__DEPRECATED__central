@@ -10,6 +10,8 @@ import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.google.common.collect.Iterators;
+import com.google.common.util.concurrent.RateLimiter;
+import com.yammer.metrics.Metrics;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +27,8 @@ import java.util.concurrent.*;
 import java.util.stream.Stream;
 
 import static org.joda.time.DateTime.now;
+
+import static com.ecg.replyts.core.runtime.TimingReports.newGauge;
 
 @Component
 @ConditionalOnExpression("#{" +
@@ -65,12 +69,19 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
     private ThreadPoolExecutor threadPoolExecutor;
 
+    @Value("${replyts.cleanup.conversation.rate.limit:30000}")
+    private int conversationCleanupRateLimit;
+
+    private RateLimiter rateLimiter;
+
     @PostConstruct
     public void createThreadPoolExecutor() {
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(workQueueSize);
         RejectedExecutionHandler rejectionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
 
         this.threadPoolExecutor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
+
+        this.rateLimiter = RateLimiter.create(conversationCleanupRateLimit);
     }
 
     @Override
@@ -93,6 +104,10 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
                 LOG.info("Cleanup: Deleting data related to {} conversation modification dates", idxs.size());
 
                 idxs.forEach(conversationModificationDate -> {
+
+                    double sleepTimeSeconds = rateLimiter.acquire();
+                    newGauge("cleanup.conversations.rateLimiter.sleepTimeSecondsGauge", () -> sleepTimeSeconds);
+
                     String conversationId = conversationModificationDate.getConversationId();
                     DateTime lastModifiedDate = conversationRepository.getLastModifiedDate(conversationId);
 
