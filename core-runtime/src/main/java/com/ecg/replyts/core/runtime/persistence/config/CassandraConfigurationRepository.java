@@ -33,7 +33,7 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
     private final ValueSizeConstraint sizeConstraint;
 
     private final Timer fetchTimer = TimingReports.newTimer("cassandra.configurationRepo-fetch");
-    private final Timer persistTimer = TimingReports.newTimer("cassandra.configurationRepo-persist");
+    private final Timer persistTimer = TimingReports.newTimer("cassandra.configurationRepo-store");
 
     public CassandraConfigurationRepository(ValueSizeConstraint sizeConstraint, Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
         this.sizeConstraint = sizeConstraint;

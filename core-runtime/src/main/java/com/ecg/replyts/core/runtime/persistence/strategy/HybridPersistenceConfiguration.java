@@ -6,7 +6,6 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
-import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.RiakIndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -21,13 +20,9 @@ import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversati
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;
-import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository;
-import com.ecg.replyts.core.runtime.persistence.mail.DiffingRiakMailRepository;
-import com.ecg.replyts.core.runtime.persistence.mail.HybridHeldMailRepository;
-import com.ecg.replyts.core.runtime.persistence.mail.RiakHeldMailRepository;
+
+import com.ecg.replyts.core.runtime.persistence.mail.*;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -36,24 +31,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.Order;
 
-/**
- * Hybrid persistence configuration which facilitates reading from Riak and writing to both Riak and Cassandra.
- *
- * Uses client-related auto-wired beans from CassandraPersistenceConfiguration.CassandraClientConfiguration and
- * RiakPersistenceConfiguration.RiakClientConfiguration.
- *
- * XXX: Once all migrations are complete, this strategy will become obsolete.
- */
 @Configuration
 @Import({
-  CassandraPersistenceConfiguration.CassandraClientConfiguration.class,
-  RiakPersistenceConfiguration.RiakClientConfiguration.class
+        CassandraPersistenceConfiguration.CassandraClientConfiguration.class,
+        RiakPersistenceConfiguration.RiakClientConfiguration.class,
+        HybridMailConfiguration.class
 })
 @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid")
 public class HybridPersistenceConfiguration {
-    private static final Logger LOG = LoggerFactory.getLogger(HybridPersistenceConfiguration.class);
 
     // Cassandra
 
@@ -90,6 +76,9 @@ public class HybridPersistenceConfiguration {
 
     private DefaultCassandraConversationRepository cassandraConversationRepository;
 
+    @Autowired
+    private HybridMailRepository mailRepository;
+
     @Bean
     @Primary
     public HybridConversationRepository conversationRepository(Session cassandraSession, HybridMigrationClusterState migrationState) {
@@ -122,14 +111,7 @@ public class HybridPersistenceConfiguration {
     }
 
     @Bean
-    public MailRepository mailRepository() throws RiakRetryFailedException {
-        // Mail storage has been deprecated in Cassandra - only persisting to Riak
-
-        return new DiffingRiakMailRepository(bucketNamePrefix, riakClient);
-    }
-
-    @Bean
-    public HeldMailRepository heldMailRepository(Session cassandraSession, MailRepository mailRepository) {
+    public HeldMailRepository heldMailRepository(Session cassandraSession) {
         CassandraHeldMailRepository cassandraHeldMailRepository = new CassandraHeldMailRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
         RiakHeldMailRepository riakHeldMailRepository = new RiakHeldMailRepository(mailRepository);
 

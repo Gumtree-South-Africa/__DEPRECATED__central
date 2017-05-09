@@ -2,8 +2,6 @@ package com.ecg.replyts.core.webapi.control;
 
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.runtime.migrator.ChunkedConversationMigrationAction;
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +15,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.ecg.replyts.core.webapi.control.Util.DEFAULT_NO_EXECUTION_MESSAGE;
+
 @Controller
 @ConditionalOnExpression("#{'${persistence.strategy}'.startsWith('hybrid') }")
 @RequestMapping("/coremigration")
@@ -25,8 +25,6 @@ public class ConversationMigrationController {
     public static final String DATETIME_STRING = "dd-MM-yyyy'T'HH:mm";
 
     private static final Logger LOG = LoggerFactory.getLogger(ConversationMigrationController.class);
-    public static final String DEFAULT_NO_EXECUTION_MESSAGE = "No action was triggered as other process is already executing migration";
-    public static final Splitter CSV_SPLITTER = Splitter.on(CharMatcher.WHITESPACE.or(CharMatcher.is(',')).or(CharMatcher.BREAKING_WHITESPACE)).trimResults().omitEmptyStrings();
 
     private String status;
 

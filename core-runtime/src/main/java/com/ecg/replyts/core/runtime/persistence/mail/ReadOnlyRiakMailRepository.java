@@ -6,6 +6,9 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import java.util.stream.Stream;
+
 
 public class ReadOnlyRiakMailRepository extends DiffingRiakMailRepository {
 
@@ -35,4 +38,15 @@ public class ReadOnlyRiakMailRepository extends DiffingRiakMailRepository {
         LOG.debug("called deleteMail");
     }
 
+    @Nonnull
+    @Override
+    public Stream<String> streamMailIdsSince(DateTime fromTime) {
+        return mailBucket.streamMailIdsSince(fromTime);
+    }
+
+    @Nonnull
+    @Override
+    public Stream<String> streamMailIdsCreatedBetween(DateTime fromTime, DateTime toTime) {
+        return mailBucket.streamMailIdsCreatedBetween(fromTime, toTime);
+    }
 }

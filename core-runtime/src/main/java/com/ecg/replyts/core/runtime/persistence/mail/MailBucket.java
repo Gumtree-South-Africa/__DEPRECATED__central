@@ -14,6 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
@@ -121,5 +122,13 @@ class MailBucket {
             }
         }
         return os.toByteArray();
+    }
+
+    public Stream<String> streamMailIdsSince(DateTime fromTime) {
+       return bucketOpDelegate.streamMailIdsFrom(fromTime);
+    }
+
+    public Stream<String> streamMailIdsCreatedBetween(DateTime fromTime, DateTime toTime) {
+        return bucketOpDelegate.streamMailIdsCreatedBetween(fromTime, toTime);
     }
 }

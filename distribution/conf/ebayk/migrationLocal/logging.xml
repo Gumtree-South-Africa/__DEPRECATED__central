@@ -2,12 +2,6 @@
     This is a logback logging configuration file.
     It is automatically refreshed every 60s - therefore no need to restart RTS when modifying the settings here
 -->
-<!--
-
-LOOKS LIKE A BROKEN CONFIG? It's not, this is just a fragment that will be included
-from logback.xml.
-
--->
 <included>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>

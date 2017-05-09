@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,7 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@ConditionalOnExpression("#{'${persistence.strategy}'.startsWith('hybrid') }")
+@ConditionalOnExpression("#{'${persistence.strategy}'.startsWith('hybrid')}")
 public class MigratorConfiguration {
 
     private final Logger LOG = LoggerFactory.getLogger(MigratorConfiguration.class);
@@ -53,6 +54,12 @@ public class MigratorConfiguration {
         LOG.info("Activating r2c migration functionality");
         return new ChunkedConversationMigrationAction(hazelcastInstance, conversationRepository,
                  maxConversationAgeDays, threadPoolExecutor, idBatchSize, completionTimeoutSec);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "swift.attachment.storage.enabled", havingValue = "true")
+    public MailAttachmentMigrator mailAttachmentMigrator(ThreadPoolExecutor threadPoolExecutor) {
+        return new MailAttachmentMigrator();
     }
 
 }
