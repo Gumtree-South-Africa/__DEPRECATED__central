@@ -22,6 +22,7 @@ import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository
 import com.ecg.replyts.core.runtime.persistence.mail.HybridHeldMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.ReadOnlyRiakMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.RiakHeldMailRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.HybridMailConfiguration;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,18 +32,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-/**
- * Hybrid persistence configuration which facilitates reading from Riak and writing to both Riak and Cassandra.
- *
- * Uses client-related auto-wired beans from CassandraPersistenceConfiguration.CassandraClientConfiguration and
- * RiakPersistenceConfiguration.RiakClientConfiguration.
- *
- * XXX: Once all migrations are complete, this strategy will become obsolete.
- */
 @Configuration
 @Import({
-  CassandraPersistenceConfiguration.CassandraClientConfiguration.class,
-  RiakPersistenceConfiguration.RiakClientConfiguration.class
+        CassandraPersistenceConfiguration.CassandraClientConfiguration.class,
+        RiakPersistenceConfiguration.RiakClientConfiguration.class,
+        HybridMailConfiguration.class
 })
 @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid-riak-readonly")
 public class ReadOnlyRiakHybridPersistenceConfiguration {
@@ -107,7 +101,6 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     @Bean
     public MailRepository mailRepository() throws RiakRetryFailedException {
         // Mail storage has been deprecated in Cassandra - only persisting to Riak
-
         return new ReadOnlyRiakMailRepository(bucketNamePrefix, riakClient);
     }
 

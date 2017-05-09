@@ -23,7 +23,7 @@ from logback.xml.
         </encoder>
     </appender>
 
-    <logger name="com.ecg" level="INFO" />
+    <logger name="com.ecg" level="DEBUG" />
 
     <root level="INFO">
         <appender-ref ref="FILE"/>

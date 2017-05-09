@@ -2,7 +2,12 @@ package com.ecg.replyts.core.webapi.screeningv2;
 
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.webapi.commands.GetRawMailCommand;
+import com.ecg.replyts.core.api.webapi.envelope.RequestState;
+import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
+import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
@@ -21,6 +26,8 @@ import javax.servlet.http.HttpServletResponse;
 @ConditionalOnExpression("'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')")
 public class MailController {
     private final MailRepository mailRepository;
+
+    private static final Logger LOG = LoggerFactory.getLogger(MailController.class);
 
     @Autowired
     MailController(MailRepository mailRepository) {
@@ -51,11 +58,14 @@ public class MailController {
                 break;
         }
 
-
-        response.getOutputStream().write(mailContents);
+        if (mailContents == null) {
+            LOG.warn("Did not find content for messsageid {} ", messageId);
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        } else {
+            response.getOutputStream().write(mailContents);
+        }
         response.getOutputStream().close();
     }
-
 
 
 }

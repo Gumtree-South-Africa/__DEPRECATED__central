@@ -4,6 +4,9 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 
+import javax.annotation.Nonnull;
+import java.util.stream.Stream;
+
 /**
  * Persists mails that belong to messages. Mails are actual E-Mail files without any further attached semantical
  * meaning.
@@ -23,7 +26,9 @@ public interface MailRepository {
      */
     byte[] readInboundMail(String messageId);
 
-    /** returns the parsed inbound mail */
+    /**
+     * returns the parsed inbound mail
+     */
     Mail readInboundMailParsed(String messageId);
 
     /**
@@ -34,7 +39,9 @@ public interface MailRepository {
      */
     byte[] readOutboundMail(String messageId);
 
-    /** returns the parsed outbound mail */
+    /**
+     * returns the parsed outbound mail
+     */
     Mail readOutboundMailParsed(String messageId);
 
     void deleteMailsByOlderThan(DateTime time, int maxResults, int numCleanUpThreads);
@@ -43,5 +50,11 @@ public interface MailRepository {
      * deletes inbound and outbound mails for this message id.
      */
     void deleteMail(String messageId);
+
+    @Nonnull
+    Stream<String> streamMailIdsSince(DateTime fromTime);
+
+    @Nonnull
+    Stream<String> streamMailIdsCreatedBetween(DateTime fromTime, DateTime toTime);
 
 }
