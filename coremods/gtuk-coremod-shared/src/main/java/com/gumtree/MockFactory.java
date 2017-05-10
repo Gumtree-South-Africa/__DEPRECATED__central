@@ -14,7 +14,7 @@ import java.util.Map;
  * Created by reweber on 11/05/15.
  */
 public class MockFactory {
-    private static final String MESSAGE_ID = "123";
+    public static final String MESSAGE_ID = "123";
     private static final String IP_ADDRESS = "1.1.1.1";
 
     public static Message mockMessage(MessageDirection direction) {
