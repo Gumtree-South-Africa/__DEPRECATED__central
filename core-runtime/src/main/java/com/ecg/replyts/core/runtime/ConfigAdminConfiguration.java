@@ -13,7 +13,6 @@ import java.util.List;
 
 @Configuration
 public class ConfigAdminConfiguration {
-
     @Autowired(required = false)
     private List<FilterFactory> filterFactories = Collections.emptyList();
 
@@ -22,7 +21,6 @@ public class ConfigAdminConfiguration {
 
     @Autowired(required = true)
     private ClusterRefreshPublisher clusterRefreshPublisher;
-
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Bean(name = "filterConfigurationAdmin")

@@ -1,9 +1,9 @@
 package com.gumtree.comaas.filter.knowngood;
 
+import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.KnownGoodFilterConfig;
 import com.gumtree.filters.comaas.json.ConfigMapper;
 import com.gumtree.gumshield.api.client.GumshieldApi;
@@ -14,20 +14,28 @@ import org.springframework.context.annotation.Configuration;
 @ComaasPlugin
 @Configuration
 public class GumtreeKnownGoodFilterConfiguration {
-    @Autowired
-    private GumshieldApi gumshieldApi;
-
     @Bean
-    public FilterFactory filterFactory() {
-        return (instanceName, configuration) -> {
+    public FilterFactory filterFactory(GumshieldApi gumshieldApi) {
+        return new KnownGoodFilterFactory(gumshieldApi);
+    }
+
+    public static class KnownGoodFilterFactory implements FilterFactory {
+        private GumshieldApi gumshieldApi;
+
+        public KnownGoodFilterFactory(GumshieldApi gumshieldApi) {
+            this.gumshieldApi = gumshieldApi;
+        }
+
+        @Override
+        public Filter createPlugin(String instanceName, JsonNode configuration) {
             String pluginFactory = configuration.get("pluginFactory").textValue();
             String instanceId = configuration.get("instanceId").textValue();
             JsonNode configurationNode = configuration.get("configuration");
 
-            Filter pluginConfig = new Filter(pluginFactory, instanceId, configurationNode);
+            com.gumtree.filters.comaas.Filter pluginConfig = new com.gumtree.filters.comaas.Filter(pluginFactory, instanceId, configurationNode);
             KnownGoodFilterConfig filterConfig = ConfigMapper.asObject(configurationNode.textValue(), KnownGoodFilterConfig.class);
 
             return new GumtreeKnownGoodFilter().withPluginConfig(pluginConfig).withFilterConfig(filterConfig).withUserApi(gumshieldApi.userApi());
-        };
+        }
     }
 }

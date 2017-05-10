@@ -6,8 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-class ConfigurationValidatorImp implements ConfigurationUpdateNotifier {
-
+public class ConfigurationValidatorImp implements ConfigurationUpdateNotifier {
     @Autowired
     private List<ConfigurationAdmin<?>> configAdmins;
 
@@ -34,6 +33,4 @@ class ConfigurationValidatorImp implements ConfigurationUpdateNotifier {
         refreshers.updateNow();
         publisher.publish();
     }
-
-
 }

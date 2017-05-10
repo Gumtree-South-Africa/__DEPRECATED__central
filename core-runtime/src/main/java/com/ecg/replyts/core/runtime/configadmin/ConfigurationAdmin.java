@@ -161,5 +161,4 @@ public class ConfigurationAdmin<T> {
     public List<PluginInstanceReference<T>> getRunningServices() {
         return runningServices.get();
     }
-
 }
