@@ -1,7 +1,9 @@
 package com.gumtree.comaas.common.filter;
 
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableBiMap;
+import com.gumtree.filters.comaas.config.ConfigWithExemptedCategories;
 import com.gumtree.filters.comaas.config.Result;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,8 +41,12 @@ public final class GumtreeFilterUtil {
         }
     }
 
+    public static boolean hasExemptedCategory(ConfigWithExemptedCategories config, MessageProcessingContext messageProcessingContext) {
+        Set<Long> categoryBreadCrumb = (Set<Long>) messageProcessingContext.getFilterContext().get("categoryBreadCrumb");
+        return hasExemptedCategory(config.getExemptedCategories(), categoryBreadCrumb);
+    }
+
     public static boolean hasExemptedCategory(List<Long> exemptedCategories, Set<Long> breadCrumbs) {
         return !(breadCrumbs == null || exemptedCategories == null) && exemptedCategories.stream().anyMatch(breadCrumbs::contains);
     }
-
 }
