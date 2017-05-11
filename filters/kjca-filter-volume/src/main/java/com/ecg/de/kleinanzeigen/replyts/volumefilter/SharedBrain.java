@@ -7,8 +7,6 @@ import com.hazelcast.config.MaxSizeConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
-import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.hazelcast.config.MaxSizeConfig.MaxSizePolicy.USED_HEAP_PERCENTAGE;
 
 class SharedBrain {
+
     private static final String VIOLATION_MEMORY_MAP_NAME = "violationMemoryMap";
     private static final int HAZELCAST_TIMEOUT_MS = 100;
     public static final int VIOLATION_MEMORY_MAX_HEAP_PERCENTAGE = 20;
@@ -34,11 +33,7 @@ class SharedBrain {
         communicationBus = hazelcastInstance.getTopic("volumefilter_sender_address_exchange_" + name);
         processor.set(eventStreamProcessor);
 
-        communicationBus.addMessageListener(new MessageListener<String>() {
-            public void onMessage(Message<String> message) {
-                processor.get().mailReceivedFrom(message.getMessageObject());
-            }
-        });
+        communicationBus.addMessageListener(message -> processor.get().mailReceivedFrom(message.getMessageObject()));
 
         Config config = hazelcastInstance.getConfig();
         MapConfig violationMemoryMapConfig = config.getMapConfig(VIOLATION_MEMORY_MAP_NAME);
@@ -49,7 +44,7 @@ class SharedBrain {
         violationMemoryMap = hazelcastInstance.getMap(VIOLATION_MEMORY_MAP_NAME);
     }
 
-    public void markSeen(String mailAddress) {
+    public void markSeenAsync(String mailAddress) {
         communicationBus.publish(mailAddress);
     }
 

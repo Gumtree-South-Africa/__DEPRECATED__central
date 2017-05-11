@@ -1,9 +1,6 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import com.espertech.esper.client.Configuration;
-import com.espertech.esper.client.EPOnDemandQueryResult;
-import com.espertech.esper.client.EPServiceProvider;
-import com.espertech.esper.client.EPServiceProviderManager;
+import com.espertech.esper.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +55,7 @@ public class EventStreamProcessor {
     }
 
     public void mailReceivedFrom(String mailAddress) {
+        LOG.debug("register a received mail occurrence from '{}'", mailAddress);
         epServiceProvider.getEPRuntime().sendEvent(new MailReceivedEvent(mailAddress.toLowerCase()));
     }
 

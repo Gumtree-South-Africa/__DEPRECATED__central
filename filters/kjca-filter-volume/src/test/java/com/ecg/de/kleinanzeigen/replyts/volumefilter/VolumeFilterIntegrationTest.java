@@ -6,7 +6,6 @@ import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -33,7 +32,6 @@ public class VolumeFilterIntegrationTest {
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
 
     @Test
-    @Ignore("RP: This test is fragile and fails the build too often, see COMAAS-437")
     public void violatesQuota() throws Exception {
         rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
@@ -96,18 +94,9 @@ public class VolumeFilterIntegrationTest {
             MailInterceptor.ProcessedMail response = rule.deliver(mailBuilder);
             assertEquals("Expecting message state == SENT", MessageState.SENT, response.getMessage().getState());
         }
-        long end = System.currentTimeMillis();
-
-        long elapsed = end - start;
-        if (elapsed > 7000) {
-            LOG.error("Flickering test alert: this might fail because sending 2 mails took {} milliseconds", elapsed);
-        }
 
         // We've now violated the quota, so sending another message should fail
         MailInterceptor.ProcessedMail response = rule.deliver(mailBuilder);
-        if (!response.getMessage().getProcessingFeedback().isEmpty()) {
-            LOG.error("Flickering test alert, ProcessedMail is: \n" + response);
-        }
         assertEquals("Expecting quota violation, failure to send", 1, response.getMessage().getProcessingFeedback().size());
 
         // Wait until the quota window has elapsed but the ttl on the in-memory violation store has not yet
