@@ -4,7 +4,7 @@ import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
@@ -56,7 +56,7 @@ public class EchelonFilterIntegrationTest {
     public void testRequestDone() {
         stubFor(get(urlMatching(".*adId=123.*")).willReturn(aResponse().withStatus(200).withBody(RESPONSE_OK.getBytes())));
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail =
+        MailInterceptor.ProcessedMail processedMail =
         rtsRule.deliver(MailBuilder.aNewMail()
                 .from("buyer@foo.com")
                 .to("seller@bar.com")
@@ -76,7 +76,7 @@ public class EchelonFilterIntegrationTest {
     @Test
     public void testNegativeResponse() {
         stubFor(get(urlMatching(".*adId=124.*")).willReturn(aResponse().withStatus(200).withBody(RESPONSE_KO.getBytes())));
-        AwaitMailSentProcessedListener.ProcessedMail processedMail =
+        MailInterceptor.ProcessedMail processedMail =
                 rtsRule.deliver(MailBuilder.aNewMail()
                         .from("buyer@foo.com")
                         .to("seller@bar.com")
@@ -103,7 +103,7 @@ public class EchelonFilterIntegrationTest {
     @Test
     public void testEmptyResponse() throws Exception {
         stubFor(get(urlMatching("/?(.*)")).willReturn(aResponse().withStatus(200).withBody("".getBytes())));
-        AwaitMailSentProcessedListener.ProcessedMail processedMail =
+        MailInterceptor.ProcessedMail processedMail =
                 rtsRule.deliver(MailBuilder.aNewMail()
                         .from("buyer@foo.com")
                         .to("seller@bar.com")
@@ -124,7 +124,7 @@ public class EchelonFilterIntegrationTest {
     @Test
     public void testSilentNegativeResponse() throws Exception {
         stubFor(get(urlMatching("/?(.*)")).willReturn(aResponse().withStatus(200).withBody("KO".getBytes())));
-        AwaitMailSentProcessedListener.ProcessedMail processedMail =
+        MailInterceptor.ProcessedMail processedMail =
                 rtsRule.deliver(MailBuilder.aNewMail()
                         .from("buyer@foo.com")
                         .to("seller@bar.com")
@@ -150,7 +150,7 @@ public class EchelonFilterIntegrationTest {
     @Test
     public void testUnexpectedResponse() throws Exception {
         stubFor(get(urlMatching("/?(.*)")).willReturn(aResponse().withStatus(200).withBody("Unexpected string".getBytes())));
-        AwaitMailSentProcessedListener.ProcessedMail processedMail =
+        MailInterceptor.ProcessedMail processedMail =
                 rtsRule.deliver(MailBuilder.aNewMail()
                         .from("buyer@foo.com")
                         .to("seller@bar.com")
@@ -171,7 +171,7 @@ public class EchelonFilterIntegrationTest {
     @Test
     public void testErrorResponse() throws Exception {
         stubFor(get(urlMatching("/?(.*)")).willReturn(aResponse().withStatus(500).withBody("ERROR".getBytes())));
-        AwaitMailSentProcessedListener.ProcessedMail processedMail =
+        MailInterceptor.ProcessedMail processedMail =
                 rtsRule.deliver(MailBuilder.aNewMail()
                         .from("buyer@foo.com")
                         .to("seller@bar.com")
@@ -193,7 +193,7 @@ public class EchelonFilterIntegrationTest {
     @Test
     public void testForbiddenResponse() throws Exception {
         stubFor(get(urlMatching("/?(.*)")).willReturn(aResponse().withStatus(403).withBody("".getBytes())));
-        AwaitMailSentProcessedListener.ProcessedMail processedMail =
+        MailInterceptor.ProcessedMail processedMail =
                 rtsRule.deliver(MailBuilder.aNewMail()
                         .from("buyer@foo.com")
                         .to("seller@bar.com")
@@ -214,7 +214,7 @@ public class EchelonFilterIntegrationTest {
     @Test
     public void testIgnoredUnknownMachineId() throws Exception {
         stubFor(get(urlMatching("/?(.*)")).willReturn(aResponse().withStatus(200).withBody(RESPONSE_OK.getBytes())));
-        AwaitMailSentProcessedListener.ProcessedMail processedMail =
+        MailInterceptor.ProcessedMail processedMail =
                 rtsRule.deliver(MailBuilder.aNewMail()
                         .from("buyer@foo.com")
                         .to("seller@bar.com")

@@ -54,14 +54,11 @@ public class ConversationControllerAcceptanceTest extends ReplyTsIntegrationTest
     }
 
     @Test
-    @Ignore("RP: This test is fragile and fails the build too often, see COMAAS-435")
     public void markConversationAsRead() throws Exception {
         String convId = testRule.deliver(MAIL1).getConversation().getId();
         testRule.waitForMail();
 
         RestAssured.given()
-                .filter(new RequestLoggingFilter())
-                .filter(new ResponseLoggingFilter())
                 .when()
                 .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/conversations/" + convId)
                 .then()

@@ -5,7 +5,7 @@ import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.ecg.replyts.integration.test.AwaitMailSentProcessedListener.ProcessedMail;
+import static com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**

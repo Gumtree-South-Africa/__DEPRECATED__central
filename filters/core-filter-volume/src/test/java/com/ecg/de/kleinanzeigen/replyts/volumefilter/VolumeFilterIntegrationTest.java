@@ -2,7 +2,7 @@ package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -32,12 +32,12 @@ public class VolumeFilterIntegrationTest {
 
             String from = "foo"+System.currentTimeMillis()+"@bar.com";
         for(int i = 0; i<3; i++) {
-            AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
+            MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
             assertEquals(MessageState.SENT, response.getMessage().getState());
             rule.waitUntilIndexedInEs(response);
         }
 
-        AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
+        MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
         assertEquals(1, response.getMessage().getProcessingFeedback().size());
     }
 
@@ -52,12 +52,12 @@ public class VolumeFilterIntegrationTest {
 
         String from = "foo"+System.currentTimeMillis()+"@bar.com";
         for(int i = 0; i<2; i++) {
-            AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
+            MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
             assertEquals(MessageState.SENT, response.getMessage().getState());
             rule.waitUntilIndexedInEs(response);
         }
 
-        AwaitMailSentProcessedListener.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
+        MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
         assertEquals(MessageState.SENT, response.getMessage().getState());
     }
 }

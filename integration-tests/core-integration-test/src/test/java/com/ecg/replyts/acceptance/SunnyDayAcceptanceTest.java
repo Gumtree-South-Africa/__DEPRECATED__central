@@ -1,7 +1,8 @@
 package com.ecg.replyts.acceptance;
 
 import com.ecg.replyts.core.runtime.ReplyTS;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.google.common.io.ByteStreams;
 import org.hamcrest.MatcherAssert;
@@ -90,7 +91,7 @@ public class SunnyDayAcceptanceTest {
         rule.getMailSender().sendMail(emlData);
 
         // wait for listener to be triggered - this means the mail is sent & stored properly
-        AwaitMailSentProcessedListener.awaitMails(1, deliveryTimeoutSeconds);
+        rule.getMailInterceptor().awaitMails(1, deliveryTimeoutSeconds);
     }
 
     private void deliverReplyMailToRts(WiserMessage asqMessage, String emlName) throws Exception {
@@ -102,6 +103,6 @@ public class SunnyDayAcceptanceTest {
         rule.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
 
         // wait for listener to be triggered - this means the mail is sent & stored properly
-        AwaitMailSentProcessedListener.awaitMails(2, deliveryTimeoutSeconds);
+        rule.getMailInterceptor().awaitMails(2, deliveryTimeoutSeconds);
     }
 }

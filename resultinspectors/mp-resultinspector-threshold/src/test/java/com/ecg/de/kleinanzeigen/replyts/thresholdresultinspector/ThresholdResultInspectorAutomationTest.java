@@ -2,7 +2,7 @@ package com.ecg.de.kleinanzeigen.replyts.thresholdresultinspector;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -26,7 +26,7 @@ public class ThresholdResultInspectorAutomationTest {
 
     @Test
     public void allowsMessageIfNoScore() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processed = rule.deliver(MailBuilder.aNewMail().adId("12").from("foo@bar.com").to("bar@foo.com").subject("as").htmlBody("asdf"));
+        MailInterceptor.ProcessedMail processed = rule.deliver(MailBuilder.aNewMail().adId("12").from("foo@bar.com").to("bar@foo.com").subject("as").htmlBody("asdf"));
 
         assertEquals(MessageState.SENT, processed.getMessage().getState());
     }
@@ -37,7 +37,7 @@ public class ThresholdResultInspectorAutomationTest {
         rule.registerConfig(ScoringFilterFactory.class, JsonObjects.builder().attr("score", 100).build());
 
 
-        AwaitMailSentProcessedListener.ProcessedMail processed = rule.deliver(MailBuilder.aNewMail().adId("12").from("foo@bar.com").to("bar@foo.com").subject("as").htmlBody("asdf"));
+        MailInterceptor.ProcessedMail processed = rule.deliver(MailBuilder.aNewMail().adId("12").from("foo@bar.com").to("bar@foo.com").subject("as").htmlBody("asdf"));
 
         assertEquals(MessageState.BLOCKED, processed.getMessage().getState());
 

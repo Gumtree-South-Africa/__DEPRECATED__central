@@ -1,17 +1,12 @@
 package com.ecg.de.mobile.replyts.deanonymize;
 
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class MailDoNotAnonymizeIntegrationTest {
     @Rule
@@ -30,7 +25,7 @@ public class MailDoNotAnonymizeIntegrationTest {
                 .to("Seller <seller@example.com>");
 
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
 
         assertEquals("noreply@team.mobile.de", processedMail.getOutboundMail().getFrom());
         assertEquals("mobile.de", processedMail.getOutboundMail().getFromName());
@@ -50,7 +45,7 @@ public class MailDoNotAnonymizeIntegrationTest {
                 .to("seller@example.com");
 
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
 
         assertEquals("noreply@team.mobile.de", processedMail.getOutboundMail().getFrom());
         assertNull(processedMail.getOutboundMail().getFromName());
@@ -69,7 +64,7 @@ public class MailDoNotAnonymizeIntegrationTest {
                 .to("seller@example.com");
 
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
 
         assertEquals("noreply@team.mobile.de", processedMail.getOutboundMail().getFrom());
         assertNull(processedMail.getOutboundMail().getFromName());
@@ -87,7 +82,7 @@ public class MailDoNotAnonymizeIntegrationTest {
                 .to("seller@example.com");
 
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
 
         assertFalse("noreply@team.mobile.de".equals(processedMail.getOutboundMail().getFrom()));
 

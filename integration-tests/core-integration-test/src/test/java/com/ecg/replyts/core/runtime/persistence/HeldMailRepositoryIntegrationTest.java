@@ -7,7 +7,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.core.api.webapi.commands.ModerateMessageCommand;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,7 +34,7 @@ public class HeldMailRepositoryIntegrationTest {
 
         // Send a message and confirm it is indeed HELD
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = testRule.deliver(MailBuilder.aNewMail()
+        MailInterceptor.ProcessedMail processedMail = testRule.deliver(MailBuilder.aNewMail()
           .from("foo@bar.com").to("bar@foo.com").adId("1234567").htmlBody("Hello world!"));
 
         assertEquals(MessageState.HELD, processedMail.getMessage().getState());

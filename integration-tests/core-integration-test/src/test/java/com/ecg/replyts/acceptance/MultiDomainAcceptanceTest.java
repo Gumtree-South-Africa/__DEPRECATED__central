@@ -1,6 +1,6 @@
 package com.ecg.replyts.acceptance;
 
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Rule;
@@ -21,7 +21,7 @@ public class MultiDomainAcceptanceTest {
 
     @Test
     public void buyerDomainIntialReply() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail output =
+        MailInterceptor.ProcessedMail output =
                 rule.deliver(MailBuilder.aNewMail().from("foo@bar.com")
                         .to("bar123123@foo.com").subject("multi domain test").adId("123123").htmlBody("foo")
                         .customHeader("buyer_domain", "test-platform2.com")
@@ -34,14 +34,14 @@ public class MultiDomainAcceptanceTest {
 
     @Test
     public void sellerDomainResponse() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail outbound =
+        MailInterceptor.ProcessedMail outbound =
                 rule.deliver(MailBuilder.aNewMail().from("f123oo@bar.com")
                         .to("bar@foo.com").subject("multi domain test").adId("123").htmlBody("foo")
                         .customHeader("buyer_domain", "test-platform2.com")
                         .customHeader("seller_domain", "test-platform3.com"));
 
 
-        AwaitMailSentProcessedListener.ProcessedMail response =
+        MailInterceptor.ProcessedMail response =
                 rule.deliver(MailBuilder.aNewMail().from("seller@bar.com")
                         .to(outbound.getOutboundMail().getFrom()).htmlBody("foo"));
 
@@ -50,7 +50,7 @@ public class MultiDomainAcceptanceTest {
 
     @Test
     public void noDomainsSent() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail output =
+        MailInterceptor.ProcessedMail output =
                 rule.deliver(MailBuilder.aNewMail()
                         .from("f23oo1@bar.com")
                         .to("bar1@foo.com")
@@ -65,7 +65,7 @@ public class MultiDomainAcceptanceTest {
 
     @Test
     public void badDomainsSent() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail output =
+        MailInterceptor.ProcessedMail output =
                 rule.deliver(MailBuilder.aNewMail().from("foo13@bar.com")
                         .to("bar12@foo.com")
                         .subject("multi domain test")

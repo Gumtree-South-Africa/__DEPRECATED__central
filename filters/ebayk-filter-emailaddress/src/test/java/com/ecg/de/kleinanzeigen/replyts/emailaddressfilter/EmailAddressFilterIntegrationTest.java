@@ -2,7 +2,7 @@ package com.ecg.de.kleinanzeigen.replyts.emailaddressfilter;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener.ProcessedMail;
+import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ArrayNode;

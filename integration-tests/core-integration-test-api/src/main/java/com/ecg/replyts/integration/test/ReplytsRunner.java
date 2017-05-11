@@ -18,9 +18,9 @@ import org.subethamail.wiser.WiserMessage;
 import java.io.File;
 import java.util.*;
 
-public final class ReplytsRunner {
-    private static final Logger LOG = LoggerFactory.getLogger(ReplytsRunner.class);
+import static com.google.common.base.Preconditions.checkNotNull;
 
+public final class ReplytsRunner {
     public static final String DEFAULT_CONFIG_RESOURCE_DIRECTORY = "/integrationtest-conf";
 
     private static final String ELASTIC_SEARCH_PREFIX = "comaas_integration_test_";
@@ -31,10 +31,9 @@ public final class ReplytsRunner {
     private final String elasticClusterName = ELASTIC_SEARCH_PREFIX + UUID.randomUUID();
 
     private Wiser wiser = new Wiser(smtpOutPort);
-
     private AnnotationConfigApplicationContext context;
-
     private Client searchClient;
+    private MailInterceptor mailInterceptor;
 
     public ReplytsRunner(Properties testProperties, String configResourcePrefix, Class<?>[] configurations) {
         wiser.start();
@@ -46,6 +45,7 @@ public final class ReplytsRunner {
             context = new AnnotationConfigApplicationContext();
 
             context.getEnvironment().setActiveProfiles(ReplyTS.EMBEDDED_PROFILE);
+            context.register(MailInterceptor.class);
 
             Properties properties = new Properties();
 
@@ -91,7 +91,9 @@ public final class ReplytsRunner {
             }
             context.refresh();
 
-            if (context.getBean("started", Boolean.class) != true) {
+            this.mailInterceptor = checkNotNull(context.getBean(MailInterceptor.class), "mailInterceptor");
+
+            if (!context.getBean("started", Boolean.class)) {
                 throw new IllegalStateException("COMaaS did not start up in its entirety");
             }
 
@@ -142,5 +144,9 @@ public final class ReplytsRunner {
             }
         }
         directory.delete();
+    }
+
+    public MailInterceptor getMailInterceptor() {
+        return mailInterceptor;
     }
 }

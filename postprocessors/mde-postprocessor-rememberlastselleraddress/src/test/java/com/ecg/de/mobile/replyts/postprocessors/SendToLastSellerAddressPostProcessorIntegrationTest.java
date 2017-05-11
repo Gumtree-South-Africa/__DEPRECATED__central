@@ -7,7 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener.ProcessedMail;
+import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 

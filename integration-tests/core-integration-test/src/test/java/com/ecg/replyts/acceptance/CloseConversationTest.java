@@ -3,7 +3,7 @@ package com.ecg.replyts.acceptance;
 
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
 import org.hamcrest.CoreMatchers;
@@ -21,7 +21,7 @@ public class CloseConversationTest {
 
     @Test
     public void closeConversationAndExpectReplyToBeDiscarded() {
-        AwaitMailSentProcessedListener.ProcessedMail result = rule.deliver(aNewMail().from("buyer123@host.com").to("seller123@host.com").adId("999").plainBody("foo"));
+        MailInterceptor.ProcessedMail result = rule.deliver(aNewMail().from("buyer123@host.com").to("seller123@host.com").adId("999").plainBody("foo"));
 
 
         RestAssured
@@ -37,7 +37,7 @@ public class CloseConversationTest {
 
 
         // rely on conversation resuming feature - this will go into the same conversation
-        AwaitMailSentProcessedListener.ProcessedMail secondMail = rule.deliver(aNewMail().from("buyer123@host.com").to("seller123@host.com").adId("999").plainBody("foo"));
+        MailInterceptor.ProcessedMail secondMail = rule.deliver(aNewMail().from("buyer123@host.com").to("seller123@host.com").adId("999").plainBody("foo"));
         assertEquals(MessageState.DISCARDED, secondMail.getMessage().getState());
         assertEquals(ConversationState.CLOSED, secondMail.getConversation().getState());
 

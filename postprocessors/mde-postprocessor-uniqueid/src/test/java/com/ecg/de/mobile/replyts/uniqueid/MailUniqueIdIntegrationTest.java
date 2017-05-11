@@ -1,6 +1,6 @@
 package com.ecg.de.mobile.replyts.uniqueid;
 
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.BeforeClass;
@@ -53,7 +53,7 @@ public class MailUniqueIdIntegrationTest {
     public void testFromBuyerToSeller() {
 
         MailBuilder mailBuilder = createInitialMailFromBuyer();
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
 
         String uniqueBuyerId = new UniqueIdGenerator("wz1239yjdsfhqyOEedd").generateUniqueBuyerId("buyer@team.mobile.de");
 
@@ -67,7 +67,7 @@ public class MailUniqueIdIntegrationTest {
 
         MailBuilder mail = createMail("foo@foo.com", "myseller@team.mobile.de");
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mail);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mail);
 
         assertNull(processedMail.getOutboundMail().getUniqueHeader(X_MOBILEDE_BUYER_ID));
     }
@@ -79,14 +79,14 @@ public class MailUniqueIdIntegrationTest {
 
         MailBuilder initialMailFromBuyer = createInitialMailFromBuyer();
 
-        AwaitMailSentProcessedListener.ProcessedMail processedInitialMailFromBuyer = replyTsIntegrationTestRule.deliver(initialMailFromBuyer);
+        MailInterceptor.ProcessedMail processedInitialMailFromBuyer = replyTsIntegrationTestRule.deliver(initialMailFromBuyer);
 
 
         // Second mail seller to buyer
 
         MailBuilder mailFromSeller = createMail("myseller@team.mobile.de", processedInitialMailFromBuyer.getOutboundMail().getFrom());
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMailFromSeller = replyTsIntegrationTestRule.deliver(mailFromSeller);
+        MailInterceptor.ProcessedMail processedMailFromSeller = replyTsIntegrationTestRule.deliver(mailFromSeller);
 
         assertNull(processedMailFromSeller.getOutboundMail().getUniqueHeader(X_MOBILEDE_BUYER_ID));
 
@@ -95,7 +95,7 @@ public class MailUniqueIdIntegrationTest {
 
         MailBuilder secondMailFromBuyer = createMail("mybuyer@team.mobile.de", processedMailFromSeller.getOutboundMail().getFrom());
 
-        AwaitMailSentProcessedListener.ProcessedMail processedSecondMailFromBuyer = replyTsIntegrationTestRule.deliver(secondMailFromBuyer);
+        MailInterceptor.ProcessedMail processedSecondMailFromBuyer = replyTsIntegrationTestRule.deliver(secondMailFromBuyer);
 
 
         // check buyer id

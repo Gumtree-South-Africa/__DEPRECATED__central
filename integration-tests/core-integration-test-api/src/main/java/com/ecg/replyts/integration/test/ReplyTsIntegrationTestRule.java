@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * &#64;Rule public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule();
  *
  * &#64;Test public void rtsDoesNotProcessAutomatedMail() {
- *      AwaitMailSentProcessedListener.ProcessedMail outcome =
+ *      MailInterceptor.ProcessedMail outcome =
  *      replyTsIntegrationTestRule.deliver(
  *          aNewMail()
  *          .from("a@b.com")
@@ -229,7 +229,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      * has completed.<br/> If the mail was not processed within the delivery timeout, a {@link RuntimeException} is
      * thrown.
      */
-    public AwaitMailSentProcessedListener.ProcessedMail deliver(MailBuilder mail) {
+    public MailInterceptor.ProcessedMail deliver(MailBuilder mail) {
         String mailIdentifier = String.format("%s#%s.%s",
                 description.getTestClass().getSimpleName(),
                 description.getMethodName(),
@@ -246,7 +246,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         } finally {
             assert f.renameTo(new File(f.getParent(), "pre_" + f.getName()));
         }
-        return AwaitMailSentProcessedListener.awaitMailIdentifiedBy(mailIdentifier, deliveryTimeoutSeconds);
+        return testRunner.getMailInterceptor().awaitMailIdentifiedBy(mailIdentifier, deliveryTimeoutSeconds);
     }
 
 
@@ -289,7 +289,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         }
     }
 
-    public void waitUntilIndexedInEs(AwaitMailSentProcessedListener.ProcessedMail mail) {
+    public void waitUntilIndexedInEs(MailInterceptor.ProcessedMail mail) {
         Client searchClient = getSearchClient();
         String id = mail.getConversation().getId() + "/" + mail.getMessage().getId();
         SearchRequestBuilder searchRequestBuilder = searchClient.prepareSearch("replyts")
@@ -305,4 +305,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         return testRunner.getMailSender();
     }
 
+    public MailInterceptor getMailInterceptor() {
+        return testRunner.getMailInterceptor();
+    }
 }

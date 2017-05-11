@@ -1,16 +1,13 @@
 package com.ecg.de.kleinanzeigen.replyts.linkproxy;
 
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener.ProcessedMail;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;

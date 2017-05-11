@@ -1,7 +1,7 @@
 package com.gumtree.replyts2.notifier;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
@@ -61,7 +61,7 @@ public class Replyts2StatsNotifierIntegrationTest {
         stubFor(post(urlMatching("/stats-api/advert-stats/(.*)/counts/reply")).willReturn(aResponse().withStatus(200)));
         stubFor(post(urlMatching("/google-analytics?v=1&t=event&tid=UA-123456&ea=ReplyEmailBackendSuccess&ec=ReplySuccess&cid=abcd.efgh"))
                 .willReturn(aResponse().withStatus(200)));
-        AwaitMailSentProcessedListener.ProcessedMail mail =
+        MailInterceptor.ProcessedMail mail =
                 rule.deliver(MailBuilder
                         .aNewMail()
                         .from("buyer@foo.com")

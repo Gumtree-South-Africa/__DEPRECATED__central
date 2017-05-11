@@ -2,7 +2,7 @@ package com.ecg.de.mobile.replyts.badword;
 
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.eclipse.jetty.server.Server;
@@ -60,7 +60,7 @@ public class BadwordFilterIntegrationTest {
 
         initServer(MockBadwordServlet.class);
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                 .deliver(aNewMail()
                         .adId("1234")
                         .from("foo@bar.com")
@@ -78,7 +78,7 @@ public class BadwordFilterIntegrationTest {
 
         initServer(HttpServlet.class);
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                 .deliver(aNewMail()
                         .adId("1234")
                         .from("foo@bar.com")
@@ -97,7 +97,7 @@ public class BadwordFilterIntegrationTest {
 
         initServer(MockNoBadwordServlet.class);
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                 .deliver(aNewMail()
                         .adId("1234")
                         .from("foo@bar.com")

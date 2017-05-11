@@ -2,7 +2,7 @@ package com.ecg.replyts.acceptance;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener.ProcessedMail;
+import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.ecg.replyts.integration.test.filter.SubjectKeywordFilterFactory;

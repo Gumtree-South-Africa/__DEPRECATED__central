@@ -4,7 +4,7 @@ import com.ecg.de.mobile.replyts.comafilterservice.filters.ContactMessage;
 import com.ecg.de.mobile.replyts.comafilterservice.filters.PhoneNumber;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -73,7 +73,7 @@ public class FilterServiceIntegrationTest {
         MailBuilder mailBuilder = createDummyMailWithFields();
         MockServlet.setJsonResponse("[]");
         
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
         assertEquals(MessageState.SENT, processedMail.getMessage().getState());
 
         verifyReceivedContactMessageWithFields(MockServlet.getContactMessage());
@@ -84,7 +84,7 @@ public class FilterServiceIntegrationTest {
         MailBuilder mailBuilder = createDummyMailWithFields();
         MockServlet.setJsonResponse("[\"AnyFilter\"]");
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
         assertEquals(MessageState.BLOCKED, processedMail.getMessage().getState());
 
         verifyReceivedContactMessageWithFields(MockServlet.getContactMessage());
@@ -103,7 +103,7 @@ public class FilterServiceIntegrationTest {
                 .header("Date","Tue, 24 Feb 2015 14:08:15");
         MockServlet.setJsonResponse("[]");
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
         assertEquals(MessageState.SENT, processedMail.getMessage().getState());
 
         assertTrue(MockServlet.getContactMessage().isPresent());
@@ -114,7 +114,7 @@ public class FilterServiceIntegrationTest {
         MailBuilder mailBuilder = createDummyMailBase();
         MockServlet.setJsonResponse("[\"AnyResponseThatShouldNeverBeAskedFor\"]");
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
         assertEquals(MessageState.SENT, processedMail.getMessage().getState());
 
         assertFalse(MockServlet.getContactMessage().isPresent());
@@ -127,7 +127,7 @@ public class FilterServiceIntegrationTest {
                 .header("X-Cust-Buyer_Type", "DEALER");
         MockServlet.setJsonResponse("[\"AnyResponseThatShouldNeverBeAskedFor\"]");
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
         assertEquals(MessageState.SENT, processedMail.getMessage().getState());
 
         assertFalse(MockServlet.getContactMessage().isPresent());
@@ -140,7 +140,7 @@ public class FilterServiceIntegrationTest {
                 .header("X-Cust-Seller_Type", "DEALER");
         MockServlet.setJsonResponse("[]");
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
         assertEquals(MessageState.SENT, processedMail.getMessage().getState());
 
         Optional<ContactMessage> contactMessage = MockServlet.getContactMessage();

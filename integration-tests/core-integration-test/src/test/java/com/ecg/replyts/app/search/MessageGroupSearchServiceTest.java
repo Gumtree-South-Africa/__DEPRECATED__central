@@ -12,7 +12,7 @@ import com.ecg.replyts.core.api.util.JsonObjects.Builder;
 import com.ecg.replyts.core.api.webapi.commands.SearchMessageGroupCommand;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessageGroupPayload;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener.ProcessedMail;
+import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.ecg.replyts.integration.test.filter.SubjectKeywordFilterFactory;

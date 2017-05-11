@@ -1,7 +1,7 @@
 package com.ecg.de.mobile.replyts.addmetadata;
 
 import com.ecg.replyts.core.api.model.mail.TypedContent;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Rule;
@@ -33,7 +33,7 @@ public class MailAddMetadataIntegrationTest {
                 .to("seller@example.com");
 
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
 
         String conversationId = processedMail.getConversation().getId();
 

@@ -1,6 +1,6 @@
 package com.ecg.replyts.autogatemaildelivery;
 
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
@@ -68,7 +68,7 @@ public class AutogateAwareMailDeliveryServiceIntegrationTest {
     @Ignore
     public void redirectsMailsToAutogate() throws Exception {
         stubFor(post(urlMatching("/?(.*)")).willReturn(aResponse().withStatus(200)));
-        AwaitMailSentProcessedListener.ProcessedMail mail = rule.deliver(MailBuilder.aNewMail().
+        MailInterceptor.ProcessedMail mail = rule.deliver(MailBuilder.aNewMail().
                 from("buyer@foo.com")
                 .to("seller@bar.com")
                 .adId("213")

@@ -66,6 +66,11 @@
             <artifactId>spring-test</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.jayway.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- Testing DSL for Restful Webservices -->
 

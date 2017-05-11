@@ -191,7 +191,7 @@ public class MessageProcessingCoordinatorTest {
     }
 
     @Configuration
-    @Import(MessageProcessingCoordinator.class)
+    @Import(DefaultMessageProcessingCoordinator.class)
     static class TestContext {
         @MockBean
         private MessageProcessedListener individualMessageProcessedListener;

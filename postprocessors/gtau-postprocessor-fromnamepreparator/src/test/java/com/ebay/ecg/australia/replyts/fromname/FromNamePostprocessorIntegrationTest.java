@@ -1,7 +1,6 @@
 package com.ebay.ecg.australia.replyts.fromname;
 
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.BeforeClass;
@@ -10,7 +9,6 @@ import org.junit.Test;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

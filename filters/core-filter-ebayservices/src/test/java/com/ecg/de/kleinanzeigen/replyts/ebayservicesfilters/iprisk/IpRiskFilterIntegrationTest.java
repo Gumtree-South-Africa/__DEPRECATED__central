@@ -1,7 +1,7 @@
 package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.iprisk;
 
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Before;
@@ -31,7 +31,7 @@ public class IpRiskFilterIntegrationTest {
     @Ignore
     @Test
     public void userFilterHits() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = itRule.deliver(
+        MailInterceptor.ProcessedMail processedMail = itRule.deliver(
                 MailBuilder.aNewMail().header("X-CUST-IP","194.50.69.177").adId("123").from("buyer@test.de").to("seller@test.de").htmlBody("hello world!"));
 
         assertEquals(1, processedMail.getMessage().getProcessingFeedback().size());

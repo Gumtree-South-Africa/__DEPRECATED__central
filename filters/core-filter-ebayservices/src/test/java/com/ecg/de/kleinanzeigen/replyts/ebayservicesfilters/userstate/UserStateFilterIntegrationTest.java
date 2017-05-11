@@ -1,7 +1,7 @@
 package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.userstate;
 
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Before;
@@ -31,7 +31,7 @@ public class UserStateFilterIntegrationTest {
     @Ignore
     @Test
     public void userFilterDoesNotHit() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = itRule.deliver(
+        MailInterceptor.ProcessedMail processedMail = itRule.deliver(
                 MailBuilder.aNewMail().adId("123").from("tester@ebay.de").to("seller@test.de").htmlBody("hello world!"));
 
         assertEquals(0, processedMail.getMessage().getProcessingFeedback().size());
@@ -41,7 +41,7 @@ public class UserStateFilterIntegrationTest {
     @Ignore
     @Test
     public void userFilterDoesHit() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = itRule.deliver(
+        MailInterceptor.ProcessedMail processedMail = itRule.deliver(
                 MailBuilder.aNewMail().adId("123").from("matthias.huttar@gmx.de").to("seller@test.de").htmlBody("hello world!"));
 
         assertEquals(1, processedMail.getMessage().getProcessingFeedback().size());

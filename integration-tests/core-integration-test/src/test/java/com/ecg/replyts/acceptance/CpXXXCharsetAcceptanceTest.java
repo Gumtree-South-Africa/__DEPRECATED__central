@@ -3,20 +3,14 @@ package com.ecg.replyts.acceptance;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.mailparser.StructuredMail;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
-import com.ecg.replyts.integration.test.MailBuilder;
-import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.google.common.io.CharStreams;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class CpXXXCharsetAcceptanceTest {
 

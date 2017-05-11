@@ -1,7 +1,7 @@
 package com.ebay.columbus.replyts2.blockeduser;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,7 +25,7 @@ public class BlockedUserFilterIntegrationTest {
     }
 
     @Test public void testBlockedUser() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                         .deliver(aNewMail().from("gonzalo@loquo.com").to("bar@foo.com")
                                         .htmlBody("this is a message! ")
                                         .customHeader("buyer-name", "BuyerName"));
@@ -34,7 +34,7 @@ public class BlockedUserFilterIntegrationTest {
     }
 
     @Test public void testUnblockedUser() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                         .deliver(aNewMail().from("foo@bar.com").to("bar@foo.com")
                                         .htmlBody("this is a message! ")
                                         .customHeader("buyer-name", "BuyerName"));

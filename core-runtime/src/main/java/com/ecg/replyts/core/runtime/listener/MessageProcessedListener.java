@@ -28,7 +28,9 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 public interface MessageProcessedListener {
 
     /**
-     * invoked when a message was processed. parameters are the concerned message and it's conversation. Please note that one message might be processed more than once, if it was blocked/held at first but then moderated by CS agents.
+     * invoked when a message was processed. parameters are the concerned message and it's conversation.
+     * Please note that one message might be processed more than once, if it was blocked/held at first
+     * but then moderated by CS agents.
      */
     void messageProcessed(Conversation conversation, Message message);
 

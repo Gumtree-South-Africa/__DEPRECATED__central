@@ -2,7 +2,7 @@ package com.ecg.replyts.acceptance;
 
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,7 +17,7 @@ public class PreprocessorRemoveIgnoreableMailsAcceptanceTest {
 
     @Test
     public void rtsDoesNotProcessAutomatedMail() {
-        AwaitMailSentProcessedListener.ProcessedMail outcome = replyTsIntegrationTestRule.deliver(
+        MailInterceptor.ProcessedMail outcome = replyTsIntegrationTestRule.deliver(
                 aNewMail()
                         .from("a@b.com")
                         .to("b@c.com")
@@ -34,7 +34,7 @@ public class PreprocessorRemoveIgnoreableMailsAcceptanceTest {
 
     @Test
     public void rtsDoesNotSendOrphanedMails() {
-        AwaitMailSentProcessedListener.ProcessedMail outcome = replyTsIntegrationTestRule.deliver(
+        MailInterceptor.ProcessedMail outcome = replyTsIntegrationTestRule.deliver(
                 aNewMail()
                         .from("a@b.com")
                         .to("Buyer.00000@test-platform.com")

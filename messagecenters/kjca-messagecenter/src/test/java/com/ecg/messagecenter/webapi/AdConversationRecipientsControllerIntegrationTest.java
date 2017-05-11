@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetAdConversationRecipientsCommand;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
 import org.junit.Rule;
@@ -61,7 +61,7 @@ public class AdConversationRecipientsControllerIntegrationTest {
         final String AD_ID = "232323";
 
         // send first email
-        AwaitMailSentProcessedListener.ProcessedMail processedMail1 = testRule.deliver(
+        MailInterceptor.ProcessedMail processedMail1 = testRule.deliver(
                 aNewMail()
                         .from("buyer1@buyer.com")
                         .to(SELLER_EMAIL)
@@ -74,7 +74,7 @@ public class AdConversationRecipientsControllerIntegrationTest {
         testRule.waitForMail();
 
         // send second email
-        AwaitMailSentProcessedListener.ProcessedMail processedMail2 = testRule.deliver(
+        MailInterceptor.ProcessedMail processedMail2 = testRule.deliver(
                 aNewMail()
                         .from("buyer2@buyer.com")
                         .to(SELLER_EMAIL)

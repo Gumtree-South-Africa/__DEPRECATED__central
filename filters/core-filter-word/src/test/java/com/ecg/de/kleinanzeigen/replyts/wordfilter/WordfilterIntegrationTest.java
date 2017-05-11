@@ -2,7 +2,7 @@ package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
@@ -31,7 +31,7 @@ public class WordfilterIntegrationTest {
 
     @Test
     public void wordfilterFiresOnPatternHit() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                 .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com").htmlBody("this is a <b>badword</b>! "));
 
         assertEquals(1, processedMail.getMessage().getProcessingFeedback().size());
@@ -40,7 +40,7 @@ public class WordfilterIntegrationTest {
 
     @Test
     public void wordfilterFiresOnPatternHitWithinCategory() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                 .deliver(aNewMail().customHeader(CATEGORY_ID, "c218").adId("1234").from("foo@bar.com").to("bar@foo.com").htmlBody("this is a <b>badcategoryword</b>! "));
 
         assertEquals(1, processedMail.getMessage().getProcessingFeedback().size());
@@ -50,7 +50,7 @@ public class WordfilterIntegrationTest {
     @Test
     public void ignoresQuotedRegularExpressions() {
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                 .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com").htmlBody("this is a <b>badword</b>! "));
 
         processedMail = replyTsIntegrationTestRule.deliver(aNewMail().from("bar@foo.com").to(processedMail.getOutboundMail().getFrom()).htmlBody("this is badword number two"));
@@ -63,7 +63,7 @@ public class WordfilterIntegrationTest {
     @Test
     public void countsUnquotedRegularExpressions() {
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                 .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com").htmlBody("this is a <b>badword</b>! "));
 
         processedMail = replyTsIntegrationTestRule.deliver(aNewMail().from("bar@foo.com").to(processedMail.getOutboundMail().getFrom()).htmlBody("this is meanword"));

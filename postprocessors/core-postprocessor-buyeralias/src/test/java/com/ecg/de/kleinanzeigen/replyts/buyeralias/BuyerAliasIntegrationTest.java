@@ -1,6 +1,6 @@
 package com.ecg.de.kleinanzeigen.replyts.buyeralias;
 
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,7 +20,7 @@ public class BuyerAliasIntegrationTest {
 
     @Test
     public void buyerAliasAppended() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                 .deliver(aNewMail()
                         .adId("1234")
                         .from("foo@bar.com")
@@ -38,7 +38,7 @@ public class BuyerAliasIntegrationTest {
 
     @Test
     public void sellerAliasAppended() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = replyTsIntegrationTestRule
+        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                 .deliver(aNewMail()
                         .adId("1234")
                         .from("foo@bar.com")

@@ -1,6 +1,6 @@
 package com.ecg.replyts.acceptance.test.core;
 
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
@@ -22,7 +22,7 @@ public class SetCustomValueTest {
 
     @Test
     public void addsNewIntegrationTests() {
-        AwaitMailSentProcessedListener.ProcessedMail deliver = rule.deliver(MailBuilder.aNewMail().randomAdId().randomSender().randomReceiver().htmlBody("asfdasdf"));
+        MailInterceptor.ProcessedMail deliver = rule.deliver(MailBuilder.aNewMail().randomAdId().randomSender().randomReceiver().htmlBody("asfdasdf"));
 
         String host = String.format("http://localhost:%s/screeningv2/", rule.getHttpPort());
 

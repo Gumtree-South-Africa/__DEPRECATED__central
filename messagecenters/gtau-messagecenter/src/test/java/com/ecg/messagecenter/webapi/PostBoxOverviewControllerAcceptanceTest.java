@@ -2,7 +2,7 @@ package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.persistence.Header;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener.ProcessedMail;
+import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
 import org.junit.Rule;

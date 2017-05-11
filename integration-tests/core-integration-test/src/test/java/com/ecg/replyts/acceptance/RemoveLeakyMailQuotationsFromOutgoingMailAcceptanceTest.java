@@ -1,6 +1,6 @@
 package com.ecg.replyts.acceptance;
 
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Rule;
@@ -19,7 +19,7 @@ public class RemoveLeakyMailQuotationsFromOutgoingMailAcceptanceTest {
 
     @Test
     public void removesConfiguredPatterns() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail result = testRule.deliver(MailBuilder.aNewMail().adId("123").from("oo@as.com").to("as@sdf.com").subject("asd").htmlBody(
+        MailInterceptor.ProcessedMail result = testRule.deliver(MailBuilder.aNewMail().adId("123").from("oo@as.com").to("as@sdf.com").subject("asd").htmlBody(
                 "Helloobfuscator-asdf-pattern-0MyDearobfuscator-234234-PATTERN-1World"
         ));
         String text = result.getOutboundMail().getPlaintextParts().get(0);
@@ -28,7 +28,7 @@ public class RemoveLeakyMailQuotationsFromOutgoingMailAcceptanceTest {
 
     @Test
     public void removesConfiguredPatternsInAllTextParts() throws Exception {
-        AwaitMailSentProcessedListener.ProcessedMail result = testRule.deliver(MailBuilder.aNewMail().adId("123").from("oo@as.com").to("as@sdf.com").subject("asd")
+        MailInterceptor.ProcessedMail result = testRule.deliver(MailBuilder.aNewMail().adId("123").from("oo@as.com").to("as@sdf.com").subject("asd")
                 .plainBody("Fooobfuscator-asdf-pattern-1Bar")
                 .htmlBody("Helloobfuscator-asdf-pattern-0MyDearobfuscator-234234-PATTERN-1World"));
         String text = result.getOutboundMail().getPlaintextParts().get(0);
@@ -39,7 +39,7 @@ public class RemoveLeakyMailQuotationsFromOutgoingMailAcceptanceTest {
 
     @Test
     public void removesRealWordPatternWithBackslashes() {
-        AwaitMailSentProcessedListener.ProcessedMail deliver = testRule.deliver(MailBuilder.aNewMail().adId("123").from("foo@bar.com").to("kj@hg.com").htmlBody("To: fo.o@bar.com"));
+        MailInterceptor.ProcessedMail deliver = testRule.deliver(MailBuilder.aNewMail().adId("123").from("foo@bar.com").to("kj@hg.com").htmlBody("To: fo.o@bar.com"));
         assertEquals("", deliver.getOutboundMail().getPlaintextParts().get(0));
     }
 }

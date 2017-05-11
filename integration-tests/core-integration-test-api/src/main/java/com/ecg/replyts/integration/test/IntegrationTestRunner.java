@@ -95,6 +95,10 @@ public class IntegrationTestRunner extends ExternalResource {
         replytsRunner.getMessages().clear();
     }
 
+    public MailInterceptor getMailInterceptor() {
+        return replytsRunner.getMailInterceptor();
+    }
+
     /* Use rule.waitForMail() instead */
     public WiserMessage waitForMessageArrival(int expectedEmailNumber, long timeout) throws Exception {
         ensureStarted();
