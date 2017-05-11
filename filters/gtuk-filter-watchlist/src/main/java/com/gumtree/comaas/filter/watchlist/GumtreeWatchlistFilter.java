@@ -23,7 +23,7 @@ import java.util.List;
 import static com.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
 
 public class GumtreeWatchlistFilter implements com.ecg.replyts.core.api.pluginconfiguration.filter.Filter {
-    private static final Timer TIMER = TimingReports.newTimer("blacklist-filter-process-time");
+    private static final Timer TIMER = TimingReports.newTimer("watchlist-filter-process-time");
 
     private Filter pluginConfig;
     private WatchlistFilterConfig watchListFilterConfig;
