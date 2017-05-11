@@ -80,6 +80,11 @@
                     <artifactId>gtuk-filter-watchlist</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>gtuk-filter-volume</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>

@@ -42,12 +42,13 @@ public final class GumtreeFilterUtil {
         }
     }
 
+    @SuppressWarnings("unchecked") // we know what we're doing
     public static boolean hasExemptedCategory(ConfigWithExemptedCategories config, MessageProcessingContext messageProcessingContext) {
         Set<Long> categoryBreadCrumb = (Set<Long>) messageProcessingContext.getFilterContext().getOrDefault("categoryBreadCrumb", Collections.emptySet());
         return hasExemptedCategory(config.getExemptedCategories(), categoryBreadCrumb);
     }
 
-    public static boolean hasExemptedCategory(List<Long> exemptedCategories, Set<Long> breadCrumbs) {
+    private static boolean hasExemptedCategory(List<Long> exemptedCategories, Set<Long> breadCrumbs) {
         return !(breadCrumbs == null || exemptedCategories == null) && exemptedCategories.stream().anyMatch(breadCrumbs::contains);
     }
 }

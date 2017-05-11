@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
 
@@ -32,9 +31,7 @@ public class GumtreeGeoIpFilter implements com.ecg.replyts.core.api.pluginconfig
                 return Collections.emptyList();
             }
 
-            Set<Long> categoryBreadCrumb = (Set<Long>) context.getFilterContext().get("categoryBreadCrumb");
-
-            if (hasExemptedCategory(filterConfig.getExemptedCategories(), categoryBreadCrumb)) {
+            if (hasExemptedCategory(filterConfig, context)) {
                 return Collections.emptyList();
             }
 

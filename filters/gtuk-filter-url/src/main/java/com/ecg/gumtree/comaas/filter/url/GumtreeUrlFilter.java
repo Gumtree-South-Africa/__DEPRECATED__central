@@ -15,7 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,7 +56,7 @@ public class GumtreeUrlFilter implements com.ecg.replyts.core.api.pluginconfigur
             return Collections.emptyList();
         }
 
-        if (GumtreeFilterUtil.hasExemptedCategory(filterConfig.getExemptedCategories(), (Set<Long>) messageContext.getFilterContext().get("categoryBreadCrumb"))) {
+        if (GumtreeFilterUtil.hasExemptedCategory(filterConfig, messageContext)) {
             return Collections.emptyList();
         }
 

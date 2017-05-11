@@ -5,14 +5,10 @@ import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
@@ -22,8 +18,8 @@ import java.util.concurrent.TimeUnit;
  *
  * @author mhuttar
  */
+@Component
 class Refresher {
-
     private static final Logger LOG = LoggerFactory.getLogger(Refresher.class);
 
     private final ConfigurationRepository repository;
@@ -33,7 +29,10 @@ class Refresher {
 
     private static final long RATE = TimeUnit.MINUTES.toMillis(1);
 
-    public Refresher(ConfigurationRepository repository, ConfigurationAdmin<Object> admin) {
+    @Autowired(required = false)
+    private List<ConfigurationRefreshEventListener> refreshEventListeners = Collections.emptyList();
+
+    Refresher(ConfigurationRepository repository, ConfigurationAdmin<Object> admin) {
         this.repository = repository;
         this.admin = admin;
     }
@@ -60,19 +59,19 @@ class Refresher {
         }
     }
 
-    public void updateConfigurations() {
+    void updateConfigurations() {
         Map<ConfigurationId, PluginConfiguration> runningConfigs = toMap(admin.getRunningServices());
-        Map<ConfigurationId, PluginConfiguration> newConfigs = new HashMap<ConfigurationId, PluginConfiguration>();
+        Map<ConfigurationId, PluginConfiguration> newConfigs = new HashMap<>();
         for (PluginConfiguration config : repository.getConfigurations()) {
             if (admin.handlesConfiguration(config.getId())) {
                 newConfigs.put(config.getId(), config);
             }
         }
 
-        Set<ConfigurationId> configsToBeRemoved = new HashSet<ConfigurationId>(runningConfigs.keySet());
+        Set<ConfigurationId> configsToBeRemoved = new HashSet<>(runningConfigs.keySet());
         configsToBeRemoved.removeAll(newConfigs.keySet());
 
-        Set<PluginConfiguration> configsToBeUpdated = new HashSet<PluginConfiguration>();
+        Set<PluginConfiguration> configsToBeUpdated = new HashSet<>();
         for (Map.Entry<ConfigurationId, PluginConfiguration> configEntry : newConfigs.entrySet()) {
             ConfigurationId configId = configEntry.getKey();
             PluginConfiguration newConfiguration = configEntry.getValue();
@@ -84,6 +83,10 @@ class Refresher {
         }
 
         for (ConfigurationId toDelete : configsToBeRemoved) {
+            refreshEventListeners.stream()
+                    .filter(l -> l.notify(toDelete.getPluginFactory()))
+                    .forEach(l -> l.unregister(toDelete.getInstanceId()));
+
             admin.deleteConfiguration(toDelete);
         }
 
@@ -94,12 +97,10 @@ class Refresher {
     }
 
     private Map<ConfigurationId, PluginConfiguration> toMap(List<PluginInstanceReference<Object>> input) {
-        Map<ConfigurationId, PluginConfiguration> res = new HashMap<ConfigurationId, PluginConfiguration>();
+        Map<ConfigurationId, PluginConfiguration> res = new HashMap<>();
         for (PluginInstanceReference<?> p : input) {
             res.put(p.getConfiguration().getId(), p.getConfiguration());
         }
         return res;
     }
-
-
 }

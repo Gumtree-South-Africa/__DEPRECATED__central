@@ -94,6 +94,7 @@
                 <module>filters/gtuk-filter-geoiplookup</module>
                 <module>filters/gtuk-filter-knowngood</module>
                 <module>filters/gtuk-filter-watchlist</module>
+                <module>filters/gtuk-filter-volume</module>
 
                 <module>listeners/gtuk-listener-eventpublisher</module>
                 <module>listeners/gtuk-listener-statsnotifier</module>

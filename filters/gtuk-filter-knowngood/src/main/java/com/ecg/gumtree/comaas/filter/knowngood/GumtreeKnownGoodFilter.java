@@ -18,7 +18,10 @@ import com.gumtree.gumshield.api.domain.known_good.KnownGoodStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
 
@@ -37,7 +40,7 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageContext) throws ProcessingTimeExceededException {
         try (Timer.Context ignore = processTimer.time()) {
-            if (hasExemptedCategory(filterConfig.getExemptedCategories(), (Set<Long>) messageContext.getFilterContext().get("categoryBreadCrumb"))) {
+            if (hasExemptedCategory(filterConfig, messageContext)) {
                 return Collections.emptyList();
             }
 

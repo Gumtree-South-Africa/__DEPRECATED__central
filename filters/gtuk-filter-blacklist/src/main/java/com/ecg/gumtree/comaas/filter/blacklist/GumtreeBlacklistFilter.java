@@ -41,9 +41,7 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
         try (Timer.Context ignore = TIMER.time()) {
-            Set<Long> categoryBreadCrumb = (Set<Long>) context.getFilterContext().get("categoryBreadCrumb");
-
-            if (hasExemptedCategory(filterConfig.getExemptedCategories(), categoryBreadCrumb)) {
+            if (hasExemptedCategory(filterConfig, context)) {
                 return Collections.emptyList();
             }
 

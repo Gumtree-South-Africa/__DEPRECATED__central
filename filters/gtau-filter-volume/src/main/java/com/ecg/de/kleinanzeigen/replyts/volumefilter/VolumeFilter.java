@@ -1,23 +1,19 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import com.codahale.metrics.Counter;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.search.RtsSearchResponse;
-import com.ecg.replyts.core.api.search.SearchService;
-import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
-import com.ecg.replyts.core.runtime.TimingReports;
 import org.apache.commons.collections.CollectionUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import static org.joda.time.DateTime.now;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * uses elastic search to query for the number of mails received by the mail's sender. if a quota is violated, a score is assigned.
@@ -45,7 +41,6 @@ class VolumeFilter implements Filter {
     }
 
 
-
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         Message message = messageProcessingContext.getMessage();
@@ -68,7 +63,7 @@ class VolumeFilter implements Filter {
             LOG.debug("Num of mails in {} {}: {}", q.getPerTimeValue(), q.getPerTimeUnit(), mailsInTimeWindow);
 
 
-            if(mailsInTimeWindow > q.getAllowance()) {
+            if (mailsInTimeWindow > q.getAllowance()) {
                 return Collections.singletonList(new FilterFeedback(
                         q.uihint(),
                         q.describeViolation(mailsInTimeWindow),

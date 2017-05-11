@@ -8,7 +8,10 @@ import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.Rule;
 import com.gumtree.filters.comaas.config.WordFilterConfig;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
@@ -27,9 +30,7 @@ public class GumtreeWordFilter implements com.ecg.replyts.core.api.pluginconfigu
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
-        Set<Long> categoryBreadCrumb = (Set<Long>) context.getFilterContext().get("categoryBreadCrumb");
-
-        if (hasExemptedCategory(filterConfig.getExemptedCategories(), categoryBreadCrumb)) {
+        if (hasExemptedCategory(filterConfig, context)) {
             return Collections.emptyList();
         }
 
