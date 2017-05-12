@@ -117,17 +117,17 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
                     if (lastModifiedDate != null && (roundedLastModifiedDate.isBefore(cleanupDate) || roundedLastModifiedDate.equals(cleanupDate))) {
                         try {
-                            deleteConversationWithModificationIdx(conversationId);
+                            deleteConversationWithModificationIdx(conversationModificationDate);
 
                         } catch (RuntimeException ex) {
-                            LOG.error("Cleanup: Could not delete Conversation: " + conversationId, ex);
+                            LOG.error("Cleanup: Could not delete Conversation: " + conversationModificationDate.toString(), ex);
                         }
                     } else {
                         try {
                             conversationRepository.deleteOldConversationModificationDate(conversationModificationDate);
 
                         } catch (RuntimeException ex) {
-                            LOG.error("Cleanup: Could not delete " + conversationModificationDate.toString(), ex);
+                            LOG.error("Cleanup: Could not delete old modification index " + conversationModificationDate.toString(), ex);
                         }
                     }
                 });
@@ -154,11 +154,13 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
         return cronJobExpression;
     }
 
-    private void deleteConversationWithModificationIdx(String conversationId) {
-        MutableConversation conversation = conversationRepository.getById(conversationId);
+    private void deleteConversationWithModificationIdx(ConversationModificationDate conversationModificationDate) {
+        MutableConversation conversation = conversationRepository.getById(conversationModificationDate.getConversationId());
         if (conversation != null) {
             conversation.applyCommand(new ConversationDeletedCommand(conversation.getId(), now()));
             ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
+        } else {
+            conversationRepository.deleteOldConversationModificationDate(conversationModificationDate);
         }
     }
 }
