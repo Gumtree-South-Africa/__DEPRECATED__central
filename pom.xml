@@ -489,7 +489,7 @@
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
-        <gumtree-au-events.version>1.56</gumtree-au-events.version>
+        <gumtree-au-events.version>1.58</gumtree-au-events.version>
         <wiremock.version>1.58</wiremock.version>
         <gumtree-au-lbs2-client-version>0.3</gumtree-au-lbs2-client-version>
 

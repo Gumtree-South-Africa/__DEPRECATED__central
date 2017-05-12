@@ -5,16 +5,19 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-/**
- * Created by fmiri on 24/03/2017.
- */
+import javax.annotation.PostConstruct;
+
+@Component
 public class MessageEventListener implements MessageProcessedListener {
-
     private static final Logger LOG = LoggerFactory.getLogger(MessageEventListener.class);
 
+    @Autowired
     private RTSRMQEventCreator eventCreator;
 
+    @PostConstruct
     public void onStartup() {
         LOG.info("MessageEventListener created.");
     }
@@ -25,13 +28,5 @@ public class MessageEventListener implements MessageProcessedListener {
         } catch (RuntimeException e) {
             LOG.error("Message logging failed",e);
         }
-    }
-
-    public RTSRMQEventCreator getEventCreator() {
-        return eventCreator;
-    }
-
-    public void setEventCreator(RTSRMQEventCreator eventCreator) {
-        this.eventCreator = eventCreator;
     }
 }

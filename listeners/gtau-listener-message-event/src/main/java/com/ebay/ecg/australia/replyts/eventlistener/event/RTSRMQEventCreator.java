@@ -9,31 +9,34 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-/**
- * Created by fmiri on 24/03/2017.
- */
+import javax.annotation.PostConstruct;
+
+@Component
 public class RTSRMQEventCreator {
-
     private static Logger LOG = LoggerFactory.getLogger(RTSRMQEventCreator.class);
+
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
     private static final String REPLY_CHANNEL_HEADER = "X-Reply-Channel";
     private static final String USER_AGENT = "User-Agent";
     private static final String CATEGORY_ID = "categoryid";
     private static final String IP = "ip";
 
+    @Autowired
     private RabbitMQEventHandlerClient eventHandlerClient;
 
-    public void onSetup() {
+    @PostConstruct
+    public void onStartup() {
         LOG.info("RTSRMQEventCreator created.");
     }
 
     public void messageEventEntry(final Conversation conversation, final Message message) {
-
         try {
             final MessageEvents.MessageCreatedEvent messageRequestCreatedEvent = createMessageEvent(conversation, message);
 
-            if(messageRequestCreatedEvent != null) {
+            if (messageRequestCreatedEvent != null) {
                 eventHandlerClient.fire(messageRequestCreatedEvent);
 
                 LOG.info("Sent MessageCreatedEvent conversationId: {}, messageId: {}, adId: {}, sellerMail: {}, buyerMail: {}",
@@ -66,8 +69,7 @@ public class RTSRMQEventCreator {
      * @return MessageCreatedEvent the event to send to RabbitMQ
      */
     protected MessageEvents.MessageCreatedEvent createMessageRequestCreatedEvent(final Conversation conversation, final Message message) {
-        if(conversation != null) {
-
+        if (conversation != null) {
             Entities.MessageDirection messageDirection = null;
             String messageId = null;
             String messageState = null;
@@ -85,21 +87,21 @@ public class RTSRMQEventCreator {
             Entities.ConversationInfo.Builder conversationInfoBuilder = Entities.ConversationInfo.newBuilder();
 
             messageConvInfoBuilder.setConversationId(conversation.getId());
-            if(message != null) {
+            if (message != null) {
                 messageId = message.getId();
                 messageConvInfoBuilder.setMessageId(messageId);
 
-                if(message.getReceivedAt() != null) {
+                if (message.getReceivedAt() != null) {
                     messageReceivedAt = message.getReceivedAt().toString(DATE_FORMAT);
                     messageConvInfoBuilder.setMessageReceivedAt(messageReceivedAt);
                 }
 
-                if(message.getMessageDirection() != null && message.getMessageDirection() != MessageDirection.UNKNOWN) {
+                if (message.getMessageDirection() != null && message.getMessageDirection() != MessageDirection.UNKNOWN) {
                     messageDirection = Entities.MessageDirection.valueOf(message.getMessageDirection().name());
                     messageConvInfoBuilder.setMessageDirection(messageDirection);
                 }
 
-                if(message.getState() != null) {
+                if (message.getState() != null) {
                     messageState = message.getState().name();
                     messageConvInfoBuilder.setMessageState(messageState);
                 }
@@ -109,42 +111,46 @@ public class RTSRMQEventCreator {
             conversationInfoBuilder.setSellerMail(conversation.getSellerId());
             conversationInfoBuilder.setBuyerMail(conversation.getBuyerId());
 
-            if(conversation.getState() != null) {
+            if (conversation.getState() != null) {
                 conversationState = conversation.getState().name();
                 conversationInfoBuilder.setConversationState(conversationState);
             }
 
-            if(conversation.getCreatedAt() != null) {
+            if (conversation.getCreatedAt() != null) {
                 conversationCreatedAt = conversation.getCreatedAt().toString(DATE_FORMAT);
                 conversationInfoBuilder.setConversationCreatedAt(conversationCreatedAt);
             }
 
-            if(conversation.getLastModifiedAt() != null) {
+            if (conversation.getLastModifiedAt() != null) {
                 conversationLastModifiedAt = conversation.getLastModifiedAt().toString(DATE_FORMAT);
                 conversationInfoBuilder.setConversationLastModifiedDate(conversationLastModifiedAt);
             }
 
-            if(conversation.getMessages() != null) {
+            if (conversation.getMessages() != null) {
                 messageSize = String.valueOf(conversation.getMessages().size());
                 conversationInfoBuilder.setNumOfMessageInConversation(messageSize);
             }
 
-            if(conversation.getCustomValues() != null) {
+            if (conversation.getCustomValues() != null) {
                 categoryId = conversation.getCustomValues().get(CATEGORY_ID);
-                if(categoryId != null)
+                if (categoryId != null) {
                     conversationInfoBuilder.setCategoryId(categoryId);
+                }
 
                 ip = conversation.getCustomValues().get(IP);
-                if(ip != null)
+                if (ip != null) {
                     conversationInfoBuilder.setIp(ip);
+                }
 
                 userAgent = conversation.getCustomValues().get(USER_AGENT);
-                if(userAgent != null)
+                if (userAgent != null) {
                     conversationInfoBuilder.setUserAgent(userAgent);
+                }
 
                 replyChannel = conversation.getCustomValues().get(REPLY_CHANNEL_HEADER);
-                if(replyChannel != null)
+                if (replyChannel != null) {
                     messageConvInfoBuilder.setReplyChannel(replyChannel);
+                }
             }
 
             final Entities.MessageConversationInfo messageConversationInfo = messageConvInfoBuilder.build();
@@ -172,13 +178,5 @@ public class RTSRMQEventCreator {
             LOG.info(" No conversation: " + conversation);
             return null;
         }
-    }
-
-    public RabbitMQEventHandlerClient getEventHandlerClient() {
-        return eventHandlerClient;
-    }
-
-    public void setEventHandlerClient(RabbitMQEventHandlerClient eventHandlerClient) {
-        this.eventHandlerClient = eventHandlerClient;
     }
 }

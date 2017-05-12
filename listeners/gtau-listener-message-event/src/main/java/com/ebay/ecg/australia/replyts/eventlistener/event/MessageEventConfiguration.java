@@ -7,37 +7,37 @@ import java.util.concurrent.TimeoutException;
 
 import com.ebay.ecg.australia.events.rabbitmq.RabbitMQConfiguration;
 import com.ebay.ecg.australia.events.rabbitmq.RabbitMQEventHandlerClient;
+import com.ecg.replyts.core.runtime.ComaasPlugin;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-/**
- * Created by fmiri on 24/03/2017.
- */
+@ComaasPlugin
+@Configuration
+@Import({ RTSRMQEventCreator.class, MessageEventListener.class })
 public class MessageEventConfiguration {
-
-    @Value("${rabbitmq-producer.host:${rabbitmq.host}}")
+    @Value("${rabbitmq.host}")
     private String host;
 
-    @Value("${rabbitmq-producer.port:${rabbitmq.port}}")
+    @Value("${rabbitmq.port}")
     private Integer port;
 
-    @Value("${rabbitmq-producer.username:${rabbitmq.username}}")
-    private String username;
-
-    @Value("${rabbitmq-producer.password:${rabbitmq.password}}")
-    private String password;
-
-    @Value("${rabbitmq-producer.connectionTimeout:${rabbitmq.connectionTimeout}}")
-    private Integer connectionTimeout;
-
-    @Value("${rabbitmq-producer.virtualHost:${rabbitmq.virtualHost}}")
+    @Value("${rabbitmq.virtualHost}")
     private String virtualHost;
 
-    @Value("${rabbitmq-producer.endpoint:${rabbitmq.endpoint}}")
-    private String endpoint;
+    @Value("${rmq-msg-event-producer.username}")
+    private String username;
 
-    /* Start Producer Configuration */
+    @Value("${rmq-msg-event-producer.password}")
+    private String password;
+
+    @Value("${rmq-msg-event-producer.connectionTimeout:1000}")
+    private Integer connectionTimeout;
+
+    @Value("${rmq-msg-event-producer.endpoint}")
+    private String endpoint;
 
     @Bean(name = "rabbitMQConfigProducer")
     public RabbitMQConfiguration getRabbitMQConfigProducer() {
@@ -60,5 +60,4 @@ public class MessageEventConfiguration {
             throws KeyManagementException, NoSuchAlgorithmException, CloneNotSupportedException, IOException, TimeoutException {
         return new RabbitMQEventHandlerClient(config);
     }
-    /* End Producer Configuration */
 }
