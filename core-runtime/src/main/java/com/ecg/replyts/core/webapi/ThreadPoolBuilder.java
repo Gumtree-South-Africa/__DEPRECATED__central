@@ -48,6 +48,8 @@ public class ThreadPoolBuilder {
             threadPool = new QueuedThreadPool(maxThreads, MIN_THREADS_JETTY_DEFAULT, IDLE_TIMEOUT_JETTY_DEFAULT, queue);
         }
         threadPool.setName("ThreadPool");
+        // allow stopping the thread after 10 seconds of idling
+        threadPool.setIdleTimeout(10000);
         return threadPool;
     }
 }

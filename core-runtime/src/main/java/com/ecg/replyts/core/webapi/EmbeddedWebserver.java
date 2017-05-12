@@ -12,7 +12,6 @@ import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.ConnectorStatistics;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
@@ -28,7 +27,6 @@ import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.eclipse.jetty.http.HttpMethod.DELETE;
 import static org.eclipse.jetty.http.HttpMethod.GET;
@@ -43,6 +41,7 @@ import static org.eclipse.jetty.http.MimeTypes.Type.TEXT_PLAIN;
  */
 @Component
 public class EmbeddedWebserver {
+
     private static final Logger LOG = LoggerFactory.getLogger(EmbeddedWebserver.class);
 
     private Server server;
@@ -71,13 +70,18 @@ public class EmbeddedWebserver {
     @Autowired
     public EmbeddedWebserver(
             @Value("${replyts.ssl.enabled:false}") boolean isSSLEnabled,
-            @Value("${replyts.http.port:8081}") Integer httpPortNumber,
-            @Value("${replyts.http.timeout:5000}") Long httpTimeoutMs,
-            @Value("${replyts.http.maxThreads:100}") Integer maxThreads,
-            @Value("${replyts.http.maxThreadQueueSize:200}") Integer maxThreadQueueSize,
+            @Value("${replyts.http.port:8081}") int httpPortNumber,
+            @Value("${replyts.http.timeout:5000}") long httpTimeoutMs,
+            @Value("${replyts.http.blocking.timeout:5000}") long httpBlockingTimeoutMs,
+            @Value("${replyts.jetty.socket.linger:-1}") int solinger,
+            @Value("${replyts.jetty.thread.stop.timeout:5000}") long threadStopTimeoutMs,
+            @Value("${replyts.http.maxThreads:100}") int maxThreads,
+            @Value("${replyts.http.maxThreadQueueSize:200}") int maxThreadQueueSize,
             @Value("${replyts.jetty.gzip.enabled:false}") boolean gzipEnabled,
             @Value("${replyts.jetty.instrument:true}") boolean instrumented,
+            @Value("${replyts.http.maxAcceptRequestQueueSize:50}") int httpMaxAcceptRequestQueueSize,
             Environment environment) {
+
         this.httpPort = httpPortNumber;
         this.gzipEnabled = gzipEnabled;
         this.instrument = instrumented;
@@ -89,10 +93,12 @@ public class EmbeddedWebserver {
 
         if (isSSLEnabled) {
             SSLConfiguration sslConfiguration = SSLConfiguration.createSSLConfiguration(environment);
-            SSLServerFactory factory = new SSLServerFactory(httpPortNumber, httpTimeoutMs, builder, sslConfiguration);
+            SSLServerFactory factory = new SSLServerFactory(httpPortNumber, httpTimeoutMs, builder, sslConfiguration, httpMaxAcceptRequestQueueSize,
+                    httpBlockingTimeoutMs, threadStopTimeoutMs, solinger);
             server = factory.createServer();
         } else {
-            HttpServerFactory factory = new HttpServerFactory(httpPortNumber, httpTimeoutMs, builder);
+            HttpServerFactory factory = new HttpServerFactory(httpPortNumber, httpTimeoutMs, builder, httpMaxAcceptRequestQueueSize,
+                    httpBlockingTimeoutMs, threadStopTimeoutMs, solinger);
             server = factory.createServer();
         }
 

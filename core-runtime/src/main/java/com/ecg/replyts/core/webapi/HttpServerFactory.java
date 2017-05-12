@@ -7,13 +7,22 @@ import org.eclipse.jetty.server.ServerConnector;
 
 public class HttpServerFactory {
     private final int httpPortNumber;
+    private final int httpMaxAcceptRequestQueueSize;
+    private final int solinger;
     private final long httpTimeoutMs;
+    private final long httpBlockingTimeoutMs;
+    private final long threadStopTimeoutMs;
     private final ThreadPoolBuilder threadPoolBuilder;
 
-    public HttpServerFactory(int httpPortNumber, long httpTimeoutMs, ThreadPoolBuilder threadPoolBuilder) {
+    public HttpServerFactory(int httpPortNumber, long httpTimeoutMs,  ThreadPoolBuilder threadPoolBuilder,
+                             int httpMaxAcceptRequestQueueSize, long httpBlockingTimeoutMs, long threadStopTimeoutMs, int solinger) {
         this.httpPortNumber = httpPortNumber;
         this.httpTimeoutMs = httpTimeoutMs;
         this.threadPoolBuilder = threadPoolBuilder;
+        this.httpMaxAcceptRequestQueueSize = httpMaxAcceptRequestQueueSize;
+        this.httpBlockingTimeoutMs = httpBlockingTimeoutMs;
+        this.threadStopTimeoutMs = threadStopTimeoutMs;
+        this.solinger = solinger;
     }
 
     public Server createServer() {
@@ -22,11 +31,19 @@ public class HttpServerFactory {
         HttpConnectionFactory factory = new HttpConnectionFactory();
         HttpConfiguration configuration = factory.getHttpConfiguration();
         ServerConnector connector = new ServerConnector(server, factory);
-
         // Set blocking-timeout to 0 means to use the idle timeout,
         // see http://download.eclipse.org/jetty/stable-9/apidocs/org/eclipse/jetty/server/HttpConfiguration.html#setBlockingTimeout-long-
-        configuration.setBlockingTimeout(0L);
+        configuration.setBlockingTimeout(httpBlockingTimeoutMs);
         connector.setIdleTimeout(httpTimeoutMs);
+        //Number of connection requests that can be queued up before the operating system starts to send rejections.
+        //https://wiki.eclipse.org/Jetty/Howto/Configure_Connectors
+        connector.setAcceptQueueSize(httpMaxAcceptRequestQueueSize);
+
+        // use -1 to disable, positive values timeout in seconds
+        connector.setSoLingerTime(solinger);
+
+        // time to wait for the thread to stop (30000 default)
+        connector.setStopTimeout(threadStopTimeoutMs);
 
         connector.setPort(httpPortNumber);
         server.addConnector(connector);

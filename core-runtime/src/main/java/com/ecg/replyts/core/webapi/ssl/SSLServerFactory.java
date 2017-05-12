@@ -29,15 +29,24 @@ public class SSLServerFactory {
     private static final String DEFAULT_KEY_STORE_PASSWORD = "replyts";
 
     private final long httpTimeoutMs;
+    private final long httpBlockingTimeoutMs;
+    private final int solinger;
+    private final long threadStopTimeoutMs;
     private final ThreadPoolBuilder threadPoolBuilder;
     private final SSLConfiguration sslConfig;
     private final int httpPortNumber;
+    private final int httpMaxAcceptRequestQueueSize;
 
-    public SSLServerFactory(int httpPortNumber, long httpTimeoutMs, ThreadPoolBuilder threadPoolBuilder, SSLConfiguration sslConfig) {
+    public SSLServerFactory(int httpPortNumber, long httpTimeoutMs, ThreadPoolBuilder threadPoolBuilder, SSLConfiguration sslConfig,
+                            int httpMaxAcceptRequestQueueSize, long httpBlockingTimeoutMs, long threadStopTimeoutMs, int solinger) {
         this.httpTimeoutMs = httpTimeoutMs;
         this.threadPoolBuilder = threadPoolBuilder;
         this.sslConfig = sslConfig;
         this.httpPortNumber = httpPortNumber;
+        this.httpMaxAcceptRequestQueueSize = httpMaxAcceptRequestQueueSize;
+        this.httpBlockingTimeoutMs = httpBlockingTimeoutMs;
+        this.threadStopTimeoutMs = threadStopTimeoutMs;
+        this.solinger = solinger;
     }
 
     public Server createServer() {
@@ -46,20 +55,33 @@ public class SSLServerFactory {
             final SslContextFactory sslContextFactory = createSSLContextFactory(sslConfig);
             final HttpConfiguration httpsConfig = createHttpsConfiguration(sslConfig);
             final ServerConnector serverConnector = createServerConnector(server, sslConfig, sslContextFactory, httpsConfig);
-            if(sslConfig.isAllowHttp()) {
+            if (sslConfig.isAllowHttp()) {
                 final ServerConnector httpConnector = new ServerConnector(server);
 
                 // Set blocking-timeout to 0 means to use the idle timeout,
                 // see http://download.eclipse.org/jetty/9.3.3.v20150827/apidocs/org/eclipse/jetty/server/HttpConfiguration.html#setBlockingTimeout-long-
-                httpsConfig.setBlockingTimeout(0L);
+                httpsConfig.setBlockingTimeout(httpBlockingTimeoutMs);
                 httpConnector.setIdleTimeout(httpTimeoutMs);
 
+                //Number of connection requests that can be queued up before the operating system starts to send rejections.
+                //https://wiki.eclipse.org/Jetty/Howto/Configure_Connectors
+                httpConnector.setAcceptQueueSize(httpMaxAcceptRequestQueueSize);
+
                 httpConnector.setPort(httpPortNumber);
-                server.setConnectors(new Connector[]{ httpConnector, serverConnector });
+
+                // default 30000
+                httpConnector.setStopTimeout(threadStopTimeoutMs);
+
+                // use -1 to disable, positive values timeout in seconds
+                httpConnector.setSoLingerTime(solinger);
+
+                // default is 30000
+                httpConnector.setStopTimeout(5000);
+
+                server.setConnectors(new Connector[]{httpConnector, serverConnector});
                 return server;
-            }
-            else {
-                server.setConnectors(new Connector[]{ serverConnector });
+            } else {
+                server.setConnectors(new Connector[]{serverConnector});
                 return server;
             }
         } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
@@ -86,9 +108,9 @@ public class SSLServerFactory {
     }
 
     private SslContextFactory createSSLContextFactory(SSLConfiguration sslConfig) throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        if(sslConfig.getPemBasedSSLConfiguration().isPresent()) {
+        if (sslConfig.getPemBasedSSLConfiguration().isPresent()) {
             return createSSLContextFactoryUsingPEM(sslConfig.getPemBasedSSLConfiguration().get());
-        } else if(sslConfig.getKeystoreBasedSSLConfiguration().isPresent()) {
+        } else if (sslConfig.getKeystoreBasedSSLConfiguration().isPresent()) {
             return createSSLContextFactoryUsingJksFiles(sslConfig.getKeystoreBasedSSLConfiguration().get());
         } else {
             throw new IllegalStateException("Keystore or Pem based SSL config is necessary");
@@ -128,11 +150,11 @@ public class SSLServerFactory {
         final PEMDecryptorProvider decryptionProv = new JcePEMDecryptorProviderBuilder().build(password);
 
         PrivateKeyInfo privateKeyInfo = null;
-        if(pemKeyObj instanceof PEMEncryptedKeyPair) {
+        if (pemKeyObj instanceof PEMEncryptedKeyPair) {
             privateKeyInfo = ((PEMEncryptedKeyPair) pemKeyObj).decryptKeyPair(decryptionProv).getPrivateKeyInfo();
-        } else if(pemKeyObj instanceof PEMKeyPair) {
+        } else if (pemKeyObj instanceof PEMKeyPair) {
             privateKeyInfo = ((PEMKeyPair) pemKeyObj).getPrivateKeyInfo();
-        } else if(pemKeyObj instanceof PrivateKeyInfo) {
+        } else if (pemKeyObj instanceof PrivateKeyInfo) {
             privateKeyInfo = ((PrivateKeyInfo) pemKeyObj);
         } else {
             throw new IllegalArgumentException("There is no suitable key in the PEM file");
@@ -144,14 +166,14 @@ public class SSLServerFactory {
 
     private X509Certificate extractX509Certificate(Object pemCrtObj) throws CertificateException {
         X509CertificateHolder x509CertificateHolder = null;
-        if(pemCrtObj instanceof X509CertificateHolder) {
+        if (pemCrtObj instanceof X509CertificateHolder) {
             x509CertificateHolder = ((X509CertificateHolder) pemCrtObj);
         } else {
             throw new IllegalArgumentException("There is no suitable certificate in the PEM file");
         }
 
-        return new JcaX509CertificateConverter().setProvider( new org.bouncycastle.jce.provider.BouncyCastleProvider() )
-                .getCertificate( x509CertificateHolder );
+        return new JcaX509CertificateConverter().setProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider())
+                .getCertificate(x509CertificateHolder);
     }
 
     private SslContextFactory createSSLContextFactoryUsingJksFiles(SSLConfiguration.KeystoreBasedSSLConfiguration keystoreBasedSSLConfiguration) {
