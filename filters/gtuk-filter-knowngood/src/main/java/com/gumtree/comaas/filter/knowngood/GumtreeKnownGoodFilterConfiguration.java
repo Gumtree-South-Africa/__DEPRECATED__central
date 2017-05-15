@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.gumtree.filters.comaas.config.KnownGoodFilterConfig;
 import com.gumtree.filters.comaas.json.ConfigMapper;
 import com.gumtree.gumshield.api.client.GumshieldApi;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,7 +21,7 @@ public class GumtreeKnownGoodFilterConfiguration {
     public static class KnownGoodFilterFactory implements FilterFactory {
         private GumshieldApi gumshieldApi;
 
-        public KnownGoodFilterFactory(GumshieldApi gumshieldApi) {
+        KnownGoodFilterFactory(GumshieldApi gumshieldApi) {
             this.gumshieldApi = gumshieldApi;
         }
 

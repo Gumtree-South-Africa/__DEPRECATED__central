@@ -11,7 +11,6 @@ import com.gumtree.api.category.CategoryReadApi;
 import com.gumtree.api.config.CategoryModelFactory;
 import com.gumtree.api.config.CategoryReadApiFactory;
 import com.gumtree.filters.comaas.config.CategoryFilterConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,7 +54,7 @@ public class GumtreeCategoryFilterConfiguration {
     public static class CategoryBreadcrumbFilterFactory implements FilterFactory {
         private CategoryModel categoryModel;
 
-        public CategoryBreadcrumbFilterFactory(CategoryModel categoryModel) {
+        CategoryBreadcrumbFilterFactory(CategoryModel categoryModel) {
             this.categoryModel = categoryModel;
         }
 

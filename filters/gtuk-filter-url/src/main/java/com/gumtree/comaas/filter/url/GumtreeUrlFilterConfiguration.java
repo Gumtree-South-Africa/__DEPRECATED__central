@@ -14,7 +14,12 @@ import org.springframework.context.annotation.Configuration;
 public class GumtreeUrlFilterConfiguration {
     @Bean
     public FilterFactory filterFactory() {
-        return (instanceName, configuration) -> {
+        return new UrlFilterFactory();
+    }
+
+    public static class UrlFilterFactory implements FilterFactory {
+        @Override
+        public com.ecg.replyts.core.api.pluginconfiguration.filter.Filter createPlugin(String instanceName, JsonNode configuration) {
             String pluginFactory = configuration.get("pluginFactory").textValue();
             String instanceId = configuration.get("instanceId").textValue();
             JsonNode configurationNode = configuration.get("configuration");
@@ -23,6 +28,6 @@ public class GumtreeUrlFilterConfiguration {
             UrlFilterConfig filterConfig = ConfigMapper.asObject(configurationNode.toString(), UrlFilterConfig.class);
 
             return new GumtreeUrlFilter().withPluginConfig(pluginConfig).withFilterConfig(filterConfig);
-        };
+        }
     }
 }

@@ -1,11 +1,11 @@
 package com.gumtree.comaas.filter.geoiplookup;
 
+import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.gumtree.common.geoip.GeoIpService;
 import com.gumtree.common.geoip.MaxMindGeoIpService;
-import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.GeoIpLookupConfig;
 import com.gumtree.filters.comaas.json.ConfigMapper;
 import org.springframework.context.annotation.Bean;
@@ -37,15 +37,26 @@ public class GumtreeGeoIpLookupFilterConfiguration {
 
     @Bean
     public FilterFactory filterFactory(GeoIpService geoIpService) {
-        return (instanceName, configuration) -> {
+        return new GeoIpLookupFilterFactory(geoIpService);
+    }
+
+    public static class GeoIpLookupFilterFactory implements FilterFactory {
+        private GeoIpService geoIpService;
+
+        GeoIpLookupFilterFactory(GeoIpService geoIpService) {
+            this.geoIpService = geoIpService;
+        }
+
+        @Override
+        public Filter createPlugin(String instanceName, JsonNode configuration) {
             String pluginFactory = configuration.get("pluginFactory").textValue();
             String instanceId = configuration.get("instanceId").textValue();
             JsonNode configurationNode = configuration.get("configuration");
 
-            Filter pluginConfig = new Filter(pluginFactory, instanceId, configurationNode);
+            com.gumtree.filters.comaas.Filter pluginConfig = new com.gumtree.filters.comaas.Filter(pluginFactory, instanceId, configurationNode);
             GeoIpLookupConfig filterConfig = ConfigMapper.asObject(configurationNode.textValue(), GeoIpLookupConfig.class);
 
             return new GumtreeGeoIpLookupFilter().withPluginConfig(pluginConfig).withFilterConfig(filterConfig).withGeoIPService(geoIpService);
-        };
+        }
     }
 }
