@@ -10,7 +10,7 @@ import java.util.Properties;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 
 public class ConversationThreadControllerAcceptanceTest {
     private final Properties testProperties = new Properties() {{
@@ -50,10 +50,13 @@ public class ConversationThreadControllerAcceptanceTest {
                 .body("body.adId", equalTo("232323"))
                 .body("body.messages.size()", equalTo(3))
                 .body("body.numUnread", equalTo(2))
+                .body("body.messages[0].messageId", not(isEmptyString()))
                 .body("body.messages[0].textShort", equalTo("First contact from buyer."))
                 .body("body.messages[0].boundness", equalTo("INBOUND"))
+                .body("body.messages[0].messageId", not(isEmptyString()))
                 .body("body.messages[1].textShort", equalTo("reply by seller"))
                 .body("body.messages[1].boundness", equalTo("OUTBOUND"))
+                .body("body.messages[2].messageId", not(isEmptyString()))
                 .body("body.messages[2].textShort", equalTo("re-reply for buyer."))
                 .body("body.messages[2].boundness", equalTo("INBOUND"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller3@seller.com/conversations/" + conversationId);

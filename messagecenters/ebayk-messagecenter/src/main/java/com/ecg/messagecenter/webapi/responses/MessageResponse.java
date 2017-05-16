@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.net.MediaType;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -24,6 +25,7 @@ public class MessageResponse {
 
     private static final Pattern REMOVE_DOUBLE_WHITESPACES = Pattern.compile("\\s+");
 
+    private final String messageId;
     private final String receivedDate;
     private final MailTypeRts boundness;
     private final String textShort;
@@ -33,11 +35,15 @@ public class MessageResponse {
     private final String offerId;
     private final String senderEmail;
 
-    public MessageResponse(String receivedDate, String offerId, MailTypeRts boundness, String textShort, Optional<String> phoneNumber, List<Attachment> attachments) {
-        this(receivedDate, offerId, boundness, textShort, phoneNumber, attachments, null);
+    public MessageResponse(@Nullable String messageId, String receivedDate, String offerId, MailTypeRts boundness,
+                           String textShort, Optional<String> phoneNumber, List<Attachment> attachments) {
+        this(messageId, receivedDate, offerId, boundness, textShort, phoneNumber, attachments, null);
     }
 
-    public MessageResponse(String receivedDate, String offerId, MailTypeRts boundness, String textShort, Optional<String> phoneNumber, List<Attachment> attachments, String senderEmail) {
+    public MessageResponse(@Nullable String messageId, String receivedDate, String offerId, MailTypeRts boundness,
+                           String textShort, Optional<String> phoneNumber, List<Attachment> attachments,
+                           String senderEmail) {
+        this.messageId = messageId;
         this.receivedDate = receivedDate;
         this.boundness = boundness;
         this.textShort = textShort;
@@ -46,6 +52,11 @@ public class MessageResponse {
         this.senderEmail = senderEmail;
         this.offerId = offerId;
         this.textShortTrimmed = REMOVE_DOUBLE_WHITESPACES.matcher(textShort).replaceAll(" ");
+    }
+
+    @Nullable
+    public String getMessageId() {
+        return messageId;
     }
 
     public String getSenderEmail() {
@@ -75,9 +86,7 @@ public class MessageResponse {
     public String getTextShort() {
         StringBuilder b = new StringBuilder();
         b.append(textShort);
-        if (phoneNumber.isPresent()) {
-            b.append("\n\nTel.: ").append(phoneNumber.get());
-        }
+        phoneNumber.ifPresent(s -> b.append("\n\nTel.: ").append(s));
         return b.toString();
     }
 

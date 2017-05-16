@@ -106,13 +106,14 @@ public class MessagesResponseFactory {
 
         transformedMessages.add(
                 new MessageResponse(
-                    MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(firstMessage.getReceivedAt()),
-                    firstMessage.getHeaders().get("X-Offerid"),
-                    ConversationBoundnessFinder.boundnessForRole(role, firstMessage.getMessageDirection()),
-                    differ.cleanupFirstMessage(firstMessage.getPlainTextBody()),
-                    Optional.ofNullable(phoneNumber),
-                    MessageResponse.Attachment.transform(firstMessage),
-                    conv.getBuyerId()));
+                        firstMessage.getId(),
+                        MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(firstMessage.getReceivedAt()),
+                        firstMessage.getHeaders().get("X-Offerid"),
+                        ConversationBoundnessFinder.boundnessForRole(role, firstMessage.getMessageDirection()),
+                        differ.cleanupFirstMessage(firstMessage.getPlainTextBody()),
+                        Optional.ofNullable(phoneNumber),
+                        MessageResponse.Attachment.transform(firstMessage),
+                        conv.getBuyerId()));
     }
 
 
@@ -122,16 +123,17 @@ public class MessagesResponseFactory {
         for (int i = 1; i < messageRts.size(); i++) {
 
             String diffedMessage;
+            Message message = messageRts.get(i);
 
-            if (contactPosterForExistingConversation(messageRts.get(i))) {
+            if (contactPosterForExistingConversation(message)) {
                 // new contactPoster from payload point of view same as first message of a conversation
-                diffedMessage = differ.cleanupFirstMessage(messageRts.get(i).getPlainTextBody());
-            } else if (comesFromMessageBoxClient(messageRts.get(i))) {
+                diffedMessage = differ.cleanupFirstMessage(message.getPlainTextBody());
+            } else if (comesFromMessageBoxClient(message)) {
                 // no need to strip or diff anything, in message-box the whole payload is a additional message
-                diffedMessage = new MessagePreProcessor().removeFromMessageboxReply(messageRts.get(i).getPlainTextBody().trim());
+                diffedMessage = new MessagePreProcessor().removeFromMessageboxReply(message.getPlainTextBody().trim());
             } else {
                 MessagesDiffer.DiffInput left = new MessagesDiffer.DiffInput(lookupMessageToBeDiffedWith(messageRts, i).getPlainTextBody(), conv.getId(), lookupMessageToBeDiffedWith(messageRts, i).getId());
-                MessagesDiffer.DiffInput right = new MessagesDiffer.DiffInput(messageRts.get(i).getPlainTextBody(), conv.getId(), messageRts.get(i).getId());
+                MessagesDiffer.DiffInput right = new MessagesDiffer.DiffInput(message.getPlainTextBody(), conv.getId(), message.getId());
 
                 int textSize = left.getText().length() + right.getText().length();
                 TEXT_SIZE_MESSAGES.update(textSize);
@@ -147,13 +149,14 @@ public class MessagesResponseFactory {
 
             transformedMessages.add(
                     new MessageResponse(
-                        MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(messageRts.get(i).getReceivedAt()),
-                        messageRts.get(i).getHeaders().get("X-Offerid"),
-                        ConversationBoundnessFinder.boundnessForRole(role, messageRts.get(i).getMessageDirection()),
-                        diffedMessage,
-                        Optional.<String>empty(),
-                        MessageResponse.Attachment.transform(messageRts.get(i)),
-                        messageRts.get(i).getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? conv.getBuyerId() : conv.getSellerId()
+                            message.getId(),
+                            MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(message.getReceivedAt()),
+                            message.getHeaders().get("X-Offerid"),
+                            ConversationBoundnessFinder.boundnessForRole(role, message.getMessageDirection()),
+                            diffedMessage,
+                            Optional.<String>empty(),
+                            MessageResponse.Attachment.transform(message),
+                            message.getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? conv.getBuyerId() : conv.getSellerId()
                     )
             );
 

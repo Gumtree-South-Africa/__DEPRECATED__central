@@ -47,6 +47,7 @@ public class PostBoxListItemResponse {
         this.userIdSeller = conversationThread.getUserIdSeller().orElse(null);
 
         this.lastMessage = new MessageResponse(
+                null,
                 MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(conversationThread.getReceivedAt()),
                 null,
                 ConversationBoundnessFinder.boundnessForRole(this.role, conversationThread.getMessageDirection().get()),
