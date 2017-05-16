@@ -1,4 +1,4 @@
-package com.ebay.ecg.australia.replyts.eventlistener.event;
+package com.ecg.australia.replyts.eventlistener.event;
 
 import java.io.IOException;
 import java.security.KeyManagementException;

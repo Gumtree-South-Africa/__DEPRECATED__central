@@ -1,4 +1,4 @@
-package com.ebay.ecg.australia.replyts.eventlistener.event;
+package com.ecg.australia.replyts.eventlistener.event;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
