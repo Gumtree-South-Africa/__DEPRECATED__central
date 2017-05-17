@@ -13,9 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,17 +32,18 @@ public class GumtreeCategoryBreadcrumbFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
-        if (filterConfig.isActive()) {
-            try (Timer.Context ignore = timer.time()) {
-                final Long categoryId = Long.valueOf(context.getConversation().getCustomValues().get(CATEGORYID));
-                List<Category> fullPath = categoryModel.getFullPath(categoryId);
-                Set<Long> collect = fullPath.parallelStream().map(Category::getId).collect(Collectors.toSet());
-                Set<Long> categoryBreadCrumb = (Set<Long>) context.getFilterContext().get("categoryBreadCrumb");
-                categoryBreadCrumb.addAll(collect);
-            } catch (NumberFormatException nEx) {
-                LOG.debug("Number format exception while parsing category id: " + nEx);
-            }
+        CategoryPreProcessor.addCategoriesToConversation(categoryModel, context);
+
+        try (Timer.Context ignore = timer.time()) {
+            final Long categoryId = Long.valueOf(context.getConversation().getCustomValues().get(CATEGORYID));
+            List<Category> fullPath = categoryModel.getFullPath(categoryId);
+            Set<Long> collect = fullPath.stream().map(Category::getId).collect(Collectors.toSet());
+            Set<Long> categoryBreadCrumb = (Set<Long>) context.getFilterContext().computeIfAbsent("categoryBreadCrumb", ignored -> new HashSet<>());
+            categoryBreadCrumb.addAll(collect);
+        } catch (NumberFormatException nEx) {
+            LOG.debug("Number format exception while parsing category id: " + nEx);
         }
+
         return Collections.emptyList();
     }
 

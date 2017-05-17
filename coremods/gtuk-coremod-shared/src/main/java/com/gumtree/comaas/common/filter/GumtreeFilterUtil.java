@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -42,7 +43,7 @@ public final class GumtreeFilterUtil {
     }
 
     public static boolean hasExemptedCategory(ConfigWithExemptedCategories config, MessageProcessingContext messageProcessingContext) {
-        Set<Long> categoryBreadCrumb = (Set<Long>) messageProcessingContext.getFilterContext().get("categoryBreadCrumb");
+        Set<Long> categoryBreadCrumb = (Set<Long>) messageProcessingContext.getFilterContext().getOrDefault("categoryBreadCrumb", Collections.emptySet());
         return hasExemptedCategory(config.getExemptedCategories(), categoryBreadCrumb);
     }
 

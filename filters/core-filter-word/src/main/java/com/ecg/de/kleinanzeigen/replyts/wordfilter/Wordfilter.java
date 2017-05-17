@@ -8,7 +8,6 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import org.slf4j.Logger;
@@ -16,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -42,13 +42,11 @@ class Wordfilter implements Filter {
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         String processText = getProcessText(messageProcessingContext);
         Optional<String> categoryId = getCategoryId(messageProcessingContext);
-        return filterByPatterns(processText, messageProcessingContext, categoryId);
+        return filterByPatterns(processText, messageProcessingContext, categoryId.orElse(null));
     }
 
     private Optional<String> getCategoryId(MessageProcessingContext messageProcessingContext) {
-        return messageProcessingContext.getConversation().getCustomValues().containsKey(CATEGORY_ID) ?
-                Optional.of(messageProcessingContext.getConversation().getCustomValues().get(CATEGORY_ID)) :
-                Optional.<String>absent();
+        return Optional.ofNullable(messageProcessingContext.getConversation().getCustomValues().get(CATEGORY_ID));
     }
 
     private String getProcessText(MessageProcessingContext messageProcessingContext) {
@@ -56,18 +54,17 @@ class Wordfilter implements Filter {
                 + " " + messageProcessingContext.getMessage().getPlainTextBody();
     }
 
-    private List<FilterFeedback> filterByPatterns(String processText, MessageProcessingContext context, Optional<String> conversationCategoryId) {
+    private List<FilterFeedback> filterByPatterns(String processText, MessageProcessingContext context, String conversationCategoryId) {
         Builder<FilterFeedback> feedbacks = ImmutableList.builder();
 
-        Set<String> foundPatterns = ignoreDuplicatePatterns ? new PreviousPatternsExtractor(context.getConversation(), context.getMessage()).previouselyFiredPatterns() : Collections.<String>emptySet();
+        Set<String> foundPatterns = ignoreDuplicatePatterns ? new PreviousPatternsExtractor(context.getConversation(), context.getMessage()).previouselyFiredPatterns() : Collections.emptySet();
 
         for (PatternEntry patternEntry : patterns) {
             // Check if total processing time has been exceeded.
             // This should protect us from DoS attacks where RegEx processing took very long.
             context.getProcessingTimeGuard().check();
 
-            if (patternEntry.getCategoryIds().isEmpty() ||
-                    (conversationCategoryId.isPresent() && patternEntry.getCategoryIds().contains(conversationCategoryId.get()))) {
+            if (patternEntry.getCategoryIds().isEmpty() || (conversationCategoryId != null && patternEntry.getCategoryIds().contains(conversationCategoryId))) {
                 Matcher matcher = new ExpiringRegEx(processText, patternEntry.getPattern(), regexProcessingTimeoutMs, context.getConversation().getId(), context.getMessageId()).createMatcher();
                 applyPattern(feedbacks, patternEntry, matcher, foundPatterns);
             }
@@ -79,7 +76,7 @@ class Wordfilter implements Filter {
 
     private void applyPattern(Builder<FilterFeedback> feedbacks, PatternEntry p, Matcher matcher, Set<String> previouselyFoundPatterns) {
         boolean foundMatch = false;
-        try (Context autoClosed = REGEX_TIMER.time()) {
+        try (Context ignore = REGEX_TIMER.time()) {
             foundMatch = matcher.find();
         } catch (RuntimeException e) {
             LOG.info("Skipping Regular Expression '" + p.getPattern() + "': ", e);
