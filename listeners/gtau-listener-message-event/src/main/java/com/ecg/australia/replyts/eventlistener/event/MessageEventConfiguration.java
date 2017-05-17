@@ -27,16 +27,16 @@ public class MessageEventConfiguration {
     @Value("${rabbitmq.virtualHost}")
     private String virtualHost;
 
-    @Value("${rmq-msg-event-producer.username}")
+    @Value("${rmq-msg-event-producer.username:${rabbitmq.username}}")
     private String username;
 
-    @Value("${rmq-msg-event-producer.password}")
+    @Value("${rmq-msg-event-producer.password:${rabbitmq.password}}")
     private String password;
 
     @Value("${rmq-msg-event-producer.connectionTimeout:1000}")
     private Integer connectionTimeout;
 
-    @Value("${rmq-msg-event-producer.endpoint}")
+    @Value("${rmq-msg-event-producer.endpoint:gt.topic.default}")
     private String endpoint;
 
     @Bean(name = "rabbitMQConfigProducer")
