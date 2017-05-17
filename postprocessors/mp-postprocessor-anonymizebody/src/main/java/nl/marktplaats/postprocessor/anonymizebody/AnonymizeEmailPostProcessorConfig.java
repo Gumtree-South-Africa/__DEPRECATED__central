@@ -10,7 +10,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AnonymizeEmailPostProcessorConfig {
-
     private static final Logger LOG = LoggerFactory.getLogger(AnonymizeEmailPostProcessorConfig.class);
 
     private List<String> patterns = new ArrayList<>();
@@ -19,10 +18,10 @@ public class AnonymizeEmailPostProcessorConfig {
     public AnonymizeEmailPostProcessorConfig(AbstractEnvironment environment) {
         this(EnvironmentSupport.propertyNames(environment)
                 .stream()
-                .filter(key -> key.startsWith("anonymizebody.pattern."))
+                .filter(key -> key.startsWith("message.normalization.pattern."))
                 .sorted((key1, key2) -> {
-                        int position1 = Integer.parseInt(key1.substring("anonymizebody.pattern.".length()));
-                        int position2 = Integer.parseInt(key2.substring("anonymizebody.pattern.".length()));
+                        int position1 = Integer.parseInt(key1.substring("message.normalization.pattern.".length()));
+                        int position2 = Integer.parseInt(key2.substring("message.normalization.pattern.".length()));
                         return position1 - position2;
                 })
                 .map(key -> environment.getProperty(key))

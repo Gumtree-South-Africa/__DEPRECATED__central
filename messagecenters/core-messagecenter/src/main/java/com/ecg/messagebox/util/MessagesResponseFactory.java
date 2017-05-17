@@ -2,10 +2,15 @@ package com.ecg.messagebox.util;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import static com.ecg.messagebox.util.EmailHeaderFolder.unfold;
 
+@Component
 public class MessagesResponseFactory {
+    @Autowired
+    private MessagePreProcessor messagePreProcessor;
 
     public String getCleanedMessage(Conversation conv, Message message) {
         if (messageBodyMarkedByNonPrintableCharacters(message)) {
@@ -13,7 +18,7 @@ public class MessagesResponseFactory {
         } else if (contactPosterForExistingConversation(message) || comesFromMessageBoxClient(message)) {
             return getUserMessage(message);
         } else {
-            return MessagePreProcessor.removeEmailClientReplyFragment(conv, message);
+            return messagePreProcessor.removeEmailClientReplyFragment(conv, message);
         }
     }
 
