@@ -52,7 +52,7 @@ public class RabbitMQClient implements MessageBrokerClient {
 		try {
 			
 			if(isSellerMail(messageProcessingContext)
-                    && senderAndReciverEmailDiver(messageProcessingContext)) {
+                    && senderAndReceiverEmailDiffer(messageProcessingContext)) {
 				MessageSentEvent messageSentEvent = new MessageSentEvent.Builder().adId(adId)
 																				  .text(messageProcessingContext.getMessage().getPlainTextBody())
 																				  .senderEmailAddress(messageProcessingContext.getOriginalFrom().getAddress())
@@ -71,7 +71,7 @@ public class RabbitMQClient implements MessageBrokerClient {
 		}
 	}
 
-	private static boolean senderAndReciverEmailDiver(MessageProcessingContext messageProcessingContext){
+	private static boolean senderAndReceiverEmailDiffer(MessageProcessingContext messageProcessingContext){
 		return !messageProcessingContext.getOriginalFrom().getAddress().equalsIgnoreCase(messageProcessingContext.getOriginalTo().getAddress());
 	}
 	
