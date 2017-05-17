@@ -6,12 +6,11 @@ import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationModificationDate;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationEventId;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -41,7 +40,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     private static final Logger LOG = LoggerFactory.getLogger(DefaultCassandraConversationRepository.class);
 
     private static final String FIELD_CONVERSATION_ID = "conversation_id";
-    private static final String FIELD_MODIFICATION_DATE = "modification_date";
     private static final String FIELD_MODIFICATION_TIMESTAMP = "modification_timestamp";
     private static final String FIELD_EVENT_ID = "event_id";
     private static final String FIELD_EVENT_JSON = "event_json";
@@ -57,14 +55,14 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     private final Timer commitTimer = TimingReports.newTimer("cassandra.conversationRepo-commit");
     private final Timer modifiedBetweenTimer = TimingReports.newTimer("cassandra.conversationRepo-modifiedBetween");
     private final Timer streamConversationsModifiedBetweenTimer = TimingReports.newTimer("cassandra.conversationRepo-streamConversationIds");
-    private final Timer streamConversationEventIdsByDayTimer = TimingReports.newTimer("cassandra.conversationRepo-streamConversationEventIds");
-    private final Timer streamConversationModificationsByDayTimer = TimingReports.newTimer("cassandra.conversationRepo-streamConversationModificationsByDay");
+    private final Timer streamConversationEventIdxsByHourTimer = TimingReports.newTimer("cassandra.conversationRepo-streamConversationEventIdxsByHour");
     private final Timer getLastModifiedDate = TimingReports.newTimer("cassandra.conversationRepo-getLastModifiedDate");
     private final Timer getConversationModificationDates = TimingReports.newTimer("cassandra.conversationRepo-getConversationModificationDates");
     private final Timer modifiedBeforeTimer = TimingReports.newTimer("cassandra.conversationRepo-modifiedBefore");
     private final Timer findByIndexKeyTimer = TimingReports.newTimer("cassandra.conversationRepo-findByIndexKey");
     private final Timer deleteTimer = TimingReports.newTimer("cassandra.conversationRepo-delete");
-    private final Timer deleteOldModificationDateTimer = TimingReports.newTimer("cassandra.conversationRepo-deleteOldModificationDate");
+    private final Timer deleteConversationEventIdxTimer = TimingReports.newTimer("cassandra.conversationRepo-deleteConversationEventIdx");
+    private final Timer deleteConversationModificationIdxsTimer = TimingReports.newTimer("cassandra.conversationRepo-deleteConversationModificationIdxs");
     private final Histogram committedBatchSizeHistogram = TimingReports.newHistogram("cassandra.conversationRepo-commit-batch-size");
 
     private ObjectMapper objectMapper;
@@ -152,20 +150,12 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         }
     }
 
-    @Override
-    public Stream<ConversationModificationDate> streamConversationModificationsByDay(int year, int month, int day) {
-        try (Timer.Context ignored = streamConversationModificationsByDayTimer.time()) {
-            Statement bound = Statements.SELECT_CONVERSATION_MODIFICATION_IDX_BY_YEAR_MONTH_DAY.bind(this, year, month, day);
+    public Stream<ConversationEventIdx> streamConversationEventIdxsByHour(DateTime date) {
+        try (Timer.Context ignored = streamConversationEventIdxsByHourTimer.time()) {
+            DateTime creationDateRoundedByHour = date.hourOfDay().roundFloorCopy();
+            Statement bound = Statements.SELECT_CONVERSATION_EVENTS_BY_DATE.bind(this, creationDateRoundedByHour.toDate());
             ResultSet resultset = session.execute(bound);
-            return toStream(resultset).map(row -> new ConversationModificationDate(row.getString(FIELD_CONVERSATION_ID), row.getDate(FIELD_MODIFICATION_DATE), row.getLong(FIELD_MODIFICATION_TIMESTAMP)));
-        }
-    }
-
-    public Stream<ConversationEventId> streamConversationEventIdsByHour(DateTime date) {
-        try (Timer.Context ignored = streamConversationEventIdsByDayTimer.time()) {
-            Statement bound = Statements.SELECT_CONVERSATION_EVENTS_BY_DATE.bind(this, date.hourOfDay().roundFloorCopy().toDate());
-            ResultSet resultset = session.execute(bound);
-            return toStream(resultset).map(row -> new ConversationEventId(row.getString(FIELD_CONVERSATION_ID), row.getUUID(FIELD_EVENT_ID)));
+            return toStream(resultset).map(row -> new ConversationEventIdx(creationDateRoundedByHour, row.getString(FIELD_CONVERSATION_ID), row.getUUID(FIELD_EVENT_ID)));
         }
     }
 
@@ -175,7 +165,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     }
 
     @Override
-    public DateTime getLastModifiedDate(String conversationId) {
+    public Long getLastModifiedDate(String conversationId) {
         try (Timer.Context ignored = getLastModifiedDate.time()) {
             Statement bound = Statements.SELECT_LATEST_CONVERSATION_MODIFICATION_IDX.bind(this, conversationId);
             ResultSet resultset = session.execute(bound);
@@ -183,20 +173,24 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
             if (row == null) {
                 return null;
             }
-            return new DateTime(row.getDate(FIELD_MODIFICATION_DATE));
+            return row.getLong(FIELD_MODIFICATION_TIMESTAMP);
         }
     }
 
     @Override
-    public void deleteOldConversationModificationDate(ConversationModificationDate conversationModificationDate) {
-        try (Timer.Context ignored = deleteOldModificationDateTimer.time()) {
-            BatchStatement batch = new BatchStatement();
-            DateTime conversationModificationDateTime = conversationModificationDate.getModificationDateTime();
-            batch.add(getDeleteCoreConversationModificationDescIdxStatement(conversationModificationDate.getConversationId(), conversationModificationDate.getModificationTimestamp()));
-            batch.add(getDeleteCoreConversationModificationDescIdxByDayStatement(conversationModificationDateTime.getYear(), conversationModificationDateTime.getMonthOfYear(),
-                    conversationModificationDateTime.getDayOfMonth(), conversationModificationDate.getModificationTimestamp(), conversationModificationDate.getConversationId()));
-            batch.setConsistencyLevel(getWriteConsistency()).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
-            session.execute(batch);
+    public void deleteConversationModificationIdxs(String conversationId) {
+        try (Timer.Context ignored = deleteConversationModificationIdxsTimer.time()) {
+            Statement deleteConversationModificationIdxStatement = Statements.DELETE_CONVERSATION_MODIFICATION_IDXS.bind(this, conversationId);
+            session.execute(deleteConversationModificationIdxStatement);
+        }
+    }
+
+    @Override
+    public void deleteConversationEventIdx(ConversationEventIdx conversationEventIdx) {
+        try (Timer.Context ignored = deleteConversationEventIdxTimer.time()) {
+            Statement deleteConversationEventByDateStatement = Statements.DELETE_CONVERSATION_EVENT_BY_DATE.bind(this, conversationEventIdx.getCreationDateRoundedByHour().toDate(),
+                    conversationEventIdx.getConversationId(), conversationEventIdx.getEventId());
+            session.execute(deleteConversationEventByDateStatement);
         }
     }
 
@@ -266,12 +260,18 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         }
     }
 
-    private List<ConversationModificationDate> getConversationModificationDates(String conversationId) {
+    @Override
+    public void insertConversationEventIdx(ConversationEventIdx conversationEventIdx) {
+        Statement insertConversationEventIdxStatement = Statements.INSERT_CONVERSATION_EVENTS_BY_DATE.bind(this, conversationEventIdx.getCreationDateRoundedByHour().toDate(),
+                conversationEventIdx.getConversationId(), conversationEventIdx.getEventId(), "");
+        session.execute(insertConversationEventIdxStatement);
+    }
+
+    private List<Long> getConversationModificationDates(String conversationId) {
         try (Timer.Context ignored = getConversationModificationDates.time()) {
             Statement bound = Statements.SELECT_CONVERSATION_MODIFICATION_IDXS.bind(this, conversationId);
             ResultSet resultset = session.execute(bound);
-            return toStream(resultset).map(row -> new ConversationModificationDate(row.getString(FIELD_CONVERSATION_ID), row.getDate(FIELD_MODIFICATION_DATE), row.getLong(FIELD_MODIFICATION_TIMESTAMP)))
-                    .collect(Collectors.toList());
+            return toStream(resultset).map(row -> row.getLong(FIELD_MODIFICATION_TIMESTAMP)).collect(Collectors.toList());
         }
     }
 
@@ -331,7 +331,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     @Override
     public void deleteConversation(Conversation c) {
         String conversationId = c.getId();
-        List<ConversationModificationDate> conversationModificationDates = getConversationModificationDates(conversationId);
+        List<Long> conversationModificationDates = getConversationModificationDates(conversationId);
         try (Timer.Context ignored = deleteTimer.time()) {
             if (c.getBuyerSecret() != null) {
                 session.execute(Statements.DELETE_CONVERSATION_SECRET.bind(this, c.getBuyerSecret()));
@@ -349,9 +349,9 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
             batch.add(Statements.DELETE_CONVERSATION_MODIFICATION_IDXS.bind(this, conversationId));
             // Delete core_conversation_modification_desc_idx_by_day last as it is used to find core_conversation_modification_desc_idx
             conversationModificationDates.forEach(conversationModificationDate -> {
-                DateTime modificationDateTime = conversationModificationDate.getModificationDateTime();
+                DateTime modificationDateTime = new DateTime(conversationModificationDate);
                 batch.add(getDeleteCoreConversationModificationDescIdxByDayStatement(modificationDateTime.getYear(), modificationDateTime.getMonthOfYear(),
-                        modificationDateTime.getDayOfMonth(), conversationModificationDate.getModificationTimestamp(), conversationId));
+                        modificationDateTime.getDayOfMonth(), conversationModificationDate, conversationId));
                 batch.add(Statements.DELETE_CONVERSATION_EVENTS_BY_DATE.bind(this, modificationDateTime.hourOfDay().roundFloorCopy().toDate(), conversationId));
 
             });
@@ -420,19 +420,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     }
 
     /**
-     * Gets the statement to delete modification idx. It is built using QueryBuilder instead of PreparedStatement because of the long modificationTimestamp.
-     * In the PreparedStatement the DateTime type should be used for the timestamp.
-     * @return the DELETE statement
-     */
-    private Statement getDeleteCoreConversationModificationDescIdxStatement(String conversationId, Long modificationTimestamp) {
-        return QueryBuilder.delete().from("core_conversation_modification_desc_idx")
-                .where(QueryBuilder.eq("conversation_id", conversationId))
-                .and(QueryBuilder.eq("modification_date", modificationTimestamp))
-                .setConsistencyLevel(getWriteConsistency())
-                .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
-    }
-
-    /**
      * Gets the statement to delete modification idx by day. It is built using QueryBuilder instead of PreparedStatement because of the long modificationTimestamp.
      * In the PreparedStatement the DateTime type should be used for the timestamp.
      * @return the DELETE statement
@@ -457,9 +444,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         static Statements SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN = new Statements("SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING", false);
         static Statements SELECT_CONVERSATION_WHERE_MODIFICATION_BEFORE = new Statements("SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date <= ? LIMIT ? ALLOW FILTERING", false);
         static Statements SELECT_CONVERSATION_MODIFICATION_IDXS = new Statements("SELECT conversation_id, modification_date, blobAsBigint(timestampAsBlob(modification_date)) as modification_timestamp FROM core_conversation_modification_desc_idx WHERE conversation_id = ?", false);
-        static Statements SELECT_LATEST_CONVERSATION_MODIFICATION_IDX = new Statements("SELECT conversation_id, modification_date FROM core_conversation_modification_desc_idx WHERE conversation_id = ? LIMIT 1", false);
-        static Statements SELECT_CONVERSATION_MODIFICATION_IDX_BY_YEAR_MONTH_DAY = new Statements("SELECT conversation_id, modification_date, blobAsBigint(timestampAsBlob(modification_date)) as modification_timestamp " +
-                "FROM core_conversation_modification_desc_idx_by_day WHERE year = ? AND month = ? AND day = ?", false);
+        static Statements SELECT_LATEST_CONVERSATION_MODIFICATION_IDX = new Statements("SELECT conversation_id, modification_date, blobAsBigint(timestampAsBlob(modification_date)) as modification_timestamp FROM core_conversation_modification_desc_idx WHERE conversation_id = ? LIMIT 1", false);
         static Statements SELECT_WHERE_COMPOUND_KEY = new Statements("SELECT conversation_id FROM core_conversation_resume_idx WHERE compound_key=?", false);
 
         static Statements INSERT_CONVERSATION_EVENTS = new Statements("INSERT INTO core_conversation_events (conversation_id, event_id, event_json) VALUES (?,?,?)", true);
@@ -473,6 +458,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         static Statements DELETE_CONVERSATION_SECRET = new Statements("DELETE FROM core_conversation_secret WHERE secret=?", true);
         static Statements DELETE_CONVERSATION_MODIFICATION_IDXS = new Statements("DELETE FROM core_conversation_modification_desc_idx WHERE conversation_id=?", true);
         static Statements DELETE_CONVERSATION_EVENTS_BY_DATE = new Statements("DELETE FROM core_conversation_events_by_date WHERE creatdate = ? AND conversation_id = ?", true);
+        static Statements DELETE_CONVERSATION_EVENT_BY_DATE = new Statements("DELETE FROM core_conversation_events_by_date WHERE creatdate = ? AND conversation_id = ? AND event_id = ?", true);
         static Statements DELETE_RESUME_IDX = new Statements("DELETE FROM core_conversation_resume_idx WHERE compound_key=?", true);
 
         static Statements SELECT_EVENTS_WHERE_CREATE_BETWEEN = new Statements("SELECT * FROM core_conversation_events WHERE event_id > minTimeuuid(?) AND event_id < maxTimeuuid(?) ALLOW FILTERING", false);

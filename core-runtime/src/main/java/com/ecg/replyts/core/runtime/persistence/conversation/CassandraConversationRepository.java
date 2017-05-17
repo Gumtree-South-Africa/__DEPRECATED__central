@@ -1,9 +1,8 @@
 package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationModificationDate;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationEventId;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
 
@@ -15,26 +14,23 @@ import java.util.stream.Stream;
 public interface CassandraConversationRepository extends MutableConversationRepository {
 
     /**
-     * Deletes the old conversation modification date.
-     * @param conversationModificationDate the conversation id with a modification date to be deleted
+     * Deletes conversation modification indexes of the conversation.
+     * @param conversationId the conversation id for which modification indexes should be be deleted
      */
-    void deleteOldConversationModificationDate(ConversationModificationDate conversationModificationDate);
+    void deleteConversationModificationIdxs(String conversationId);
 
     /**
-     * Streams conversation modification dates for the specified year, month and day.
-     * @param year the year
-     * @param month the month
-     * @param day the day
-     * @return the stream with conversations and modification dates
+     * Deletes conversation event index.
+     * @param conversationEventIdx contains the creation date rounded by hour, conversation id and event id
      */
-    Stream<ConversationModificationDate> streamConversationModificationsByDay(int year, int month, int day);
+    void deleteConversationEventIdx(ConversationEventIdx conversationEventIdx);
 
     /**
      * Gets the last modified date for a conversation.
      * @param conversationId the conversation id
-     * @return the last modified date or null if nothing is found
+     * @return the last modified date timestamp or null if nothing is found
      */
-    DateTime getLastModifiedDate(String conversationId);
+    Long getLastModifiedDate(String conversationId);
 
     /**
      * Low level access to all events in a given date time range.
@@ -50,8 +46,14 @@ public interface CassandraConversationRepository extends MutableConversationRepo
 
     /**
      * Streams conversation events created in the hour of the provided date.
-     * @param date to date to search conversation events
-     * @return the stream with conversation event ids
+     * @param date the date to search conversation events
+     * @return the stream with conversation event indexes
      */
-    Stream<ConversationEventId> streamConversationEventIdsByHour(DateTime date);
+    Stream<ConversationEventIdx> streamConversationEventIdxsByHour(DateTime date);
+
+    /**
+     * Inserts conversation event index.
+     * @param conversationEventIdx contains the creation date rounded by our, conversation id and event id
+     */
+    void insertConversationEventIdx(ConversationEventIdx conversationEventIdx);
 }

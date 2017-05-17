@@ -2,11 +2,12 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.command.*;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationEventId;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
@@ -79,12 +80,12 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
 
         conversationRepository.commit(conversationId1, Collections.singletonList(messageAddedEvent));
 
-        assertEquals(t.minusDays(2), getConversationRepository().getLastModifiedDate(conversationId1));
+        assertEquals(t.minusDays(2), new DateTime(getConversationRepository().getLastModifiedDate(conversationId1)));
         assertEquals(1, getConversationRepository().getConversationEvents(conversationId1).size());
 
         conversationRepository.commit(conversationId1, Arrays.asList(conversationCreatedEvent, messageAddedEventLater));
 
-        assertEquals(t.minusDays(1), getConversationRepository().getLastModifiedDate(conversationId1));
+        assertEquals(t.minusDays(1), new DateTime(getConversationRepository().getLastModifiedDate(conversationId1)));
         List<ConversationEvent> conversationEvents = getConversationRepository().getConversationEvents(conversationId1);
         assertEquals(3, conversationEvents.size());
         assertTrue(conversationEvents.get(0) instanceof ConversationCreatedEvent);
@@ -123,13 +124,15 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
     }
 
     @Test
-    public void shouldStoreConversationEventByDay() {
+    public void shouldStoreConversationEventIdxByHour() {
         DateTime timeNow = now();
         DateTime firstMsgReceivedAtDateTime = new DateTime(timeNow.getYear(), timeNow.getMonthOfYear(), timeNow.getDayOfMonth(), 9, 11, 43);
         given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
-        List<ConversationEventId> conversationEvents = getConversationRepository().streamConversationEventIdsByHour(timeNow)
+        List<ConversationEventIdx> conversationEvents = getConversationRepository().streamConversationEventIdxsByHour(timeNow)
                 .collect(Collectors.toList());
         assertEquals(1, conversationEvents.size());
+        ConversationEventIdx conversationEventByHour = conversationEvents.get(0);
+        assertEquals(conversationEventByHour.getConversationId(), conversationId1);
     }
 
     @Test
@@ -137,7 +140,7 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
         // create conversation
         DateTime firstMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 11, 43);
         given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
-        assertEquals(firstMsgReceivedAtDateTime, getConversationRepository().getLastModifiedDate(conversationId1));
+        assertEquals(firstMsgReceivedAtDateTime, new DateTime(getConversationRepository().getLastModifiedDate(conversationId1)));
 
         // update conversation
         DateTime secondMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 12, 22, 5);
@@ -145,43 +148,53 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
         conversation.applyCommand(newAddMessageCommand(conversationId1, "msg456", secondMsgReceivedAtDateTime));
         conversation.commit(conversationRepository, conversationEventListeners);
 
-        assertEquals(secondMsgReceivedAtDateTime, getConversationRepository().getLastModifiedDate(conversationId1));
+        assertEquals(secondMsgReceivedAtDateTime, new DateTime(getConversationRepository().getLastModifiedDate(conversationId1)));
         assertNull(getConversationRepository().getLastModifiedDate(conversationId2));
     }
 
     @Test
-    public void shouldDeleteOldConversationModificationIdx() {
+    public void shouldDeleteConversationModificationIdxsForConversation() {
         DateTime firstMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 11, 43);
-        ConversationModificationDate firstConversationModificationDate = new ConversationModificationDate(conversationId1, firstMsgReceivedAtDateTime, firstMsgReceivedAtDateTime.getMillis());
         given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
 
-        getConversationRepository().deleteOldConversationModificationDate(firstConversationModificationDate);
+        getConversationRepository().deleteConversationModificationIdxs(conversationId1);
 
-        List<ConversationModificationDate> conversationModificationDates = getConversationRepository().streamConversationModificationsByDay(2012, 2, 10)
-                .collect(Collectors.toList());
-        assertTrue(conversationModificationDates.isEmpty());
         assertNull(getConversationRepository().getLastModifiedDate(conversationId1));
     }
 
     @Test
-    public void shouldStreamConversationModificationsByDay() {
-        // create conversation
-        DateTime firstMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 11, 43);
-        ConversationModificationDate firstConversationModificationDate = new ConversationModificationDate(conversationId1, firstMsgReceivedAtDateTime, firstMsgReceivedAtDateTime.getMillis());
+    public void shouldDeleteConversationEventIdx() {
+        DateTime firstMsgReceivedAtDateTime = now();
         given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
 
-        // update conversation
-        DateTime secondMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 12, 22, 5);
-        ConversationModificationDate secondConversationModificationDate = new ConversationModificationDate(conversationId1, secondMsgReceivedAtDateTime, secondMsgReceivedAtDateTime.getMillis());
-        DefaultMutableConversation conversation = (DefaultMutableConversation) conversationRepository.getById(conversationId1);
-        conversation.applyCommand(newAddMessageCommand(conversationId1, "msg456", secondMsgReceivedAtDateTime));
-        conversation.commit(conversationRepository, conversationEventListeners);
-
-        List<ConversationModificationDate> conversationModificationDates = getConversationRepository().streamConversationModificationsByDay(2012, 2, 10)
+        List<ConversationEventIdx> conversationEventIdsByHour = getConversationRepository().streamConversationEventIdxsByHour(firstMsgReceivedAtDateTime)
                 .collect(Collectors.toList());
-        assertEquals(2, conversationModificationDates.size());
-        assertTrue(conversationModificationDates.contains(firstConversationModificationDate));
-        assertTrue(conversationModificationDates.contains(secondConversationModificationDate));
+
+        getConversationRepository().deleteConversationEventIdx(conversationEventIdsByHour.get(0));
+
+        assertTrue(getConversationRepository().streamConversationEventIdxsByHour(firstMsgReceivedAtDateTime).collect(Collectors.toList()).isEmpty());
+    }
+
+    @Test
+    public void shouldStreamConversationEventIdxsByHour() {
+        UUID eventId1 = UUIDs.timeBased();
+        UUID eventId2 = UUIDs.timeBased();
+
+        // create conversation
+        DateTime firstMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 11, 43);
+        ConversationEventIdx firstConversationEventIdx = new ConversationEventIdx(firstMsgReceivedAtDateTime.hourOfDay().roundFloorCopy(), conversationId1, eventId1);
+        conversationRepository.insertConversationEventIdx(firstConversationEventIdx);
+
+        // update conversation
+        DateTime secondMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 22, 5);
+        ConversationEventIdx secondConversationEventIdx = new ConversationEventIdx(secondMsgReceivedAtDateTime.hourOfDay().roundFloorCopy(), conversationId1, eventId2);
+        conversationRepository.insertConversationEventIdx(secondConversationEventIdx);
+
+        List<ConversationEventIdx> conversationModificationIdxs = getConversationRepository().streamConversationEventIdxsByHour(firstMsgReceivedAtDateTime)
+                .collect(Collectors.toList());
+        assertEquals(2, conversationModificationIdxs.size());
+        assertTrue(conversationModificationIdxs.contains(firstConversationEventIdx));
+        assertTrue(conversationModificationIdxs.contains(secondConversationEventIdx));
     }
 
     @Test
@@ -207,7 +220,7 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
         given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
 
         // update conversation
-        DateTime secondMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 12, 22, 5);
+        DateTime secondMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 22, 5);
         DefaultMutableConversation conversation = (DefaultMutableConversation) conversationRepository.getById(conversationId1);
         conversation.applyCommand(newAddMessageCommand(conversationId1, "msg456", secondMsgReceivedAtDateTime));
         conversation.commit(conversationRepository, conversationEventListeners);
@@ -215,14 +228,14 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
         conversation.applyCommand(new ConversationDeletedCommand(conversationId1, now()));
         conversation.commit(this.conversationRepository, conversationEventListeners);
 
-        List<ConversationModificationDate> conversationModificationDates = getConversationRepository().streamConversationModificationsByDay(2012, 2, 10)
+        List<ConversationEventIdx> conversationEventIdxs = getConversationRepository().streamConversationEventIdxsByHour(firstMsgReceivedAtDateTime.hourOfDay().roundFloorCopy())
                 .collect(Collectors.toList());
-        assertTrue(conversationModificationDates.isEmpty());
+        assertTrue(conversationEventIdxs.isEmpty());
         assertNull(getConversationRepository().getLastModifiedDate(conversationId1));
     }
 
     @Test
-    public void deleteConversationCommandDeletesConversationEventsByDay() {
+    public void deleteConversationCommandDeletesConversationEventsByHourIdxs() {
         // create conversation
         DateTime firstMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 11, 43);
         given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
@@ -236,7 +249,7 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
         conversation.applyCommand(new ConversationDeletedCommand(conversationId1, now()));
         conversation.commit(this.conversationRepository, conversationEventListeners);
 
-        List<ConversationEventId> conversationEventIds = getConversationRepository().streamConversationEventIdsByHour(timeNow)
+        List<ConversationEventIdx> conversationEventIds = getConversationRepository().streamConversationEventIdxsByHour(timeNow)
                 .collect(Collectors.toList());
         assertTrue(conversationEventIds.isEmpty());
     }

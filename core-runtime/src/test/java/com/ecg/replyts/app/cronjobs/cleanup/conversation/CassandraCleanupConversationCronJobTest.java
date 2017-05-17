@@ -2,8 +2,8 @@ package com.ecg.replyts.app.cronjobs.cleanup.conversation;
 
 import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.app.cronjobs.cleanup.CleanupDateCalculator;
-import com.ecg.replyts.core.api.model.conversation.ConversationModificationDate;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
 import org.joda.time.DateTime;
@@ -20,6 +20,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.joda.time.DateTime.now;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.*;
 public class CassandraCleanupConversationCronJobTest {
     private static final int MAX_CONVERSATION_AGE_DAYS = 15;
     private static final String CONVERSATION_ID1 = "conversationId1";
+    private static final UUID EVENT_ID1 = UUID.randomUUID();
     private static final String JOB_NAME = "cleanupConversationJob";
 
     @Autowired
@@ -54,18 +56,17 @@ public class CassandraCleanupConversationCronJobTest {
 
     @Test
     public void shouldDeleteConversationWhenLastModifiedDateIsBeforeCleanup() throws Exception {
-        DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).dayOfMonth().roundFloorCopy().toDateTime();
+        DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).hourOfDay().roundFloorCopy().toDateTime();
         when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
-        ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed, dateToBeProcessed.getMillis());
-        List<ConversationModificationDate> modificationDates = Arrays.asList(modificationDate);
-        Stream<ConversationModificationDate> modificationDatesStream = modificationDates.stream();
-        when(conversationRepository.streamConversationModificationsByDay(dateToBeProcessed.getYear(),
-                dateToBeProcessed.getMonthOfYear(), dateToBeProcessed.getDayOfMonth())).thenReturn(modificationDatesStream);
+        ConversationEventIdx conversationEventIdx = new ConversationEventIdx(dateToBeProcessed, CONVERSATION_ID1, EVENT_ID1);
+        List<ConversationEventIdx> conversationEventIdxList = Arrays.asList(conversationEventIdx);
+        Stream<ConversationEventIdx> conversationEventIdxStream = conversationEventIdxList.stream();
+        when(conversationRepository.streamConversationEventIdxsByHour(dateToBeProcessed)).thenReturn(conversationEventIdxStream);
 
         // lastModifiedDate is before the date to be processed, so the conversation can be removed
         DateTime lastModifiedDate = now().minusDays(MAX_CONVERSATION_AGE_DAYS + 1);
-        when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate);
+        when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate.getMillis());
 
         MutableConversation conversation = mock(MutableConversation.class);
         when(conversationRepository.getById(CONVERSATION_ID1)).thenReturn(conversation);
@@ -73,29 +74,30 @@ public class CassandraCleanupConversationCronJobTest {
         cronJob.execute();
 
         verify(conversationRepository).getById(CONVERSATION_ID1);
-        verify(conversationRepository, never()).deleteOldConversationModificationDate(modificationDate);
+        verify(conversationRepository, never()).deleteConversationEventIdx(conversationEventIdx);
+        verify(conversationRepository, never()).deleteConversationModificationIdxs(CONVERSATION_ID1);
         verify(cronJobClockRepository).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
 
     @Test
-    public void shouldDeleteModificationIdxWhenLastModifiedDateIsAfterCleanup() throws Exception {
-        DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).dayOfMonth().roundFloorCopy().toDateTime();
+    public void shouldDeleteConversationEventIdxWhenLastModifiedDateIsAfterCleanup() throws Exception {
+        DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).hourOfDay().roundFloorCopy().toDateTime();
         when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
-        ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed, dateToBeProcessed.getMillis());
-        List<ConversationModificationDate> modificationDates = Arrays.asList(modificationDate);
-        Stream<ConversationModificationDate> modificationDatesStream = modificationDates.stream();
-        when(conversationRepository.streamConversationModificationsByDay(dateToBeProcessed.getYear(),
-                dateToBeProcessed.getMonthOfYear(), dateToBeProcessed.getDayOfMonth())).thenReturn(modificationDatesStream);
+        ConversationEventIdx conversationEventIdx = new ConversationEventIdx(dateToBeProcessed, CONVERSATION_ID1, EVENT_ID1);
+        List<ConversationEventIdx> conversationEventIdxList = Arrays.asList(conversationEventIdx);
+        Stream<ConversationEventIdx> conversationEventIdxStream = conversationEventIdxList.stream();
+        when(conversationRepository.streamConversationEventIdxsByHour(dateToBeProcessed)).thenReturn(conversationEventIdxStream);
 
         // last modified date is after the date to be processed, so the conversation cannot be removed
         DateTime lastModifiedDate = now();
-        when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate);
+        when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate.getMillis());
 
         cronJob.execute();
 
         verify(conversationRepository, never()).getById(CONVERSATION_ID1);
-        verify(conversationRepository).deleteOldConversationModificationDate(modificationDate);
+        verify(conversationRepository, never()).deleteConversationModificationIdxs(CONVERSATION_ID1);
+        verify(conversationRepository).deleteConversationEventIdx(conversationEventIdx);
         verify(cronJobClockRepository).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
 
@@ -105,15 +107,14 @@ public class CassandraCleanupConversationCronJobTest {
         DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).dayOfMonth().roundFloorCopy().toDateTime();
         when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
-        ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed, dateToBeProcessed.getMillis());
-        List<ConversationModificationDate> modificationDates = Arrays.asList(modificationDate);
-        Stream<ConversationModificationDate> modificationDatesStream = modificationDates.stream();
-        when(conversationRepository.streamConversationModificationsByDay(dateToBeProcessed.getYear(),
-                dateToBeProcessed.getMonthOfYear(), dateToBeProcessed.getDayOfMonth())).thenReturn(modificationDatesStream);
+        ConversationEventIdx conversationEventIdx = new ConversationEventIdx(dateToBeProcessed, CONVERSATION_ID1, EVENT_ID1);
+        List<ConversationEventIdx> conversationEventIdxList = Arrays.asList(conversationEventIdx);
+        Stream<ConversationEventIdx> conversationEventIdxStream = conversationEventIdxList.stream();
+        when(conversationRepository.streamConversationEventIdxsByHour(dateToBeProcessed)).thenReturn(conversationEventIdxStream);
 
         // last modified date is the same as the date to be processed, so conversation should be removed
         DateTime lastModifiedDate = dateToBeProcessed;
-        when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate);
+        when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate.getMillis());
 
         MutableConversation conversation = mock(MutableConversation.class);
         when(conversationRepository.getById(CONVERSATION_ID1)).thenReturn(conversation);
@@ -121,25 +122,25 @@ public class CassandraCleanupConversationCronJobTest {
         cronJob.execute();
 
         verify(conversationRepository).getById(CONVERSATION_ID1);
-        verify(conversationRepository, never()).deleteOldConversationModificationDate(modificationDate);
+        verify(conversationRepository, never()).deleteConversationEventIdx(conversationEventIdx);
+        verify(conversationRepository, never()).deleteConversationModificationIdxs(CONVERSATION_ID1);
         verify(cronJobClockRepository).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
 
     @Test
-    public void shouldIndexWhenLastModifiedDateIsEqualCleanupButConversationIsDeleted() throws Exception {
+    public void shouldDeleteIndexWhenLastModifiedDateIsEqualCleanupButConversationIsDeleted() throws Exception {
         // last processed date exists and before the date to be processed
         DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).dayOfMonth().roundFloorCopy().toDateTime();
         when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
-        ConversationModificationDate modificationDate = new ConversationModificationDate(CONVERSATION_ID1, dateToBeProcessed, dateToBeProcessed.getMillis());
-        List<ConversationModificationDate> modificationDates = Arrays.asList(modificationDate);
-        Stream<ConversationModificationDate> modificationDatesStream = modificationDates.stream();
-        when(conversationRepository.streamConversationModificationsByDay(dateToBeProcessed.getYear(),
-                dateToBeProcessed.getMonthOfYear(), dateToBeProcessed.getDayOfMonth())).thenReturn(modificationDatesStream);
+        ConversationEventIdx conversationEventIdx = new ConversationEventIdx(dateToBeProcessed, CONVERSATION_ID1, EVENT_ID1);
+        List<ConversationEventIdx> conversationEventIdxList = Arrays.asList(conversationEventIdx);
+        Stream<ConversationEventIdx> conversationEventIdxStream = conversationEventIdxList.stream();
+        when(conversationRepository.streamConversationEventIdxsByHour(dateToBeProcessed)).thenReturn(conversationEventIdxStream);
 
         // last modified date is the same as the date to be processed, so conversation should be removed
         DateTime lastModifiedDate = dateToBeProcessed;
-        when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate);
+        when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate.getMillis());
 
         MutableConversation conversation = mock(MutableConversation.class);
         when(conversationRepository.getById(CONVERSATION_ID1)).thenReturn(null);
@@ -147,7 +148,8 @@ public class CassandraCleanupConversationCronJobTest {
         cronJob.execute();
 
         verify(conversationRepository).getById(CONVERSATION_ID1);
-        verify(conversationRepository).deleteOldConversationModificationDate(modificationDate);
+        verify(conversationRepository).deleteConversationEventIdx(conversationEventIdx);
+        verify(conversationRepository).deleteConversationModificationIdxs(CONVERSATION_ID1);
         verify(cronJobClockRepository).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
 
@@ -158,9 +160,10 @@ public class CassandraCleanupConversationCronJobTest {
 
         cronJob.execute();
 
-        verify(conversationRepository, never()).streamConversationModificationsByDay(anyInt(), anyInt(), anyInt());
+        verify(conversationRepository, never()).streamConversationEventIdxsByHour(any(DateTime.class));
         verify(conversationRepository, never()).getById(CONVERSATION_ID1);
-        verify(conversationRepository, never()).deleteOldConversationModificationDate(any(ConversationModificationDate.class));
+        verify(conversationRepository, never()).deleteConversationEventIdx(any(ConversationEventIdx.class));
+        verify(conversationRepository, never()).deleteConversationModificationIdxs(CONVERSATION_ID1);
         verify(cronJobClockRepository, never()).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
 

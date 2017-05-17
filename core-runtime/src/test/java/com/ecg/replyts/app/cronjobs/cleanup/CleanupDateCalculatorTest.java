@@ -58,7 +58,7 @@ public class CleanupDateCalculatorTest {
 
         DateTime cleanupDate = cleanupDateCalculator.getCleanupDate(MAX_AGE_DAYS, TEST_JOB_NAME);
 
-        assertEquals(lastProcessedDate.plusDays(1).toLocalDate(), cleanupDate.toLocalDate());
+        assertEquals(lastProcessedDate.plusHours(1).toLocalDate(), cleanupDate.toLocalDate());
     }
 
     @Test

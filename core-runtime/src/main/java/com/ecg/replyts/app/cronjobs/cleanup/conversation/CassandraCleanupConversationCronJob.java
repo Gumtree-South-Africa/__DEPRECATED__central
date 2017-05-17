@@ -3,15 +3,14 @@ package com.ecg.replyts.app.cronjobs.cleanup.conversation;
 import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.app.cronjobs.cleanup.CleanupDateCalculator;
 import com.ecg.replyts.core.api.cron.CronJobExecutor;
-import com.ecg.replyts.core.api.model.conversation.ConversationModificationDate;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationDeletedCommand;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.RateLimiter;
-import com.yammer.metrics.Metrics;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,40 +93,39 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
         LOG.info("Cleanup: Deleting conversations for the date '{}'", cleanupDate);
 
-        Stream<ConversationModificationDate> conversationModificationsToDelete = conversationRepository.streamConversationModificationsByDay(
-          cleanupDate.getYear(), cleanupDate.getMonthOfYear(), cleanupDate.getDayOfMonth());
+        Stream<ConversationEventIdx> conversationEventIdxs = conversationRepository.streamConversationEventIdxsByHour(cleanupDate);
 
         List<Future<?>> cleanUpTasks = new ArrayList<>();
 
-        Iterators.partition(conversationModificationsToDelete.iterator(), batchSize).forEachRemaining(idxs -> {
+        Iterators.partition(conversationEventIdxs.iterator(), batchSize).forEachRemaining(idxs -> {
             cleanUpTasks.add(threadPoolExecutor.submit(() -> {
-                LOG.info("Cleanup: Deleting data related to {} conversation modification dates", idxs.size());
+                LOG.info("Cleanup: Deleting data related to {} conversation events", idxs.size());
 
-                idxs.forEach(conversationModificationDate -> {
+                idxs.forEach(conversationEventIdx -> {
 
                     double sleepTimeSeconds = rateLimiter.acquire();
                     newGauge("cleanup.conversations.rateLimiter.sleepTimeSecondsGauge", () -> sleepTimeSeconds);
 
-                    String conversationId = conversationModificationDate.getConversationId();
-                    DateTime lastModifiedDate = conversationRepository.getLastModifiedDate(conversationId);
+                    String conversationId = conversationEventIdx.getConversationId();
+                    Long lastModifiedDate = conversationRepository.getLastModifiedDate(conversationId);
 
                     // Round the lastModifiedDate to the day, then compare to the (already rounded) cleanup date
 
-                    DateTime roundedLastModifiedDate = lastModifiedDate != null ? lastModifiedDate.dayOfMonth().roundFloorCopy().toDateTime() : null;
+                    DateTime roundedLastModifiedDate = lastModifiedDate != null ? new DateTime((lastModifiedDate)).hourOfDay().roundFloorCopy().toDateTime() : null;
 
                     if (lastModifiedDate != null && (roundedLastModifiedDate.isBefore(cleanupDate) || roundedLastModifiedDate.equals(cleanupDate))) {
                         try {
-                            deleteConversationWithModificationIdx(conversationModificationDate);
+                            deleteConversationWithIdxs(conversationEventIdx);
 
                         } catch (RuntimeException ex) {
-                            LOG.error("Cleanup: Could not delete Conversation: " + conversationModificationDate.toString(), ex);
+                            LOG.error("Cleanup: Could not delete Conversation: " + conversationEventIdx.toString(), ex);
                         }
                     } else {
                         try {
-                            conversationRepository.deleteOldConversationModificationDate(conversationModificationDate);
+                            conversationRepository.deleteConversationEventIdx(conversationEventIdx);
 
                         } catch (RuntimeException ex) {
-                            LOG.error("Cleanup: Could not delete old modification index " + conversationModificationDate.toString(), ex);
+                            LOG.error("Cleanup: Could not delete conversation event index " + conversationEventIdx.toString(), ex);
                         }
                     }
                 });
@@ -154,13 +152,14 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
         return cronJobExpression;
     }
 
-    private void deleteConversationWithModificationIdx(ConversationModificationDate conversationModificationDate) {
-        MutableConversation conversation = conversationRepository.getById(conversationModificationDate.getConversationId());
+    private void deleteConversationWithIdxs(ConversationEventIdx conversationEventIdx) {
+        MutableConversation conversation = conversationRepository.getById(conversationEventIdx.getConversationId());
         if (conversation != null) {
             conversation.applyCommand(new ConversationDeletedCommand(conversation.getId(), now()));
             ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
         } else {
-            conversationRepository.deleteOldConversationModificationDate(conversationModificationDate);
+            conversationRepository.deleteConversationModificationIdxs(conversationEventIdx.getConversationId());
+            conversationRepository.deleteConversationEventIdx(conversationEventIdx);
         }
     }
 }

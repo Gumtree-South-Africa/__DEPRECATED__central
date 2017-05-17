@@ -129,7 +129,7 @@ public class HybridConversationRepositoryTest {
     public void testCommitAlreadyMigrated() {
         ConversationEvent newConversationEvent = new MessageAddedEvent("456", MessageDirection.BUYER_TO_SELLER, DateTime.now(), null, null, null, FilterResultState.OK, ModerationResultState.GOOD, null, null, null, null);
 
-        when(cassandraRepository.getLastModifiedDate(eq("123"))).thenReturn(DateTime.now());
+        when(cassandraRepository.getLastModifiedDate(eq("123"))).thenReturn(DateTime.now().getMillis());
 
         List<ConversationEvent> expectedEventsForBoth = Arrays.asList(newConversationEvent);
 

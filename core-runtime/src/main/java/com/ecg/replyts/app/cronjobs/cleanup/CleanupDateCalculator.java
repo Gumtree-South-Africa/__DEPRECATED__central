@@ -22,7 +22,7 @@ public class CleanupDateCalculator {
     private CronJobClockRepository cronJobClockRepository;
 
     public DateTime getCleanupDate(int maxAgeDays, String jobName) {
-        return getCleanupDate(maxAgeDays, jobName, DateTimeFieldType.dayOfMonth());
+        return getCleanupDate(maxAgeDays, jobName, DateTimeFieldType.hourOfDay());
     }
 
     /**

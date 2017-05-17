@@ -55,7 +55,7 @@ public class ConversationThreadModificationDate {
     @Override
     public String toString() {
         SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MMM/yyyy HH:mm:ss");
-        return "ConversationModificationDate{" +
+        return "ConversationThreadModificationDate{" +
           "postboxId='" + postboxId + '\'' +
           ", conversationThreadId='" + conversationThreadId + '\'' +
           ", modificationDate=" + dateFormatter.format(modificationDate) +
