@@ -152,7 +152,7 @@ public class RiakConversationRepository implements MutableConversationRepository
             setupConversationIfNewlyCreated(toBeCommittedEvents);
             conversationBucket.write(conversationId, toBeCommittedEvents);
         } finally {
-            LOGGER.debug("Saving conversation {}, with {} events to Rial", conversationId, toBeCommittedEvents.size());
+            LOGGER.debug("Saving conversation {}, with {} events to Riak", conversationId, toBeCommittedEvents.size());
             context.stop();
         }
     }
