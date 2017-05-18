@@ -1,5 +1,6 @@
 package com.gumtree.comaas.filter.category;
 
+import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
@@ -12,9 +13,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.gumtree.api.category.CategoryModel;
 import com.gumtree.api.category.domain.Category;
-import com.gumtree.filters.comaas.config.CategoryFilterConfig;
-import com.gumtree.filters.comaas.config.Result;
-import com.gumtree.filters.comaas.config.State;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +22,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import com.codahale.metrics.Timer;
 
 import java.util.*;
 
@@ -56,8 +53,6 @@ public class GumtreeCategoryBreadcrumbFilterTest {
 
     @Before
     public void setup() {
-        filter.withFilterConfig(new CategoryFilterConfig.Builder(State.ENABLED, 1, Result.STOP_FILTERING, WEBSVC_URL).build());
-
         ImmutableConversation conversation = newImmutableConversation();
         when(messageProcessingContext.getConversation()).thenReturn(conversation);
         when(categoryModel.getHierarchy(eq(1234L))).thenReturn(ImmutableList.of());
@@ -94,15 +89,6 @@ public class GumtreeCategoryBreadcrumbFilterTest {
         assertThat(c.getConversationId()).isEqualTo("2:vfbtp0:idr5s3l1");
         assertThat(c.getKey()).isEqualTo("l2-categoryid");
         assertThat(c.getValue()).isEqualTo("100");
-    }
-
-    @Test
-    public void doesntFilterIfDisabled() {
-        // disable the filter
-        filter.withFilterConfig(new CategoryFilterConfig.Builder(State.DISABLED, 1, Result.STOP_FILTERING, WEBSVC_URL).build());
-
-        filter.filter(messageProcessingContext);
-        verify(timer, never()).time();
     }
 
     private Category newCategory(long id, String name, int depth) {

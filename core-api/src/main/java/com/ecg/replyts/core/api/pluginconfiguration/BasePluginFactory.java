@@ -2,6 +2,8 @@ package com.ecg.replyts.core.api.pluginconfiguration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import javax.annotation.Nonnull;
+
 /**
  * Base Interface for all Service Producers. Plugin providers will need to implement one of the sub interfaces
  * {@link com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory} or {@link com.ecg.replyts.core.api.pluginconfiguration.resultinspector.ResultInspectorFactory} <strong>and</strong> run as spring beans on themselves.
@@ -24,5 +26,6 @@ public interface BasePluginFactory<T> {
      * @param configuration json based configuration for this service.
      * @return new created service instance with the given configuration.
      */
+    @Nonnull
     T createPlugin(String instanceName, JsonNode configuration);
 }

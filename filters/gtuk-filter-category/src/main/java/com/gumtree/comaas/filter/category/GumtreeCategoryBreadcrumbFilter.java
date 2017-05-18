@@ -8,13 +8,14 @@ import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.api.category.CategoryModel;
 import com.gumtree.api.category.domain.Category;
-import com.gumtree.filters.comaas.config.CategoryFilterConfig;
-import com.gumtree.filters.comaas.config.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -29,14 +30,8 @@ public class GumtreeCategoryBreadcrumbFilter implements Filter {
 
     private CategoryModel categoryModel;
 
-    private CategoryFilterConfig filterConfig;
-
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
-        if (filterConfig.getState() == State.DISABLED) {
-            return Collections.emptyList();
-        }
-
         CategoryPreProcessor.addCategoriesToConversation(categoryModel, context);
 
         try (Timer.Context ignore = timer.time()) {
@@ -50,11 +45,6 @@ public class GumtreeCategoryBreadcrumbFilter implements Filter {
         }
 
         return Collections.emptyList();
-    }
-
-    public GumtreeCategoryBreadcrumbFilter withFilterConfig(CategoryFilterConfig filterConfig) {
-        this.filterConfig = filterConfig;
-        return this;
     }
 
     GumtreeCategoryBreadcrumbFilter withCategoryModel(CategoryModel categoryModel) {

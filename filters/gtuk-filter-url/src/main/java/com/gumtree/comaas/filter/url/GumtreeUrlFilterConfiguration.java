@@ -3,7 +3,9 @@ package com.gumtree.comaas.filter.url;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.gumtree.comaas.common.filter.DisabledFilter;
 import com.gumtree.filters.comaas.Filter;
+import com.gumtree.filters.comaas.config.State;
 import com.gumtree.filters.comaas.config.UrlFilterConfig;
 import com.gumtree.filters.comaas.json.ConfigMapper;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +28,10 @@ public class GumtreeUrlFilterConfiguration {
 
             Filter pluginConfig = new Filter(pluginFactory, instanceId, configurationNode);
             UrlFilterConfig filterConfig = ConfigMapper.asObject(configurationNode.toString(), UrlFilterConfig.class);
+
+            if (filterConfig.getState() == State.DISABLED) {
+                return new DisabledFilter(this.getClass());
+            }
 
             return new GumtreeUrlFilter().withPluginConfig(pluginConfig).withFilterConfig(filterConfig);
         }

@@ -10,7 +10,9 @@ import com.gumtree.api.category.CategoryModel;
 import com.gumtree.api.category.CategoryReadApi;
 import com.gumtree.api.config.CategoryModelFactory;
 import com.gumtree.api.config.CategoryReadApiFactory;
+import com.gumtree.comaas.common.filter.DisabledFilter;
 import com.gumtree.filters.comaas.config.CategoryFilterConfig;
+import com.gumtree.filters.comaas.config.State;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,7 +66,12 @@ public class GumtreeCategoryFilterConfiguration {
                 JsonNode configurationNode = configuration.get("configuration");
                 CategoryFilterConfig filterConfig;
                 filterConfig = new ObjectMapper().treeToValue(configurationNode, CategoryFilterConfig.class);
-                return new GumtreeCategoryBreadcrumbFilter().withFilterConfig(filterConfig).withCategoryModel(categoryModel);
+
+                if (filterConfig.getState() == State.DISABLED) {
+                    return new DisabledFilter(this.getClass());
+                }
+
+                return new GumtreeCategoryBreadcrumbFilter().withCategoryModel(categoryModel);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Could not configure plugin GumtreeCategoryFilterConfiguration", e);
             }

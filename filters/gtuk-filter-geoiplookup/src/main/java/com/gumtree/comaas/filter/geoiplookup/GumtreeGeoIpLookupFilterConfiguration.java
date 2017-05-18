@@ -4,9 +4,11 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.gumtree.comaas.common.filter.DisabledFilter;
 import com.gumtree.common.geoip.GeoIpService;
 import com.gumtree.common.geoip.MaxMindGeoIpService;
 import com.gumtree.filters.comaas.config.GeoIpLookupConfig;
+import com.gumtree.filters.comaas.config.State;
 import com.gumtree.filters.comaas.json.ConfigMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,6 +57,10 @@ public class GumtreeGeoIpLookupFilterConfiguration {
 
             com.gumtree.filters.comaas.Filter pluginConfig = new com.gumtree.filters.comaas.Filter(pluginFactory, instanceId, configurationNode);
             GeoIpLookupConfig filterConfig = ConfigMapper.asObject(configurationNode.textValue(), GeoIpLookupConfig.class);
+
+            if (filterConfig.getState() == State.DISABLED) {
+                return new DisabledFilter(this.getClass());
+            }
 
             return new GumtreeGeoIpLookupFilter().withPluginConfig(pluginConfig).withFilterConfig(filterConfig).withGeoIPService(geoIpService);
         }
