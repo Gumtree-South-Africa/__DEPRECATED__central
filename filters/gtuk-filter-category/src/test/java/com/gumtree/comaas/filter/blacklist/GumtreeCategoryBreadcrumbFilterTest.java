@@ -28,22 +28,12 @@ public class GumtreeCategoryBreadcrumbFilterTest {
     private Timer timer;
 
     @Test
-    public void testCategoryWhenInactive() {
-        filter.withFilterConfig(getFilterConfig(false));
-        filter.filter(messageProcessingContext);
-        verify(timer, never()).time();
-    }
-
-    @Test
     public void testCategoryWhenActive() {
-        filter.withFilterConfig(getFilterConfig(true));
+        filter.withFilterConfig(new CategoryFilterConfig.Builder(State.ENABLED, 1, Result.STOP_FILTERING, null).build());
         Conversation conversation = mock(Conversation.class);
         when(conversation.getCustomValues()).thenReturn(ImmutableMap.of("CATEGORYID", "1"));
         when(messageProcessingContext.getConversation()).thenReturn(conversation);
-        filter.filter(messageProcessingContext);
-    }
 
-    private CategoryFilterConfig getFilterConfig(boolean active) {
-        return new CategoryFilterConfig.Builder(State.ENABLED, 1, Result.STOP_FILTERING, active, null).build();
+        filter.filter(messageProcessingContext);
     }
 }

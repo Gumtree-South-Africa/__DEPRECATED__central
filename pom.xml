@@ -500,7 +500,7 @@
         <gt.version>3.0-SNAPSHOT</gt.version>
         <gt.replies.models.version>4.28186</gt.replies.models.version>
         <gt.gumshield.api.version>4.28187</gt.gumshield.api.version>
-        <gt.comaas.models.version>1.5</gt.comaas.models.version>
+        <gt.comaas.models.version>1.6</gt.comaas.models.version>
         <gt.gumtree.common.version>4.28186</gt.gumtree.common.version>
         <gt.google.analytics.version>${gt.version}</gt.google.analytics.version>
         <gt.category.api.client.version>${gt.version}</gt.category.api.client.version>
