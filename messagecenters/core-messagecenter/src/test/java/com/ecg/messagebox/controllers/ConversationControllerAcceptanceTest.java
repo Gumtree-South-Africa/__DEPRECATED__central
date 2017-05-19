@@ -2,9 +2,6 @@ package com.ecg.messagebox.controllers;
 
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.RequestLoggingFilter;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
