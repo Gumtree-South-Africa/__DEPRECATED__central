@@ -22,7 +22,7 @@ import static org.joda.time.DateTime.now;
 @Component
 public class CassandraPostBoxService implements PostBoxService {
     private final CassandraPostBoxRepository postBoxRepository;
-    private final MessagesResponseFactory messageResponseFactory;
+    private final MessagesResponseFactory messagesResponseFactory;
     private final BlockUserRepository blockUserRepository;
     private final UserIdentifierService userIdentifierService;
     private final ResponseDataService responseDataService;
@@ -43,11 +43,12 @@ public class CassandraPostBoxService implements PostBoxService {
             CassandraPostBoxRepository postBoxRepository,
             UserIdentifierService userIdentifierService,
             BlockUserRepository blockUserRepository,
-            ResponseDataService responseDataService
+            ResponseDataService responseDataService,
+            MessagesResponseFactory messagesResponseFactory
     ) {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
-        this.messageResponseFactory = new MessagesResponseFactory();
+        this.messagesResponseFactory = messagesResponseFactory;
         this.blockUserRepository = blockUserRepository;
         this.responseDataService = responseDataService;
     }
@@ -66,7 +67,7 @@ public class CassandraPostBoxService implements PostBoxService {
             if (!blockUserRepository.areUsersBlocked(senderUserId, receiverUserId)) {
                 String messageTypeStr = rtsMessage.getHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase();
                 MessageType messageType = MessageType.get(messageTypeStr);
-                String messageText = messageResponseFactory.getCleanedMessage(rtsConversation, rtsMessage);
+                String messageText = messagesResponseFactory.getCleanedMessage(rtsConversation, rtsMessage);
                 String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
                 String messageIdStr = rtsMessage.getHeaders().get("X-Message-ID");
                 UUID messageId = messageIdStr != null ? UUID.fromString(messageIdStr) : UUIDs.timeBased();
