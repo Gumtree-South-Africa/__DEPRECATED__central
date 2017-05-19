@@ -5,6 +5,7 @@ import com.ecg.messagecenter.persistence.simple.HybridSimplePostBoxRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.*;
+import com.ecg.replyts.core.runtime.migrator.ResultFetcher;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterators;
 import com.hazelcast.core.HazelcastInstance;
@@ -27,7 +28,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import static com.ecg.replyts.core.runtime.TimingReports.*;
-import static com.ecg.replyts.core.runtime.migrator.Util.waitForCompletion;
 
 public class ChunkedPostboxMigrationAction {
 
@@ -55,6 +55,8 @@ public class ChunkedPostboxMigrationAction {
     @Autowired
     private final HazelcastInstance hazelcast;
 
+    private final ResultFetcher resultFetcher;
+
     private final int idBatchSize;
 
     ChunkedPostboxMigrationAction(
@@ -62,7 +64,8 @@ public class ChunkedPostboxMigrationAction {
             HybridSimplePostBoxRepository postboxRepository,
             ThreadPoolExecutor executor,
             int idBatchSize,
-            int conversationMaxAgeDays
+            int conversationMaxAgeDays,
+            int completionTimeoutSec
     ) {
         super();
         this.hazelcast = hazelcast;
@@ -70,6 +73,7 @@ public class ChunkedPostboxMigrationAction {
         this.idBatchSize = idBatchSize;
         this.executor = executor;
         this.conversationMaxAgeDays = conversationMaxAgeDays;
+        this.resultFetcher = new ResultFetcher(completionTimeoutSec, processedBatchCounter, LOG);
         newGauge("migration.processed-batch-counter", () -> processedBatchCounter.get());
         newGauge("migration.postboxes-counter", () -> totalPostboxCounter.get());
         newGauge("migration.nonempty-postboxes-counter", () -> nonemptyPostboxCounter.get());
@@ -177,7 +181,7 @@ public class ChunkedPostboxMigrationAction {
                 }));
             });
 
-            waitForCompletion(results, processedBatchCounter, LOG);
+            resultFetcher.waitForCompletion(results);
             watch.stop();
             LOG.info("Migrate postboxes from {} to {} date completed, migrated total {} postboxes, nonempty {} postboxes, " +
                             "conversation threads {}, " +

@@ -40,6 +40,9 @@ public class PostboxMigratorConfiguration {
     @Value("${migration.queue.size:100}")
     private int workQueueSize;
 
+    @Value("${migration.completion.timeout.sec:60}")
+    private int completionTimeoutSec;
+
     @Bean
     public ThreadPoolExecutor threadPoolExecutor() {
         return new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS,
@@ -50,7 +53,7 @@ public class PostboxMigratorConfiguration {
     @Bean
     public ChunkedPostboxMigrationAction chunkedPostboxMigrationAction(ThreadPoolExecutor threadPoolExecutor) {
         LOG.info("Activating r2c migration functionality");
-        return new ChunkedPostboxMigrationAction(hazelcastInstance, hybridRepository, threadPoolExecutor, idBatchSize, maxConversationAgeDays);
+        return new ChunkedPostboxMigrationAction(hazelcastInstance, hybridRepository, threadPoolExecutor, idBatchSize, maxConversationAgeDays, completionTimeoutSec);
     }
 
 }

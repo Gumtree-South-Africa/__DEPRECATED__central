@@ -27,7 +27,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newGauge;
-import static com.ecg.replyts.core.runtime.migrator.Util.waitForCompletion;
 
 public class ChunkedConversationMigrationAction {
 
@@ -47,6 +46,8 @@ public class ChunkedConversationMigrationAction {
 
     private final ThreadPoolExecutor executor;
 
+    private final ResultFetcher resultFetcher;
+
     private final HazelcastInstance hazelcast;
 
     private final int idBatchSize;
@@ -56,13 +57,16 @@ public class ChunkedConversationMigrationAction {
             HybridConversationRepository conversationRepository,
             int conversationMaxAgeDays,
             ThreadPoolExecutor executor,
-            int idBatchSize
+            int idBatchSize,
+            int completionTimeoutSec
     ) {
         this.hazelcast = hazelcast;
         this.conversationRepository = conversationRepository;
         this.conversationMaxAgeDays = conversationMaxAgeDays;
         this.executor = executor;
         this.idBatchSize = idBatchSize;
+        this.resultFetcher = new ResultFetcher(completionTimeoutSec, processedBatchCounter, LOG);
+
         newGauge("migration.processed-batch-counter", () -> processedBatchCounter.get());
         newGauge("migration.total-conversation-counter", () -> totalConvIds.get());
         newGauge("migration.submitted-batch-counter", () -> submittedBatchCounter.get());
@@ -160,7 +164,7 @@ public class ChunkedConversationMigrationAction {
                         totalConvIds.addAndGet(convIdIdx.size());
                     })));
 
-            waitForCompletion(results, processedBatchCounter, LOG);
+            resultFetcher.waitForCompletion(results);
             LOG.info("Conversation migration from {} to {} date completed,  {} conversations migrated", dateFrom, dateTo, totalConvIds.get());
             watch.stop();
         } finally {

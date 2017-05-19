@@ -38,6 +38,9 @@ public class MigratorConfiguration {
     @Value("${migration.queue.size:100}")
     private int workQueueSize;
 
+    @Value("${migration.completion.timeout.sec:60}")
+    private int completionTimeoutSec;
+
     @Bean
     public ThreadPoolExecutor threadPoolExecutor() {
         return new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS,
@@ -49,7 +52,7 @@ public class MigratorConfiguration {
     public ChunkedConversationMigrationAction chunkedConversationMigrationAction(ThreadPoolExecutor threadPoolExecutor) {
         LOG.info("Activating r2c migration functionality");
         return new ChunkedConversationMigrationAction(hazelcastInstance, conversationRepository,
-                 maxConversationAgeDays, threadPoolExecutor, idBatchSize);
+                 maxConversationAgeDays, threadPoolExecutor, idBatchSize, completionTimeoutSec);
     }
 
 }
