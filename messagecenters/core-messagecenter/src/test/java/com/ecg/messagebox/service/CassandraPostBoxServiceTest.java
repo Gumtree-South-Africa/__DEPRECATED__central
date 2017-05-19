@@ -3,8 +3,6 @@ package com.ecg.messagebox.service;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
-import com.ecg.messagebox.util.MessagePreProcessor;
-import com.ecg.messagebox.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
@@ -21,13 +19,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
 
@@ -40,30 +32,9 @@ import static java.util.Optional.empty;
 import static org.joda.time.DateTime.now;
 import static org.mockito.Mockito.*;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = CassandraPostBoxServiceTest.TestContext.class)
-@TestPropertySource(properties = {
-  "message.normalization.pattern.0=\\n.*(a|b)-.*?@mail.marktplaats.nl.*\\n",
-  "message.normalization.pattern.1=(Aan|To)\\s?:.*?@.*?",
-  "message.normalization.pattern.2=(Subject|Onderwerp)\\s?:.*?",
-  "message.normalization.pattern.3=(Date|Datum)\\s?:.*?",
-  "message.normalization.pattern.4=\\n.*<[^<>\\s]+@gmail.[^<>\\s]+>.*\\n",
-  "message.normalization.pattern.5=\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan) *: *(?:</b>)? *<a[^>]+href=\"mailto:[^\">]+@[^\">]+\"[^>]*>[^<]*</a",
-  "message.normalization.pattern.6=\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan) *: *(?:</b>)? *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",
-  "message.normalization.pattern.7=<span[^>]*>(From|To|Sender|Receiver|Van|Aan) *: *</span *>[^<>]*(?:<[:a-z]+[^>]*>){0,2}[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>){0,2}",
-  "message.normalization.pattern.8=<b><span[^>]*>(From|To|Sender|Receiver|Van|Aan) *: *</span *></b> *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",
-  "message.normalization.pattern.9=<span[^>]*><b>(From|To|Sender|Receiver|Van|Aan) *: *</b></span *> *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",
-  "message.normalization.pattern.10=\\b(From|To|Sender|Receiver|Van|Aan) *: *(<|&lt;)?[^<>\\s]+@[^<>\\s]+(>|&gt;)?",
-  "message.normalization.pattern.11=\\b(From|To|Sender|Receiver|Van|Aan) *: *([^<>\\s]+ +){1,6}(<|&lt;)?[^<>\\s]+@[^<>\\s]+((<|&lt;)[^<>\\s]+@[^<>\\s]+(>|&gt;))?(>|&gt;)?",
-  "message.normalization.pattern.12=\\b(From|To|Sender|Receiver|Van|Aan) *: *([^<>\\s]+ +){0,5}([^<>\\s]+)(<|&lt;)?[^<>\\s]+@[^<>\\s]+(>|&gt;)?",
-  "message.normalization.pattern.13=Op.{10,25}schreef[^<]{5,60}<a[^>]+href=\"mailto:[^\">]+@[^\">]+\"[^>]*>[^<]*</a",
-  "message.normalization.pattern.14=Op.{10,25}schreef[^<]{5,60}(<|&lt;)?\\s*[^<>\\s]+@[^<>\\s]+(>|&gt;)?",
-  "message.normalization.pattern.15=Am [0-9][0-9][0-9]?[0-9]?[./-].* schrieb.*",
-  "message.normalization.pattern.16=On [0-9][0-9][0-9]?[0-9]?[./-].* wrote.*",
-  "message.normalization.pattern.17=[0-9][0-9][0-9]?[0-9]?[./-].*buyer-.*@mail.mobile.de",
-  "message.normalization.pattern.18=[0-9][0-9][0-9]?[0-9]?[./-].*seller-.*@mail.mobile.de"
-})
+@RunWith(MockitoJUnitRunner.class)
 public class CassandraPostBoxServiceTest {
+
     private static final String USER_ID_1 = "1";
     private static final String USER_ID_2 = "2";
     private static final String DEFAULT_SUBJECT = "Default subject";
@@ -87,6 +58,7 @@ public class CassandraPostBoxServiceTest {
     private static final int CONVERSATION_OFFSET = 0;
     private static final int CONVERSATION_LIMIT = 50;
 
+
     @Mock
     private CassandraPostBoxRepository conversationsRepo;
     @Mock
@@ -98,16 +70,12 @@ public class CassandraPostBoxServiceTest {
     @Mock
     private PostBox postBox;
 
-    @Autowired
-    private MessagesResponseFactory messagesResponseFactory;
-
     private CassandraPostBoxService service;
 
     @Before
     public void setup() {
-        MockitoAnnotations.initMocks(this);
         DateTimeUtils.setCurrentMillisFixed(now().getMillis());
-        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService, blockUserRepo, responseDataService, messagesResponseFactory);
+        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService, blockUserRepo, responseDataService);
         when(userIdentifierService.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierService.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(blockUserRepo.areUsersBlocked(any(), any())).thenReturn(false);
@@ -356,8 +324,4 @@ public class CassandraPostBoxServiceTest {
                 6
         );
     }
-
-    @Configuration
-    @Import({ MessagesResponseFactory.class, MessagePreProcessor.class })
-    static class TestContext { }
 }

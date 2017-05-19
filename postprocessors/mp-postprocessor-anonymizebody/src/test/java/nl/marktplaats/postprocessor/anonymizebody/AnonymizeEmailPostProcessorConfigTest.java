@@ -17,12 +17,12 @@ public class AnonymizeEmailPostProcessorConfigTest {
 
         Properties p = new Properties();
 
-        p.setProperty("message.normalization.pattern.0", "0");
-        p.setProperty("message.normalization.pattern.1000", "1000");
-        p.setProperty("message.normalization.pattern.200", "200");
-        p.setProperty("message.normalization.pattern.1", "1");
-        p.setProperty("message.normalization.pattern.50", "50");
-        p.setProperty("message.normalization.pattern.3", "3");
+        p.setProperty("anonymizebody.pattern.0", "0");
+        p.setProperty("anonymizebody.pattern.1000", "1000");
+        p.setProperty("anonymizebody.pattern.200", "200");
+        p.setProperty("anonymizebody.pattern.1", "1");
+        p.setProperty("anonymizebody.pattern.50", "50");
+        p.setProperty("anonymizebody.pattern.3", "3");
 
         environment.getPropertySources().addFirst(new PropertiesPropertySource("test", p));
 
