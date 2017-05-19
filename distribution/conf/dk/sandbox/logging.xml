@@ -1,0 +1,11 @@
+<!--
+
+LOOKS LIKE A BROKEN CONFIG? It's not, this is just a fragment that will be included
+from logback.xml.
+
+-->
+<included>
+    <logger name="com.ecg.replyts" level="DEBUG" />
+    <logger name="com.ebay.columbus" level="DEBUG"/>
+    <logger name="com.ebay.ecg.sanitychecks" level="ERROR"/>
+</included>

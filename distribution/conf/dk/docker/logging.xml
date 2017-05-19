@@ -1,0 +1,5 @@
+<included>
+    <logger name="com.ecg.replyts" level="DEBUG" />
+    <logger name="com.ebay.columbus" level="DEBUG"/>
+    <logger name="com.ebay.ecg.sanitychecks" level="ERROR"/>
+</included>

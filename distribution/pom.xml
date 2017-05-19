@@ -694,6 +694,33 @@
 
         </profile>
 
+        <profile>
+            <id>dk</id>
+
+            <properties>
+                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                <profile-classifier>dk</profile-classifier>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-postprocessor-buyeralias</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+
+        </profile>
 
         <profile>
             <id>bt</id>
@@ -869,7 +896,7 @@
                         <configuration>
                             <rules>
                                 <requireActiveProfile>
-                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,bt,it,migration</profiles>
+                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,bt,it,migration,dk</profiles>
                                     <all>false</all>
                                 </requireActiveProfile>
                             </rules>

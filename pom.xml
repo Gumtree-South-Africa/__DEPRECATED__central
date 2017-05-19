@@ -386,6 +386,18 @@
             </distributionManagement>
         </profile>
 
+        <profile>
+            <id>dk</id>
+
+            <modules>
+                <module>filters/core-filter-word</module>
+
+                <module>postprocessors/core-postprocessor-buyeralias</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
+            </modules>
+        </profile>
+
     </profiles>
 
     <properties>
