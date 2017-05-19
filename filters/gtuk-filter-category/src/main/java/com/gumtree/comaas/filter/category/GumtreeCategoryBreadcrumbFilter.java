@@ -9,6 +9,7 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.api.category.CategoryModel;
 import com.gumtree.api.category.domain.Category;
 import com.gumtree.filters.comaas.config.CategoryFilterConfig;
+import com.gumtree.filters.comaas.config.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -32,10 +33,14 @@ public class GumtreeCategoryBreadcrumbFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
+        if (filterConfig.getState() == State.DISABLED) {
+            return Collections.emptyList();
+        }
+
         CategoryPreProcessor.addCategoriesToConversation(categoryModel, context);
 
         try (Timer.Context ignore = timer.time()) {
-            final Long categoryId = Long.valueOf(context.getConversation().getCustomValues().get(CATEGORYID));
+            Long categoryId = Long.valueOf(context.getConversation().getCustomValues().get(CATEGORYID));
             List<Category> fullPath = categoryModel.getFullPath(categoryId);
             Set<Long> collect = fullPath.stream().map(Category::getId).collect(Collectors.toSet());
             Set<Long> categoryBreadCrumb = (Set<Long>) context.getFilterContext().computeIfAbsent("categoryBreadCrumb", ignored -> new HashSet<>());
