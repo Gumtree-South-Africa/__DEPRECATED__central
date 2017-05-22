@@ -12,6 +12,7 @@ import com.ecg.replyts.core.runtime.persistence.StatementsBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -25,13 +26,14 @@ public class CassandraMessageRepository implements CassandraRepository {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraMessageRepository.class);
 
     @Autowired
+    @Qualifier("cassandraSession")
     private Session session;
 
     @Autowired
-    private ConsistencyLevel readConsistency;
+    private ConsistencyLevel cassandraReadConsistency;
 
     @Autowired
-    private ConsistencyLevel writeConsistency;
+    private ConsistencyLevel cassandraWriteConsistency;
 
     @Autowired
     private JsonConverter jsonConverter;
@@ -70,12 +72,12 @@ public class CassandraMessageRepository implements CassandraRepository {
 
     @Override
     public ConsistencyLevel getReadConsistency() {
-        return readConsistency;
+        return cassandraReadConsistency;
     }
 
     @Override
     public ConsistencyLevel getWriteConsistency() {
-        return writeConsistency;
+        return cassandraWriteConsistency;
     }
 
     @Override

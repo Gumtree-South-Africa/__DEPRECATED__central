@@ -1,5 +1,6 @@
 package com.ecg.de.mobile.replyts.pushnotification;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
@@ -21,7 +22,7 @@ import java.io.IOException;
 public class NotificationSender {
     private static final Logger LOG = LoggerFactory.getLogger(MdePushNotificationListener.class);
 
-    @Value("${push.notification.service.url}")
+    @Value("${push.notification.service.url:}")
     private String apiUrl;
 
     @Autowired
@@ -31,6 +32,11 @@ public class NotificationSender {
     private JsonConverter jsonConverter;
 
     public void send(MdePushMessagePayload payload) {
+        if (StringUtils.isEmpty(apiUrl)) {
+            LOG.warn("Not sending push notification, apiUrl not configured.");
+            return;
+        }
+
         try {
             HttpPost request = post(payload);
             LOG.debug("Sending request to push notification service: {}", request);

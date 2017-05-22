@@ -19,7 +19,7 @@ import java.net.URI;
 @ComaasPlugin
 @Configuration
 @ComponentScan("com.ecg.de.mobile.replyts.pushnotification.cassandra")
-@Import({ NotificationSender.class, MdePushNotificationListener.class })
+@Import({ NotificationSender.class, MdePushNotificationListener.class, JsonConverter.class })
 public class MdePushNotificationConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(MdePushNotificationConfiguration.class);
 
