@@ -38,47 +38,6 @@ public class ConversationThread extends AbstractConversationThread {
             @JsonProperty("robot") Optional<String> robot,
             @JsonProperty("offerId") Optional<String> offerId,
             @JsonProperty("lastMessageAttachments") List<String> lastMessageAttachments,
-            @JsonProperty("lastMessageId") Optional<String> lastMessageId) {
-        super(
-                adId,
-                conversationId,
-                createdAt,
-                modifiedAt,
-                receivedAt,
-                containsUnreadMessages,
-                previewLastMessage,
-                buyerName,
-                sellerName,
-                buyerId,
-                messageDirection
-        );
-
-        this.sellerId = sellerId;
-        this.robot = robot;
-        this.offerId = offerId;
-        this.lastMessageAttachments = lastMessageAttachments;
-        this.lastMessageId = lastMessageId;
-        this.buyerAnonymousEmail = Optional.empty();
-        this.sellerAnonymousEmail = Optional.empty();
-        this.status = Optional.empty();
-    }
-
-    public ConversationThread(
-            @JsonProperty("adId") String adId,
-            @JsonProperty("conversationId") String conversationId,
-            @JsonProperty("createdAt") DateTime createdAt,
-            @JsonProperty("modifiedAt") DateTime modifiedAt,
-            @JsonProperty("receivedAt") DateTime receivedAt,
-            @JsonProperty("containsUnreadMessages") boolean containsUnreadMessages,
-            @JsonProperty("previewLastMessage") Optional<String> previewLastMessage,
-            @JsonProperty("buyerName") Optional<String> buyerName,
-            @JsonProperty("sellerName") Optional<String> sellerName,
-            @JsonProperty("buyerId") Optional<String> buyerId,
-            @JsonProperty("sellerId") Optional<String> sellerId,
-            @JsonProperty("messageDirection") Optional<String> messageDirection,
-            @JsonProperty("robot") Optional<String> robot,
-            @JsonProperty("offerId") Optional<String> offerId,
-            @JsonProperty("lastMessageAttachments") List<String> lastMessageAttachments,
             @JsonProperty("lastMessageId") Optional<String> lastMessageId,
             @JsonProperty("buyerAnonymousEmail") Optional<String> buyerAnonymousEmail,
             @JsonProperty("sellerAnonymousEmail") Optional<String> sellerAnonymousEmail,

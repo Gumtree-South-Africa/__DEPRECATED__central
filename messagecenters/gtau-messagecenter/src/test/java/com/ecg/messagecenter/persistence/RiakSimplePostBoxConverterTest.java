@@ -77,9 +77,9 @@ public class RiakSimplePostBoxConverterTest {
         DateTime receivedAt3 = dt.withMillis(1391332984880L);
 
         return new PostBox("bla@blah.com", Optional.of(1L), Lists.newArrayList(
-                new ConversationThread("123", "abc", createdAt1, modifiedAt1, receivedAt1, true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), new ArrayList(), Optional.empty()),
-                new ConversationThread("321", "cba", createdAt2, modifiedAt2, receivedAt2, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), new ArrayList(), Optional.empty()),
-                new ConversationThread("213", "bca", createdAt3, modifiedAt3, receivedAt3, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), new ArrayList(), Optional.empty())
+                new ConversationThread("123", "abc", createdAt1, modifiedAt1, receivedAt1, true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), new ArrayList(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                new ConversationThread("321", "cba", createdAt2, modifiedAt2, receivedAt2, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), new ArrayList(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()),
+                new ConversationThread("213", "bca", createdAt3, modifiedAt3, receivedAt3, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), new ArrayList(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty())
         ), 180);
     }
 

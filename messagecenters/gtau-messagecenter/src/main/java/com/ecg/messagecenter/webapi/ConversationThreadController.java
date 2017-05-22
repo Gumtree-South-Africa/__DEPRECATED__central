@@ -143,7 +143,10 @@ class ConversationThreadController {
                         item.getRobot(),
                         item.getOfferId(),
                         item.getLastMessageAttachments(),
-                        item.getLastMessageId()
+                        item.getLastMessageId(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty()
                 ));
 
                 needsUpdate = true;
