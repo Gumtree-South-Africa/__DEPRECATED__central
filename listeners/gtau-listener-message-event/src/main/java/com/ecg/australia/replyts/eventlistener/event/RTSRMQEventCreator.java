@@ -107,9 +107,14 @@ public class RTSRMQEventCreator {
                 }
             }
 
-            conversationInfoBuilder.setAdId(conversation.getAdId());
-            conversationInfoBuilder.setSellerMail(conversation.getSellerId());
-            conversationInfoBuilder.setBuyerMail(conversation.getBuyerId());
+            if(conversation.getAdId() != null)
+                conversationInfoBuilder.setAdId(conversation.getAdId());
+
+            if(conversation.getSellerId() != null)
+                conversationInfoBuilder.setSellerMail(conversation.getSellerId());
+
+            if(conversation.getBuyerId() != null)
+                conversationInfoBuilder.setBuyerMail(conversation.getBuyerId());
 
             if (conversation.getState() != null) {
                 conversationState = conversation.getState().name();
