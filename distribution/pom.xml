@@ -227,11 +227,6 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>gtau-postprocessor-messagethreading</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>gtau-postprocessor-sentrepliesnotifier</artifactId>
                     <version>${project.version}</version>
                 </dependency>

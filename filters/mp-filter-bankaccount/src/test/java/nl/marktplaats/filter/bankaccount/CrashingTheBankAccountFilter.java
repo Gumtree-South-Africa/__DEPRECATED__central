@@ -1,16 +1,10 @@
 package nl.marktplaats.filter.bankaccount;
 
-import com.ecg.replyts.app.Mails;
-import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Resources;
 import org.apache.tika.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,17 +12,12 @@ import org.mockito.Mock;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
