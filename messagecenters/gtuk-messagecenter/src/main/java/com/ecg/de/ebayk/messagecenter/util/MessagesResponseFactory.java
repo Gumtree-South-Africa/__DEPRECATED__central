@@ -2,15 +2,11 @@ package com.ecg.de.ebayk.messagecenter.util;
 
 import com.codahale.metrics.Histogram;
 import com.ecg.de.ebayk.messagecenter.webapi.responses.MessageResponse;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.gumtree.replyts2.common.message.MessageCenterUtils;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
-import com.gumtree.replyts2.common.message.MessageCenterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,8 +1,8 @@
 package com.ecg.de.ebayk.messagecenter.util;
 
 import com.codahale.metrics.Timer;
+import com.ecg.gumtree.replyts2.common.message.MessageTextHandler;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.gumtree.replyts2.common.message.MessageTextHandler;
 
 /**
  * @author maldana@ebay-kleinanzeigen.de

@@ -1,5 +1,6 @@
 package com.gumtree.replyts2.common.message;
 
+import com.ecg.gumtree.replyts2.common.message.MessageTextHandler;
 import com.ecg.replyts.app.Mails;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;

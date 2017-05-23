@@ -21,6 +21,10 @@
         </dependency>
 
         <dependency>
+            <groupId>gumtree-common</groupId>
+            <artifactId>util</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-coremod-shared</artifactId>
         </dependency>
@@ -35,6 +39,10 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.yammer.metrics</groupId>
+            <artifactId>metrics-httpclient</artifactId>
         </dependency>
 
         <dependency>

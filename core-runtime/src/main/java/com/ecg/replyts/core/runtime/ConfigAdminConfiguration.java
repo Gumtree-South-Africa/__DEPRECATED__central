@@ -4,6 +4,8 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.resultinspector.ResultInspectorFactory;
 import com.ecg.replyts.core.runtime.configadmin.ClusterRefreshPublisher;
 import com.ecg.replyts.core.runtime.configadmin.ConfigurationAdmin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +21,7 @@ public class ConfigAdminConfiguration {
     @Autowired(required = false)
     private List<ResultInspectorFactory> resultInspectorFactories = Collections.emptyList();
 
-    @Autowired(required = true)
+    @Autowired
     private ClusterRefreshPublisher clusterRefreshPublisher;
 
     @SuppressWarnings({"unchecked", "rawtypes"})

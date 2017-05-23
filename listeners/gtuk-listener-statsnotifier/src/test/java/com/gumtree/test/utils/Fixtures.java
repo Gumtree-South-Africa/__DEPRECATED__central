@@ -1,16 +1,10 @@
 package com.gumtree.test.utils;
 
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationState;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
-import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
+import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.google.common.collect.ImmutableList;
-import com.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import org.joda.time.DateTime;
 
 import java.util.Arrays;

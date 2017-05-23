@@ -503,6 +503,7 @@
         <glassfish.grizzly.version>2.3.21</glassfish.grizzly.version>
         <hystrix-version>1.5.2</hystrix-version>
         <asynchttpclient.version>1.9.38</asynchttpclient.version>
+        <yammer.metrics.version>2.2.0</yammer.metrics.version>
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
@@ -512,12 +513,13 @@
 
         <!-- gtuk artifact dependencies -->
         <gt.version>3.0-SNAPSHOT</gt.version>
-        <gt.replies.models.version>4.28186</gt.replies.models.version>
-        <gt.gumshield.api.version>4.28187</gt.gumshield.api.version>
-        <gt.comaas.models.version>1.6</gt.comaas.models.version>
-        <gt.gumtree.common.version>4.28186</gt.gumtree.common.version>
         <gt.google.analytics.version>${gt.version}</gt.google.analytics.version>
         <gt.category.api.client.version>${gt.version}</gt.category.api.client.version>
+        <gumtree.dependencies.version>4.29325</gumtree.dependencies.version>
+        <gt.replies.models.version>${gumtree.dependencies.version}</gt.replies.models.version>
+        <gt.gumshield.api.version>4.29326</gt.gumshield.api.version>
+        <gt.gumtree.common.version>${gumtree.dependencies.version}</gt.gumtree.common.version>
+        <gt.comaas.models.version>1.6</gt.comaas.models.version>
         <gt.geoip.lib.version>1.0.0</gt.geoip.lib.version>
 
         <!-- mde artifact versions -->
@@ -659,6 +661,10 @@
                 <artifactId>client</artifactId>
                 <version>${gt.gumshield.api.version}</version>
                 <exclusions>
+                    <exclusion>
+                        <groupId>gumtree-common</groupId>
+                        <artifactId>util</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>javax.activation</groupId>
                         <artifactId>activation</artifactId>
@@ -848,6 +854,11 @@
                         <artifactId>scala-library</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.yammer.metrics</groupId>
+                <artifactId>metrics-httpclient</artifactId>
+                <version>${yammer.metrics.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.scala-lang</groupId>

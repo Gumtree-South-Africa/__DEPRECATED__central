@@ -3,13 +3,13 @@ package com.ecg.de.ebayk.messagecenter.persistence;
 import com.ecg.de.ebayk.messagecenter.util.MessagesDiffer;
 import com.ecg.de.ebayk.messagecenter.util.MessagesResponseFactory;
 import com.ecg.de.ebayk.messagecenter.webapi.responses.MessageResponse;
+import com.ecg.gumtree.replyts2.common.message.MessageCenterUtils;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.gumtree.replyts2.common.message.MessageCenterUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 

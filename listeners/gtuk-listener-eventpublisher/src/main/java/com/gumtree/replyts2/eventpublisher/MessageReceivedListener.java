@@ -1,10 +1,10 @@
 package com.gumtree.replyts2.eventpublisher;
 
+import com.ecg.gumtree.replyts2.common.message.MessageCenterUtils;
+import com.ecg.gumtree.replyts2.common.message.MessageTextHandler;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
-import com.gumtree.replyts2.common.message.MessageCenterUtils;
-import com.gumtree.replyts2.common.message.MessageTextHandler;
 import com.gumtree.replyts2.eventpublisher.event.MessageReceivedEvent;
 import com.gumtree.replyts2.eventpublisher.publisher.EventPublisher;
 import org.slf4j.Logger;
@@ -30,14 +30,16 @@ public class MessageReceivedListener implements MessageProcessedListener {
 
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
-        if(pluginEnabled) {
+        if (pluginEnabled) {
             switch (message.getState()) {
 
-                case SENT: rabbitEventPublisher.publishEvent(getEvent(conversation, message)
-                        .orElseThrow(() -> new IllegalStateException("Event should not be null")));
+                case SENT:
+                    rabbitEventPublisher.publishEvent(getEvent(conversation, message)
+                            .orElseThrow(() -> new IllegalStateException("Event should not be null")));
                     break;
 
-                default: break;//Do nothing
+                default:
+                    break;//Do nothing
             }
         }
 

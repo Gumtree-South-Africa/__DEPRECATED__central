@@ -1,6 +1,6 @@
 package com.ecg.de.ebayk.messagecenter.webapi.responses;
 
-import com.gumtree.replyts2.common.message.MessageCenterUtils;
+import com.ecg.gumtree.replyts2.common.message.MessageCenterUtils;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;

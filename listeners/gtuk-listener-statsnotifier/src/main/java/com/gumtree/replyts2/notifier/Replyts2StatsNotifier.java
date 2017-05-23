@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
-import static com.gumtree.replyts2.common.message.GumtreeCustomHeaders.CLIENT_ID;
+import static com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders.CLIENT_ID;
 
 /**
  * Created by reweber on 16/07/15.
@@ -28,13 +28,15 @@ public class Replyts2StatsNotifier implements MessageProcessedListener {
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
         switch (message.getState()) {
-            case SENT: if (isFirstMessage(conversation)) {
+            case SENT:
+                if (isFirstMessage(conversation)) {
                     LOGGER.debug("Sending notification to the system");
                     notificationService.notifyReplySuccesfullySent(conversation.getBuyerId(), conversation.getAdId(),
-                                                                getClientId(message), sendGoogleAnalyticsEventEnabled);
-                    }
-                    break;
-            default: break;//Do nothing
+                            getClientId(message), sendGoogleAnalyticsEventEnabled);
+                }
+                break;
+            default:
+                break;//Do nothing
         }
     }
 

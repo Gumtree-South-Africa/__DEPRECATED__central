@@ -2,11 +2,11 @@ package com.ecg.de.ebayk.messagecenter.webapi.responses;
 
 import com.ecg.de.ebayk.messagecenter.persistence.ConversationThread;
 import com.ecg.de.ebayk.messagecenter.util.ConversationBoundnessFinder;
-import com.ecg.de.ebayk.messagecenter.webapi.DeletedCustomValue;
-import com.ecg.de.ebayk.messagecenter.webapi.FlaggedCustomValue;
-import com.gumtree.replyts2.common.message.MessageCenterUtils;
 import com.ecg.de.ebayk.messagecenter.util.MessagesDiffer;
 import com.ecg.de.ebayk.messagecenter.util.MessagesResponseFactory;
+import com.ecg.de.ebayk.messagecenter.webapi.DeletedCustomValue;
+import com.ecg.de.ebayk.messagecenter.webapi.FlaggedCustomValue;
+import com.ecg.gumtree.replyts2.common.message.MessageCenterUtils;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
