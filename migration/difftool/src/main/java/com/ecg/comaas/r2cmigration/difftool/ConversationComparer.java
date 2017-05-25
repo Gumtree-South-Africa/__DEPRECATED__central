@@ -25,10 +25,12 @@ public class ConversationComparer {
         waitForCompletion(tasks);
 
         if (!diffTool.isRiakMatchesCassandra) {
-            LOG.info("DATA in Riak and Cassandra IS DIFFERENT");
+            LOG.info("Conversations in Riak and Cassandra are different.");
             LOG.info("Riak content does not match that of Cassandra. See the logs for details.");
             LOG.info("Riak to Cassandra comparison - mismatching conversations: {}, conversation events: {}",
                     R2CConversationDiffTool.RIAK_TO_CASS_CONV_MISMATCH_COUNTER.getCount(), R2CConversationDiffTool.RIAK_TO_CASS_EVENT_MISMATCH_COUNTER.getCount());
+        } else {
+            LOG.info("Success! Conversations in Riak and Cassandra are NOT different.");
         }
 
         long timepassed = timerStage.elapsed(TimeUnit.SECONDS);

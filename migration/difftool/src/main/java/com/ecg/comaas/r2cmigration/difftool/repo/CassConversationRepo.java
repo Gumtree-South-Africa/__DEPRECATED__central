@@ -47,13 +47,11 @@ public class CassConversationRepo {
     private Session session;
 
     private final ConsistencyLevel cassandraReadConsistency;
-    private final ConsistencyLevel cassandraWriteConsistency;
 
     @Autowired
     public CassConversationRepo(@Qualifier("cassandraSession") Session session,
                                 JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer,
-                                @Value("${persistence.cassandra.consistency.read:#{null}}") ConsistencyLevel cassandraReadConsistency,
-                                @Value("${persistence.cassandra.consistency.write:#{null}}") ConsistencyLevel cassandraWriteConsistency) {
+                                @Value("${persistence.cassandra.consistency.read:#{null}}") ConsistencyLevel cassandraReadConsistency) {
         try {
             this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
             this.session = session;
@@ -62,7 +60,6 @@ public class CassConversationRepo {
             this.getCount = session.prepare(COUNT_FROM_CONVERSATION_MOD_IDX);
             this.getCountByDay = session.prepare(COUNT_FROM_CONVERSATION_MOD_IDX_BY_DAY);
             this.cassandraReadConsistency = cassandraReadConsistency;
-            this.cassandraWriteConsistency = cassandraWriteConsistency;
         } catch (Exception e) {
             LOG.error("Fail to connect to cassandra: ", e);
             throw new RuntimeException(e);
@@ -81,7 +78,7 @@ public class CassConversationRepo {
 
     public Statement bind(PreparedStatement statement, Object... values) {
         BoundStatement bs = statement.bind(values);
-        return bs.setConsistencyLevel(cassandraReadConsistency).setSerialConsistencyLevel(cassandraWriteConsistency);
+        return bs.setConsistencyLevel(cassandraReadConsistency);
     }
 
     public long getConversationModCount(DateTime startDate, DateTime endDate) {

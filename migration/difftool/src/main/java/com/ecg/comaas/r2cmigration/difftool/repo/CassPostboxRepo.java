@@ -59,18 +59,15 @@ public class CassPostboxRepo {
     PreparedStatement countPostboxes = null;
 
     private final ConsistencyLevel cassandraReadConsistency;
-    private final ConsistencyLevel cassandraWriteConsistency;
 
     public CassPostboxRepo(@Qualifier("cassandraSession") Session session,
-                           @Value("${persistence.cassandra.consistency.read:#{null}}") ConsistencyLevel cassandraReadConsistency,
-                           @Value("${persistence.cassandra.consistency.write:#{null}}") ConsistencyLevel cassandraWriteConsistency) {
+                           @Value("${persistence.cassandra.consistency.read:#{null}}") ConsistencyLevel cassandraReadConsistency) {
         this.session = session;
         this.selectPostbox = session.prepare(SELECT_POSTBOX_Q);
         this.selectPostboxUnreadCount = session.prepare(SELECT_POSTBOX_UNREAD_COUNTS_CONVERSATION_IDS_Q);
         this.selectPostboxModifiedBetweenByDate = session.prepare(SELECT_POSTBOX_WHERE_MODIFICATION_BETWEEN);
         this.countPostboxes = session.prepare(COUNT_POSTBOX_WHERE_MODIFICATION_BETWEEN);
         this.cassandraReadConsistency = cassandraReadConsistency;
-        this.cassandraWriteConsistency = cassandraWriteConsistency;
         newGauge("cassandra.postboxRepo-streamConversationModificationsByHour", () -> streamGauge.get());
     }
 
@@ -108,7 +105,7 @@ public class CassPostboxRepo {
 
     public Statement bind(PreparedStatement statement, Object... values) {
         BoundStatement bs = statement.bind(values);
-        return bs.setConsistencyLevel(cassandraReadConsistency).setSerialConsistencyLevel(cassandraWriteConsistency);
+        return bs.setConsistencyLevel(cassandraReadConsistency);
     }
 
     private Optional<AbstractConversationThread> toConversationThread(String postboxId, String

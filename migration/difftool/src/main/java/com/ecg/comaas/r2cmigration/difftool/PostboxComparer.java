@@ -34,9 +34,11 @@ public class PostboxComparer {
                 diffTool.RIAK_PBOX_CONVERSATION_THREAD_COUNTER.getCount(), timepassed, speed);
 
         if (!diffTool.isRiakMatchesCassandra) {
-            LOG.info("DATA in Riak and Cassandra IS DIFFERENT");
+            LOG.info("Postboxes in Riak and Cassandra are different.");
             LOG.info("Riak postboxes do not match that of Cassandra. See the logs for details.");
             LOG.info("Number of postboxes that do not match after Riak to Cassandra comparison {}", diffTool.RIAK_TO_CASS_POSTBOX_MISMATCH_COUNTER.getCount());
+        } else {
+            LOG.info("Success! Postboxes in Riak and Cassandra are NOT different.");
         }
     }
 

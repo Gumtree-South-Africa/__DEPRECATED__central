@@ -42,7 +42,7 @@ public class Comparer {
 
     @Component
     static class Options {
-        @Option(name = "-rc", usage = "Prior to verification fetch the records to be verified count")
+        @Option(name = "-rc", usage = "Prior to diffing, count the records to be verified")
         boolean fetchRecordCount = false;
 
         @Option(name = "-r2c", forbids = "-c2r", usage = "Perform Riak To Cassandra Validation")
