@@ -1,17 +1,20 @@
 package com.ecg;
 
 import com.ecg.messagecenter.webapi.HttpRequestAccessInterceptor;
+import com.ecg.replyts.core.webapi.documentation.SwaggerConfiguration;
 import com.ecg.replyts.core.webapi.util.JsonNodeMessageConverter;
 import com.ecg.replyts.core.webapi.util.MappingJackson2HttpMessageConverter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -19,6 +22,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import java.util.List;
 
 @Configuration
+@Import(SwaggerConfiguration.class)
 public class WebConfiguration extends WebMvcConfigurationSupport {
     @Bean
     public RequestMappingHandlerMapping requestMappingHandlerMapping() {

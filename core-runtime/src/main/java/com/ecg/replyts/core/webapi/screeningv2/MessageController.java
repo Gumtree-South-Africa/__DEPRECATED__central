@@ -18,6 +18,9 @@ import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.MessageRts;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
 import com.google.common.base.Optional;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.Example;
+import io.swagger.annotations.ExampleProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,6 +58,18 @@ public class MessageController {
     /**
      * Sets a message to a new state. Messages are identified by their id and their conversation's id.
      */
+    @ApiOperation(
+            value = "Moderating a Mail",
+            notes = "Mails that are in BLOCKED or HELD state can be moderated by CS agents who can declare them to be " +
+                    "either GOOD or BAD (Good mails get sent, bad mails become or stay BLOCKED)\n" +
+                    "\n" +
+                    "Agent Name Support (new in 2.1.12)\n" +
+                    "\n" +
+                    "The payload can have an optional parameter editor (can be any string). " +
+                    "If this parameter is set, the message will be marked as edited by this agent. " +
+                    "The Search API can then be used to retrieve all messages edited by this agent. " +
+                    "There is no support for additional information."
+    )
     @RequestMapping(value = ModerateMessageCommand.MAPPING, method = POST, consumes = APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseObject<?> changeMessageState(@PathVariable String conversationId,
@@ -89,6 +104,11 @@ public class MessageController {
     /**
      * Performs a message search. search command must be described in the post payload.
      */
+    @ApiOperation(
+            value = "Searching for Messages",
+            notes = "Search for messages meeting various criteria. " +
+                    "Attention: passing an empty list as payload will come up with an empty search result"
+    )
     @RequestMapping(value = SearchMessageCommand.MAPPING, consumes = APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseObject<?> searchMessages(@RequestBody SearchMessagePayload command) {
