@@ -161,7 +161,7 @@ public class R2CPostboxDiffTool extends AbstractDiffTool {
                     }
                 }
 
-                LOG.error("Postbox id '{}' do not match that of {}!", pboxId, riakToCassandra ? "riak" : "cass");
+                LOG.error("Postbox id '{}' does not match that of {}!", pboxId, riakToCassandra ? "riak" : "cass");
                 LOG.info("Riak postbox: {}", verbose ? riakPbox.fullToString() : riakPbox.toString());
                 LOG.info("Cass postbox: {}\n", verbose ? cassPbox.fullToString() : cassPbox.toString());
 
