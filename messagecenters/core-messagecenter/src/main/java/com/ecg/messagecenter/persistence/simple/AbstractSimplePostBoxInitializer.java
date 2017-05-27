@@ -32,20 +32,18 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
             Conversation conversation,
             boolean newReplyArrived,
             PostBoxWriteCallback postBoxWriteCallback) {
-        // We don't want to continue spamming PostBox for user if it was set as ignored before
 
+        // We don't want to continue spamming PostBox for user if it was set as ignored before
         if (conversation.isClosedBy(ConversationRole.getRole(email, conversation))) {
             return;
         }
 
         // Additional filter defined by the tenant implementation (e.g. conversation-level blocking)
-
         if (filter(email, conversation)) {
             return;
         }
 
         // Don't display empty conversations and don't add empty messages to existing conversations
-
         Optional<String> previewLastMessage = extractPreviewLastMessage(conversation, email);
         Optional<? extends AbstractConversationThread> existingThread = postBoxRepository.threadById(email, conversation.getId());
 

@@ -47,9 +47,7 @@ class CounterIncrementController {
 
     @RequestMapping(value = MAPPING, method = POST)
     @ResponseBody
-    public ResponseObject<?> incrementReadCounters(@RequestBody IncreaseUnreadCountersCommand cmd) {
-
-
+    public ResponseObject<?> incrementUnreadCounters(@RequestBody IncreaseUnreadCountersCommand cmd) {
         Result loadedItems = preloadPostBoxes(cmd);
 
         boolean errors = loadedItems.errors;
@@ -63,10 +61,8 @@ class CounterIncrementController {
             PostBox postBox = loadedItems.items.get(item.getUserEmailLowerCase());
             postBox.markConversationUnread(item.getConversationId(), item.getMessage());
             newUnreadCounters.put(item.getConversationId(), postBox.getUnreadConversations().size());
-            LOG.debug("mark as read: '{}/{}'", item.getUserEmailLowerCase(), item.getConversationId());
+            LOG.debug("mark as unread: '{}/{}'", item.getUserEmailLowerCase(), item.getConversationId());
         }
-
-
 
         for (PostBox postBox : loadedItems.items.values()) {
             try {
@@ -77,7 +73,6 @@ class CounterIncrementController {
         }
 
         Preconditions.checkArgument(!errors, "Bulk action finished with errors. please see log for details");
-
 
         return ResponseObject.of(newUnreadCounters);
     }

@@ -108,6 +108,7 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
                 if (c != null && !r.getValue().getModifiedAt().isAfter(c.getModifiedAt())) {
                     continue;
                 }
+                LOG.debug("Found convThread to upsert: {}. Related Cassandra convThread: {}", r.getValue().fullToString(), c == null ? "null": c.fullToString());
                 threadsToUpsert.add(r.getValue());
             }
 
@@ -169,7 +170,7 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
             thread = riakRepository.threadById(email, conversationId);
 
             if (thread.isPresent()) {
-                LOG.debug("ConversationThread {} for postbox {} is in Riak but not in Cassandra, migrating the whole postbox");
+                LOG.debug("ConversationThread {} for postbox {} is in Riak but not in Cassandra, migrating the whole postbox", conversationId, email);
                 // byId makes sure to migrate the postbox
                 byId(email);
             }
@@ -181,9 +182,15 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
     @Override
     public Long upsertThread(String email, AbstractConversationThread conversationThread, boolean markAsUnread) {
         try {
-            return cassandraRepository.upsertThread(email, conversationThread, markAsUnread);
+            Long unreadCount = cassandraRepository.upsertThread(email, conversationThread, markAsUnread);
+            LOG.debug("Upserted convThread {} for postbox {} in Cassandra", conversationThread.getConversationId(), email);
+            return unreadCount;
+        } catch (Exception e) {
+            LOG.error("Could not upsert thread {} for postbox {} in Cassandra", conversationThread.fullToString(), email, e);
+            throw e;
         } finally {
             riakRepository.upsertThread(email, conversationThread, markAsUnread);
+            LOG.debug("Upserted convThread {} for postbox {} in Riak", conversationThread.getConversationId(), email);
         }
     }
 
