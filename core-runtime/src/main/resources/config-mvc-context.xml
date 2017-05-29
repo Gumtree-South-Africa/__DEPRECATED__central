@@ -24,6 +24,4 @@
     </bean>
 
     <context:component-scan base-package="com.ecg.replyts.core.webapi.configv2"/>
-
-    <bean class="com.ecg.replyts.core.webapi.documentation.SwaggerConfiguration"/>
 </beans>

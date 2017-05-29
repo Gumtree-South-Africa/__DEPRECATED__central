@@ -434,14 +434,14 @@
         <cglib-version>3.1</cglib-version>
         <elasticsearch-version>1.7.5</elasticsearch-version>
         <exec-maven-plugin-version>1.4.0</exec-maven-plugin-version>
-        <guava-version>19.0</guava-version>
+        <guava-version>18.0</guava-version>
         <commons-collections-version>3.2.1</commons-collections-version>
         <hamcrest-version>1.3</hamcrest-version>
         <hazelcast-version>3.6.1</hazelcast-version>
         <httpclient-version>4.5.2</httpclient-version>
         <httpcore-version>4.4.4</httpcore-version>
         <icu4j-version>56.1</icu4j-version>
-        <jackson-version>2.8.5</jackson-version>
+        <jackson-version>2.7.4</jackson-version>
         <janino-version>2.6.1</janino-version>
         <javaxdelta-version>2.0.1</javaxdelta-version>
         <javax-mail-version>1.4.7</javax-mail-version>
@@ -503,8 +503,6 @@
         <glassfish.grizzly.version>2.3.21</glassfish.grizzly.version>
         <hystrix-version>1.5.2</hystrix-version>
         <asynchttpclient.version>1.9.38</asynchttpclient.version>
-        <springfox-swagger-ui.version>2.7.0</springfox-swagger-ui.version>
-
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
@@ -514,10 +512,10 @@
 
         <!-- gtuk artifact dependencies -->
         <gt.version>3.0-SNAPSHOT</gt.version>
-        <gt.replies.models.version>4.29321</gt.replies.models.version>
-        <gt.gumshield.api.version>4.29308</gt.gumshield.api.version>
+        <gt.replies.models.version>4.28186</gt.replies.models.version>
+        <gt.gumshield.api.version>4.28187</gt.gumshield.api.version>
         <gt.comaas.models.version>1.6</gt.comaas.models.version>
-        <gt.gumtree.common.version>4.29307</gt.gumtree.common.version>
+        <gt.gumtree.common.version>4.28186</gt.gumtree.common.version>
         <gt.google.analytics.version>${gt.version}</gt.google.analytics.version>
         <gt.category.api.client.version>${gt.version}</gt.category.api.client.version>
         <gt.geoip.lib.version>1.0.0</gt.geoip.lib.version>
@@ -1034,12 +1032,6 @@
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
                 <version>${hikaricp.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.javassist</groupId>
-                        <artifactId>javassist</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <dependency>
@@ -1734,12 +1726,6 @@
                 <groupId>org.glassfish.jersey.core</groupId>
                 <artifactId>jersey-client</artifactId>
                 <version>${glassfish-jersey.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.javassist</groupId>
-                        <artifactId>javassist</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey.media</groupId>
@@ -1786,53 +1772,6 @@
                 <groupId>com.netflix.hystrix</groupId>
                 <artifactId>hystrix-codahale-metrics-publisher</artifactId>
                 <version>${hystrix-version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger2</artifactId>
-                <version>${springfox-swagger-ui.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-aop</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml</groupId>
-                        <artifactId>classmate</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger-ui</artifactId>
-                <version>${springfox-swagger-ui.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-aop</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml</groupId>
-                        <artifactId>classmate</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <!-- testing -->
@@ -2029,12 +1968,6 @@
                 <groupId>org.thymeleaf</groupId>
                 <artifactId>thymeleaf</artifactId>
                 <version>${thymeleaf.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.javassist</groupId>
-                        <artifactId>javassist</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
 

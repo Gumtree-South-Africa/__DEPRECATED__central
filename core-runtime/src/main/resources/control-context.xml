@@ -32,6 +32,4 @@
           p:arguments="#{{'hazelcast.logging.type','slf4j'}}" />
 
     <context:component-scan base-package="com.ecg.replyts.core.webapi.control" />
-
-    <bean class="com.ecg.replyts.core.webapi.documentation.SwaggerConfiguration"/>
 </beans>

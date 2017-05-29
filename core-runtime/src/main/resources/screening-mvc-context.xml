@@ -24,12 +24,4 @@
     </bean>
 
     <context:component-scan base-package="com.ecg.replyts.core.webapi.screeningv2"/>
-
-    <bean class="com.ecg.replyts.core.webapi.documentation.SwaggerConfiguration">
-        <property name="serviceName" value="ReplyTS Screening API"/>
-        <property name="serviceDescription"
-                  value="The purpose of this API is to be an integration point with CS tools
-         that will need to retrieve messages that meet various
-          criteria (e.g. all HELD mails from the last 3 days)."/>
-    </bean>
 </beans>

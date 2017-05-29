@@ -24,7 +24,6 @@ import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversation
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import io.swagger.annotations.ApiOperation;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -65,12 +64,6 @@ class ConversationController {
     /**
      * return metadata and all messages for a conversation identified by the given ID.
      */
-    @ApiOperation(
-            value = "Listing a Conversation",
-            notes = "Gets all information ReplyTS has about a conversation, including all Messages that belong to it. " +
-                    "Note that the messages do not contain the original mail content but only a plaintext extract plus " +
-                    "the mail headers."
-    )
     @RequestMapping(value = GetConversationCommand.MAPPING, produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
     @ResponseBody
     public ResponseObject<?> loadConversation(@PathVariable String conversationId) {

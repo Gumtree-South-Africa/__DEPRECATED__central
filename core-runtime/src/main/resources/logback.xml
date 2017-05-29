@@ -9,7 +9,6 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <include file="${confDir}/logging.xml"/>
+   <include file="${confDir}/logging.xml"/>
 
-    <logger name="springfox" level="ERROR"/>
 </configuration>
