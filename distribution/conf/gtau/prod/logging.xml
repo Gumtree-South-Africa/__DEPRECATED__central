@@ -1,5 +1,6 @@
 <included>
     <logger name="com.ecg.replyts" level="DEBUG" />
+    <logger name="com.ecg.messagecenter" level="DEBUG"/>
     <logger name="com.ecg.messagecenter.cronjobs" level="DEBUG" />
     <logger name="com.ecg.replyts.core.runtime.indexer" level="DEBUG" />
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
