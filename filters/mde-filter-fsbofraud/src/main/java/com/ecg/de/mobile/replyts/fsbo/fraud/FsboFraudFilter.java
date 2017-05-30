@@ -23,7 +23,7 @@ import java.util.List;
  * state. if the user's state is <code>BLOCKED</code>
  */
 class FsboFraudFilter implements Filter {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Filter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FsboFraudFilter.class);
 	private static final String AD_ID_PREFIX = "COMA";
 	private final AdChecker adChecker;
 	private final MessageBrokerClient messageBrokerClient;
