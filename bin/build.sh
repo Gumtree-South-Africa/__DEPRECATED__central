@@ -121,7 +121,7 @@ function main() {
     # skip tests and set concurrency based on whether tests should be run
     if [[ ${RUN_TESTS} -eq 1 ]]; then
         startCassandra
-        trap "stopCassandra" EXIT
+        trap "stopCassandra" EXIT TERM
 
         MVN_ARGS="$MVN_ARGS"
         MVN_TASKS="clean package"
