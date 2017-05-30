@@ -5,12 +5,10 @@ import com.basho.riak.client.RiakRetryFailedException;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import org.joda.time.DateTime;
 
-import javax.annotation.Nonnull;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class DiffingRiakMailRepository extends AbstractMailRepository implements MailRepository {
-    final MailBucket mailBucket;
+    private final MailBucket mailBucket;
 
     public DiffingRiakMailRepository(String bucketPrefix, IRiakClient riakClient) throws RiakRetryFailedException {
         this(new MailBucket(bucketPrefix, riakClient));
@@ -38,17 +36,5 @@ public class DiffingRiakMailRepository extends AbstractMailRepository implements
     @Override
     public void deleteMail(String messageId) {
         mailBucket.delete(messageId);
-    }
-
-    @Nonnull
-    @Override
-    public Stream<String> streamMailIdsSince(DateTime fromTime) {
-        return mailBucket.streamMailIdsSince(fromTime);
-    }
-
-    @Nonnull
-    @Override
-    public Stream<String> streamMailIdsCreatedBetween(DateTime fromTime, DateTime toTime) {
-        return mailBucket.streamMailIdsCreatedBetween(fromTime, toTime);
     }
 }

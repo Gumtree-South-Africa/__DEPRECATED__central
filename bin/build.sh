@@ -32,7 +32,7 @@ MVN_ARGS="-Drevision=$REVISION -U"
 # a local trust store; on builder we rely on e.g. mobile-ca-certificates being installed
 
 if [ ! -f /usr/bin/apt-get ] ; then
-    MVN_ARGS="-Djavax.net.ssl.trustStore=comaas.jks -Djavax.net.ssl.keyStoreType=JKS -Djavax.net.ssl.trustStorePassword=comaas $MVN_ARGS"
+    MVN_ARGS="-Djavax.net.ssl.trustStore=comaas.jks -Djavax.net.ssl.trustStorePassword=comaas $MVN_ARGS"
 
     if [ ! -f comaas.jks ] ; then
         keytool -genkey -alias comaas -keyalg RSA -keystore comaas.jks -keysize 2048 \
@@ -41,18 +41,10 @@ if [ ! -f /usr/bin/apt-get ] ; then
 
         # Install eBay SSL CA v2
         curl -sO "http://pki.corp.ebay.com/root-certs-pem.zip" && unzip root-certs-pem.zip
-
         for f in root-certs-pem/*.pem; do
             keytool -importcert -keystore comaas.jks -storepass 'comaas' -file ${f} -alias ${f} -noprompt
         done
         rm -rf root-certs-pem.zip root-certs-pem
-
- 		# Install AMS1 & DUS1 CA
-     	openssl s_client -connect keystone.ams1.cloud.ecg.so:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM |
-          keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias ams1 -noprompt
-
-        openssl s_client -connect keystone.dus1.cloud.ecg.so:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM |
-          keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias dus1 -noprompt
 
         # Install Gumtree AU nexus CA
         openssl s_client -showcerts -connect nexus.au.ecg.so:443 </dev/null 2>/dev/null | openssl x509 -outform PEM | \
@@ -121,7 +113,6 @@ function main() {
 
     # export region as on salt-managed environments
     export region=localhost
-    export swift_authentication_url=https://keystone.ams1.cloud.ecg.so/v2.0
 
     MVN_ARGS="$MVN_ARGS -s etc/settings.xml -T0.5C"
     MVN_TASKS="clean compile test-compile"

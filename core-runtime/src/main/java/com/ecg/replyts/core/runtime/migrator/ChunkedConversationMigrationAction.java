@@ -9,6 +9,7 @@ import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationR
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterators;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ILock;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -126,11 +127,27 @@ public class ChunkedConversationMigrationAction {
         return new LocalDateTime(new Date()).minusDays(conversationMaxAgeDays);
     }
 
+    // This method acquires only one lock which is only released by migrateConversationsBetweenDates method once it's done
     private boolean execute(Runnable runnable, String msg) {
-        return Util.execute(hazelcast, executor, runnable, msg, LOG);
+        ILock lock = hazelcast.getLock(IndexingMode.MIGRATION.toString());
+        try {
+            if (lock.tryLock()) {
+                executor.execute(runnable);
+                LOG.info("Executing {}", msg);
+                return true;
+            } else {
+                LOG.info("Skipped execution {} due to no lock", msg);
+                return false;
+            }
+        } catch (Exception e) {
+            LOG.error("Exception while waiting on a lock", e);
+            lock.unlock();
+            executor.getQueue().clear();
+            throw new RuntimeException(e);
+        }
     }
 
-    public void migrateConversationsBetweenDates(LocalDateTime dateFrom, LocalDateTime dateTo) {
+    private void migrateConversationsBetweenDates(LocalDateTime dateFrom, LocalDateTime dateTo) {
         try {
             List<Future> results = new ArrayList<>();
             watch = Stopwatch.createStarted();
@@ -159,10 +176,8 @@ public class ChunkedConversationMigrationAction {
         return conversationRepository.getByIdWithDeepComparison(conversationId);
     }
 
-
     // This migrates conversations by retrieving them in hybrid mode
     private void migrateConversations(List<String> conversationIds, Function<String, MutableConversation> conversationGetter) {
-
         try (Timer.Context ignored = BATCH_MIGRATION_TIMER.time()) {
 
             submittedBatchCounter.incrementAndGet();
@@ -194,6 +209,5 @@ public class ChunkedConversationMigrationAction {
             }
         }
     }
-
 
 }

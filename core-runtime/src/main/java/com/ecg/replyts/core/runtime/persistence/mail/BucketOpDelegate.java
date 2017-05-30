@@ -15,12 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Spliterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
 
 import static com.basho.riak.client.builders.RiakObjectBuilder.newBuilder;
 import static com.ecg.replyts.core.runtime.persistence.FetchIndexHelper.fetchResult;
@@ -66,7 +62,7 @@ class BucketOpDelegate {
 
             return key;
         } catch (RiakRetryFailedException e) {
-            throw new RuntimeException(String.format("Failed to store mail '%s': could not write chunk: '%s'", messageId, key), e);
+            throw new RuntimeException(String.format("Failed to persist mail '%s': could not write chunk: '%s'", messageId, key), e);
         }
     }
 
@@ -81,7 +77,7 @@ class BucketOpDelegate {
             ).execute();
 
         } catch (RiakRetryFailedException e) {
-            throw new RuntimeException(String.format("Failed to store mail '%s': could not write manifest", messageId), e);
+            throw new RuntimeException(String.format("Failed to persist mail '%s': could not write manifest", messageId), e);
         }
     }
 
@@ -127,7 +123,7 @@ class BucketOpDelegate {
     }
 
     void delete(String messageId) {
-        try (Timer.Context ignored = DELETE_MAIL.time()) {
+        try (Timer.Context ignored = DELETE_MAIL.time()){
             mailBucket.delete(messageId).w(1).r(1).rw(1).dw(0).execute();
         } catch (RiakException e) {
             throw new RuntimeException(String.format("could not delete mail '%s'", messageId), e);
@@ -155,9 +151,9 @@ class BucketOpDelegate {
                             try {
                                 delete(indexEntry.getObjectKey());
                                 long count = deleteCounter.incrementAndGet();
-                                if (count % logInterval == 0) {
+                                if(count % logInterval == 0) {
                                     long duration = new Duration(startedAt, System.currentTimeMillis()).getStandardSeconds();
-                                    double rate = ((double) count) / ((double) (duration));
+                                    double rate = ((double)count)/((double)(duration));
                                     LOG.info("Cleanup: Deleted {} mails in {}s. {}/s", count, duration, rate);
                                 }
                             } catch (RuntimeException e) {
@@ -176,45 +172,7 @@ class BucketOpDelegate {
 
     }
 
-    public Stream<String> streamMailIdsFrom(DateTime fromTime) {
-        try {
-            long endMin = timestampInMinutes(fromTime);
-            LOG.debug("Streaming mail created from {} ({})", endMin, fromTime);
 
-            Spliterator<IndexEntry> idxSplitterator =
-                    mailBucket.fetchIndex(IntIndex.named(CREATED_INDEX))
-                            .from(0)
-                            .to(endMin)
-                            .executeStreaming()
-                            .spliterator();
-
-            return StreamSupport.stream(idxSplitterator, false).map(idx -> idx.getObjectKey());
-        } catch (RiakException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    public Stream<String> streamMailIdsCreatedBetween(DateTime fromTime, DateTime toTime) {
-        try {
-
-            long startMin = timestampInMinutes(fromTime);
-            long endMin = timestampInMinutes(toTime);
-            LOG.debug("Streaming mail created from {} ({}) to {} ({})", fromTime, startMin, toTime, endMin);
-
-            Spliterator<IndexEntry> idxSpliterator =
-                    mailBucket.fetchIndex(IntIndex.named(CREATED_INDEX))
-                            .from(startMin)
-                            .to(endMin)
-                            .executeStreaming()
-                            .spliterator();
-
-            return StreamSupport.stream(idxSpliterator, false).map(idx -> idx.getObjectKey());
-        } catch (RiakException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
 
 
 }

@@ -99,11 +99,10 @@ public class KafkaEventReplayCronJob implements CronJobExecutor {
                                 eventConverter.toEvents(pairs));
                     })));
 
-            eventReplayTasks.stream().forEach(task -> {
+            eventReplayTasks.stream().filter(task -> !task.isDone()).forEach(task -> {
                 try {
                     task.get();
-                } catch (CancellationException | ExecutionException ex) {
-                    LOGGER.warn("Failed to save events to Kafka due to {} ", ex.getMessage(), ex);
+                } catch (CancellationException | ExecutionException ignore) {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }

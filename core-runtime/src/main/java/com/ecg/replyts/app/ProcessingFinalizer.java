@@ -3,7 +3,6 @@ package com.ecg.replyts.app;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedCommand;
-import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.processing.Termination;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -11,7 +10,6 @@ import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
-import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
@@ -43,9 +41,6 @@ public class ProcessingFinalizer {
     @Autowired(required = false)
     private MailRepository mailRepository;
 
-    @Autowired(required = false)
-    private AttachmentRepository attachmentRepository;
-
     @Autowired
     private SearchIndexer searchIndexer;
 
@@ -60,7 +55,7 @@ public class ProcessingFinalizer {
         checkNotNull(conversation);
 
         if (conversation.getMessages().size() > MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION) {
-            LOG.warn("Too many messages in conversation {}. Don't store update on conversation!", conversation);
+            LOG.warn("Too many messages in conversation {}. Don't persist update on conversation!", conversation);
 
             TOO_MANY_MESSAGES_IN_CONVERSATION.inc();
 
@@ -85,15 +80,6 @@ public class ProcessingFinalizer {
     private void processEmail(String messageId, byte[] incomingMailContent, Optional<byte[]> outgoingMailContent) {
         if (mailRepository != null) {
             mailRepository.persistMail(messageId, incomingMailContent, outgoingMailContent);
-        }
-
-        if (attachmentRepository != null) {
-            Mail parsedMail = attachmentRepository.hasAttachments(messageId, incomingMailContent);
-            if (parsedMail != null) {
-
-                // This stores incoming mail attachments only
-                attachmentRepository.storeAttachments(messageId, parsedMail);
-            }
         }
 
         if (mailPublisher != null) {
