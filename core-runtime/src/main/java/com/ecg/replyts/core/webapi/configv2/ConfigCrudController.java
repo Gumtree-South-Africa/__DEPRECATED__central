@@ -17,16 +17,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.String.format;
 
@@ -136,39 +134,43 @@ public class ConfigCrudController implements HandlerExceptionResolver {
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.PUT, consumes = "*/*")
     public ObjectNode replaceConfigurations(@RequestBody ArrayNode body) throws Exception {
-        // Verify whether the configurations are correct
+        List<PluginConfiguration> newConfigurations = verifyConfigurations(body);
 
-        body.forEach(node -> {
+        List<PluginConfiguration> currentConfigurations = configRepository.getConfigurations();
+
+        try {
+            currentConfigurations.forEach(c -> configRepository.deleteConfiguration(c.getId()));
+            newConfigurations.forEach(pluginConfiguration -> configRepository.persistConfiguration(pluginConfiguration));
+        } catch (Exception e) {
+            LOG.error("Could not save new configurations, attempting to re-save the old ones", e);
+            currentConfigurations.forEach(pluginConfiguration -> configRepository.persistConfiguration(pluginConfiguration));
+            throw e;
+        }
+
+        configUpdateNotifier.confirmConfigurationUpdate();
+
+        return JsonObjects.builder().attr("count", body.size()).success().build();
+    }
+
+    private List<PluginConfiguration> verifyConfigurations(ArrayNode body) throws Exception {
+        List<PluginConfiguration> pluginConfigurations = new ArrayList<>();
+
+        for (JsonNode node : body) {
             assertArrayElement(node, "pluginFactory", TextNode.class);
             assertArrayElement(node, "instanceId", TextNode.class);
             assertArrayElement(node, "configuration", ObjectNode.class);
-        });
 
-        // Remove all old plugins, then extract and add the replacements and confirm
-
-        configRepository.getConfigurations().forEach(c -> configRepository.deleteConfiguration(c.getId()));
-
-        for (JsonNode node : body) {
             String pluginFactory = node.get("pluginFactory").textValue();
             String instanceId = node.get("instanceId").textValue();
             JsonNode configuration = node.get("configuration");
 
             PluginConfiguration config = extract(pluginFactory, instanceId, configuration, configuration);
-
             if (!configUpdateNotifier.validateConfiguration(config)) {
                 throw new IllegalArgumentException(format("PluginFactory %s not found", pluginFactory));
             }
-
-            LOG.info("Saving Config update {}", config.getId());
-
-            configRepository.persistConfiguration(config);
-        };
-
-        configUpdateNotifier.confirmConfigurationUpdate();
-
-        return JsonObjects.builder()
-          .attr("count", body.size())
-          .success().build();
+            pluginConfigurations.add(config);
+        }
+        return pluginConfigurations;
     }
 
     private void assertArrayElement(JsonNode element, String fieldName, Class<? extends JsonNode> clazz) {
@@ -197,15 +199,15 @@ public class ConfigCrudController implements HandlerExceptionResolver {
 
     }
 
-    private PluginConfiguration extract(String pluginFactory, String instanceId, JsonNode body, JsonNode configuration) throws Exception {
+    private PluginConfiguration extract(String pluginFactory, String instanceId, JsonNode body, JsonNode configuration) throws IllegalArgumentException, ClassNotFoundException {
         if (configuration == null) {
-            throw new IllegalStateException("payload needs a configuration node where the filter configuration is in");
+            throw new IllegalArgumentException("payload needs a configuration node where the filter configuration is in");
         }
 
         Long priority = Long.valueOf(getContent(body, "priority", "0"));
         PluginState state = PluginState.valueOf(getContent(body, "state", PluginState.ENABLED.name()));
 
-        return new PluginConfiguration(toId(pluginFactory, instanceId), priority, state, 1l, configuration);
+        return new PluginConfiguration(toId(pluginFactory, instanceId), priority, state, 1L, configuration);
     }
 
     private static String getContent(JsonNode body, String fieldname, String alternative) {

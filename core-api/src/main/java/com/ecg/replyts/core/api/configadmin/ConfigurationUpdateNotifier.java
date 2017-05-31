@@ -14,10 +14,8 @@ public interface ConfigurationUpdateNotifier {
      * @param configuration cfg to test
      * @return <code>true</code> if configuration is guaranteed to work. <code>false</code> if there is noone being able
      * to handle that configuration.
-     * @throws any exception that this configuration caused (meaning the configuration itself is corrupt and will not
-     *             work with the plugin)
      */
-    boolean validateConfiguration(PluginConfiguration configuration) throws Exception;
+    boolean validateConfiguration(PluginConfiguration configuration);
 
-    void confirmConfigurationUpdate() throws Exception;
+    void confirmConfigurationUpdate();
 }

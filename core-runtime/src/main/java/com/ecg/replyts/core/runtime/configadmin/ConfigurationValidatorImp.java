@@ -17,7 +17,7 @@ public class ConfigurationValidatorImp implements ConfigurationUpdateNotifier {
     private ClusterRefreshPublisher publisher;
 
     @Override
-    public boolean validateConfiguration(PluginConfiguration configuration) throws Exception {
+    public boolean validateConfiguration(PluginConfiguration configuration) {
         for (ConfigurationAdmin<?> a : configAdmins) {
             if (a.handlesConfiguration(configuration.getId())) {
                 // Test configuration
@@ -29,7 +29,7 @@ public class ConfigurationValidatorImp implements ConfigurationUpdateNotifier {
     }
 
     @Override
-    public void confirmConfigurationUpdate() throws Exception {
+    public void confirmConfigurationUpdate() {
         refreshers.updateNow();
         publisher.publish();
     }
