@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 public class HybridSimplePostBoxRepositoryTest {
 
     private static final boolean WITH_DEEP_MIGRATION = true;
+    private static final boolean WITHOUT_DEEP_MIGRATION = false;
     private static final boolean DELETE_CTHREAD_ENABLED = true;
 
     @Mock
@@ -38,7 +39,7 @@ public class HybridSimplePostBoxRepositoryTest {
     @Before
     public void setup() {
         normalRepository = new HybridSimplePostBoxRepository(riakRepository, cassandraRepository, migrationState,
-                WITH_DEEP_MIGRATION, DELETE_CTHREAD_ENABLED);
+                WITHOUT_DEEP_MIGRATION, DELETE_CTHREAD_ENABLED);
         deepMigrationRepository = new HybridSimplePostBoxRepository(riakRepository, cassandraRepository, migrationState,
                 WITH_DEEP_MIGRATION, DELETE_CTHREAD_ENABLED);
     }
@@ -74,7 +75,7 @@ public class HybridSimplePostBoxRepositoryTest {
         when(riakRepository.byId(email)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(true);
 
-        deepMigrationRepository.byId(email);
+        normalRepository.byId(email);
 
         verify(cassandraRepository).byId(email);
         verifyNoMoreInteractions(cassandraRepository);
