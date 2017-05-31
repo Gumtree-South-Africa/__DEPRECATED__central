@@ -16,7 +16,6 @@ import java.util.List;
 /**
  * Created by fmaffioletti on 7/31/14.
  */
-@Component
 public class QuickReplyPostProcessor implements PostProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(QuickReplyPostProcessor.class);
 

@@ -17,7 +17,7 @@ import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
  */
 public class QuickReplyFilterIntegrationTest {
 
-    @Rule private ReplyTsIntegrationTestRule replyTsIntegrationTestRule =
+    @Rule public ReplyTsIntegrationTestRule replyTsIntegrationTestRule =
                     new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
                         Properties properties = new Properties();
 
