@@ -49,15 +49,19 @@ public class ConversationMonitorFilterPostProcessor implements PostProcessor {
     }
 
     private List<ReplacedChar> buildReplacedChars(String replacedChars) {
-        return Arrays.stream(replacedChars.split(",")).filter(s -> StringUtils.isEmpty(s)).map(header -> {
-            String[] splitReplacedchar = header.split("\\|");
-            if (splitReplacedchar.length != 2) {
-                LOG.error("Conversation monitor plugin configuration error: replaced chars are not properly configured");
-                throw new IllegalArgumentException(
-                        "Conversation monitor plugin configuration error: replaced chars are not properly configured");
-            }
-            return new ReplacedChar(splitReplacedchar[0], splitReplacedchar[1]);
-        }).collect(Collectors.collectingAndThen(Collectors.toList(), ImmutableList::copyOf));
+        return Arrays
+                .stream(replacedChars.split(","))
+                .filter(s -> !StringUtils.isEmpty(s))
+                .map(header -> {
+                    String[] splitReplacedchar = header.split("\\|");
+                    if (splitReplacedchar.length != 2) {
+                        LOG.error("Conversation monitor plugin configuration error: replaced chars are not properly configured");
+                        throw new IllegalArgumentException(
+                                "Conversation monitor plugin configuration error: replaced chars are not properly configured");
+                    }
+                    return new ReplacedChar(splitReplacedchar[0], splitReplacedchar[1]);
+                })
+                .collect(Collectors.collectingAndThen(Collectors.toList(), ImmutableList::copyOf));
     }
 
     private class ReplacedChar {
