@@ -1,0 +1,30 @@
+{
+    "pluginFactory": "com.ecg.gumtree.comaas.filter.watchlist.GumtreeWatchlistFilterConfiguration$WatchlistFilterFactory",
+    "instanceId": "R+-+All+Cat+Regression+Terms",
+    "configuration": {
+        "state": "ENABLED",
+        "priority": 18,
+        "version": "1.7.19.BUILD",
+        "result": "HOLD",
+        "exemptedCategories": [
+            100
+        ],
+        "rules": [
+            {
+                "pattern": "wanker",
+                "wordBoundaries": false
+            },
+            {
+                "pattern": "western union",
+                "wordBoundaries": true
+            },
+            {
+                "exceptions": [
+                    "north sea oil rig"
+                ],
+                "pattern": "oil rig",
+                "wordBoundaries": true
+            }
+        ]
+    }
+}

@@ -22,7 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
 
@@ -156,12 +159,12 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
                 && headers.get(knownGoodHeader).equals(filterConfig.getAccountHolderHeaderValue());
     }
 
-    GumtreeBlacklistFilter withPluginConfig(Filter pluginConfig) {
+    public GumtreeBlacklistFilter withPluginConfig(Filter pluginConfig) {
         this.pluginConfig = pluginConfig;
         return this;
     }
 
-    GumtreeBlacklistFilter withFilterConfig(BlacklistFilterConfig filterConfig) {
+    public GumtreeBlacklistFilter withFilterConfig(BlacklistFilterConfig filterConfig) {
         this.filterConfig = filterConfig;
         return this;
     }

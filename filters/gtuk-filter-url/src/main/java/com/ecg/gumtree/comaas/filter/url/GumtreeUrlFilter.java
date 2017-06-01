@@ -171,6 +171,7 @@ public class GumtreeUrlFilter implements com.ecg.replyts.core.api.pluginconfigur
         Mail mail = messageProcessingContext.getMail();
         Object textParts = messageProcessingContext.getFilterContext().get(KEY_STRIPPED_MAILS);
         if (textParts != null && textParts instanceof List<?>) {
+            //noinspection unchecked
             return (List<String>) textParts;
         } else {
             List<String> ptParts = new ArrayList<>();

@@ -49,6 +49,20 @@ public class EventStreamProcessorTest {
         assertThat(eventStreamProcessor.count("event3a", INSTANCE_ID)).isEqualTo(1L);
     }
 
+    @Test
+    public void testRename() throws Exception {
+        assertNameChange("no_change", "no_change");
+        assertNameChange("some_change", "some+change");
+        assertNameChange("some_change", "some-change");
+        assertNameChange("some_change", "some change");
+        assertNameChange("some___change", "some % change");
+        assertNameChange("some____change_", "some + (change)");
+    }
+
+    private void assertNameChange(String expected, String input) {
+        assertThat(eventStreamProcessor.windowName(input)).isEqualTo(EventStreamProcessor.VOLUME_NAME_PREFIX + expected);
+    }
+
     private VelocityFilterConfig filterConfig() {
         return new VelocityFilterConfig.Builder(State.ENABLED, 1, Result.HOLD)
                 .withSeconds(100)

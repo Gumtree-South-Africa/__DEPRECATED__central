@@ -1,0 +1,26 @@
+{
+    "pluginFactory": "com.ecg.gumtree.comaas.filter.geoip.GumtreeGeoIpFilterConfiguration$GeoIpFilterFactory",
+    "instanceId": "R+-+Banned+Countriessss",
+    "configuration": {
+        "state": "ENABLED",
+        "priority": 98,
+        "version": "1.7.19.BUILD",
+        "result": "DROP",
+        "exemptedCategories": [
+            47
+        ],
+        "countrySet": [
+            "AF",
+            "KH",
+            "CM",
+            "CN",
+            "GH",
+            "ID",
+            "NG",
+            "PL",
+            "RO",
+            "UG",
+            "ZW"
+        ]
+    }
+}

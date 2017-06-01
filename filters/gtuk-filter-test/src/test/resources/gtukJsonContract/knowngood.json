@@ -1,0 +1,15 @@
+{
+    "pluginFactory": "com.ecg.gumtree.comaas.filter.knowngood.GumtreeKnownGoodFilterConfiguration$KnownGoodFilterFactory",
+    "instanceId": "Known+good+user",
+    "configuration": {
+        "exemptedCategories": [
+            10
+        ],
+        "state": "ENABLED",
+        "priority": 15,
+        "version": "1.7.19.BUILD",
+        "result": "STOP_FILTERING",
+        "buyerGoodHeader": "buyergood",
+        "sellerGoodHeader": "sellergood"
+    }
+}

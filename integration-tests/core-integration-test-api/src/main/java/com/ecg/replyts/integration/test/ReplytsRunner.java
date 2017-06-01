@@ -4,8 +4,6 @@ import com.ecg.replyts.core.runtime.ReplyTS;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.io.Files;
 import org.elasticsearch.client.Client;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -16,7 +14,11 @@ import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -50,6 +52,7 @@ public final class ReplytsRunner {
             Properties properties = new Properties();
 
             properties.put("confDir", "classpath:" + configResourcePrefix);
+            properties.put("logDir", "./target");
 
             ClassPathResource resource = new ClassPathResource(configResourcePrefix + "/replyts.properties");
 

@@ -20,6 +20,7 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
     private static final String PROVIDER_NAME = "gumtree_volume_filter_provider";
     private static final String MAIL_RECEIVED_EVENT = "MailReceivedEvent";
     private static final String VELOCITY_FIELD_VALUE = "volumeFieldValue";
+    static final String VOLUME_NAME_PREFIX = "volume";
 
     private EPServiceProvider epServiceProvider;
 
@@ -37,6 +38,10 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
 
     void register(String instanceId, VelocityFilterConfig filterConfig) {
         String windowName = windowName(instanceId);
+        if (epWindows.containsKey(windowName)) {
+            LOG.info("EP Window '{}' already exists, not creating again", windowName);
+            return;
+        }
 
         String createWindow = format("create window %s.win:time(%d sec) as select `%s` from `%s`",
                 windowName, filterConfig.getSeconds(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
@@ -78,8 +83,8 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
         return (Long) result.iterator().next().get("count(*)");
     }
 
-    private String windowName(String instanceId) {
-        String sanitisedFilterName = instanceId.replaceAll(" ", "_").replaceAll("-", "_");
-        return ("volume" + sanitisedFilterName).toLowerCase();
+    String windowName(String instanceId) {
+        String sanitisedFilterName = instanceId.replaceAll("[- %+()]", "_");
+        return (VOLUME_NAME_PREFIX + sanitisedFilterName).toLowerCase();
     }
 }

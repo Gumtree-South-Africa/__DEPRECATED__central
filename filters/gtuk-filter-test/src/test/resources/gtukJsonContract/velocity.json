@@ -1,0 +1,19 @@
+{
+    "pluginFactory": "com.ecg.gumtree.comaas.filter.volume.GumtreeVolumeFilterConfiguration$VolumeFilterFactory",
+    "instanceId": "Velocity+filter+(1)%20",
+    "configuration": {
+        "exemptedCategories": [
+            9223372036854775807
+        ],
+        "state": "ENABLED",
+        "priority": 21,
+        "version": "1.7.19.BUILD",
+        "result": "HOLD",
+        "exceeding": true,
+        "messages": 4,
+        "seconds": 60,
+        "whitelistSeconds": 120,
+        "messageState": "FILTERABLE",
+        "filterField": "EMAIL"
+    }
+}

@@ -219,7 +219,7 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
         return this;
     }
 
-    public GumtreeVolumeFilter withSharedBrain(SharedBrain sharedBrain) {
+    GumtreeVolumeFilter withSharedBrain(SharedBrain sharedBrain) {
         this.sharedBrain = sharedBrain;
         return this;
     }

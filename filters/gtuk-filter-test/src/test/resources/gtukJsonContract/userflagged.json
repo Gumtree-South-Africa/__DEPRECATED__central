@@ -1,0 +1,12 @@
+{
+    "pluginFactory": "com.ecg.gumtree.comaas.filter.flagged.GumtreeUserFlaggedFilterConfiguration$UserFlaggedFilterFactory",
+    "instanceId": "userFlagged",
+    "configuration": {
+        "state": "ENABLED",
+        "priority": 15,
+        "version": "1.7.19.BUILD",
+        "result": "STOP_FILTERING",
+        "buyerFlaggedHeader": "buyergood",
+        "sellerFlaggedHeader": "sellergood"
+    }
+}

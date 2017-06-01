@@ -11,9 +11,6 @@ public class ConfigurationValidatorImp implements ConfigurationUpdateNotifier {
     private List<ConfigurationAdmin<?>> configAdmins;
 
     @Autowired
-    private RefresherManager refreshers;
-
-    @Autowired
     private ClusterRefreshPublisher publisher;
 
     @Override
@@ -30,7 +27,6 @@ public class ConfigurationValidatorImp implements ConfigurationUpdateNotifier {
 
     @Override
     public void confirmConfigurationUpdate() {
-        refreshers.updateNow();
         publisher.publish();
     }
 }

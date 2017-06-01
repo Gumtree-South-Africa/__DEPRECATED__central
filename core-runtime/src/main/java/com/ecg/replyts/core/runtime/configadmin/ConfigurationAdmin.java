@@ -6,11 +6,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -33,7 +29,7 @@ public class ConfigurationAdmin<T> {
 
     private final Map<ConfigurationId, PluginInstanceReference<T>> knownServices;
 
-    private final AtomicReference<List<PluginInstanceReference<T>>> runningServices = new AtomicReference<List<PluginInstanceReference<T>>>();
+    private final AtomicReference<List<PluginInstanceReference<T>>> runningServices = new AtomicReference<>();
 
     private final String adminName;
     private final ClusterRefreshPublisher clusterRefreshPublisher;
@@ -45,12 +41,12 @@ public class ConfigurationAdmin<T> {
         this.adminName = adminName;
         this.clusterRefreshPublisher = clusterRefreshPublisher;
         this.factories = Collections.unmodifiableList(factories);
-        knownServices = new HashMap<ConfigurationId, PluginInstanceReference<T>>();
-        runningServices.set(new ArrayList<PluginInstanceReference<T>>());
+        knownServices = new HashMap<>();
+        runningServices.set(new ArrayList<>());
         LOG.info("Starting Configuration Admin '{}' with known Factories {}", adminName, factories);
     }
 
-    public String getAdminName() {
+    String getAdminName() {
         return adminName;
     }
 
@@ -61,15 +57,14 @@ public class ConfigurationAdmin<T> {
      *
      * @param configuration configuration to launch/update service.
      */
-    public void putConfiguration(PluginConfiguration configuration) {
+    void putConfiguration(PluginConfiguration configuration) {
         if (configuration == null) {
             throw new IllegalArgumentException("configuration required");
         }
         ConfigurationId id = configuration.getId();
         T createdService = createPluginInstance(configuration);
 
-        PluginInstanceReference<T> sr = new PluginInstanceReference<T>(configuration,
-                createdService);
+        PluginInstanceReference<T> sr = new PluginInstanceReference<>(configuration, createdService);
         synchronized (this) {
             knownServices.put(id, sr);
             LOG.info("Adding/Updating Configuration {}", id);
@@ -81,10 +76,9 @@ public class ConfigurationAdmin<T> {
      * queries this config admin, if it knows a {@link BasePluginFactory} that is referred by the configuration's plugin
      * factory.
      *
-     * @param configId
      * @return <code>true</code> if this instance has a reference to the plugin factory this configuration is for.
      */
-    protected boolean handlesConfiguration(ConfigurationId configId) {
+    boolean handlesConfiguration(ConfigurationId configId) {
         for (BasePluginFactory<?> s : factories) {
             if (s.getClass().equals(configId.getPluginFactory())) {
                 return true;
@@ -92,7 +86,6 @@ public class ConfigurationAdmin<T> {
         }
         return false;
     }
-
 
     /**
      * checks if this configuration admin has a specific configuration running.
@@ -109,25 +102,17 @@ public class ConfigurationAdmin<T> {
     /**
      * Creates a plugin instance from the given configuration but does not register it. Can be used externally to
      * validate a new plugin configuration.
-     *
-     * @param configuration
-     * @return
      */
     @SuppressWarnings("unchecked")
-    public T createPluginInstance(PluginConfiguration configuration) {
+    T createPluginInstance(PluginConfiguration configuration) {
         ConfigurationId id = configuration.getId();
         for (BasePluginFactory<?> s : factories) {
             if (s.getClass().equals(id.getPluginFactory())) {
-                return (T) s.createPlugin(id.getInstanceId(),
-                        configuration.getConfiguration());
+                return (T) s.createPlugin(id.getInstanceId(), configuration.getConfiguration());
             }
         }
-        throw new IllegalStateException("ServiceFactory "
-                + id.getPluginFactory()
-                + " not found. Cannot create a new service from it");
-
+        throw new IllegalStateException(String.format("ServiceFactory %s not found. Cannot create a new service from it", id.getPluginFactory()));
     }
-
 
     /**
      * removes a service from the list of services and disposes it.
@@ -147,12 +132,9 @@ public class ConfigurationAdmin<T> {
 
     // SYNCHRONIZED!
     private void updateConfiguration() {
-        List<PluginInstanceReference<T>> newServiceList = new ArrayList<PluginInstanceReference<T>>(
-                knownServices.values());
-        Collections.sort(newServiceList,
-                PluginInstanceReference.PLUGIN_REF_ORDERING_COMPARATOR);
+        List<PluginInstanceReference<T>> newServiceList = new ArrayList<>(knownServices.values());
+        newServiceList.sort(PluginInstanceReference.PLUGIN_REF_ORDERING_COMPARATOR);
         runningServices.set(Collections.unmodifiableList(newServiceList));
-        return;
     }
 
     /**

@@ -32,11 +32,9 @@ import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class GumtreeCategoryBreadcrumbFilterTest {
-    private static final String WEBSVC_URL = null;
-
+public class GumtreeCategoryFilterTest {
     @InjectMocks
-    private GumtreeCategoryBreadcrumbFilter filter;
+    private GumtreeCategoryFilter filter;
 
     @Mock
     private MessageProcessingContext messageProcessingContext;

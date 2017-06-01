@@ -1,5 +1,6 @@
-package com.ecg.gumtree.comaas.filter.blacklist;
+package com.ecg.gumtree.comaas.filter.integration;
 
+import com.ecg.gumtree.comaas.filter.blacklist.GumtreeBlacklistFilter;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;

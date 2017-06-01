@@ -95,6 +95,7 @@
                 <module>filters/gtuk-filter-knowngood</module>
                 <module>filters/gtuk-filter-watchlist</module>
                 <module>filters/gtuk-filter-volume</module>
+                <module>filters/gtuk-filter-test</module>
 
                 <module>listeners/gtuk-listener-eventpublisher</module>
                 <module>listeners/gtuk-listener-statsnotifier</module>
@@ -512,6 +513,8 @@
         <gumtree-au-events.version>1.63</gumtree-au-events.version>
         <wiremock.version>1.58</wiremock.version>
         <gumtree-au-lbs2-client-version>0.3</gumtree-au-lbs2-client-version>
+        <vavr.version>0.9.0</vavr.version>
+        <rxnetty-http.version>0.5.2</rxnetty-http.version>
 
         <!-- gtuk artifact dependencies -->
         <gt.version>3.0-SNAPSHOT</gt.version>
@@ -1279,6 +1282,22 @@
                         <groupId>commons-collections</groupId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxnetty-http</artifactId>
+                <version>${rxnetty-http.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.reactivex</groupId>
+                        <artifactId>rxjava</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>io.vavr</groupId>
+                <artifactId>vavr</artifactId>
+                <version>${vavr.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>

@@ -1,0 +1,21 @@
+{
+    "pluginFactory": "com.ecg.gumtree.comaas.filter.watchlist.GumtreeWatchlistFilterConfiguration$WatchlistFilterFactory",
+    "instanceId": "Watchlist",
+    "configuration": {
+        "exemptedCategories": [
+            10
+        ],
+        "state": "ENABLED",
+        "priority": 7,
+        "version": "1.7.19.BUILD",
+        "result": "HOLD",
+        "api": true,
+        "apiConnectionTimeout": 2000,
+        "maxConnectionsPerRoute": 10,
+        "stub": false,
+        "stubWatchlistedUsers": [
+            "one"
+        ],
+        "webServiceUrl": "http://qagt-csba008:8110/api/checklists/watch/email/"
+    }
+}

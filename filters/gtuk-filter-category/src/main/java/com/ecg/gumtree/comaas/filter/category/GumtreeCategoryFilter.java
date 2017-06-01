@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
  * This is not actually a filter that filters anything, it just adds a category to be consumed by filters down the chain.
  */
 @Component
-public class GumtreeCategoryBreadcrumbFilter implements Filter {
-    private static final Logger LOG = LoggerFactory.getLogger(GumtreeCategoryBreadcrumbFilter.class);
+public class GumtreeCategoryFilter implements Filter {
+    private static final Logger LOG = LoggerFactory.getLogger(GumtreeCategoryFilter.class);
     private Timer timer = TimingReports.newTimer("category-process-time");
 
     private static final String CATEGORYID = "categoryid";
@@ -47,7 +47,7 @@ public class GumtreeCategoryBreadcrumbFilter implements Filter {
         return Collections.emptyList();
     }
 
-    GumtreeCategoryBreadcrumbFilter withCategoryModel(CategoryModel categoryModel) {
+    GumtreeCategoryFilter withCategoryModel(CategoryModel categoryModel) {
         this.categoryModel = categoryModel;
         return this;
     }

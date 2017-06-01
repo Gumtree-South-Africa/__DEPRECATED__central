@@ -64,6 +64,7 @@ public class GumtreeWordFilter implements com.ecg.replyts.core.api.pluginconfigu
         Object textsPlain = context.getFilterContext().get(KEY_STRIPPED_MAILS);
 
         if (textsPlain != null && textsPlain instanceof List<?>) {
+            //noinspection unchecked
             return (List<String>) textsPlain;
         } else {
             List<String> ptParts = new ArrayList<>();
