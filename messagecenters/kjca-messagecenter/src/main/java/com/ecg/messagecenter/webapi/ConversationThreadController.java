@@ -9,6 +9,7 @@ import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.DefaultRiakSimplePostBoxRepository;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.webapi.requests.MessageCenterBlockCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
@@ -91,7 +92,7 @@ class ConversationThreadController {
             HttpServletResponse response) {
 
         try (Timer.Context ignored = API_POSTBOX_CONVERSATION_BY_ID.time()) {
-            PostBox postBox = postBoxRepository.byId(email);
+            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
             Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
             if (!conversationThreadRequested.isPresent()) {
@@ -217,7 +218,7 @@ class ConversationThreadController {
                                                          @PathVariable("conversationId") String conversationId,
                                                          HttpServletResponse response) {
         try (Timer.Context ignored = API_POSTBOX_DELETE_CONVERSATION_BY_ID.time()) {
-            PostBox postBox = postBoxRepository.byId(email);
+            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
             Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
             if (conversationThreadRequested.isPresent()) {

@@ -4,6 +4,7 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterDeletePostBoxConversationCommandNew;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxCommand;
@@ -70,7 +71,7 @@ class PostBoxOverviewController {
         Timer.Context timerContext = API_POSTBOX_BY_EMAIL.time();
 
         try {
-            PostBox postBox = postBoxRepository.byId(email);
+            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
             API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
 
@@ -100,7 +101,7 @@ class PostBoxOverviewController {
         Timer.Context timerContext = API_POSTBOX_CONVERSATION_DELETE_BY_ID.time();
 
         try {
-            PostBox postBox = postBoxRepository.byId(email);
+            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
             for (String id : ids) {
                 postBox.removeConversation(id);

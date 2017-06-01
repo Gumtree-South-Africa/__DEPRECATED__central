@@ -1,6 +1,7 @@
 package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.IncreaseUnreadCountersCommand;
 import com.ecg.messagecenter.webapi.requests.IncreaseUnreadCountersCommand.Item;
@@ -92,7 +93,7 @@ class CounterIncrementController {
 
         for (String mailAddress : emails) {
             try {
-                PostBox postBox = repository.byId(mailAddress);
+                PostBox postBox = repository.byId(PostBoxId.fromEmail(mailAddress));
                 if (postBox != null) {
                     postBoxes.put(mailAddress, postBox);
                 }

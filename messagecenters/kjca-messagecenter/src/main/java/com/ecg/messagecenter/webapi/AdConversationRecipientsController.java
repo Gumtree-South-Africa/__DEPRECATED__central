@@ -5,6 +5,7 @@ import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.DefaultRiakSimplePostBoxRepository;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetAdConversationRecipientsCommand;
 import com.ecg.messagecenter.webapi.responses.AdConversationRecipientListResponse;
 import com.ecg.messagecenter.webapi.responses.BuyerContactResponse;
@@ -96,7 +97,7 @@ class AdConversationRecipientsController {
 
         try {
             final String sellerEmail = URLDecoder.decode(urlEncodedSellerEmail, StandardCharsets.UTF_8.name());
-            final PostBox<ConversationThread> postBox = postBoxRepository.byId(sellerEmail);
+            final PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(sellerEmail));
 
             final List<BuyerContactResponse> buyerContacts = new ArrayList<>();
 

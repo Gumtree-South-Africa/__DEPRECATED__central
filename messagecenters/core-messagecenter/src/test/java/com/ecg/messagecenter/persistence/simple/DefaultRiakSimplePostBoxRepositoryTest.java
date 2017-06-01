@@ -93,12 +93,12 @@ public class DefaultRiakSimplePostBoxRepositoryTest {
 
         postBoxRepository.write(box);
 
-        assertEquals(1L, (long) postBoxRepository.upsertThread("foo@bar.com", thread, true));
-        assertEquals(1L, (long) postBoxRepository.byId("foo@bar.com").getUnreadConversations().size());
+        assertEquals(1L, (long) postBoxRepository.upsertThread(PostBoxId.fromEmail("foo@bar.com"), thread, true));
+        assertEquals(1L, (long) postBoxRepository.byId(PostBoxId.fromEmail("foo@bar.com")).getUnreadConversations().size());
 
         // newRepliesCounter doesn't get persisted
 
-        assertEquals(0L, (long) postBoxRepository.byId("foo@bar.com").getNewRepliesCounter().getValue());
+        assertEquals(0L, (long) postBoxRepository.byId(PostBoxId.fromEmail("foo@bar.com")).getNewRepliesCounter().getValue());
     }
 
     private static AbstractConversationThread createConvThread(DateTime modifiedAt, String convId, boolean containsUnreadMessages) {

@@ -4,6 +4,7 @@ import ca.kijiji.replyts.TextAnonymizer;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.ConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
@@ -43,6 +44,7 @@ import static org.mockito.Mockito.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class SimplePostBoxInitializerTest {
     private static final String SELLER_EMAIL = "seller@example.com";
+    private static final PostBoxId SELLER_POSTBOX_ID = PostBoxId.fromEmail(SELLER_EMAIL);
     private static final String AD_ID = "adid";
     private static final String CONV_ID = "convId";
     private static final String BUYER_EMAIL = "buyer@example.com";
@@ -97,14 +99,14 @@ public class SimplePostBoxInitializerTest {
     public void newPostBox_newThreadCreated() throws Exception {
         Conversation conversation = convBuilder.build();
 
-        when(postBoxRepository.threadById(SELLER_EMAIL, conversation.getId())).thenReturn(Optional.empty());
-        when(postBoxRepository.upsertThread(eq(SELLER_EMAIL), any(AbstractConversationThread.class), eq(true))).thenReturn(1L);
+        when(postBoxRepository.threadById(SELLER_POSTBOX_ID, conversation.getId())).thenReturn(Optional.empty());
+        when(postBoxRepository.upsertThread(eq(SELLER_POSTBOX_ID), any(AbstractConversationThread.class), eq(true))).thenReturn(1L);
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 
         ArgumentCaptor<AbstractConversationThread> argumentCaptor = ArgumentCaptor.forClass(AbstractConversationThread.class);
-        verify(postBoxRepository).upsertThread(eq(SELLER_EMAIL), argumentCaptor.capture(), eq(true));
+        verify(postBoxRepository).upsertThread(eq(SELLER_POSTBOX_ID), argumentCaptor.capture(), eq(true));
 
         AbstractConversationThread conversationThread = argumentCaptor.getValue();
 
@@ -138,7 +140,7 @@ public class SimplePostBoxInitializerTest {
 
         PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(), 180);
 
-        when(postBoxRepository.byId(SELLER_EMAIL)).thenReturn(postbox);
+        when(postBoxRepository.byId(SELLER_POSTBOX_ID)).thenReturn(postbox);
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
@@ -175,7 +177,7 @@ public class SimplePostBoxInitializerTest {
                 Optional.of(MessageDirection.BUYER_TO_SELLER.name())
         );
 
-        when(postBoxRepository.threadById(SELLER_EMAIL, conversation.getId())).thenReturn(Optional.of(existingThread));
+        when(postBoxRepository.threadById(SELLER_POSTBOX_ID, conversation.getId())).thenReturn(Optional.of(existingThread));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
@@ -209,7 +211,7 @@ public class SimplePostBoxInitializerTest {
         );
 
         PostBox postbox = new PostBox(BUYER_EMAIL, new Counter(), Lists.newArrayList(existingThread), 180);
-        when(postBoxRepository.byId(BUYER_EMAIL)).thenReturn(postbox);
+        when(postBoxRepository.byId(PostBoxId.fromEmail(BUYER_EMAIL))).thenReturn(postbox);
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         when(conversationBlockRepository.byId(CONV_ID)).thenReturn(new ConversationBlock(CONV_ID, 1, Optional.of(new DateTime(DateTimeZone.UTC)), Optional.empty()));
@@ -246,7 +248,7 @@ public class SimplePostBoxInitializerTest {
         );
 
         PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(existingThread), 180);
-        when(postBoxRepository.byId(SELLER_EMAIL)).thenReturn(postbox);
+        when(postBoxRepository.byId(SELLER_POSTBOX_ID)).thenReturn(postbox);
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
         when(conversationBlockRepository.byId(CONV_ID)).thenReturn(new ConversationBlock(CONV_ID, 1, Optional.empty(), Optional.of(new DateTime(DateTimeZone.UTC))));

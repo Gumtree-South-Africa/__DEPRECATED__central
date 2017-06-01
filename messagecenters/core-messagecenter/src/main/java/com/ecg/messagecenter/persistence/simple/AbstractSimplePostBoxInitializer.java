@@ -45,7 +45,8 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
 
         // Don't display empty conversations and don't add empty messages to existing conversations
         Optional<String> previewLastMessage = extractPreviewLastMessage(conversation, email);
-        Optional<? extends AbstractConversationThread> existingThread = postBoxRepository.threadById(email, conversation.getId());
+        PostBoxId postBoxId = PostBoxId.fromEmail(email);
+        Optional<? extends AbstractConversationThread> existingThread = postBoxRepository.threadById(postBoxId, conversation.getId());
 
         if (!previewLastMessage.isPresent() || shouldReuseExistingThread(existingThread, previewLastMessage.get())) {
             return;
@@ -57,7 +58,7 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
 
         T conversationThread = newConversationThread(email, conversation, newReplyArrived, lastMessage);
 
-        long newUnreadCount = postBoxRepository.upsertThread(email, conversationThread, newReplyArrived);
+        long newUnreadCount = postBoxRepository.upsertThread(postBoxId, conversationThread, newReplyArrived);
 
         postBoxWriteCallback.success(email, newUnreadCount, newReplyArrived);
     }

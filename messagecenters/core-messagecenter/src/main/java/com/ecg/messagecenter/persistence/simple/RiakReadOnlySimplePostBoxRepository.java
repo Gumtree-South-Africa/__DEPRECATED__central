@@ -64,10 +64,10 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
     }
 
     @Override
-    public PostBox byId(String email) {
+    public PostBox byId(PostBoxId id) {
         try (Timer.Context ignored = GET_BY_ID_TIMER.time()) {
             PostBox postBox = postBoxBucket
-                    .fetch(email.toLowerCase(), PostBox.class)
+                    .fetch(id.asString(), PostBox.class)
                     .withConverter(converter)
                     .withResolver(resolver)
                     .notFoundOK(true)
@@ -76,11 +76,11 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
                     .execute();
 
             if (postBox == null) {
-                postBox = new PostBox(email.toLowerCase(), Optional.of(0L), Lists.newArrayList(), maxAgeDays);
+                postBox = new PostBox(id.asString(), Optional.of(0L), Lists.newArrayList(), maxAgeDays);
             }
             return postBox;
         } catch (RiakRetryFailedException e) {
-            throw new RuntimeException("could not load post-box by email #" + email, e);
+            throw new RuntimeException("could not load post-box by id #" + id.asString(), e);
         }
     }
 
@@ -100,19 +100,19 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
     }
 
     @Override
-    public Long upsertThread(String email, AbstractConversationThread conversationThread, boolean markAsUnread) {
+    public Long upsertThread(PostBoxId id, AbstractConversationThread conversationThread, boolean markAsUnread) {
         LOG.debug("RiakReadOnlySimplePostBoxRepository.upsertThread was called");
 
         // Don't update but do retrieve the existing PostBox in order to return the correct number of unread threads
 
-        PostBox<AbstractConversationThread> existingPostBox = byId(email);
+        PostBox<AbstractConversationThread> existingPostBox = byId(id);
 
         return existingPostBox.getNewRepliesCounter().getValue();
     }
 
     @Override
-    public Optional<AbstractConversationThread> threadById(String email, String conversationId) {
-        PostBox postBox = byId(email);
+    public Optional<AbstractConversationThread> threadById(PostBoxId id, String conversationId) {
+        PostBox postBox = byId(id);
 
         return postBox.lookupConversation(conversationId);
     }

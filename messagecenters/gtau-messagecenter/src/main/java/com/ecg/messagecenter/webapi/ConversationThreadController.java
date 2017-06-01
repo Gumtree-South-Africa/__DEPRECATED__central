@@ -4,6 +4,7 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
@@ -68,7 +69,7 @@ class ConversationThreadController {
         Timer.Context timerContext = API_POSTBOX_CONVERSATION_BY_ID.time();
 
         try {
-            PostBox postBox = postBoxRepository.byId(email);
+            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
             Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
             if (!conversationThreadRequested.isPresent()) {

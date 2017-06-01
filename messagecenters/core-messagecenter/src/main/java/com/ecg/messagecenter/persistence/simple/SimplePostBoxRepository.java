@@ -18,7 +18,8 @@ import java.util.Optional;
  * a Riak 'read-only' implementation which is used to talk to tenants' production repositories to test migration with.
  */
 public interface SimplePostBoxRepository {
-    PostBox byId(String email);
+
+    PostBox byId(PostBoxId id);
 
     void write(PostBox postBox);
 
@@ -26,7 +27,7 @@ public interface SimplePostBoxRepository {
 
     void cleanup(DateTime time);
 
-    Optional<AbstractConversationThread> threadById(String email, String conversationId);
+    Optional<AbstractConversationThread> threadById(PostBoxId id, String conversationId);
 
-    Long upsertThread(String email, AbstractConversationThread conversationThread, boolean markAsUnread);
+    Long upsertThread(PostBoxId id, AbstractConversationThread conversationThread, boolean markAsUnread);
 }

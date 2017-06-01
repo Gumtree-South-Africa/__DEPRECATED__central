@@ -70,10 +70,10 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
     }
 
     @Override
-    public PostBox byId(String email) {
+    public PostBox byId(PostBoxId id) {
         try (Timer.Context ignored = GET_BY_ID_TIMER.time()) {
             PostBox postBox = postBoxBucket
-              .fetch(email.toLowerCase(), PostBox.class)
+              .fetch(id.asString(), PostBox.class)
               .withConverter(converter)
               .withResolver(resolver)
               .notFoundOK(true)
@@ -82,14 +82,15 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
               .execute();
 
             if (postBox == null) {
-                LOG.debug("Found no Postbox in Riak, returning an empty one for email {}", email);
-                postBox = new PostBox(email.toLowerCase(), Optional.of(0L), Lists.newArrayList(), maxAgeDays);
+                LOG.debug("Found no Postbox in Riak, returning an empty one for id {}", id.asString());
+                postBox = new PostBox(id.asString(), Optional.of(0L), Lists.newArrayList(), maxAgeDays);
             }
 
-            LOG.debug("Found {} threads ({} unread) for PostBox with email {} in Riak", postBox.getConversationThreads().size(), postBox.getNewRepliesCounter().getValue(), email);
+            LOG.debug("Found {} threads ({} unread) for PostBox with id {} in Riak", postBox.getConversationThreads().size(),
+                    postBox.getNewRepliesCounter().getValue(), id.asString());
             return postBox;
         } catch (RiakRetryFailedException e) {
-            throw new RuntimeException("could not load post-box by email #" + email, e);
+            throw new RuntimeException("could not load post-box by id #" + id.asString(), e);
         }
     }
 
@@ -146,15 +147,13 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
     }
 
     @Override
-    public Optional<AbstractConversationThread> threadById(String email, String conversationId) {
-        PostBox postBox = byId(email);
-
-        return postBox.lookupConversation(conversationId);
+    public Optional<AbstractConversationThread> threadById(PostBoxId id, String conversationId) {
+        return byId(id).lookupConversation(conversationId);
     }
 
     @Override
-    public Long upsertThread(String email, AbstractConversationThread conversationThread, boolean markAsUnread) {
-        PostBox<AbstractConversationThread> postBox = byId(email);
+    public Long upsertThread(PostBoxId id, AbstractConversationThread conversationThread, boolean markAsUnread) {
+        PostBox<AbstractConversationThread> postBox = byId(id);
 
         List<AbstractConversationThread> finalThreads = postBox.getConversationThreads().stream()
           .filter(thread -> !thread.getConversationId().equals(conversationThread.getConversationId()))
@@ -168,7 +167,7 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
 
         // Write the PostBox to the repository
 
-        PostBox postBoxToWrite = new PostBox(email, Optional.of(postBox.getNewRepliesCounter().getValue()), finalThreads, maxAgeDays);
+        PostBox postBoxToWrite = new PostBox(id.asString(), Optional.of(postBox.getNewRepliesCounter().getValue()), finalThreads, maxAgeDays);
 
         write(postBoxToWrite);
 

@@ -3,6 +3,7 @@ package com.ecg.messagecenter.migration;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.simple.HybridSimplePostBoxRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.*;
 import com.ecg.replyts.core.runtime.migrator.ResultFetcher;
@@ -203,7 +204,7 @@ public class ChunkedPostboxMigrationAction {
 
                 try (Timer.Context timer = RECORD_MIGRATION_TIMER.time()) {
 
-                    PostBox postbox = postboxRepository.byId(postboxId);
+                    PostBox postbox = postboxRepository.byId(PostBoxId.fromEmail(postboxId));
                     // might be null for very old postbox that have been removed by the cleanup job while the indexer
                     // was running.
                     if (postbox != null) {

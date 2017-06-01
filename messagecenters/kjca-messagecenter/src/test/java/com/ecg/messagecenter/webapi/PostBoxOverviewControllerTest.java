@@ -5,6 +5,7 @@ import com.ecg.messagecenter.persistence.Counter;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.DefaultRiakSimplePostBoxRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -60,7 +61,7 @@ public class PostBoxOverviewControllerTest {
                 Optional.of(MessageDirection.BUYER_TO_SELLER.name()));
 
         PostBox postbox = new PostBox(email, new Counter(), Lists.newArrayList(oldConversationThread), 180);
-        when(postBoxRepository.byId(email)).thenReturn(postbox);
+        when(postBoxRepository.byId(PostBoxId.fromEmail(email))).thenReturn(postbox);
 
         ResponseObject<PostBoxResponse> response = controller.getPostBoxByEmail(email, false, 100, 0, null, request);
         assertThat(response.getBody().getConversations().size(), equalTo(0));
@@ -82,7 +83,7 @@ public class PostBoxOverviewControllerTest {
                 "adId1", "userIsBuyer", created, now, now, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(email), Optional.of(MessageDirection.SELLER_TO_BUYER.name()));
 
         PostBox postbox = new PostBox(email, new Counter(), Lists.newArrayList(buyerThread, sellerThread), 180);
-        when(postBoxRepository.byId(email)).thenReturn(postbox);
+        when(postBoxRepository.byId(PostBoxId.fromEmail(email))).thenReturn(postbox);
 
         //not having role filter, return everything
         ResponseObject<PostBoxResponse> response = controller.getPostBoxByEmail(email, false, 100, 0, null, request);
