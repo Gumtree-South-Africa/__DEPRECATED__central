@@ -39,7 +39,7 @@ echo
 echo -n "Getting releases... "
 get_releases.py http://repositories-cloud.ecg.so/ --username=repo_comaas --password=V9Knbsi4Nm --path=/${TENANT}/${ENV} --target=/opt/tarballs/ecg-comaas/ --platform=comaas --hash=${NEW_HASH}
 echo "done."
-cd $(find /opt/tarballs/ecg-comaas/ -name \*${NEW_HASH}\* | head -1)
+cd /opt/tarballs/ecg-comaas/${NEW_HASH}
 
 readonly FILE_COUNT=$(ls -lash *${NEW_HASH}*.tar.gz | wc -l)
 if [[ $FILE_COUNT -lt 2 ]]; then
@@ -48,7 +48,7 @@ if [[ $FILE_COUNT -lt 2 ]]; then
 fi
 
 echo "Loading properties into Consul..."
-properties-to-consul -env=${ENV} -file *configuration*.tar.gz
+properties-to-consul -file comaas-${TENANT}-configuration*.tar.gz
 echo "done."
 
 echo "Starting deploy..."
