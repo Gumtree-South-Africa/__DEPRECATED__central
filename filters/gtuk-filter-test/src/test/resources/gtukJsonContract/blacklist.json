@@ -1,22 +1,22 @@
 {
-    "pluginFactory": "com.ecg.gumtree.comaas.filter.blacklist.GumtreeBlacklistFilterConfiguration$BlacklistFilterFactory",
-    "instanceId": "API+Blacklist+filter+(1)+test",
-    "configuration": {
-        "state": "ENABLED",
-        "priority": 16,
-        "version": "1.7.19.BUILD",
-        "result": "DROP",
-        "exemptedCategories": [],
-        "accountHolderHeaderValue": "ACCOUNT_HOLDER",
-        "api": true,
-        "apiConnectionTimeout": 2000,
-        "buyerGoodHeader": "buyergood",
-        "maxConnectionsPerRoute": 10,
-        "sellerGoodHeader": "sellergood",
-        "stub": false,
-        "stubBlacklistedUsers": [
-            "user1@email.org"
-        ],
-        "webServiceUrl": "http://qagt-csba008:8110/api/blacklists/email/"
-    }
+  "pluginFactory": "com.ecg.gumtree.comaas.filter.blacklist.GumtreeBlacklistFilterConfiguration$BlacklistFilterFactory",
+  "instanceId": "API%20Blacklist%20filter",
+  "configuration": {
+    "state": "ENABLED",
+    "priority": 16,
+    "version": "1.7.19.BUILD",
+    "result": "DROP",
+    "exemptedCategories": [],
+    "accountHolderHeaderValue": "ACCOUNT_HOLDER",
+    "api": true,
+    "apiConnectionTimeout": 2000,
+    "buyerGoodHeader": "buyergood",
+    "maxConnectionsPerRoute": 10,
+    "sellerGoodHeader": "sellergood",
+    "stub": false,
+    "stubBlacklistedUsers": [
+      "user1@email.org"
+    ],
+    "webServiceUrl": "http://qagt-csba008:8110/api/blacklists/email/"
+  }
 }

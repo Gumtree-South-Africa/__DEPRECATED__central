@@ -1,17 +1,17 @@
 {
-    "pluginFactory": "com.ecg.gumtree.comaas.filter.geoiplookup.GumtreeGeoIpLookupFilterConfiguration$GeoIpLookupFilterFactory",
-    "instanceId": "Lookup+Country",
-    "configuration": {
-        "state": "ENABLED",
-        "priority": 23,
-        "version": "1.7.19.BUILD",
-        "result": "DROP",
-        "appName": "eBayd0097-e2aa-4fa6-a27f-03a2b1a8c61",
-        "stub": false,
-        "webServiceUrl": "http://66.211.181.184/services/personalization/v1/TrackingGeoLocationService",
-        "stubGeoIpCountry": {
-            "37.98.208.44": "PL"
-        },
-        "iafToken": "null"
-    }
+  "pluginFactory": "com.ecg.gumtree.comaas.filter.geoiplookup.GumtreeGeoIpLookupFilterConfiguration$GeoIpLookupFilterFactory",
+  "instanceId": "Lookup%20Country",
+  "configuration": {
+    "state": "ENABLED",
+    "priority": 23,
+    "version": "1.7.19.BUILD",
+    "result": "DROP",
+    "appName": "eBayd0097-e2aa-4fa6-a27f-03a2b1a8c61",
+    "stub": false,
+    "webServiceUrl": "http://66.211.181.184/services/personalization/v1/TrackingGeoLocationService",
+    "stubGeoIpCountry": {
+      "37.98.208.44": "PL"
+    },
+    "iafToken": "null"
+  }
 }

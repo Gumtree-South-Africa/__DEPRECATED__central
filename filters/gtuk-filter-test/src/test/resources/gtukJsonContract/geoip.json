@@ -1,26 +1,26 @@
 {
-    "pluginFactory": "com.ecg.gumtree.comaas.filter.geoip.GumtreeGeoIpFilterConfiguration$GeoIpFilterFactory",
-    "instanceId": "R+-+Banned+Countriessss",
-    "configuration": {
-        "state": "ENABLED",
-        "priority": 98,
-        "version": "1.7.19.BUILD",
-        "result": "DROP",
-        "exemptedCategories": [
-            47
-        ],
-        "countrySet": [
-            "AF",
-            "KH",
-            "CM",
-            "CN",
-            "GH",
-            "ID",
-            "NG",
-            "PL",
-            "RO",
-            "UG",
-            "ZW"
-        ]
-    }
+  "pluginFactory": "com.ecg.gumtree.comaas.filter.geoip.GumtreeGeoIpFilterConfiguration$GeoIpFilterFactory",
+  "instanceId": "R%20-%20Banned%20Countriessss%21%40%23%24%25%5E%26*%28%29%3B%27%5C%2C.%2F%3A%22%7C%3C%3E%3F%60%7E%5B%5D%7B%7D",
+  "configuration": {
+    "state": "ENABLED",
+    "priority": 98,
+    "version": "1.7.19.BUILD",
+    "result": "DROP",
+    "exemptedCategories": [
+      47
+    ],
+    "countrySet": [
+      "AF",
+      "KH",
+      "CM",
+      "CN",
+      "GH",
+      "ID",
+      "NG",
+      "PL",
+      "RO",
+      "UG",
+      "ZW"
+    ]
+  }
 }

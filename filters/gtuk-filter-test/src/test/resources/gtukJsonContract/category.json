@@ -1,11 +1,11 @@
 {
-    "pluginFactory": "com.ecg.gumtree.comaas.filter.category.GumtreeCategoryFilterConfiguration$CategoryFilterFactory",
-    "instanceId": "Cat",
-    "configuration": {
-        "state": "ENABLED",
-        "priority": 24,
-        "result": "HOLD",
-        "version": "1.7.19.BUILD",
-        "webServiceUrl": "http://catsapi.intern.gumtree.com/api"
-    }
+  "pluginFactory": "com.ecg.gumtree.comaas.filter.category.GumtreeCategoryFilterConfiguration$CategoryFilterFactory",
+  "instanceId": "Cat",
+  "configuration": {
+    "state": "ENABLED",
+    "priority": 24,
+    "result": "HOLD",
+    "version": "1.7.19.BUILD",
+    "webServiceUrl": "http://catsapi.intern.gumtree.com/api"
+  }
 }
