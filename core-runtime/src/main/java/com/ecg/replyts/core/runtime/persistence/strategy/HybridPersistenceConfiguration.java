@@ -24,6 +24,8 @@ import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRep
 
 import com.ecg.replyts.core.runtime.persistence.mail.*;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -32,6 +34,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 
 @Configuration
 @Import({
@@ -42,8 +45,8 @@ import org.springframework.context.annotation.Primary;
 @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid")
 public class HybridPersistenceConfiguration {
 
+    private static final Logger LOG = LoggerFactory.getLogger(HybridPersistenceConfiguration.class);
     // Cassandra
-
     @Value("${persistence.cassandra.dc:#{systemEnvironment['region']}}")
     private String cassandraDataCenter;
 
@@ -77,10 +80,25 @@ public class HybridPersistenceConfiguration {
 
     private DefaultCassandraConversationRepository cassandraConversationRepository;
 
+    @Autowired
+    private Environment environment;
+
     @Bean
-    public HybridMailRepository mailRepository() {
-        return new HybridMailRepository();
+    public MailRepository mailRepository() {
+        String isAttachmentStoreEnabled = environment.getProperty("swift.attachment.storage.enabled");
+
+        if (isAttachmentStoreEnabled != null && isAttachmentStoreEnabled.equalsIgnoreCase("true")) {
+            return new HybridMailRepository();
+        } else {
+            try {
+                return new DiffingRiakMailRepository(bucketNamePrefix, riakClient);
+            } catch (RiakRetryFailedException re) {
+                LOG.error("Failed to initialize Riak Mail Repository", re);
+            }
+        }
+        throw new RuntimeException("Failed to initialize mail repository");
     }
+
 
     @Bean
     @Primary
