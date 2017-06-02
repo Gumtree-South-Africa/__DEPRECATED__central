@@ -78,7 +78,7 @@ public class HybridPersistenceConfiguration {
     private DefaultCassandraConversationRepository cassandraConversationRepository;
 
     @Bean
-    private HybridMailRepository mailRepository() {
+    public HybridMailRepository mailRepository() {
         return new HybridMailRepository();
     }
 
