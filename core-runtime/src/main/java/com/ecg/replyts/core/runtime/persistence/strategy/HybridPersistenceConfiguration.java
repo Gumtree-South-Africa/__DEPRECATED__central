@@ -6,6 +6,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
+import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.RiakIndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -76,8 +77,10 @@ public class HybridPersistenceConfiguration {
 
     private DefaultCassandraConversationRepository cassandraConversationRepository;
 
-    @Autowired
-    private HybridMailRepository mailRepository;
+    @Bean
+    private HybridMailRepository mailRepository() {
+        return new HybridMailRepository();
+    }
 
     @Bean
     @Primary
@@ -111,7 +114,7 @@ public class HybridPersistenceConfiguration {
     }
 
     @Bean
-    public HeldMailRepository heldMailRepository(Session cassandraSession) {
+    public HeldMailRepository heldMailRepository(Session cassandraSession, HybridMailRepository mailRepository) {
         CassandraHeldMailRepository cassandraHeldMailRepository = new CassandraHeldMailRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
         RiakHeldMailRepository riakHeldMailRepository = new RiakHeldMailRepository(mailRepository);
 

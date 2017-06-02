@@ -31,9 +31,6 @@ public class HybridMailRepository implements MailRepository {
     @Autowired
     private HybridMigrationClusterState hybridMigrationClusterState;
 
-    HybridMailRepository() {
-    }
-
     @Override
     public void persistMail(String messageId, byte[] mailData, com.google.common.base.Optional<byte[]> ignored) {
 
