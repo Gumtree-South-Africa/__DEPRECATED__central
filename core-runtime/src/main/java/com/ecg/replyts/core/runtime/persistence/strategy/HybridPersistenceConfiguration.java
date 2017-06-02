@@ -81,7 +81,7 @@ public class HybridPersistenceConfiguration {
     private DefaultCassandraConversationRepository cassandraConversationRepository;
 
     @Bean
-    public MailRepository mailRepository(@Value("swift.attachment.storage.enabled:false") boolean isAttachmentStoreEnabled) {
+    public MailRepository mailRepository(@Value("${swift.attachment.storage.enabled:false}") boolean isAttachmentStoreEnabled) {
 
         if (isAttachmentStoreEnabled) {
             return new HybridMailRepository();
@@ -128,7 +128,7 @@ public class HybridPersistenceConfiguration {
     }
 
     @Bean
-    public HeldMailRepository heldMailRepository(Session cassandraSession, HybridMailRepository mailRepository) {
+    public HeldMailRepository heldMailRepository(Session cassandraSession, MailRepository mailRepository) {
         CassandraHeldMailRepository cassandraHeldMailRepository = new CassandraHeldMailRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
         RiakHeldMailRepository riakHeldMailRepository = new RiakHeldMailRepository(mailRepository);
 
