@@ -80,23 +80,19 @@ public class HybridPersistenceConfiguration {
 
     private DefaultCassandraConversationRepository cassandraConversationRepository;
 
-    @Autowired
-    private Environment environment;
-
     @Bean
-    public MailRepository mailRepository() {
-        String isAttachmentStoreEnabled = environment.getProperty("swift.attachment.storage.enabled");
+    public MailRepository mailRepository(@Value("swift.attachment.storage.enabled:false") boolean isAttachmentStoreEnabled) {
 
-        if (isAttachmentStoreEnabled != null && isAttachmentStoreEnabled.equalsIgnoreCase("true")) {
+        if (isAttachmentStoreEnabled) {
             return new HybridMailRepository();
         } else {
+
             try {
                 return new DiffingRiakMailRepository(bucketNamePrefix, riakClient);
             } catch (RiakRetryFailedException re) {
-                LOG.error("Failed to initialize Riak Mail Repository", re);
+                throw new RuntimeException("Failed to initialize mail repository", re);
             }
         }
-        throw new RuntimeException("Failed to initialize mail repository");
     }
 
 
