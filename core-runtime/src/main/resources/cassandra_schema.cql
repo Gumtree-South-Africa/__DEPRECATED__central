@@ -29,7 +29,6 @@ CREATE TABLE IF NOT EXISTS core_conversation_events_by_date (
     creatdate timestamp,
     conversation_id text,
     event_id timeuuid,
-    event_json text,
     PRIMARY KEY (creatdate, conversation_id, event_id)
 ) WITH CLUSTERING ORDER BY (conversation_id ASC, event_id DESC)
     AND bloom_filter_fp_chance = 0.01

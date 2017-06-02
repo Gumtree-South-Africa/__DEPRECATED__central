@@ -242,8 +242,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
                                 this,
                                 currentTime.hourOfDay().roundFloorCopy().toDate(),
                                 conversationId,
-                                eventId,
-                                jsonEventStr)
+                                eventId)
                         );
                     }
                 } catch (JsonProcessingException e) {
@@ -263,7 +262,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     @Override
     public void insertConversationEventIdx(ConversationEventIdx conversationEventIdx) {
         Statement insertConversationEventIdxStatement = Statements.INSERT_CONVERSATION_EVENTS_BY_DATE.bind(this, conversationEventIdx.getCreationDateRoundedByHour().toDate(),
-                conversationEventIdx.getConversationId(), conversationEventIdx.getEventId(), "");
+                conversationEventIdx.getConversationId(), conversationEventIdx.getEventId());
         session.execute(insertConversationEventIdxStatement);
     }
 
@@ -452,7 +451,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         static Statements INSERT_CONVERSATION_MODIFICATION_IDX = new Statements("INSERT INTO core_conversation_modification_desc_idx (conversation_id, modification_date) VALUES (?,?)", true);
         static Statements INSERT_CONVERSATION_MODIFICATION_IDX_BY_DAY = new Statements("INSERT INTO core_conversation_modification_desc_idx_by_day (year, month, day, modification_date, conversation_id) VALUES (?, ?, ?, ?, ?)", true);
         static Statements INSERT_RESUME_IDX = new Statements("INSERT INTO core_conversation_resume_idx (compound_key, conversation_id) VALUES (?,?)", true);
-        static Statements INSERT_CONVERSATION_EVENTS_BY_DATE = new Statements("INSERT INTO core_conversation_events_by_date (creatdate, conversation_id, event_id, event_json) VALUES (?, ?, ?, ?)", true);
+        static Statements INSERT_CONVERSATION_EVENTS_BY_DATE = new Statements("INSERT INTO core_conversation_events_by_date (creatdate, conversation_id, event_id) VALUES (?, ?, ?)", true);
 
         static Statements DELETE_CONVERSATION_EVENTS = new Statements("DELETE FROM core_conversation_events WHERE conversation_id=?", true);
         static Statements DELETE_CONVERSATION_SECRET = new Statements("DELETE FROM core_conversation_secret WHERE secret=?", true);
