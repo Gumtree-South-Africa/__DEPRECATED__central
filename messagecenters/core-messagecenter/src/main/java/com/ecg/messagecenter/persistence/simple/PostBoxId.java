@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.persistence.simple;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.Nonnull;
@@ -28,6 +29,13 @@ public class PostBoxId {
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id)
+                .toString();
     }
 
     public static PostBoxId fromEmail(String email) {
