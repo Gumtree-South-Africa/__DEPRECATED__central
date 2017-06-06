@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -31,7 +30,7 @@ public class VolumeFilterIntegrationTest {
     }};
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(testProperties, null, 20, false);
 
     @Test
     public void violatesQuota() throws Exception {
@@ -47,7 +46,6 @@ public class VolumeFilterIntegrationTest {
         for (int i = 0; i < 3; i++) {
             MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
             assertEquals(MessageState.SENT, response.getMessage().getState());
-            rule.waitUntilIndexedInEs(response);
         }
 
         MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
@@ -68,7 +66,6 @@ public class VolumeFilterIntegrationTest {
         for (int i = 0; i < 2; i++) {
             MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
             assertEquals(MessageState.SENT, response.getMessage().getState());
-            rule.waitUntilIndexedInEs(response);
         }
 
         MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));

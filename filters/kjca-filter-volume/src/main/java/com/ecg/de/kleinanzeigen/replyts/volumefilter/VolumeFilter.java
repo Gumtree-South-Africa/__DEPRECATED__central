@@ -68,33 +68,26 @@ class VolumeFilter extends ActivableFilter {
             return Collections.emptyList();
         }
 
+        sharedBrain.markSeen(senderMailAddress);
 
         List<FilterFeedback> feedbacksFromRememberedScore = getRememberedScoreFeedbacks(senderMailAddress);
         if (feedbacksFromRememberedScore != null) {
             return feedbacksFromRememberedScore;
         }
 
-        try {
-            for (Quota q : sortedQuotas) {
-                long mailsInTimeWindow = processor.count(senderMailAddress, q) + 1; // "1" is the current occurrence
+        for (Quota q : sortedQuotas) {
+            long mailsInTimeWindow = processor.count(senderMailAddress, q);
 
-                LOG.debug("Num of mails in {} {}: {}", q.getPerTimeValue(), q.getPerTimeUnit(), mailsInTimeWindow);
+            LOG.debug("Num of mails in {} {}: {}", q.getPerTimeValue(), q.getPerTimeUnit(), mailsInTimeWindow);
 
-                if (mailsInTimeWindow > q.getAllowance()) {
-                    String violationDescription = q.describeViolation(mailsInTimeWindow);
-                    rememberQuotaViolation(senderMailAddress, q, violationDescription);
-                    return Collections.singletonList(new FilterFeedback(
-                            q.uihint(),
-                            violationDescription,
-                            q.getScore(),
-                            FilterResultState.OK));
-                }
-            }
-        } finally {
-            try {
-                sharedBrain.markSeenAsync(senderMailAddress);
-            } catch (Exception e) {
-                LOG.warn("failed to record '{}' as seen", e, senderMailAddress);
+            if (mailsInTimeWindow > q.getAllowance()) {
+                String violationDescription = q.describeViolation(mailsInTimeWindow);
+                rememberQuotaViolation(senderMailAddress, q, violationDescription);
+                return Collections.singletonList(new FilterFeedback(
+                        q.uihint(),
+                        violationDescription,
+                        q.getScore(),
+                        FilterResultState.OK));
             }
         }
 

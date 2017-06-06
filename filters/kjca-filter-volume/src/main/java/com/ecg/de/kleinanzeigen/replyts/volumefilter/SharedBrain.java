@@ -7,6 +7,7 @@ import com.hazelcast.config.MaxSizeConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
+import com.hazelcast.core.Member;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +34,12 @@ class SharedBrain {
         communicationBus = hazelcastInstance.getTopic("volumefilter_sender_address_exchange_" + name);
         processor.set(eventStreamProcessor);
 
-        communicationBus.addMessageListener(message -> processor.get().mailReceivedFrom(message.getMessageObject()));
+        communicationBus.addMessageListener(message -> {
+            Member publishingMember = message.getPublishingMember();
+            if (publishingMember != null && !publishingMember.localMember()) {
+                processor.get().mailReceivedFrom(message.getMessageObject());
+            }
+        });
 
         Config config = hazelcastInstance.getConfig();
         MapConfig violationMemoryMapConfig = config.getMapConfig(VIOLATION_MEMORY_MAP_NAME);
@@ -44,7 +50,8 @@ class SharedBrain {
         violationMemoryMap = hazelcastInstance.getMap(VIOLATION_MEMORY_MAP_NAME);
     }
 
-    public void markSeenAsync(String mailAddress) {
+    public void markSeen(String mailAddress) {
+        processor.get().mailReceivedFrom(mailAddress);
         communicationBus.publish(mailAddress);
     }
 

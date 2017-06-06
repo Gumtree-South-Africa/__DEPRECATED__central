@@ -211,6 +211,16 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         Configuration.ConfigurationId c = new Configuration.ConfigurationId(type.getName(), "instance-" + COUNTER.incrementAndGet());
         LOG.info("Created config " + c + " with priority " + priority);
         client.putConfiguration(new Configuration(c, PluginState.ENABLED, priority, config));
+        try {
+            // TODO kobyakov: the method does work as intended, but it's not used as intended in the tests:
+            // a configuration is actually registered in comaas synchronously, by calling this method,
+            // but an actual Plugin is created asynchronously by a notification via a hazelcast topic.
+            // See ClusterRefreshPublisher/ClusterRefreshSubscriber. That has to be fixed in a nicer way, which is
+            // almost any way except the following:
+            Thread.sleep(378L);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("interrupted while waiting for the configuration registration", e);
+        }
         return c;
     }
 

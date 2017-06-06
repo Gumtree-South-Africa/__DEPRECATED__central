@@ -64,7 +64,7 @@ public class VolumeFilterClusterTest {
         assertThat(volumeFilter1.doFilter(messageProcessingContext), empty());
         assertThat(volumeFilter2.doFilter(messageProcessingContext), empty());
 
-        verify(sharedBrain, times(2)).markSeenAsync(eq(FROM_MAIL));
+        verify(sharedBrain, times(2)).markSeen(eq(FROM_MAIL));
         verify(sharedBrain, times(2)).getViolationRecordFromMemory(eq(FROM_MAIL));
     }
 
