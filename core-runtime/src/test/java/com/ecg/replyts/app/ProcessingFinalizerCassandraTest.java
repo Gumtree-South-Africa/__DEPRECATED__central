@@ -32,9 +32,9 @@ import static org.mockito.Mockito.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Import(ProcessingFinalizer.class)
 @TestPropertySource(properties = {
-        "persistence.strategy = riak"
+        "persistence.strategy = cassandra"
 })
-public class ProcessingFinalizerTest {
+public class ProcessingFinalizerCassandraTest {
     @MockBean
     private MutableConversationRepository conversationRepository;
 
@@ -68,20 +68,9 @@ public class ProcessingFinalizerTest {
     }
 
     @Test
-    public void alwaysTerminatesMessageWhenCompleted() {
-        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.absent(), termination);
-        verify(conv).applyCommand(any(MessageTerminatedCommand.class));
-    }
+    public void updatingForCassandraEvenIfConversationSizeExceedsConstraint() {
+        when(conv.getMessages()).thenReturn(Arrays.asList(new Message[ProcessingFinalizer.MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION + 1]));
 
-    @Test
-    public void persistsOutgoingMailIfAvailable() {
-        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.of("outgoing".getBytes()), termination);
-
-        verify(mailRepository).persistMail(anyString(), any(byte[].class), any(Optional.class));
-    }
-
-    @Test
-    public void persistsData() {
         messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.of("outgoing".getBytes()), termination);
 
         verify(conv).commit(conversationRepository, conversationEventListeners);
@@ -89,19 +78,6 @@ public class ProcessingFinalizerTest {
         verify(mailRepository).persistMail(anyString(), any(byte[].class), any(Optional.class));
 
         verify(searchIndexer).updateSearchAsync(Arrays.<Conversation>asList(conv));
-    }
-
-    @Test
-    public void skipsUpdatingForNonCassandraIfConversationSizeExceedsConstraint() {
-        when(conv.getMessages()).thenReturn(Arrays.asList(new Message[ProcessingFinalizer.MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION + 1]));
-
-        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.of("outgoing".getBytes()), termination);
-
-        verify(conv, never()).commit(conversationRepository, conversationEventListeners);
-
-        verify(mailRepository, never()).persistMail(anyString(), any(byte[].class), any(Optional.class));
-
-        verify(searchIndexer, never()).updateSearchAsync(Arrays.asList(conv));
     }
 }
 

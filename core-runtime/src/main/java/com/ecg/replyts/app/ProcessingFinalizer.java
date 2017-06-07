@@ -17,6 +17,7 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -36,6 +37,7 @@ public class ProcessingFinalizer {
     private static final Histogram CONVERSATION_MESSAGE_COUNT = TimingReports.newHistogram("conversation-message-count");
 
     protected static final int MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION = 500;
+    private static final String CASSANDRA_PERSISTENCE_STRATEGY = "cassandra";
 
     @Autowired
     private MutableConversationRepository conversationRepository;
@@ -55,11 +57,14 @@ public class ProcessingFinalizer {
     @Autowired(required = false)
     private MailPublisher mailPublisher;
 
+    @Value("${persistence.strategy:unknown}")
+    private String persistenceStrategy;
+
     public void persistAndIndex(DefaultMutableConversation conversation, String messageId, byte[] incomingMailContent, Optional<byte[]> outgoingMailContent, Termination termination) {
         checkNotNull(termination);
         checkNotNull(conversation);
 
-        if (conversation.getMessages().size() > MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION) {
+        if (!CASSANDRA_PERSISTENCE_STRATEGY.equals(persistenceStrategy) && (conversation.getMessages().size() > MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION)) {
             LOG.warn("Too many messages in conversation {}. Don't store update on conversation!", conversation);
 
             TOO_MANY_MESSAGES_IN_CONVERSATION.inc();
