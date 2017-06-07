@@ -22,18 +22,14 @@ import java.util.function.Function;
 
 import static java.lang.String.format;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class PushMessageOnUnreadConversationCallback implements SimplePostBoxInitializer.PostBoxWriteCallback {
+    private static final Logger LOG = LoggerFactory.getLogger(PushMessageOnUnreadConversationCallback.class);
 
     private static final Counter COUNTER_PUSH_SENT = TimingReports.newCounter("message-box.push-message-sent");
     private static final Counter COUNTER_PUSH_NO_DEVICE = TimingReports.newCounter("message-box.push-message-no-device");
     private static final Counter COUNTER_PUSH_FAILED = TimingReports.newCounter("message-box.push-message-failed");
 
     private static final String GUMTREE_SENDER = "The Gumtree Team";
-
-    private static final Logger LOG = LoggerFactory.getLogger(PushMessageOnUnreadConversationCallback.class);
 
     private final PushService pushService;
     private final AdInfoLookup adInfoLookup;
@@ -45,7 +41,6 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             AdInfoLookup adInfoLookup,
             Conversation conversation,
             Message message) {
-
         this.pushService = pushService;
         this.adInfoLookup = adInfoLookup;
         this.conversation = conversation;
@@ -86,10 +81,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             //}
 
             LOG.debug("Sending push message, Payload:["+payload.get().asJson()+"]");
-            PushService.Result sendPushResult = PushService.Result.ok(null);
-            if (pushService != null) {
-                sendPushResult = pushService.sendPushMessage(payload.get());
-            }
+            PushService.Result sendPushResult = pushService.sendPushMessage(payload.get());
 
             if (PushService.Result.Status.OK == sendPushResult.getStatus()) {
                 COUNTER_PUSH_SENT.inc();
@@ -109,7 +101,6 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             LOG.error(format("Error sending push for conversation '%s' and message '%s'", conversation.getId(), message.getId()), e);
         }
     }
-
 
     private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, String email, Long unreadCount, Optional<AdInfoLookup.AdInfo> adInfo) {
         String pushMessage = createPushMessageText(conversation, message);

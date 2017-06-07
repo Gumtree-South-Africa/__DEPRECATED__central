@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class PostBoxResponseBuilder {
-
     private static final Counter LIST_AGGREGATE_HIT = TimingReports.newCounter("message-box.list-aggregate-hit");
     private static final Counter LIST_AGGREGATE_MISS = TimingReports.newCounter("message-box.list-aggregate-miss");
     private static final Timer INIT_CONVERSATION_PAYLOAD_TIMER = TimingReports.newTimer("message-box.init-conversation-payload-timer");
@@ -164,6 +163,4 @@ public class PostBoxResponseBuilder {
                 conversationThread.isContainsUnreadMessages(),
                 conversation, conversationThread);
     }
-
-
 }

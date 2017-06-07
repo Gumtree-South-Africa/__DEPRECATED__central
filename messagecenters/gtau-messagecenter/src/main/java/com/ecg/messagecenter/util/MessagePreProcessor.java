@@ -5,15 +5,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.regex.Pattern;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class MessagePreProcessor {
-
     private static final Logger LOG = LoggerFactory.getLogger(MessagePreProcessor.class);
 
     enum LinebreakAdderRules {
-
         RULE_1(Pattern.compile("(@users.gumtree.com.au)([^\n\r>:])"),"$1\n$2"),
         RULE_2(Pattern.compile("[:]\t"),":\n"),
         RULE_3(Pattern.compile("[:]   "),":\n"),

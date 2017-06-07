@@ -2,16 +2,12 @@ package com.ecg.messagecenter.pushmessage;
 
 import java.util.Optional;
 
-/**
- * @author mdarapour
- */
 public abstract class PushService {
     public static final String PUSH_DELIVERY_CHANNEL = "push";
 
     public abstract Result sendPushMessage(final PushMessagePayload payload);
 
     public static class Result {
-
         public enum Status {
             OK, NOT_FOUND, ERROR
         }
@@ -25,7 +21,6 @@ public abstract class PushService {
             this.status = status;
             this.e = e;
         }
-
 
         public static Result ok(PushMessagePayload payload) {
             return new Result(payload, KmobilePushService.Result.Status.OK, Optional.<Exception>empty());

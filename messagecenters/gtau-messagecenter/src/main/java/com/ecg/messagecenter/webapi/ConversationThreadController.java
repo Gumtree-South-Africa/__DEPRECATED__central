@@ -32,7 +32,7 @@ import java.util.Optional;
 import static org.joda.time.DateTime.now;
 
 @Controller
-class ConversationThreadController {
+public class ConversationThreadController {
     private static final Timer API_POSTBOX_CONVERSATION_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-by-id");
     private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
 

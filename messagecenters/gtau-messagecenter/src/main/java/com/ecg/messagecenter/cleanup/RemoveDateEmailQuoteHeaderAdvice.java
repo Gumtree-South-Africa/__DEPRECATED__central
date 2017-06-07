@@ -2,9 +2,6 @@ package com.ecg.messagecenter.cleanup;
 
 import java.util.regex.Pattern;
 
-/**
- * Created by pragone on 19/04/15.
- */
 public class RemoveDateEmailQuoteHeaderAdvice extends AbstractCleanupAdvice {
     private static final Pattern[] DATE_PATTERNS = {
             Pattern.compile("[0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4}"),
@@ -56,7 +53,6 @@ public class RemoveDateEmailQuoteHeaderAdvice extends AbstractCleanupAdvice {
             }
         }
     }
-
 
     private static boolean lineContainsThePattern(String line, Pattern pattern) {
         // Is there something that looks like an email?

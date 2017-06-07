@@ -1,10 +1,6 @@
 package com.ecg.messagecenter.cleanup;
 
-/**
- * Specific advice to extract the 'Reply To Ad' message.
- */
 public class CleanupGumtreeReplyToAdAdvice extends AbstractCleanupAdvice {
-
     private static final String REPLIED_TO_YOUR_AD = "replied to your ad";
 
     private static final String RESPOND_BY_REPLYING_DIRECTLY_TO_THIS_EMAIL = "Respond by replying directly to this email";
@@ -58,6 +54,5 @@ public class CleanupGumtreeReplyToAdAdvice extends AbstractCleanupAdvice {
                 }
             }
         }
-
     }
 }

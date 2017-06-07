@@ -8,9 +8,6 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author mdarapour@ebay.com
- */
 public class MessageContentHelper {
     static final Pattern XML_HEURISTIC_PATTERN = Pattern.compile("^<(.*)>(.*?)</(.*)>", Pattern.DOTALL);
     static final Pattern SENDER_PATTERN = Pattern.compile("(.*)via\\sgumtree$", Pattern.CASE_INSENSITIVE);

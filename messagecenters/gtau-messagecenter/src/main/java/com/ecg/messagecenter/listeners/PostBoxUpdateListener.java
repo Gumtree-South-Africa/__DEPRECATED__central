@@ -30,9 +30,9 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
 
     private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
-    private static final Counter PROCESSING_FAILED = TimingReports.newCounter("message-box.postBoxUpdateListener.failed") ;
+    private static final Counter PROCESSING_FAILED = TimingReports.newCounter("message-box.postBoxUpdateListener.failed");
     private static final Counter MESSGAE_XML = TimingReports.newCounter("message-box.postBoxUpdateListener.xml");
-    private static final Counter MESSGAE_AUTOGATE = TimingReports.newCounter("message-box.postBoxUpdateListener.autogate") ;
+    private static final Counter MESSGAE_AUTOGATE = TimingReports.newCounter("message-box.postBoxUpdateListener.autogate");
     private static final String INITIAL_CONVERSATION_MESSAGE = "Gumtree prompted this buyer";
 
     private final UserNotificationRules userNotificationRules;
@@ -72,12 +72,11 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
 
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
-
         if (conversation.getState() == ConversationState.DEAD_ON_ARRIVAL) {
             return;
         }
 
-        if(isAutogate(message)) {
+        if (isAutogate(message)) {
             MESSGAE_AUTOGATE.inc();
         }
 
@@ -101,12 +100,12 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             }
 
             // We don't broadcast robot messages, to do so UserNotificationRules needs to change
-            if(MessageType.isRobot(message)) {
-                if(message.getMessageDirection().equals(MessageDirection.BUYER_TO_SELLER)) {
-                    if(!message.getPlainTextBody().contains(INITIAL_CONVERSATION_MESSAGE))
+            if (MessageType.isRobot(message)) {
+                if (message.getMessageDirection().equals(MessageDirection.BUYER_TO_SELLER)) {
+                    if (!message.getPlainTextBody().contains(INITIAL_CONVERSATION_MESSAGE))
                         updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message));
                 }
-                if(message.getMessageDirection().equals(MessageDirection.SELLER_TO_BUYER)) {
+                if (message.getMessageDirection().equals(MessageDirection.SELLER_TO_BUYER)) {
                     updateMessageCenter(conversation.getBuyerId(), conversation, message, userNotificationRules.buyerShouldBeNotified(message));
                 }
             } else {
@@ -115,30 +114,21 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             }
 
 
-
             PROCESSING_SUCCESS.inc();
 
-        } catch(Exception e) {
+        } catch (Exception e) {
             PROCESSING_FAILED.inc();
-            throw new RuntimeException("Error with post-box syncing " + e.getMessage(),e);
-        } finally{
+            throw new RuntimeException("Error with post-box syncing " + e.getMessage(), e);
+        } finally {
             timerContext.stop();
         }
     }
 
-
     private void updateMessageCenter(String email, Conversation conversation, Message message, boolean newReplyArrived) {
         postBoxInitializer.moveConversationToPostBox(
-                email,
-                conversation,
-                newReplyArrived,
-                new PushMessageOnUnreadConversationCallback(
-                        pushService,
-                        adInfoLookup,
-                        conversation,
-                        message
-                ));
+          email,
+          conversation,
+          newReplyArrived,
+          new PushMessageOnUnreadConversationCallback(pushService, adInfoLookup, conversation, message));
     }
-
-
 }

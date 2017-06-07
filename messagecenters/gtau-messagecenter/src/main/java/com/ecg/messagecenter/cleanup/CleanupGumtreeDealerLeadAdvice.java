@@ -2,11 +2,7 @@ package com.ecg.messagecenter.cleanup;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * Specific advice to extract the 'Reply To Ad' message.
- */
 public class CleanupGumtreeDealerLeadAdvice extends AbstractCleanupAdvice {
-
     private static final String DEALER_LEAD_OPENING = "You have received a lead from Gumtree Australia regarding a";
 
     private static final String ENQUIRY_LINE = "Enquiry:";
@@ -40,6 +36,5 @@ public class CleanupGumtreeDealerLeadAdvice extends AbstractCleanupAdvice {
                 }
             }
         }
-
     }
 }

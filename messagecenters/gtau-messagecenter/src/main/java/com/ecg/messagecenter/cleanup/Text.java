@@ -3,9 +3,6 @@ package com.ecg.messagecenter.cleanup;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by pragone on 19/04/15.
- */
 public class Text {
     private static final int    THRESHOLD_CHAR_SIZE_TO_MAX_TO_DISPLAY = 10000;
     private static final String TRUNCATION_MSG = "...\n\nGumtree Team: Message is truncated due to exceeded length." +
@@ -64,8 +61,6 @@ public class Text {
         }
         return null;
     }
-
-
 
     public String getAsString() {
         StringBuilder sb = new StringBuilder();

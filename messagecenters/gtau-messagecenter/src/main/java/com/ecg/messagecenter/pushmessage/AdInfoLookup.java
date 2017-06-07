@@ -21,11 +21,7 @@ import java.io.UnsupportedEncodingException;
 
 import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class AdInfoLookup {
-
     private static final Logger LOG = LoggerFactory.getLogger(AdInfoLookup.class);
 
     private final HttpClient httpClient;
@@ -38,7 +34,6 @@ public class AdInfoLookup {
         this.kmobilepushHost = new HttpHost(kapiHost, kapiPort);
     }
 
-
     public Optional<AdInfo> lookupAdIInfo(Long adId) {
         try {
             HttpRequest request = buildRequest(adId);
@@ -48,7 +43,6 @@ public class AdInfoLookup {
             return Optional.empty();
         }
     }
-
 
     private HttpRequest buildRequest(Long adId) throws UnsupportedEncodingException {
         HttpGet get = new HttpGet("/api/ads/" + adId + ".json?_in=title,pictures");

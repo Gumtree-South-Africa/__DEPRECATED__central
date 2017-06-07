@@ -24,7 +24,6 @@ import java.util.List;
  * @author maldana@ebay.de
  */
 final class HttpClientBuilder {
-
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientBuilder.class);
 
     private static final String TIMEOUT_PARAM_NAME = "http.connection-manager.timeout";
@@ -80,5 +79,4 @@ final class HttpClientBuilder {
         cm.setDefaultMaxPerRoute(maxConnectionsPerHost);
         return cm;
     }
-
 }

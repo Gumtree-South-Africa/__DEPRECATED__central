@@ -1,10 +1,6 @@
 package com.ecg.messagecenter.cleanup;
 
-/**
- * Created by pragone on 19/04/15.
- */
 public abstract class AbstractCleanupAdvice implements CleanupAdvice {
-
     protected final Text text;
     public boolean[] quoted;
     public boolean[] cleaned;

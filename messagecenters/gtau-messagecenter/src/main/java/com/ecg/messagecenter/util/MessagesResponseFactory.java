@@ -13,13 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class MessagesResponseFactory {
-
     private static final Logger LOG = LoggerFactory.getLogger(MessagesResponseFactory.class);
-
 
     private static final Histogram TEXT_SIZE_CONVERSATIONS = TimingReports.newHistogram("message-box.text-size-conversations");
     private static final Histogram TEXT_SIZE_MESSAGES = TimingReports.newHistogram("message-box.text-size-messages");
@@ -220,5 +215,4 @@ public class MessagesResponseFactory {
         return messageRts.getHeaders().containsKey(REPLY_CHANNEL) &&
                 messageRts.getHeaders().get(REPLY_CHANNEL).startsWith("cp_");
     }
-
 }

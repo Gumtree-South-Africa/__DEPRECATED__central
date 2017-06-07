@@ -20,8 +20,12 @@
             <artifactId>core-runtime</artifactId>
         </dependency>
         <dependency>
-          <groupId>ecg.comaas</groupId>
-          <artifactId>gtuk-coremod-shared</artifactId>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>core-messagecenter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>gtuk-coremod-shared</artifactId>
         </dependency>
 
         <dependency>

@@ -2,9 +2,6 @@ package com.ecg.messagecenter.cleanup;
 
 import java.util.regex.Pattern;
 
-/**
- * Created by mdarapour.
- */
 public class CleanupGumtreeTemplateAdvice extends AbstractCleanupAdvice {
     private static final Pattern[] TOP_TEMPLATE = {
             Pattern.compile("[\\w\\s]+replied to your ad:"),

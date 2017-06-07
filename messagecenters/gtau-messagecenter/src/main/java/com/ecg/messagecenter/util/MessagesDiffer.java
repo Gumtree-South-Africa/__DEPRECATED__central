@@ -4,11 +4,7 @@ import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.cleanup.TextCleaner;
 import com.ecg.replyts.core.runtime.TimingReports;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class MessagesDiffer {
-
     private static final Timer CLEANUP_TIMER = TimingReports.newTimer("message-box.cleanup-timer");
     private static final Timer INIT_NGRAM = TimingReports.newTimer("message-box.init-ngram");
     private static final Timer FIND_MATCHES_TIMER = TimingReports.newTimer("message-box.find-matches-timer");
@@ -62,7 +58,6 @@ public class MessagesDiffer {
 
         return textCleanerResult;
     }
-
 
     @Deprecated
     public static class DiffInput {

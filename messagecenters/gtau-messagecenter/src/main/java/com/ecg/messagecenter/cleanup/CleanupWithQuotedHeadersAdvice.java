@@ -4,9 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * Created by pragone on 19/04/15.
- */
 public class CleanupWithQuotedHeadersAdvice extends AbstractCleanupAdvice {
     private static final Pattern HEADER_PATTERN = Pattern.compile("^\\s*[a-zA-Z-]+:.+$");
     private static final List<String> KNOWN_HEADERS = Arrays.asList(

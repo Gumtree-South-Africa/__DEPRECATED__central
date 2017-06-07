@@ -18,13 +18,6 @@ import java.io.UnsupportedEncodingException;
 
 import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
 
-/**
- * User: maldana
- * Date: 18.10.13
- * Time: 11:14
- *
- * @author maldana@ebay.de
- */
 @Component
 public class KmobilePushService extends PushService {
 

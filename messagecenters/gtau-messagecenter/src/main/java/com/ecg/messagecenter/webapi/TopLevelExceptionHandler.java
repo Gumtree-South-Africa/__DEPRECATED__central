@@ -11,11 +11,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
-class TopLevelExceptionHandler {
-
+public class TopLevelExceptionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(TopLevelExceptionHandler.class);
 
     private Throwable ex;
@@ -53,5 +49,4 @@ class TopLevelExceptionHandler {
         jsonObject.put("errors", array);
         return jsonObject;
     }
-
 }

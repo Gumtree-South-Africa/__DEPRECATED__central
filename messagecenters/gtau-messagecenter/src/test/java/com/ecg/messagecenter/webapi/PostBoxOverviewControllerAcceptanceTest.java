@@ -17,14 +17,12 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 
 public class PostBoxOverviewControllerAcceptanceTest {
-    private final Properties testProperties = new Properties() {{
+    @Rule
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(new Properties() {{
         put("replyts.tenant", "gtau");
         put("persistence.strategy", "riak");
         put("messages.conversations.enrichment.on.read", "true");
-    }};
-
-    @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
+    }}, null, 20, ES_ENABLED);
 
     @Test
     public void readConversation() {

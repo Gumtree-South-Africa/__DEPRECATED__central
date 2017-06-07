@@ -43,6 +43,7 @@ public class PluginConfiguration {
         switch (tenant) {
             case "ebayk":
             case "gtau":
+            case "gtuk":
             case "it":
                 return "/ebayk-msgcenter";
             case "kjca":

@@ -25,15 +25,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
 
-/**
- * User: maldana
- * Date: 24.10.13
- * Time: 14:06
- *
- * @author maldana@ebay.de
- */
 @Controller
-class PostBoxOverviewController {
+public class PostBoxOverviewController {
     private static final Timer API_POSTBOX_BY_EMAIL = TimingReports.newTimer("webapi-postbox-by-email");
     private static final Timer API_POSTBOX_CONVERSATION_DELETE_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-delete");
 

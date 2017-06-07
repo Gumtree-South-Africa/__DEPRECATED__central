@@ -2,9 +2,6 @@ package com.ecg.messagecenter.cleanup;
 
 import java.util.regex.Pattern;
 
-/**
- * Created by mdarapour.
- */
 public class CleanSignatureLinesAdvice extends AbstractCleanupAdvice {
     private static final Pattern[] SIGNATURE_PATTERNS = {
             Pattern.compile("sent from (iphone|ipad|windows mail|samsung (mobile|tablet)|HTC).*", Pattern.CASE_INSENSITIVE),

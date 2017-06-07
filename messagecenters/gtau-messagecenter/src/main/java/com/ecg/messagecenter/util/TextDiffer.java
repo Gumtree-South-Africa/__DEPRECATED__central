@@ -9,13 +9,8 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.regex.Pattern;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
 public class TextDiffer {
-
     private static final Logger LOG = LoggerFactory.getLogger(TextDiffer.class);
-
 
     static final Pattern NEWLINE = Pattern.compile("(\r?\n)+");
     static final Pattern EMPTY_SPACE = Pattern.compile(" +");
@@ -274,9 +269,7 @@ public class TextDiffer {
         }
     }
 
-
     public static class NGram {
-
         private final String textContent;
         private final String emptySpaceSuffix;
         private final int position;
@@ -343,9 +336,7 @@ public class TextDiffer {
         }
     }
 
-
     public static class NGramMatch {
-
         private final NGram nGram;
         private final Integer nGramMatchIndex;
 
@@ -449,9 +440,5 @@ public class TextDiffer {
         public String getCleanupResult() {
             return cleanupResult;
         }
-
-
     }
-
-
 }

@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by pragone on 19/04/15.
- */
 public class CleanupWithSeparatorAdvice extends AbstractCleanupAdvice {
     private static final Pattern SEPARATOR_PATTERN = Pattern.compile("^[-*]+[\\s*]+(.*)");
     private static final List<String> KNOWN_SEPARATORS = Arrays.asList(

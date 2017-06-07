@@ -12,9 +12,6 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Created by mdarapour.
- */
 public class MessageType {
     public static boolean isRobot(Message message) {
         return message.getHeaders().containsKey(Header.Robot.getValue());

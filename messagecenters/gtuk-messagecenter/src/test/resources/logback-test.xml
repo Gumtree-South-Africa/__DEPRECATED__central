@@ -9,7 +9,6 @@
     <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
 
 
-
     <root level="error">
         <appender-ref ref="STDOUT"/>
     </root>
