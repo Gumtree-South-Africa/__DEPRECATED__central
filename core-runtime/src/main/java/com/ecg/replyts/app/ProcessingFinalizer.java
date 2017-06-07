@@ -1,5 +1,6 @@
 package com.ecg.replyts.app;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
@@ -31,7 +32,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ProcessingFinalizer {
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingFinalizer.class);
 
+    private static final Counter TOO_MANY_MESSAGES_IN_CONVERSATION = TimingReports.newCounter("conversation-too-many-messages");
     private static final Histogram CONVERSATION_MESSAGE_COUNT = TimingReports.newHistogram("conversation-message-count");
+
+    protected static final int MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION = 500;
 
     @Autowired
     private MutableConversationRepository conversationRepository;
@@ -54,6 +58,14 @@ public class ProcessingFinalizer {
     public void persistAndIndex(DefaultMutableConversation conversation, String messageId, byte[] incomingMailContent, Optional<byte[]> outgoingMailContent, Termination termination) {
         checkNotNull(termination);
         checkNotNull(conversation);
+
+        if (conversation.getMessages().size() > MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION) {
+            LOG.warn("Too many messages in conversation {}. Don't store update on conversation!", conversation);
+
+            TOO_MANY_MESSAGES_IN_CONVERSATION.inc();
+
+            return;
+        }
 
         conversation.applyCommand(new MessageTerminatedCommand(conversation.getId(), messageId,
           termination.getIssuer(), termination.getReason(), termination.getEndState()));
