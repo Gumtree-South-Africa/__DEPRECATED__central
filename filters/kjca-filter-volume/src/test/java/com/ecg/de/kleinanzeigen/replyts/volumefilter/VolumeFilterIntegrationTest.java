@@ -2,10 +2,11 @@ package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author mhuttar
  */
+@Ignore
 public class VolumeFilterIntegrationTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(VolumeFilterIntegrationTest.class);
