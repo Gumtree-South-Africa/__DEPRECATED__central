@@ -18,20 +18,28 @@ from logback-test.xml.
         </encoder>
     </appender>
 
-    <appender name="MISMATCHFILE" class="ch.qos.logback.core.FileAppender">
-        <file>${logDir}/difftool-mismatch.log</file>
+    <appender name="CONVMISMATCHFILE" class="ch.qos.logback.core.FileAppender">
+        <file>${logDir}/conv-difftool-mismatch.log</file>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS}: %msg %n</pattern>
         </encoder>
     </appender>
 
-
+    <appender name="MBOXMISMATCHFILE" class="ch.qos.logback.core.FileAppender">
+        <file>${logDir}/mbox-difftool-mismatch.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS}: %msg %n</pattern>
+        </encoder>
+    </appender>
 
     <logger name="org.springframework" level="INFO"/>
     <logger name="com.ecg" level="INFO"/>
 
-    <logger name="difftool.mismatch" level="INFO">
-        <appender-ref ref="MISMATCHFILE"/>
+    <logger name="conversation.mismatch" level="DEBUG">
+        <appender-ref ref="CONVMISMATCHFILE"/>
+    </logger>
+    <logger name="postbox.mismatch" level="DEBUG">
+        <appender-ref ref="MBOXMISMATCHFILE"/>
     </logger>
 
     <root level="INFO">
