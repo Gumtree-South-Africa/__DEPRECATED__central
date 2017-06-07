@@ -1,7 +1,6 @@
 package com.ecg.replyts.app;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedCommand;
 import com.ecg.replyts.core.api.persistence.MailRepository;
@@ -85,19 +84,6 @@ public class ProcessingFinalizerTest {
         verify(mailRepository).persistMail(anyString(), any(byte[].class), any(Optional.class));
 
         verify(searchIndexer).updateSearchAsync(Arrays.<Conversation>asList(conv));
-    }
-
-    @Test
-    public void skipsUpdatingIfConversationSizeExceedsConstraint() {
-        when(conv.getMessages()).thenReturn(Arrays.asList(new Message[ProcessingFinalizer.MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION + 1]));
-
-        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.of("outgoing".getBytes()), termination);
-
-        verify(conv, never()).commit(conversationRepository, conversationEventListeners);
-
-        verify(mailRepository, never()).persistMail(anyString(), any(byte[].class), any(Optional.class));
-
-        verify(searchIndexer, never()).updateSearchAsync(Arrays.asList(conv));
     }
 }
 
