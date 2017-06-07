@@ -8,6 +8,7 @@ import com.ecg.replyts.core.runtime.persistence.attachment.SwiftAttachmentReposi
 import com.google.common.io.CharStreams;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openstack4j.model.storage.object.SwiftObject;
@@ -37,6 +38,7 @@ import static org.junit.Assert.assertNotNull;
         "swift.username=comaas-qa-swift",
         "swift.password=vFdsmH8F8qL2H",
 })
+@Ignore
 public class AttachmentRepositoryIntegrationTest {
 
     @Autowired
