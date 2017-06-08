@@ -22,7 +22,6 @@ import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository
 import com.ecg.replyts.core.runtime.persistence.mail.HybridHeldMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.ReadOnlyRiakMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.RiakHeldMailRepository;
-import com.ecg.replyts.core.runtime.persistence.mail.HybridMailConfiguration;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,8 +34,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import({
         CassandraPersistenceConfiguration.CassandraClientConfiguration.class,
-        RiakPersistenceConfiguration.RiakClientConfiguration.class,
-        HybridMailConfiguration.class
+        RiakPersistenceConfiguration.RiakClientConfiguration.class
 })
 @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid-riak-readonly")
 public class ReadOnlyRiakHybridPersistenceConfiguration {

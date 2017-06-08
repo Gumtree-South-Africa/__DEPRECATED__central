@@ -57,6 +57,7 @@ public class AttachmentRepository {
             LOG.info("Message id {} has no attachments ", messageId);
             return null;
         }
+
         return parsedMail;
     }
 

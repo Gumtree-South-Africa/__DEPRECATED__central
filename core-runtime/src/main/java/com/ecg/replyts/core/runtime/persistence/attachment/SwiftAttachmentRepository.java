@@ -92,7 +92,7 @@ public class SwiftAttachmentRepository {
     public String getContainer(String messageid) {
         Preconditions.checkNotNull(messageid);
         String containerName = containerPrefix + "-" + getBucket(messageid);
-        LOG.debug("Resolved container name: {} ", containerName);
+        LOG.trace("Resolved container name: {} ", containerName);
         return containerName;
     }
 

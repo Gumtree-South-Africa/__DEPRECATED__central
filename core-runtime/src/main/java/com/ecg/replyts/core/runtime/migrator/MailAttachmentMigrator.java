@@ -2,9 +2,11 @@ package com.ecg.replyts.core.runtime.migrator;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.IndexingMode;
-import com.ecg.replyts.core.runtime.persistence.mail.HybridMailRepository;
+import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.DiffingRiakMailRepository;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterators;
 import com.hazelcast.core.HazelcastInstance;
@@ -36,7 +38,10 @@ public class MailAttachmentMigrator {
     private ThreadPoolExecutor executor;
 
     @Autowired
-    private HybridMailRepository hybridMailRepository;
+    private DiffingRiakMailRepository mailRepository;
+
+    @Autowired
+    private AttachmentRepository attachmentRepository;
 
     @Autowired
     private HazelcastInstance hazelcast;
@@ -106,7 +111,7 @@ public class MailAttachmentMigrator {
             watch = Stopwatch.createStarted();
             LOG.info("Migrating attachments in mails using batch size {}", idBatchSize);
 
-            Stream<String> mailIdStream = hybridMailRepository.streamMailIdsCreatedBetween(dateFrom.toDateTime(DateTimeZone.UTC),
+            Stream<String> mailIdStream = mailRepository.streamMailIdsCreatedBetween(dateFrom.toDateTime(DateTimeZone.UTC),
                     dateTo.toDateTime(DateTimeZone.UTC));
 
             Iterators.partition(mailIdStream.iterator(), idBatchSize).forEachRemaining(mailIdBatch -> {
@@ -127,10 +132,26 @@ public class MailAttachmentMigrator {
     private void migrateAttachments(List<String> mailIds) {
         try (Timer.Context ignored = BATCH_MIGRATION_TIMER.time()) {
 
-            for (String mid : mailIds) {
-                hybridMailRepository.migrateAttachments(mid);
+            for (String messageId : mailIds) {
+
+                byte[] rawmail = mailRepository.readInboundMail(messageId);
+                if (rawmail == null) {
+                    LOG.info("Did not find raw mail for message id {}", messageId);
+                    return;
+                }
+
+                Mail parsedMail = attachmentRepository.hasAttachments(messageId, rawmail);
+                if (parsedMail == null) {
+                    LOG.debug("Message {} does not have any attachments", messageId);
+                    return;
+                }
+                // No need to acquire a global lock because messageIds are unique
+                attachmentRepository.storeAttachments(messageId, parsedMail);
+
                 MAIL_COUNTER.inc();
             }
         }
     }
+
+
 }

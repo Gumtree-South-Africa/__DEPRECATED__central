@@ -43,7 +43,7 @@ public class SwiftAttachmentRepositoryTest {
     @Autowired
     private Guids guids;
 
-    @Test
+    @Test(timeout = 20000L)
     public void testHashMessageIntoIds() {
         try (InputStream is = getClass().getResourceAsStream("/riak_ids.txt")) {
             // read some riak Ids
@@ -62,7 +62,7 @@ public class SwiftAttachmentRepositoryTest {
                 bucketCount.get(container).incrementAndGet();
             }
             // Generate some message ids
-            for (int i = 0; i < 10000; i++) {
+            for (int i = 0; i < 100; i++) {
                 String messageId = guids.nextGuid();
                 counter++;
                 String container = swiftAttachmentRepository.getContainer(messageId);
@@ -71,7 +71,7 @@ public class SwiftAttachmentRepositoryTest {
                 bucketCount.get(container).incrementAndGet();
             }
             // Generate some timebased ids
-            for (int i = 0; i < 10000; i++) {
+            for (int i = 0; i < 100; i++) {
                 String messageId = UUIDs.timeBased().toString();
                 counter++;
                 String container = swiftAttachmentRepository.getContainer(messageId);
@@ -87,17 +87,14 @@ public class SwiftAttachmentRepositoryTest {
 
             for (String key : bucketCount.keySet()) {
                 String msg = String.format("Number of items per bucket %d significantly differs from average %d", avgitemsPerBucket, bucketCount.get(key).get());
-                assertTrue(msg, (avgitemsPerBucket / (float) bucketCount.get(key).get()) > 0.8);
+                assertTrue(msg, (avgitemsPerBucket / (float) bucketCount.get(key).get()) > 0.6);
             }
 
-            // Test hash consistency (takes 6s)
-            for (int i = 0; i <5; i++) {
-
-                for (String v : values.keys()) {
-                    Collection<String> ids = values.get(v);
-                    for (String id : ids) {
-                        Assert.assertEquals(v, swiftAttachmentRepository.getContainer(id));
-                    }
+            // Test hash consistency (takes 1s)
+            for (String v : values.keys()) {
+                Collection<String> ids = values.get(v);
+                for (String id : ids) {
+                    Assert.assertEquals(v, swiftAttachmentRepository.getContainer(id));
                 }
             }
 
