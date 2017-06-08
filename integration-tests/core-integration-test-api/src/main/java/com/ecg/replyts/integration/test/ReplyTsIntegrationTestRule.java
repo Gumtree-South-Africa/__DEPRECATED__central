@@ -23,8 +23,7 @@ import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -307,5 +306,12 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     public MailInterceptor getMailInterceptor() {
         return testRunner.getMailInterceptor();
+    }
+
+    public ReplyTsIntegrationTestRule addCassandraSchema(String cqlFile) {
+        List<String> tmp = new ArrayList<>(Arrays.asList(cqlFilePaths));
+        tmp.add(cqlFile);
+        cqlFilePaths = tmp.toArray(cqlFilePaths);
+        return this;
     }
 }
