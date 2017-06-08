@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -104,6 +105,7 @@ public class Comparer {
     }
 
     public static void main(String[] args) {
+        LOG.info("Command line arguments: {}", Arrays.asList(args));
         Stopwatch timerTotal = Stopwatch.createStarted();
         // To avoid confusing warn message
         System.setProperty("com.datastax.driver.FORCE_NIO", "true");
