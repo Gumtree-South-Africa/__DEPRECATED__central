@@ -107,7 +107,7 @@ public class HealthControllerTest {
 
             // Skip actual auto-discovery - @ConditionalOnBean will ensure that this is only called if the DiscoveryClient is available
 
-            gatheredProperties.put("persistence.cassandra.endpoint", "fuzzy-cats");
+            gatheredProperties.put("persistence.cassandra.core.endpoint", "fuzzy-cats");
 
             environment.getPropertySources().addFirst(new MapPropertySource("Auto-discovered services", gatheredProperties));
         }
