@@ -60,7 +60,7 @@ public class CloudDiscoveryConfiguration {
     private static final String LOGGER_APPENDER_KAFKA_ACCESS_LOGS_TOPIC = "service.discovery.logger.appender.access.logs.topic";
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
-      "cassandra", "persistence.cassandra.endpoint",
+      "cassandra", "persistence.cassandra.core.endpoint",
       "elasticsearch", "search.es.endpoints"
     );
 

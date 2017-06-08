@@ -22,7 +22,7 @@ public class CassConfigurationRepo {
     private final ConsistencyLevel cassandraWriteConsistency;
 
     @Autowired
-    public CassConfigurationRepo(@Qualifier("cassandraSession") Session session,
+    public CassConfigurationRepo(@Qualifier("cassandraSessionForCore") Session session,
                                  @Value("${persistence.cassandra.consistency.read:#{null}}") ConsistencyLevel cassandraReadConsistency,
                                  @Value("${persistence.cassandra.consistency.write:#{null}}") ConsistencyLevel cassandraWriteConsistency) {
         try {
