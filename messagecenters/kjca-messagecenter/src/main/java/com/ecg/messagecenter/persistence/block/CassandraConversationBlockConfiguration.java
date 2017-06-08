@@ -3,6 +3,7 @@ package com.ecg.messagecenter.persistence.block;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.messagecenter.cronjobs.ConversationBlockCleanupCronJob;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +17,7 @@ public class CassandraConversationBlockConfiguration {
     }
 
     @Bean
-    public CassandraConversationBlockRepository conversationBlockRepository(Session cassandraSession, ConsistencyLevel cassandraReadConsistency, ConsistencyLevel cassandraWriteConsistency) {
+    public CassandraConversationBlockRepository conversationBlockRepository(@Qualifier("cassandraSessionForMb") Session cassandraSession, ConsistencyLevel cassandraReadConsistency, ConsistencyLevel cassandraWriteConsistency) {
         return new CassandraConversationBlockRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 }

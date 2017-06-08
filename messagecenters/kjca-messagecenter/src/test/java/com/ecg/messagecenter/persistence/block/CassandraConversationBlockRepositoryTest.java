@@ -87,7 +87,7 @@ public class CassandraConversationBlockRepositoryTest {
         private ConsistencyLevel cassandraWriteConsistency;
 
         @Bean
-        public Session cassandraSession() {
+        public Session cassandraSessionForMb() {
             String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
             String[] schemas = new String[] { "cassandra_schema.cql", "cassandra_kjca_messagecenter_schema.cql" };
 

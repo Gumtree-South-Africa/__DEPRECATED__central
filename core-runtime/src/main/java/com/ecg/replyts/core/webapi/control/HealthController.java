@@ -46,7 +46,7 @@ public class HealthController {
     @Value("#{'${persistence.riak.datacenter.primary.hosts:unknown}'.split(',')}")
     private List<String> riakHosts;
 
-    @Value("#{'${persistence.cassandra.endpoint:unknown}'.split(',')}")
+    @Value("#{'${persistence.cassandra.core.endpoint:unknown}'.split(',')}")
     private List<String> cassandraHosts;
 
     @Value("#{'${search.es.endpoints:unknown}'.split(',')}")
@@ -55,13 +55,13 @@ public class HealthController {
     @Value("${persistence.riak.bucket.name.prefix:}")
     private String riakBucketPrefix;
 
-    @Value("${persistence.cassandra.keyspace:replyts2}")
+    @Value("${persistence.cassandra.core.keyspace:replyts2}")
     private String cassandraKeyspace;
 
     @Value("${search.es.clustername:unknown}")
     private String searchClusterName;
 
-    @Value("${persistence.cassandra.dc:#{systemEnvironment['region']}}")
+    @Value("${persistence.cassandra.core.dc:#{systemEnvironment['region']}}")
     private String cassandraDc;
 
     @PostConstruct

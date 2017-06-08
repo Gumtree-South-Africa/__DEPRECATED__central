@@ -3,6 +3,7 @@ package com.ecg.messagecenter.persistence.simple;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,7 +36,7 @@ public class HybridSimplePostBoxConfiguration {
     }
 
     @Bean
-    public CassandraSimplePostBoxRepository cassandraSimplePostBoxRepository(Session cassandraSession, ConsistencyLevel cassandraReadConsistency, ConsistencyLevel cassandraWriteConsistency) {
+    public CassandraSimplePostBoxRepository cassandraSimplePostBoxRepository(@Qualifier("cassandraSessionForMb") Session cassandraSession, ConsistencyLevel cassandraReadConsistency, ConsistencyLevel cassandraWriteConsistency) {
         return new CassandraSimplePostBoxRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 

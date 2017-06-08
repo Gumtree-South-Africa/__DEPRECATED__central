@@ -58,7 +58,8 @@ public final class ReplytsRunner {
 
             properties.load(resource.getInputStream());
 
-            properties.put("persistence.cassandra.endpoint", CassandraIntegrationTestProvisioner.getEndPoint());
+            properties.put("persistence.cassandra.core.endpoint", CassandraIntegrationTestProvisioner.getEndPoint());
+            properties.put("persistence.cassandra.mb.endpoint", CassandraIntegrationTestProvisioner.getEndPoint());
             properties.put("replyts.http.port", String.valueOf(httpPort));
             properties.put("replyts.ssl.enabled", "false");
             properties.put("delivery.smtp.port", String.valueOf(smtpOutPort));

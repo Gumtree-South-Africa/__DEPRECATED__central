@@ -24,6 +24,7 @@ import com.ecg.replyts.core.runtime.persistence.mail.ReadOnlyRiakMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.RiakHeldMailRepository;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -43,7 +44,7 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
 
     // Cassandra
 
-    @Value("${persistence.cassandra.dc:#{systemEnvironment['region']}}")
+    @Value("${persistence.cassandra.core.dc:#{systemEnvironment['region']}}")
     private String cassandraDataCenter;
 
     @Autowired
@@ -72,7 +73,7 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
 
     @Bean
-    public ConversationRepository conversationRepository(Session cassandraSession, HybridMigrationClusterState migrationState) {
+    public ConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState) {
         DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
         RiakConversationRepository riakRepository = useBucketNamePrefix ? new QuietReadOnlyRiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastwriteWins) : new RiakConversationRepository(riakClient, allowSiblings, lastwriteWins);
 
@@ -82,17 +83,17 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     }
 
     @Bean
-    public ConfigurationRepository configurationRepository(Session cassandraSession) throws RiakRetryFailedException {
+    public ConfigurationRepository configurationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession) throws RiakRetryFailedException {
         return new CassandraConfigurationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
     @Bean
-    public IndexerClockRepository indexerClockRepository(Session cassandraSessionForJobs) throws RiakRetryFailedException {
+    public IndexerClockRepository indexerClockRepository(@Qualifier("cassandraSessionForCore") Session cassandraSessionForJobs) throws RiakRetryFailedException {
         return new CassandraIndexerClockRepository(cassandraDataCenter, cassandraSessionForJobs);
     }
 
     @Bean
-    public CronJobClockRepository cronJobClockRepository(Session cassandraSession) {
+    public CronJobClockRepository cronJobClockRepository(@Qualifier("cassandraSessionForJobs") Session cassandraSession) {
         return new CassandraCronJobClockRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
@@ -103,7 +104,7 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     }
 
     @Bean
-    public HeldMailRepository heldMailRepository(Session cassandraSession, MailRepository mailRepository) {
+    public HeldMailRepository heldMailRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, MailRepository mailRepository) {
         CassandraHeldMailRepository cassandraHeldMailRepository = new CassandraHeldMailRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
         RiakHeldMailRepository riakHeldMailRepository = new RiakHeldMailRepository(mailRepository);
 
@@ -114,13 +115,13 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     }
 
     @Bean
-    public BlockUserRepository blockUserRepository(Session cassandraSession) {
+    public BlockUserRepository blockUserRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession) {
         return new DefaultBlockUserRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
     @Bean
     @ConditionalOnExpression("${email.opt.out.enabled:false}")
-    public EmailOptOutRepository emailOptOutRepository(Session cassandraSession) {
+    public EmailOptOutRepository emailOptOutRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession) {
         return new EmailOptOutRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
