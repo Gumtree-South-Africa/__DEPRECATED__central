@@ -33,6 +33,7 @@ services:
     ports:
     - "8087:8087"
     - "8089:8089"
+    - "8098:8098"
   graphite:
     image:  hopsoft/graphite-statsd
     ports:
