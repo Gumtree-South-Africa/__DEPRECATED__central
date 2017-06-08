@@ -30,7 +30,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = SwiftAttachmentRepositoryTest.TestContext.class)
 @TestPropertySource(properties = {
-        "swift.bucket.number = 101",
+        "swift.bucket.number = 13",
         "swift.username:comaas-qa-swift",
         "swift.password:vFdsmH8F8qL2H",
         "swift.tenant:comaas-qa"
