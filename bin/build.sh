@@ -77,8 +77,9 @@ function parseCmd() {
     TENANT_ONLY=
     PACKAGE=
     EXECUTE=
+    WAIT_FOR_DEBUGGER=0
 
-    while getopts ":htI123T:R:P:E" OPTION; do
+    while getopts ":htI123T:R:P:ED" OPTION; do
         case ${OPTION} in
             h) usage; exit 0;
                ;;
@@ -99,6 +100,8 @@ function parseCmd() {
             P) log "Build and Package profile $OPTARG"; PACKAGE="$OPTARG"
                ;;
             E) log "Build and Execute Comaas for specific tenant. Please start ecg-comaas-vagrant manually"; EXECUTE=true
+               ;;
+            D) log "Wait for debugger before running Maven" ; WAIT_FOR_DEBUGGER=1;
                ;;
             \?) fatal "Invalid option: -${OPTARG}"
                ;;
@@ -191,7 +194,14 @@ function main() {
         MVN_ARGS="$MVN_ARGS -P${PROFILES}${TENANT}!distribution"
     fi
 
-    CMD="mvn ${MVN_ARGS} ${MVN_TASKS} -DtestLocalCassandraPort=${CASSANDRA_CONTAINER_PORT}"
+    MVN_CMD=
+    if [[ ${WAIT_FOR_DEBUGGER} -eq 1 ]]; then
+        MVN_CMD="mvnDebug"
+    else
+        MVN_CMD="mvn"
+    fi
+
+    CMD="${MVN_CMD} ${MVN_ARGS} ${MVN_TASKS} -DtestLocalCassandraPort=${CASSANDRA_CONTAINER_PORT}"
     log "Executing: ${CMD}"
     ${CMD}
 
@@ -218,6 +228,7 @@ Usage:
     -T <TENANT> -P <ENVNAME> - build and package tenant's code for ENVNAME
     -T <TENANT> -E - build, package and execute tenant's code
     -T <TENANT> -P <ENVNAME> -E - build, package and execute tenant's code with ENVNAME
+    -D - suspends Maven until a remote debugger is attached. May be combined with any of the options above
 
     where TENANT is one or more of [ebayk,mp,kjca,mde,gtau,bt,it],
     ENVNAME is the properties profile name. common values [local, comaasqa, bare]
