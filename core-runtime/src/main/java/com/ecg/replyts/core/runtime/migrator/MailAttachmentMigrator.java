@@ -16,7 +16,6 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,10 +45,7 @@ public class MailAttachmentMigrator {
     @Autowired
     private HazelcastInstance hazelcast;
 
-    @Value("${migration.mail.batch.size:50}")
     private int idBatchSize;
-
-    @Value("${replyts.maxConversationAgeDays:180}")
     private int conversationMaxAgeDays;
 
     private AtomicInteger processedBatchCounter = new AtomicInteger();
@@ -58,6 +54,11 @@ public class MailAttachmentMigrator {
     private final Timer BATCH_MIGRATION_TIMER = TimingReports.newTimer("migration.attachments.batch-mail-timer");
 
     private Stopwatch watch;
+
+    public MailAttachmentMigrator(int idBatchSize, int conversationMaxAgeDays) {
+        this.idBatchSize = idBatchSize;
+        this.conversationMaxAgeDays = conversationMaxAgeDays;
+    }
 
     public String getRateMailsPerSec() {
         if (processedBatchCounter.get() > 0) {
