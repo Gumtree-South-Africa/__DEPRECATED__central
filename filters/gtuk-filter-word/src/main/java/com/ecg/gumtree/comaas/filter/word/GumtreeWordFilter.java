@@ -50,7 +50,13 @@ public class GumtreeWordFilter implements com.ecg.replyts.core.api.pluginconfigu
 
         compiledPatterns.forEach((rule, pattern) -> textsToCheck.stream()
                 .map(pattern::matcher)
-                .filter(m -> m.find() && !rule.getExceptions().contains(m.group()))
+                .filter(m -> {
+                    List<String> wordExceptions = rule.getExceptions();
+                    if (wordExceptions == null) {
+                        return m.find();
+                    }
+                    return m.find() && !wordExceptions.contains(m.group());
+                })
                 .findFirst().ifPresent(m -> {
                     String description = longDescription(getClass(), pluginConfig.getInstanceId(), filterConfig.getVersion(), "Matched: " + rule.getPattern());
 

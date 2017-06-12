@@ -94,19 +94,19 @@ public class ConfigCrudController implements HandlerExceptionResolver {
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ObjectNode listConfigurations() {
-        ArrayNode an = JsonObjects.newJsonArray();
+        ArrayNode arrayNode = JsonObjects.newJsonArray();
         // TODO: Order by priority
-        for (PluginConfiguration c : configRepository.getConfigurations()) {
+        for (PluginConfiguration pluginConfiguration : configRepository.getConfigurations()) {
             Builder config = JsonObjects.builder()
-                    .attr("pluginFactory", c.getId().getPluginFactory().getName())
-                    .attr("instanceId", c.getId().getInstanceId())
-                    .attr("priority", c.getPriority())
-                    .attr("state", c.getState().name())
-                    .attr("version", c.getVersion())
-                    .attr("configuration", c.getConfiguration());
-            an.add(config.build());
+                    .attr("pluginFactory", pluginConfiguration.getId().getPluginFactory().getName())
+                    .attr("instanceId", pluginConfiguration.getId().getInstanceId())
+                    .attr("priority", pluginConfiguration.getPriority())
+                    .attr("state", pluginConfiguration.getState().name())
+                    .attr("version", pluginConfiguration.getVersion())
+                    .attr("configuration", pluginConfiguration.getConfiguration());
+            arrayNode.add(config.build());
         }
-        return JsonObjects.builder().attr("configs", an).build();
+        return JsonObjects.builder().attr("configs", arrayNode).build();
     }
 
     @ResponseBody

@@ -1,37 +1,28 @@
 package com.ecg.gumtree.comaas.filter.word;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.gumtree.filters.comaas.config.Rule;
 import com.gumtree.filters.comaas.config.WordFilterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
-public class PatternBuilder {
+class PatternBuilder {
     private static final Logger LOG = LoggerFactory.getLogger(PatternBuilder.class);
-
-    public static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
-        @Nullable
-        @Override
-        public String apply(String exception) {
-            return exception.toLowerCase();
-        }
-    };
 
     private WordFilterConfig filterConfig;
 
-    public PatternBuilder(WordFilterConfig filterConfig) {
+    PatternBuilder(WordFilterConfig filterConfig) {
         this.filterConfig = filterConfig;
     }
 
-    public Map<Rule, Pattern> buildAndPrecompileFromWordFilterRules() {
+    Map<Rule, Pattern> buildAndPrecompileFromWordFilterRules() {
         Map<Rule, Pattern> compiledPatterns = new HashMap<>();
 
         if (filterConfig.getRules() != null) {
@@ -60,7 +51,7 @@ public class PatternBuilder {
         final String mixedCasePattern = rule.getPattern();
         final String pattern = mixedCasePattern.toLowerCase();
 
-        final ImmutableList<String> exceptions = getLowerCaseExceptions(rule);
+        final List<String> exceptions = getLowerCaseExceptions(rule);
         final Integer patternLength = pattern.length();
 
         for (final String exception : exceptions) {
@@ -91,7 +82,11 @@ public class PatternBuilder {
         return builder.toString();
     }
 
-    private ImmutableList<String> getLowerCaseExceptions(final Rule rule) {
-        return ImmutableList.copyOf(Iterables.transform(rule.getExceptions(), TO_LOWERCASE));
+    private List<String> getLowerCaseExceptions(final Rule rule) {
+        List<String> exceptions = rule.getExceptions();
+        if (exceptions == null) {
+            return Collections.emptyList();
+        }
+        return exceptions.stream().map(String::toLowerCase).collect(Collectors.toList());
     }
 }

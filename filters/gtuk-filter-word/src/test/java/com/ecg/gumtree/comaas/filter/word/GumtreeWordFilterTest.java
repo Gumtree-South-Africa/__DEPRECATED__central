@@ -21,16 +21,14 @@ import com.gumtree.filters.comaas.config.WordFilterConfig;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.ecg.gumtree.MockFactory.mockConversation;
 import static com.ecg.gumtree.MockFactory.mockMessage;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -65,6 +63,20 @@ public class GumtreeWordFilterTest {
                 new Rule.Builder("fuck").withExceptions(ImmutableList.of("holy Fuck", "Fuck this")).withWordBoundaries(true).build(),
                 new Rule.Builder("\\>").withExceptions(ImmutableList.of()).withWordBoundaries(false).build(),
                 new Rule.Builder("<").withExceptions(ImmutableList.of()).withWordBoundaries(false).build());
+    }
+
+    @Test
+    public void ruleWithoutExceptionsShouldWork() throws Exception {
+        WordFilterConfig config = new WordFilterConfig.Builder(State.ENABLED, 0, Result.DROP)
+                .withVersion("1.0")
+                .withRules(Collections.singletonList(new Rule.Builder("danger").build()))
+                .build();
+
+        GumtreeWordFilter filter = new GumtreeWordFilter(new Filter("123", "123", null), config);
+
+        List<FilterFeedback> feedbackList = filter("you're in the danger zone", filter);
+
+        assertEquals(1, feedbackList.size());
     }
 
     @Test
@@ -228,6 +240,10 @@ public class GumtreeWordFilterTest {
     }
 
     private List<FilterFeedback> filter(String mailContent) {
+        return filter(mailContent, userFilter);
+    }
+
+    private List<FilterFeedback> filter(String mailContent, GumtreeWordFilter filter) {
         Mail mail = mock(Mail.class);
 
         TypedContent<String> content = new TypedContent<String>(MediaType.ANY_TYPE, mailContent) {
@@ -241,7 +257,7 @@ public class GumtreeWordFilterTest {
             }
         };
 
-        when(mail.getTextParts(false)).thenReturn(Arrays.asList(content));
+        when(mail.getTextParts(false)).thenReturn(Collections.singletonList(content));
 
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
         MutableConversation conversation = mockConversation("goodguy@hotmail.com", "badguy@hotmail.com", message);
@@ -251,13 +267,10 @@ public class GumtreeWordFilterTest {
         messageProcessingContext.getFilterContext().put("categoryBreadCrumb", ImmutableSet.of(987));
         messageProcessingContext.setConversation(conversation);
 
-        return userFilter.filter(messageProcessingContext);
+        return filter.filter(messageProcessingContext);
     }
 
     private String shortDescription(String json) {
-        Map<String, String> fields = new HashMap();
-
-        return (String) new Gson().fromJson(json, fields.getClass()).get("description");
+        return (String) new Gson().fromJson(json, HashMap.class).get("description");
     }
-
 }
