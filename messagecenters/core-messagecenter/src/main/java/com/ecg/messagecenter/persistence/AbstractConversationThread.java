@@ -121,7 +121,6 @@ public abstract class AbstractConversationThread {
         AbstractConversationThread that = (AbstractConversationThread) o;
 
         boolean equals = pairsAreEqual(
-                containsUnreadMessages, that.containsUnreadMessages,
                 adId, that.adId,
                 conversationId, that.conversationId,
                 createdAt.getMillis(), that.createdAt.getMillis(),
