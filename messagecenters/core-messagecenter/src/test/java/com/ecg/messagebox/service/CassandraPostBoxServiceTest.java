@@ -46,7 +46,7 @@ import static org.mockito.Mockito.*;
   "message.normalization.pattern.0=\\n.*(a|b)-.*?@mail.marktplaats.nl.*\\n",
   "message.normalization.pattern.1=(Aan|To)\\s?:.*?@.*?",
   "message.normalization.pattern.2=(Subject|Onderwerp)\\s?:.*?",
-  "message.normalization.pattern.3=(Date|Datum)\\s?:.*?",
+  "message.normalization.pattern.3=\\w*(?<!=[?=\\n])(Date|Datum)\\s?:.*?",
   "message.normalization.pattern.4=\\n.*<[^<>\\s]+@gmail.[^<>\\s]+>.*\\n",
   "message.normalization.pattern.5=\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan) *: *(?:</b>)? *<a[^>]+href=\"mailto:[^\">]+@[^\">]+\"[^>]*>[^<]*</a",
   "message.normalization.pattern.6=\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan) *: *(?:</b>)? *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",

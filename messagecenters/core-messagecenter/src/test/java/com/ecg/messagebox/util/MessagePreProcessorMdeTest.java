@@ -16,7 +16,7 @@ public class MessagePreProcessorMdeTest extends MessagePreProcessorTest {
             "(Gesendet): (Mo|Di|Mi|Do|Fr|Sa|So)[a-z]+, [0-3]?[0-9]\\. (Ja|Fe|Mä|Ap|Ma|Ju|Au|Se|Ok|No|De)[a-z]+ 2[0-9][0-9][0-9] um [0-2]?[0-9]:[0-5]?[0-9].*\\n",
             "(Aan|To)\\s?:.*?@.*?",
             "(Subject|Onderwerp|Betreff)\\s?:.*?",
-            "(Date|Datum)\\s?:.*?",
+            "\\w*(?<!=[?=\\n])(Date|Datum)\\s?:.*?",
             "\\n.*<[^<>\\s]+@gmail.[^<>\\s]+>.*\\n",
             "\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan|Von|An|Gesendet) *: *(?:</b>)? *<a[^>]+href=\"mailto:[^\">]+@[^\">]+\"[^>]*>[^<]*</a",
             "\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan|Von|An|Gesendet) *: *(?:</b>)? *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",
@@ -116,5 +116,14 @@ public class MessagePreProcessorMdeTest extends MessagePreProcessorTest {
         cutAndCompare(PATTERNS, "with slash and spaces<br   />", "with slash and spaces");
         cutAndCompare(PATTERNS, "no slash many spaces<br   >", "no slash many spaces");
         cutAndCompare(PATTERNS, "no slash many spaces<br class=\"any\"  >", "no slash many spaces");
+    }
+
+    @Test
+    public void outlook12Test() throws Exception {
+
+        String msg = loadFileAsString("/com/ecg/messagecenter/util/outlook12Message");
+        String expected = loadFileAsString("/com/ecg/messagecenter/util/outlook12Message_answer");
+
+        cutAndCompare(PATTERNS, msg, expected);
     }
 }

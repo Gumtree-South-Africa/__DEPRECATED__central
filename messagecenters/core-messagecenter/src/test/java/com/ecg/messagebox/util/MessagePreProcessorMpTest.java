@@ -11,7 +11,7 @@ public class MessagePreProcessorMpTest extends MessagePreProcessorTest {
       "\\n.*(a|b)-.*?@mail.marktplaats.nl.*\\n",
       "(Aan|To)\\s?:.*?@.*?",
       "(Subject|Onderwerp)\\s?:.*?",
-      "(Date|Datum)\\s?:.*?",
+      "\\w*(?<!=[?=\\n])(Date|Datum)\\s?:.*?",
       "\\n.*<[^<>\\s]+@gmail.[^<>\\s]+>.*\\n",
       "\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan) *: *(?:</b>)? *<a[^>]+href=\"mailto:[^\">]+@[^\">]+\"[^>]*>[^<]*</a",
       "\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan) *: *(?:</b>)? *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",
@@ -46,6 +46,15 @@ public class MessagePreProcessorMpTest extends MessagePreProcessorTest {
     public void realAnswer3Test() throws IOException {
         String msg = loadFileAsString("/com/ecg/messagecenter/util/mp/emailAnswer3.txt");
         String expected = loadFileAsString("/com/ecg/messagecenter/util/mp/emailAnswer3_cut.txt");
+
+        cutAndCompare(PATTERNS_MP, msg, expected);
+    }
+
+    @Test
+    public void outlook12Test() throws Exception {
+
+        String msg = loadFileAsString("/com/ecg/messagecenter/util/outlook12Message");
+        String expected = loadFileAsString("/com/ecg/messagecenter/util/outlook12Message_answer");
 
         cutAndCompare(PATTERNS_MP, msg, expected);
     }
