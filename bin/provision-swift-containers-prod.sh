@@ -21,9 +21,11 @@ function parseArgs() {
   echo
 
   if [[ "${DC,,}" == "ams1" ]]; then
-  		KEYSTONE="https://keystone.ams1.cloud.ecg.so/v2.0"
+  		readonly KEYSTONE="https://keystone.ams1.cloud.ecg.so/v2.0"
+  		readonly PROJECTID="d0b4d1b698f940e784e33f0ed276bb7a"
   elif [[ "${DC,,}" == "dus1" ]]; then
-  		KEYSTONE="https://keystone.dus1.cloud.ecg.so/v2.0"
+  		readonly KEYSTONE="https://keystone.dus1.cloud.ecg.so/v2.0"
+  		readonly PROJECTID="10a36ca6d44c46a1bd8b2ae1f92204b9"
   else
 		echo "DC value is either ams1 or dus1"
 		exit
@@ -37,8 +39,8 @@ function createInfra() {
 for i in `seq 0 $SWIFT_CONTAINER_NUM`; do
     CONTAINER_NAME="$SWIFT_CONTAINER_NAME-$i"
 	swift --os-auth-url "$KEYSTONE" --os-project-name comaas-prod --os-region-name "$DC" --os-tenant-name comaas-prod --os-username $USER --os-password "$password" post $CONTAINER_NAME
-	swift --os-auth-url "$KEYSTONE" --os-project-name comaas-prod --os-region-name "$DC" --os-tenant-name comaas-prod --os-username $USER --os-password "$password" post -w d0b4d1b698f940e784e33f0ed276bb7a:comaas-prod-swift $CONTAINER_NAME
-	swift --os-auth-url "$KEYSTONE" --os-project-name comaas-prod --os-region-name "$DC" --os-tenant-name comaas-prod --os-username $USER --os-password "$password" post -r '.r:*,.rlistings,d0b4d1b698f940e784e33f0ed276bb7a:comaas-prod-swift,d0b4d1b698f940e784e33f0ed276bb7a:comaas-prod-swift-readonly' $CONTAINER_NAME
+	swift --os-auth-url "$KEYSTONE" --os-project-name comaas-prod --os-region-name "$DC" --os-tenant-name comaas-prod --os-username $USER --os-password "$password" post -w $PROJECTID:comaas-prod-swift $CONTAINER_NAME
+	swift --os-auth-url "$KEYSTONE" --os-project-name comaas-prod --os-region-name "$DC" --os-tenant-name comaas-prod --os-username $USER --os-password "$password" post -r ".r:*,.rlistings,$PROJECTID:comaas-prod-swift,$PROJECTID:comaas-prod-swift-readonly" $CONTAINER_NAME
 done
 
 }
