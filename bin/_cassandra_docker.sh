@@ -5,7 +5,7 @@ if [ -z ${TENANT+x} ]; then
 fi
 
 readonly CASSANDRA_IMAGE_NAME="registry.ecg.so/comaas_cassandra_data:0.0.5"
-readonly CASSANDRA_CONTAINER_NAME="cassandra_test_${TENANT//,/-}_$(date +'%s')"
+readonly CASSANDRA_CONTAINER_NAME="cassandra_test_${TENANT//,/-}_pid$$_$(date +'%s')"
 
 # This value will be overwritten when the container is started
 CASSANDRA_CONTAINER_PORT=9042
