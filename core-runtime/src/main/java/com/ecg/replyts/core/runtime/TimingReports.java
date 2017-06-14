@@ -21,7 +21,7 @@ public final class TimingReports {
 
     static {
         try {
-            hostName = InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[^a-zA-Z0-9-]", "-");
+            hostName = InetAddress.getLocalHost().getCanonicalHostName().replaceAll("\\.", "_");
         } catch (UnknownHostException e) {
             LOG.error("can not get local host name ", e);
         } finally {
