@@ -65,8 +65,6 @@ else
     MVN_ARGS="-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStorePassword=changeit $MVN_ARGS"
 fi
 
-source "${DIR}/_cassandra_docker.sh"
-
 function parseCmd() {
     RUN_TESTS=0
     RUN_INTEGRATION_TESTS=0
@@ -120,6 +118,7 @@ function parseCmd() {
 }
 
 function main() {
+    source "${DIR}/_cassandra_docker.sh"
     local start=$(date +"%s")
 
     # export region as on salt-managed environments
