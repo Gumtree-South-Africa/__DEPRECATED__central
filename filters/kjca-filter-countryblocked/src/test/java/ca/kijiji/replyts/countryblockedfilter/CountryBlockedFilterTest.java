@@ -1,6 +1,6 @@
 package ca.kijiji.replyts.countryblockedfilter;
 
-import ca.kijiji.replyts.LeGridClient;
+import ca.kijiji.replyts.TnsApiClient;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -31,7 +31,7 @@ public class CountryBlockedFilterTest {
     private CountryBlockedFilter countryBlockedFilter;
 
     @Injectable
-    private LeGridClient leGridClient;
+    private TnsApiClient tnsApiClient;
 
     @Mocked
     private MessageProcessingContext mpc;
@@ -41,7 +41,7 @@ public class CountryBlockedFilterTest {
 
     @Before
     public void setUp() throws Exception {
-        countryBlockedFilter = new CountryBlockedFilter(SCORE, leGridClient);
+        countryBlockedFilter = new CountryBlockedFilter(SCORE, tnsApiClient);
     }
 
     @Test
@@ -55,7 +55,7 @@ public class CountryBlockedFilterTest {
             mail.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
             result = ipAddress;
 
-            leGridClient.getJsonAsMap("replier/ip-address/1.2.3.4/is-country-blocked");
+            tnsApiClient.getJsonAsMap("/replier/ip-address/1.2.3.4/is-country-blocked");
             result = ImmutableMap.of(IS_COUNTRY_BLOCKED_KEY, Boolean.TRUE);
         }};
 
@@ -82,7 +82,7 @@ public class CountryBlockedFilterTest {
 
         List<FilterFeedback> feedbacks = countryBlockedFilter.filter(mpc);
         assertThat(feedbacks.size(), is(0));
-        new FullVerifications(leGridClient) {};
+        new FullVerifications(tnsApiClient) {};
     }
 
     @Test
@@ -99,6 +99,6 @@ public class CountryBlockedFilterTest {
 
         List<FilterFeedback> feedbacks = countryBlockedFilter.filter(mpc);
         assertThat(feedbacks.size(), is(0));
-        new FullVerifications(leGridClient) {};
+        new FullVerifications(tnsApiClient) {};
     }
 }

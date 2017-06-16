@@ -17,10 +17,10 @@ import java.net.URI;
 
 class IncrementReplyCountCommand extends HystrixCommand<Void>{
     private static final Logger LOG = LoggerFactory.getLogger(IncrementReplyCountCommand.class);
+    private static final int EXECUTION_TIMEOUT_MILLIS = 1025;
     private static final int THREAD_POOL_SIZE = 5;
-    private static final int EXECUTION_TIMEOUT = 1025;
     private static final HystrixCommandProperties.Setter COMMAND_DEFAULTS = HystrixCommandProperties.Setter()
-            .withExecutionTimeoutInMilliseconds(EXECUTION_TIMEOUT);
+            .withExecutionTimeoutInMilliseconds(EXECUTION_TIMEOUT_MILLIS);
     private static final HystrixThreadPoolProperties.Setter POOL_DEFAULTS = HystrixThreadPoolProperties.Setter()
             .withCoreSize(THREAD_POOL_SIZE);
 

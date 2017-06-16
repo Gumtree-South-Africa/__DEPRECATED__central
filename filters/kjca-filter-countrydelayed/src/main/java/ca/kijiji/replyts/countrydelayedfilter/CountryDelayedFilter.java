@@ -1,6 +1,6 @@
 package ca.kijiji.replyts.countrydelayedfilter;
 
-import ca.kijiji.replyts.LeGridClient;
+import ca.kijiji.replyts.TnsApiClient;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
@@ -19,14 +19,14 @@ public class CountryDelayedFilter implements Filter {
 
     private static final Logger LOG = LoggerFactory.getLogger(CountryDelayedFilter.class);
 
-    public static final String IS_COUNTRY_DELAYED_KEY = "is-country-delayed";
+    static final String IS_COUNTRY_DELAYED_KEY = "is-country-delayed";
 
     private final int countryDelayedScore;
-    private final LeGridClient leGridClient;
+    private final TnsApiClient tnsApiClient;
 
-    public CountryDelayedFilter(int countryDelayedScore, LeGridClient leGridClient) {
+    CountryDelayedFilter(int countryDelayedScore, TnsApiClient tnsApiClient) {
         this.countryDelayedScore = countryDelayedScore;
-        this.leGridClient = leGridClient;
+        this.tnsApiClient = tnsApiClient;
     }
 
     @Override
@@ -56,7 +56,7 @@ public class CountryDelayedFilter implements Filter {
     }
 
     private Boolean checkIfCountryDelayedInLeGrid(String ipAddress) {
-        Map result = leGridClient.getJsonAsMap("replier/ip-address/" + ipAddress + "/is-country-delayed");
+        Map result = this.tnsApiClient.getJsonAsMap("/replier/ip-address/" + ipAddress + "/is-country-delayed");
         Boolean isDelayed = (Boolean) result.get(IS_COUNTRY_DELAYED_KEY);
         LOG.debug("Is {} country delayed? {}", ipAddress, isDelayed);
         return isDelayed;

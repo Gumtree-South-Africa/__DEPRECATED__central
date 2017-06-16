@@ -1,6 +1,6 @@
 package ca.kijiji.replyts.countrydelayedfilter;
 
-import ca.kijiji.replyts.LeGridClient;
+import ca.kijiji.replyts.TnsApiClient;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -31,7 +31,7 @@ public class CountryDelayedFilterTest {
     private CountryDelayedFilter countryDelayedFilter;
 
     @Injectable
-    private LeGridClient leGridClient;
+    private TnsApiClient tnsApiClient;
 
     @Mocked
     private MessageProcessingContext mpc;
@@ -41,7 +41,7 @@ public class CountryDelayedFilterTest {
 
     @Before
     public void setUp() throws Exception {
-        countryDelayedFilter = new CountryDelayedFilter(SCORE, leGridClient);
+        countryDelayedFilter = new CountryDelayedFilter(SCORE, tnsApiClient);
     }
 
     @Test
@@ -55,7 +55,7 @@ public class CountryDelayedFilterTest {
             mail.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
             result = ipAddress;
 
-            leGridClient.getJsonAsMap("replier/ip-address/1.2.3.4/is-country-delayed");
+            tnsApiClient.getJsonAsMap("/replier/ip-address/1.2.3.4/is-country-delayed");
             result = ImmutableMap.of(IS_COUNTRY_DELAYED_KEY, Boolean.TRUE);
         }};
 
@@ -82,7 +82,7 @@ public class CountryDelayedFilterTest {
 
         List<FilterFeedback> feedbacks = countryDelayedFilter.filter(mpc);
         assertThat(feedbacks.size(), is(0));
-        new FullVerifications(leGridClient) {};
+        new FullVerifications(tnsApiClient) {};
     }
 
     @Test
@@ -99,7 +99,7 @@ public class CountryDelayedFilterTest {
 
         List<FilterFeedback> feedbacks = countryDelayedFilter.filter(mpc);
         assertThat(feedbacks.size(), is(0));
-        new FullVerifications(leGridClient) {};
+        new FullVerifications(tnsApiClient) {};
     }
 
 }

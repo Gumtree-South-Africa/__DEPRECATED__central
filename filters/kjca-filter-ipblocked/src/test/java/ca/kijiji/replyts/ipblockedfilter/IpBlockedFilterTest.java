@@ -1,6 +1,6 @@
 package ca.kijiji.replyts.ipblockedfilter;
 
-import ca.kijiji.replyts.LeGridClient;
+import ca.kijiji.replyts.TnsApiClient;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -32,7 +32,7 @@ public class IpBlockedFilterTest {
     private IpBlockedFilter ipBlockedFilter;
 
     @Injectable
-    private LeGridClient leGridClient;
+    private TnsApiClient tnsApiClient;
 
     @Mocked
     private MessageProcessingContext mpc;
@@ -42,7 +42,7 @@ public class IpBlockedFilterTest {
 
     @Before
     public void setUp() throws Exception {
-        ipBlockedFilter = new IpBlockedFilter(SCORE, leGridClient);
+        ipBlockedFilter = new IpBlockedFilter(SCORE, tnsApiClient);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class IpBlockedFilterTest {
             mail.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
             result = ipAddress;
 
-            leGridClient.getJsonAsMap("replier/ip/1.2.3.4/is-blocked");
+            tnsApiClient.getJsonAsMap("/replier/ip/1.2.3.4/is-blocked");
             result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
         }};
 
@@ -83,7 +83,7 @@ public class IpBlockedFilterTest {
 
         List<FilterFeedback> feedbacks = ipBlockedFilter.filter(mpc);
         assertThat(feedbacks.size(), is(0));
-        new FullVerifications(leGridClient) {};
+        new FullVerifications(tnsApiClient) {};
     }
 
     @Test
@@ -100,6 +100,6 @@ public class IpBlockedFilterTest {
 
         List<FilterFeedback> feedbacks = ipBlockedFilter.filter(mpc);
         assertThat(feedbacks.size(), is(0));
-        new FullVerifications(leGridClient) {};
+        new FullVerifications(tnsApiClient) {};
     }
 }

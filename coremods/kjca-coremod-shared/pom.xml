@@ -62,6 +62,11 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>ca.kijiji</groupId>
+            <artifactId>remote-service-command</artifactId>
+        </dependency>
+
         <!-- Testing -->
 
         <dependency>

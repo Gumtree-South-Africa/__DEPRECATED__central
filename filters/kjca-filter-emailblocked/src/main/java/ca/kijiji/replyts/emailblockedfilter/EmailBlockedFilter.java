@@ -1,6 +1,6 @@
 package ca.kijiji.replyts.emailblockedfilter;
 
-import ca.kijiji.replyts.LeGridClient;
+import ca.kijiji.replyts.TnsApiClient;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -18,14 +18,14 @@ public class EmailBlockedFilter implements Filter {
 
     private static final Logger LOG = LoggerFactory.getLogger(EmailBlockedFilter.class);
 
-    public static final String IS_BLOCKED_KEY = "is-blocked";
+    static final String IS_BLOCKED_KEY = "is-blocked";
 
     private final int emailBlockedScore;
-    private final LeGridClient leGridClient;
+    private TnsApiClient tnsApiClient;
 
-    public EmailBlockedFilter(int emailBlockedScore, LeGridClient leGridClient) {
+    EmailBlockedFilter(int emailBlockedScore, TnsApiClient tnsApiClient) {
         this.emailBlockedScore = emailBlockedScore;
-        this.leGridClient = leGridClient;
+        this.tnsApiClient = tnsApiClient;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class EmailBlockedFilter implements Filter {
     }
 
     private Boolean checkIfEmailBlockedInLeGrid(String from) {
-        Map result = leGridClient.getJsonAsMap("replier/email/" + from + "/is-blocked");
+        Map result = tnsApiClient.getJsonAsMap("/replier/email/" + from + "/is-blocked");
         Boolean isBlocked = (Boolean) result.get(IS_BLOCKED_KEY);
         LOG.debug("Is email {} blocked? {}", from, isBlocked);
         return isBlocked;

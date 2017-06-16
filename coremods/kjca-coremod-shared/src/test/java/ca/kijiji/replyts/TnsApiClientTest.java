@@ -5,14 +5,19 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
+import org.hamcrest.core.Is;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.Map;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.resetAllRequests;
@@ -59,7 +64,7 @@ public class TnsApiClientTest {
     }
 
     @Test
-    public void retryOnce_firstCallTimedOut() throws Exception{
+    public void incrementReplyCount_retryOnce_firstCallTimedOut() throws Exception{
         stubFor(postRequest
             .inScenario("retry")
             .whenScenarioStateIs(Scenario.STARTED)
@@ -75,7 +80,7 @@ public class TnsApiClientTest {
     }
 
     @Test
-    public void max2Retries_timeOutExceptionThrown_allCallTimedOut() throws Exception {
+    public void incrementReplyCount_max2Retries_timeOutExceptionThrown_allCallTimedOut() throws Exception {
         stubFor(postRequest.willReturn(delayedResponse));
 
         try {
@@ -84,6 +89,17 @@ public class TnsApiClientTest {
             assertEquals(HystrixRuntimeException.class, e.getClass());
             verify(2, postRequestedFor(urlEqualTo("/tns/api/replier/ad/1/increment-reply-count")));
         }
+    }
+
+    @Test
+    public void jsonObject_convertedToMap() {
+        // This validates that we correct for the missing "/api" in the API base URL without having to add it to each call to TnsApiClient#getJsonAsMap()
+        stubFor(get(urlEqualTo("/api/replier/email/user@example.com/is-new")).willReturn(aResponse().withStatus(200).withBody("{\"thing\":true}")));
+
+        final Map map = tnsApiClient.getJsonAsMap("/replier/email/user@example.com/is-new");
+
+        Assert.assertTrue(map.containsKey("thing"));
+        Assert.assertThat(map.get("thing"), Is.is(true));
     }
 
     @After

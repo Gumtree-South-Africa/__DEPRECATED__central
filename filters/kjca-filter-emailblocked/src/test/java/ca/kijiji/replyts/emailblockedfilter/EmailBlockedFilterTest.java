@@ -1,6 +1,6 @@
 package ca.kijiji.replyts.emailblockedfilter;
 
-import ca.kijiji.replyts.LeGridClient;
+import ca.kijiji.replyts.TnsApiClient;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
@@ -27,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +48,7 @@ public class EmailBlockedFilterTest {
     private EmailBlockedFilter emailBlockedFilter;
 
     @Injectable
-    private LeGridClient leGridClient;
+    private TnsApiClient tnsApiClient;
 
     @Mocked
     private Mail mail;
@@ -60,7 +59,7 @@ public class EmailBlockedFilterTest {
 
     @Before
     public void setUp() throws Exception {
-        emailBlockedFilter = new EmailBlockedFilter(SCORE, leGridClient);
+        emailBlockedFilter = new EmailBlockedFilter(SCORE, tnsApiClient);
 
         messageBuilder = ImmutableMessage.Builder
                 .aMessage()
@@ -93,9 +92,9 @@ public class EmailBlockedFilterTest {
         mpc.setMessageDirection(MessageDirection.BUYER_TO_SELLER);
 
         new Expectations() {{
-            leGridClient.getJsonAsMap(String.format("replier/email/%s/is-blocked", BUYER_EMAIL));
+            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", BUYER_EMAIL));
             result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
-            leGridClient.getJsonAsMap(String.format("replier/email/%s/is-blocked", SELLER_EMAIL));
+            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", SELLER_EMAIL));
             result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.FALSE);
         }};
 
@@ -114,9 +113,9 @@ public class EmailBlockedFilterTest {
         mpc.setMessageDirection(MessageDirection.BUYER_TO_SELLER);
 
         new Expectations() {{
-            leGridClient.getJsonAsMap(String.format("replier/email/%s/is-blocked", BUYER_EMAIL));
+            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", BUYER_EMAIL));
             result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.FALSE);
-            leGridClient.getJsonAsMap(String.format("replier/email/%s/is-blocked", SELLER_EMAIL));
+            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", SELLER_EMAIL));
             result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.FALSE);
         }};
 
@@ -130,9 +129,9 @@ public class EmailBlockedFilterTest {
         mpc.setMessageDirection(MessageDirection.BUYER_TO_SELLER);
 
         new Expectations() {{
-            leGridClient.getJsonAsMap(String.format("replier/email/%s/is-blocked", BUYER_EMAIL));
+            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", BUYER_EMAIL));
             result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
-            leGridClient.getJsonAsMap(String.format("replier/email/%s/is-blocked", SELLER_EMAIL));
+            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", SELLER_EMAIL));
             result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
         }};
 
@@ -164,9 +163,9 @@ public class EmailBlockedFilterTest {
         mpc.setMessageDirection(MessageDirection.SELLER_TO_BUYER);
 
         new Expectations() {{
-            leGridClient.getJsonAsMap(String.format("replier/email/%s/is-blocked", BUYER_EMAIL));
+            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", BUYER_EMAIL));
             result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.FALSE);
-            leGridClient.getJsonAsMap(String.format("replier/email/%s/is-blocked", SELLER_EMAIL));
+            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", SELLER_EMAIL));
             result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
         }};
 
@@ -193,9 +192,9 @@ public class EmailBlockedFilterTest {
         mpc.setMessageDirection(MessageDirection.SELLER_TO_BUYER);
 
         new Expectations() {{
-            leGridClient.getJsonAsMap(String.format("replier/email/%s/is-blocked", BUYER_EMAIL));
+            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", BUYER_EMAIL));
             result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.FALSE);
-            leGridClient.getJsonAsMap(String.format("replier/email/%s/is-blocked", SELLER_EMAIL));
+            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", SELLER_EMAIL));
             result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
         }};
 
@@ -216,6 +215,6 @@ public class EmailBlockedFilterTest {
         List<FilterFeedback> feedbacks = emailBlockedFilter.filter(mpc);
         assertThat(feedbacks.size(), is(0));
 
-        new FullVerifications(leGridClient) {};
+        new FullVerifications(tnsApiClient) {};
     }
 }

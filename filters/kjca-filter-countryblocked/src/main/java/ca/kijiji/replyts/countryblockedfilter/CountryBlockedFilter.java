@@ -1,6 +1,6 @@
 package ca.kijiji.replyts.countryblockedfilter;
 
-import ca.kijiji.replyts.LeGridClient;
+import ca.kijiji.replyts.TnsApiClient;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
@@ -19,14 +19,14 @@ public class CountryBlockedFilter implements Filter {
 
     private static final Logger LOG = LoggerFactory.getLogger(CountryBlockedFilter.class);
 
-    public static final String IS_COUNTRY_BLOCKED_KEY = "is-country-blocked";
+    static final String IS_COUNTRY_BLOCKED_KEY = "is-country-blocked";
 
     private final int countryBlockedScore;
-    private final LeGridClient leGridClient;
+    private final TnsApiClient tnsApiClient;
 
-    public CountryBlockedFilter(int countryBlockedScore, LeGridClient leGridClient) {
+    CountryBlockedFilter(int countryBlockedScore, TnsApiClient tnsApiClient) {
         this.countryBlockedScore = countryBlockedScore;
-        this.leGridClient = leGridClient;
+        this.tnsApiClient = tnsApiClient;
     }
 
     @Override
@@ -56,7 +56,7 @@ public class CountryBlockedFilter implements Filter {
     }
 
     private Boolean checkIfCountryBlockedInLeGrid(String ipAddress) {
-        Map result = leGridClient.getJsonAsMap("replier/ip-address/" + ipAddress + "/is-country-blocked");
+        Map result = this.tnsApiClient.getJsonAsMap("/replier/ip-address/" + ipAddress + "/is-country-blocked");
         Boolean isBlocked = (Boolean) result.get(IS_COUNTRY_BLOCKED_KEY);
         LOG.debug("Is {} country blocked? {}", ipAddress, isBlocked);
         return isBlocked;

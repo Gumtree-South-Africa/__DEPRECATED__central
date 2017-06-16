@@ -2,7 +2,7 @@ package ca.kijiji.replyts.newreplierfilter;
 
 import ca.kijiji.replyts.ActivableFilter;
 import ca.kijiji.replyts.Activation;
-import ca.kijiji.replyts.LeGridClient;
+import ca.kijiji.replyts.TnsApiClient;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -10,7 +10,6 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Map;
 
@@ -20,13 +19,13 @@ public class NewReplierFilter extends ActivableFilter {
 
     static final String IS_NEW_KEY = "is-new";
 
-    private final LeGridClient leGridClient;
     private final int newReplierScore;
+    private final TnsApiClient tnsApiClient;
 
-    public NewReplierFilter(int newReplierScore, LeGridClient leGridClient, Activation activation) {
+    NewReplierFilter(int newReplierScore, Activation activation, TnsApiClient tnsApiClient) {
         super(activation);
         this.newReplierScore = newReplierScore;
-        this.leGridClient = leGridClient;
+        this.tnsApiClient = tnsApiClient;
     }
 
     @Override
@@ -52,11 +51,7 @@ public class NewReplierFilter extends ActivableFilter {
     }
 
     private Boolean checkIfEmailNewInLeGrid(String from) {
-        Map result = leGridClient.getClient()
-                .target(leGridClient.getGridApiEndPoint())
-                .path("replier/email/" + from + "/is-new")
-                .request(MediaType.APPLICATION_JSON)
-                .get(Map.class);
+        Map result = tnsApiClient.getJsonAsMap("/replier/email/" + from + "/is-new");
 
         Boolean isNew = (Boolean) result.get(IS_NEW_KEY);
         LOG.debug("Is user {} new? {}", from, isNew);

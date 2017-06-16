@@ -1,14 +1,14 @@
 package ca.kijiji.replyts.ipblockedfilter;
 
-import ca.kijiji.replyts.LeGridClient;
+import ca.kijiji.replyts.TnsApiClient;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -19,14 +19,14 @@ public class IpBlockedFilter implements Filter {
 
     private static final Logger LOG = LoggerFactory.getLogger(IpBlockedFilter.class);
 
-    public static final String IS_BLOCKED_KEY = "is-blocked";
+    static final String IS_BLOCKED_KEY = "is-blocked";
 
     private final int ipBlockedScore;
-    private final LeGridClient leGridClient;
+    private final TnsApiClient tnsApiClient;
 
-    public IpBlockedFilter(int ipBlockedScore, LeGridClient leGridClient) {
+    IpBlockedFilter(int ipBlockedScore, TnsApiClient tnsApiClient) {
         this.ipBlockedScore = ipBlockedScore;
-        this.leGridClient = leGridClient;
+        this.tnsApiClient = tnsApiClient;
     }
 
     @Override
@@ -56,7 +56,7 @@ public class IpBlockedFilter implements Filter {
     }
 
     private Boolean checkIfIpBlockedInLeGrid(String ipAddress) {
-        Map result = leGridClient.getJsonAsMap("replier/ip/" + ipAddress + "/is-blocked");
+        Map result = this.tnsApiClient.getJsonAsMap("/replier/ip/" + ipAddress + "/is-blocked");
         Boolean isBlocked = (Boolean) result.get(IS_BLOCKED_KEY);
         LOG.debug("Is IP {} blocked? {}", ipAddress, isBlocked);
         return isBlocked;
