@@ -26,7 +26,7 @@ public class CassandraMessageRepository implements CassandraRepository {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraMessageRepository.class);
 
     @Autowired
-    @Qualifier("cassandraSessionForMb")
+    @Qualifier("cassandraSession")
     private Session session;
 
     @Autowired

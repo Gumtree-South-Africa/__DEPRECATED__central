@@ -43,7 +43,7 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
 
     // Cassandra
 
-    @Value("${persistence.cassandra.core.dc:#{systemEnvironment['region']}}")
+    @Value("${persistence.cassandra.dc:#{systemEnvironment['region']}}")
     private String cassandraDataCenter;
 
     @Autowired

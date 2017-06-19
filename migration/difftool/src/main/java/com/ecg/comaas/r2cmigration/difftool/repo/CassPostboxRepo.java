@@ -60,7 +60,7 @@ public class CassPostboxRepo {
 
     private final ConsistencyLevel cassandraReadConsistency;
 
-    public CassPostboxRepo(@Qualifier("cassandraSessionForMb") Session session,
+    public CassPostboxRepo(@Qualifier("cassandraSession") Session session,
                            @Value("${persistence.cassandra.consistency.read:#{null}}") ConsistencyLevel cassandraReadConsistency) {
         this.session = session;
         this.selectPostbox = session.prepare(SELECT_POSTBOX_Q);
