@@ -2,9 +2,9 @@ package com.ecg.de.mobile.replyts.comafilterservice.filters;
 
 import com.ecg.de.mobile.replyts.comafilterservice.FilterService;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
 
 import java.util.Date;
+import java.util.Optional;
 
 public class ContactMessageAssembler {
     
@@ -12,17 +12,14 @@ public class ContactMessageAssembler {
         
         ContactMessage message = new ContactMessage();
 
+        message.setConversationId(context.getConversation().getId());
+
         message.setBuyerMailAddress(context.getConversation()
                 .getUserIdFor(context.getMessageDirection().getFromRole()));
 
-        Optional<Date> messageCreatedTime = Optional.fromNullable(context.getMail().getSentDate());
+        Date messageCreatedTime = Optional.ofNullable(context.getMail().getSentDate()).orElse(new Date());
+        message.setMessageCreatedTime(messageCreatedTime);
 
-        if(messageCreatedTime.isPresent()) {
-            message.setMessageCreatedTime(messageCreatedTime.get());
-        } else {
-            message.setMessageCreatedTime(new Date());
-        }
-        
         if(context.getMail().getPlaintextParts().size() > 0) {
             message.setMessage(context.getMail().getPlaintextParts().get(0));
         }
@@ -42,7 +39,9 @@ public class ContactMessageAssembler {
             if (phoneNumber != null) {
                 message.setBuyerPhoneNumber(phoneNumber);
             }
-        } catch (IllegalArgumentException e) { }
+        } catch (IllegalArgumentException e) {
+            // skipped
+        }
 
         String ipAddressV4V6 = getIpAddressV4V6(context);
         if(ipAddressV4V6 != null) {

@@ -8,14 +8,14 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.springframework.util.StringUtils;
 
 public class SmsPostProcessor implements PostProcessor {
-	
-	private static final Logger LOG = LoggerFactory.getLogger(SmsPostProcessor.class);
-	
-	private final ContactMessageSmsService contactMessageSmsService;
+
+    private static final Logger LOG = LoggerFactory.getLogger(SmsPostProcessor.class);
+
+    private final ContactMessageSmsService contactMessageSmsService;
     private final int order;
 
     SmsPostProcessor(ContactMessageSmsService contactMessageSmsService, int order) {
-    	this.contactMessageSmsService = contactMessageSmsService;
+        this.contactMessageSmsService = contactMessageSmsService;
         this.order = order;
     }
 
@@ -25,25 +25,22 @@ public class SmsPostProcessor implements PostProcessor {
     }
 
     @Override
-    public void postProcess( MessageProcessingContext messageContext) {
-    	String adIdString = messageContext.getConversation()
-				.getAdId();
-    	long adId = Utils.adIdStringToAdId(adIdString);
-    	ContactMessage contactMessage = ContactMessageAssembler.assemble(messageContext.getConversation().getBuyerId(), messageContext.getMail().getSentDate(), messageContext.getMessage().getHeaders());
-    	
-    	LOG.debug("SmsPostProcessor contactMessage " + contactMessage);
-    	LOG.info("sendSms " + sendSms(adId, contactMessage));
+    public void postProcess(MessageProcessingContext messageContext) {
+        ContactMessage contactMessage = ContactMessageAssembler.assemble(messageContext.getConversation().getBuyerId(), messageContext.getMail().getSentDate(), messageContext.getMessage().getHeaders());
+
+        LOG.debug("SmsPostProcessor contactMessage " + contactMessage);
+        boolean result = sendSms(contactMessage);
+        LOG.info("sendSms " + result);
     }
 
-    
-    private boolean sendSms(long adId, ContactMessage contactMessage) {
+
+    private boolean sendSms(ContactMessage contactMessage) {
         // if sms sending fails just log it
         if (StringUtils.hasText(contactMessage.getSmsPhoneNumber())) {
             try {
-            	contactMessageSmsService.send(adId, contactMessage);
-                return true;
+              return contactMessageSmsService.send(contactMessage);
             } catch (Exception e) {
-            	LOG.error("Could not send sms.", e);
+                LOG.error("Could not send sms.", e);
             }
         }
 

@@ -4,6 +4,8 @@ import java.util.Date;
 
 public class ContactMessage {
 
+    private String conversationId;
+
     private String buyerMailAddress;
 
     private PhoneNumber buyerPhoneNumber;
@@ -17,6 +19,14 @@ public class ContactMessage {
     private String ipAddressV4V6;
 
     private Date messageCreatedTime;
+
+    public String getConversationId() {
+        return conversationId;
+    }
+
+    public void setConversationId(String conversationId) {
+        this.conversationId = conversationId;
+    }
 
     public String getBuyerMailAddress() {
         return buyerMailAddress;
@@ -78,7 +88,8 @@ public class ContactMessage {
 
 	@Override
 	public String toString() {
-		return "ContactMessage [buyerMailAddress=" + buyerMailAddress
+		return "ContactMessage [conversationId=" + conversationId
+                + ", buyerMailAddress=" + buyerMailAddress
 				+ ", buyerPhoneNumber=" + buyerPhoneNumber + ", message="
 				+ message + ", siteId=" + siteId + ", sellerType=" + sellerType
 				+ ", ipAddressV4V6=" + ipAddressV4V6 + ", messageCreatedTime="
