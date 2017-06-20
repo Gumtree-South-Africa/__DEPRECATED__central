@@ -2,7 +2,8 @@ package com.ecg.messagebox.persistence;
 
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
-import com.ecg.messagecenter.persistence.ResponseData;
+import com.ecg.messagebox.model.MessageType;
+import com.ecg.messagebox.model.ResponseData;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.joda.time.Seconds;
@@ -62,7 +63,7 @@ public class DefaultResponseDataRepository implements ResponseDataRepository {
 
     private ResponseData rowToResponseData(Row row) {
         return new ResponseData(row.getString("userid"), row.getString("convid"),
-                new DateTime(row.getDate("createdate")), com.ecg.messagecenter.persistence.MessageType.get(row.getString("convtype")), row.getInt("responsespeed"));
+                new DateTime(row.getDate("createdate")), MessageType.getWithEmailAsDefault(row.getString("convtype")), row.getInt("responsespeed"));
     }
 
     @Override

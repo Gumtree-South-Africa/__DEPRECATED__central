@@ -35,4 +35,8 @@ public enum MessageType {
     public static MessageType get(String value) {
         return lookup.get(value);
     }
+
+    public static MessageType getWithEmailAsDefault(String value) {
+        return value == null ? EMAIL : MessageType.get(value);
+    }
 }

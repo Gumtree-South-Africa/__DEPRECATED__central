@@ -2,7 +2,8 @@ package com.ecg.messagebox.persistence;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
-import com.ecg.messagecenter.persistence.ResponseData;
+import com.ecg.messagebox.model.MessageType;
+import com.ecg.messagebox.model.ResponseData;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.jayway.awaitility.Duration;
 import org.joda.time.DateTime;
@@ -46,7 +47,7 @@ public class DefaultResponseDataRepositoryIntegrationTest {
     @Test
     public void shouldAddOrUpdateResponseData() {
         DateTime creationDate = DateTime.now();
-        ResponseData expectedResponseData = new ResponseData(UID1, CID, creationDate, com.ecg.messagecenter.persistence.MessageType.ASQ, 50);
+        ResponseData expectedResponseData = new ResponseData(UID1, CID, creationDate, MessageType.ASQ, 50);
 
         responseDataRepository.addOrUpdateResponseDataAsync(expectedResponseData);
 

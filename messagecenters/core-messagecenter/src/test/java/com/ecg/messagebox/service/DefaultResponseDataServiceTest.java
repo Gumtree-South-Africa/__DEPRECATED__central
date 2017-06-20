@@ -1,8 +1,10 @@
 package com.ecg.messagebox.service;
 
 
+import com.ecg.messagebox.model.MessageType;
 import com.ecg.messagebox.persistence.ResponseDataRepository;
-import com.ecg.messagecenter.persistence.ResponseData;
+import com.ecg.messagebox.model.ResponseData;
+import com.ecg.messagebox.model.AggregatedResponseData;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import org.joda.time.DateTime;
@@ -14,12 +16,14 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.Builder.aConversation;
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage.Builder.aMessage;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -55,7 +59,7 @@ public class DefaultResponseDataServiceTest {
 
         service.calculateResponseData(USER_ID_1, rtsConversation, rtsMsg);
 
-        ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, com.ecg.messagecenter.persistence.MessageType.ASQ, -1);
+        ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, MessageType.ASQ, -1);
         verify(responseDataRepository).addOrUpdateResponseDataAsync(responseData);
     }
 
@@ -72,7 +76,7 @@ public class DefaultResponseDataServiceTest {
 
         service.calculateResponseData(USER_ID_1, rtsConversation, secondRtsMessage);
 
-        ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, com.ecg.messagecenter.persistence.MessageType.ASQ, 10);
+        ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, MessageType.ASQ, 10);
         verify(responseDataRepository).addOrUpdateResponseDataAsync(responseData);
     }
 
@@ -92,7 +96,7 @@ public class DefaultResponseDataServiceTest {
 
         service.calculateResponseData(USER_ID_1, rtsConversation, thirdRtsMessage);
 
-        ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, com.ecg.messagecenter.persistence.MessageType.ASQ, 10);
+        ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, MessageType.ASQ, 10);
         verify(responseDataRepository, never()).addOrUpdateResponseDataAsync(responseData);
     }
 
@@ -109,7 +113,7 @@ public class DefaultResponseDataServiceTest {
 
         service.calculateResponseData(USER_ID_1, rtsConversation, firstRtsMessage);
 
-        ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, com.ecg.messagecenter.persistence.MessageType.ASQ, -1);
+        ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, MessageType.ASQ, -1);
         verify(responseDataRepository, never()).addOrUpdateResponseDataAsync(responseData);
     }
 
@@ -126,7 +130,7 @@ public class DefaultResponseDataServiceTest {
 
         service.calculateResponseData(USER_ID_1, rtsConversation, firstRtsMessage);
 
-        ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, com.ecg.messagecenter.persistence.MessageType.ASQ, -1);
+        ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, MessageType.ASQ, -1);
         verify(responseDataRepository, never()).addOrUpdateResponseDataAsync(responseData);
     }
 
@@ -135,6 +139,14 @@ public class DefaultResponseDataServiceTest {
         service.getResponseData(USER_ID_1);
 
         verify(responseDataRepository).getResponseData(USER_ID_1);
+    }
+
+    @Test
+    public void aggregatedResponseDataShouldGetListFromRepoAndCalculateAggregatedValue() {
+        Optional<AggregatedResponseData> responseData = service.getAggregatedResponseData(USER_ID_1);
+        verify(responseDataRepository).getResponseData(USER_ID_1);
+
+        assertEquals(Optional.empty(), responseData);
     }
 
     private Message newMessage(String id, MessageDirection direction, MessageState state, String subject) {

@@ -1,7 +1,6 @@
 package com.ecg.messagebox.controllers;
 
 import com.jayway.restassured.RestAssured;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
@@ -9,7 +8,7 @@ import javax.mail.internet.MimeMessage;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static org.hamcrest.Matchers.equalTo;
 
-@Ignore
+
 public class ResponseDataControllerAcceptanceTest extends ReplyTsIntegrationTestRuleHelper {
 
     @Test
@@ -40,8 +39,15 @@ public class ResponseDataControllerAcceptanceTest extends ReplyTsIntegrationTest
                 .body("body.responseData.size()", equalTo(1))
                 .body("body.responseData[0].userId", equalTo("2"))
                 .body("body.responseData[0].responseSpeed", equalTo(0))
-                .body("body.responseData[0].conversationType", equalTo("EMAIL"))
+                .body("body.responseData[0].conversationType", equalTo("email"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/response-data");
+
+        // and aggregated response data for seller with id 2 is not available, because of the lack of responses
+        RestAssured.given()
+                .expect()
+                .statusCode(200)
+                .body("body", equalTo("ENTITY_NOT_FOUND"))
+                .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/aggregated-response-data");
 
         // we do not have a response data for buyer with id 1
         RestAssured.given()

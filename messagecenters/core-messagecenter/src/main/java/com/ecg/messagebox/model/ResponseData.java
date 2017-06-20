@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.persistence;
+package com.ecg.messagebox.model;
 
 import org.joda.time.DateTime;
 

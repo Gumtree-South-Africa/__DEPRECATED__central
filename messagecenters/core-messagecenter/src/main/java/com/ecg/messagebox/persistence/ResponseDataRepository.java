@@ -1,6 +1,6 @@
 package com.ecg.messagebox.persistence;
 
-import com.ecg.messagecenter.persistence.ResponseData;
+import com.ecg.messagebox.model.ResponseData;
 
 import java.util.List;
 
