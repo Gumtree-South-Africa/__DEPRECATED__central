@@ -131,7 +131,7 @@ public class PostBox<T extends AbstractConversationThread> {
         if (o == null || getClass() != o.getClass()) return false;
 
         PostBox postBox = (PostBox) o;
-        return Pairwise.pairsAreEqual(email, postBox.email, conversationThreads, postBox.conversationThreads);
+        return Pairwise.pairsAreEqual(email, postBox.email, newRepliesCounter, postBox.newRepliesCounter, conversationThreads, postBox.conversationThreads);
     }
 
     public DateTime getLastModification() {
@@ -161,8 +161,8 @@ public class PostBox<T extends AbstractConversationThread> {
         this.newRepliesCounter.inc();
     }
 
-    public void decrementNewReplies() {
-        this.newRepliesCounter.dec();
+    public void decrementNewReplies(long numOfReplies) {
+        this.newRepliesCounter.dec(numOfReplies);
     }
 
     public void resetReplies() {
@@ -186,8 +186,7 @@ public class PostBox<T extends AbstractConversationThread> {
 
     @Override
     public String toString() {
-        Function<AbstractConversationThread, String> stringer = (AbstractConversationThread c) -> c.toString();
-        return toStringHelper(stringer);
+        return toStringHelper(AbstractConversationThread::toString);
     }
 
     private String toStringHelper(Function<AbstractConversationThread, String> stringer) {
@@ -213,6 +212,6 @@ public class PostBox<T extends AbstractConversationThread> {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(email, conversationThreads);
+        return Objects.hashCode(email, conversationThreads, newRepliesCounter);
     }
 }

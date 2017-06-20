@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 
 @Controller
 public class PostBoxOverviewController {
@@ -71,7 +72,7 @@ public class PostBoxOverviewController {
 
             if (markAsRead(request)) {
                 postBox.resetReplies();
-                postBoxRepository.write(postBox);
+                postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
             }
 
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
@@ -100,7 +101,7 @@ public class PostBoxOverviewController {
                 postBox.removeConversation(id);
             }
 
-            postBoxRepository.write(postBox);
+            postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
 
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
         } finally {
