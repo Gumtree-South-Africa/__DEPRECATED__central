@@ -32,7 +32,7 @@ import static org.junit.Assert.assertTrue;
 @TestPropertySource(properties = {
         "swift.bucket.number = 13",
         "swift.username:comaas-qa-swift",
-        "swift.password:vFdsmH8F8qL2H",
+        "swift.password:[]k+77~@*!CY(]Za",
         "swift.tenant:comaas-qa"
 })
 public class SwiftAttachmentRepositoryTest {
