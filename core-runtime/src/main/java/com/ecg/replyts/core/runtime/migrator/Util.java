@@ -9,16 +9,17 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class Util {
 
-    public static void waitForCompletion(List<Future> tasks, AtomicInteger counter, Logger log) {
+    public static void waitForCompletion(List<? extends Future> tasks, AtomicInteger counter, Logger log, int completionTimeoutSec) {
         tasks.parallelStream().forEach(t -> {
             try {
                 counter.incrementAndGet();
-                t.get();
+                t.get(completionTimeoutSec, TimeUnit.SECONDS);
             } catch (InterruptedException in) {
                 log.error("Not completed", in);
                 Thread.currentThread().interrupt();

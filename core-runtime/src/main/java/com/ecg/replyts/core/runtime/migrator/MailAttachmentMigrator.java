@@ -47,6 +47,7 @@ public class MailAttachmentMigrator {
 
     private int idBatchSize;
     private int conversationMaxAgeDays;
+    private int completionTimeoutSec;
 
     private AtomicInteger processedBatchCounter = new AtomicInteger();
     private AtomicLong submittedBatchCounter = new AtomicLong();
@@ -55,9 +56,10 @@ public class MailAttachmentMigrator {
 
     private Stopwatch watch;
 
-    public MailAttachmentMigrator(int idBatchSize, int conversationMaxAgeDays) {
+    public MailAttachmentMigrator(int idBatchSize, int conversationMaxAgeDays, int completionTimeoutSec) {
         this.idBatchSize = idBatchSize;
         this.conversationMaxAgeDays = conversationMaxAgeDays;
+        this.completionTimeoutSec = completionTimeoutSec;
     }
 
     public String getRateMailsPerSec() {
@@ -121,9 +123,9 @@ public class MailAttachmentMigrator {
                 }));
             });
 
-            waitForCompletion(results, processedBatchCounter, LOG);
-            LOG.info("Attachment migration from {} to {} date is COMPLETED,  {} mails migrated, in {} batches",
-                    dateFrom, dateTo, MAIL_COUNTER.getCount(), processedBatchCounter.get());
+            waitForCompletion(results, processedBatchCounter, LOG, completionTimeoutSec);
+            LOG.info("Attachment migration from {} to {} date is COMPLETED,  {} mails with attachment migrated, in {} batches, collected batches {}, took {}s",
+                    dateFrom, dateTo, MAIL_COUNTER.getCount(), BATCH_MIGRATION_TIMER.getCount(), processedBatchCounter.get(), watch.elapsed(TimeUnit.SECONDS));
         } finally {
             watch.stop();
             hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock
@@ -134,11 +136,16 @@ public class MailAttachmentMigrator {
         try (Timer.Context ignored = BATCH_MIGRATION_TIMER.time()) {
 
             for (String messageId : mailIds) {
+                byte[] rawmail = loadMail(true, messageId);
 
-                byte[] rawmail = mailRepository.readInboundMail(messageId);
                 if (rawmail == null) {
-                    LOG.info("Did not find raw mail for message id {}", messageId);
-                    return;
+                    LOG.info("Did not find raw mail for message id in incoming messages {}", messageId);
+                    rawmail = loadMail(false, messageId);
+
+                    if (rawmail == null) {
+                        LOG.info("Did not find raw mail for message id {}", messageId);
+                        return;
+                    }
                 }
 
                 Mail parsedMail = attachmentRepository.hasAttachments(messageId, rawmail);
@@ -152,6 +159,22 @@ public class MailAttachmentMigrator {
                 MAIL_COUNTER.inc();
             }
         }
+    }
+
+    private byte[] loadMail(boolean inbound, String messageId) {
+        byte[] rawmail = null;
+        try {
+            if (inbound) {
+                rawmail = mailRepository.readInboundMail(messageId);
+            } else {
+                rawmail = mailRepository.readOutboundMail(messageId);
+            }
+        } catch (Exception ex) {
+            String from = inbound ? "inbound" : "outbound";
+            LOG.error("Failed to load {} mail for messageid '{}' ", from, messageId, ex);
+        }
+
+        return rawmail;
     }
 
 

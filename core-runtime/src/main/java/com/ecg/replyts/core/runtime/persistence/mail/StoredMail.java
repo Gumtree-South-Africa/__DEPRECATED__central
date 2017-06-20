@@ -31,8 +31,9 @@ public class StoredMail {
     private static final Logger LOG = LoggerFactory.getLogger(StoredMail.class);
 
     public StoredMail(byte[] inboundContents, Optional<byte[]> outboundContents) { // NOSONAR ignore that the array contents are not copied to an immutable version. mails can be several MBs big
-        Preconditions.checkNotNull(inboundContents);
-        Preconditions.checkNotNull(outboundContents);
+        if(inboundContents == null) {
+            throw new RuntimeException("Inbound context was null");
+        }
         this.inboundContents = inboundContents;
         this.outboundContents = outboundContents;
     }
@@ -82,7 +83,11 @@ public class StoredMail {
         try {
             Delta delta = new Delta();
             delta.setChunkSize(8);
-            return delta.compute(inboundContents, outboundContents.get());
+            if (outboundContents.isPresent()) {
+                return delta.compute(inboundContents, outboundContents.get());
+            } else {
+                throw new RuntimeException("Does not have outbound context to diff with");
+            }
         } catch (IOException e) {
             // can's happen, delta uses a byte array input stream internally
             throw new RuntimeException(e);

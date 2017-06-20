@@ -59,7 +59,7 @@ public class MigratorConfiguration {
     @Bean
     @ConditionalOnProperty(name = "swift.attachment.storage.enabled", havingValue = "true")
     public MailAttachmentMigrator mailAttachmentMigrator() {
-        return new MailAttachmentMigrator(idBatchSize, maxConversationAgeDays);
+        return new MailAttachmentMigrator(idBatchSize, maxConversationAgeDays, completionTimeoutSec);
     }
 
 }
