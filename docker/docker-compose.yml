@@ -29,7 +29,7 @@ services:
       SERVICE_9200_NAME: elasticsearch
       SERVICE_9200_CHECK_SCRIPT: curl -s http://elasticsearch:9200/_cat/health?h=status | grep -q green
   riak:
-    image: basho/riak-kv:2.1.4
+    build: ./riak
     ports:
     - "8087:8087"
     - "8089:8089"

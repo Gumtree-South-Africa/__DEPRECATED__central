@@ -3,11 +3,9 @@ BROWSE          = open
 PROPS2CONSUL    = ./properties-to-consul-osx
 CASS_IMG_VER    = 0.0.5
 
-.PHONY: start up down ui import logs
+.PHONY: up down ui import logs cassandra-image push-cassandra-image
 
-up: start import
-
-start:
+up:
 	@$(DOCKER_COMPOSE) up -d
 
 down:

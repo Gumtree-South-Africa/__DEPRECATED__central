@@ -200,6 +200,19 @@ function main() {
         MVN_CMD="mvn"
     fi
 
+    if [[ ! -z "$EXECUTE" && "$PACKAGE" == "docker" ]]; then
+        log "Selected local docker profile, importing tenant's properties..."
+        set +o errexit
+        status=$(curl -sIo /dev/null -w "%{http_code}" localhost:8500/v1/status/leader)
+        set -o errexit
+        if [[ "$status" != "200" ]]; then
+            log "Consul does not seem to be up. Cannot import properties. Exiting."
+            log "Hint: (cd docker && make up)"
+            exit 1
+        fi
+        docker/properties-to-consul-osx -file "distribution/conf/$TENANT/import_into_consul/docker.properties"
+    fi
+
     CMD="${MVN_CMD} ${MVN_ARGS} ${MVN_TASKS} -DtestLocalCassandraPort=${CASSANDRA_CONTAINER_PORT}"
     log "Executing: ${CMD}"
     ${CMD}
