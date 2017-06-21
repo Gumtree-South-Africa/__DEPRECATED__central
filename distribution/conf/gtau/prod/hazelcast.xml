@@ -18,7 +18,7 @@
         <join>
             <multicast enabled="false"></multicast>
             <tcp-ip enabled="true">
-                <members>au-core001,au-core002,au-core003</members>
+                <members>au-core001,au-core002,au-core003,au-core004,au-core005,au-core006,au-core007,au-core008,au-core009</members>
             </tcp-ip>
         </join>
     </network>
