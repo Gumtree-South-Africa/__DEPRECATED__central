@@ -30,7 +30,7 @@ public class SSLServerFactory {
 
     private final long httpTimeoutMs;
     private final long httpBlockingTimeoutMs;
-    private final int solinger;
+    private final int soLingerTimeSeconds;
     private final long threadStopTimeoutMs;
     private final ThreadPoolBuilder threadPoolBuilder;
     private final SSLConfiguration sslConfig;
@@ -38,7 +38,7 @@ public class SSLServerFactory {
     private final int httpMaxAcceptRequestQueueSize;
 
     public SSLServerFactory(int httpPortNumber, long httpTimeoutMs, ThreadPoolBuilder threadPoolBuilder, SSLConfiguration sslConfig,
-                            int httpMaxAcceptRequestQueueSize, long httpBlockingTimeoutMs, long threadStopTimeoutMs, int solinger) {
+                            int httpMaxAcceptRequestQueueSize, long httpBlockingTimeoutMs, long threadStopTimeoutMs, int soLingerTimeSeconds) {
         this.httpTimeoutMs = httpTimeoutMs;
         this.threadPoolBuilder = threadPoolBuilder;
         this.sslConfig = sslConfig;
@@ -46,7 +46,7 @@ public class SSLServerFactory {
         this.httpMaxAcceptRequestQueueSize = httpMaxAcceptRequestQueueSize;
         this.httpBlockingTimeoutMs = httpBlockingTimeoutMs;
         this.threadStopTimeoutMs = threadStopTimeoutMs;
-        this.solinger = solinger;
+        this.soLingerTimeSeconds = soLingerTimeSeconds;
     }
 
     public Server createServer() {
@@ -69,14 +69,10 @@ public class SSLServerFactory {
 
                 httpConnector.setPort(httpPortNumber);
 
-                // default 30000
                 httpConnector.setStopTimeout(threadStopTimeoutMs);
 
-                // use -1 to disable, positive values timeout in seconds
-                httpConnector.setSoLingerTime(solinger);
-
-                // default is 30000
-                httpConnector.setStopTimeout(5000);
+                // use -1 to disable, positive values timeout, in seconds
+                httpConnector.setSoLingerTime(soLingerTimeSeconds);
 
                 server.setConnectors(new Connector[]{httpConnector, serverConnector});
                 return server;
@@ -91,10 +87,10 @@ public class SSLServerFactory {
     }
 
     private ServerConnector createServerConnector(Server server, SSLConfiguration sslConfig, SslContextFactory sslContextFactory, HttpConfiguration httpsConfig) {
-        ServerConnector serverConnector = new ServerConnector(server, new SslConnectionFactory(sslContextFactory, sslConfig.getProtocol()),
+        ServerConnector serverConnector = new ServerConnector(server, new SslConnectionFactory(sslContextFactory, SSLConfiguration.NEXT_PROTOCOL),
                 new HttpConnectionFactory(httpsConfig));
         serverConnector.setPort(sslConfig.getHttpsPort());
-        serverConnector.setIdleTimeout(sslConfig.getIdleTimeout());
+        serverConnector.setIdleTimeout(sslConfig.getIdleTimeoutMs());
         return serverConnector;
     }
 
@@ -149,7 +145,7 @@ public class SSLServerFactory {
     private PrivateKey extractPrivateKey(Object pemKeyObj, char[] password) throws IOException {
         final PEMDecryptorProvider decryptionProv = new JcePEMDecryptorProviderBuilder().build(password);
 
-        PrivateKeyInfo privateKeyInfo = null;
+        PrivateKeyInfo privateKeyInfo;
         if (pemKeyObj instanceof PEMEncryptedKeyPair) {
             privateKeyInfo = ((PEMEncryptedKeyPair) pemKeyObj).decryptKeyPair(decryptionProv).getPrivateKeyInfo();
         } else if (pemKeyObj instanceof PEMKeyPair) {
@@ -165,7 +161,7 @@ public class SSLServerFactory {
     }
 
     private X509Certificate extractX509Certificate(Object pemCrtObj) throws CertificateException {
-        X509CertificateHolder x509CertificateHolder = null;
+        X509CertificateHolder x509CertificateHolder;
         if (pemCrtObj instanceof X509CertificateHolder) {
             x509CertificateHolder = ((X509CertificateHolder) pemCrtObj);
         } else {

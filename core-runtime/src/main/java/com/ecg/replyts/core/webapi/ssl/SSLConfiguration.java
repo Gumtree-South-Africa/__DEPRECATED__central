@@ -1,22 +1,20 @@
 package com.ecg.replyts.core.webapi.ssl;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.springframework.core.env.Environment;
 
-import java.util.Properties;
+import java.util.Optional;
 
 public final class SSLConfiguration {
 
     private final int httpsPort;
-    private final String protocol;
+    final static String NEXT_PROTOCOL = "http/1.1";
     private final int bufferSize;
-    private final long idleTimeout;
+    private final long idleTimeoutMs;
     private final boolean needClientAuth;
-    private final String storeFormat;
     private final boolean allowHttp;
-    private final Optional<KeystoreBasedSSLConfiguration> keystoreBasedSSLConfiguration;
-    private final Optional<PemBasedSSLConfiguration> pemBasedSSLConfiguration;
+    private final KeystoreBasedSSLConfiguration keystoreBasedSSLConfiguration;
+    private final PemBasedSSLConfiguration pemBasedSSLConfiguration;
 
     public static SSLConfiguration createSSLConfiguration(Environment properties) {
         return new SSLConfiguration(
@@ -32,93 +30,62 @@ public final class SSLConfiguration {
                 properties.getProperty("replyts.keystore.type", "jks"),
                 Integer.valueOf(properties.getProperty("replyts.ssl.port", "443")),
                 Integer.valueOf(properties.getProperty("replyts.ssl.buffersize.bytes", "32678")),
-                properties.getProperty("replyts.ssl.protocol", "http/1.1"),
                 Long.valueOf(properties.getProperty("replyts.ssl.idletimeout.milliseconds", "60000")),
                 Boolean.valueOf(properties.getProperty("replyts.ssl.needclientauth", "false")),
                 Boolean.valueOf(properties.getProperty("replyts.ssl.allow.http", "false"))
         );
     }
 
-    public SSLConfiguration(String storeFormat,
-                            String pemKeyFile,
-                            String pemCrtFile,
-                            String pemPassword,
-                            String trustStoreLocation,
-                            String trustStorePassword,
-                            String trustStoreType,
-                            String keyStoreLocation,
-                            String keyStorePassword,
-                            String keyStoreType,
-                            int httpsPort,
-                            int bufferSize,
-                            String protocol,
-                            long idleTimeout,
-                            boolean needClientAuth,
-                            boolean allowHttp) {
+    private SSLConfiguration(String storeFormat, String pemKeyFile, String pemCrtFile, String pemPassword, String trustStoreLocation,
+                             String trustStorePassword, String trustStoreType, String keyStoreLocation, String keyStorePassword,
+                             String keyStoreType, int httpsPort, int bufferSize, long idleTimeoutMs, boolean needClientAuth, boolean allowHttp) {
         this.httpsPort = httpsPort;
-        this.protocol = protocol;
         this.bufferSize = bufferSize;
-        this.idleTimeout = idleTimeout;
+        this.idleTimeoutMs = idleTimeoutMs;
         this.needClientAuth = needClientAuth;
-        this.storeFormat = storeFormat;
         this.allowHttp = allowHttp;
 
-        if("pem".equalsIgnoreCase(this.storeFormat)) {
-            this.pemBasedSSLConfiguration = Optional.of(new PemBasedSSLConfiguration(pemKeyFile, pemCrtFile, pemPassword));
-            this.keystoreBasedSSLConfiguration = Optional.absent();
-        } else if("keystore".equalsIgnoreCase(this.storeFormat)) {
-            KeystoreBasedSSLConfiguration keystoreBasedSSLConfiguration = new KeystoreBasedSSLConfiguration(
-                    trustStoreLocation,
-                    trustStorePassword,
-                    trustStoreType,
-                    keyStoreLocation,
-                    keyStorePassword,
-                    keyStoreType
-            );
-            this.keystoreBasedSSLConfiguration = Optional.of(keystoreBasedSSLConfiguration);
-            this.pemBasedSSLConfiguration = Optional.absent();
+        if ("pem".equalsIgnoreCase(storeFormat)) {
+            this.pemBasedSSLConfiguration = new PemBasedSSLConfiguration(pemKeyFile, pemCrtFile, pemPassword);
+            this.keystoreBasedSSLConfiguration = null;
+        } else if ("keystore".equalsIgnoreCase(storeFormat)) {
+            this.keystoreBasedSSLConfiguration = new KeystoreBasedSSLConfiguration(trustStoreLocation, trustStorePassword,
+                    trustStoreType, keyStoreLocation, keyStorePassword, keyStoreType);
+            this.pemBasedSSLConfiguration = null;
         } else {
             throw new IllegalArgumentException("Only pem and keystore are supported ssl store formats");
         }
     }
 
-    public int getHttpsPort() {
+    int getHttpsPort() {
         return httpsPort;
     }
 
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public int getBufferSize() {
+    int getBufferSize() {
         return bufferSize;
     }
 
-    public long getIdleTimeout() {
-        return idleTimeout;
+    long getIdleTimeoutMs() {
+        return idleTimeoutMs;
     }
 
-    public boolean isNeedClientAuth() {
+    boolean isNeedClientAuth() {
         return needClientAuth;
     }
 
-    public String getStoreFormat() {
-        return storeFormat;
-    }
-
-    public Boolean isAllowHttp() {
+    Boolean isAllowHttp() {
         return allowHttp;
     }
 
-    public Optional<KeystoreBasedSSLConfiguration> getKeystoreBasedSSLConfiguration() {
-        return keystoreBasedSSLConfiguration;
+    Optional<KeystoreBasedSSLConfiguration> getKeystoreBasedSSLConfiguration() {
+        return Optional.ofNullable(keystoreBasedSSLConfiguration);
     }
 
-    public Optional<PemBasedSSLConfiguration> getPemBasedSSLConfiguration() {
-        return pemBasedSSLConfiguration;
+    Optional<PemBasedSSLConfiguration> getPemBasedSSLConfiguration() {
+        return Optional.ofNullable(pemBasedSSLConfiguration);
     }
 
-    public static class KeystoreBasedSSLConfiguration {
+    static class KeystoreBasedSSLConfiguration {
 
         private final String keyStoreLocation;
         private final String keyStorePassword;
@@ -127,9 +94,8 @@ public final class SSLConfiguration {
         private final String trustStorePassword;
         private final String trustStoreType;
 
-        public KeystoreBasedSSLConfiguration(
-                String trustStoreLocation, String trustStorePassword, String trustStoreType,
-                String keyStoreLocation, String keyStorePassword, String keyStoreType) {
+        KeystoreBasedSSLConfiguration(String trustStoreLocation, String trustStorePassword, String trustStoreType,
+                                      String keyStoreLocation, String keyStorePassword, String keyStoreType) {
             Preconditions.checkNotNull(trustStoreLocation);
             Preconditions.checkNotNull(trustStorePassword);
             Preconditions.checkNotNull(trustStoreType);
@@ -145,38 +111,37 @@ public final class SSLConfiguration {
             this.trustStoreType = trustStoreType;
         }
 
-        public String getKeyStoreLocation() {
+        String getKeyStoreLocation() {
             return keyStoreLocation;
         }
 
-        public String getKeyStorePassword() {
+        String getKeyStorePassword() {
             return keyStorePassword;
         }
 
-        public String getKeyStoreType() {
+        String getKeyStoreType() {
             return keyStoreType;
         }
 
-        public String getTrustStoreLocation() {
+        String getTrustStoreLocation() {
             return trustStoreLocation;
         }
 
-        public String getTrustStorePassword() {
+        String getTrustStorePassword() {
             return trustStorePassword;
         }
 
-        public String getTrustStoreType() {
+        String getTrustStoreType() {
             return trustStoreType;
         }
     }
 
-    public static class PemBasedSSLConfiguration {
-
+    static class PemBasedSSLConfiguration {
         private final String pemPassword;
         private final String pemKeyFile;
         private final String pemCrtFile;
 
-        public PemBasedSSLConfiguration(String pemKeyFile, String pemCrtFile, String pemPassword) {
+        PemBasedSSLConfiguration(String pemKeyFile, String pemCrtFile, String pemPassword) {
             Preconditions.checkNotNull(pemKeyFile);
             Preconditions.checkNotNull(pemCrtFile);
             Preconditions.checkNotNull(pemPassword);
@@ -186,15 +151,15 @@ public final class SSLConfiguration {
             this.pemPassword = pemPassword;
         }
 
-        public String getPemPassword() {
+        String getPemPassword() {
             return pemPassword;
         }
 
-        public String getPemKeyFile() {
+        String getPemKeyFile() {
             return pemKeyFile;
         }
 
-        public String getPemCrtFile() {
+        String getPemCrtFile() {
             return pemCrtFile;
         }
     }
