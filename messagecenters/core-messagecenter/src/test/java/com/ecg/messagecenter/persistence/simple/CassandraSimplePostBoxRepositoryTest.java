@@ -109,7 +109,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         private ConsistencyLevel cassandraWriteConsistency;
 
         @Bean
-        public Session cassandraSessionForMb() {
+        public Session cassandraSession() {
             String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
             String[] schemas = new String[] { "cassandra_schema.cql", "cassandra_messagecenter_schema.cql" };
 

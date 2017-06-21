@@ -3,7 +3,7 @@
 
     <bean id="volumeEventRepository"
           class="nl.marktplaats.filter.volume.persistence.CassandraVolumeFilterEventRepository">
-        <constructor-arg name="session" ref="cassandraSessionForCore"/>
+        <constructor-arg name="session" ref="cassandraSession"/>
         <constructor-arg name="readConsistency" ref="cassandraReadConsistency"/>
         <constructor-arg name="writeConsistency" ref="cassandraWriteConsistency"/>
     </bean>

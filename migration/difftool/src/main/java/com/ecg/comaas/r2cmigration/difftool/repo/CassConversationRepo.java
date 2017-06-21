@@ -49,7 +49,7 @@ public class CassConversationRepo {
     private final ConsistencyLevel cassandraReadConsistency;
 
     @Autowired
-    public CassConversationRepo(@Qualifier("cassandraSessionForCore") Session session,
+    public CassConversationRepo(@Qualifier("cassandraSession") Session session,
                                 JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer,
                                 @Value("${persistence.cassandra.consistency.read:#{null}}") ConsistencyLevel cassandraReadConsistency) {
         try {
