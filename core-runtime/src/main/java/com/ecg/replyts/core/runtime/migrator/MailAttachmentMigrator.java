@@ -11,6 +11,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterators;
 import com.hazelcast.core.HazelcastInstance;
 
+import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -136,6 +137,21 @@ public class MailAttachmentMigrator {
         try (Timer.Context ignored = BATCH_MIGRATION_TIMER.time()) {
 
             for (String messageId : mailIds) {
+
+                if (StringUtils.isEmpty(messageId)) {
+                    continue;
+                }
+                LOG.debug("Next messageid is {} ", messageId);
+
+                if (messageId.trim().contains("@Part0")) {
+                    messageId = messageId.substring(0, messageId.indexOf("@Part0"));
+                    LOG.debug("Stripping @Part0, next message id is {} ", messageId);
+                }
+
+                if (messageId.trim().contains("@Part")) {
+                    continue;
+                }
+
                 byte[] rawmail = loadMail(true, messageId);
 
                 if (rawmail == null) {
