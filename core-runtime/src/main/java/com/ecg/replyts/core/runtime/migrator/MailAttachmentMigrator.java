@@ -52,7 +52,9 @@ public class MailAttachmentMigrator {
 
     private AtomicInteger processedBatchCounter = new AtomicInteger();
     private AtomicLong submittedBatchCounter = new AtomicLong();
-    private final Counter MAIL_COUNTER = TimingReports.newCounter("migration.attachments.mail-counter");
+
+    private final Counter MAIL_COUNTER = TimingReports.newCounter("migration.attachments.mail-counter-total");
+    private final Counter MAIL_WITH_ATTACHMENT_COUNTER = TimingReports.newCounter("migration.attachments.mail-counter-with-attachment");
     private final Timer BATCH_MIGRATION_TIMER = TimingReports.newTimer("migration.attachments.batch-mail-timer");
 
     private Stopwatch watch;
@@ -125,8 +127,9 @@ public class MailAttachmentMigrator {
             });
 
             waitForCompletion(results, processedBatchCounter, LOG, completionTimeoutSec);
-            LOG.info("Attachment migration from {} to {} date is COMPLETED,  {} mails with attachment migrated, in {} batches, collected batches {}, took {}s",
-                    dateFrom, dateTo, MAIL_COUNTER.getCount(), BATCH_MIGRATION_TIMER.getCount(), processedBatchCounter.get(), watch.elapsed(TimeUnit.SECONDS));
+            LOG.info("Attachment migration from {} to {} date is COMPLETED,  {} mails with attachment migrated, out of total {} emails, in {} batches, collected batches {}, took {}s",
+                    dateFrom, dateTo, MAIL_WITH_ATTACHMENT_COUNTER.getCount(), MAIL_COUNTER.getCount(),
+                    BATCH_MIGRATION_TIMER.getCount(), processedBatchCounter.get(), watch.elapsed(TimeUnit.SECONDS));
         } finally {
             watch.stop();
             hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock
@@ -163,6 +166,7 @@ public class MailAttachmentMigrator {
                         return;
                     }
                 }
+                MAIL_COUNTER.inc();
 
                 Mail parsedMail = attachmentRepository.hasAttachments(messageId, rawmail);
                 if (parsedMail == null) {
@@ -172,7 +176,7 @@ public class MailAttachmentMigrator {
                 // No need to acquire a global lock because messageIds are unique
                 attachmentRepository.storeAttachments(messageId, parsedMail);
 
-                MAIL_COUNTER.inc();
+                MAIL_WITH_ATTACHMENT_COUNTER.inc();
             }
         }
     }
