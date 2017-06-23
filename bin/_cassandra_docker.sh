@@ -21,15 +21,34 @@ function startCassandra() {
 
 # Don't forget to add stopCassandra to your trap "xxxx" EXIT statement.
 function stopCassandra() {
-    log "Stopping cassandra container '${CASSANDRA_CONTAINER_NAME}': "
+    stopCassandraWithContainerName ${CASSANDRA_CONTAINER_NAME}
+}
+
+function stopCassandraWithContainerName() {
+    local containerName="$1"
+    log "Stopping cassandra container '${containerName}': "
     set +o errexit
-    docker top ${CASSANDRA_CONTAINER_NAME} 1>/dev/null 2>&1
+    docker top ${containerName} 1>/dev/null 2>&1
     local ec=$?
     set -o errexit
     if [ ${ec} -eq 0 ]; then
         log "Stopping cassandra: "
-        docker rm -fv ${CASSANDRA_CONTAINER_NAME}
+        docker rm -fv ${containerName}
     else
         log "Cassandra was not running."
     fi
+
+}
+
+function stopDanglingCassandras() {
+    for cassandraOwnerPid in $(docker ps | grep 'cassandra_test_' | grep -Po "(?<=_pid)[0-9]+") ; do
+        set +o errexit
+        grep 'bin/build.sh' /proc/${cassandraOwnerPid}/cmdline
+        local ec=$?
+        set -o errexit
+        if [ ${ec} -ne 0 ]; then
+            log "Found an obsolete cassandra container for pid ${cassandraOwnerPid}, going to stop it..."
+            stopCassandraWithContainerName $(docker ps | grep -Po "cassandra_test\S+_pid${cassandraOwnerPid}_\S+")
+        fi
+    done
 }

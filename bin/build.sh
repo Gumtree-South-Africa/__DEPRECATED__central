@@ -131,6 +131,14 @@ function main() {
 
     # skip tests and set concurrency based on whether tests should be run
     if [[ ${RUN_TESTS} -eq 1 ]]; then
+        # A workaround for Jenkins builder nodes to clean up cassandra containers which weren't stopped due to failed builds
+        # (for more examples of the following pattern see https://github.com/search?q=ugly+hack&ref=cmdform&type=Code )
+        set +o nounset
+        local SSH_CONNECTION="$SSH_CONNECTION"
+        set -o nounset
+        if [ -n "$SSH_CONNECTION" ] ; then
+            stopDanglingCassandras
+        fi
         startCassandra
         trap "stopCassandra" EXIT TERM
 
