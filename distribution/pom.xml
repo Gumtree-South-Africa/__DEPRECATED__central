@@ -845,6 +845,16 @@
                         -XX:-HeapDumpOnOutOfMemoryError
                         -Djava.awt.headless=true
                         -Dcom.datastax.driver.FORCE_NIO=true
+                        -XX:+PrintGCDetails
+                        -XX:+PrintGCTimeStamps
+                        -XX:+PrintGCDateStamps
+                        -XX:+PrintTenuringDistribution
+                        -XX:+UseGCLogFileRotation
+                        -XX:NumberOfGCLogFiles=7
+                        -XX:GCLogFileSize=128M
+                        -XX:+PrintConcurrentLocks
+                        -XX:+PrintClassHistogram
+                        -XX:+PrintStringTableStatistics
                     </extraJvmArguments>
                     <programs>
                         <program>
