@@ -72,7 +72,7 @@ public class SwiftAttachmentRepository {
         LOG.debug("Connecting to Swift storage endpoint {}, with username '{}', passwd '{}' and tenant '{}' ", keystone, username, passwd, tenantName);
         try {
 
-            if(StringUtils.isEmpty(keystone)) {
+            if (StringUtils.isEmpty(keystone)) {
                 LOG.error("Missing 'swift_authentication_url' environment variable (should be the keystone URL). Swift is disabled");
                 return;
             }
@@ -106,8 +106,8 @@ public class SwiftAttachmentRepository {
 
     public Optional<SwiftObject> fetch(String messageId, String attachmentName) {
         try (Timer.Context ignored = GET.time()) {
-            LOG.debug("Fetching messageid '{}' attachment '{}'", messageId, attachmentName);
             String containerName = getContainer(messageId);
+            LOG.debug("Fetching messageid '{}' attachment '{}' from container {}", messageId, attachmentName, containerName);
             SwiftObject so = getObjectStorage().get(containerName, messageId + "/" + attachmentName);
             if (so == null) {
                 return Optional.empty();
@@ -115,11 +115,26 @@ public class SwiftAttachmentRepository {
             HttpResponse resp = so.download().getHttpResponse();
             if (resp.getStatus() != HttpResponseStatus.OK.getCode()) {
 
-                String mess = String.format("Failed to fetch %s/%s attachment ", messageId, attachmentName);
+                String mess = String.format("Failed to fetch %s/%s attachment from container %s", messageId, attachmentName, containerName);
                 throw new RuntimeException(mess + " Reason: " + resp.getStatusMessage());
             }
-            // This one does not contain MD5, unlike the one from getNames!?
-            return Optional.of(so);
+            Optional<SwiftObject> swiftObject = Optional.of(so);
+
+            if (swiftObject.isPresent()) {
+
+                SwiftObject sobj = swiftObject.get();
+                LOG.debug("Loaded attachment {}/{} size {} bytes, " +
+                                "from container {}, " +
+                                "lastModifiedDate {}, " +
+                                "mimeType {}", messageId, attachmentName, sobj.getSizeInBytes(),
+                        sobj.getContainerName(),
+                        sobj.getLastModified(),
+                        sobj.getMimeType());
+            } else {
+                LOG.info("Did not find attachment {}/{} in container {}", messageId, attachmentName, containerName);
+            }
+
+            return swiftObject;
         }
     }
 

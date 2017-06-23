@@ -5,6 +5,8 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.attachment.SwiftAttachmentRepository;
 import com.google.common.io.ByteStreams;
 import org.openstack4j.model.storage.object.SwiftObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Controller;
@@ -21,7 +23,9 @@ import java.io.IOException;
 public class AttachmentController {
 
     private final Timer readTimer = TimingReports.newTimer("attachmentController.read-attachment");
-  
+
+    private static final Logger LOG = LoggerFactory.getLogger(AttachmentController.class);
+
     @Autowired
     private SwiftAttachmentRepository repository;
 
@@ -38,13 +42,14 @@ public class AttachmentController {
     }
 
     private void writeAttachment(HttpServletResponse response, SwiftObject attachment) {
+        LOG.debug("Writing attachment {}/{} size {} bytes to response stream", attachment.getDirectoryName(), attachment.getName(), attachment.getSizeInBytes());
         response.setContentType(attachment.getMimeType());
         response.setContentLengthLong(attachment.getSizeInBytes());
         try {
             ByteStreams.copy(attachment.download().getInputStream(), response.getOutputStream());
         } catch (IOException e) {
             throw new RuntimeException("failed to write the downloaded attachment, containerName=" + attachment.getContainerName()
-                    + ", attachmentName=" + attachment.getName(), e);
+                    + ", attachment=" + attachment.getDirectoryName() +"/"+ attachment.getName(), e);
         }
     }
 }
