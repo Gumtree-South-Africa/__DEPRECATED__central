@@ -846,6 +846,7 @@
                         -Djava.awt.headless=true
                         -Dcom.datastax.driver.FORCE_NIO=true
                         -XX:+PrintGCDetails
+                        -Xloggc:${LOG_DIR:-@BASEDIR@/log}/gc.log
                         -XX:+PrintGCTimeStamps
                         -XX:+PrintGCDateStamps
                         -XX:+PrintTenuringDistribution
