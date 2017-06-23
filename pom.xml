@@ -526,7 +526,7 @@
         <gt.replies.models.version>${gumtree.dependencies.version}</gt.replies.models.version>
         <gt.gumshield.api.version>4.29326</gt.gumshield.api.version>
         <gt.gumtree.common.version>${gumtree.dependencies.version}</gt.gumtree.common.version>
-        <gt.comaas.models.version>1.6</gt.comaas.models.version>
+        <gt.comaas.models.version>1.7</gt.comaas.models.version>
         <gt.geoip.lib.version>1.0.0</gt.geoip.lib.version>
 
         <!-- mde artifact versions -->

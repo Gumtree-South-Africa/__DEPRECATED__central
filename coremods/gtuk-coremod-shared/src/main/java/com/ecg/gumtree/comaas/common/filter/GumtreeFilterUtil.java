@@ -26,6 +26,7 @@ public final class GumtreeFilterUtil {
             .put(Result.DROP, FilterResultState.DROPPED)
             .put(Result.HOLD, FilterResultState.HELD)
             .put(Result.STOP_FILTERING, FilterResultState.ACCEPT_AND_TERMINATE)
+            .put(Result.OK, FilterResultState.OK)
             .build();
 
     public static String longDescription(Class<?> clazz, String instanceId, String version, String shortDescription) {
