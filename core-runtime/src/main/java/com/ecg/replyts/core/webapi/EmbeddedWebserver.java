@@ -4,8 +4,6 @@ package com.ecg.replyts.core.webapi;
 import ch.qos.logback.access.jetty.RequestLogImpl;
 import ch.qos.logback.core.status.OnConsoleStatusListener;
 import com.ecg.replyts.core.runtime.MetricsService;
-import com.ecg.replyts.core.webapi.ssl.SSLConfiguration;
-import com.ecg.replyts.core.webapi.ssl.SSLServerFactory;
 import com.ecg.replyts.core.webapi.util.ServerStartupLifecycleListener;
 import com.github.danielwegener.logback.kafka.KafkaAppender;
 import org.eclipse.jetty.jmx.MBeanContainer;
@@ -36,7 +34,6 @@ import static org.eclipse.jetty.http.MimeTypes.Type.*;
  */
 @Component
 public class EmbeddedWebserver {
-
     private static final Logger LOG = LoggerFactory.getLogger(EmbeddedWebserver.class);
 
     private Server server;
@@ -64,7 +61,6 @@ public class EmbeddedWebserver {
 
     @Autowired
     public EmbeddedWebserver(
-            @Value("${replyts.ssl.enabled:false}") boolean isSSLEnabled,
             @Value("#{environment.COMAAS_HTTP_PORT ?: 8080}") int httpPortNumber,
             @Value("${replyts.http.timeout:5000}") long httpTimeoutMs,
             @Value("${replyts.http.blocking.timeout:5000}") long httpBlockingTimeoutMs,
@@ -86,16 +82,9 @@ public class EmbeddedWebserver {
                 .withInstrumentation(instrumented)
                 .withQueueSize(maxThreadQueueSize);
 
-        if (isSSLEnabled) {
-            SSLConfiguration sslConfiguration = SSLConfiguration.createSSLConfiguration(environment);
-            SSLServerFactory factory = new SSLServerFactory(httpPort, httpTimeoutMs, builder, sslConfiguration, httpMaxAcceptRequestQueueSize,
-                    httpBlockingTimeoutMs, threadStopTimeoutMs, solinger);
-            server = factory.createServer();
-        } else {
-            HttpServerFactory factory = new HttpServerFactory(httpPort, httpTimeoutMs, builder, httpMaxAcceptRequestQueueSize,
-                    httpBlockingTimeoutMs, threadStopTimeoutMs, solinger);
-            server = factory.createServer();
-        }
+        HttpServerFactory factory = new HttpServerFactory(httpPortNumber, httpTimeoutMs, builder, httpMaxAcceptRequestQueueSize,
+                httpBlockingTimeoutMs, threadStopTimeoutMs, solinger);
+        server = factory.createServer();
 
         LOG.info("Configuring Webserver for Port {}", httpPort);
     }
@@ -158,7 +147,7 @@ public class EmbeddedWebserver {
 
         listener.awaitStartup();
 
-        contextProviders.forEach(context -> context.test());
+        contextProviders.forEach(ContextProvider::test);
 
         // Don't report having started until all context have been initialized
 
@@ -196,7 +185,6 @@ public class EmbeddedWebserver {
         if (handlers.getBean(RequestLogHandler.class) != null) {
             throw new IllegalStateException("This EmbeddedWebserver already has a request-logging handler associated with it");
         }
-
 
         if (accessLogAppender != null && accessLogAppender.isStarted()) {
             LOG.info("Found valid Kafka appender for access logging");
@@ -244,5 +232,4 @@ public class EmbeddedWebserver {
         gzipHandler.setHandler(contextHandler);
         return gzipHandler;
     }
-
 }

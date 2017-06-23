@@ -61,7 +61,6 @@ public final class ReplytsRunner {
             properties.put("persistence.cassandra.core.endpoint", CassandraIntegrationTestProvisioner.getEndPoint());
             properties.put("persistence.cassandra.mb.endpoint", CassandraIntegrationTestProvisioner.getEndPoint());
             setEnv("COMAAS_HTTP_PORT", httpPort.toString());
-            properties.put("replyts.ssl.enabled", "false");
             properties.put("delivery.smtp.port", String.valueOf(smtpOutPort));
 
             properties.put("mailreceiver.filesystem.dropfolder", dropFolder.getAbsolutePath());
