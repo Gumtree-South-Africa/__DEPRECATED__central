@@ -42,7 +42,7 @@ public class PostBoxResponseBuilder {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         if (newCounterMode) {
-            postBoxResponse.initNumUnread((int) postBox.getNewRepliesCounter().getValue(), postBox.getLastModification());
+            postBoxResponse.initNumUnread(postBox.getNewRepliesCounter().getValue().intValue(), postBox.getLastModification());
         } else {
             postBoxResponse.initNumUnread(postBox.getUnreadConversationsCapped().size(), postBox.getLastModification());
         }

@@ -88,11 +88,11 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
                 return entityNotFound(response);
             }
 
-            boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
+            boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get()
+                            .isContainsUnreadMessages();
             if (needToMarkAsRead) {
-                int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
-                postBox.decrementNewReplies(unreadMessages);
-                postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
+                postBox.decrementNewReplies();
+                postBoxRepository.write(postBox);
             }
 
 
@@ -146,25 +146,20 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
         List<ConversationThread> threadsToUpdate = new ArrayList<>();
 
         boolean needsUpdate = false;
-        ConversationThread updatedConversation = null;
         for (ConversationThread item : postBox.getConversationThreads()) {
-            if (item.getConversationId().equals(conversationId) && item.isContainsUnreadMessages()) {
-                new ConversationThread(item.getAdId(),
-                        item.getConversationId(),
-                        item.getCreatedAt(),
-                        now(),
-                        item.getReceivedAt(),
-                        false, // mark as read
-                        item.getPreviewLastMessage(),
-                        item.getBuyerName(),
-                        item.getSellerName(),
-                        item.getBuyerId(),
-                        item.getMessageDirection(),
-                        item.getRobot(),
-                        item.getOfferId());
 
-                threadsToUpdate.add(updatedConversation);
+            if (item.getConversationId().equals(conversationId) && item
+                            .isContainsUnreadMessages()) {
+
+                threadsToUpdate.add(new ConversationThread(item.getAdId(), item.getConversationId(),
+                                item.getCreatedAt(), now(), item.getReceivedAt(), false,
+                                // mark as read
+                                item.getPreviewLastMessage(), item.getBuyerName(),
+                                item.getSellerName(), item.getBuyerId(), item.getMessageDirection(),
+                                item.getRobot(), item.getOfferId()));
+
                 needsUpdate = true;
+
             } else {
                 threadsToUpdate.add(item);
             }
@@ -175,7 +170,7 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
         //optimization to not cause too many write actions (potential for conflicts)
         if (needsUpdate) {
             PostBox<ConversationThread> postBoxToUpdate = new PostBox<>(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate, maxAgeDays);
-            postBoxRepository.markConversationAsRead(postBoxToUpdate, updatedConversation);
+            postBoxRepository.write(postBoxToUpdate);
             numUnreadCounter = postBoxToUpdate.getUnreadConversationsCapped().size();
         } else {
             numUnreadCounter = postBox.getUnreadConversationsCapped().size();

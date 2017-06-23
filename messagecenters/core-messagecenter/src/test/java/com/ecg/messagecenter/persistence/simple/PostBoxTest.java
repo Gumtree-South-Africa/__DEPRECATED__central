@@ -56,7 +56,7 @@ public class PostBoxTest {
         ), 180);
 
         postBox.markConversationUnread("convid2", null);
-        assertEquals(1, postBox.getNewRepliesCounter().getValue());
+        assertEquals(1l, postBox.getNewRepliesCounter().getValue().longValue());
         assertTrue(postBox.getUnreadConversations().containsKey("convid2"));
     }
 

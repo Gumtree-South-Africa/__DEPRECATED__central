@@ -2,7 +2,6 @@ package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -79,10 +78,10 @@ public class ConversationThreadController {
 
             boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
             if(needToMarkAsRead) {
-                int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
-                postBox.decrementNewReplies(unreadMessages);
-                postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
+                postBox.decrementNewReplies();
+                postBoxRepository.write(postBox);
             }
+
 
             if(newCounterMode) {
                 if(needToMarkAsRead) {
@@ -122,14 +121,14 @@ public class ConversationThreadController {
     }
 
     private long markConversationAsRead(String email, String conversationId, PostBox<ConversationThread> postBox) {
-        List<ConversationThread> threadsToUpdate = new ArrayList<>();
+        List<ConversationThread> threadsToUpdate = new ArrayList<ConversationThread>();
 
         boolean needsUpdate = false;
-        ConversationThread updatedConversation = null;
         for (ConversationThread item : postBox.getConversationThreads()) {
 
             if (item.getConversationId().equals(conversationId) && item.isContainsUnreadMessages()) {
-                updatedConversation = new ConversationThread(
+
+                threadsToUpdate.add(new ConversationThread(
                         item.getAdId(),
                         item.getConversationId(),
                         item.getCreatedAt(),
@@ -148,10 +147,11 @@ public class ConversationThreadController {
                         item.getLastMessageId(),
                         Optional.empty(),
                         Optional.empty(),
-                        Optional.empty());
+                        Optional.empty()
+                ));
 
-                threadsToUpdate.add(updatedConversation);
                 needsUpdate = true;
+
             } else {
                 threadsToUpdate.add(item);
             }
@@ -161,8 +161,8 @@ public class ConversationThreadController {
 
         //optimization to not cause too many write actions (potential for conflicts)
         if (needsUpdate) {
-            PostBox<AbstractConversationThread> postBoxToUpdate = new PostBox(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate, maxAgeDays);
-            postBoxRepository.markConversationAsRead(postBoxToUpdate, updatedConversation);
+            PostBox postBoxToUpdate = new PostBox(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate, maxAgeDays);
+            postBoxRepository.write(postBoxToUpdate);
             numUnreadCounter = postBoxToUpdate.getUnreadConversationsCapped().size();
         } else {
             numUnreadCounter = postBox.getUnreadConversationsCapped().size();

@@ -128,7 +128,7 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
             // delete the removed convThreads from Cassandra
             if (postboxDeleteCthreadEnable && threadsIdsToDelete.size() > 0) {
                 LOG.debug("Removing {} convThreads from Postbox {} in Cassandra", threadsIdsToDelete.size(), id);
-                cassandraRepository.deleteConversations(postBoxInCassandra, threadsIdsToDelete);
+                cassandraRepository.deleteConversationThreads(id, threadsIdsToDelete);
             } else {
                 LOG.debug("Extra {} convThreads from Postbox {} in Cassandra", threadsIdsToDelete.size(), id);
             }
@@ -142,28 +142,15 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
 
     @Override
     public void write(PostBox postBox) {
-        try {
-            cassandraRepository.write(postBox);
-        } finally {
-            riakRepository.write(postBox);
-        }
+        write(postBox, Collections.emptyList());
     }
 
     @Override
-    public void deleteConversations(PostBox postBox, List<String> deletedIds) {
+    public void write(PostBox postBox, List<String> deletedIds) {
         try {
-            cassandraRepository.deleteConversations(postBox, deletedIds);
+            cassandraRepository.write(postBox, deletedIds);
         } finally {
-            riakRepository.deleteConversations(postBox, deletedIds);
-        }
-    }
-
-    @Override
-    public void markConversationsAsRead(PostBox postBox, List<AbstractConversationThread> conversations) {
-        try {
-            cassandraRepository.markConversationsAsRead(postBox, conversations);
-        } finally {
-            riakRepository.markConversationsAsRead(postBox, conversations);
+            riakRepository.write(postBox, deletedIds);
         }
     }
 
@@ -205,11 +192,6 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
             riakRepository.upsertThread(id, conversationThread, markAsUnread);
             LOG.debug("Upserted convThread {} for postbox {} in Riak", conversationThread.getConversationId(), id.asString());
         }
-    }
-
-    @Override
-    public int unreadCountInConversation(PostBoxId id, String conversationId) {
-        return cassandraRepository.unreadCountInConversation(id, conversationId);
     }
 
     @Override

@@ -80,7 +80,7 @@ class ConversationThreadController {
             if (shouldMarkAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages()) {
 
                 PostBox postBoxToUpdate = updatePostBox(email, conversationId, postBox);
-                postBoxRepository.markConversationAsRead(postBoxToUpdate, conversationThreadRequested.get());
+                postBoxRepository.write(postBoxToUpdate);
             }
 
             Conversation conversation = conversationRepository.getById(conversationId);
@@ -107,9 +107,8 @@ class ConversationThreadController {
     }
 
     private PostBox updatePostBox(String email, String conversationId, PostBox postBox) {
-        int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
-        postBox.decrementNewReplies(unreadMessages);
-        List<ConversationThread> threadsToUpdate = new ArrayList<>();
+        postBox.decrementNewReplies();
+        List<ConversationThread> threadsToUpdate = new ArrayList<ConversationThread>();
 
         List<ConversationThread> cthread = postBox.getConversationThreads();
         for (ConversationThread item : cthread) {

@@ -74,7 +74,7 @@ public class PostBoxOverviewController {
 
             if (markAsRead(request)) {
                 postBox.resetReplies();
-                postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
+                postBoxRepository.write(postBox);
             }
 
             if (robotEnabled) {
@@ -106,7 +106,7 @@ public class PostBoxOverviewController {
                 postBox.removeConversation(id);
             }
 
-            postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
+            postBoxRepository.write(postBox, Arrays.asList(ids));
 
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
 

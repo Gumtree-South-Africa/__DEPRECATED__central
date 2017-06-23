@@ -136,15 +136,14 @@ public class HybridSimplePostBoxRepositoryTest {
         List cassConvThreads = newArrayList(c1, c2);
         List riakConvThreads = newArrayList(c1);
 
-        PostBox postBox = new PostBox(email, Optional.of(0L), cassConvThreads, 10);
-        when(cassandraRepository.byId(id)).thenReturn(postBox);
+        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), cassConvThreads, 10));
         when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(true);
 
         deepMigrationRepository.byId(id);
 
         verify(cassandraRepository).byId(id);
-        verify(cassandraRepository).deleteConversations(postBox, Arrays.asList("c2"));
+        verify(cassandraRepository).deleteConversationThreads(id, Arrays.asList("c2"));
         verifyNoMoreInteractions(cassandraRepository);
     }
 

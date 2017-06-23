@@ -162,15 +162,22 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
     @Override
     public void write(PostBox postBox) {
+        write(postBox, Collections.emptyList());
+    }
+
+    @Override
+    public void write(PostBox postBox, List<String> deletedIds) {
         PostBoxId postboxId = PostBoxId.fromEmail(postBox.getEmail());
 
         try (Timer.Context ignored = writeTimer.time()) {
             BatchStatement batch = new BatchStatement();
 
-            Map<String, Integer> conversationToUnreadCount = gatherUnreadCounts(postboxId);
+            for (String conversationThreadId : deletedIds) {
+                deleteConversationThreadStatements(batch, postboxId, conversationThreadId);
+            }
+
             for (AbstractConversationThread conversationThread : (List<? extends AbstractConversationThread>) postBox.getConversationThreads()) {
-                int numUnreadMessages = conversationToUnreadCount.getOrDefault(conversationThread.getConversationId(), 0);
-                writeConversationThreadStatements(batch, postboxId, conversationThread, numUnreadMessages);
+                writeConversationThreadStatements(batch, postboxId, conversationThread);
             }
 
             batch.setConsistencyLevel(writeConsistency).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
@@ -179,38 +186,10 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         }
     }
 
-    @Override
-    public void markConversationsAsRead(PostBox postBox, List<AbstractConversationThread> conversations) {
-        PostBoxId postBoxId = PostBoxId.fromEmail(postBox.getEmail());
-
-        try (Timer.Context ignored = writeTimer.time()) {
-            BatchStatement batch = new BatchStatement();
-
-            for (AbstractConversationThread conversation: conversations) {
-                Optional<String> jsonValue = toJson(conversation);
-
-                if (jsonValue.isPresent()) {
-                    DateTime timestamp = conversation.getModifiedAt();
-                    DateTime roundedToHour = timestamp.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
-                    batch.add(Statements.UPDATE_CONVERSATION_THREAD.bind(this, jsonValue.get(), postBoxId.asString(), conversation.getConversationId()));
-                    batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, 0, postBoxId.asString(), conversation.getConversationId()));
-                    batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_LATEST.bind(this, postBoxId.asString(), conversation.getConversationId(), timestamp.toDate()));
-                    batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this, postBoxId.asString(), conversation.getConversationId(), timestamp.toDate(), roundedToHour.toDate()));
-                }
-            }
-
-            session.execute(batch);
-        }
-    }
-
-    /**
-     * TODO pbouda: Used only for a migration, delete candidate.
-     */
     public void writeThread(PostBoxId id, AbstractConversationThread conversationThread) {
         try (Timer.Context ignored = writeThreadTimer.time()) {
             BatchStatement batch = new BatchStatement();
-            int numUnreadMessages = unreadCountInConversation(id, conversationThread.getConversationId());
-            writeConversationThreadStatements(batch, id, conversationThread, numUnreadMessages);
+            writeConversationThreadStatements(batch, id, conversationThread);
             batch.setConsistencyLevel(writeConsistency).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
 
             session.execute(batch);
@@ -255,7 +234,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             }));
         });
 
-        cleanUpTasks.forEach(task -> {
+        cleanUpTasks.stream().forEach(task -> {
             try {
                 task.get();
             } catch (ExecutionException | RuntimeException e) {
@@ -272,24 +251,25 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     public Optional<AbstractConversationThread> threadById(PostBoxId id, String conversationId) {
         try (Timer.Context ignored = threadByIdTimer.time()) {
             Row conversationThread = session.execute(Statements.SELECT_CONVERSATION_THREAD.bind(this, id.asString(), conversationId)).one();
+            Row unreadCount = session.execute(Statements.SELECT_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, id.asString(), conversationId)).one();
 
             if (conversationThread == null) {
                 return Optional.empty();
             } else {
-                int numUnreadMessages = unreadCountInConversation(id, conversationId);
-                return toConversationThread(id, conversationId, conversationThread.getString("json_value"), numUnreadMessages);
+                int count = unreadCount != null ? unreadCount.getInt("num_unread") : 0;
+
+                return toConversationThread(id, conversationId, conversationThread.getString("json_value"), count);
             }
         }
     }
 
     @Override
-    public Long upsertThread(PostBoxId id, AbstractConversationThread conversationThread, boolean incrementUnreadCount) {
+    public Long upsertThread(PostBoxId id, AbstractConversationThread conversationThread, boolean markAsUnread) {
         try (Timer.Context ignored = upsertThreadTimer.time()) {
             BatchStatement batch = new BatchStatement();
 
-            if (incrementUnreadCount) {
-                int newNumUnreadMessages = unreadCountInConversation(id, conversationThread.getConversationId()) + 1;
-                batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, newNumUnreadMessages, id.asString(), conversationThread.getConversationId()));
+            if (markAsUnread) {
+                batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, 1, id.asString(), conversationThread.getConversationId()));
             }
 
             Optional<String> jsonValue = toJson(conversationThread);
@@ -314,10 +294,8 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         }
     }
 
-    @Override
-    public int unreadCountInConversation(PostBoxId id, String conversationId) {
-        Row unreadCount = session.execute(Statements.SELECT_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, id.asString(), conversationId)).one();
-        return unreadCount != null ? unreadCount.getInt("num_unread") : 0;
+    public void deleteThread(PostBoxId id, String conversationId) {
+        deleteEntireConversationThread(id, conversationId);
     }
 
     private Stream<ConversationThreadModificationDate> streamConversationThreadModificationsByHour(Date roundedToHour) {
@@ -344,12 +322,11 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         }
     }
 
-    @Override
-    public void deleteConversations(PostBox postBox, List<String> convIds) {
+    public void deleteConversationThreads(PostBoxId id, List<String> convIds) {
         try (Timer.Context ignored = deleteConversationThreadBatchTimer.time()) {
             BatchStatement batch = new BatchStatement();
             for(String conv: convIds) {
-                deleteConversationThreadStatements(batch, PostBoxId.fromEmail(postBox.getEmail()), conv);
+                deleteConversationThreadStatements(batch, id, conv);
             }
             batch.setConsistencyLevel(writeConsistency).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
 
@@ -357,7 +334,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         }
     }
 
-    private void writeConversationThreadStatements(BatchStatement batch, PostBoxId id, AbstractConversationThread conversationThread, int numUnreadMessages) {
+    private void writeConversationThreadStatements(BatchStatement batch, PostBoxId id, AbstractConversationThread conversationThread) {
         Optional<String> jsonValue = toJson(conversationThread);
 
         if (jsonValue.isPresent()) {
@@ -365,7 +342,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             DateTime roundedToHour = timestamp.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
 
             batch.add(Statements.UPDATE_CONVERSATION_THREAD.bind(this, jsonValue.get(), id.asString(), conversationThread.getConversationId()));
-            batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, numUnreadMessages, id.asString(), conversationThread.getConversationId()));
+            batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, conversationThread.isContainsUnreadMessages() ? 1 : 0, id.asString(), conversationThread.getConversationId()));
             batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_LATEST.bind(this, id.asString(), conversationThread.getConversationId(), timestamp.toDate()));
             batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this, id.asString(), conversationThread.getConversationId(), timestamp.toDate(), roundedToHour.toDate()));
         }

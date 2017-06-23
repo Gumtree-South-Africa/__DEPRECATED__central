@@ -1,7 +1,5 @@
 package com.ecg.messagecenter.persistence;
 
-import java.util.Objects;
-
 /**
  * User: maldana
  * Date: 11.02.14
@@ -11,18 +9,18 @@ import java.util.Objects;
  */
 public class Counter {
 
-    private long value;
+    private Long value;
 
-    public Counter(long value) {
+    public Counter(Long value) {
         if (value < 0) {
-            this.value = 0;
-        } else {
+            this.value = 0L;
+        }else {
             this.value = value;
         }
     }
 
     public Counter() {
-        this(0);
+        this(0L);
     }
 
     public void inc() {
@@ -30,41 +28,34 @@ public class Counter {
     }
 
     public void dec() {
-        dec(1);
-    }
-
-    public void dec(long number) {
-        if (number > 0) {
-            value = Math.max(0, value - number);
-        } else {
-            throw new IllegalArgumentException("Counter cannot decrement the negative number: " + number);
+        // counters are always positive
+        if (value > 0) {
+            value--;
         }
     }
 
-    public long getValue() {
+    public Long getValue() {
         return value;
     }
 
     public void reset() {
-        value = 0;
+        value = 0L;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
         Counter counter = (Counter) o;
-        return value == counter.value;
+
+        if (value != null ? !value.equals(counter.value) : counter.value != null) return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return value != null ? value.hashCode() : 0;
     }
 }

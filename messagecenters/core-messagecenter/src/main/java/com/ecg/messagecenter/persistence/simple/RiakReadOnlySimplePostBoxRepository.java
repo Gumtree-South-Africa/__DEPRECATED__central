@@ -21,7 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -88,13 +90,8 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
     }
 
     @Override
-    public void deleteConversations(PostBox postBox, List<String> deletedIds) {
-        LOG.debug("RiakReadOnlySimplePostBoxRepository.deleteConversations was called");
-    }
-
-    @Override
-    public void markConversationsAsRead(PostBox postBox, List<AbstractConversationThread> conversations) {
-        LOG.debug("RiakReadOnlySimplePostBoxRepository.markConversationsAsRead was called");
+    public void write(PostBox postBox, List<String> deletedIds) {
+        LOG.debug("RiakReadOnlySimplePostBoxRepository.write was called");
     }
 
     @Override
@@ -111,14 +108,6 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
         PostBox<AbstractConversationThread> existingPostBox = byId(id);
 
         return existingPostBox.getNewRepliesCounter().getValue();
-    }
-
-    /**
-     * TODO pbouda: keep the same functionalitu in Riak during a migration.
-     */
-    @Override
-    public int unreadCountInConversation(PostBoxId id, String conversationId) {
-        return 1;
     }
 
     @Override

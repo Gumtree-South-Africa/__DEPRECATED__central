@@ -26,21 +26,6 @@ public class CounterTest {
     }
 
     @Test
-    public void decrement() {
-        Counter counter1 = new Counter(5L);
-        counter1.dec();
-        assertTrue(4L == counter1.getValue());
-
-        Counter counter2 = new Counter(5L);
-        counter2.dec(2L);
-        assertTrue(3L == counter2.getValue());
-
-        Counter counter3 = new Counter(5L);
-        counter3.dec(6L);
-        assertTrue(0L == counter3.getValue());
-    }
-
-    @Test
     public void increment() {
         Counter counter = new Counter();
         counter.inc();

@@ -2,7 +2,6 @@ package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
@@ -22,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Arrays;
 
 /**
@@ -71,13 +71,13 @@ class PostBoxOverviewController {
         Timer.Context timerContext = API_POSTBOX_BY_EMAIL.time();
 
         try {
-            PostBox<AbstractConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
             API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
 
             if (markAsRead(request)) {
                 postBox.resetReplies();
-                postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
+                postBoxRepository.write(postBox);
             }
 
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox);
@@ -104,7 +104,7 @@ class PostBoxOverviewController {
                 postBox.removeConversation(id);
             }
 
-            postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
+            postBoxRepository.write(postBox, Arrays.asList(ids));
 
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox);
 
