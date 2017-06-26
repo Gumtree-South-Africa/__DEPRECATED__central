@@ -6,7 +6,9 @@ import com.ecg.replyts.core.runtime.TimingReports;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.escape.Escaper;
 import com.google.common.hash.*;
+import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.netty.handler.codec.http.HttpResponseStatus;
 import org.openstack4j.api.OSClient;
@@ -22,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -65,6 +69,7 @@ public class SwiftAttachmentRepository {
     private String containerPrefix;
 
     private final HashFunction hf = Hashing.murmur3_128();
+    private static final Escaper urlPathEscaper = UrlEscapers.urlPathSegmentEscaper();
 
     @PostConstruct
     private void connect() {
@@ -108,8 +113,12 @@ public class SwiftAttachmentRepository {
         try (Timer.Context ignored = GET.time()) {
             String containerName = getContainer(messageId);
             LOG.debug("Fetching messageid '{}' attachment '{}' from container {}", messageId, attachmentName, containerName);
-            SwiftObject so = getObjectStorage().get(containerName, messageId + "/" + attachmentName);
+
+            SwiftObject so = getObjectStorage().get(containerName,
+                    urlPathEscaper.escape(messageId) + "/" + urlPathEscaper.escape(attachmentName));
+
             if (so == null) {
+                LOG.info("Did not find messageid '{}' attachment '{}' in container {}", messageId, attachmentName, containerName);
                 return Optional.empty();
             }
             HttpResponse resp = so.download().getHttpResponse();
@@ -120,7 +129,7 @@ public class SwiftAttachmentRepository {
             }
             Optional<SwiftObject> swiftObject = Optional.of(so);
 
-            if (swiftObject.isPresent()) {
+            if (LOG.isDebugEnabled() && swiftObject.isPresent()) {
 
                 SwiftObject sobj = swiftObject.get();
                 LOG.debug("Loaded attachment {}/{} size {} bytes, " +
@@ -130,12 +139,11 @@ public class SwiftAttachmentRepository {
                         sobj.getContainerName(),
                         sobj.getLastModified(),
                         sobj.getMimeType());
-            } else {
-                LOG.info("Did not find attachment {}/{} in container {}", messageId, attachmentName, containerName);
             }
 
             return swiftObject;
         }
+
     }
 
     // ObjectStorageObjectService is not thread safe, we need to have one per thread
@@ -150,7 +158,7 @@ public class SwiftAttachmentRepository {
         try (Timer.Context ignored = GET_NAMES.time()) {
 
             LOG.debug("Listing attachments under messageid '{}' ", messageId);
-            ObjectListOptions opts = ObjectListOptions.create().delimiter('/').path(messageId);
+            ObjectListOptions opts = ObjectListOptions.create().delimiter('/').path(urlPathEscaper.escape(messageId));
 
             String containerName = getContainer(messageId);
             List<? extends SwiftObject> paths = getObjectStorage().list(containerName, opts);
@@ -158,6 +166,8 @@ public class SwiftAttachmentRepository {
 
             if (omap.keySet().size() > 0) {
                 LOG.debug("{} attachments found for messageid '{}' ", omap.keySet().size(), messageId);
+            } else {
+                LOG.debug("Did not find any attachments for messageid '{}' in container {} ", messageId, containerName);
             }
             return Optional.ofNullable(omap);
         }
