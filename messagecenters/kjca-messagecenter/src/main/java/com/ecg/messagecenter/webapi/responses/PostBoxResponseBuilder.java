@@ -30,7 +30,7 @@ public class PostBoxResponseBuilder {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         if (newCounterMode) {
-            postBoxResponse.initNumUnread(postBox.getNewRepliesCounter().getValue().intValue(), null, null, postBox.getLastModification());
+            postBoxResponse.initNumUnread((int) postBox.getNewRepliesCounter().getValue(), null, null, postBox.getLastModification());
         } else {
             postBoxResponse.initNumUnread(postBox.getUnreadConversationsCapped().size(), getNumUnreadForRole(email, ConversationRole.Buyer, postBox, MAX_UNREAD_NUMBER), getNumUnreadForRole(email, ConversationRole.Seller, postBox, MAX_UNREAD_NUMBER), postBox.getLastModification());
         }

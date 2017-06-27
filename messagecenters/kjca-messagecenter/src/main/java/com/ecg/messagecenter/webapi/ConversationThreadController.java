@@ -21,7 +21,6 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -101,8 +101,9 @@ class ConversationThreadController {
 
             boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
             if (needToMarkAsRead) {
-                postBox.decrementNewReplies();
-                postBoxRepository.write(postBox);
+                int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
+                postBox.decrementNewReplies(unreadMessages);
+                postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
             }
 
             ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
@@ -164,11 +165,10 @@ class ConversationThreadController {
         List<ConversationThread> threadsToUpdate = new ArrayList<>();
 
         boolean needsUpdate = false;
+        ConversationThread updatedConversation = null;
         for (ConversationThread item : postBox.getConversationThreads()) {
-
             if (item.getConversationId().equals(conversationId) && item.isContainsUnreadMessages()) {
-
-                threadsToUpdate.add(new ConversationThread(
+                updatedConversation = new ConversationThread(
                         item.getAdId(),
                         item.getConversationId(),
                         item.getCreatedAt(),
@@ -179,11 +179,10 @@ class ConversationThreadController {
                         item.getBuyerName(),
                         item.getSellerName(),
                         item.getBuyerId(),
-                        item.getMessageDirection()
-                ));
+                        item.getMessageDirection());
 
+                threadsToUpdate.add(updatedConversation);
                 needsUpdate = true;
-
             } else {
                 threadsToUpdate.add(item);
             }
@@ -194,7 +193,7 @@ class ConversationThreadController {
         //optimization to not cause too many write actions (potential for conflicts)
         if (needsUpdate) {
             PostBox postBoxToUpdate = new PostBox(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate, maxAgeDays);
-            postBoxRepository.write(postBoxToUpdate);
+            postBoxRepository.markConversationAsRead(postBoxToUpdate, updatedConversation);
             numUnreadCounter = postBoxToUpdate.getUnreadConversationsCapped().size();
         } else {
             numUnreadCounter = postBox.getUnreadConversationsCapped().size();
@@ -223,7 +222,7 @@ class ConversationThreadController {
             Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
             if (conversationThreadRequested.isPresent()) {
                 postBox.removeConversation(conversationId);
-                postBoxRepository.write(postBox, ImmutableList.of(conversationId));
+                postBoxRepository.deleteConversations(postBox, Collections.singletonList(conversationId));
             }
 
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);

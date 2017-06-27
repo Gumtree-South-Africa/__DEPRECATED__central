@@ -22,12 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import java.util.Spliterator;
 import java.util.stream.Stream;
 
 public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepository  {
@@ -100,7 +97,16 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
     }
 
     @Override
-    public void write(PostBox postBox, List<String> deletedIds) {
+    public void deleteConversations(PostBox postBox, List<String> deletedIds) {
+        write(postBox, deletedIds);
+    }
+
+    @Override
+    public void markConversationsAsRead(PostBox postBox, List<AbstractConversationThread> conversation) {
+        write(postBox);
+    }
+
+    private void write(PostBox postBox, List<String> deletedIds) {
         try (Timer.Context ignored = COMMIT_TIMER.time()) {
             postBoxBucket.store(postBox.getEmail(), postBox)
               .withConverter(converter)
@@ -212,5 +218,13 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
     @Override
     public List<String> getPostBoxIds(DateTime fromDate, DateTime toDate) {
          return streamPostBoxIds(fromDate, toDate).collect(Collectors.toList());
+    }
+
+    /**
+     * TODO: keep the same functionalitu in Riak during a migration.
+     */
+    @Override
+    public int unreadCountInConversation(PostBoxId id, String conversationId) {
+        return 1;
     }
 }

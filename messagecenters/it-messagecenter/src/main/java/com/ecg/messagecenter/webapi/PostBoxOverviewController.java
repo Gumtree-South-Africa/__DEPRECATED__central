@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.Collections;
 
 
 /**
@@ -87,14 +86,14 @@ import java.util.Collections;
         Timer.Context timerContext = API_POSTBOX_BY_EMAIL.time();
 
         try {
-            PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
             API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX
                             .update(postBox.getConversationThreads().size());
 
             if (markAsRead(request)) {
                 postBox.resetReplies();
-                postBoxRepository.write(postBox);
+                postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
             }
 
             if (robotEnabled) {
@@ -132,7 +131,7 @@ import java.util.Collections;
 
         try {
             PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-            postBoxRepository.write(postBox, Arrays.asList(ids));
+            postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
 
         } finally {

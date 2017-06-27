@@ -161,8 +161,8 @@ public class PostBox<T extends AbstractConversationThread> {
         this.newRepliesCounter.inc();
     }
 
-    public void decrementNewReplies() {
-        this.newRepliesCounter.dec();
+    public void decrementNewReplies(long numOfReplies) {
+        this.newRepliesCounter.dec(numOfReplies);
     }
 
     public void resetReplies() {
@@ -186,8 +186,7 @@ public class PostBox<T extends AbstractConversationThread> {
 
     @Override
     public String toString() {
-        Function<AbstractConversationThread, String> stringer = (AbstractConversationThread c) -> c.toString();
-        return toStringHelper(stringer);
+        return toStringHelper(AbstractConversationThread::toString);
     }
 
     private String toStringHelper(Function<AbstractConversationThread, String> stringer) {
@@ -207,8 +206,7 @@ public class PostBox<T extends AbstractConversationThread> {
     }
 
     public String fullToString() {
-        Function<AbstractConversationThread, String> stringer = (AbstractConversationThread c) -> c.fullToString();
-        return toStringHelper(stringer);
+        return toStringHelper(AbstractConversationThread::fullToString);
     }
 
     @Override

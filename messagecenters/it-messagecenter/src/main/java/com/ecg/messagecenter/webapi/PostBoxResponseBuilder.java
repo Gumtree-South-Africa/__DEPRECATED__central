@@ -46,11 +46,9 @@ public class PostBoxResponseBuilder {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         if (newCounterMode) {
-            postBoxResponse.initNumUnread(postBox.getNewRepliesCounter().getValue().intValue(),
-                            postBox.getLastModification());
+            postBoxResponse.initNumUnread((int) postBox.getNewRepliesCounter().getValue(), postBox.getLastModification());
         } else {
-            postBoxResponse.initNumUnread(postBox.getUnreadConversationsCapped().size(),
-                            postBox.getLastModification());
+            postBoxResponse.initNumUnread(postBox.getUnreadConversationsCapped().size(), postBox.getLastModification());
         }
 
         initConversationsPayload(email, postBox.getConversationThreadsCapTo(page, size),

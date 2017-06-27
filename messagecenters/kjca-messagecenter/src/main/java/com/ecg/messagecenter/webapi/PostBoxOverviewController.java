@@ -77,7 +77,7 @@ class PostBoxOverviewController {
 
             if (markAsRead(request)) {
                 postBox.resetReplies();
-                postBoxRepository.write(postBox);
+                postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
             }
 
             return responseBuilder.buildPostBoxResponse(email, size, page, role, postBox, newCounterMode);
@@ -107,7 +107,7 @@ class PostBoxOverviewController {
                 postBox.removeConversation(id);
             }
 
-            postBoxRepository.write(postBox, Arrays.asList(ids));
+            postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
 
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
 
