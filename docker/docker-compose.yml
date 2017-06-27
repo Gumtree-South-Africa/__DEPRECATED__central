@@ -34,16 +34,16 @@ services:
     - "8087:8087"
     - "8089:8089"
     - "8098:8098"
-  # graphite:
-  #    image:  hopsoft/graphite-statsd
-  #    ports:
-  #    - "8082:80" # web ui
-  #    - "2003:2003"
-  #    - "2004:2004"
-  #    - "2023:2023"
-  #    - "2024:2024"
-  #    - "8125:8125/udp"
-  #    - "8126:8126"
+  graphite:
+    image:  hopsoft/graphite-statsd
+    ports:
+    - "8082:80" # web ui
+    - "2003:2003"
+    - "2004:2004"
+    - "2023:2023"
+    - "2024:2024"
+    - "8125:8125/udp"
+    - "8126:8126"
   zookeeper:
     image: wurstmeister/zookeeper
     ports:
