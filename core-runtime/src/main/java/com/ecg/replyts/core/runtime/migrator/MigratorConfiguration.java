@@ -1,6 +1,7 @@
 package com.ecg.replyts.core.runtime.migrator;
 
 import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationRepository;
+import com.ecg.replyts.core.webapi.screeningv2.AttachmentVerifierController;
 import com.hazelcast.core.HazelcastInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,4 +63,9 @@ public class MigratorConfiguration {
         return new MailAttachmentMigrator(idBatchSize, maxConversationAgeDays, completionTimeoutSec);
     }
 
+    @Bean
+    @ConditionalOnProperty(name = "swift.attachment.storage.enabled", havingValue = "true")
+    public AttachmentVerifierController attachmentVerifierController() {
+        return new AttachmentVerifierController(idBatchSize, completionTimeoutSec);
+    }
 }
