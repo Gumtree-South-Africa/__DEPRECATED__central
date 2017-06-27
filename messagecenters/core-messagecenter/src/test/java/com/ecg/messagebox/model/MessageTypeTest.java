@@ -16,6 +16,7 @@ public class MessageTypeTest {
     @Test
     public void shouldReturnEmailByDefaultWhenValueIsNull() {
         assertEquals(MessageType.ASQ, MessageType.getWithEmailAsDefault("asq"));
+        assertEquals(MessageType.ASQ, MessageType.getWithEmailAsDefault("ASQ"));
         assertEquals(MessageType.EMAIL, MessageType.getWithEmailAsDefault(null));
     }
 }

@@ -37,6 +37,6 @@ public enum MessageType {
     }
 
     public static MessageType getWithEmailAsDefault(String value) {
-        return value == null ? EMAIL : MessageType.get(value);
+        return value == null ? EMAIL : MessageType.get(value.toLowerCase());
     }
 }
