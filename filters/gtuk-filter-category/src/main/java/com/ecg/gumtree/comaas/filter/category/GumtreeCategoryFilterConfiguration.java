@@ -50,7 +50,7 @@ public class GumtreeCategoryFilterConfiguration {
         return new CategoryFilterFactory(categoryModel);
     }
 
-    public static class CategoryFilterFactory extends GumtreeFilterFactory<CategoryFilterConfig, GumtreeCategoryFilter> {
+    static class CategoryFilterFactory extends GumtreeFilterFactory<CategoryFilterConfig, GumtreeCategoryFilter> {
         CategoryFilterFactory(CategoryModel categoryModel) {
             super(CategoryFilterConfig.class, (a, b) -> new GumtreeCategoryFilter().withCategoryModel(categoryModel));
         }

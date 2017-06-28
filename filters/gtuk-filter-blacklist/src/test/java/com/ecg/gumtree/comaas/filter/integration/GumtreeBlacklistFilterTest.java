@@ -59,7 +59,7 @@ public class GumtreeBlacklistFilterTest {
     @Autowired
     private GumtreeBlacklistFilter filter;
 
-    @MockBean
+    @Autowired
     private GumshieldApi gumshieldApi;
 
     @MockBean
@@ -338,6 +338,9 @@ public class GumtreeBlacklistFilterTest {
 
     @Configuration
     static class TestContext {
+        @MockBean
+        GumshieldApi gumshieldApi;
+
         @Bean
         public BlacklistFilterConfig filterConfig() throws Exception {
             return new BlacklistFilterConfig.Builder(State.ENABLED, 1, null, "ACCOUNT_HOLDER",
@@ -353,7 +356,8 @@ public class GumtreeBlacklistFilterTest {
         public GumtreeBlacklistFilter filter(BlacklistFilterConfig filterConfig) {
             return new GumtreeBlacklistFilter()
                     .withPluginConfig(mock(Filter.class))
-                    .withFilterConfig(filterConfig);
+                    .withFilterConfig(filterConfig)
+                    .withGumshielApi(gumshieldApi);
         }
     }
 }

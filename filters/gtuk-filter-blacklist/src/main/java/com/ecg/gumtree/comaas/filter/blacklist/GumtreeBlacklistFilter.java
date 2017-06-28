@@ -19,7 +19,6 @@ import com.gumtree.gumshield.api.domain.checklist.ApiChecklistType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -35,11 +34,9 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
 
     private static final Timer TIMER = TimingReports.newTimer("blacklist-filter-process-time");
 
-    @Autowired
-    private GumshieldApi gumshieldApi;
-
     private Filter pluginConfig;
     private BlacklistFilterConfig filterConfig;
+    private GumshieldApi gumshieldApi;
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
@@ -106,6 +103,10 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
     }
 
     private boolean isBlacklistedAttribute(String attribute, ApiChecklistAttribute checklistAttribute) {
+        if (gumshieldApi == null) {
+            LOG.error("Gumshield API was null");
+            return false;
+        }
         try {
             gumshieldApi.checklistApi().findEntryByValue(ApiChecklistType.BLACK, checklistAttribute, attribute);
             return true;
@@ -166,6 +167,11 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
 
     public GumtreeBlacklistFilter withFilterConfig(BlacklistFilterConfig filterConfig) {
         this.filterConfig = filterConfig;
+        return this;
+    }
+
+    public GumtreeBlacklistFilter withGumshielApi(GumshieldApi gumshieldApi) {
+        this.gumshieldApi = gumshieldApi;
         return this;
     }
 }

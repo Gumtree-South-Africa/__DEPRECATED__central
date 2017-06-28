@@ -3,7 +3,7 @@ BROWSE          = open
 PROPS2CONSUL    = ./properties-to-consul-osx
 CASS_IMG_VER    = 0.0.5
 
-.PHONY: up down ui import logs cassandra-image push-cassandra-image
+.PHONY: up down ui import logs cassandra-image push-cassandra-image pull
 
 up:
 	@$(DOCKER_COMPOSE) up -d
@@ -27,3 +27,7 @@ cassandra-image:
 
 push-cassandra-image:
 	@docker push registry.ecg.so/comaas_cassandra_data:$(CASS_IMG_VER)
+
+pull:
+	@$(DOCKER_COMPOSE) pull
+	@docker pull basho/riak-kv:2.1.4
