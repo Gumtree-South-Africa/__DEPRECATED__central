@@ -1,10 +1,9 @@
-package com.ecg.replyts.core.webapi.screeningv2;
+package com.ecg.replyts.core.runtime.migrator;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.migrator.Util;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.DiffingRiakMailRepository;
 import com.google.common.base.Stopwatch;
@@ -18,10 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -34,13 +29,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static com.ecg.replyts.core.webapi.control.MailMigrationController.DATETIME_STRING;
-import static com.ecg.replyts.core.webapi.control.Util.CSV_SPLITTER;
+public class MailAttachmentVerifier {
 
-@RequestMapping("/verifyattachment")
-public class AttachmentVerifierController {
-
-    private static final Logger LOG = LoggerFactory.getLogger(AttachmentVerifierController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MailAttachmentVerifier.class);
 
     private final Counter MAIL_COUNTER = TimingReports.newCounter("attachments.verification.mail-counter-total");
     private final Timer BATCH_VERIFICATION_TIMER = TimingReports.newTimer("attachments.verification.batch-mail-timer");
@@ -57,45 +48,15 @@ public class AttachmentVerifierController {
     @Value("${attachments.verification.endpoint:localhost:8080}")
     private String attachmentEndpoint;
 
-    private final int idBatchSize;
-    private final int completionTimeoutSec;
+    private int idBatchSize;
+    private int completionTimeoutSec;
 
-    public AttachmentVerifierController(int idBatchSize, int completionTimeoutSec) {
+    public MailAttachmentVerifier(int idBatchSize, int completionTimeoutSec) {
         this.idBatchSize = idBatchSize;
         this.completionTimeoutSec = completionTimeoutSec;
     }
 
-    @RequestMapping("/{fromDate}/{toDate}")
-    @ResponseBody
-    public String verifyBetween(@PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime fromDate,
-                                @PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime toDate) {
-        LOG.info("Invoke attachment verifier from {} to {} via web interface", fromDate, toDate);
-
-        try {
-            executor.execute(() -> verifyAttachmentsBetweenDates(fromDate, toDate));
-            return "Attachment Verification is UP and RUNNING!";
-        } catch (Exception e) {
-            executor.getQueue().clear();
-            throw new RuntimeException(e);
-        }
-    }
-
-    @RequestMapping("/{ids}")
-    @ResponseBody
-    public String verifyIds(@PathVariable String ids) {
-        List<String> mailIds = CSV_SPLITTER.splitToList(ids);
-        LOG.info("Invoke attachment verifier for IDs {} via web interface", mailIds);
-
-        try {
-            executor.execute(() -> verifyAttachmentsByIds(mailIds));
-            return "Attachment Verification is UP and RUNNING!";
-        } catch (Exception e) {
-            executor.getQueue().clear();
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void verifyAttachmentsBetweenDates(LocalDateTime dateFrom, LocalDateTime dateTo) {
+    public void verifyAttachmentsBetweenDates(LocalDateTime dateFrom, LocalDateTime dateTo) {
         Stopwatch watch = Stopwatch.createStarted();
 
         try {
@@ -118,7 +79,7 @@ public class AttachmentVerifierController {
         }
     }
 
-    private void verifyAttachmentsByIds(List<String> mailIds) {
+    public void verifyAttachmentsByIds(List<String> mailIds) {
         Stopwatch watch = Stopwatch.createStarted();
 
         try {
@@ -224,4 +185,5 @@ public class AttachmentVerifierController {
             return null;
         }
     }
+
 }
