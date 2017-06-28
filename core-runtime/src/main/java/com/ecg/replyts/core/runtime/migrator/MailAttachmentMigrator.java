@@ -86,7 +86,7 @@ public class MailAttachmentMigrator {
     }
 
     public boolean migrateById(List<String> mailIds) {
-        String msg = String.format(" migrate by ids %s ", mailIds);
+        String msg = String.format(" migrate by ids, ids accepted %d ", mailIds.size());
         watch = Stopwatch.createStarted();
         return execute(() -> migrateAttachments(mailIds), msg);
     }

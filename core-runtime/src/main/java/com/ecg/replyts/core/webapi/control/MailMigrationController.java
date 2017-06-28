@@ -1,8 +1,7 @@
 package com.ecg.replyts.core.webapi.control;
 
 import com.ecg.replyts.core.runtime.migrator.MailAttachmentMigrator;
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
+
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,10 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
+import java.io.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -34,7 +32,7 @@ public class MailMigrationController {
     @Autowired
     private MailAttachmentMigrator migrator;
 
-    @RequestMapping("mail/{ids}")
+    @RequestMapping(value = "mail/{ids}")
     @ResponseBody
     public String migratebyId(@PathVariable String ids) {
         final List<String> conversations = CSV_SPLITTER.splitToList(ids);
@@ -42,6 +40,27 @@ public class MailMigrationController {
         boolean hasExecuted = migrator.migrateById(conversations);
         if (hasExecuted) {
             status = String.format("Migrating mails %s started.", ids);
+        }
+        return hasExecuted ? status : DEFAULT_NO_EXECUTION_MESSAGE;
+    }
+
+    @RequestMapping(value = "byid", method = RequestMethod.POST)
+    @ResponseBody
+    public String migratebyIds(@RequestBody String ids) {
+        String cleanIds = "";
+        try {
+            cleanIds = java.net.URLDecoder.decode(ids, "UTF-8");
+        } catch (UnsupportedEncodingException ignored) {
+        }
+
+        LOG.debug("Invoke migrate mail via Web interface for ids in a file '{}' ", cleanIds);
+
+        final List<String> conversations = CSV_SPLITTER.splitToList(cleanIds);
+        LOG.debug("Accepting {} ids for migration", conversations.size());
+        boolean hasExecuted = migrator.migrateById(conversations);
+
+        if (hasExecuted) {
+            status = String.format("Migrating mails by id started.");
         }
         return hasExecuted ? status : DEFAULT_NO_EXECUTION_MESSAGE;
     }

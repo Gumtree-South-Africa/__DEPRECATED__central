@@ -78,14 +78,8 @@ public class AttachmentRepository {
                 TypedContent<byte[]> attachment = mail.getAttachment(aname);
                 if (attachment.getContent().length > 0) {
 
-                    try (Timer.Context ignored = STORE_ATTACHMENT.time()) {
-                        LOG.debug("Storing message {}, attachment {} , size {} bytes", messageId, aname, attachment.getContent().length);
-                        kafkaSinkService.store(getCompositeKey(messageId, aname), attachment);
-                    }
-
-                    ATTACHMENT_SIZE_HISTOGRAM.update(attachment.getContent().length);
-                    totalSize += attachment.getContent().length;
-
+                    storeAttachment(messageId, aname, attachment);
+                    totalSize +=attachment.getContent().length;
                 } else {
                     LOG.debug("Empty attachment name {} for messageid {}", aname, messageId);
                 }
@@ -94,6 +88,16 @@ public class AttachmentRepository {
             MAIL_SIZE_HISTOGRAM.update(totalSize);
         }
         ATT_PER_MAIL_HISTOGRAM.update(mail.getAttachmentNames().size());
+    }
+
+    public void storeAttachment(String messageId, String aname, TypedContent<byte[]> attachment) {
+        try (Timer.Context ignored = STORE_ATTACHMENT.time()) {
+            LOG.debug("Storing message {}, attachment {} , size {} bytes", messageId, aname, attachment.getContent().length);
+            kafkaSinkService.store(getCompositeKey(messageId, aname), attachment);
+        }
+
+        ATTACHMENT_SIZE_HISTOGRAM.update(attachment.getContent().length);
+
     }
 
 }
