@@ -1,6 +1,7 @@
 package com.ecg.de.mobile.replyts.pushnotification;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
@@ -48,7 +49,7 @@ public class NotificationSender {
 
     private HttpPost post(MdePushMessagePayload payload) throws Exception {
         StringEntity params = new StringEntity(
-                jsonConverter.toJsonString(payload)
+                jsonConverter.toJsonString(payload), ContentType.APPLICATION_JSON
         );
         HttpPost post = new HttpPost(apiUrl);
         post.addHeader(HTTP.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
@@ -73,7 +74,7 @@ public class NotificationSender {
                 }
                 LOG.warn("Failed response status code {}, body: {}",
                         statusLine.getStatusCode(),
-                        EntityUtils.toString(response.getEntity(), "UTF-8")
+                        EntityUtils.toString(response.getEntity(), Consts.UTF_8)
                 );
                 return false;
             } finally {
