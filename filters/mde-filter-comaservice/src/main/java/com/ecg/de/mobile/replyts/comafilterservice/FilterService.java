@@ -10,34 +10,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FilterService implements Filter {
 
     public static final String CUSTOM_HEADER_PREFIX = "X-Cust-";
-    
+    static final String CUSTOM_HEADER_MESSAGE_TYPE = CUSTOM_HEADER_PREFIX + "Message_Type";
+    static final String CUSTOM_HEADER_BUYER_TYPE = CUSTOM_HEADER_PREFIX + "Buyer_Type";
+    static final String MESSAGE_TYPE_CONVERSATION = "CONVERSATION_MESSAGE";
+
     static final String DEALER = "DEALER";
     private final ComaFilterService comaFilterService;
     private final ContactMessageAssembler contactMessageAssembler;
-    
-    
+
+
     private static final Logger LOGGER = LoggerFactory.getLogger(FilterService.class);
 
-    
-    public FilterService(@Value("${replyts.mobile.comafilterservice.webserviceUrl}") String comaFilterServiceUrl,
-                         @Value("${replyts.mobile.comafilterservice.active}") boolean isActive) {
-        comaFilterService = new ComaFilterService(comaFilterServiceUrl, isActive);
-        contactMessageAssembler = new ContactMessageAssembler();
-        
-    }
-    
-    FilterService(ComaFilterService comaFilterService) {
-        this.comaFilterService = comaFilterService;
-        contactMessageAssembler = new ContactMessageAssembler();
-    }
 
     FilterService(ComaFilterService comaFilterService, ContactMessageAssembler contactMessageAssembler) {
         this.comaFilterService = comaFilterService;
@@ -57,61 +48,50 @@ public class FilterService implements Filter {
      */
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
+        return applyFiltersToMessage(context)
+                .stream()
+                .map(FilterService::toFilterFeedback)
+                .collect(Collectors.toList());
+    }
 
-        Collection<String> results = applyFiltersToMessage(context);
-        
-        ArrayList<FilterFeedback> filterFeedbackList = new ArrayList<FilterFeedback>();
-        FilterFeedback filter;
-        for(String alertingFilter : results) {
-            filter = new FilterFeedback(alertingFilter,"Coma Filter Service alert: Filter "+alertingFilter+" matched.",0,FilterResultState.DROPPED);
-            filterFeedbackList.add(filter);
-        }
-
-        return filterFeedbackList;
+    private static FilterFeedback toFilterFeedback(String alertingFilter) {
+        return new FilterFeedback(
+                alertingFilter,
+                "Coma Filter Service alert: Filter " + alertingFilter + " matched.",
+                0,
+                FilterResultState.DROPPED
+        );
     }
 
     private Collection<String> applyFiltersToMessage(MessageProcessingContext messageContext) {
-        
-        /**
-         * Do only check first message in conversation.
-         */
-        if(!isInitialMessage(messageContext)) {
-            LOGGER.info("Do not use filter service on mail to adid {}: no initial message.",messageContext.getMail().getAdId());
-            return Collections.emptySet();
-        }
-
-        /**
-         * do not check messages coming from dealers
-         */
+        // do not check messages coming from dealers
         if (isDealerBuyer(messageContext)) {
-            LOGGER.info("Do not use filter service on mail to adid {}: buyer is dealer.",messageContext.getMail().getAdId());
-               return Collections.emptySet();
+            LOGGER.info("Do not use filter service on mail to adid {}: buyer is dealer.", messageContext.getMail().getAdId());
+            return Collections.emptySet();
         }
 
-        LOGGER.info("Filter service on adid {}",messageContext.getMail().getAdId());
-        try{
-            return comaFilterService.getFilterResults(contactMessageAssembler.getContactMessage(messageContext));
-            
-        } catch(Exception e){ // we are not important (yet)
-            LOGGER.error("Filter service failed.");
-            LOGGER.debug("Filter service failed. .",e);
+        try {
+            if (isConversationMessage(messageContext)) {
+                LOGGER.info("Filter service for conversation on ADID={}", messageContext.getMail().getAdId());
+                return comaFilterService.getFilterResultsForConversation(contactMessageAssembler.getContactMessage(messageContext));
+            } else {
+                LOGGER.info("Filter service for message on ADID={}", messageContext.getMail().getAdId());
+                return comaFilterService.getFilterResultsForMessage(contactMessageAssembler.getContactMessage(messageContext));
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("Filter service failed: {}", e.getMessage(), e);
             return Collections.emptySet();
         }
     }
 
-
-    private boolean isInitialMessage(MessageProcessingContext context){
-        /**
-         * Search for any header field that coma service sets. 
-         * If it is set, the message comes from coma so it's an initial message.     
-         */
-        return context.getMessage().getHeaders().containsKey(CUSTOM_HEADER_PREFIX + "Seller_Type");
-    }
-
-    private boolean isDealerBuyer(MessageProcessingContext context){
-        String buyerType = context.getMessage().getHeaders().get(CUSTOM_HEADER_PREFIX + "Buyer_Type");
+    private boolean isDealerBuyer(MessageProcessingContext context) {
+        String buyerType = context.getMessage().getHeaders().get(CUSTOM_HEADER_BUYER_TYPE);
         return DEALER.equals(buyerType);
     }
 
+    private boolean isConversationMessage(MessageProcessingContext context) {
+        return MESSAGE_TYPE_CONVERSATION.equalsIgnoreCase(context.getMessage().getHeaders().get(CUSTOM_HEADER_MESSAGE_TYPE));
+    }
 
 }

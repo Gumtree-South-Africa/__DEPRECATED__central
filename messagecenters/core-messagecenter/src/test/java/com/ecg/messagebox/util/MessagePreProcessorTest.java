@@ -20,7 +20,12 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class MessagePreProcessorTest {
+abstract class MessagePreProcessorTest {
+
+    protected boolean isStripHtmlTagsEnabled() {
+        return false;
+    }
+
     protected void cutAndCompare(List<String> patterns, String msg, String expected) {
         Message message = mock(Message.class);
         when(message.getPlainTextBody()).thenReturn(msg);
@@ -32,7 +37,7 @@ public class MessagePreProcessorTest {
 
         MessagePreProcessor messagePreProcessor = new MessagePreProcessor(environment);
 
-        ReflectionTestUtils.setField(messagePreProcessor, "stripHtmlTagsEnabled", true);
+        ReflectionTestUtils.setField(messagePreProcessor, "stripHtmlTagsEnabled", isStripHtmlTagsEnabled());
 
         assertEquals("Message matches expected result", expected, messagePreProcessor.removeEmailClientReplyFragment(conversation, message));
     }

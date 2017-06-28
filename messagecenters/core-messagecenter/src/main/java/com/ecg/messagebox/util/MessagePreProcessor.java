@@ -4,9 +4,11 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.runtime.EnvironmentSupport;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.safety.Whitelist;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.AbstractEnvironment;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class MessagePreProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(MessagePreProcessor.class);
     private static final String PREFIX_MESSAGE_ANONYMIZATION_PATTERN = "message.anonymization.pattern.";
     private static final String PREFIX_MESSAGE_NORMALIZATION_PATTERN = "message.normalization.pattern.";
 
@@ -27,6 +30,7 @@ public class MessagePreProcessor {
     private static final String END_OF_LINE_CHARACTER_ESCAPED = "\\r";
 
     private static final Pattern cssPattern = Pattern.compile("(#outlook a \\{.*?\\}.*?(\\n|\\r\\n))|( blockquote.+?!important; })");
+    private static final String HTML_LINE_BREAKER = "€€linebreak€€";
 
     private List<Pattern> patterns;
 
@@ -36,22 +40,22 @@ public class MessagePreProcessor {
     @Autowired
     public MessagePreProcessor(AbstractEnvironment environment) {
         this.patterns = EnvironmentSupport.propertyNames(environment)
-          .stream()
-          .filter(key -> key.startsWith(PREFIX_MESSAGE_ANONYMIZATION_PATTERN) || key.startsWith(PREFIX_MESSAGE_NORMALIZATION_PATTERN))
-          .sorted((key1, key2) -> {
-            if (key1.startsWith(PREFIX_MESSAGE_ANONYMIZATION_PATTERN) && key2.startsWith(PREFIX_MESSAGE_ANONYMIZATION_PATTERN)) {
-                return Integer.parseInt(key1.substring(PREFIX_MESSAGE_ANONYMIZATION_PATTERN.length())) -
-                  Integer.parseInt(key2.substring(PREFIX_MESSAGE_ANONYMIZATION_PATTERN.length()));
-            } else if (key1.startsWith(PREFIX_MESSAGE_NORMALIZATION_PATTERN) && key2.startsWith(PREFIX_MESSAGE_NORMALIZATION_PATTERN)) {
-                return Integer.parseInt(key1.substring(PREFIX_MESSAGE_NORMALIZATION_PATTERN.length())) -
-                  Integer.parseInt(key2.substring(PREFIX_MESSAGE_NORMALIZATION_PATTERN.length()));
-            } else {
-                return key1.compareTo(key2);
-            }
-          })
-          .map(key -> environment.getProperty(key))
-          .map(Pattern::compile)
-          .collect(Collectors.toList());
+                .stream()
+                .filter(key -> key.startsWith(PREFIX_MESSAGE_ANONYMIZATION_PATTERN) || key.startsWith(PREFIX_MESSAGE_NORMALIZATION_PATTERN))
+                .sorted((key1, key2) -> {
+                    if (key1.startsWith(PREFIX_MESSAGE_ANONYMIZATION_PATTERN) && key2.startsWith(PREFIX_MESSAGE_ANONYMIZATION_PATTERN)) {
+                        return Integer.parseInt(key1.substring(PREFIX_MESSAGE_ANONYMIZATION_PATTERN.length())) -
+                                Integer.parseInt(key2.substring(PREFIX_MESSAGE_ANONYMIZATION_PATTERN.length()));
+                    } else if (key1.startsWith(PREFIX_MESSAGE_NORMALIZATION_PATTERN) && key2.startsWith(PREFIX_MESSAGE_NORMALIZATION_PATTERN)) {
+                        return Integer.parseInt(key1.substring(PREFIX_MESSAGE_NORMALIZATION_PATTERN.length())) -
+                                Integer.parseInt(key2.substring(PREFIX_MESSAGE_NORMALIZATION_PATTERN.length()));
+                    } else {
+                        return key1.compareTo(key2);
+                    }
+                })
+                .map(key -> environment.getProperty(key))
+                .map(Pattern::compile)
+                .collect(Collectors.toList());
     }
 
     public String removeEmailClientReplyFragment(Conversation conversation, Message message) {
@@ -87,7 +91,22 @@ public class MessagePreProcessor {
         return res.replaceAll(END_OF_LINE_CHARACTER_ESCAPED, END_OF_LINE_CHARACTER);
     }
 
-    private String stripHtmlTags(String value) {
-        return Jsoup.clean(value, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
+    private String stripHtmlTags(final String value) {
+        if (StringUtils.isBlank(value)) {
+            return value;
+        }
+
+        try {
+            final String in = value.replaceAll("\n", HTML_LINE_BREAKER); // preserve text line breaks
+            final Document asHtml = Jsoup.parse(in);
+            asHtml.select("br").append(HTML_LINE_BREAKER); // preserve html line breaks
+
+            String text = asHtml.text(); // text without any html code
+            text = text.replaceAll(HTML_LINE_BREAKER, "\n"); // text with line breaks
+            return text;
+        } catch (Exception e) {
+            LOG.error("stripping HTML tags failed: {}", e.getMessage(), e);
+            return value;
+        }
     }
 }

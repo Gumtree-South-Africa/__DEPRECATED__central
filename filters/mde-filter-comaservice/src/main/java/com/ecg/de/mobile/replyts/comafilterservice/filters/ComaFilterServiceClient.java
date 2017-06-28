@@ -10,7 +10,11 @@ public interface ComaFilterServiceClient {
 
 
     @Headers("Content-Type: application/json")
-    @POST("/filter")
-    List<String> getFilterResults(@Body ContactMessage message);
+    @POST("/coma-filter/message")
+    List<String> getFilterResultsForMessage(@Body ContactMessage message);
+
+    @Headers("Content-Type: application/json")
+    @POST("/coma-filter/conversation")
+    List<String> getFilterResultsForConversation(@Body ContactMessage message);
 
 }

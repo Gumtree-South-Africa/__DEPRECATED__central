@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MessagePreProcessorMdeTest extends MessagePreProcessorTest {
+
     private static final List<String> PATTERNS = Arrays.asList(
             // Am 7. Juni 2017 um 09:39 schrieb <seller-pdgfwlf32gq9r@kontakt.mobile.de>:
             "Am [0-3]?[0-9]\\. (Ja|Fe|Mä|Ap|Ma|Ju|Au|Se|Ok|No|De)[a-z]+ 2[0-9][0-9][0-9] um [0-2]?[0-9]:[0-5]?[0-9] schrieb (<)?(seller|buyer)-.*@[a-z]+.mobile.de(>|\\s)?:.*\\n",
@@ -35,6 +36,11 @@ public class MessagePreProcessorMdeTest extends MessagePreProcessorTest {
             "2[0-9][0-9][0-9][./-][0-9]?[0-9][./-][0-9]?[0-9] [0-2]?[0-9]:[0-5]?[0-9] .*(seller|buyer)-.*@[a-z]+.mobile.de.*",
             "[0-9][0-9][0-9]?[0-9]?[./-].*(seller|buyer)-.*@[a-z]+.mobile.de.*\\n"
     );
+
+    @Override
+    protected boolean isStripHtmlTagsEnabled() {
+        return true;
+    }
 
     @Test
     public void realAnswerTest() throws IOException {
@@ -112,10 +118,12 @@ public class MessagePreProcessorMdeTest extends MessagePreProcessorTest {
     @Test
     public void removeEmptyBrTags() throws IOException {
         cutAndCompare(PATTERNS, "no slash<br>", "no slash");
-        cutAndCompare(PATTERNS, "with slash<br/>", "with slash");
+        cutAndCompare(PATTERNS, "with slash<br/>second", "with slash \nsecond");
         cutAndCompare(PATTERNS, "with slash and spaces<br   />", "with slash and spaces");
         cutAndCompare(PATTERNS, "no slash many spaces<br   >", "no slash many spaces");
         cutAndCompare(PATTERNS, "no slash many spaces<br class=\"any\"  >", "no slash many spaces");
+        cutAndCompare(PATTERNS, "gromit & wallace", "gromit & wallace");
+        cutAndCompare(PATTERNS, "gromit \n\n \\nwallace", "gromit \n\n \\nwallace");
     }
 
     @Test

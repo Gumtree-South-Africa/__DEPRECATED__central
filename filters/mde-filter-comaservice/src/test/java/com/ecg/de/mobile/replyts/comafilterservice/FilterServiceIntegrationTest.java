@@ -110,17 +110,6 @@ public class FilterServiceIntegrationTest {
     }
     
     @Test
-    public void testNotFilteringMessageWithoutAnyAdditionalFields() throws IOException {
-        MailBuilder mailBuilder = createDummyMailBase();
-        MockServlet.setJsonResponse("[\"AnyResponseThatShouldNeverBeAskedFor\"]");
-
-        MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
-        assertEquals(MessageState.SENT, processedMail.getMessage().getState());
-
-        assertFalse(MockServlet.getContactMessage().isPresent());
-    }
-
-    @Test
     public void testNotFilteringMessageToDealerBuyer() throws IOException {
         MailBuilder mailBuilder = createDummyMailBase()
                 .header("X-Cust-Seller_Type", "DEALER")

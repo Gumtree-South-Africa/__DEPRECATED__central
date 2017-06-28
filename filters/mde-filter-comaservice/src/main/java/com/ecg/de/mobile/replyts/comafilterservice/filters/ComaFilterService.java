@@ -13,11 +13,10 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 public class ComaFilterService {
 
-    private final static Logger logger = LoggerFactory.getLogger(ComaFilterService.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ComaFilterService.class);
 
     private static final Gson GSON = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
@@ -27,19 +26,18 @@ public class ComaFilterService {
     private final ComaFilterServiceClient client;
 
     private final boolean active;
+    private final int connectTimeout;
+    private final int readTimeout;
 
-    public ComaFilterService(String webserviceUrl, boolean areFiltersActive) {
+    public ComaFilterService(String webserviceUrl, boolean areFiltersActive, int connectTimeout, int readTimeout) {
+        this.connectTimeout = connectTimeout;
+        this.readTimeout = readTimeout;
         client = new RestAdapter.Builder()
                 .setLogLevel(RestAdapter.LogLevel.BASIC)
                 .setEndpoint(webserviceUrl)
                 .setErrorHandler(new FilterServiceErrorHandler())
                 .setConverter(new GsonConverter(GSON))
-                .setLog(new RestAdapter.Log() {
-                    @Override
-                    public void log(String s) {
-                        logger.info(s);
-                    }
-                })
+                .setLog(LOGGER::info)
                 .setClient(new ComaFilterServiceHttpClient())
                 .build()
                 .create(ComaFilterServiceClient.class);
@@ -47,26 +45,28 @@ public class ComaFilterService {
         active = areFiltersActive;
     }
 
-    ComaFilterService(ComaFilterServiceClient comaFilterServiceClient, boolean areFiltersActive){
-
+    ComaFilterService(ComaFilterServiceClient comaFilterServiceClient, boolean areFiltersActive) {
+        connectTimeout = 5000;
+        readTimeout = 60000;
         client = comaFilterServiceClient;
         active = areFiltersActive;
 
     }
 
-    public Collection<String> getFilterResults(ContactMessage message) {
-        logger.debug("Processing ContactMessage {}.",message);
-
-        if(!active) {
-            /**
-             * Filters are not active so we do not have to do anything.
-             */
+    public Collection<String> getFilterResultsForMessage(ContactMessage message) {
+        LOGGER.debug("Processing message ContactMessage {}.", message);
+        if (!active) {
             return Collections.emptySet();
         }
+        return client.getFilterResultsForMessage(message);
+    }
 
-        List<String> matchingFilters = client.getFilterResults(message);
-
-        return matchingFilters;
+    public Collection<String> getFilterResultsForConversation(ContactMessage message) {
+        LOGGER.debug("Processing conversation ContactMessage {}.", message);
+        if (!active) {
+            return Collections.emptySet();
+        }
+        return client.getFilterResultsForConversation(message);
     }
 
     /**
@@ -75,10 +75,11 @@ public class ComaFilterService {
      * (source: https://ebayclassifiedsgroup.slack.com/archives/ecg-comaas-mde/p1481622119000044)
      */
     private final class ComaFilterServiceHttpClient extends UrlConnectionClient {
-        @Override protected HttpURLConnection openConnection(Request request) throws IOException {
+        @Override
+        protected HttpURLConnection openConnection(Request request) throws IOException {
             HttpURLConnection connection = super.openConnection(request);
-            connection.setConnectTimeout(5 * 1000);
-            connection.setReadTimeout(60 * 1000);
+            connection.setConnectTimeout(connectTimeout);
+            connection.setReadTimeout(readTimeout);
             return connection;
         }
     }

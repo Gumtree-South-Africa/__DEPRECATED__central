@@ -7,6 +7,8 @@
     <bean id="comaFilterService" class="com.ecg.de.mobile.replyts.comafilterservice.filters.ComaFilterService">
         <constructor-arg value="${replyts.mobile.comafilterservice.webserviceUrl}"></constructor-arg>
         <constructor-arg value="${replyts.mobile.comafilterservice.active}"></constructor-arg>        
+        <constructor-arg value="${replyts.mobile.comafilterservice.connectTimeout:5000}"></constructor-arg>
+        <constructor-arg value="${replyts.mobile.comafilterservice.readTimeout:10000}"></constructor-arg>
     </bean>
     
     <bean id="contactMessageAssembler" class="com.ecg.de.mobile.replyts.comafilterservice.filters.ContactMessageAssembler"></bean>
