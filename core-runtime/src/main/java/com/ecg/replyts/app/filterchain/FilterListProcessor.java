@@ -2,6 +2,7 @@ package com.ecg.replyts.app.filterchain;
 
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.ImmutableProcessingFeedback;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
@@ -24,7 +25,7 @@ import java.util.List;
 import static java.lang.String.format;
 
 @Component
-public class FilterListProcessor {
+class FilterListProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(FilterListProcessor.class);
 
     @Autowired
@@ -51,9 +52,16 @@ public class FilterListProcessor {
             LOG.debug("Applying Filter {}", filterReference);
             Filter filter = filterReference.getCreatedService();
             ConfigurationId filterId = filterReference.getConfiguration().getId();
-            try (Timer.Context timer = metrics.newOrExistingTimerFor(filterId)) {
+            try (Timer.Context ignore = metrics.newOrExistingTimerFor(filterId)) {
                 List<FilterFeedback> filterFeedback = filter.filter(context);
                 if (filterFeedback != null) {
+
+                    // if this filter returns an ACCEPT_AND_TERMINATE, we can consider finished the processing
+                    // of all the filters, and just return all the preceding feedbacks
+                    if (filterFeedback.stream().anyMatch(feedback -> feedback.getResultState() == FilterResultState.ACCEPT_AND_TERMINATE)) {
+                        return allFeedback;
+                    }
+
                     allFeedback.addAll(adaptToPluginState(filterReference, filterFeedback));
                 }
             } catch (RuntimeException e) {

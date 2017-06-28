@@ -1,0 +1,12 @@
+{
+  "state": "ENABLED",
+  "priority": 18,
+  "version": "1.7.19.BUILD",
+  "result": "HOLD",
+  "rules": [
+    {
+      "pattern": "poo",
+      "wordBoundaries": false
+    }
+  ]
+}

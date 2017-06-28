@@ -170,7 +170,7 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
         return this;
     }
 
-    public GumtreeBlacklistFilter withGumshielApi(GumshieldApi gumshieldApi) {
+    public GumtreeBlacklistFilter withGumshieldApi(GumshieldApi gumshieldApi) {
         this.gumshieldApi = gumshieldApi;
         return this;
     }

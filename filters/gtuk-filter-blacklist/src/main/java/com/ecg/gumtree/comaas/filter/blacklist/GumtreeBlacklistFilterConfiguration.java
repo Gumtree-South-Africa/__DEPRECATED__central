@@ -24,7 +24,7 @@ public class GumtreeBlacklistFilterConfiguration {
                     (a, b) -> new GumtreeBlacklistFilter()
                             .withPluginConfig(a)
                             .withFilterConfig(b)
-                            .withGumshielApi(gumshieldApi));
+                            .withGumshieldApi(gumshieldApi));
         }
     }
 }

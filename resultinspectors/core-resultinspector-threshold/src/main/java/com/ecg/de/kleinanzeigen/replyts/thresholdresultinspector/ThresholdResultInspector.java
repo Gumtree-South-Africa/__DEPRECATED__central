@@ -46,14 +46,14 @@ public class ThresholdResultInspector implements ResultInspector {
             }
 
             // Only allow transitions in the direction from OK to DROPPED, not the other way.
-            if (worstState.isTransitionByFiltersAllowedTo(feedbacksResultState)) {
-                worstState = feedbacksResultState; 
+            if (worstState.hasLowerPriorityThan(feedbacksResultState)) {
+                worstState = feedbacksResultState;
             }
         }
-        
+
         FilterResultState resultInspectorsRecommendation = matchScoreAgainstThresholds(sum);
 
-        boolean recommendationIsWorstState = worstState.isTransitionByFiltersAllowedTo(resultInspectorsRecommendation);
+        boolean recommendationIsWorstState = worstState.hasLowerPriorityThan(resultInspectorsRecommendation);
         boolean recommendationDiffersFromOutcome = resultInspectorsRecommendation != worstState;
 
         if (recommendationDiffersFromOutcome && recommendationIsWorstState) {

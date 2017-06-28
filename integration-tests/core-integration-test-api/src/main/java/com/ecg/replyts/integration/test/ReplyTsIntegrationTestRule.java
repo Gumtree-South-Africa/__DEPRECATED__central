@@ -101,11 +101,9 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         this(testProperties, configurationResourceDirectory, deliveryTimeoutSeconds, esEnabled, new Class[0], cqlFilePaths);
     }
 
-    public ReplyTsIntegrationTestRule(Properties properties, Class<?> ... configuration) {
+    public ReplyTsIntegrationTestRule(Properties properties, Class<?>... configuration) {
         this(properties, null, 20, false, configuration, "cassandra_schema.cql");
     }
-
-
 
     /**
      * instantiate a new rule, delivery timeout can be configured
@@ -114,7 +112,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      *                               be processed.
      */
     public ReplyTsIntegrationTestRule(
-        Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, boolean esEnabled, Class[] configuration, String... cqlFilePaths
+            Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, boolean esEnabled, Class[] configuration, String... cqlFilePaths
     ) {
         this.deliveryTimeoutSeconds = deliveryTimeoutSeconds;
         this.cqlFilePaths = cqlFilePaths;
@@ -201,9 +199,18 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      * inspector configuration. blocks until the configured service is up and running.
      */
     public Configuration.ConfigurationId registerConfig(Class<? extends BasePluginFactory> type, ObjectNode config) {
+        return registerConfig(type, config, 100L);
+    }
+
+
+    /**
+     * registers a new filter/resultinspector config to the configapi, effectively starting up a new filter or result
+     * inspector configuration. blocks until the configured service is up and running.
+     */
+    public Configuration.ConfigurationId registerConfig(Class<? extends BasePluginFactory> type, ObjectNode config, long priority) {
         Configuration.ConfigurationId c = new Configuration.ConfigurationId(type.getName(), "instance-" + COUNTER.incrementAndGet());
-        LOG.info("Created config " + c);
-        client.putConfiguration(new Configuration(c, PluginState.ENABLED, 100L, config));
+        LOG.info("Created config " + c + " with priority " + priority);
+        client.putConfiguration(new Configuration(c, PluginState.ENABLED, priority, config));
         return c;
     }
 

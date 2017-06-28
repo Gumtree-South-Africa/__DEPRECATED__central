@@ -27,7 +27,7 @@ import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.resultFilte
 
 @Component
 public class GumtreeUrlFilter implements com.ecg.replyts.core.api.pluginconfiguration.filter.Filter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GumtreeUrlFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GumtreeUrlFilter.class);
 
     private static final Pattern EMAIL_ADDR_PATTERN =
             Pattern.compile("\\b[A-Z0-9._%+-]{1,64}@(?:[A-Z0-9-]{1,63}\\.){1,8}[A-Z]{2,63}\\b",
@@ -77,7 +77,7 @@ public class GumtreeUrlFilter implements com.ecg.replyts.core.api.pluginconfigur
         // As soon as an unsafe URL (or e-mail address) is found, stop
         for (String url : urlsToCheck) {
             if (!isUrlSafe(url, messageContext)) {
-                LOGGER.debug("Found unsafe url: (" + url + ")");
+                LOG.debug("Found unsafe url: (" + url + ")");
                 String description = longDescription(this.getClass(), pluginConfig.getInstanceId(), filterConfig.getVersion(), SHORT_DESCRIPTION);
                 reasons.add(new FilterFeedback(url, description, 0, resultFilterResultMap.get(filterConfig.getResult())));
                 break; // Don't check the other parts of the mail
@@ -119,7 +119,7 @@ public class GumtreeUrlFilter implements com.ecg.replyts.core.api.pluginconfigur
                 String urlParts[] = url.split("\\.");
                 if (urlParts.length == 2) {
                     if (!isUrl(urlParts[0], urlParts[1])) {
-                        LOGGER.debug("URL Filter found " + url
+                        LOG.debug("URL Filter found " + url
                                 + " in message, but concluded that it might not actually be a URL");
                         iterator.remove();
                     }
@@ -159,7 +159,7 @@ public class GumtreeUrlFilter implements com.ecg.replyts.core.api.pluginconfigur
                 textsToCheck.addAll(texts);
             }
         } catch (Exception e) {
-            LOGGER.warn("There was an exception when trying to load the texts to check from message "
+            LOG.warn("There was an exception when trying to load the texts to check from message "
                     + messageProcessingContext.getMessage().getId()
                     + ". Can't filter them", e);
         }

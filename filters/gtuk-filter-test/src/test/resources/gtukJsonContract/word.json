@@ -1,5 +1,5 @@
 {
-  "pluginFactory": "com.ecg.gumtree.comaas.filter.watchlist.GumtreeWatchlistFilterConfiguration$WatchlistFilterFactory",
+  "pluginFactory": "com.ecg.gumtree.comaas.filter.word.GumtreeWordFilterConfiguration$WordFilterFactory",
   "instanceId": "R%20-%20All%20Cat%20Regression%20Terms",
   "configuration": {
     "state": "ENABLED",

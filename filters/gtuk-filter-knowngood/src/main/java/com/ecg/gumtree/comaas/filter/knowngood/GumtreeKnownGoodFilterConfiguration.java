@@ -18,7 +18,7 @@ public class GumtreeKnownGoodFilterConfiguration {
         return new KnownGoodFilterFactory(gumshieldApi);
     }
 
-    static class KnownGoodFilterFactory extends GumtreeFilterFactory<KnownGoodFilterConfig, GumtreeKnownGoodFilter> {
+    public static class KnownGoodFilterFactory extends GumtreeFilterFactory<KnownGoodFilterConfig, GumtreeKnownGoodFilter> {
         KnownGoodFilterFactory(GumshieldApi gumshieldApi) {
             super(KnownGoodFilterConfig.class,
                     (a, b) -> new GumtreeKnownGoodFilter()

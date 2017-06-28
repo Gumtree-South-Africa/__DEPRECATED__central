@@ -31,7 +31,7 @@ public class GumtreeWatchlistFilter implements com.ecg.replyts.core.api.pluginco
 
     private static final String SHORT_DESCRIPTION = "Sender on watchlist";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GumtreeWatchlistFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GumtreeWatchlistFilter.class);
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageContext) throws ProcessingTimeExceededException {
@@ -68,7 +68,7 @@ public class GumtreeWatchlistFilter implements com.ecg.replyts.core.api.pluginco
             checklistApi.findEntryByValue(ApiChecklistType.WATCH, checklistAttribute, attribute);
             return true;
         } catch (Exception e) {
-            LOGGER.debug("Could not find watchlist entry for " + attribute + ": " + e.getMessage());
+            LOG.debug("Could not find watchlist entry for " + attribute + ": " + e.getMessage());
             return false;
         }
     }

@@ -17,7 +17,7 @@ public class GumtreeWordFilterConfiguration {
         return new WordFilterFactory();
     }
 
-    static class WordFilterFactory extends GumtreeFilterFactory<WordFilterConfig, GumtreeWordFilter> {
+    public static class WordFilterFactory extends GumtreeFilterFactory<WordFilterConfig, GumtreeWordFilter> {
         WordFilterFactory() {
             super(WordFilterConfig.class, GumtreeWordFilter::new);
         }

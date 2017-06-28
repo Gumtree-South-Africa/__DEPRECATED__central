@@ -26,7 +26,7 @@ import java.util.Map;
 import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
 
 public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginconfiguration.filter.Filter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GumtreeKnownGoodFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GumtreeKnownGoodFilter.class);
     private static final String MESSAGE = "Sender is known good";
     private static final String BUYERGOOD = "buyergood";
     private static final String SELLERGOOD = "sellergood";
@@ -49,7 +49,7 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
 
             if (knownGood) {
                 Mail mail = messageContext.getMail();
-                LOGGER.debug("Sender '" + mail.getFrom() + "' is known good");
+                LOG.debug("Sender '" + mail.getFrom() + "' is known good");
 
                 String description = longDescription(this.getClass(), pluginConfig.getInstanceId(), filterConfig.getVersion(), MESSAGE);
 
@@ -70,7 +70,7 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
                 knownGood = knownGoodResponse != null && knownGoodResponse.getStatus() == KnownGoodStatus.GOOD;
             } catch (RuntimeException e) {
                 errorCounter.inc();
-                LOGGER.info("Could not get known good status", e);
+                LOG.info("Could not get known good status", e);
             }
         } else {
             knownGood = getKnownGood(

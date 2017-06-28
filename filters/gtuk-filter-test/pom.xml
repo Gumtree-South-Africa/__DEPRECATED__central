@@ -63,6 +63,12 @@
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
+            <artifactId>gtuk-filter-word</artifactId>
+            <version>${revision}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-filter-url</artifactId>
             <version>${revision}</version>
             <scope>test</scope>

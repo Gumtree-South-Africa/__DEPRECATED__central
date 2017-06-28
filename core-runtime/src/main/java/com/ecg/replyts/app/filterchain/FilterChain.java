@@ -91,7 +91,7 @@ public class FilterChain {
             LOG.debug("Processing Feedback from {}:{}. Score {}, State {}. Evaluation: {} ", feedback.getFilterName(), feedback.getFilterName(), feedback.getScore(), feedback.getResultState(), feedback.isEvaluation());
             if (!feedback.isEvaluation()) {
                 FilterResultState resultState = feedback.getResultState();
-                if (overallResultState.isTransitionByFiltersAllowedTo(resultState)) {
+                if (overallResultState.hasLowerPriorityThan(resultState)) {
                     overallResultState = resultState;
                 }
             }

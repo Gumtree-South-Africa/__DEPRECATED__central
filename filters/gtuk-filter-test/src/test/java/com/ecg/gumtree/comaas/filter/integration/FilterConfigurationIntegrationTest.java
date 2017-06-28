@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import rx.Observable;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -26,6 +25,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
 
+import static com.ecg.gumtree.comaas.filter.integration.Utils.readFileContent;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Configuration
@@ -70,14 +70,6 @@ public class FilterConfigurationIntegrationTest {
                                 .map(this::toJson),
                         1)
                 .toBlocking().last();
-    }
-
-    private String readFileContent(Path name) {
-        try {
-            return new String(Files.readAllBytes(name.toAbsolutePath()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private HttpClientRequest<ByteBuf, ByteBuf> putRequest() {

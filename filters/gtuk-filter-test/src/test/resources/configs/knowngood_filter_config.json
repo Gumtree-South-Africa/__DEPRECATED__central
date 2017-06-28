@@ -1,0 +1,8 @@
+{
+  "state": "ENABLED",
+  "priority": 15,
+  "version": "1.7.19.BUILD",
+  "result": "STOP_FILTERING",
+  "buyerGoodHeader": "buyergood",
+  "sellerGoodHeader": "sellergood"
+}
