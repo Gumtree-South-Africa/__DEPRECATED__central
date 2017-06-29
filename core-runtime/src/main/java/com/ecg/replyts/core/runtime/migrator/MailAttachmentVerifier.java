@@ -3,6 +3,7 @@ package com.ecg.replyts.core.runtime.migrator;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.DiffingRiakMailRepository;
@@ -56,7 +57,7 @@ public class MailAttachmentVerifier {
         this.completionTimeoutSec = completionTimeoutSec;
     }
 
-    public void verifyAttachmentsBetweenDates(LocalDateTime dateFrom, LocalDateTime dateTo) {
+    public void verifyAttachmentsBetweenDates(LocalDateTime dateFrom, LocalDateTime dateTo, boolean allowMigration) {
         Stopwatch watch = Stopwatch.createStarted();
 
         try {
@@ -68,7 +69,7 @@ public class MailAttachmentVerifier {
                     dateFrom.toDateTime(DateTimeZone.UTC), dateTo.toDateTime(DateTimeZone.UTC));
 
             Iterators.partition(mailIdStream.iterator(), idBatchSize).forEachRemaining(mailIdBatch -> {
-                results.add(executor.submit(() -> verifyAttachments(mailIdBatch)));
+                results.add(executor.submit(() -> verifyAttachments(mailIdBatch, allowMigration)));
             });
 
             Util.waitForCompletion(results, processedBatchCounter, LOG, completionTimeoutSec);
@@ -79,7 +80,7 @@ public class MailAttachmentVerifier {
         }
     }
 
-    public void verifyAttachmentsByIds(List<String> mailIds) {
+    public void verifyAttachmentsByIds(List<String> mailIds, boolean allowMigration) {
         Stopwatch watch = Stopwatch.createStarted();
 
         try {
@@ -87,7 +88,7 @@ public class MailAttachmentVerifier {
             AtomicInteger processedBatchCounter = new AtomicInteger();
 
             Iterators.partition(mailIds.iterator(), idBatchSize).forEachRemaining(mailIdBatch -> {
-                results.add(executor.submit(() -> verifyAttachments(mailIdBatch)));
+                results.add(executor.submit(() -> verifyAttachments(mailIdBatch, allowMigration)));
             });
 
             Util.waitForCompletion(results, processedBatchCounter, LOG, completionTimeoutSec);
@@ -98,7 +99,7 @@ public class MailAttachmentVerifier {
         }
     }
 
-    private void verifyAttachments(List<String> mailIds) {
+    private void verifyAttachments(List<String> mailIds, boolean allowMigration) {
         try (Timer.Context ignored = BATCH_VERIFICATION_TIMER.time()) {
 
             for (String messageId : mailIds) {
@@ -136,21 +137,22 @@ public class MailAttachmentVerifier {
                     return;
                 }
 
-                compareAttachments(parsedMail, messageId);
+                compareAttachments(parsedMail, messageId, allowMigration);
             }
         }
     }
 
-    private void compareAttachments(Mail mail, String messageId) {
+    private void compareAttachments(Mail mail, String messageId, boolean allowMigration) {
         for (String filename : mail.getAttachmentNames()) {
+            TypedContent<byte[]> riakAttachment = mail.getAttachment(filename);
+
             try {
                 ClientResponse<byte[]> clientResponse = invokeAttachmentController(messageId, filename);
 
                 if (clientResponse.getResponseStatus().getFamily() == Response.Status.Family.SUCCESSFUL) {
-                    byte[] newAttachment = clientResponse.getEntity();
-                    byte[] oldAttachment = mail.getAttachment(filename).getContent();
+                    byte[] swiftAttachment = clientResponse.getEntity();
 
-                    if (Arrays.equals(newAttachment, oldAttachment)) {
+                    if (Arrays.equals(swiftAttachment, riakAttachment.getContent())) {
                         LOG.info("An attachment successfully verified. Message ID: {}, Filename: {}", messageId, filename);
                     } else {
                         LOG.error("Failed to compare an attachment, the attachment from new API is different then the attachment " +
@@ -159,6 +161,11 @@ public class MailAttachmentVerifier {
                 } else {
                     LOG.error("Failed to retrieve an attachment using new API. Status Code: {}, Message ID: {}, Filename: {}",
                             clientResponse.getStatus(), messageId, filename);
+
+                    if (allowMigration) {
+                        LOG.info("Attachment is automatically migrated. Message ID: {}, Filename: {}", messageId);
+                        attachmentRepository.storeAttachment(messageId, filename, riakAttachment);
+                    }
                 }
             } catch (Exception ex) {
                 String error = String.format("Client invocation failed to retrieve an attachment using new API. Message ID: %s, Filename: %s",
@@ -185,5 +192,4 @@ public class MailAttachmentVerifier {
             return null;
         }
     }
-
 }

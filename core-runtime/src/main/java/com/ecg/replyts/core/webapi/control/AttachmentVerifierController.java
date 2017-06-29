@@ -10,6 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
@@ -34,11 +35,12 @@ public class AttachmentVerifierController {
     @RequestMapping("/betweenDates/{fromDate}/{toDate}")
     @ResponseBody
     public String verifyBetween(@PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime fromDate,
-                                @PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime toDate) {
+                                @PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime toDate,
+                                @RequestParam(name = "migrate", required = false, defaultValue = "false") boolean allowMigration) {
         LOG.info("Invoke attachment verifier from {} to {} via web interface", fromDate, toDate);
 
         try {
-            executor.execute(() -> mailVerifier.verifyAttachmentsBetweenDates(fromDate, toDate));
+            executor.execute(() -> mailVerifier.verifyAttachmentsBetweenDates(fromDate, toDate, allowMigration));
             return "Attachment Verification is UP and RUNNING!";
         } catch (Exception e) {
             executor.getQueue().clear();
@@ -48,12 +50,13 @@ public class AttachmentVerifierController {
 
     @RequestMapping("/{ids}")
     @ResponseBody
-    public String verifyIds(@PathVariable String ids) {
+    public String verifyIds(@PathVariable String ids,
+                            @RequestParam(name = "migrate", required = false, defaultValue = "false") boolean allowMigration) {
         List<String> mailIds = CSV_SPLITTER.splitToList(ids);
         LOG.info("Invoke attachment verifier for IDs {} via web interface", mailIds);
 
         try {
-            executor.execute(() -> mailVerifier.verifyAttachmentsByIds(mailIds));
+            executor.execute(() -> mailVerifier.verifyAttachmentsByIds(mailIds, allowMigration));
             return "Attachment Verification is UP and RUNNING!";
         } catch (Exception e) {
             executor.getQueue().clear();
