@@ -1,7 +1,7 @@
-Das ist ein tolles Fahrzeug. foo bar 
+Das ist ein tolles Fahrzeug. foo bar
 
- Ich möchte es kaufen! 
+ Ich möchte es kaufen!
 
- Viele Grüße 
+ Viele Grüße
 
  Der Käufer

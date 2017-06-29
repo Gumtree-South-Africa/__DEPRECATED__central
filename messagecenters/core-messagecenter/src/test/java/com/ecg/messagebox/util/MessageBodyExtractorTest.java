@@ -9,16 +9,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import static com.ecg.messagebox.util.MessageBodyExtractor.END_OF_TEXT;
-import static com.ecg.messagebox.util.MessageBodyExtractor.START_OF_TEXT;
+import static com.ecg.messagebox.util.MessageBodyExtractor.MARKER;
 
 public class MessageBodyExtractorTest {
-
 
     @Test
     public void basicTextTest() {
 
-        String msg = String.format("header%sbody%sfooter", START_OF_TEXT, END_OF_TEXT);
+        String msg = String.format("header%sbody%sfooter", MARKER, MARKER);
         String result = MessageBodyExtractor.extractBodyMarkedByNonPrintableChars(msg);
         Assert.assertTrue(result.equals("body"));
     }
@@ -26,7 +24,7 @@ public class MessageBodyExtractorTest {
     @Test
     public void multilineTextTest() {
 
-        String msg = String.format("header%sbo\ndy%sfooter", START_OF_TEXT, END_OF_TEXT);
+        String msg = String.format("header%sbo\ndy%sfooter", MARKER, MARKER);
         String result = MessageBodyExtractor.extractBodyMarkedByNonPrintableChars(msg);
         Assert.assertTrue(result.equals("bo\ndy"));
     }
