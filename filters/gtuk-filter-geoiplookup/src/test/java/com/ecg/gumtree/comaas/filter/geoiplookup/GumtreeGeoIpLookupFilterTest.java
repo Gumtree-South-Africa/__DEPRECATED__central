@@ -12,7 +12,7 @@ import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.google.common.collect.ImmutableMap;
 import com.gumtree.common.geoip.GeoIpService;
 import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.GeoIpLookupConfig;
+import com.gumtree.filters.comaas.config.GeoIpLookupFilterConfig;
 import com.gumtree.filters.comaas.config.State;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -137,8 +137,8 @@ public class GumtreeGeoIpLookupFilterTest {
     @Configuration
     static class TestContext {
         @Bean
-        public GeoIpLookupConfig filterConfig() throws Exception {
-            return new GeoIpLookupConfig.Builder(State.ENABLED, 1, HOLD)
+        public GeoIpLookupFilterConfig filterConfig() throws Exception {
+            return new GeoIpLookupFilterConfig.Builder(State.ENABLED, 1, HOLD)
                     .withStub(true)
                     .withAppName("Gumtree")
                     .withIafToken(null)
@@ -158,7 +158,7 @@ public class GumtreeGeoIpLookupFilterTest {
         }
 
         @Bean
-        public GumtreeGeoIpLookupFilter filter(GeoIpLookupConfig filterConfig) {
+        public GumtreeGeoIpLookupFilter filter(GeoIpLookupFilterConfig filterConfig) {
             return new GumtreeGeoIpLookupFilter()
                     .withPluginConfig(mock(Filter.class))
                     .withGeoIPService(geoIpService())

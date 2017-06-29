@@ -9,7 +9,7 @@ import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.common.geoip.GeoIpService;
 import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.GeoIpLookupConfig;
+import com.gumtree.filters.comaas.config.GeoIpLookupFilterConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ public class GumtreeGeoIpLookupFilter implements com.ecg.replyts.core.api.plugin
     private static final Timer TIMER = TimingReports.newTimer("geoiplookup-filter-process-time");
 
     private Filter pluginConfig;
-    private GeoIpLookupConfig filterConfig;
+    private GeoIpLookupFilterConfig filterConfig;
 
     private GeoIpService geoIpService;
 
@@ -90,7 +90,7 @@ public class GumtreeGeoIpLookupFilter implements com.ecg.replyts.core.api.plugin
         return this;
     }
 
-    GumtreeGeoIpLookupFilter withFilterConfig(GeoIpLookupConfig filterConfig) {
+    GumtreeGeoIpLookupFilter withFilterConfig(GeoIpLookupFilterConfig filterConfig) {
         this.filterConfig = filterConfig;
         return this;
     }

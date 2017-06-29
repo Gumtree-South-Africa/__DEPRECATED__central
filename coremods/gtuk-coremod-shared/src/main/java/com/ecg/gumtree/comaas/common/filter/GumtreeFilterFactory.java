@@ -8,6 +8,7 @@ import com.gumtree.filters.comaas.config.State;
 import com.gumtree.filters.comaas.json.ConfigMapper;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -31,7 +32,12 @@ public class GumtreeFilterFactory<T extends CommonConfig, R extends Filter> impl
     public final Filter createPlugin(String instanceName, JsonNode configuration) {
         String name = this.getClass().getName();
         com.gumtree.filters.comaas.Filter pluginConfig = new com.gumtree.filters.comaas.Filter(name, instanceName, configuration);
-        T filterConfig = ConfigMapper.asObject(configuration.toString(), type);
+        T filterConfig;
+        try {
+            filterConfig = ConfigMapper.asObject(configuration.toString(), type);
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not convert config to object", e);
+        }
 
         if (filterConfig.getState() == State.DISABLED) {
             return new DisabledFilter(this.getClass());

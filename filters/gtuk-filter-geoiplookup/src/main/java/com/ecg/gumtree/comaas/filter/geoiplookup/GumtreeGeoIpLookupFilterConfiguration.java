@@ -5,7 +5,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.gumtree.common.geoip.GeoIpService;
 import com.gumtree.common.geoip.MaxMindGeoIpService;
-import com.gumtree.filters.comaas.config.GeoIpLookupConfig;
+import com.gumtree.filters.comaas.config.GeoIpLookupFilterConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -41,9 +41,9 @@ public class GumtreeGeoIpLookupFilterConfiguration {
         return new GeoIpLookupFilterFactory(geoIpService);
     }
 
-    static class GeoIpLookupFilterFactory extends GumtreeFilterFactory<GeoIpLookupConfig, GumtreeGeoIpLookupFilter> {
+    static class GeoIpLookupFilterFactory extends GumtreeFilterFactory<GeoIpLookupFilterConfig, GumtreeGeoIpLookupFilter> {
         GeoIpLookupFilterFactory(GeoIpService geoIpService) {
-            super(GeoIpLookupConfig.class,
+            super(GeoIpLookupFilterConfig.class,
                     (a, b) -> new GumtreeGeoIpLookupFilter()
                             .withPluginConfig(a)
                             .withFilterConfig(b)
