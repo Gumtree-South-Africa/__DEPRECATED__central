@@ -63,4 +63,19 @@ public class AttachmentVerifierController {
             throw new RuntimeException(e);
         }
     }
+
+    @RequestMapping("/ids/betweenDates/{fromDate}/{toDate}")
+    @ResponseBody
+    public String verifyIds(@PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime fromDate,
+                            @PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime toDate) {
+        LOG.info("Invoke attachment verifier from {} to {} via web interface", fromDate, toDate);
+
+        try {
+            executor.execute(() -> mailVerifier.verifyIds(fromDate, toDate));
+            return "IDs Verification is UP and RUNNING!";
+        } catch (Exception e) {
+            executor.getQueue().clear();
+            throw new RuntimeException(e);
+        }
+    }
 }

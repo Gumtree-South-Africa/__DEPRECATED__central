@@ -9,6 +9,7 @@ import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.DiffingRiakMailRepository;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Sets;
 import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -24,6 +25,7 @@ import javax.ws.rs.core.UriBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -56,6 +58,40 @@ public class MailAttachmentVerifier {
         this.idBatchSize = idBatchSize;
         this.completionTimeoutSec = completionTimeoutSec;
     }
+
+    public void verifyIds(LocalDateTime dateFrom, LocalDateTime dateTo) {
+        LOG.info("Verification of IDs has started between dates: {} - {}", dateFrom, dateTo);
+
+        Set<String> ids1 = allIdsBetween(dateFrom, dateTo);
+        LOG.info("FIRST IDs extraction has been finished. Number of IDs: {}", ids1.size());
+
+        Set<String> ids2 = allIdsBetween(dateFrom, dateTo);
+        LOG.info("SECOND IDs extraction has been finished. Number of IDs: {}", ids2.size());
+
+        Set<String> differences = Sets.symmetricDifference(ids1, ids2);
+        if (differences.isEmpty()) {
+            LOG.info("There are no differences between FIRST and SECOND extractions.");
+        } else {
+            LOG.info("The are found differences: SIZES [{}, {}], DIFFERENCES {}", ids1.size(), ids2.size(), differences);
+        }
+    }
+
+    private Set<String> allIdsBetween(LocalDateTime dateFrom, LocalDateTime dateTo) {
+        AtomicInteger processedBatchCounter = new AtomicInteger();
+
+        Stream<String> mailIdStream = mailRepository.streamMailIdsCreatedBetween(
+                dateFrom.toDateTime(DateTimeZone.UTC), dateTo.toDateTime(DateTimeZone.UTC));
+
+        List<Future> results = new ArrayList<>();
+        Set<String> ids = Sets.newConcurrentHashSet();
+        Iterators.partition(mailIdStream.iterator(), idBatchSize).forEachRemaining(mailIdBatch -> {
+            results.add(executor.submit(() -> ids.addAll(mailIdBatch)));
+        });
+
+        Util.waitForCompletion(results, processedBatchCounter, LOG, completionTimeoutSec);
+        return ids;
+    }
+
 
     public void verifyAttachmentsBetweenDates(LocalDateTime dateFrom, LocalDateTime dateTo, boolean allowMigration) {
         Stopwatch watch = Stopwatch.createStarted();
