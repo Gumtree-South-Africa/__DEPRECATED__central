@@ -32,4 +32,12 @@ public class AggregatedResponseData {
                 ", rate=" + rate +
                 '}';
     }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public int getRate() {
+        return rate;
+    }
 }
