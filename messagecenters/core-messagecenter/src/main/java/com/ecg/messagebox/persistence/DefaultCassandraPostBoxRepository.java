@@ -59,7 +59,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Autowired
     public DefaultCassandraPostBoxRepository(
-            @Qualifier("cassandraSessionForMb") Session session,
+            @Qualifier("cassandraSession") Session session,
             @Qualifier("cassandraReadConsistency") ConsistencyLevel readConsistency,
             @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency,
             JsonConverter jsonConverter

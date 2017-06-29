@@ -60,9 +60,8 @@ public class CloudDiscoveryConfiguration {
     private static final String LOGGER_APPENDER_KAFKA_ACCESS_LOGS_TOPIC = "service.discovery.logger.appender.access.logs.topic";
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
-      "persistence.cassandra.core.endpoint", "cassandra",
-      "persistence.cassandra.mb.endpoint", "cassandra",
-      "search.es.endpoints", "elasticsearch"
+      "cassandra", "persistence.cassandra.endpoint",
+      "elasticsearch", "search.es.endpoints"
     );
 
     private static final String LOG_APPENDER_SERVICE = "kafkalog";
@@ -188,7 +187,7 @@ public class CloudDiscoveryConfiguration {
     private Map<String, Object> discoverServices() {
         Map<String, Object> gatheredProperties = new HashMap<>();
 
-        DISCOVERABLE_SERVICE_PROPERTIES.forEach((property, service) -> {
+        DISCOVERABLE_SERVICE_PROPERTIES.forEach((service, property) -> {
             LOG.info("Discovering service {} for property {}", service, property);
 
             List<ServiceInstance> discoveredInstances = discoveryClient.getInstances(service);

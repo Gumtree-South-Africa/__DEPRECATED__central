@@ -37,7 +37,7 @@ public class DefaultResponseDataRepository implements ResponseDataRepository {
 
     @Autowired
     public DefaultResponseDataRepository(
-            @Qualifier("cassandraSessionForMb") Session session,
+            @Qualifier("cassandraSession") Session session,
             @Qualifier("cassandraReadConsistency") ConsistencyLevel readConsistency,
             @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency,
             @Value("${persistence.cassandra.ttl.response.data:31536000}") int ttlResponseData,

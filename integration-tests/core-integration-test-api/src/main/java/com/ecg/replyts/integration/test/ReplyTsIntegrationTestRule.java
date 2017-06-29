@@ -123,8 +123,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
             testProperties = new Properties();
         }
 
-        testProperties.put("persistence.cassandra.core.keyspace", keyspace);
-        testProperties.put("persistence.cassandra.mb.keyspace", keyspace);
+        testProperties.put("persistence.cassandra.keyspace", keyspace);
         testProperties.put("replyts.jetty.instrument", false);
         testProperties.put("mailreceiver.watch.retrydelay.millis", 250);
         testProperties.put("search.es.enabled", esEnabled);

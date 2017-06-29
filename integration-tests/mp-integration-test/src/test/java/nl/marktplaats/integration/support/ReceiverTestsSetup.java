@@ -59,8 +59,7 @@ public class ReceiverTestsSetup {
                         .findFirst()
                         .orElseThrow(() -> new IllegalStateException("Was not able to find configuration directory"));
             }).get());
-            properties.put("persistence.cassandra.core.keyspace", KEYSPACE);
-            properties.put("persistence.cassandra.mb.keyspace", KEYSPACE);
+            properties.put("persistence.cassandra.keyspace", KEYSPACE);
 
             return properties;
         }).get(), "/mp-integration-test-conf");
