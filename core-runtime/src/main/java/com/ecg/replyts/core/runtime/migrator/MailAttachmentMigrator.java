@@ -86,9 +86,8 @@ public class MailAttachmentMigrator {
     }
 
     public boolean migrateById(List<String> mailIds) {
-        String msg = String.format(" migrate by ids, ids accepted %d ", mailIds.size());
-        watch = Stopwatch.createStarted();
-        return execute(() -> migrateAttachments(mailIds), msg);
+        executor.execute(() -> migrateAttachmentsWaitForCompletion(mailIds));
+        return true;
     }
 
     public boolean migrateFromDate(LocalDateTime dateFrom) {
@@ -134,6 +133,19 @@ public class MailAttachmentMigrator {
             watch.stop();
             hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock
         }
+    }
+
+    private void migrateAttachmentsWaitForCompletion(List<String> mailIds) {
+        watch = Stopwatch.createStarted();
+        String msg = String.format(" migrate by ids, ids accepted %d ", mailIds.size());
+        LOG.info(msg);
+        List<Future> result = new ArrayList<>();
+        result.add(executor.submit(() -> migrateAttachments(mailIds)));
+        waitForCompletion(result, processedBatchCounter, LOG, completionTimeoutSec);
+        executor.purge();
+        LOG.info("Attachment migration byid is COMPLETED, migrated {} ids, {} mails with attachment migrated, out of total {} emails, in {} batches, collected batches {}, took {}s",
+                mailIds.size(), MAIL_WITH_ATTACHMENT_COUNTER.getCount(), MAIL_COUNTER.getCount(),
+                BATCH_MIGRATION_TIMER.getCount(), processedBatchCounter.get(), watch.elapsed(TimeUnit.SECONDS));
     }
 
     private void migrateAttachments(List<String> mailIds) {
