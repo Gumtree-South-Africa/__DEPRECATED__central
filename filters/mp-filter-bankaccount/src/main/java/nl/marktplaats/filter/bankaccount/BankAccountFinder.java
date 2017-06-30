@@ -1,16 +1,30 @@
 package nl.marktplaats.filter.bankaccount;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Character.isUpperCase;
 import static java.lang.Character.toLowerCase;
 import static java.lang.Character.toUpperCase;
 
-public class BankAccountFinder {
+class BankAccountFinder {
+    private static final Logger LOG = LoggerFactory.getLogger(BankAccountFinder.class);
+
+    private static final LoadingCache<String, Pattern> BANK_ACCOUNT_PATTERNS_CACHE = CacheBuilder.newBuilder()
+            .maximumSize(100_000)
+            .recordStats()
+            .build(CacheLoader.from(BankAccountFinder::regularExpressionForAccount));
+
     private static final String LATIN1_SUPPLEMENT_2ndHALF = "\u00C0-\u00FF";
     private static final String LATIN_EXTENDED_A = "\u0100-\u017F";
     private static final String LATIN_EXTENDED_B = "\u0180-\u024F";
@@ -27,17 +41,20 @@ public class BankAccountFinder {
     private BankAccountFilterConfiguration config;
     private List<AccountPattern> accountPatterns;
 
-    public BankAccountFinder(BankAccountFilterConfiguration config) {
+    BankAccountFinder(BankAccountFilterConfiguration config) {
         this.config = config;
         accountPatterns = createPatterns(config.getFraudulentBankAccounts());
+        LOG.info("bank account pattern count in the incoming configuration: {}",
+                config.getFraudulentBankAccounts() != null ? config.getFraudulentBankAccounts().size() : 0);
+        LOG.info("bank account patterns cache stats: {}", BANK_ACCOUNT_PATTERNS_CACHE.stats().toString());
     }
 
-    public List<BankAccountMatch> findBankAccountNumberMatches(List<String> texts, String adId) {
+    List<BankAccountMatch> findBankAccountNumberMatches(List<String> texts, String adId) {
         return findMatchesForPatterns(texts, accountPatterns, adId);
     }
 
-    public List<BankAccountMatch> containsSingleBankAccountNumber(String bankAccountNumber, List<String> texts, String adId) {
-        List<AccountPattern> patternsForBan = new ArrayList<AccountPattern>(2);
+    List<BankAccountMatch> containsSingleBankAccountNumber(String bankAccountNumber, List<String> texts, String adId) {
+        List<AccountPattern> patternsForBan = new ArrayList<>(2);
         for (AccountPattern accountPattern : accountPatterns) {
             if (accountPattern.bankAccount.equals(bankAccountNumber)) patternsForBan.add(accountPattern);
         }
@@ -48,7 +65,7 @@ public class BankAccountFinder {
         String cleanedAdId = cleanAdId(adId);
         Iterable<String> digitStrings = extractDigitStrings(texts);
         List<AccountPattern> presentPatterns = presentAccountPatterns(digitStrings, patterns);
-        List<BankAccountMatch> matches = new ArrayList<BankAccountMatch>();
+        List<BankAccountMatch> matches = new ArrayList<>();
         for (String text : texts) {
             Iterable<String> lines = linesWithDigits(text);
             for (String line : lines) {
@@ -66,7 +83,7 @@ public class BankAccountFinder {
     }
 
     private List<AccountPattern> presentAccountPatterns(Iterable<String> digitStrings, List<AccountPattern> patterns) {
-        List<AccountPattern> presentAccountPatterns = new ArrayList<AccountPattern>();
+        List<AccountPattern> presentAccountPatterns = new ArrayList<>();
         for (String digitString : digitStrings) {
             for (AccountPattern accountPattern : patterns) {
                 if (digitString.contains(accountPattern.digitsOnly)) presentAccountPatterns.add(accountPattern);
@@ -119,62 +136,57 @@ public class BankAccountFinder {
     }
 
     private Iterable<String> linesWithDigits(final String text) {
-        return new Iterable<String>() {
+        return () -> new Iterator<String>() {
+            private int textIndex = 0;
+            private String nextLine;
+            private boolean advanceNextCall = true;
+
             @Override
-            public Iterator<String> iterator() {
-                return new Iterator<String>() {
-                    private int textIndex = 0;
-                    private String nextLine;
-                    private boolean advanceNextCall = true;
+            public boolean hasNext() {
+                if (advanceNextCall) findNextLineWithDigit();
+                advanceNextCall = false;
+                return nextLine != null;
+            }
 
-                    @Override
-                    public boolean hasNext() {
-                        if (advanceNextCall) findNextLineWithDigit();
-                        advanceNextCall = false;
-                        return nextLine != null;
-                    }
+            @Override
+            public String next() {
+                if (advanceNextCall) findNextLineWithDigit();
+                advanceNextCall = true;
+                if (nextLine == null) throw new NoSuchElementException();
+                return nextLine;
+            }
 
-                    @Override
-                    public String next() {
-                        if (advanceNextCall) findNextLineWithDigit();
-                        advanceNextCall = true;
-                        if (nextLine == null) throw new NoSuchElementException();
-                        return nextLine;
-                    }
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
 
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    private void findNextLineWithDigit() {
-                        nextLine = null;
-                        boolean foundDigitInCurrentLine = false;
-                        int beginIndex = textIndex;
-                        while (textIndex < text.length()) {
-                            char c = text.charAt(textIndex);
-                            ++textIndex;
-                            foundDigitInCurrentLine = foundDigitInCurrentLine || isAsciiDigit(c);
-                            if (isNewLine(c)) {
-                                if (foundDigitInCurrentLine) {
-                                    nextLine = text.substring(beginIndex, textIndex);
-                                    return;
-                                } else {
-                                    beginIndex = textIndex;
-                                }
-                            }
-                        }
+            private void findNextLineWithDigit() {
+                nextLine = null;
+                boolean foundDigitInCurrentLine = false;
+                int beginIndex = textIndex;
+                while (textIndex < text.length()) {
+                    char c = text.charAt(textIndex);
+                    ++textIndex;
+                    foundDigitInCurrentLine = foundDigitInCurrentLine || isAsciiDigit(c);
+                    if (isNewLine(c)) {
                         if (foundDigitInCurrentLine) {
                             nextLine = text.substring(beginIndex, textIndex);
+                            return;
+                        } else {
+                            beginIndex = textIndex;
                         }
                     }
-                };
+                }
+                if (foundDigitInCurrentLine) {
+                    nextLine = text.substring(beginIndex, textIndex);
+                }
             }
         };
     }
 
     private List<AccountPattern> createPatterns(List<String> fraudulentBankAccounts) {
-        List<AccountPattern> patterns = new ArrayList<AccountPattern>(fraudulentBankAccounts.size());
+        List<AccountPattern> patterns = new ArrayList<>(fraudulentBankAccounts.size());
         for (String account : fraudulentBankAccounts) {
             patterns.add(createPattern(account));
         }
@@ -189,8 +201,13 @@ public class BankAccountFinder {
         }
     }
 
-    private boolean isIban(String account) {
-        return account.matches("[A-Z][A-Z][0-9][0-9].+");
+    @VisibleForTesting
+    static boolean isIban(String account) {
+        return account.length() > 4 &&
+                isUpperCase(account.charAt(0)) && account.charAt(0) <= 0xFF &&
+                isUpperCase(account.charAt(1)) && account.charAt(1) <= 0xFF &&
+                isAsciiDigit(account.charAt(2)) &&
+                isAsciiDigit(account.charAt(3));
     }
 
     private AccountPattern createIbanPattern(String ibanAccount) {
@@ -199,13 +216,13 @@ public class BankAccountFinder {
             // An IBAN from a known country
             return new AccountPattern(
                     ibanAccount, localAccount,
-                    regularExpressionForAccount(localAccount), regularExpressionForAccount(ibanAccount));
+                    BANK_ACCOUNT_PATTERNS_CACHE.getUnchecked(localAccount), BANK_ACCOUNT_PATTERNS_CACHE.getUnchecked(ibanAccount));
         } else {
             // An IBAN from an unknown country
             String digitsInIban = ibanAccount.replaceAll("[^0-9]", "");
             return new AccountPattern(
                     ibanAccount, digitsInIban,
-                    null, regularExpressionForAccount(ibanAccount));
+                    null, BANK_ACCOUNT_PATTERNS_CACHE.getUnchecked(ibanAccount));
         }
     }
 
@@ -233,10 +250,10 @@ public class BankAccountFinder {
     }
 
     private AccountPattern createLocalPattern(String localAccount) {
-        return new AccountPattern(localAccount, localAccount, regularExpressionForAccount(localAccount), null);
+        return new AccountPattern(localAccount, localAccount, BANK_ACCOUNT_PATTERNS_CACHE.getUnchecked(localAccount), null);
     }
 
-    private Pattern regularExpressionForAccount(String account) {
+    private static Pattern regularExpressionForAccount(String account) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < account.length(); i++) {
             char c = account.charAt(i);
@@ -254,72 +271,67 @@ public class BankAccountFinder {
     }
 
     private Iterable<String> extractDigitStrings(final List<String> texts) {
-        return new Iterable<String>() {
+        return () -> new Iterator<String>() {
+            private Iterator<String> textIterator = texts.iterator();
+            private String text;
+            private int textIndex = 0;
+            private String nextDigitString;
+            private boolean advanceNextCall = true;
+
             @Override
-            public Iterator<String> iterator() {
-                return new Iterator<String>() {
-                    private Iterator<String> textIterator = texts.iterator();
-                    private String text;
-                    private int textIndex = 0;
-                    private String nextDigitString;
-                    private boolean advanceNextCall = true;
+            public boolean hasNext() {
+                if (advanceNextCall) findNextDigitString();
+                advanceNextCall = false;
+                return nextDigitString != null;
+            }
 
-                    @Override
-                    public boolean hasNext() {
-                        if (advanceNextCall) findNextDigitString();
-                        advanceNextCall = false;
-                        return nextDigitString != null;
+            @Override
+            public String next() {
+                if (advanceNextCall) findNextDigitString();
+                advanceNextCall = true;
+                if (nextDigitString == null) throw new NoSuchElementException();
+                return nextDigitString;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+
+            private void findNextDigitString() {
+                StringBuilder sb = new StringBuilder(40);
+                setOrAdvanceCurrentText();
+                nextDigitString = null;
+                while (text != null) {
+                    while (textIndex < text.length()) {
+                        char c = text.charAt(textIndex);
+                        ++textIndex;
+                        if (isAsciiDigit(c)) {
+                            sb.append(c);
+                        } else if ((isLetter(c) || isNewLine(c)) && sb.length() != 0) {
+                            nextDigitString = sb.toString();
+                            return;
+                        }
                     }
-
-                    @Override
-                    public String next() {
-                        if (advanceNextCall) findNextDigitString();
-                        advanceNextCall = true;
-                        if (nextDigitString == null) throw new NoSuchElementException();
-                        return nextDigitString;
-                    }
-
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    private void findNextDigitString() {
-                        StringBuilder sb = new StringBuilder(40);
+                    if (sb.length() > 0) {
+                        nextDigitString = sb.toString();
+                        return;
+                    } else {
                         setOrAdvanceCurrentText();
-                        nextDigitString = null;
-                        while (text != null) {
-                            while (textIndex < text.length()) {
-                                char c = text.charAt(textIndex);
-                                ++textIndex;
-                                if (isAsciiDigit(c)) {
-                                    sb.append(c);
-                                } else if ((isLetter(c) || isNewLine(c)) && sb.length() != 0) {
-                                    nextDigitString = sb.toString();
-                                    return;
-                                }
-                            }
-                            if (sb.length() > 0) {
-                                nextDigitString = sb.toString();
-                                return;
-                            } else {
-                                setOrAdvanceCurrentText();
-                            }
-                        }
                     }
+                }
+            }
 
-                    private void setOrAdvanceCurrentText() {
-                        if (text == null || textIndex == text.length()) {
-                            textIndex = 0;
-                            text = textIterator.hasNext() ? textIterator.next() : null;
-                        }
-                    }
-                };
+            private void setOrAdvanceCurrentText() {
+                if (text == null || textIndex == text.length()) {
+                    textIndex = 0;
+                    text = textIterator.hasNext() ? textIterator.next() : null;
+                }
             }
         };
     }
 
-    private boolean isAsciiDigit(char c) {
+    private static boolean isAsciiDigit(char c) {
         return c >= '0' && c <= '9';
     }
 
@@ -332,10 +344,10 @@ public class BankAccountFinder {
     }
 
     private static class AccountPattern {
-        public final String bankAccount;
-        public final String digitsOnly;
-        public final Pattern localRePattern;
-        public final Pattern ibanRePattern;
+        final String bankAccount;
+        final String digitsOnly;
+        final Pattern localRePattern;
+        final Pattern ibanRePattern;
 
         private AccountPattern(String bankAccount, String digitsOnly, Pattern localRePattern, Pattern ibanRePattern) {
             Assert.notNull(bankAccount);

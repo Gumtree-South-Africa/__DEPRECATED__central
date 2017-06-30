@@ -11,6 +11,7 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class BankAccountFinderTest {
@@ -186,5 +187,18 @@ public class BankAccountFinderTest {
     @Test public void findLiteralBankAccountSame_veryLowScoreForBankAccountSameAsAuroraAdId() {
         String text = "Maak aub geld over aan rekening 123456.";
         assertThat(finder.findBankAccountNumberMatches(singletonList(text), "m123456"), hasItems(new BankAccountMatch("123456", "123456", 20)));
+    }
+
+    @Test public void testIsIban() {
+        assertTrue(BankAccountFinder.isIban("NL001"));
+        assertTrue(BankAccountFinder.isIban("BE1212"));
+        assertTrue(BankAccountFinder.isIban("DE45123"));
+
+        assertFalse(BankAccountFinder.isIban("NL00")); // too short
+        assertFalse(BankAccountFinder.isIban("NL0")); // even shorter
+        assertFalse(BankAccountFinder.isIban("")); // empty
+        assertFalse(BankAccountFinder.isIban("nl001234")); // lowercased
+        assertFalse(BankAccountFinder.isIban("ФУ001234")); // non-ascii
+        assertFalse(BankAccountFinder.isIban("NLFE1234")); // non-digits on 2nd and 3rd positions
     }
 }
