@@ -2,7 +2,6 @@ package com.ecg.messagecenter.pushmessage;
 
 import com.codahale.metrics.Counter;
 import com.ecg.messagecenter.cleanup.TextCleaner;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.util.MessageContentHelper;
 import com.ecg.messagecenter.util.MessageType;
@@ -172,6 +171,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             }
         }).orElse(""));
         ebay.put("Type", "3");
+        ebay.put("type", "3");
         ebay.put("ConversationId", conversation.getId());
         ebay.put("AdId", conversation.getAdId());
         builder.put("ebay",ebay.toString());
