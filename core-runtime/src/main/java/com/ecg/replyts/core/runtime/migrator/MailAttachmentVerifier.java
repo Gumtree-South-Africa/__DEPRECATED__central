@@ -37,6 +37,8 @@ public class MailAttachmentVerifier {
     private static final Logger LOG = LoggerFactory.getLogger(MailAttachmentVerifier.class);
 
     private final Counter MAIL_COUNTER = TimingReports.newCounter("attachments.verification.mail-counter-total");
+    private final Counter ATTACHMENT_COUNTER = TimingReports.newCounter("attachments.verification.attachment-counter");
+    private final Counter DIFFERENCE_COUNTER = TimingReports.newCounter("attachments.verification.different");
     private final Timer BATCH_VERIFICATION_TIMER = TimingReports.newTimer("attachments.verification.batch-mail-timer");
 
     @Autowired
@@ -109,8 +111,8 @@ public class MailAttachmentVerifier {
             });
 
             Util.waitForCompletion(results, processedBatchCounter, LOG, completionTimeoutSec);
-            LOG.info("Attachment verifier from {} to {} date is COMPLETED, out of total {} emails, in {} batches, took {}s",
-                    dateFrom, dateTo, MAIL_COUNTER.getCount(), processedBatchCounter.get(), watch.elapsed(TimeUnit.SECONDS));
+            LOG.info("Attachment verifier from {} to {} date is COMPLETED, out of total {} emails, in {} batches, total attachments {}, differences {}, took {}s",
+                    dateFrom, dateTo, MAIL_COUNTER.getCount(), processedBatchCounter.get(), ATTACHMENT_COUNTER.getCount(), DIFFERENCE_COUNTER.getCount(), watch.elapsed(TimeUnit.SECONDS));
         } finally {
             watch.stop();
         }
@@ -128,8 +130,8 @@ public class MailAttachmentVerifier {
             });
 
             Util.waitForCompletion(results, processedBatchCounter, LOG, completionTimeoutSec);
-            LOG.info("Attachment verifier is COMPLETED, out of total {} emails, in {} batches, took {}s",
-                    MAIL_COUNTER.getCount(), processedBatchCounter.get(), watch.elapsed(TimeUnit.SECONDS));
+            LOG.info("Attachment verifier is COMPLETED, out of total {} emails, in {} batches, total attachments {}, differences {}, took {}s",
+                    MAIL_COUNTER.getCount(), processedBatchCounter.get(), ATTACHMENT_COUNTER.getCount(), DIFFERENCE_COUNTER.getCount(), watch.elapsed(TimeUnit.SECONDS));
         } finally {
             watch.stop();
         }
@@ -180,7 +182,9 @@ public class MailAttachmentVerifier {
 
     private void compareAttachments(Mail mail, String messageId, boolean allowMigration) {
         for (String filename : mail.getAttachmentNames()) {
+
             TypedContent<byte[]> riakAttachment = mail.getAttachment(filename);
+            ATTACHMENT_COUNTER.inc();
 
             try {
                 ClientResponse<byte[]> clientResponse = invokeAttachmentController(messageId, filename);
@@ -193,10 +197,13 @@ public class MailAttachmentVerifier {
                     } else {
                         LOG.error("Failed to compare an attachment, the attachment from new API is different then the attachment " +
                                 "from RIAK database. Message ID: {}, Filename: {}", messageId, filename);
+                        // never happened so far
+                        DIFFERENCE_COUNTER.inc();
                     }
                 } else {
                     LOG.error("Failed to retrieve an attachment using new API. Status Code: {}, Message ID: {}, Filename: {}",
                             clientResponse.getStatus(), messageId, filename);
+                    DIFFERENCE_COUNTER.inc();
 
                     if (allowMigration) {
                         LOG.info("Attachment is automatically migrated. Message ID: {}, Filename: {}", messageId);
@@ -207,6 +214,11 @@ public class MailAttachmentVerifier {
                 String error = String.format("Client invocation failed to retrieve an attachment using new API. Message ID: %s, Filename: %s",
                         messageId, filename);
                 LOG.error(error, ex);
+                DIFFERENCE_COUNTER.inc();
+                if (allowMigration) {
+                    LOG.info("Comparison failed migrating attachment. Message ID: {}, Filename: {}", messageId);
+                    attachmentRepository.storeAttachment(messageId, filename, riakAttachment);
+                }
             }
         }
     }
