@@ -44,8 +44,7 @@ class BankAccountFinder {
     BankAccountFinder(BankAccountFilterConfiguration config) {
         this.config = config;
         accountPatterns = createPatterns(config.getFraudulentBankAccounts());
-        LOG.info("bank account pattern count in the incoming configuration: {}",
-                config.getFraudulentBankAccounts() != null ? config.getFraudulentBankAccounts().size() : 0);
+        LOG.info("bank accounts in the incoming configuration: {}", config.getFraudulentBankAccounts());
         LOG.info("bank account patterns cache stats: {}", BANK_ACCOUNT_PATTERNS_CACHE.stats().toString());
     }
 
