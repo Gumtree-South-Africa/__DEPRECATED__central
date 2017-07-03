@@ -1,5 +1,8 @@
 package com.ecg.messagecenter.persistence;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Objects;
 
 /**
@@ -10,6 +13,8 @@ import java.util.Objects;
  * @author maldana@ebay.de
  */
 public class Counter {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Counter.class);
 
     private long value;
 
@@ -36,8 +41,8 @@ public class Counter {
     public void dec(long number) {
         if (number > 0) {
             value = Math.max(0, value - number);
-        } else {
-            throw new IllegalArgumentException("Counter cannot decrement the negative number: " + number);
+        } else if(number < 0 ){
+           LOG.info("Will not decrement by a negative number: {}", number);
         }
     }
 
