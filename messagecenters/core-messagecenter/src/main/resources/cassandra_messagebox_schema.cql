@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS mb_conversation_unread_counts (
     usrid text,
     convid text,
     unread int,
+    unreadother int,
     PRIMARY KEY (usrid, convid)
 ) WITH bloom_filter_fp_chance = 0.01
     AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'

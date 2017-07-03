@@ -28,6 +28,11 @@ public class ConversationResponseConverter {
     public ConversationResponse toConversationResponseWithMessages(ConversationThread conversationThread) {
         List<MessageResponse> messageResponses = conversationThread.getMessages().stream()
                 .map(msgRespConverter::toMessageResponse).collect(Collectors.toList());
+
+        int otherParticipantNumUnread = conversationThread.getHighestOtherParticipantNumUnread();
+        for (int i = messageResponses.size() - 1; i >= messageResponses.size() - otherParticipantNumUnread; i--) {
+            messageResponses.get(i).setIsRead(false);
+        }
         return toConversationResponse(conversationThread, Optional.of(messageResponses));
     }
 
@@ -50,11 +55,11 @@ public class ConversationResponseConverter {
                 conversation.getVisibility().name().toLowerCase(),
                 conversation.getMessageNotification().name().toLowerCase(),
                 participantResponses,
-                msgRespConverter.toMessageResponse(conversation.getLatestMessage()),
+                msgRespConverter.toMessageResponse(conversation.getLatestMessage()).withIsRead(conversation.getHighestOtherParticipantNumUnread() == 0),
                 creationDateStr,
                 conversation.getMetadata().getEmailSubject(),
                 conversation.getMetadata().getTitle().orElse(null),
-                conversation.getNumUnreadMessages(),
+                conversation.getNumUnreadMessages(conversation.getUserId()),
                 messageResponsesOpt);
     }
 }

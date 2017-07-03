@@ -1,7 +1,7 @@
 DOCKER_COMPOSE  = docker-compose
 BROWSE          = open
 PROPS2CONSUL    = ./properties-to-consul-osx
-CASS_IMG_VER    = 0.0.5
+CASS_IMG_VER    = 0.0.6
 
 .PHONY: up down ui import logs cassandra-image push-cassandra-image pull
 

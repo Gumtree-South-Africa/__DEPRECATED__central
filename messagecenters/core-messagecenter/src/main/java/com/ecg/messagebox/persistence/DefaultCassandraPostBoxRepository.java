@@ -7,6 +7,7 @@ import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.persistence.jsonconverter.JsonConverter;
 import com.ecg.messagebox.persistence.model.ConversationIndex;
 import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
+import com.ecg.messagebox.persistence.model.UnreadCounts;
 import com.ecg.messagebox.util.StreamUtils;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
@@ -77,16 +78,25 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             PaginatedConversationIds paginatedConversationIds = getPaginatedConversationIds(userId, visibility, conversationsOffset, conversationsLimit);
             ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATIONS.bind(this, userId, paginatedConversationIds.getConversationIds()));
 
-            Map<String, Integer> conversationUnreadCountsMap = getConversationUnreadCountMap(userId);
+            Map<String, UnreadCounts> conversationUnreadCountsMap = getConversationUnreadCountMap(userId);
             List<ConversationThread> conversations = StreamUtils.toStream(resultSet)
                     .map(row -> {
                         ConversationThread conversation = createConversation(userId, row);
-                        conversation.addNumUnreadMessages(conversationUnreadCountsMap.getOrDefault(row.getString("convid"), 0));
+                        for (Participant participant: conversation.getParticipants()) {
+                            if (userId.equals(participant.getUserId())) {
+                                conversation.addNumUnreadMessages(userId, conversationUnreadCountsMap.getOrDefault(row.getString("convid"),
+                                        new UnreadCounts(0, 0)).getUserUnreadCounts());
+                            } else {
+                                conversation.addNumUnreadMessages(participant.getUserId(), conversationUnreadCountsMap.getOrDefault(row.getString("convid"),
+                                        new UnreadCounts(0, 0)).getOtherParticipantUnreadCount());
+                            }
+                        }
                         return conversation;
                     }).sorted((c1, c2) -> staticCompare(c2.getLatestMessage().getId(), c1.getLatestMessage().getId()))
                     .collect(toList());
 
-            UserUnreadCounts userUnreadCounts = createUserUnreadCounts(userId, conversationUnreadCountsMap.values());
+            UserUnreadCounts userUnreadCounts = createUserUnreadCounts(userId, conversationUnreadCountsMap.values().stream()
+                    .map(UnreadCounts::getUserUnreadCounts).collect(toList()));
 
             return new PostBox(userId, conversations, userUnreadCounts, paginatedConversationIds.getConversationsTotalCount());
         }
@@ -112,13 +122,13 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         }
     }
 
-    private Map<String, Integer> getConversationUnreadCountMap(String userId) {
+    private Map<String, UnreadCounts> getConversationUnreadCountMap(String userId) {
         try (Timer.Context ignored = getConversationUnreadCountMapTimer.time()) {
             ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATIONS_UNREAD_COUNTS.bind(this, userId));
             return StreamUtils.toStream(resultSet)
                     .collect(Collectors.toMap(
                             row -> row.getString("convid"),
-                            row -> row.getInt("unread"))
+                            row -> new UnreadCounts(row.getInt("unread"), row.getInt("unreadother")))
                     );
         }
     }
@@ -139,8 +149,10 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             if (row != null) {
                 ConversationThread conversation = createConversation(userId, row);
 
-                int unreadMessagesCount = getConversationUnreadCount(userId, conversationId);
-                conversation.addNumUnreadMessages(unreadMessagesCount);
+                for (Participant participant : conversation.getParticipants()) {
+                    int unreadMessagesCount = getConversationUnreadCount(participant.getUserId(), conversationId);
+                    conversation.addNumUnreadMessages(participant.getUserId(), unreadMessagesCount);
+                }
 
                 List<Message> messages = getConversationMessages(userId, conversationId, messageIdCursorOpt, messagesLimit);
                 conversation.addMessages(messages);
@@ -185,7 +197,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         Message latestMessage = jsonConverter.fromMessageJson(userId, conversationId, row.getString("latestmsg"));
         ConversationMetadata metadata = jsonConverter.fromConversationMetadataJson(userId, conversationId, row.getString("metadata"));
 
-        return new ConversationThread(conversationId, adId, visibility, messageNotification, participants, latestMessage, metadata);
+        return new ConversationThread(conversationId, adId, userId, visibility, messageNotification, participants, latestMessage, metadata);
     }
 
     @Override
@@ -229,11 +241,20 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public void resetConversationUnreadCount(String userId, String conversationId, String adId) {
+    public int getConversationOtherParticipantUnreadCount(String userId, String conversationId) {
+        try (Timer.Context ignored = getConversationUnreadCountTimer.time()) {
+            Row unreadCountResult = session.execute(Statements.SELECT_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, userId, conversationId)).one();
+            return unreadCountResult == null ? 0 : unreadCountResult.getInt("unreadother");
+        }
+    }
+
+    @Override
+    public void resetConversationUnreadCount(String userId, String otherParticipantUserId, String conversationId, String adId) {
         try (Timer.Context ignored = resetConversationUnreadCountTimer.time()) {
             BatchStatement batch = new BatchStatement();
 
             batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, conversationId));
+            batch.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, 0, otherParticipantUserId, conversationId));
             batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, adId, conversationId));
 
             batch.setConsistencyLevel(getWriteConsistency());
@@ -284,6 +305,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         if (incrementUnreadCount) {
             int newUnreadCount = getConversationUnreadCount(userId, conversationId) + 1;
             statements.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, newUnreadCount, userId, conversationId));
+            statements.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, newUnreadCount, message.getSenderUserId(), conversationId));
             statements.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, newUnreadCount, userId, adId, conversationId));
         }
 
@@ -395,7 +417,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         SELECT_CONVERSATION_INDICES("SELECT convid, adid, vis, latestmsgid FROM mb_ad_conversation_idx WHERE usrid = ?"),
         SELECT_AD_CONVERSATION_INDICES("SELECT convid, vis, latestmsgid FROM mb_ad_conversation_idx WHERE usrId = ? AND adid = ?"),
         SELECT_CONVERSATIONS("SELECT convid, vis, ntfynew, participants, adid, latestmsg, metadata FROM mb_conversations WHERE usrid = ? AND convid IN ?"),
-        SELECT_CONVERSATIONS_UNREAD_COUNTS("SELECT convid, unread FROM mb_conversation_unread_counts WHERE usrid = ?"),
+        SELECT_CONVERSATIONS_UNREAD_COUNTS("SELECT convid, unread, unreadother FROM mb_conversation_unread_counts WHERE usrid = ?"),
 
         SELECT_AD_IDS("SELECT convid, adid FROM mb_conversations WHERE usrid = ? AND convid IN ?"),
 
@@ -403,12 +425,14 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         SELECT_CONVERSATION("SELECT convid, adid, vis, ntfynew, participants, latestmsg, metadata FROM mb_conversations WHERE usrid = ? AND convid = ?"),
         SELECT_CONVERSATION_MESSAGE_NOTIFICATION("SELECT ntfynew FROM mb_conversations WHERE usrid = ? AND convid = ?"),
         SELECT_CONVERSATION_UNREAD_COUNT("SELECT unread FROM mb_conversation_unread_counts WHERE usrid = ? AND convid = ?"),
+        SELECT_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT("SELECT unreadother FROM mb_conversation_unread_counts WHERE usrid = ? AND convid = ?"),
         SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR("SELECT msgid, type, metadata FROM mb_messages WHERE usrid = ? AND convid = ? LIMIT ?"),
         SELECT_CONVERSATION_MESSAGES_WITH_CURSOR("SELECT msgid, type, metadata FROM mb_messages WHERE usrid = ? AND convid = ? AND msgid < ? LIMIT ?"),
         SELECT_CONVERSATION_IDS_BY_USER_ID_AND_AD_ID("SELECT convid from mb_ad_conversation_idx WHERE usrid = ? AND adid = ? LIMIT ?"),
 
         // update a single conversation when a new message comes in
         UPDATE_CONVERSATION_UNREAD_COUNT("UPDATE mb_conversation_unread_counts SET unread = ? WHERE usrid = ? AND convid = ?", true),
+        UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT("UPDATE mb_conversation_unread_counts SET unreadother = ? WHERE usrid = ? AND convid = ?", true),
         UPDATE_AD_CONVERSATION_UNREAD_COUNT("UPDATE mb_ad_conversation_unread_counts SET unread = ? WHERE usrid = ? AND adid = ? AND convid = ?", true),
 
         UPDATE_AD_CONVERSATION_INDEX("UPDATE mb_ad_conversation_idx SET vis = ?, latestmsgid = ? WHERE usrid = ? AND adid = ? AND convid = ?", true),

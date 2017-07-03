@@ -12,6 +12,7 @@ public class MessageResponse {
     private final String text;
     private final String senderUserId;
     private final String receivedDate;
+    private boolean isRead = true;
     private final String customData;
 
     public MessageResponse(String id, String type, String text, String senderUserId,
@@ -48,6 +49,19 @@ public class MessageResponse {
         return customData;
     }
 
+    public boolean getIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(boolean isRead) {
+        this.isRead = isRead;
+    }
+
+    public MessageResponse withIsRead(boolean isRead) {
+        this.isRead = isRead;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -58,11 +72,12 @@ public class MessageResponse {
                 && Objects.equals(text, that.text)
                 && Objects.equals(senderUserId, that.senderUserId)
                 && Objects.equals(receivedDate, that.receivedDate)
+                && Objects.equals(isRead, that.isRead)
                 && Objects.equals(customData, that.customData);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, type, text, senderUserId, receivedDate, customData);
+        return Objects.hash(id, type, text, senderUserId, receivedDate, isRead, customData);
     }
 }

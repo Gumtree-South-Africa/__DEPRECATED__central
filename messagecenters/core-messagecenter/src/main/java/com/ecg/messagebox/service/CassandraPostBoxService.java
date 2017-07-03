@@ -81,6 +81,7 @@ public class CassandraPostBoxService implements PostBoxService {
                     ConversationThread newConversation = new ConversationThread(
                             rtsConversation.getId(),
                             rtsConversation.getAdId(),
+                            userId,
                             Visibility.ACTIVE,
                             MessageNotification.RECEIVE,
                             getParticipants(rtsConversation),
@@ -114,8 +115,10 @@ public class CassandraPostBoxService implements PostBoxService {
                                                                Optional<String> messageIdCursorOpt, int messagesLimit) {
         try (Timer.Context ignored = markConversationAsReadTimer.time()) {
             return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursorOpt, messagesLimit).map(conversation -> {
-                postBoxRepository.resetConversationUnreadCount(userId, conversationId, conversation.getAdId());
-                return new ConversationThread(conversation).addNumUnreadMessages(0);
+                List<Participant> participants = conversation.getParticipants();
+                String otherParticipantUserId = participants.get(0).getUserId().equals(userId)? participants.get(1).getUserId() : participants.get(0).getUserId();
+                postBoxRepository.resetConversationUnreadCount(userId, otherParticipantUserId, conversationId, conversation.getAdId());
+                return new ConversationThread(conversation).addNumUnreadMessages(userId, 0);
             });
         }
     }
