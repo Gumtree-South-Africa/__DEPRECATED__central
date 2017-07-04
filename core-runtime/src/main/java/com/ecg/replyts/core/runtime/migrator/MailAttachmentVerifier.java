@@ -22,10 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +35,7 @@ public class MailAttachmentVerifier {
 
     private final Counter MAIL_COUNTER = TimingReports.newCounter("attachments.verification.mail-counter-total");
     private final Counter ATTACHMENT_COUNTER = TimingReports.newCounter("attachments.verification.attachment-counter");
-    private final Counter DIFFERENCE_COUNTER = TimingReports.newCounter("attachments.verification.different");
+    private final Counter CUM_DIFFERENCE_COUNTER = TimingReports.newCounter("attachments.verification.different");
     private final Timer BATCH_VERIFICATION_TIMER = TimingReports.newTimer("attachments.verification.batch-mail-timer");
 
     @Autowired
@@ -101,18 +98,22 @@ public class MailAttachmentVerifier {
         try {
             List<Future> results = new ArrayList<>();
             AtomicInteger processedBatchCounter = new AtomicInteger();
+            String verificationId = UUID.randomUUID().toString();
+            Counter diffCounter = new Counter();
 
-            LOG.info("Verification attachments in mails using batch size {}", idBatchSize);
+            LOG.info("[{}] Invoke attachment verifier from {} to {} using batch size {}", verificationId, dateFrom, dateTo, idBatchSize);
+
             Stream<String> mailIdStream = mailRepository.streamMailIdsCreatedBetween(
                     dateFrom.toDateTime(DateTimeZone.UTC), dateTo.toDateTime(DateTimeZone.UTC));
 
             Iterators.partition(mailIdStream.iterator(), idBatchSize).forEachRemaining(mailIdBatch -> {
-                results.add(executor.submit(() -> verifyAttachments(mailIdBatch, allowMigration)));
+                results.add(executor.submit(() -> verifyAttachments(verificationId, mailIdBatch, allowMigration, diffCounter)));
             });
 
             Util.waitForCompletion(results, processedBatchCounter, LOG, completionTimeoutSec);
-            LOG.info("Attachment verifier from {} to {} date is COMPLETED, out of total {} emails, in {} batches, total attachments {}, differences {}, took {}s",
-                    dateFrom, dateTo, MAIL_COUNTER.getCount(), processedBatchCounter.get(), ATTACHMENT_COUNTER.getCount(), DIFFERENCE_COUNTER.getCount(), watch.elapsed(TimeUnit.SECONDS));
+            LOG.info("[{}] Attachment verifier from {} to {} date is COMPLETED, out of total {} emails, in {} batches, total attachments {}, differences {}, cumulative-differences {}, took {}s",
+                    verificationId, dateFrom, dateTo, MAIL_COUNTER.getCount(), processedBatchCounter.get(), ATTACHMENT_COUNTER.getCount(),
+                    diffCounter.getCount(), CUM_DIFFERENCE_COUNTER.getCount(), watch.elapsed(TimeUnit.SECONDS));
         } finally {
             watch.stop();
         }
@@ -124,20 +125,25 @@ public class MailAttachmentVerifier {
         try {
             List<Future> results = new ArrayList<>();
             AtomicInteger processedBatchCounter = new AtomicInteger();
+            String verificationId = UUID.randomUUID().toString();
+            Counter diffCounter = new Counter();
+
+            LOG.info("[{}] Invoke attachment verifier for IDs {} using batch size {}", verificationId, mailIds, idBatchSize);
 
             Iterators.partition(mailIds.iterator(), idBatchSize).forEachRemaining(mailIdBatch -> {
-                results.add(executor.submit(() -> verifyAttachments(mailIdBatch, allowMigration)));
+                results.add(executor.submit(() -> verifyAttachments(verificationId, mailIdBatch, allowMigration, diffCounter)));
             });
 
             Util.waitForCompletion(results, processedBatchCounter, LOG, completionTimeoutSec);
-            LOG.info("Attachment verifier is COMPLETED, out of total {} emails, in {} batches, total attachments {}, differences {}, took {}s",
-                    MAIL_COUNTER.getCount(), processedBatchCounter.get(), ATTACHMENT_COUNTER.getCount(), DIFFERENCE_COUNTER.getCount(), watch.elapsed(TimeUnit.SECONDS));
+            LOG.info("[{}] Attachment verifier is COMPLETED, out of total {} emails, in {} batches, total attachments {}, differences {}, cumulative-differences {}, took {}s",
+                    verificationId, MAIL_COUNTER.getCount(), processedBatchCounter.get(), ATTACHMENT_COUNTER.getCount(),
+                    diffCounter.getCount(), CUM_DIFFERENCE_COUNTER.getCount(), watch.elapsed(TimeUnit.SECONDS));
         } finally {
             watch.stop();
         }
     }
 
-    private void verifyAttachments(List<String> mailIds, boolean allowMigration) {
+    private void verifyAttachments(String verificationId, List<String> mailIds, boolean allowMigration, Counter diffCounter) {
         try (Timer.Context ignored = BATCH_VERIFICATION_TIMER.time()) {
 
             for (String messageId : mailIds) {
@@ -145,7 +151,7 @@ public class MailAttachmentVerifier {
                 if (StringUtils.isEmpty(messageId)) {
                     continue;
                 }
-                LOG.debug("Next messageId is {} ", messageId);
+                LOG.debug("[{}] Next messageId is {} ", verificationId, messageId);
 
                 if (messageId.trim().contains("@Part0")) {
                     messageId = messageId.substring(0, messageId.indexOf("@Part0"));
@@ -156,14 +162,14 @@ public class MailAttachmentVerifier {
                     continue;
                 }
 
-                byte[] rawmail = loadMail(true, messageId);
+                byte[] rawmail = loadMail(verificationId, true, messageId);
 
                 if (rawmail == null) {
-                    LOG.info("Did not find raw mail for message id in incoming messages {}", messageId);
-                    rawmail = loadMail(false, messageId);
+                    LOG.info("[{}] Did not find raw mail for message id in incoming messages {}", verificationId, messageId);
+                    rawmail = loadMail(verificationId, false, messageId);
 
                     if (rawmail == null) {
-                        LOG.info("Did not find raw mail for message id {}", messageId);
+                        LOG.info("[{}] Did not find raw mail for message id {}", verificationId, messageId);
                         return;
                     }
                 }
@@ -171,72 +177,75 @@ public class MailAttachmentVerifier {
 
                 Mail parsedMail = attachmentRepository.hasAttachments(messageId, rawmail);
                 if (parsedMail == null) {
-                    LOG.debug("Message {} does not have any attachments", messageId);
+                    LOG.debug("[{}] Message {} does not have any attachments", verificationId, messageId);
                     return;
                 }
 
-                compareAttachments(parsedMail, messageId, allowMigration);
+                compareAttachments(verificationId, parsedMail, messageId, allowMigration, diffCounter);
             }
         }
     }
 
-    private void compareAttachments(Mail mail, String messageId, boolean allowMigration) {
+    private void compareAttachments(String verificationId, Mail mail, String messageId, boolean allowMigration, Counter diffCounter) {
         for (String filename : mail.getAttachmentNames()) {
 
             TypedContent<byte[]> riakAttachment = mail.getAttachment(filename);
             ATTACHMENT_COUNTER.inc();
 
             try {
-                ClientResponse<byte[]> clientResponse = invokeAttachmentController(messageId, filename);
+                ClientResponse<byte[]> clientResponse = invokeAttachmentController(verificationId, messageId, filename);
 
                 if (clientResponse.getResponseStatus().getFamily() == Response.Status.Family.SUCCESSFUL) {
                     byte[] swiftAttachment = clientResponse.getEntity();
 
                     if (Arrays.equals(swiftAttachment, riakAttachment.getContent())) {
-                        LOG.info("An attachment successfully verified. Message ID: {}, Filename: {}", messageId, filename);
+                        LOG.info("[{}] An attachment successfully verified. Message ID: {}, Filename: {}", verificationId, messageId, filename);
                     } else {
-                        LOG.error("Failed to compare an attachment, the attachment from new API is different then the attachment " +
-                                "from RIAK database. Message ID: {}, Filename: {}", messageId, filename);
+                        LOG.error("[{}] Failed to compare an attachment, the attachment from new API is different then the attachment " +
+                                "from RIAK database. Message ID: {}, Filename: {}", verificationId, messageId, filename);
                         // never happened so far
-                        DIFFERENCE_COUNTER.inc();
+                        CUM_DIFFERENCE_COUNTER.inc();
+                        diffCounter.inc();
                     }
                 } else {
-                    LOG.error("Failed to retrieve an attachment using new API. Status Code: {}, Message ID: {}, Filename: {}",
-                            clientResponse.getStatus(), messageId, filename);
-                    DIFFERENCE_COUNTER.inc();
+                    LOG.error("[{}] Failed to retrieve an attachment using new API. Status Code: {}, Message ID: {}, Filename: {}",
+                            verificationId, clientResponse.getStatus(), messageId, filename);
+                    CUM_DIFFERENCE_COUNTER.inc();
+                    diffCounter.inc();
 
                     if (allowMigration) {
-                        LOG.info("Attachment is automatically migrated. Message ID: {}, Filename: {}", messageId);
+                        LOG.info("[{}] Attachment is automatically migrated. Message ID: {}, Filename: {}", verificationId, messageId, filename);
                         attachmentRepository.storeAttachment(messageId, filename, riakAttachment);
                     }
                 }
             } catch (Exception ex) {
-                String error = String.format("Client invocation failed to retrieve an attachment using new API. Message ID: %s, Filename: %s",
-                        messageId, filename);
+                String error = String.format("[%s] Client invocation failed to retrieve an attachment using new API. Message ID: %s, Filename: %s",
+                        verificationId, messageId, filename);
                 LOG.error(error, ex);
-                DIFFERENCE_COUNTER.inc();
+                CUM_DIFFERENCE_COUNTER.inc();
+                diffCounter.inc();
                 if (allowMigration) {
-                    LOG.info("Comparison failed migrating attachment. Message ID: {}, Filename: {}", messageId);
+                    LOG.info("[{}] Comparison failed migrating attachment. Message ID: {}, Filename: {}", verificationId, messageId, filename);
                     attachmentRepository.storeAttachment(messageId, filename, riakAttachment);
                 }
             }
         }
     }
 
-    private ClientResponse<byte[]> invokeAttachmentController(String messageId, String filename) throws Exception {
+    private ClientResponse<byte[]> invokeAttachmentController(String verificationId, String messageId, String filename) throws Exception {
         String uri = UriBuilder.fromPath("http://{attachmentEndpoint}/screeningv2/mail/{messageId}/attachments/{filename}")
                 .build(attachmentEndpoint, messageId, filename)
                 .toString();
 
-        LOG.debug("Invoking AttachmentController, Message ID: {}, Filename: {}, URL: {}", messageId, filename, uri);
+        LOG.debug("[{}] Invoking AttachmentController, Message ID: {}, Filename: {}, URL: {}", verificationId, messageId, filename, uri);
         return new ClientRequest(uri).get(byte[].class);
     }
 
-    private byte[] loadMail(boolean inbound, String messageId) {
+    private byte[] loadMail(String verificationId, boolean inbound, String messageId) {
         try {
             return inbound ? mailRepository.readInboundMail(messageId) : mailRepository.readOutboundMail(messageId);
         } catch (Exception ex) {
-            LOG.error(String.format("Failed to load mail for message ID '%s' ", messageId), ex);
+            LOG.error(String.format("[%s] Failed to load mail for message ID '%s' ", verificationId, messageId), ex);
             return null;
         }
     }

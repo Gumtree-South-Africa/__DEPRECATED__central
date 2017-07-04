@@ -37,8 +37,6 @@ public class AttachmentVerifierController {
     public String verifyBetween(@PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime fromDate,
                                 @PathVariable @DateTimeFormat(pattern = DATETIME_STRING) LocalDateTime toDate,
                                 @RequestParam(name = "migrate", required = false, defaultValue = "false") boolean allowMigration) {
-        LOG.info("Invoke attachment verifier from {} to {} via web interface", fromDate, toDate);
-
         try {
             executor.execute(() -> mailVerifier.verifyAttachmentsBetweenDates(fromDate, toDate, allowMigration));
             return "Attachment Verification is UP and RUNNING!";
@@ -53,7 +51,6 @@ public class AttachmentVerifierController {
     public String verifyIds(@PathVariable String ids,
                             @RequestParam(name = "migrate", required = false, defaultValue = "false") boolean allowMigration) {
         List<String> mailIds = CSV_SPLITTER.splitToList(ids);
-        LOG.info("Invoke attachment verifier for IDs {} via web interface", mailIds);
 
         try {
             executor.execute(() -> mailVerifier.verifyAttachmentsByIds(mailIds, allowMigration));
