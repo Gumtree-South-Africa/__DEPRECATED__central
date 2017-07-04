@@ -4,6 +4,7 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.MessageModeratedCommand;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -13,6 +14,7 @@ import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
+import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.google.common.base.Optional;
@@ -62,6 +64,9 @@ public class DirectMessageModerationService implements ModerationService {
     @Autowired
     private ConversationEventListeners conversationEventListeners;
 
+    @Autowired(required = false)
+    private AttachmentRepository attachmentRepository;
+
     @Override
     public void changeMessageState(MutableConversation conversation, String messageId, ModerationAction moderationAction) {
         Preconditions.checkArgument(moderationAction.getModerationResultState().isAcceptableOutcome(), "Moderation State " + moderationAction.getModerationResultState() + " is not an acceptable moderation outcome");
@@ -76,9 +81,19 @@ public class DirectMessageModerationService implements ModerationService {
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 processingContext.getOutgoingMail().writeTo(outputStream);
 
+                if (attachmentRepository != null) {
+
+                    Mail parsedMail = attachmentRepository.hasAttachments(messageId, inboundMailData);
+                    if (parsedMail != null) {
+
+                        attachmentRepository.storeAttachments(messageId, parsedMail);
+                    }
+                }
+
                 if (mailRepository != null) {
                     mailRepository.persistMail(messageId, inboundMailData, Optional.of(outputStream.toByteArray()));
                 }
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
