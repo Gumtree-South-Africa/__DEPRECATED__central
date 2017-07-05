@@ -30,12 +30,10 @@ public class AdInfoLookup {
         this.kmobilepushHost = new HttpHost(kapiHost, kapiPort);
     }
 
-    public Optional<AdInfo> lookupAdIInfo(Long adId) {
+    Optional<AdInfo> lookupAdIInfo(Long adId) {
         try {
-
             HttpRequest request = buildRequest(adId);
             return httpClient.execute(kmobilepushHost, request, new AdInfoResponseHandler());
-
         } catch (Exception e) {
             LOG.error("Error fetching image-url for ad #" + adId + " " + e.getMessage(), e);
             return Optional.empty();
@@ -45,9 +43,8 @@ public class AdInfoLookup {
     private HttpRequest buildRequest(Long adId) throws UnsupportedEncodingException {
         //TODO how to get pictures and title only
         //HttpGet get = new HttpGet("/api/ads/" + adId + ".json?_in=pictures");
-        HttpGet get = new HttpGet("/api/ads/" + adId + ".json");
 
-        return get;
+        return new HttpGet("/api/ads/" + adId + ".json");
     }
 
     static class AdInfoResponseHandler implements ResponseHandler<Optional<AdInfo>> {

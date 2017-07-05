@@ -65,7 +65,7 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
 
     private boolean shouldReuseExistingThread(Optional<? extends AbstractConversationThread> existingThread, @Nonnull String newMessage) {
         return existingThread.flatMap(AbstractConversationThread::getPreviewLastMessage)
-          .map(last -> last.equals(newMessage)).orElse(false);
+                .map(last -> last.equals(newMessage)).orElse(false);
     }
 
     protected abstract boolean filter(String email, Conversation conversation);

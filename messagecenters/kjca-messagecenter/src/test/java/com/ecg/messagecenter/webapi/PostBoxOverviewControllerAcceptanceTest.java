@@ -12,9 +12,7 @@ import java.util.Properties;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.*;
 
 public class PostBoxOverviewControllerAcceptanceTest {
     private final Properties testProperties = new Properties() {{
@@ -131,7 +129,7 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.messages[1].boundness", equalTo("OUTBOUND"))
                 .body("body.messages[2].textShort", equalTo("re-reply for buyer."))
                 .body("body.messages[2].boundness", equalTo("INBOUND"))
-                .get("http://localhost:" + testRule.getHttpPort() + "/message-center/postboxes/seller1@seller.com/conversations/" + conversationId);
+                    .get("http://localhost:" + testRule.getHttpPort() + "/message-center/postboxes/seller1@seller.com/conversations/" + conversationId);
     }
 
     @Test

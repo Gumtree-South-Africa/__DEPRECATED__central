@@ -7,7 +7,10 @@ import com.ecg.messagecenter.pushmessage.AdInfoLookup;
 import com.ecg.messagecenter.pushmessage.KmobilePushService;
 import com.ecg.messagecenter.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.pushmessage.PushService;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import org.slf4j.Logger;
@@ -16,10 +19,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import static com.ecg.replyts.core.api.model.conversation.ConversationState.DEAD_ON_ARRIVAL;
+
 @Component
 public class PostBoxUpdateListener implements MessageProcessedListener {
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
+    private static final SimplePostBoxInitializer.PostBoxWriteCallback NO_OP = (email1, unreadCount, markedAsUnread) -> {
+    };
     private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
     private static final Counter PROCESSING_FAILED = TimingReports.newCounter("message-box.postBoxUpdateListener.failed");
@@ -53,31 +60,27 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
         checkAndCountMessageState(message);
-
-        if (conversation.getState() == ConversationState.DEAD_ON_ARRIVAL) {
-            return;
-        }
-
-        Timer.Context timerContext = PROCESSING_TIMER.time();
-
-        try {
-            if (conversation.getSellerId() == null || conversation.getBuyerId() == null) {
+        if (conversation.getState() != DEAD_ON_ARRIVAL) {
+            if (conversation.getSellerId() != null && conversation.getBuyerId() != null) {
+                processMessage(conversation, message);
+            } else {
                 String messageText = "No seller or buyer email available for conversation #%s and conv-state %s and message #%s";
                 LOG.info(String.format(messageText, conversation.getId(), conversation.getState(), message.getId()));
-                return;
             }
+        }
 
+    }
+
+    private void processMessage(Conversation conversation, Message message) {
+        try (Timer.Context ignore = PROCESSING_TIMER.time()) {
             updateMessageCenter(conversation.getSellerId(), conversation, message,
                     userNotificationRules.sellerShouldBeNotified(message));
             updateMessageCenter(conversation.getBuyerId(), conversation, message,
                     userNotificationRules.buyerShouldBeNotified(message));
-
             PROCESSING_SUCCESS.inc();
         } catch (Exception e) {
             PROCESSING_FAILED.inc();
             throw new RuntimeException("Error with post-box syncing " + e.getMessage(), e);
-        } finally {
-            timerContext.stop();
         }
     }
 
@@ -98,7 +101,13 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                 email,
                 conversation,
                 newReplyArrived,
-                new PushMessageOnUnreadConversationCallback(pushService, adInfoLookup, conversation, message)
+                getPostBoxWriteCallback(conversation, message)
         );
+    }
+
+    private SimplePostBoxInitializer.PostBoxWriteCallback getPostBoxWriteCallback(Conversation conversation, Message message) {
+        return (pushService == null)
+                ? NO_OP
+                : new PushMessageOnUnreadConversationCallback(pushService, adInfoLookup, conversation, message);
     }
 }
