@@ -62,7 +62,7 @@ public class ContactMessageSmsService {
         String message = createMessage(contactMessage);
 
         String phoneNumber = contactMessage.getSmsPhoneNumber();
-        SmsSendRequest smsSendRequest = new SmsSendRequest(phoneNumber, message);
+        SmsSendRequest smsSendRequest = new SmsSendRequest(phoneNumber, message, "Comaas contact message");
 
         HttpPost request = post(contactMessage.getCustomerId(), smsSendRequest);
         return httpClient.execute(request, SuccessStatusCodeResponseHandler.INSTANCE);
