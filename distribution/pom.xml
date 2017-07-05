@@ -847,6 +847,7 @@
                         -Dcom.datastax.driver.FORCE_NIO=true
                         -XX:+PrintGCDetails
                         -Xloggc:${LOG_DIR:-@BASEDIR@/log}/gc.log
+                        -verbose:gc
                         -XX:+PrintGCTimeStamps
                         -XX:+PrintGCDateStamps
                         -XX:+PrintTenuringDistribution
