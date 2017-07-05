@@ -24,6 +24,7 @@ Note: only do this when the `.cql` files have changed, or when upgrading C* vers
 
 Update the version number in the `Makefile`, in `docker-compose.yml`, and in `bin/_cassandra_docker.sh`.
 
-`make cassandra-image`
+`make cassandra-image push-cassandra-image`
 
 We're done. If the upload fails, just run the same `make` command again.
+
