@@ -5,25 +5,13 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
-import org.hamcrest.core.Is;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.hamcrest.CoreMatchers;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 
 import java.util.Map;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.resetAllRequests;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 
@@ -96,10 +84,10 @@ public class TnsApiClientTest {
         // This validates that we correct for the missing "/api" in the API base URL without having to add it to each call to TnsApiClient#getJsonAsMap()
         stubFor(get(urlEqualTo("/api/replier/email/user@example.com/is-new")).willReturn(aResponse().withStatus(200).withBody("{\"thing\":true}")));
 
-        final Map map = tnsApiClient.getJsonAsMap("/replier/email/user@example.com/is-new");
+        final Map<String, Boolean> map = tnsApiClient.getJsonAsMap("/replier/email/user@example.com/is-new");
 
         Assert.assertTrue(map.containsKey("thing"));
-        Assert.assertThat(map.get("thing"), Is.is(true));
+        Assert.assertThat(map.get("thing"), CoreMatchers.is(true));
     }
 
     @After

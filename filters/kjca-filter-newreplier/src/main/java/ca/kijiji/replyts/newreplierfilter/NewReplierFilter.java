@@ -33,14 +33,14 @@ public class NewReplierFilter extends ActivableFilter {
 
         String from = context.getMail().getFrom();
 
-        Boolean isNew = false;
+        boolean isNew = false;
         try {
             isNew = checkIfEmailNewInLeGrid(from);
         } catch (Exception e) {
             LOG.warn("Exception caught when calling grid. Assuming replier not new.", e);
         }
 
-        ImmutableList.Builder<FilterFeedback> feedbacks = ImmutableList.<FilterFeedback>builder();
+        ImmutableList.Builder<FilterFeedback> feedbacks = ImmutableList.builder();
 
         if (isNew) {
             feedbacks.add(new FilterFeedback("email is new", "Replier email is new",
@@ -50,10 +50,10 @@ public class NewReplierFilter extends ActivableFilter {
         return feedbacks.build();
     }
 
-    private Boolean checkIfEmailNewInLeGrid(String from) {
-        Map result = tnsApiClient.getJsonAsMap("/replier/email/" + from + "/is-new");
+    private boolean checkIfEmailNewInLeGrid(String from) {
+        Map<String, Boolean> result = tnsApiClient.getJsonAsMap("/replier/email/" + from + "/is-new");
 
-        Boolean isNew = (Boolean) result.get(IS_NEW_KEY);
+        boolean isNew = result.get(IS_NEW_KEY);
         LOG.debug("Is user {} new? {}", from, isNew);
         return isNew;
     }

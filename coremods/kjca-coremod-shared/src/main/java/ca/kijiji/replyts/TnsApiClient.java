@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static ca.kijiji.replyts.CloseableHttpClientBuilder.aCloseableHttpClient;
@@ -35,7 +36,7 @@ public class TnsApiClient {
     private final String replierEndpoint;
     private final String authHeader;
     private final CloseableHttpClient httpClient;
-    private final ImmutableList<URI> endpoints;
+    private final List<URI> endpoints;
 
     @Autowired
     public TnsApiClient(
@@ -76,7 +77,7 @@ public class TnsApiClient {
      * @return A map. If the request fails, the map will be empty.
      */
     @Nonnull
-    public Map getJsonAsMap(final String path) {
+    public Map<String, Boolean> getJsonAsMap(final String path) {
         final HttpGet get = new HttpGet(this.baseUrl + "/api" + path);
         get.addHeader(HttpHeaders.AUTHORIZATION, this.authHeader);
 

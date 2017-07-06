@@ -39,8 +39,8 @@ public class EmailBlockedFilter implements Filter {
             return feedbacks.build();
         }
 
-        Boolean buyerEmailBlocked = false;
-        Boolean sellerEmailBlocked = false;
+        boolean buyerEmailBlocked = false;
+        boolean sellerEmailBlocked = false;
         try {
             buyerEmailBlocked = checkIfEmailBlockedInLeGrid(conversation.getBuyerId());
         } catch (Exception e) {
@@ -65,9 +65,9 @@ public class EmailBlockedFilter implements Filter {
         return feedbacks.build();
     }
 
-    private Boolean checkIfEmailBlockedInLeGrid(String from) {
-        Map result = tnsApiClient.getJsonAsMap("/replier/email/" + from + "/is-blocked");
-        Boolean isBlocked = (Boolean) result.get(IS_BLOCKED_KEY);
+    private boolean checkIfEmailBlockedInLeGrid(String from) {
+        Map<String, Boolean> result = tnsApiClient.getJsonAsMap("/replier/email/" + from + "/is-blocked");
+        boolean isBlocked = result.get(IS_BLOCKED_KEY);
         LOG.debug("Is email {} blocked? {}", from, isBlocked);
         return isBlocked;
     }

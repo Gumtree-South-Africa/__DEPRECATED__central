@@ -539,6 +539,7 @@
         <!-- kjca artifact versions -->
         <kjca-service-discovery.version>11</kjca-service-discovery.version>
         <kjca-tracing.version>8</kjca-tracing.version>
+        <kjca-remote-service-command-version>1.2.1</kjca-remote-service-command-version>
         <sentry-version>7.1.0</sentry-version>
         <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
         <!-- it artifact versions -->
@@ -1844,7 +1845,7 @@
             <dependency>
                 <groupId>ca.kijiji</groupId>
                 <artifactId>remote-service-command</artifactId>
-                <version>1.2.1</version>
+                <version>${kjca-remote-service-command-version}</version>
 
                 <exclusions>
                     <exclusion>

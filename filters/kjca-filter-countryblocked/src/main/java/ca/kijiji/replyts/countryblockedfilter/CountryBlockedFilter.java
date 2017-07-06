@@ -39,7 +39,7 @@ public class CountryBlockedFilter implements Filter {
             return feedbacks.build();
         }
 
-        Boolean countryIsBlocked = false;
+        boolean countryIsBlocked = false;
         try {
             countryIsBlocked = checkIfCountryBlockedInLeGrid(ipAddress);
         } catch (Exception e) {
@@ -55,9 +55,9 @@ public class CountryBlockedFilter implements Filter {
         return feedbacks.build();
     }
 
-    private Boolean checkIfCountryBlockedInLeGrid(String ipAddress) {
-        Map result = this.tnsApiClient.getJsonAsMap("/replier/ip-address/" + ipAddress + "/is-country-blocked");
-        Boolean isBlocked = (Boolean) result.get(IS_COUNTRY_BLOCKED_KEY);
+    private boolean checkIfCountryBlockedInLeGrid(String ipAddress) {
+        Map<String, Boolean> result = this.tnsApiClient.getJsonAsMap("/replier/ip-address/" + ipAddress + "/is-country-blocked");
+        boolean isBlocked = result.get(IS_COUNTRY_BLOCKED_KEY);
         LOG.debug("Is {} country blocked? {}", ipAddress, isBlocked);
         return isBlocked;
     }
