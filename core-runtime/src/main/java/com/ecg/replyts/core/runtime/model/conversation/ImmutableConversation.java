@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.Builder.aConversation;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -196,7 +198,26 @@ public class ImmutableConversation implements Conversation { // NOSONAR
      * @return the new conversation
      */
     public static ImmutableConversation replay(List<ConversationEvent> events) {
-        ImmutableConversation result = createInternal((ConversationCreatedEvent) events.get(0));
+        ConversationEvent firstEvent = events.get(0);
+        ConversationCreatedEvent createdEvent;
+
+        // Fix the order
+        if (!(firstEvent instanceof ConversationCreatedEvent)) {
+            LOG.debug("Event order is wrong - attempting to fix - filtering collection of {} ConversationEvents", events.size());
+            Predicate<ConversationEvent> isConversatonCreatedEvent = ConversationCreatedEvent.class::isInstance;
+            Optional<ConversationEvent> event = events.stream().filter(isConversatonCreatedEvent).findFirst();
+            if (!event.isPresent()) {
+                throw new RuntimeException(String.format(" Did not find ConversationCreatedEvent among the list of %d events", events.size()));
+            }
+            createdEvent =  (ConversationCreatedEvent) event.get();
+            // Potentially removes all duplicates of ConversationCreated event - must be a good thing
+            events = events.stream().filter(isConversatonCreatedEvent.negate()).collect(Collectors.toCollection(ArrayList::new));
+            events.add(0,createdEvent);
+        } else {
+            createdEvent = (ConversationCreatedEvent) firstEvent;
+        }
+
+        ImmutableConversation result = createInternal(createdEvent);
         return result.updateMany(events.subList(1, events.size()));
     }
 
