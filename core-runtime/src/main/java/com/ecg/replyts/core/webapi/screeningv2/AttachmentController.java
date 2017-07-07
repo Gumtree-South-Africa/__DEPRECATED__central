@@ -63,14 +63,16 @@ public class AttachmentController {
         response.setContentType(attachment.getMimeType());
         response.setContentLengthLong(attachment.getSizeInBytes());
         Stopwatch stopWatch = Stopwatch.createStarted();
-        try {
-            DLPayload payload = attachment.download();
-            org.openstack4j.core.transport.HttpResponse resp = payload.getHttpResponse();
+        DLPayload payload = attachment.download();
+
+        try (OutputStream outStream = response.getOutputStream();
+             org.openstack4j.core.transport.HttpResponse resp = payload.getHttpResponse();
+             InputStream inStream = payload.getInputStream()) {
+
             int swiftRespStatus = resp.getStatus();
             if (swiftRespStatus == HttpStatus.SC_OK) {
-                InputStream inStream = payload.getInputStream();
-                OutputStream outStream = response.getOutputStream();
                 ByteStreams.copy(inStream, outStream);
+                outStream.flush();
             } else {
                 LOG.error("Got {}/{} response from Swift, while attempting to fetch object {} from container {}, waited for {}ms ", swiftRespStatus, resp.getStatusMessage(),
                         attachment.getName(), attachment.getContainerName(), stopWatch.elapsed(TimeUnit.MILLISECONDS));

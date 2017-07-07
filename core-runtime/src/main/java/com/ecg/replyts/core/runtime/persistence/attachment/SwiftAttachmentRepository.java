@@ -24,8 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -110,8 +109,11 @@ public class SwiftAttachmentRepository {
     }
 
     public Optional<SwiftObject> fetch(String messageId, String attachmentName) {
+
+        String containerName = getContainer(messageId);
+
         try (Timer.Context ignored = GET.time()) {
-            String containerName = getContainer(messageId);
+
             LOG.debug("Fetching messageid '{}' attachment '{}' from container {}", messageId, attachmentName, containerName);
 
             SwiftObject so = getObjectStorage().get(containerName,
@@ -140,10 +142,12 @@ public class SwiftAttachmentRepository {
                         sobj.getLastModified(),
                         sobj.getMimeType());
             }
-
+            resp.close();
             return swiftObject;
+        } catch (IOException ioe) {
+            LOG.error("IOException while closing the response on SwiftObject for messageid '{}' attachment '{}' in container {}", messageId, attachmentName, containerName, ioe);
         }
-
+        return Optional.empty();
     }
 
     // ObjectStorageObjectService is not thread safe, we need to have one per thread
