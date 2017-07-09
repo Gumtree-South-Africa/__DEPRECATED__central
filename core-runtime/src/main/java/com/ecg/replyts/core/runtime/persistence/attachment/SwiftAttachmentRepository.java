@@ -123,31 +123,30 @@ public class SwiftAttachmentRepository {
                 LOG.info("Did not find messageid '{}' attachment '{}' in container {}", messageId, attachmentName, containerName);
                 return Optional.empty();
             }
-            HttpResponse resp = so.download().getHttpResponse();
-            if (resp.getStatus() != HttpResponseStatus.OK.getCode()) {
+            try (HttpResponse resp = so.download().getHttpResponse()) {
+                if (resp.getStatus() != HttpResponseStatus.OK.getCode()) {
+                    String mess = String.format("Failed to fetch %s/%s attachment from container %s", messageId, attachmentName, containerName);
+                    throw new RuntimeException(mess + " Reason: " + resp.getStatusMessage());
+                }
+                Optional<SwiftObject> swiftObject = Optional.of(so);
 
-                String mess = String.format("Failed to fetch %s/%s attachment from container %s", messageId, attachmentName, containerName);
-                throw new RuntimeException(mess + " Reason: " + resp.getStatusMessage());
+                if (LOG.isDebugEnabled() && swiftObject.isPresent()) {
+                    SwiftObject sobj = swiftObject.get();
+                    LOG.debug("Loaded attachment {}/{} size {} bytes, " +
+                                    "from container {}, " +
+                                    "lastModifiedDate {}, " +
+                                    "mimeType {}", messageId, attachmentName, sobj.getSizeInBytes(),
+                            sobj.getContainerName(),
+                            sobj.getLastModified(),
+                            sobj.getMimeType());
+                }
+
+                return swiftObject;
+            } catch (IOException e) {
+                LOG.error("IOException while closing the response on SwiftObject for messageid '{}' attachment '{}' in container {}", messageId, attachmentName, containerName, e);
             }
-            Optional<SwiftObject> swiftObject = Optional.of(so);
-
-            if (LOG.isDebugEnabled() && swiftObject.isPresent()) {
-
-                SwiftObject sobj = swiftObject.get();
-                LOG.debug("Loaded attachment {}/{} size {} bytes, " +
-                                "from container {}, " +
-                                "lastModifiedDate {}, " +
-                                "mimeType {}", messageId, attachmentName, sobj.getSizeInBytes(),
-                        sobj.getContainerName(),
-                        sobj.getLastModified(),
-                        sobj.getMimeType());
-            }
-            resp.close();
-            return swiftObject;
-        } catch (IOException ioe) {
-            LOG.error("IOException while closing the response on SwiftObject for messageid '{}' attachment '{}' in container {}", messageId, attachmentName, containerName, ioe);
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     // ObjectStorageObjectService is not thread safe, we need to have one per thread
