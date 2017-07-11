@@ -1,6 +1,7 @@
 package com.ecg.replyts.core.runtime.cluster;
 
 import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.ObjectName;
@@ -12,13 +13,14 @@ import static org.mockito.Mockito.mock;
 /**
  * @author mhuttar
  */
+@Deprecated
 public class ClusterModeControlTest {
-
     private ClusterModeManager control = mock(ClusterModeManager.class);
 
     @Test
     public void registersAsMBean() throws Exception {
-        ClusterModeControl clusterModeControl = new ClusterModeControl(control);
+        ClusterModeControl clusterModeControl = new ClusterModeControl();
+        ReflectionTestUtils.setField(clusterModeControl, "manager", control);
         clusterModeControl.start();
         ManagementFactory.getPlatformMBeanServer().getMBeanInfo(new ObjectName("ReplyTS:type=ClusterControl,name=ClusterModeControl"));
         clusterModeControl.stop();
@@ -26,7 +28,8 @@ public class ClusterModeControlTest {
 
     @Test
     public void unregistersMbean() throws Exception {
-        ClusterModeControl clusterModeControl = new ClusterModeControl(control);
+        ClusterModeControl clusterModeControl = new ClusterModeControl();
+        ReflectionTestUtils.setField(clusterModeControl, "manager", control);
         clusterModeControl.start();
         ManagementFactory.getPlatformMBeanServer().getMBeanInfo(new ObjectName("ReplyTS:type=ClusterControl,name=ClusterModeControl"));
         clusterModeControl.stop();

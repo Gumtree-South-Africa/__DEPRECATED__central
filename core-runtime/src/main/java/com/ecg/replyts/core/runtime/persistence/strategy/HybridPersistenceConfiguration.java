@@ -35,19 +35,17 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
 @Configuration
-@Import({
-        CassandraPersistenceConfiguration.CassandraClientConfiguration.class,
-        RiakPersistenceConfiguration.RiakClientConfiguration.class
-})
+@Import({ CassandraPersistenceConfiguration.CassandraClientConfiguration.class, RiakPersistenceConfiguration.RiakClientConfiguration.class })
 @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid")
 public class HybridPersistenceConfiguration {
-
     // Cassandra
+
     @Value("${persistence.cassandra.core.dc:#{systemEnvironment['region']}}")
     private String cassandraDataCenter;
 
     @Autowired
     private ConsistencyLevel cassandraReadConsistency;
+
     @Autowired
     private ConsistencyLevel cassandraWriteConsistency;
 

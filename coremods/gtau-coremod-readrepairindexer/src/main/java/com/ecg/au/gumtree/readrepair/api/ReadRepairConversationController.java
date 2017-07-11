@@ -3,6 +3,7 @@ package com.ecg.au.gumtree.readrepair.api;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakReadRepairConversationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * Created by mdarapour.
  */
 @Controller
+@ConditionalOnExpression("'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')")
 public class ReadRepairConversationController {
     public static final String MAPPING = "/conversations/siblings/{conversationId}";
 

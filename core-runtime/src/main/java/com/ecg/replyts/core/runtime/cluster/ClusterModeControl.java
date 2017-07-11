@@ -1,6 +1,9 @@
 package com.ecg.replyts.core.runtime.cluster;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -9,18 +12,18 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 
-/**
- * @author mhuttar
- */
-class ClusterModeControl implements ClusterModeControlMBean {
-    private final ClusterModeManager manager;
+@Deprecated // This was only triggered by a Riak outage (Riak Sanity check) which is deprecated as well
+@Component
+@ConditionalOnExpression(
+  "'${riak.cluster.monitor.enabled:true}' == 'true' && " +
+  "('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))"
+)
+public class ClusterModeControl implements ClusterModeControlMBean {
+    @Autowired
+    private ClusterModeManager manager;
 
     @Value("${cluster.jmx.enabled:true}")
     private Boolean isJmxEnabled;
-
-    ClusterModeControl(ClusterModeManager manager) {
-        this.manager = manager;
-    }
 
     @PostConstruct
     void start() {

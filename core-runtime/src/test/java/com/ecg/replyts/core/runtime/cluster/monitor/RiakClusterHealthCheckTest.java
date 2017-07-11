@@ -12,6 +12,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+@Deprecated
 @RunWith(MockitoJUnitRunner.class)
 public class RiakClusterHealthCheckTest {
 

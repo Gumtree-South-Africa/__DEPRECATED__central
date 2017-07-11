@@ -14,9 +14,10 @@ import static com.google.common.collect.Lists.newArrayList;
  *
  * @author mhuttar
  */
+@Deprecated
 class RiakClusterCheckProvider implements CheckProvider {
-
     private final ClusterModeManager clusterModeManager;
+
     private final Check majorityUpSanityCheck;
 
     @Autowired
@@ -34,5 +35,4 @@ class RiakClusterCheckProvider implements CheckProvider {
 
         return checks;
     }
-
 }

@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -27,6 +28,7 @@ import static java.lang.String.format;
  * @author mhuttar
  */
 @Component
+@ConditionalOnExpression("'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')")
 public class RiakHostConfig {
     private final List<Host> hostList;
 

@@ -7,8 +7,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -19,7 +25,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -28,25 +33,34 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * @author alindhorst
- */
-@RunWith(MockitoJUnitRunner.class)
-public class FilesystemMailDataProviderTest {
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = FilesystemMailDataProviderTest.TestContext.class)
+@TestPropertySource(properties = {
+  "mailreceiver.filesystem.dropfolder = #{systemProperties['java.io.tmpdir']}",
 
-    private FilesystemMailDataProvider instance;
-    private File watchedDirectory;
-    @Mock
+  "mailreceiver.retrydelay.minutes = 5",
+
+  "mailreceiver.watch.retrydelay.millis = 1000",
+
+  "mailreceiver.retries = 5"
+})
+public class FilesystemMailDataProviderTest {
+    @Autowired
     private MessageProcessingCoordinator consumer;
 
-    @Mock
+    @Autowired
     private ClusterModeManager clusterModeManager;
+
+    @Autowired
+    private FilesystemMailDataProvider instance;
+
+    private File watchedDirectory;
 
     @Before
     public void setup() {
         when(clusterModeManager.determineMode()).thenReturn(ClusterMode.OK);
         watchedDirectory = spy(new File(System.getProperty("java.io.tmpdir")));
-        instance = new FilesystemMailDataProvider(watchedDirectory, 5, 5, 1000, consumer, clusterModeManager);
+        ReflectionTestUtils.setField(instance, "mailDataDirectory", watchedDirectory);
     }
 
     @After
@@ -67,8 +81,7 @@ public class FilesystemMailDataProviderTest {
         File file2 = spy(temp);
         when(watchedDirectory.listFiles(any(FileFilter.class))).thenReturn(new File[]{file1, file2}, new File[]{file2});
 
-        boolean success = instance.new FileProcessor().performFileProcessing();
-        assertThat(success, is(true));
+        instance.run();
 
         verify(file1, times(1)).renameTo(any(File.class));
         verify(file2, times(1)).renameTo(any(File.class));
@@ -83,7 +96,7 @@ public class FilesystemMailDataProviderTest {
         when(watchedDirectory.listFiles(any(FileFilter.class))).thenReturn(new File[]{file});
         doThrow(new IOException()).when(consumer).accept(any(InputStream.class));
 
-        instance.new FileProcessor().performFileProcessing();
+        instance.run();
 
         File renamedTempFile = new File(tempDir + "/failed/" + FilesystemMailDataProvider.FAILED_PREFIX + file.getName());
 
@@ -93,7 +106,6 @@ public class FilesystemMailDataProviderTest {
 
     @Test
     public void workerWillPickupNewAndFailedMails() throws Exception {
-
         File file = File.createTempFile("pre_junit-temp", "tempfile");
         String tempDir = file.getParentFile().getPath();
         File failuresDir = new File(tempDir, FilesystemMailDataProvider.FAILED_DIRECTORY_NAME);
@@ -102,14 +114,13 @@ public class FilesystemMailDataProviderTest {
         failed.createNewFile();
         failed.setLastModified(System.currentTimeMillis() - 60 * 1000 * 5);
 
-        instance.new FileProcessor().performFileProcessing();
+        instance.run();
 
         verify(consumer, times(2)).accept(any(InputStream.class));
     }
 
     @Test
     public void workerWillPickupFailedMailsWithoutNewMails() throws Exception {
-
         String tempDir = System.getProperty("java.io.tmpdir");
         File failuresDir = new File(tempDir, FilesystemMailDataProvider.FAILED_DIRECTORY_NAME);
         failuresDir.mkdir();
@@ -117,7 +128,7 @@ public class FilesystemMailDataProviderTest {
         failed.createNewFile();
         failed.setLastModified(System.currentTimeMillis() - 60 * 1000 * 5);
 
-        instance.new FileProcessor().performFileProcessing();
+        instance.run();
 
         verify(consumer, times(1)).accept(any(InputStream.class));
     }
@@ -134,7 +145,7 @@ public class FilesystemMailDataProviderTest {
 
         assertTrue(failed.getName().matches("^(?:f_){6}(?!f_).*$"));
 
-        instance.new FileProcessor().performFileProcessing();
+        instance.run();
 
         verify(consumer, never()).accept(any(InputStream.class));
     }
@@ -149,7 +160,7 @@ public class FilesystemMailDataProviderTest {
         failed.createNewFile();
         failed.setLastModified(System.currentTimeMillis() - 60 * 1000 * 4);
 
-        instance.new FileProcessor().performFileProcessing();
+        instance.run();
 
         verify(consumer, never()).accept(any(InputStream.class));
     }
@@ -161,7 +172,6 @@ public class FilesystemMailDataProviderTest {
         File failuresDir = new File(tempDir, FilesystemMailDataProvider.FAILED_DIRECTORY_NAME);
         failuresDir.mkdir();
 
-        FilesystemMailDataProvider.FileProcessor processor = instance.new FileProcessor();
         doThrow(new IOException()).when(consumer).accept(any(InputStream.class));
 
         for (int i = 1; i <= 6; i++) {
@@ -171,7 +181,7 @@ public class FilesystemMailDataProviderTest {
             }
             failedFileName.append(file.getName());
 
-            processor.performFileProcessing();
+            instance.run();
 
             File currentFile = new File(failuresDir, failedFileName.toString());
 
@@ -182,8 +192,7 @@ public class FilesystemMailDataProviderTest {
         }
 
         //one more try, should not result in invocation of consumer.accept
-        processor.performFileProcessing();
-
+        instance.run();
 
         //5: last iteration must not result in actual processing
         verify(consumer, times(6)).accept(any(InputStream.class));
@@ -196,8 +205,7 @@ public class FilesystemMailDataProviderTest {
         File failuresDir = new File(tempDir, FilesystemMailDataProvider.FAILED_DIRECTORY_NAME);
         failuresDir.mkdir();
 
-        FilesystemMailDataProvider.FileProcessor processor = instance.new FileProcessor();
-        processor.performFileProcessing();
+        instance.run();
 
         File[] inprogressFiles = new File(tempDir).listFiles(new FileFilter() {
             @Override
@@ -211,7 +219,6 @@ public class FilesystemMailDataProviderTest {
     }
 
     private static class TempFileFilter implements FileFilter {
-
         File tempDir;
         File failedDir;
 
@@ -222,11 +229,20 @@ public class FilesystemMailDataProviderTest {
 
         @Override
         public boolean accept(File file) {
-
-            return (file.getParentFile().equals(tempDir) || file.getParentFile().equals(failedDir))
-                    && (file.getName().startsWith(FilesystemMailDataProvider.FAILED_PREFIX)
-                    || file.getName().startsWith(FilesystemMailDataProvider.INCOMING_FILE_PREFIX)
-                    || file.getName().startsWith(FilesystemMailDataProvider.PROCESSING_FILE_PREFIX));
+            return (file.getParentFile().equals(tempDir) || file.getParentFile().equals(failedDir)) &&
+              (file.getName().startsWith(FilesystemMailDataProvider.FAILED_PREFIX) ||
+              file.getName().startsWith(FilesystemMailDataProvider.INCOMING_FILE_PREFIX) ||
+              file.getName().startsWith(FilesystemMailDataProvider.PROCESSING_FILE_PREFIX));
         }
+    }
+
+    @Configuration
+    @Import(FilesystemMailDataProvider.class)
+    static class TestContext {
+        @MockBean
+        private MessageProcessingCoordinator consumer;
+
+        @MockBean
+        private ClusterModeManager clusterModeManager;
     }
 }

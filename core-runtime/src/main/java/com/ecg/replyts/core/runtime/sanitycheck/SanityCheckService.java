@@ -5,9 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -17,41 +20,33 @@ import java.util.List;
  *
  * @author mhuttar
  */
+@Component
+@ConditionalOnProperty(value = "cluster.jmx.enabled", havingValue = "true", matchIfMissing=  true)
 public class SanityCheckService {
     private static final Logger LOG = LoggerFactory.getLogger(SanityCheckService.class);
 
     private final JmxPropagator jmxPropagator = new JmxPropagator("ReplyTS");
 
-    private boolean isJmxEnabled;
-
-    @Autowired
-    public SanityCheckService(@Value("${cluster.jmx.enabled:true}") boolean isJmxEnabled, List<CheckProvider> providers) {
-        this.isJmxEnabled = isJmxEnabled;
-
-        if (isJmxEnabled) {
-            LOG.info("Registering Check Providers from {}", providers);
-
-            for (CheckProvider p : providers) {
-                jmxPropagator.addCheck(p.getChecks());
-            }
-        }
-    }
+    @Autowired(required = false)
+    private List<CheckProvider> providers = Collections.emptyList();
 
     @PostConstruct
-    void start() {
-        if (isJmxEnabled) {
-            jmxPropagator.start();
+    public void addChecksAndStart() {
+        LOG.info("Registering Check Providers from {}", providers);
 
-            LOG.info("Sanity Check Service started");
+        for (CheckProvider p : providers) {
+            jmxPropagator.addCheck(p.getChecks());
         }
+
+        jmxPropagator.start();
+
+        LOG.info("Sanity Check Service started");
     }
 
     @PreDestroy
-    void stop() {
-        if (isJmxEnabled) {
-            jmxPropagator.stop();
+    public void stop() {
+        jmxPropagator.stop();
 
-            LOG.info("Sanity Check Service shutdown");
-        }
+        LOG.info("Sanity Check Service shutdown");
     }
 }

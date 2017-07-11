@@ -7,6 +7,7 @@ import com.ecg.replyts.core.api.sanitychecks.Result;
 import com.ecg.replyts.core.api.sanitychecks.Status;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
 
@@ -37,9 +38,14 @@ public class SanityCheckServiceTest {
     @Test
     public void launchesSanityCheckFramework() throws Exception {
         CheckProvider cp = Mockito.mock(CheckProvider.class);
+
         Mockito.when(cp.getChecks()).thenReturn(Arrays.asList(mockCheck));
-        s = new SanityCheckService(true, Arrays.asList(cp));
-        s.start();
+
+        s = new SanityCheckService();
+
+        ReflectionTestUtils.setField(s, "providers", Arrays.asList(cp));
+
+        s.addChecksAndStart();
         s.stop();
     }
 }

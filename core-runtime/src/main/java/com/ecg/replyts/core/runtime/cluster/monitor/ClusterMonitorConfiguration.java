@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -25,9 +26,13 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Profile(ReplyTS.PRODUCTIVE_PROFILE)
+@Deprecated
 @Configuration
-class ClusterMonitorConfiguration {
-
+@ConditionalOnExpression(
+  "'${riak.cluster.monitor.enabled:true}' == 'true' && " +
+  "('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))"
+)
+public class ClusterMonitorConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(ClusterMonitorConfiguration.class);
 
     private static final String RIAK_CLUSTER_SANITY_CHECK = "riakClusterSanityCheck";
@@ -43,9 +48,6 @@ class ClusterMonitorConfiguration {
 
     @Value("${riak.cluster.monitor.http.client.timeout.ms:10000}")
     private int httpClientTimeoutMs;
-
-    @Value("${riak.cluster.monitor.enabled:true}")
-    private boolean checkEnabled;
 
     @Bean
     public ClusterMonitor clusterMonitor(@Qualifier(RIAK_CLUSTER_SANITY_CHECK) Check riakClusterSanityCheck) {
@@ -69,16 +71,7 @@ class ClusterMonitorConfiguration {
     }
 
     @Bean(name = RIAK_CLUSTER_SANITY_CHECK)
-    public Check riakClusterSanityCheck() throws RiakException {
-        return checkEnabled ? createRiakClusterSanityCheck() : createAlwaysHealthyCheck();
-    }
-
-    private AlwaysHealthyCheck createAlwaysHealthyCheck() {
-        LOG.info("DISABLED Riak cluster check");
-        return new AlwaysHealthyCheck();
-    }
-
-    private RiakClusterSanityCheck createRiakClusterSanityCheck() throws RiakException {
+    public RiakClusterSanityCheck riakClusterSanityCheck() throws RiakException {
         LOG.info("Riak cluster check enabled.");
         RiakClusterHealthCheck riakClusterHealthCheck = RiakClusterHealthCheck.createFromRiakClients(createHttpRiakClients(hostConfig, httpClientTimeoutMs));
         return new RiakClusterSanityCheck(riakClusterHealthCheck, attemptsBeforeFailure);
@@ -91,5 +84,4 @@ class ClusterMonitorConfiguration {
     ) throws RiakException {
         return new RiakClusterCheckProvider(clusterModeManager, sanityCheck);
     }
-
 }

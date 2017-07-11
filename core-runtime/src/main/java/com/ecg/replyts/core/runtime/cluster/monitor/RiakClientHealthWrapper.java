@@ -16,9 +16,9 @@ import static java.lang.String.format;
 /**
  * Wrap a Riak client to provide a health check for the cluster the single node see.
  */
+@Deprecated
 class RiakClientHealthWrapper {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RiakClientHealthWrapper.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RiakClientHealthWrapper.class);
 
     private final IRiakClient client;
 
@@ -47,7 +47,7 @@ class RiakClientHealthWrapper {
         Set<String> ringMembers = ImmutableSet.copyOf(nodeStats.ringMembers());
         String queriedNode = nodeStats.nodename();
 
-        LOGGER.debug(format("Stats for node %s: connected nodes: %s, ring members: %s", queriedNode, connectedNodes, ringMembers));
+        LOG.debug(format("Stats for node %s: connected nodes: %s, ring members: %s", queriedNode, connectedNodes, ringMembers));
 
         // Check for single node cluster. This might happen when a node was remove from the cluster and later started up again
         // but without putting back to cluster. The node locks like a single-node-cluster. Data written to this node are lost.
@@ -72,5 +72,4 @@ class RiakClientHealthWrapper {
 
         return new CheckResult(healthy, healthyNodes, impairedNodes);
     }
-
 }

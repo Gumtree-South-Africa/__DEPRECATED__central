@@ -8,8 +8,8 @@ import java.util.Set;
 import static java.lang.String.format;
 import static java.util.Collections.emptySet;
 
+@Deprecated
 final class CheckResult {
-
     private final boolean healthy;
     private final Set<String> healthyNodes;
     private final Set<String> impairedNodes;

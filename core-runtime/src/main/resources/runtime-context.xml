@@ -11,9 +11,9 @@
     <bean class="com.ecg.replyts.core.runtime.configadmin.ClusterRefreshSubscriber"/>
     <bean id="refreshManager" class="com.ecg.replyts.core.runtime.configadmin.RefresherManager"/>
 
-    <bean class="com.ecg.replyts.app.mailreceiver.MailDataProviderConfiguration" depends-on="refreshManager"/>
+    <context:component-scan base-package="com.ecg.replyts.app.mailreceiver" />
 
-    <bean class="com.ecg.replyts.core.runtime.workers.WorkerPoolConfiguration"/>
+    <context:component-scan base-package="com.ecg.replyts.core.runtime.workers" />
 
     <bean class="com.ecg.replyts.core.runtime.configadmin.ConfigurationValidatorImp"/>
 
@@ -45,10 +45,9 @@
     <bean class="com.ecg.replyts.core.runtime.indexer.AsyncOutdatedEntityReporter"/>
 
 
-    <bean class="com.ecg.replyts.core.runtime.cluster.ClusterServicesConfiguration"/>
-    <bean class="com.ecg.replyts.core.runtime.cluster.monitor.ClusterMonitorConfiguration"/>
+    <context:component-scan base-package="com.ecg.replyts.core.runtime.cluster" />
 
-    <context:component-scan base-package="com.ecg.replyts.core.runtime.maildelivery"/>
+    <context:component-scan base-package="com.ecg.replyts.core.runtime.maildelivery" />
 
     <context:component-scan base-package="com.ecg.replyts.core.runtime.persistence" />
 

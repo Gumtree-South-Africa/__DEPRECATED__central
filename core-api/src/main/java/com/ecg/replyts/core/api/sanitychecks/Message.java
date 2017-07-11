@@ -1,13 +1,11 @@
 package com.ecg.replyts.core.api.sanitychecks;
 
-
 /**
  * A message from a check contains an short description and a more detailed description.
  *
  * @author smoczarski
  */
 public final class Message {
-
     private final String shortInfo;
 
     private final String details;
@@ -134,5 +132,4 @@ public final class Message {
         Message otherMessage = (Message) other;
         return shortInfo.equals(otherMessage.shortInfo) && details.equals(otherMessage.details);
     }
-
 }

@@ -7,69 +7,121 @@ import com.ecg.replyts.core.runtime.cluster.ClusterMode;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
-public class FilesystemMailDataProvider implements MailDataProvider {
+import static java.lang.String.format;
+
+@Component("mailDataProvider")
+@ConditionalOnProperty(name = "mail.provider.strategy", havingValue = "fs", matchIfMissing = true)
+public class FilesystemMailDataProvider implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(FilesystemMailDataProvider.class);
 
     private static final Counter FAILED_COUNTER = TimingReports.newCounter("processing_failed");
     private static final Counter ABANDONED_RETRY_COUNTER = TimingReports.newCounter("processing_failed_abandoned");
 
-    protected static final String FAILED_PREFIX = "f_";
-    protected static final String FAILED_DIRECTORY_NAME = "failed";
-    protected static final String INCOMING_FILE_PREFIX = "pre_";
-    protected static final String PROCESSING_FILE_PREFIX = "inwork_";
+    static final String FAILED_PREFIX = "f_";
+    static final String FAILED_DIRECTORY_NAME = "failed";
+    static final String INCOMING_FILE_PREFIX = "pre_";
+    static final String PROCESSING_FILE_PREFIX = "inwork_";
 
-    private static final IncomingMailFileFilter INCOMING_FILE_FILTER = new IncomingMailFileFilter(INCOMING_FILE_PREFIX);
+    static final FileFilter INCOMING_FILE_FILTER = file -> file.isFile() && file.getName().startsWith(INCOMING_FILE_PREFIX);
 
-    private final File mailDataDir;
-    private final File failedDir;
-    private final FileFilter failedFileFilter;
-    private final String abandonedFileNameMatchPattern;
-    private final int watchRetryDelay;
+    @Autowired(required = false)
+    private ClusterModeManager clusterModeManager;
 
-    private final ClusterModeManager clusterModeManager;
-
+    @Autowired
     private MessageProcessingCoordinator consumer;
 
-    public FilesystemMailDataProvider(File mailDataDir, int retryDelay, int retryCounter, int watchRetryDelay, MessageProcessingCoordinator consumer, ClusterModeManager clusterModeManager) {
-        LOG.info("Watching dropfolder {} every {} ms", mailDataDir.getAbsolutePath(), watchRetryDelay);
+    @Value("${mailreceiver.filesystem.dropfolder}")
+    private String dropfolder;
 
-        this.mailDataDir = mailDataDir;
-        this.watchRetryDelay = watchRetryDelay;
-        this.clusterModeManager = clusterModeManager;
-        this.failedDir = new File(mailDataDir, "failed");
-        this.consumer = consumer;
+    @Value("${mailreceiver.retrydelay.minutes}")
+    private int retryDelayMinutes;
 
-        if (!this.failedDir.exists() && !this.failedDir.mkdirs()) {
-            throw new IllegalStateException("Couldn't create 'failure' directory, will stop.");
+    @Value("${mailreceiver.watch.retrydelay.millis:1000}")
+    private int watchRetryDelay;
+
+    @Value("${mailreceiver.retries}")
+    private int retryCounter;
+
+    private File mailDataDirectory;
+
+    private File failedDirectory;
+
+    private FileFilter failedFileFilter;
+
+    private String abandonedFileNameMatchPattern;
+
+    @PostConstruct
+    public void initialize() {
+        this.mailDataDirectory = new File(dropfolder);
+        this.failedDirectory = new File(mailDataDirectory, FAILED_DIRECTORY_NAME);
+
+        if (!failedDirectory.exists() && !failedDirectory.mkdirs()) {
+            throw new IllegalStateException(format("Couldn't create '%s' directory", FAILED_DIRECTORY_NAME));
         }
 
-        String failedFileNameFilterPattern = "^(?!(" + FAILED_PREFIX + "){" + (retryCounter + 1) + "})" + FAILED_PREFIX + ".*$";
+        Pattern failureFileNamePattern = Pattern.compile("^(?!(" + FAILED_PREFIX + "){" + (retryCounter + 1) + "})" + FAILED_PREFIX + ".*$");
 
-        this.failedFileFilter = new FailedMailFileFilter(Pattern.compile(failedFileNameFilterPattern), retryDelay);
+        this.failedFileFilter = file -> {
+            Matcher matcher = failureFileNamePattern.matcher(file.getName());
+            boolean fileIsOldEnough = file.lastModified() < (System.currentTimeMillis() - (retryDelayMinutes * 60L * 1000L));
+
+            return matcher.matches() && fileIsOldEnough;
+        };
+
         this.abandonedFileNameMatchPattern = "^(?:" + FAILED_PREFIX + "){" + (retryCounter + 1) + "}(?!" + FAILED_PREFIX + ").*$";
 
-        LOG.info("Scanning Folder {} for files starting with {}", mailDataDir.getAbsolutePath(), INCOMING_FILE_PREFIX);
+        // Only perform the orphaned file scan on initialization
+
+        LOG.info("Searching dropfolder for orphaned {}* files and renaming them to {}*", PROCESSING_FILE_PREFIX, INCOMING_FILE_PREFIX);
+
+        for (File file : mailDataDirectory.listFiles()) {
+            if (file.getName().startsWith(PROCESSING_FILE_PREFIX)) {
+                File targetName = new File(file.getParent(), INCOMING_FILE_PREFIX + file.getName());
+
+                LOG.info("Cleanup dropfolder: renaming {} to {}", file.getName(), targetName.getName());
+
+                file.renameTo(targetName);
+            }
+        }
+
+        LOG.info("Scanning dropfolder {} every {} ms for files starting with {}", mailDataDirectory.getAbsolutePath(), watchRetryDelay, INCOMING_FILE_PREFIX);
     }
 
     @Override
     public void run() {
-        FileProcessor processor = new FileProcessor();
-        if (!processor.performFileProcessing()) {
-            sleep();
-        }
-    }
+        if (Stream
+          .concat(Arrays.stream(mailDataDirectory.listFiles(INCOMING_FILE_FILTER)), Arrays.stream(failedDirectory.listFiles(failedFileFilter)))
+          .filter((file) -> {
+            if (!shouldProcessMessagesNow()) {
+                return false;
+            }
 
-    private void sleep() {
-        try {
-            TimeUnit.MILLISECONDS.sleep(watchRetryDelay);
-        } catch (InterruptedException e) {
-            LOG.error("Interrupted while waiting for mails", e);
-            Thread.currentThread().interrupt();
+            File tempFilename = new File(mailDataDirectory, PROCESSING_FILE_PREFIX + file.getName());
+
+            if (file.renameTo(tempFilename)) {
+                process(tempFilename, file);
+            }
+
+            return true;
+          }).count() == 0) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(watchRetryDelay);
+            } catch (InterruptedException e) {
+                LOG.error("Interrupted while waiting for mails", e);
+            }
         }
     }
 
@@ -79,10 +131,11 @@ public class FilesystemMailDataProvider implements MailDataProvider {
         } catch (Exception e) {
             FAILED_COUNTER.inc();
 
-            File failedFilename = new File(failedDir, FAILED_PREFIX + originalFilename.getName());
+            File failedFilename = new File(failedDirectory, FAILED_PREFIX + originalFilename.getName());
 
             if (failedFilename.getName().matches(abandonedFileNameMatchPattern)) {
                 ABANDONED_RETRY_COUNTER.inc();
+
                 LOG.error("Mail processing abandoned for file: '" + failedFilename.getName() + "'", e);
             } else {
                 LOG.warn("Mail processing failed. Storing mail in failed folder as '" + failedFilename.getName() + "'", e);
@@ -91,7 +144,6 @@ public class FilesystemMailDataProvider implements MailDataProvider {
             if (!tempFilename.renameTo(failedFilename)) {
                 LOG.error("Failed to move failed mail to 'failed' directory " + tempFilename.getName());
             }
-
         } finally {
             if (tempFilename.exists() && !tempFilename.delete()) {
                 LOG.error("Failed to delete mail {} from dropfolder after successful processing", tempFilename.getName());
@@ -99,46 +151,7 @@ public class FilesystemMailDataProvider implements MailDataProvider {
         }
     }
 
-    @Override
-    public void prepareLaunch() {
-        LOG.info("Searching Dropfolder for orphaned {}* files and renaming them to {}*", PROCESSING_FILE_PREFIX, INCOMING_FILE_PREFIX);
-        new ScanAndRename(mailDataDir, PROCESSING_FILE_PREFIX, INCOMING_FILE_PREFIX).execute();
-    }
-
-    class FileProcessor {
-        boolean performFileProcessing() {
-            if (doNotProcessMessagesNow()) {
-                return false;
-            }
-
-            File[] files = mailDataDir.listFiles(INCOMING_FILE_FILTER);
-            File[] failedFiles = failedDir.listFiles(failedFileFilter);
-            File[] allFiles = new File[files.length + failedFiles.length];
-            System.arraycopy(files, 0, allFiles, 0, files.length);
-            System.arraycopy(failedFiles, 0, allFiles, files.length, failedFiles.length);
-
-            if (allFiles.length == 0) {
-                return false;
-            }
-            for (File f : allFiles) {
-
-                if (doNotProcessMessagesNow()) {
-                    return false;
-                }
-
-                File tempFilename = new File(mailDataDir, PROCESSING_FILE_PREFIX + f.getName());
-                boolean wasRenamed = f.renameTo(tempFilename);
-                if (wasRenamed) {
-                    process(tempFilename, f);
-                }
-
-            }
-            return true;
-        }
-
-        private boolean doNotProcessMessagesNow() {
-            // in blocked mode, there is a datacenter connection loss. Do not continue reading new mails.
-            return clusterModeManager.determineMode() == ClusterMode.BLOCKED;
-        }
+    private boolean shouldProcessMessagesNow() {
+        return clusterModeManager == null || clusterModeManager.determineMode() != ClusterMode.BLOCKED;
     }
 }

@@ -23,9 +23,10 @@ import java.util.Map;
  * If one node not reachable, the node will be skipped, because of fault tolerance its ok. Only if all nodes are not reachable,
  * unhealthy will be reported.
  */
+@Deprecated
 class RiakClusterHealthCheck {
+    private static final Logger LOG = LoggerFactory.getLogger(RiakClusterHealthCheck.class);
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RiakClusterHealthCheck.class);
     private static final int MAX_ATTEMPTS = 3;
 
     private final Map<Host, RiakClientHealthWrapper> clientWrappers;
@@ -66,7 +67,7 @@ class RiakClusterHealthCheck {
             // Check the next node if this node is healthy. Check until one node is unhealthy to find single-cluster-node problems.
             checkNextNode = result.isHealthy();
         }
-        LOGGER.debug(result.toString());
+        LOG.debug(result.toString());
         // if healthy: the last healthy result, else the failed
         return result;
     }
@@ -82,16 +83,15 @@ class RiakClusterHealthCheck {
         while (attempts < MAX_ATTEMPTS + 1) {
             try {
                 CheckResult result = node.clusterHealthStat();
-                LOGGER.debug(result.toString());
+                LOG.debug(result.toString());
                 return result;
             } catch (RiakException e) {
-                LOGGER.warn("Error on requesting stats from Riak node {} on attempt {}/{}", host, attempts, MAX_ATTEMPTS, e);
+                LOG.warn("Error on requesting stats from Riak node {} on attempt {}/{}", host, attempts, MAX_ATTEMPTS, e);
                 attempts++;
             }
         }
-        LOGGER.error("Requesting stats from Riak node {} failed!", host);
+        LOG.error("Requesting stats from Riak node {} failed!", host);
 
         return CheckResult.createNonHealthyEmpty();
     }
-
 }

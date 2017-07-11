@@ -7,8 +7,8 @@ import com.ecg.replyts.core.api.sanitychecks.Status;
 import com.ecg.replyts.core.runtime.cluster.ClusterMode;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 
+@Deprecated
 class ClusterModeSanityCheck implements Check {
-
     private final ClusterModeManager clusterModeManager;
 
     ClusterModeSanityCheck(ClusterModeManager clusterModeManager) {

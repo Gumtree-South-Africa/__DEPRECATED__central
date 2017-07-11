@@ -1,6 +1,5 @@
 package com.ecg.replyts.core.runtime.workers;
 
-import com.ecg.replyts.app.mailreceiver.MailDataProvider;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Test;
@@ -20,8 +19,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WorkerPoolManagerTest {
-    private MailDataProvider mailDataProvider = new MailDataProvider() {
-
+    private Runnable mailDataProvider = new Runnable() {
         @Override
         public void run() {
             try {
@@ -30,14 +28,9 @@ public class WorkerPoolManagerTest {
                 //do nothing
             }
         }
-
-        @Override
-        public void prepareLaunch() {
-
-        }
     };
-    private MailDataProvider exceptionThrowingMailDataProvider = new MailDataProvider() {
 
+    private Runnable exceptionThrowingMailDataProvider = new Runnable() {
         private int count = 0;
 
         @Override
@@ -45,17 +38,12 @@ public class WorkerPoolManagerTest {
             if (count == 0) {
                 count++;
                 throw new RuntimeException("Something went wrong!");
-
             } else {
                 count++;
             }
         }
-
-        @Override
-        public void prepareLaunch() {
-
-        }
     };
+
     private List<WorkerPoolManager.PersistentTask> taskList;
 
     @After
@@ -69,8 +57,10 @@ public class WorkerPoolManagerTest {
 
     @Test
     public void createPoolShouldSetupAndStartPool() throws InterruptedException {
-        MailDataProvider wrapper = spy(mailDataProvider);
-        WorkerPoolManager manager = new WorkerPoolManager(5, wrapper);
+        Runnable wrapper = spy(mailDataProvider);
+        WorkerPoolManager manager = new WorkerPoolManager();
+        ReflectionTestUtils.setField(manager, "mailDataProvider", wrapper);
+        ReflectionTestUtils.setField(manager, "poolSize", 5);
         manager.createPool();
         taskList = (List) ReflectionTestUtils.getField(manager, "taskPool");
         assertThat(taskList.size(), equalTo(5));
@@ -80,7 +70,9 @@ public class WorkerPoolManagerTest {
 
     @Test
     public void stopPoolShutsDownPoolProperly() throws InterruptedException {
-        WorkerPoolManager manager = new WorkerPoolManager(3, mailDataProvider);
+        WorkerPoolManager manager = new WorkerPoolManager();
+        ReflectionTestUtils.setField(manager, "mailDataProvider", mailDataProvider);
+        ReflectionTestUtils.setField(manager, "poolSize", 3);
         ThreadGroup pool = (ThreadGroup) ReflectionTestUtils.getField(manager, "poolThreadGroup");
         manager.createPool();
 
@@ -112,8 +104,9 @@ public class WorkerPoolManagerTest {
 
     @Test
     public void uncaughtExceptionInWorkerResultsInThreadRestart() throws InterruptedException {
-        MailDataProvider provider = exceptionThrowingMailDataProvider;
-        WorkerPoolManager manager = new WorkerPoolManager(1, provider);
+        WorkerPoolManager manager = new WorkerPoolManager();
+        ReflectionTestUtils.setField(manager, "mailDataProvider", exceptionThrowingMailDataProvider);
+        ReflectionTestUtils.setField(manager, "poolSize", 1);
         manager.createPool();
         TimeUnit.MILLISECONDS.sleep(100L);
 

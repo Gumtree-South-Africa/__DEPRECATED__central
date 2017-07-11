@@ -11,8 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 import static com.ecg.replyts.core.api.sanitychecks.Result.createResult;
 
+@Deprecated
 public class RiakClusterSanityCheck implements Check {
-
     private final int maxTries;
     private final RiakClusterHealthCheck healthCheck;
     private final Sleeper sleeper;
@@ -69,5 +69,4 @@ public class RiakClusterSanityCheck implements Check {
     public String getSubCategory() {
         return "ClusterNodeMajorityUpSanityCheck";
     }
-
 }

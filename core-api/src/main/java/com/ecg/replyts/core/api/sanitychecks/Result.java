@@ -2,14 +2,12 @@ package com.ecg.replyts.core.api.sanitychecks;
 
 import static java.lang.String.format;
 
-
 /**
  * Result output of a sanity check run
  *
  * @author smoczarski
  */
 public final class Result {
-
     private final Status status;
 
     private final Message value;

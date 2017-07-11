@@ -6,8 +6,8 @@ package com.ecg.replyts.core.runtime.cluster;
  *
  * @author mhuttar
  */
+@Deprecated
 public interface ClusterModeControlMBean {
-
     void switchToNormalMode();
 
     void switchToFailoverMode();

@@ -1,13 +1,11 @@
 package com.ecg.replyts.core.api.sanitychecks;
 
-
 /**
  * Interface for an Sanity Check.
  *
  * @author smoczarski
  */
 public interface Check {
-
     /**
      * Perform the check an return the result of the check.
      * <p/>

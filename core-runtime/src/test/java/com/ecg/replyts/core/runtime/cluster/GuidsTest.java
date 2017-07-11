@@ -14,12 +14,11 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GuidsTest {
-
     @Mock
     private Clock clock;
 
     @Mock
-    private JvmIdentifier pi;
+    private Guids.JvmIdentifier pi;
 
     @Mock
     private Date date;
@@ -36,7 +35,6 @@ public class GuidsTest {
         guids = new Guids(10l, clock, pi);
     }
 
-
     @Test
     public void generateIds() throws Exception {
         // 11:xx
@@ -52,5 +50,10 @@ public class GuidsTest {
     public void idsCounterComponentHandlesLongRollover() {
         final Guids guids = new Guids(Long.MAX_VALUE, clock, pi);
         assertThat(guids.nextGuid()).isEqualTo("kbmttcd1hd208:pid:b");
+    }
+
+    @Test
+    public void jvmIdentifierSameResultForCallingItTwice() {
+        assertThat(new Guids.JvmIdentifier().getId()).isEqualTo(new Guids.JvmIdentifier().getId());
     }
 }

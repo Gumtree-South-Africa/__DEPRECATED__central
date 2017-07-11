@@ -14,9 +14,9 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+@Deprecated
 @RunWith(MockitoJUnitRunner.class)
 public class RiakClusterSanityCheckTest {
-
     @Mock
     private RiakClusterHealthCheck healthCheck;
 
@@ -32,7 +32,6 @@ public class RiakClusterSanityCheckTest {
 
     @Test
     public void retryIfFailed() throws InterruptedException {
-
         when(healthCheck.check()).thenReturn(CheckResult.createNonHealthyEmpty());
 
         Result result = check.execute();
@@ -45,7 +44,6 @@ public class RiakClusterSanityCheckTest {
 
     @Test
     public void shouldReportWithoutRetryIfOk() throws InterruptedException {
-
         when(healthCheck.check()).thenReturn(CheckResult.createHealthyEmpty());
 
         Result result = check.execute();

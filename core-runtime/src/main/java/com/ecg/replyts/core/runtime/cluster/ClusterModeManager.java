@@ -7,6 +7,9 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,8 +27,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author smoczarski
  * @see <a href="https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two-datacenter-operations">Wiki Article: 2 Datacenter Operations</a>
  */
+@Deprecated
+@Component
+@ConditionalOnExpression(
+  "'${riak.cluster.monitor.enabled:true}' == 'true' && " +
+  "('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))"
+)
 public class ClusterModeManager {
-
     private static final Logger LOG = LoggerFactory.getLogger(ClusterModeManager.class);
 
     private final ClusterMonitor monitor;
@@ -34,7 +42,8 @@ public class ClusterModeManager {
 
     private final ExpiringReference<Boolean> blockedWarningWasLoggedInTheLastMinute = ExpiringReference.<Boolean>validFor(1, TimeUnit.MINUTES).afterwards(Boolean.FALSE);
 
-    ClusterModeManager(ClusterMonitor monitor) {
+    @Autowired
+    public ClusterModeManager(ClusterMonitor monitor) {
         this.monitor = monitor;
         TimingReports.newGauge("normal-operations-mode", new Gauge<Integer>() {
             @Override
@@ -45,7 +54,6 @@ public class ClusterModeManager {
     }
 
     public ClusterMode determineMode() {
-
         boolean allDatacentersAvailable = monitor.allDatacentersAvailable();
         boolean inNormalOperationMode = mode.get() == ClusterMode.OK;
 
@@ -59,7 +67,6 @@ public class ClusterModeManager {
 
     private void logModeChangeToBlocked() {
         if (!blockedWarningWasLoggedInTheLastMinute.get()) {
-
             LOG.error("SWITCHING TO BLOCKED MODE! \n" +
                     "This is either because a Split Brain was detected or a Split Brain Recovery was detected.\n" +
                     "Both events put Riak into an inconsistent state and need Manual interaction.\n" +
@@ -71,7 +78,6 @@ public class ClusterModeManager {
             blockedWarningWasLoggedInTheLastMinute.set(Boolean.TRUE);
         }
     }
-
 
     void switchToFailover() {
         Preconditions.checkState(
@@ -93,5 +99,4 @@ public class ClusterModeManager {
 
         LOG.info("REENABLING NORMAL OPERATIONS: ReplyTS will continue processing mails. Everything fine again. ");
     }
-
 }

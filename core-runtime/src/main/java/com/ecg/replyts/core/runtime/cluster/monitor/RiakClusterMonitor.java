@@ -16,9 +16,9 @@ import static com.ecg.replyts.core.api.sanitychecks.Message.shortInfo;
 import static com.ecg.replyts.core.api.sanitychecks.Status.OK;
 import static com.ecg.replyts.core.api.sanitychecks.Status.WARNING;
 
+@Deprecated
 public class RiakClusterMonitor implements ClusterMonitor {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RiakClusterMonitor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RiakClusterMonitor.class);
 
     private final long checkIntervalMillis;
     private final Check check;
@@ -41,7 +41,7 @@ public class RiakClusterMonitor implements ClusterMonitor {
 
     @PostConstruct
     void init() {
-        LOGGER.debug("Scheduling fixed-delay checks");
+        LOG.debug("Scheduling fixed-delay checks");
         checkTimer.schedule(new TimerTask() {
 
             @Override
@@ -51,7 +51,7 @@ public class RiakClusterMonitor implements ClusterMonitor {
                 } catch (InterruptedException ignore) {
                     Thread.currentThread().interrupt();
                 } catch (Exception ex) {
-                    LOGGER.error("Error on check execution", ex);
+                    LOG.error("Error on check execution", ex);
                     RiakClusterMonitor.this.result = Result.createResult(WARNING, fromException(ex));
                 }
             }
@@ -76,5 +76,4 @@ public class RiakClusterMonitor implements ClusterMonitor {
     public String report() {
         return result.value().toString();
     }
-
 }
