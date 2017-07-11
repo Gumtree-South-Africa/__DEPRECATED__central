@@ -11,8 +11,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -20,8 +18,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -47,15 +47,17 @@ public class MailAttachmentVerifier {
     @Autowired
     private AttachmentRepository attachmentRepository;
 
-    @Value("${attachments.verification.endpoint:localhost:8080}")
-    private String attachmentEndpoint;
+    private final int idBatchSize;
+    private final int completionTimeoutSec;
+    private final WebTarget attachmentEndpointClient;
 
-    private int idBatchSize;
-    private int completionTimeoutSec;
-
-    public MailAttachmentVerifier(int idBatchSize, int completionTimeoutSec) {
+    public MailAttachmentVerifier(int idBatchSize, int completionTimeoutSec,
+                                  String attachmentEndpoint) {
         this.idBatchSize = idBatchSize;
         this.completionTimeoutSec = completionTimeoutSec;
+        URI attachmentsUri = URI.create(attachmentEndpoint.startsWith("http:") ? attachmentEndpoint
+                : "http://" + attachmentEndpoint);
+        this.attachmentEndpointClient = ClientBuilder.newClient().target(attachmentsUri);
     }
 
     public void verifyIds(LocalDateTime dateFrom, LocalDateTime dateTo) {
@@ -83,9 +85,8 @@ public class MailAttachmentVerifier {
 
         List<Future> results = new ArrayList<>();
         Set<String> ids = Sets.newConcurrentHashSet();
-        Iterators.partition(mailIdStream.iterator(), idBatchSize).forEachRemaining(mailIdBatch -> {
-            results.add(executor.submit(() -> ids.addAll(mailIdBatch)));
-        });
+        Iterators.partition(mailIdStream.iterator(), idBatchSize)
+                .forEachRemaining(mailIdBatch -> results.add(executor.submit(() -> ids.addAll(mailIdBatch))));
 
         Util.waitForCompletion(results, processedBatchCounter, LOG, completionTimeoutSec);
         return ids;
@@ -193,29 +194,37 @@ public class MailAttachmentVerifier {
             ATTACHMENT_COUNTER.inc();
 
             try {
-                ClientResponse<byte[]> clientResponse = invokeAttachmentController(verificationId, messageId, filename);
+                Response clientResponse = invokeAttachmentController(verificationId, messageId, filename);
 
-                if (clientResponse.getResponseStatus().getFamily() == Response.Status.Family.SUCCESSFUL) {
-                    byte[] swiftAttachment = clientResponse.getEntity();
+                try {
+                    if (clientResponse.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
+                        byte[] swiftAttachment = clientResponse.readEntity(byte[].class);
 
-                    if (Arrays.equals(swiftAttachment, riakAttachment.getContent())) {
-                        LOG.info("[{}] An attachment successfully verified. Message ID: {}, Filename: {}", verificationId, messageId, filename);
+                        if (Arrays.equals(swiftAttachment, riakAttachment.getContent())) {
+                            LOG.info("[{}] An attachment successfully verified. Message ID: {}, Filename: {}", verificationId, messageId, filename);
+                        } else {
+                            LOG.error("[{}] Failed to compare an attachment, the attachment from new API is different then the attachment " +
+                                    "from RIAK database. Message ID: {}, Filename: {}", verificationId, messageId, filename);
+                            // never happened so far
+                            CUM_DIFFERENCE_COUNTER.inc();
+                            diffCounter.inc();
+                        }
                     } else {
-                        LOG.error("[{}] Failed to compare an attachment, the attachment from new API is different then the attachment " +
-                                "from RIAK database. Message ID: {}, Filename: {}", verificationId, messageId, filename);
-                        // never happened so far
+                        LOG.error("[{}] Failed to retrieve an attachment using new API. Status Code: {}, Message ID: {}, Filename: {}",
+                                verificationId, clientResponse.getStatus(), messageId, filename);
                         CUM_DIFFERENCE_COUNTER.inc();
                         diffCounter.inc();
-                    }
-                } else {
-                    LOG.error("[{}] Failed to retrieve an attachment using new API. Status Code: {}, Message ID: {}, Filename: {}",
-                            verificationId, clientResponse.getStatus(), messageId, filename);
-                    CUM_DIFFERENCE_COUNTER.inc();
-                    diffCounter.inc();
 
-                    if (allowMigration) {
-                        LOG.info("[{}] Attachment is automatically migrated. Message ID: {}, Filename: {}", verificationId, messageId, filename);
-                        attachmentRepository.storeAttachment(messageId, filename, riakAttachment);
+                        if (allowMigration) {
+                            LOG.info("[{}] Attachment is automatically migrated. Message ID: {}, Filename: {}", verificationId, messageId, filename);
+                            attachmentRepository.storeAttachment(messageId, filename, riakAttachment);
+                        }
+                    }
+                } finally {
+                    try {
+                        clientResponse.close();
+                    } catch (Exception e) {
+                        LOG.error("an error occurred while closing the reponse: ", e);
                     }
                 }
             } catch (Exception ex) {
@@ -232,13 +241,13 @@ public class MailAttachmentVerifier {
         }
     }
 
-    private ClientResponse<byte[]> invokeAttachmentController(String verificationId, String messageId, String filename) throws Exception {
-        String uri = UriBuilder.fromPath("http://{attachmentEndpoint}/screeningv2/mail/{messageId}/attachments/{filename}")
-                .build(attachmentEndpoint, messageId, filename)
-                .toString();
+    private Response invokeAttachmentController(String verificationId, String messageId, String filename) throws Exception {
+        WebTarget target = attachmentEndpointClient.path("/screeningv2/mail/{messageId}/attachments/{filename}")
+                .resolveTemplate("messageId", messageId)
+                .resolveTemplate("filename", filename);
 
-        LOG.debug("[{}] Invoking AttachmentController, Message ID: {}, Filename: {}, URL: {}", verificationId, messageId, filename, uri);
-        return new ClientRequest(uri).get(byte[].class);
+        LOG.debug("[{}] Invoking AttachmentController, Message ID: {}, Filename: {}, URL: {}", verificationId, messageId, filename, target.getUri());
+        return target.request().get();
     }
 
     private byte[] loadMail(String verificationId, boolean inbound, String messageId) {

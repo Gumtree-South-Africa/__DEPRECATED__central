@@ -416,7 +416,7 @@
         <cs-filter-shared.version>1.5</cs-filter-shared.version>
         <jolokia-spring.version>1.1.1</jolokia-spring.version>
         <mongo-java-driver-version>2.13.0</mongo-java-driver-version>
-        <openstack4j.version>3.0.3</openstack4j.version>
+        <openstack4j.version>3.0.4</openstack4j.version>
         <amqp-client-version>3.4.2</amqp-client-version>
         <logstash-logback-encoder-version>4.7</logstash-logback-encoder-version>
         <jolokia-version>1.1.1</jolokia-version>
@@ -505,7 +505,7 @@
         <gson-version>2.4</gson-version>
         <tika-version>1.12</tika-version>
         <apache-activemq.version>5.7.0</apache-activemq.version>
-        <glassfish-jersey.version>2.7</glassfish-jersey.version>
+        <glassfish-jersey.version>2.22.1</glassfish-jersey.version>
         <glassfish.grizzly.version>2.3.21</glassfish.grizzly.version>
         <hystrix-version>1.5.2</hystrix-version>
         <asynchttpclient.version>1.9.38</asynchttpclient.version>
@@ -1118,7 +1118,7 @@
             </dependency>
             <dependency>
                 <groupId>org.pacesys</groupId>
-                <artifactId>openstack4j</artifactId>
+                <artifactId>openstack4j-core</artifactId>
                 <version>${openstack4j.version}</version>
                 <exclusions>
                     <exclusion>
@@ -1133,7 +1133,16 @@
                         <groupId>javax.activation</groupId>
                         <artifactId>activation</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.pacesys.openstack4j.connectors</groupId>
+                        <artifactId>openstack4j-resteasy</artifactId>
+                    </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.pacesys.openstack4j.connectors</groupId>
+                <artifactId>openstack4j-jersey2</artifactId>
+                <version>${openstack4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>

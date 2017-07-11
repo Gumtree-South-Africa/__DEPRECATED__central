@@ -42,6 +42,9 @@ public class MigratorConfiguration {
     @Value("${migration.completion.timeout.sec:60}")
     private int completionTimeoutSec;
 
+    @Value("${attachments.verification.endpoint:localhost:8080}")
+    private String attachmentsEndpoint;
+
     @Bean
     public ThreadPoolExecutor threadPoolExecutor() {
         return new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS,
@@ -65,6 +68,6 @@ public class MigratorConfiguration {
     @Bean
     @ConditionalOnProperty(name = "swift.attachment.storage.enabled", havingValue = "true")
     public MailAttachmentVerifier mailAttachmentVerifier() {
-        return new MailAttachmentVerifier(idBatchSize, completionTimeoutSec);
+        return new MailAttachmentVerifier(idBatchSize, completionTimeoutSec, attachmentsEndpoint);
     }
 }
