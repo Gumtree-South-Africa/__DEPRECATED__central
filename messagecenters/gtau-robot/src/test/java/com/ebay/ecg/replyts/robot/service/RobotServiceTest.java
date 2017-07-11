@@ -29,7 +29,6 @@ public class RobotServiceTest {
         this.robotService = new RobotService(
                 Mockito.mock(MutableConversationRepository.class),
                 Mockito.mock(ModerationService.class),
-                Mockito.mock(MailRepository.class),
                 Mockito.mock(SearchService.class),
                 Mockito.mock(Guids.class)
             );

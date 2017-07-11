@@ -19,6 +19,7 @@ import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
 import com.ecg.replyts.core.runtime.cluster.Guids;
+import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import com.ecg.replyts.core.runtime.mailparser.StructuredMail;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
@@ -56,23 +57,25 @@ public class RobotService {
 
     private final MutableConversationRepository conversationRepository;
     private final ModerationService moderationService;
-    private final MailRepository mailRepository;
     private final SearchService searchService;
     private final Guids guids;
 
     @Autowired
     private ConversationEventListeners conversationEventListeners;
 
+    @Autowired (required = false)
+    private MailRepository mailRepository;
+
+    @Autowired (required = false)
+    private MailPublisher mailPublisher;
+
     @Autowired
     public RobotService(MutableConversationRepository conversationRepository,
                         ModerationService moderationService,
-                        MailRepository mailRepository,
                         SearchService searchService,
                         Guids guids) {
-
         this.conversationRepository = conversationRepository;
         this.moderationService = moderationService;
-        this.mailRepository = mailRepository;
         this.searchService = searchService;
         this.guids = guids;
     }
@@ -166,7 +169,12 @@ public class RobotService {
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
 
         // TODO Review - Do we need to store attachments here
-        mailRepository.persistMail(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)), Optional.<byte[]>absent());
+        if (mailRepository != null) {
+            mailRepository.persistMail(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)), Optional.<byte[]>absent());
+        }
+        if (mailPublisher != null) {
+            mailPublisher.publishMail(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)), Optional.<byte[]>absent());
+        }
 
         LOGGER.debug("Done persisting message " + messageId + ".");
 

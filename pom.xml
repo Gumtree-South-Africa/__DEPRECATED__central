@@ -146,6 +146,7 @@
                 <module>core-graphite</module>
 
                 <module>messagecenters/core-messagecenter</module>
+                <module>eventpublishers/core-eventpublisher-kafka-mail</module>
 
                 <module>integration-tests/core-integration-test-api</module>
                 <module>integration-tests/core-integration-test</module>
@@ -996,6 +997,11 @@
             <dependency>
                 <groupId>ecg.comaas</groupId>
                 <artifactId>core-graphite</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ecg.comaas</groupId>
+                <artifactId>core-eventpublisher-kafka-mail</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
