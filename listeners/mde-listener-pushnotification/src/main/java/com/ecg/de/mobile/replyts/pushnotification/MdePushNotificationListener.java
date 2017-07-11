@@ -13,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 /* This listener is order-dependent, it should start after PostBoxUpdateListener */
 @Component
 @Order(value = 1000)

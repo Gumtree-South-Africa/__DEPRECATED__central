@@ -43,7 +43,7 @@ public class NotificationSender {
             LOG.debug("Sending request to push notification service: {}", request);
             httpClient.execute(request, SuccessStatusCodeResponseHandler.INSTANCE);
         } catch (Exception e) {
-            LOG.warn("Unable to send push notification: {}", e.getMessage(), e);
+            LOG.error("Unable to send push notification: {}", e.getMessage(), e);
         }
     }
 
