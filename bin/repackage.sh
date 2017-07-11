@@ -124,6 +124,7 @@ function repackage() {
         ;;
       *)
         echo "Unknown tenant $TENANT"
+        exit 1
         ;;
     esac
 
