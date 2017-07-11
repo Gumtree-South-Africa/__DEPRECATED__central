@@ -6,4 +6,6 @@
     <logger name="nl.marktplaats.filter" level="DEBUG" />
     <logger name="nl.marktplaats.postprocessor" level="DEBUG" />
     <logger name="com.ebay.ecg.sanitychecks" level="INFO" />
+    <logger name="com.datastax.driver.core.QueryLogger.SLOW" level="TRACE"/>
+    <logger name="com.datastax.driver.core.QueryLogger.ERROR" level="TRACE"/>
 </included>

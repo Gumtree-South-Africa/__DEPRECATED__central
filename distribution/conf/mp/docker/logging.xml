@@ -5,4 +5,7 @@
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
     <logger name="ca.kijiji" level="DEBUG"/>
     <logger name="org.springframework.cloud" level="DEBUG"/>
+    <logger name="com.datastax.driver.core.QueryLogger.NORMAL" level="TRACE"/>
+    <logger name="com.datastax.driver.core.QueryLogger.SLOW" level="TRACE"/>
+    <logger name="com.datastax.driver.core.QueryLogger.ERROR" level="TRACE"/>
 </included>

@@ -140,6 +140,9 @@ public class CassandraPersistenceConfiguration {
         @Value("${persistence.cassandra.mb.read.timeout.ms:61000}")
         private Integer readTimeoutMillisForMb;
 
+        @Value("${persistence.cassandra.slowquerylog.threshold.ms:30000}")
+        private long slowQueryThresholdMs;
+
         private Collection<InetSocketAddress> cassandraContactPointsForMb;
 
         private Session cassandraSessionForCore;
@@ -231,12 +234,19 @@ public class CassandraPersistenceConfiguration {
             poolingOptions.setMaxConnectionsPerHost(HostDistance.REMOTE, 2);
             poolingOptions.setCoreConnectionsPerHost(HostDistance.LOCAL, 2);
             poolingOptions.setCoreConnectionsPerHost(HostDistance.REMOTE, 1);
-            if (idleTimeoutSeconds != null) poolingOptions.setIdleTimeoutSeconds(idleTimeoutSeconds);
+            if (idleTimeoutSeconds != null) {
+                poolingOptions.setIdleTimeoutSeconds(idleTimeoutSeconds);
+            }
             builder.withPoolingOptions(poolingOptions);
 
             Cluster cassandraCluster = builder.build();
-            Session cassandraSession = cassandraCluster.connect(cassandraKeyspace);
 
+            QueryLogger queryLogger = QueryLogger.builder(cassandraCluster).
+                    withConstantThreshold(slowQueryThresholdMs).
+                    build();
+            cassandraCluster.register(queryLogger);
+
+            Session cassandraSession = cassandraCluster.connect(cassandraKeyspace);
             return new Object[]{cassandraCluster, cassandraSession};
         }
 
