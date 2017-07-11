@@ -13,7 +13,7 @@ EOF
 }
 
 function parseArgs() {
-  # check amount of args
+  # check number of args
   [[ $# == 0 ]] && usage
 
   TENANT=$1
@@ -25,7 +25,6 @@ function parseArgs() {
 # map to lookup the upload hosts for a tenant
 declare -A HOSTS=(
   ["kjca"]='http://comaas:bMv!Yne7Apj3F4pW@nexus.kjdev.ca/content/repositories/comaas/ecg/comaas/versions/'
-  ["gtau"]=""
 )
 
 function upload() {
@@ -70,7 +69,7 @@ if [ ${TENANT} == "gtuk" ]; then
 #    exit
 fi
 
-if [[ "$TENANT" == "mde" ]] || [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "ebayk" ]]; then
+if [[ "$TENANT" == "mde" ]] || [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "ebayk" ]] || [[ "$TENANT" == "gtau" ]]; then
     echo "Uploading not supported for $TENANT, because it's already live in the cloud"
     exit
 fi

@@ -82,21 +82,6 @@ function repackage() {
 
         rm -rf tmp3
         ;;
-      ebayk)
-        rm -rf tmp2
-        mkdir -p tmp2/comaas-$TENANT
-        cp -r tmp/* tmp2/comaas-$TENANT/
-        rm -f tmp2/comaas-$TENANT/conf/*
-#        cp "$prop"/* tmp2/comaas-$TENANT/conf/
-        cd tmp2
-        cd comaas-$TENANT/lib && ln -s core-runtime-* core-runtime.jar && cd ../..
-        tar cfz ${PACKAGE_BASE}.tar.gz . && cd ..
-        HOMEDIR=$PWD
-        cd ${BUILDDIR}
-        portable-md5 ${PACKAGE_NAME}.tar.gz > ${PACKAGE_NAME}.tar.gz.md5
-        cd $HOMEDIR
-        echo "Created package for $TENANT ${PACKAGE_BASE}.tar.gz"
-        ;;
       kjca)
         # Create a tar archive with all the libs
         rm -rf tmp/{bin,conf,log}
@@ -111,17 +96,6 @@ function repackage() {
         cd .. && rm -rf lib && zip -r ${PACKAGE_BASE}.jar . && cd ..
         echo "Created ${PACKAGE_BASE}.jar"
         ;;
-      mp)
-        # Repackaging for MP
-        DISTRIB_ARTIFACT=nl.marktplaats.mp-replyts2_comaas-prod-${TIMESTAMP}-${GIT_HASH_FULL}
-        rm -rf tmp2
-        mkdir -p tmp2/${DISTRIB_ARTIFACT}
-        cp -r tmp/* tmp2/${DISTRIB_ARTIFACT}/
-        cd tmp2
-        mv ${DISTRIB_ARTIFACT}/bin/comaas ${DISTRIB_ARTIFACT}/bin/mp-replyts2
-        tar cfz ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz . && cd ..
-        echo "Created ${BUILDDIR}/${DISTRIB_ARTIFACT}.tar.gz"
-        ;;
       *)
         echo "Unknown tenant $TENANT"
         exit 1
@@ -133,7 +107,7 @@ function repackage() {
 
 parseArgs $@
 
-if [[ "$TENANT" == "mde" ]] ; then
+if [[ "$TENANT" == "mde" ]] || [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "ebayk" ]] || [[ "$TENANT" == "gtau" ]]; then
     echo "Repackaging not supported for $TENANT, because it's already live in the cloud"
     exit
 fi
