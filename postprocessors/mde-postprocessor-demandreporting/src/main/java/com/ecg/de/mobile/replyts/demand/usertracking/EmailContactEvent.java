@@ -6,12 +6,14 @@ import static java.util.Objects.requireNonNull;
 class EmailContactEvent extends TrackingEvent {
 
     final Vi vi;
+    final ClientInfo ci;
     final EmailMessage msg;
 
     private EmailContactEvent(Builder b) {
         super(b.head);
         this.vi = b.vi;
         this.msg = b.msg;
+        this.ci = b.ci;
     }
 
     static class Builder {
@@ -19,12 +21,17 @@ class EmailContactEvent extends TrackingEvent {
         private Head head;
         private EmailMessage msg;
         private Vi vi;
+        private ClientInfo ci;
         private String txId;
         private String txSeq;
 
 
         Builder txId(String v) {
             txId = v;
+            return this;
+        }
+        Builder ci(ClientInfo ci) {
+            this.ci = ci;
             return this;
         }
 

@@ -73,7 +73,17 @@ public class UserTrackingHandler {
             .receiverMailAddress(context.getOriginalTo().getAddress())
             .replyToMailAddress(extractFromSmptHeader(context.getMail().getUniqueHeader("Reply-To"))) // none anonymized!
             .build();
-
+  
+        ClientInfo ci = ClientInfo.builder()
+                .withAkamaiBot(     getTrackingHeaderFromMessage("Akamaibot", message))
+                .withApiVersion(    getTrackingHeaderFromMessage("Apiversion", message))
+                .withDeviceType(    getTrackingHeaderFromMessage("Devicetype", message))
+                .withIp(            getTrackingHeaderFromMessage("Ip", message))
+                .withUserAgent(     getTrackingHeaderFromMessage("Useragent", message))
+                .withVersion(       getTrackingHeaderFromMessage("Version", message))
+                .withName(          getTrackingHeaderFromMessage("Appname", message))
+                .build();
+        
         Vi vi = Vi.of(
             getCustomVariableFromMessageOrContext("buyer_device_id", context),
             getCustomVariableFromMessageOrContext("buyer_customer_id", context)
@@ -83,6 +93,7 @@ public class UserTrackingHandler {
             .txId(getTrackingHeaderFromMessage("Txid", message))
             .txSeq(getTrackingHeaderFromMessage("Txseq", message))
             .vi(vi)
+            .ci(ci)
             .message(msg)
             .build();
     }
@@ -100,10 +111,10 @@ public class UserTrackingHandler {
     public void handle(MessageProcessingContext context) {
         try {
             if (reportDemand(context)) {
-                TrackingEvent entry = createTrackingEventFromContext(context);
+                TrackingEvent emailContactEvent = createTrackingEventFromContext(context);
                 boolean trackingEnabled = config.isTrackingEnabled();
                 if (trackingEnabled) {
-                    sendEvent(entry);
+                    sendEvent(emailContactEvent);
                 }
             }
         } catch (Exception e) {

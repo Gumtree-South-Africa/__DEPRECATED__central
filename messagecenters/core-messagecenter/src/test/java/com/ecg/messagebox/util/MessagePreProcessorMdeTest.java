@@ -34,12 +34,21 @@ public class MessagePreProcessorMdeTest extends MessagePreProcessorTest {
             "\\s+<b>*Gesendet*:*</b>",
             "\\n.*(s|b)-.*?@[a-z]+.mobile.de.*\\n",
             "2[0-9][0-9][0-9][./-][0-9]?[0-9][./-][0-9]?[0-9] [0-2]?[0-9]:[0-5]?[0-9] .*(seller|buyer)-.*@[a-z]+.mobile.de.*",
-            "[0-9][0-9][0-9]?[0-9]?[./-].*(seller|buyer)-.*@[a-z]+.mobile.de.*\\n"
+            "[0-9][0-9][0-9]?[0-9]?[./-].*(seller|buyer)-.*@[a-z]+.mobile.de.*\\n",
+            "[\\+]+.*Diese Anfrage erfolgte über eBay Kleinanzeigen.*[\\+]+"
     );
 
     @Override
     protected boolean isStripHtmlTagsEnabled() {
         return true;
+    }
+
+    @Test
+    public void realAnswerEbayKTest() throws IOException {
+        String msg = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer10_ebayk.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer10_ebayk_cut.txt");
+
+        cutAndCompare(PATTERNS, msg, expected);
     }
 
     @Test

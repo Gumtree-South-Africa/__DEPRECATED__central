@@ -92,6 +92,14 @@ public class UserTrackingHandlerTest {
             headers.put("X-Track-Txid", "Txid");
             headers.put("X-Track-Txseq", "1");
             headers.put("X-Track-Abtests", "abTest.1=A;abTest.2=B");
+            headers.put("X-Track-Useragent", "curl/7.51.0");
+            headers.put("X-Track-Apiversion", "V1");
+            headers.put("X-Track-Devicetype", "ipad");
+            headers.put("X-Track-Akamaibot", "foobot");
+            headers.put("X-Track-Appname", "apname");
+            headers.put("X-Track-Version", "version");
+            
+            
             when(mail.getPlaintextParts()).thenReturn(Arrays.asList("Text part 1", "Text part 2"));
             EmailContactEvent expected = EmailContactEvent.builder()
                     .message(EmailMessage.builder()
@@ -103,6 +111,16 @@ public class UserTrackingHandlerTest {
                         .replyToMailAddress("from@mail.de")
                         .subject("subject")
                         .build()
+                    )
+                    .ci(ClientInfo.builder()
+                            .withName("apname")
+                            .withVersion("version")
+                            .withUserAgent("curl/7.51.0")
+                            .withIp("Ip")
+                            .withDeviceType("ipad")
+                            .withApiVersion("V1")
+                            .withAkamaiBot("foobot")
+                            .build()
                     )
                     .txId("Txid")
                     .txSeq("1")
@@ -118,6 +136,7 @@ public class UserTrackingHandlerTest {
             actualCommonEventDataEqualExpected(actual.head, expected.head);
             actualMsgEqualExpected(actual.msg, expected.msg);
             assertEqualsVi(actual.vi, expected.vi);
+            assertEqualsCi(actual.ci, expected.ci);
         }
 
         private void actualMsgEqualExpected(EmailMessage actual, EmailMessage expected) {
@@ -143,6 +162,16 @@ public class UserTrackingHandlerTest {
     private void assertEqualsVi(Vi actual, Vi expected) {
         assertEquals(expected.cid, actual.cid);
         assertEquals(expected.sub, actual.sub);
+    }
+
+    private void assertEqualsCi(ClientInfo actual, ClientInfo expected) {
+        assertEquals(expected.name, actual.name);
+        assertEquals(expected.akamaiBot, actual.akamaiBot);
+        assertEquals(expected.apiVersion, actual.apiVersion);
+        assertEquals(expected.version, actual.version);
+        assertEquals(expected.deviceType, actual.deviceType);
+        assertEquals(expected.ip, actual.ip);
+        assertEquals(expected.userAgent, actual.userAgent);
     }
 
     private class CountDownLatchRunnable implements Runnable {
