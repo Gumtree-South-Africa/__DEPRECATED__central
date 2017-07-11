@@ -48,6 +48,9 @@ function repackage() {
       gtuk)
         # GTUK wants a debian package with systemd startup files.
 
+        echo "Actually, let's not. When they need a build, I'll create one by hand. RP"
+        exit
+
         mkdir -p tmp3/usr/lib/replyts2
         cp -r tmp/bin tmp/lib tmp/conf tmp3/usr/lib/replyts2
 

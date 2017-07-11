@@ -59,13 +59,15 @@ parseArgs $@
 
 if [ ${TENANT} == "gtuk" ]; then
     echo "Uploading the GTUK debian package to repositories.ecg.so"
-    DEB_PACK="builds/*${GIT_HASH}*.deb"
-    if [ ! -f ${DEB_PACK} ]; then
-        echo "Package to upload not found: $DEB_PACK"
-        exit 1
-    fi
-    ./bin/upload_ecg_swift.sh ${TENANT} ${DEB_PACK} ${TIMESTAMP} legacy
+    echo "Actually, let's not. When they need a build, I'll create one by hand. RP"
     exit
+#    DEB_PACK="builds/*${GIT_HASH}*.deb"
+#    if [ ! -f ${DEB_PACK} ]; then
+#        echo "Package to upload not found: $DEB_PACK"
+#        exit 1
+#    fi
+#    ./bin/upload_ecg_swift.sh ${TENANT} ${DEB_PACK} ${TIMESTAMP} legacy
+#    exit
 fi
 
 if [[ "$TENANT" == "mde" ]] || [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "ebayk" ]]; then
