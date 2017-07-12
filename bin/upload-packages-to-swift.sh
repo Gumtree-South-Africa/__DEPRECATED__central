@@ -13,7 +13,7 @@ TENANT=$1
 GIT_HASH=$2
 TIMESTAMP=$3
 
-function upload_it() {
+function swift() {
     docker run --rm \
         -v ${PWD}/builds:/objects \
         -e OS_AUTH_URL=https://keystone.dus1.cloud.ecg.so/v2.0 \
@@ -23,8 +23,23 @@ function upload_it() {
         -e OS_PROJECT_NAME="comaas-control-prod" \
         -e OS_REGION_NAME="dus1" \
         registry.ecg.so/mp-so/python-swiftclient:latest \
-        swift upload --changed --object-name ${TENANT}/$2/${GIT_HASH}/$1 comaas /objects/$1
+        swift $@
 }
+
+function delete_folder() {
+    files=$(swift list comaas --prefix ${TENANT}/$1/${GIT_HASH})
+    if [ ! -z ${files} ]; then
+        echo "Deleting previous build ${TENANT}/$1/${GIT_HASH}"
+        swift delete comaas ${files}
+    fi
+}
+
+function upload_it() {
+    swift upload --changed --object-name ${TENANT}/$2/${GIT_HASH}/$1 comaas /objects/$1
+}
+
+delete_folder sandbox
+delete_folder prod
 
 # Nomad packages:
 #upload_it comaas-${TENANT}-comaasqa-${GIT_HASH}-nomad.tar.gz qa
