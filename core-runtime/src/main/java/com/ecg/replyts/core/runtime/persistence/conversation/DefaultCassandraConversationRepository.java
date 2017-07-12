@@ -3,7 +3,6 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
@@ -286,8 +285,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         }
 
         batch.add(Statements.INSERT_CONVERSATION_MODIFICATION_IDX.bind(this, conversationId, modifiedDate));
-        batch.add(Statements.INSERT_CONVERSATION_MODIFICATION_IDX_BY_DAY.bind(this, modifiedDateTime.getYear(), modifiedDateTime.getMonthOfYear(),
-                modifiedDateTime.getDayOfMonth(), modifiedDate, conversationId));
     }
 
     private DateTime getConversationModifiedDateTime(List<ConversationEvent> toBeCommittedEvents) {
@@ -346,11 +343,9 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
             batch.add(Statements.DELETE_CONVERSATION_EVENTS.bind(this, conversationId));
             // Delete core_conversation_modification_desc_idx after conversation event as it is used to find conversation to delete:
             batch.add(Statements.DELETE_CONVERSATION_MODIFICATION_IDXS.bind(this, conversationId));
-            // Delete core_conversation_modification_desc_idx_by_day last as it is used to find core_conversation_modification_desc_idx
+            // Delete core_conversation_events_by_date last as it is used to find core_conversation_modification_desc_idx
             conversationModificationDates.forEach(conversationModificationDate -> {
                 DateTime modificationDateTime = new DateTime(conversationModificationDate);
-                batch.add(getDeleteCoreConversationModificationDescIdxByDayStatement(modificationDateTime.getYear(), modificationDateTime.getMonthOfYear(),
-                        modificationDateTime.getDayOfMonth(), conversationModificationDate, conversationId));
                 batch.add(Statements.DELETE_CONVERSATION_EVENTS_BY_DATE.bind(this, modificationDateTime.hourOfDay().roundFloorCopy().toDate(), conversationId));
 
             });
@@ -418,24 +413,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         return preparedStatements;
     }
 
-    /**
-     * Gets the statement to delete modification idx by day. It is built using QueryBuilder instead of PreparedStatement because of the long modificationTimestamp.
-     * In the PreparedStatement the DateTime type should be used for the timestamp.
-     * @return the DELETE statement
-     */
-    private Statement getDeleteCoreConversationModificationDescIdxByDayStatement(int year, int month, int day, Long modificationTimestamp, String conversationId) {
-        Statement deleteStatement =  QueryBuilder.delete().from("core_conversation_modification_desc_idx_by_day")
-                .where(QueryBuilder.eq("year", year))
-                .and(QueryBuilder.eq("month", month))
-                .and(QueryBuilder.eq("day", day))
-                .and(QueryBuilder.eq("modification_date", modificationTimestamp))
-                .and(QueryBuilder.eq("conversation_id", conversationId))
-                .setConsistencyLevel(getWriteConsistency())
-                .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
-        LOG.trace("DELETE for {}/{}/{}/{}/{} with statement {}", year, month, day, modificationTimestamp, conversationId, deleteStatement.toString());
-        return deleteStatement;
-    }
-
     static class Statements extends StatementsBase {
         static Statements SELECT_FROM_CONVERSATION_EVENTS = new Statements("SELECT * FROM core_conversation_events WHERE conversation_id=? ORDER BY event_id ASC", false);
         static Statements SELECT_CONVERSATION_EVENTS_BY_DATE = new Statements("SELECT conversation_id, event_id FROM core_conversation_events_by_date WHERE creatdate = ?", false);
@@ -449,7 +426,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         static Statements INSERT_CONVERSATION_EVENTS = new Statements("INSERT INTO core_conversation_events (conversation_id, event_id, event_json) VALUES (?,?,?)", true);
         static Statements INSERT_CONVERSATION_SECRET = new Statements("INSERT INTO core_conversation_secret (secret, conversation_id) VALUES (?,?)", true);
         static Statements INSERT_CONVERSATION_MODIFICATION_IDX = new Statements("INSERT INTO core_conversation_modification_desc_idx (conversation_id, modification_date) VALUES (?,?)", true);
-        static Statements INSERT_CONVERSATION_MODIFICATION_IDX_BY_DAY = new Statements("INSERT INTO core_conversation_modification_desc_idx_by_day (year, month, day, modification_date, conversation_id) VALUES (?, ?, ?, ?, ?)", true);
         static Statements INSERT_RESUME_IDX = new Statements("INSERT INTO core_conversation_resume_idx (compound_key, conversation_id) VALUES (?,?)", true);
         static Statements INSERT_CONVERSATION_EVENTS_BY_DATE = new Statements("INSERT INTO core_conversation_events_by_date (creatdate, conversation_id, event_id) VALUES (?, ?, ?)", true);
 

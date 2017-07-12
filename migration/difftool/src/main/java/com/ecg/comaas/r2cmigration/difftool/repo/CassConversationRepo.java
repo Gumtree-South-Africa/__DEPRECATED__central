@@ -34,7 +34,6 @@ public class CassConversationRepo {
     private static final String FIELD_EVENT_JSON = "event_json";
 
     private static final String COUNT_FROM_CONVERSATION_MOD_IDX = "SELECT count(*) FROM core_conversation_modification_desc_idx WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
-    private static final String COUNT_FROM_CONVERSATION_MOD_IDX_BY_DAY = "SELECT count(*) FROM core_conversation_modification_desc_idx_by_day WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
     private static final String SELECT_FROM_CONVERSATION_EVENTS = "SELECT * FROM core_conversation_events WHERE conversation_id=? ORDER BY event_id ASC";
     private static final String SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN = "SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING";
 
@@ -42,7 +41,6 @@ public class CassConversationRepo {
     private final PreparedStatement getByConvID;
     private final PreparedStatement getByDate;
     private final PreparedStatement getCount;
-    private final PreparedStatement getCountByDay;
 
     private Session session;
 
@@ -58,7 +56,6 @@ public class CassConversationRepo {
             this.getByConvID = session.prepare(SELECT_FROM_CONVERSATION_EVENTS);
             this.getByDate = session.prepare(SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN);
             this.getCount = session.prepare(COUNT_FROM_CONVERSATION_MOD_IDX);
-            this.getCountByDay = session.prepare(COUNT_FROM_CONVERSATION_MOD_IDX_BY_DAY);
             this.cassandraReadConsistency = cassandraReadConsistency;
         } catch (Exception e) {
             LOG.error("Fail to connect to cassandra: ", e);
@@ -83,13 +80,6 @@ public class CassConversationRepo {
 
     public long getConversationModCount(DateTime startDate, DateTime endDate) {
         Statement statement = bind(getCount, startDate.toDate(), endDate.toDate());
-        ResultSet resultset = session.execute(statement);
-        return resultset.one().getLong("count");
-    }
-
-    public long getConversationModByDayCount(DateTime startDate, DateTime endDate) {
-        Statement statement = bind(getCountByDay, startDate.toDate(), endDate.toDate());
-        LOG.debug("getConversationModByDayCount {} - {} ", startDate.toDate(), endDate.toDate());
         ResultSet resultset = session.execute(statement);
         return resultset.one().getLong("count");
     }

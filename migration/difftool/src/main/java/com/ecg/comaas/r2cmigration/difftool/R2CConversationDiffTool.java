@@ -87,10 +87,6 @@ public class R2CConversationDiffTool extends AbstractDiffTool {
         }
     }
 
-    long getCassandraConversationModByDayCount() {
-        return cassandraConversationRepository.getConversationModByDayCount(startDate, endDate);
-    }
-
     long getCassandraConversationCount() {
         DateTime tzStart = startDate.plusMinutes(tzShiftInMin);
         DateTime tzEnd = endDate.plusMinutes(tzShiftInMin);

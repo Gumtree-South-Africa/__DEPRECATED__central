@@ -67,18 +67,5 @@ public class ConversationComparer {
         LOG.info("Compared {} cassandra Conversations, {} ConversationEvents, completed in {} seconds, speed {} conversations/s",
                 diffTool.cassConversationCounter.getCount(), diffTool.cassEventCounter.getCount(), timepassed, speed);
 
-        // This times out when count reaches about 100K
-        if (fetchConvCount) {
-            long convIdxCountByDate = diffTool.getCassandraConversationModByDayCount();
-            long convIdxCount = diffTool.getCassandraConversationCount();
-
-            // This is likely to only work on full import, once cassandra db is used directly core_conversation_modification_desc_idx would contain duplicated conversation_id
-            // so we might need to distinct the values from these indexes first before comparison
-            if (convIdxCount != convIdxCountByDate) {
-                LOG.info("DATA in Cassandra and Riak IS DIFFERENT");
-                LOG.info("Counters do not match! Content of core_conversation_modification_desc_idx (count:{} ) " +
-                        "and core_conversation_modification_desc_idx_by_day (count:{})", convIdxCount, convIdxCountByDate);
-            }
-        }
     }
 }

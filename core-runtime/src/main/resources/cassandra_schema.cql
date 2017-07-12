@@ -64,28 +64,6 @@ CREATE TABLE IF NOT EXISTS core_conversation_modification_desc_idx (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE IF NOT EXISTS core_conversation_modification_desc_idx_by_day (
-    year int,
-    month int,
-    day int,
-    modification_date timestamp,
-    conversation_id text,
-    PRIMARY KEY ((year, month, day), modification_date, conversation_id)
-) WITH CLUSTERING ORDER BY (modification_date DESC, conversation_id ASC)
-    AND bloom_filter_fp_chance = 0.01
-    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = ''
-    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
-    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-    AND dclocal_read_repair_chance = 0.1
-    AND default_time_to_live = 0
-    AND gc_grace_seconds = 864000
-    AND max_index_interval = 2048
-    AND memtable_flush_period_in_ms = 0
-    AND min_index_interval = 128
-    AND read_repair_chance = 0.0
-    AND speculative_retry = '99.0PERCENTILE';
-
 CREATE TABLE IF NOT EXISTS core_conversation_resume_idx (
     compound_key text PRIMARY KEY,
     conversation_id text
