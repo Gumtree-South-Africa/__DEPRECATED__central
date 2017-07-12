@@ -32,6 +32,7 @@ function delete_folder() {
     if [ ! -z "${files}" ]; then
         echo "Deleting previous build ${TENANT}/$1/${GIT_HASH}"
         swift delete comaas ${files}
+        echo "Done"
     fi
 }
 
@@ -50,11 +51,14 @@ function clean_old_builds() {
     if [ ! -z "${files}" ]; then
         echo "Deleting old builds"
         swift delete comaas ${files}
+        echo "Done"
     fi
 }
 
 function upload_it() {
+    echo "Uploading build ${TENANT}/$12/${GIT_HASH}/$1"
     swift upload --changed --object-name ${TENANT}/$2/${GIT_HASH}/$1 comaas /objects/$1
+    echo "Done"
 }
 
 clean_old_builds sandbox 5
