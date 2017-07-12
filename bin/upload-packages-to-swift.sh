@@ -28,7 +28,7 @@ function swift() {
 
 function delete_folder() {
     files=$(swift list comaas --prefix ${TENANT}/$1/${GIT_HASH})
-    if [ ! -z ${files} ]; then
+    if [ ! -z "${files}" ]; then
         echo "Deleting previous build ${TENANT}/$1/${GIT_HASH}"
         swift delete comaas ${files}
     fi
