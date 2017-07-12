@@ -26,6 +26,7 @@ function swift() {
         swift $@
 }
 
+# Remove a previous build of the same git hash
 function delete_folder() {
     files=$(swift list comaas --prefix ${TENANT}/$1/${GIT_HASH})
     if [ ! -z "${files}" ]; then
@@ -34,9 +35,28 @@ function delete_folder() {
     fi
 }
 
+function join_by {
+    local IFS="$1"; shift; echo "$*";
+}
+
+# Remove old builds
+function clean_old_builds() {
+    BUILDS_TO_KEEP=${2}
+    hashes_to_keep=$(git log -${BUILDS_TO_KEEP} --pretty=format:"%h")
+    joined=$(join_by '|' ${hashes_to_keep})
+    files=$(swift list comaas --prefix ${TENANT}/$1 | grep -vE "($joined)")
+    if [ ! -z "${files}" ]; then
+        echo "Deleting old builds"
+        swift delete comaas ${files}
+    fi
+}
+
 function upload_it() {
     swift upload --changed --object-name ${TENANT}/$2/${GIT_HASH}/$1 comaas /objects/$1
 }
+
+clean_old_builds sandbox 5
+clean_old_builds prod 10
 
 delete_folder sandbox
 delete_folder prod
