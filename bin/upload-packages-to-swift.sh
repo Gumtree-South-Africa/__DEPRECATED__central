@@ -44,7 +44,9 @@ function clean_old_builds() {
     BUILDS_TO_KEEP=${2}
     hashes_to_keep=$(git log -${BUILDS_TO_KEEP} --pretty=format:"%h")
     joined=$(join_by '|' ${hashes_to_keep})
-    files=$(swift list comaas --prefix ${TENANT}/$1 | grep --invert-match --quiet --extended-regexp "($joined)")
+    set +o errexit
+    files=$(swift list comaas --prefix ${TENANT}/$1 | grep --invert-match --extended-regexp "($joined)")
+    set -o errexit
     if [ ! -z "${files}" ]; then
         echo "Deleting old builds"
         swift delete comaas ${files}
