@@ -61,8 +61,10 @@ function upload_it() {
     echo "Done"
 }
 
-clean_old_builds sandbox 5
-clean_old_builds prod 10
+# Rough size calculation: (nr of tenants) * (environments) * (size of artifact) * (desired build history)
+# Currently 6 * 2 * 100 * (40 + 10) ~= 60 gb
+clean_old_builds sandbox 10
+clean_old_builds prod 40
 
 delete_folder sandbox
 delete_folder prod
