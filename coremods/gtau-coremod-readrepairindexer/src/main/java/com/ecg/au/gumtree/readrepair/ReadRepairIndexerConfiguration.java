@@ -19,7 +19,7 @@ import javax.annotation.PostConstruct;
 
 @Configuration
 @ConditionalOnExpression("'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')")
-class ReadRepairIndexerConfiguration {
+public class ReadRepairIndexerConfiguration {
     @Autowired
     private ApplicationContext context;
 
