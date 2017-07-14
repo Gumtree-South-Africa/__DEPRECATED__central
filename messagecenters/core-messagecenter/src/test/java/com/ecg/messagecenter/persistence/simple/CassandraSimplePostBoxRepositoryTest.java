@@ -20,6 +20,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.joda.time.DateTime.now;
@@ -229,6 +230,38 @@ public class CassandraSimplePostBoxRepositoryTest {
         ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(postBoxId, convThread);
 
         assertEquals("Conversation thread should contain 2 unread messages", 2, postBoxRepository.unreadCountInConversation(postBoxId, convThread.getConversationId()));
+    }
+
+    @Test
+    public void filterExpiredConversations() throws Exception {
+        PostBoxId postBoxId = PostBoxId.fromEmail("expired@bar.com");
+
+        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(postBoxId, createConversationThread(now(), "123"));
+        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(postBoxId, createConversationThread(DateTime.now().minusYears(10), "321"));
+
+        List<AbstractConversationThread> conversationThreads = postBoxRepository.byId(postBoxId).getConversationThreads();
+        assertEquals("Postbox should return only 1 conversation", 1, conversationThreads.size());
+        assertEquals("Postbox should contain 123 conversation", "123", conversationThreads.get(0).getConversationId());
+    }
+
+    @Test
+    public void filterExpiredConversationsUnreadCounter() throws Exception {
+        PostBoxId postBoxId = PostBoxId.fromEmail("expiredCounter@bar.com");
+
+        AbstractConversationThread thread = createConversationThread(now(), "123");
+        AbstractConversationThread oldThread = createConversationThread(DateTime.now().minusYears(10), "321");
+
+        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(postBoxId, thread);
+        postBoxRepository.upsertThread(postBoxId, thread, true);
+        postBoxRepository.upsertThread(postBoxId, thread, true);
+
+        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(postBoxId, oldThread);
+        postBoxRepository.upsertThread(postBoxId, oldThread, true);
+        postBoxRepository.upsertThread(postBoxId, oldThread, true);
+        postBoxRepository.upsertThread(postBoxId, oldThread, true);
+
+        PostBox postBox = postBoxRepository.byId(postBoxId);
+        assertEquals("Postbox should contain only 2 conversations", 2, postBox.getNewRepliesCounter().getValue());
     }
 
     @Test

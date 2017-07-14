@@ -99,19 +99,26 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
             processThreads(id, row -> {
                 String conversationId = row.getString("conversation_id");
+                String jsonValue = row.getString("json_value");
 
                 int unreadCount = unreadCounts.getOrDefault(conversationId, 0);
 
-                newRepliesCount.addAndGet(unreadCount);
-
-                String jsonValue = row.getString("json_value");
-
-                toConversationThread(id, conversationId, jsonValue, unreadCount).map(conversationThreads::add);
+                toConversationThread(id, conversationId, jsonValue, unreadCount)
+                        .filter(this::validConversation)
+                        .ifPresent(conversation -> {
+                            conversationThreads.add(conversation);
+                            newRepliesCount.addAndGet(unreadCount);
+                        });
             });
             LOG.debug("Found {} threads ({} unread) for PostBox with email {} in Cassandra", conversationThreads.size(), newRepliesCount, id.asString());
 
             return new PostBox(id.asString(), Optional.of(newRepliesCount.get()), conversationThreads, maxAgeDays);
         }
+    }
+
+    private boolean validConversation(AbstractConversationThread conversation) {
+        DateTime conversationRetentionTime = DateTime.now().minusDays(maxAgeDays);
+        return conversation.getCreatedAt().isAfter(conversationRetentionTime);
     }
 
     private void processThreads(PostBoxId id, Consumer<Row> action) {
