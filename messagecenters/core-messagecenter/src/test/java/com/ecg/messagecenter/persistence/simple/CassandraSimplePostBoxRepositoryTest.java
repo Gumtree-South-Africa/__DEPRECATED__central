@@ -186,6 +186,32 @@ public class CassandraSimplePostBoxRepositoryTest {
     }
 
     @Test
+    public void markConversationAsRead() throws Exception {
+        String email = "markconversation@bar.com";
+        DateTime now = now();
+        PostBoxId postBoxId = PostBoxId.fromEmail(email);
+
+        AbstractConversationThread thread1 = createConversationThread(now.minusMinutes(1), "mark-conversation-1");
+        postBoxRepository.upsertThread(postBoxId, thread1, true);
+        AbstractConversationThread thread2 = createConversationThread(now.minusMinutes(1), "mark-conversation-2");
+
+        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2), 25);
+        postBoxRepository.write(box);
+
+        PostBox postBox = postBoxRepository.byId(postBoxId);
+        assertEquals(2, postBox.getConversationThreads().size());
+
+        assertTrue(postBoxRepository.threadById(postBoxId, "mark-conversation-1").get().isContainsUnreadMessages());
+        assertFalse(postBoxRepository.threadById(postBoxId, "mark-conversation-2").get().isContainsUnreadMessages());
+
+        postBoxRepository.markConversationsAsRead(postBox);
+        assertFalse(postBoxRepository.threadById(postBoxId, "mark-conversation-1").get().isContainsUnreadMessages());
+        assertFalse(postBoxRepository.threadById(postBoxId, "mark-conversation-2").get().isContainsUnreadMessages());
+        assertFalse(((AbstractConversationThread) postBox.lookupConversation("mark-conversation-1").get()).isContainsUnreadMessages());
+        assertFalse(((AbstractConversationThread) postBox.lookupConversation("mark-conversation-2").get()).isContainsUnreadMessages());
+    }
+
+    @Test
     public void cleansUpPostbox() {
         PostBox box = new PostBox<>("foo@bar.com", Optional.empty(), Collections.singletonList(createConversationThread(now(), "123")), 25);
 

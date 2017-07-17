@@ -28,6 +28,10 @@ public interface SimplePostBoxRepository {
         markConversationsAsRead(postBox, Collections.singletonList(conversation));
     }
 
+    default void markConversationsAsRead(PostBox postBox) {
+        markConversationsAsRead(postBox, postBox.getConversationThreads());
+    }
+
     void markConversationsAsRead(PostBox postBox, List<AbstractConversationThread> conversations);
 
     void cleanup(DateTime time);

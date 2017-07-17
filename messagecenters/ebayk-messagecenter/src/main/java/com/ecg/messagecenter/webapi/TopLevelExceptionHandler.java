@@ -21,16 +21,7 @@ class TopLevelExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopLevelExceptionHandler.class);
 
-    private final Throwable cause;
-
-    private final HttpServletResponse response;
-
-    TopLevelExceptionHandler(Throwable cause, HttpServletResponse response) {
-        this.cause = cause;
-        this.response = response;
-    }
-
-    void handle() throws IOException {
+    static void handle(Throwable cause, HttpServletResponse response) throws IOException {
         LOGGER.error("Exception while processing web request: ", cause);
 
         // Only if not committed, reset is possible
@@ -40,13 +31,13 @@ class TopLevelExceptionHandler {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
             try (PrintWriter writer = response.getWriter()) {
-                JSONObject jsonObject = buildExceptionAsJson();
+                JSONObject jsonObject = buildExceptionAsJson(cause);
                 writer.write(jsonObject.toString());
             }
         }
     }
 
-    private JSONObject buildExceptionAsJson() {
+    private static JSONObject buildExceptionAsJson(Throwable cause) {
         StringWriter writer = new StringWriter(2048);
         cause.printStackTrace(new PrintWriter(writer));
 
@@ -61,5 +52,4 @@ class TopLevelExceptionHandler {
         jsonObject.put("errors", array);
         return jsonObject;
     }
-
 }

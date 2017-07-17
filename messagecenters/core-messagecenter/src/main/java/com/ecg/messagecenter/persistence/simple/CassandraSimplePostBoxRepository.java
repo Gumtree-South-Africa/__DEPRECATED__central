@@ -194,6 +194,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             BatchStatement batch = new BatchStatement();
 
             for (AbstractConversationThread conversation: conversations) {
+                conversation.setContainsUnreadMessages(false);
                 Optional<String> jsonValue = toJson(conversation);
 
                 if (jsonValue.isPresent()) {

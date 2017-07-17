@@ -29,9 +29,7 @@ public class TopLevelExceptionHandlerTest {
         when(response.isCommitted()).thenReturn(false);
         when(response.getWriter()).thenReturn(new PrintWriter(writer));
 
-        TopLevelExceptionHandler handler = new TopLevelExceptionHandler(new Exception("exception-message"), response);
-
-        handler.handle();
+        TopLevelExceptionHandler.handle(new Exception("exception-message"), response);
 
         String message = writer.toString();
         assertThat(message).contains("exception-message");
@@ -44,9 +42,7 @@ public class TopLevelExceptionHandlerTest {
 
         when(response.isCommitted()).thenReturn(true);
 
-        TopLevelExceptionHandler handler = new TopLevelExceptionHandler(new Exception("exception-message"), response);
-
-        handler.handle();
+        TopLevelExceptionHandler.handle(new Exception("exception-message"), response);
 
         verify(response, never()).setStatus(500);
     }

@@ -34,7 +34,7 @@ import static org.joda.time.DateTime.now;
 
 @Controller
 class ConversationThreadController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxOverviewController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConversationThreadController.class);
 
     private static final Timer API_POSTBOX_CONVERSATION_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-by-id");
     private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
@@ -55,7 +55,7 @@ class ConversationThreadController {
 
     @ExceptionHandler
     public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
-        new TopLevelExceptionHandler(ex, response).handle();
+        TopLevelExceptionHandler.handle(ex, response);
     }
 
     @RequestMapping(value = MessageCenterGetPostBoxConversationCommand.MAPPING,
