@@ -72,8 +72,8 @@ public class IndexerBulkHandler {
         return conversation;
     }
 
-    public void awaitCompletion(long time, TimeUnit timeUnit) throws InterruptedException {
-        indexer.awaitClose(time, timeUnit);
+    public boolean awaitCompletion(long time, TimeUnit timeUnit) throws InterruptedException {
+        return indexer.awaitClose(time, timeUnit);
     }
 
     void resetCounters() {

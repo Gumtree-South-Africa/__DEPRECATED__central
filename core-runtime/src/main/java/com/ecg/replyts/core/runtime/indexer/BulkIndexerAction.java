@@ -65,14 +65,15 @@ public class BulkIndexerAction implements IndexerAction {
                 indexAsync(unqids);
             });
         });
+        boolean indexingCompleted = false;
         try {
-            indexerBulkHandler.awaitCompletion(15, TimeUnit.DAYS);
+            indexingCompleted = indexerBulkHandler.awaitCompletion(15, TimeUnit.DAYS);
         } catch (InterruptedException ine) {
             LOGGER.error("Indexing did not complete due to interruption or timeout", ine);
         } catch (Exception e) {
             LOGGER.error("Indexing failed with exception", e);
         }
-        LOGGER.info("Total {} conversations, {} fetched documents, {} tasks completed", submittedConvCounter.get(), BulkIndexer.getFetchedDocumentCount(), taskCounter.get());
+        LOGGER.info("Indexing completed {}. Total {} conversations, {} fetched documents, {} tasks completed", indexingCompleted, submittedConvCounter.get(), BulkIndexer.getFetchedDocumentCount(), taskCounter.get());
         indexerBulkHandler.resetCounters();
         submittedConvCounter.set(0);
         taskCounter.set(0);

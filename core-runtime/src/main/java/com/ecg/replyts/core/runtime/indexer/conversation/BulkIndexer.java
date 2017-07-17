@@ -125,13 +125,20 @@ public class BulkIndexer {
                 bulkProcessor.add(indexRequestBuilder.request());
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOG.error("Failed to add conversation {} to index", conversation.getId(), e);
         }
 
     }
 
-    public void awaitClose(long time, TimeUnit timeUnit) throws InterruptedException {
-        bulkProcessor.awaitClose(time, timeUnit);
+    /**
+     *
+     * @param time
+     * @param timeUnit
+     * @return Returns: true if all bulk requests completed and false if the waiting time elapsed before all the bulk requests completed
+     * @throws InterruptedException
+     */
+    public boolean awaitClose(long time, TimeUnit timeUnit) throws InterruptedException {
+        return bulkProcessor.awaitClose(time, timeUnit);
     }
 
 }
