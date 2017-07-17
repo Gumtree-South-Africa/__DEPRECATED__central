@@ -1,10 +1,14 @@
 package com.ecg.replyts.core.runtime.persistence.strategy;
 
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.MetricRegistry;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
+import com.ecg.replyts.core.runtime.MetricsService;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -183,6 +187,8 @@ public class CassandraPersistenceConfiguration {
             cassandraClusterForCore = (Cluster) clusterAndSession[0];
             cassandraSessionForCore = (Session) clusterAndSession[1];
 
+            reportCassandraMetricsWithPrefix(cassandraClusterForCore, "core");
+
             return cassandraSessionForCore;
         }
 
@@ -195,6 +201,8 @@ public class CassandraPersistenceConfiguration {
             cassandraClusterForMb = (Cluster) clusterAndSession[0];
             cassandraSessionForMb = (Session) clusterAndSession[1];
 
+            reportCassandraMetricsWithPrefix(cassandraClusterForMb, "mb");
+
             return cassandraSessionForMb;
         }
 
@@ -206,6 +214,8 @@ public class CassandraPersistenceConfiguration {
 
             cassandraClusterForJobs = (Cluster) clusterAndSession[0];
             cassandraSessionForJobs = (Session) clusterAndSession[1];
+
+            reportCassandraMetricsWithPrefix(cassandraClusterForJobs, "jobs");
 
             return cassandraSessionForJobs;
         }
@@ -239,7 +249,7 @@ public class CassandraPersistenceConfiguration {
             }
             builder.withPoolingOptions(poolingOptions);
 
-            Cluster cassandraCluster = builder.build();
+            Cluster cassandraCluster = builder.withoutJMXReporting().build();
 
             QueryLogger queryLogger = QueryLogger.builder(cassandraCluster).
                     withConstantThreshold(slowQueryThresholdMs).
@@ -248,6 +258,14 @@ public class CassandraPersistenceConfiguration {
 
             Session cassandraSession = cassandraCluster.connect(cassandraKeyspace);
             return new Object[]{cassandraCluster, cassandraSession};
+        }
+
+        private void reportCassandraMetricsWithPrefix(Cluster cluster, String prefix) {
+            MetricRegistry comaasRegistry = MetricsService.getInstance().getRegistry();
+            cluster.init(); // this is totally safe to do here, check the javadoc
+            String fullPrefix = "cassandra." + prefix;
+            comaasRegistry.removeMatching((name, metric) -> name != null && name.startsWith(fullPrefix + "."));
+            comaasRegistry.register(fullPrefix, cluster.getMetrics().getRegistry());
         }
 
         @PreDestroy
