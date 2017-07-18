@@ -56,31 +56,26 @@ public class HostReportingInstrumentedQueuedTPool extends QueuedThreadPool {
     @Override
     protected void doStart() throws Exception {
         super.doStart();
-        metricRegistry.register(name(TimingReports.getHostName(), QueuedThreadPool.class.getCanonicalName(), getName(), "utilization"), new RatioGauge() {
+        String threadPoolName = QueuedThreadPool.class.getCanonicalName();
+        String hostName = TimingReports.getHostName();
+        metricRegistry.register(name(hostName, threadPoolName, getName(), "busy-threads"), (Gauge<Integer>) this::getBusyThreads);
+        metricRegistry.register(name(hostName, threadPoolName, getName(), "utilization"), new RatioGauge() {
             @Override
             protected Ratio getRatio() {
-                return Ratio.of(getThreads() - getIdleThreads(), getThreads());
+                return Ratio.of(getBusyThreads(), getThreads());
             }
         });
-        metricRegistry.register(name(TimingReports.getHostName(), QueuedThreadPool.class.getCanonicalName(), getName(), "utilization-max"), new RatioGauge() {
+        metricRegistry.register(name(hostName, threadPoolName, getName(), "utilization-max"), new RatioGauge() {
             @Override
             protected Ratio getRatio() {
-                return Ratio.of(getThreads() - getIdleThreads(), getMaxThreads());
+                return Ratio.of(getBusyThreads(), getMaxThreads());
             }
         });
-        metricRegistry.register(name(TimingReports.getHostName(), QueuedThreadPool.class.getCanonicalName(), getName(), "size"), new Gauge<Integer>() {
-            @Override
-            public Integer getValue() {
-                return getThreads();
-            }
-        });
-        metricRegistry.register(name(TimingReports.getHostName(), QueuedThreadPool.class.getCanonicalName(), getName(), "jobs"), new Gauge<Integer>() {
-            @Override
-            public Integer getValue() {
-                // This assumes the QueuedThreadPool is using a BlockingArrayQueue or
-                // ArrayBlockingQueue for its queue, and is therefore a constant-time operation.
-                return getQueue().size();
-            }
+        metricRegistry.register(name(hostName, threadPoolName, getName(), "size"), (Gauge<Integer>) this::getThreads);
+        metricRegistry.register(name(hostName, threadPoolName, getName(), "jobs"), (Gauge<Integer>) () -> {
+            // This assumes the QueuedThreadPool is using a BlockingArrayQueue or
+            // ArrayBlockingQueue for its queue, and is therefore a constant-time operation.
+            return getQueue().size();
         });
     }
 }
