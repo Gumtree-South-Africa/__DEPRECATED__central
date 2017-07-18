@@ -161,7 +161,7 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
     @Override
     public void markConversationsAsRead(PostBox postBox, List<AbstractConversationThread> conversations) {
         try {
-            cassandraRepository.markConversationsAsRead(postBox, conversations);
+            cassandraRepository.markConversationsAsReadForHybrid(postBox, conversations);
         } finally {
             riakRepository.markConversationsAsRead(postBox, conversations);
         }

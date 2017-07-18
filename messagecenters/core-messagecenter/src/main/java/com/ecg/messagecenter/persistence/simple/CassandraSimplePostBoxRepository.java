@@ -194,17 +194,44 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             BatchStatement batch = new BatchStatement();
 
             for (AbstractConversationThread conversation: conversations) {
-                conversation.setContainsUnreadMessages(false);
-                Optional<String> jsonValue = toJson(conversation);
+                String conversationId = conversation.getConversationId();
+                ((PostBox<AbstractConversationThread>) postBox).markConversationRead(conversationId).ifPresent(readConversation -> {
+                    Optional<String> jsonValue = toJson(readConversation);
 
-                if (jsonValue.isPresent()) {
-                    DateTime timestamp = conversation.getModifiedAt();
-                    DateTime roundedToHour = timestamp.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
-                    batch.add(Statements.UPDATE_CONVERSATION_THREAD.bind(this, jsonValue.get(), postBoxId.asString(), conversation.getConversationId()));
-                    batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, 0, postBoxId.asString(), conversation.getConversationId()));
-                    batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_LATEST.bind(this, postBoxId.asString(), conversation.getConversationId(), timestamp.toDate()));
-                    batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this, postBoxId.asString(), conversation.getConversationId(), timestamp.toDate(), roundedToHour.toDate()));
-                }
+                    if (jsonValue.isPresent()) {
+                        DateTime timestamp = readConversation.getModifiedAt();
+                        DateTime roundedToHour = timestamp.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
+                        batch.add(Statements.UPDATE_CONVERSATION_THREAD.bind(this, jsonValue.get(), postBoxId.asString(), conversationId));
+                        batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, 0, postBoxId.asString(), conversationId));
+                        batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_LATEST.bind(this, postBoxId.asString(), conversationId, timestamp.toDate()));
+                        batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this, postBoxId.asString(), conversationId, timestamp.toDate(), roundedToHour.toDate()));
+                    }
+                });
+            }
+
+            session.execute(batch);
+        }
+    }
+
+    /**
+     * TODO pbouda: This implementation is used only in hybrid to avoid setting current modification time during the migration.
+     */
+    void markConversationsAsReadForHybrid(PostBox postBox, List<AbstractConversationThread> conversations) {
+        PostBoxId postBoxId = PostBoxId.fromEmail(postBox.getEmail());
+
+        try (Timer.Context ignored = writeTimer.time()) {
+            BatchStatement batch = new BatchStatement();
+
+            for (AbstractConversationThread conversation: conversations) {
+                String conversationId = conversation.getConversationId();
+                ((PostBox<AbstractConversationThread>) postBox).markConversationRead(conversationId).ifPresent(readConversation -> {
+                    Optional<String> jsonValue = toJson(readConversation);
+
+                    if (jsonValue.isPresent()) {
+                        batch.add(Statements.UPDATE_CONVERSATION_THREAD.bind(this, jsonValue.get(), postBoxId.asString(), conversationId));
+                        batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, 0, postBoxId.asString(), conversationId));
+                    }
+                });
             }
 
             session.execute(batch);

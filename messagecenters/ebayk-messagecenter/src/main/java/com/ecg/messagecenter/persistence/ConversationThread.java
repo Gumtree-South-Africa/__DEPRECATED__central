@@ -48,12 +48,13 @@ public class ConversationThread extends AbstractConversationThread {
 
     @Override
     public ConversationThread sameButUnread(String message) {
-        Optional<String> actualMessage = Optional.ofNullable(message);
-
-        if (!actualMessage.isPresent())
-            actualMessage = previewLastMessage;
-
+        Optional<String> actualMessage = message == null ? previewLastMessage : Optional.of(message);
         return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), true, actualMessage, buyerName, sellerName, buyerId, messageDirection, userIdSeller, userIdBuyer);
+    }
+
+    @Override
+    public ConversationThread sameButRead() {
+        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), receivedAt, false, previewLastMessage, buyerName, sellerName, buyerId, messageDirection, userIdSeller, userIdBuyer);
     }
 
     public boolean containsNewListAggregateData() {

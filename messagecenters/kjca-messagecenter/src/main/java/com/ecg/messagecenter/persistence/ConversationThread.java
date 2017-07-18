@@ -44,4 +44,9 @@ public class ConversationThread extends AbstractConversationThread {
         Optional<String> actualMessage = message == null ? previewLastMessage : Optional.of(message);
         return new ConversationThread(adId, conversationId, createdAt, DateTime.now(UTC), DateTime.now(UTC), true, actualMessage, buyerName, sellerName, buyerId, messageDirection);
     }
+
+    @Override
+    public ConversationThread sameButRead() {
+        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(UTC), receivedAt, false, previewLastMessage, buyerName, sellerName, buyerId, messageDirection);
+    }
 }

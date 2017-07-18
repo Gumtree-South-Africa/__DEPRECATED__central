@@ -61,6 +61,8 @@ public abstract class AbstractConversationThread {
 
     public abstract AbstractConversationThread sameButUnread(String message);
 
+    public abstract AbstractConversationThread sameButRead();
+
     public boolean containsNewListAggregateData() {
         return previewLastMessage.isPresent() && messageDirection.isPresent();
     }

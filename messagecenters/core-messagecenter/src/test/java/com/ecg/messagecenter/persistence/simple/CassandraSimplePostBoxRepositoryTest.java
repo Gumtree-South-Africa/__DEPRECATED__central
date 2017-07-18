@@ -111,7 +111,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         createMultiThreadPostBox(email, "read-single");
 
         AbstractConversationThread readConversation = postBoxRepository.threadById(postBoxId, "read-single-2").get();
-        postBoxRepository.markConversationAsRead(new PostBox<>(email, Optional.empty(), Collections.emptyList(), 25), readConversation);
+        postBoxRepository.markConversationAsRead(new PostBox<>(email, Optional.empty(), Collections.singletonList(readConversation), 25), readConversation);
         PostBox postBox = postBoxRepository.byId(postBoxId);
 
         assertEquals("PostBox should contain three threads", 3, postBox.getConversationThreads().size());
@@ -132,7 +132,7 @@ public class CassandraSimplePostBoxRepositoryTest {
 
         AbstractConversationThread readConversation2 = postBoxRepository.threadById(postBoxId, "read-multi-2").get();
         AbstractConversationThread readConversation3 = postBoxRepository.threadById(postBoxId, "read-multi-3").get();
-        postBoxRepository.markConversationsAsRead(new PostBox<>(email, Optional.empty(), Collections.emptyList(), 25), Arrays.asList(readConversation2, readConversation3));
+        postBoxRepository.markConversationsAsRead(new PostBox<>(email, Optional.empty(), Arrays.asList(readConversation2, readConversation3), 25), Arrays.asList(readConversation2, readConversation3));
         PostBox postBox = postBoxRepository.byId(postBoxId);
 
         assertEquals("PostBox should contain three threads", 3, postBox.getConversationThreads().size());
@@ -209,6 +209,48 @@ public class CassandraSimplePostBoxRepositoryTest {
         assertFalse(postBoxRepository.threadById(postBoxId, "mark-conversation-2").get().isContainsUnreadMessages());
         assertFalse(((AbstractConversationThread) postBox.lookupConversation("mark-conversation-1").get()).isContainsUnreadMessages());
         assertFalse(((AbstractConversationThread) postBox.lookupConversation("mark-conversation-2").get()).isContainsUnreadMessages());
+    }
+
+    @Test
+    public void markConversationAsReadPostBoxModificationDate() throws Exception {
+        String email = "markconversation@bar.com";
+        DateTime oldModified = now();
+        PostBoxId postBoxId = PostBoxId.fromEmail(email);
+
+        AbstractConversationThread thread1 = createConversationThread(oldModified.minusMinutes(10), "mark-conversation-modify-1");
+        AbstractConversationThread thread2 = createConversationThread(oldModified.minusMinutes(10), "mark-conversation-modify-2");
+
+        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2), 25);
+        postBoxRepository.write(box);
+
+        postBoxRepository.markConversationsAsRead(box);
+
+        thread1 = postBoxRepository.threadById(postBoxId, "mark-conversation-modify-1").get();
+        thread2 = postBoxRepository.threadById(postBoxId, "mark-conversation-modify-2").get();
+
+        assertTrue(thread1.getModifiedAt().isAfter(oldModified));
+        assertTrue(thread2.getModifiedAt().isAfter(oldModified));
+    }
+
+    @Test
+    public void markConversationAsReadSingleThreadModificationDate() throws Exception {
+        String email = "markconversation@bar.com";
+        DateTime oldModified = now();
+        PostBoxId postBoxId = PostBoxId.fromEmail(email);
+
+        AbstractConversationThread thread1 = createConversationThread(oldModified.minusMinutes(10), "mark-conversation-modify-1");
+        AbstractConversationThread thread2 = createConversationThread(oldModified.minusMinutes(10), "mark-conversation-modify-2");
+
+        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2), 25);
+        postBoxRepository.write(box);
+
+        postBoxRepository.markConversationAsRead(box, thread2);
+
+        thread1 = postBoxRepository.threadById(postBoxId, "mark-conversation-modify-1").get();
+        thread2 = postBoxRepository.threadById(postBoxId, "mark-conversation-modify-2").get();
+
+        assertFalse(thread1.getModifiedAt().isAfter(oldModified));
+        assertTrue(thread2.getModifiedAt().isAfter(oldModified));
     }
 
     @Test

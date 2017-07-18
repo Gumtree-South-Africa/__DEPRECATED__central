@@ -80,6 +80,19 @@ public class PostBox<T extends AbstractConversationThread> {
         }
     }
 
+    public Optional<AbstractConversationThread> markConversationRead(String conversationId) {
+        Optional<T> oldConversation = removeConversation(conversationId);
+        if (oldConversation.isPresent()) {
+            T newConversation = (T) oldConversation.get().sameButRead();
+            conversationThreads.add(newConversation);
+            return Optional.of(newConversation);
+        } else {
+            LOG.error("trying to mark conversation as read but the conversation id '{}' is not in the postbox.", conversationId);
+        }
+
+        return Optional.empty();
+    }
+
     public Map<String, T> getUnreadConversations() {
         return getUnreadConversationsInternal(Optional.empty());
     }

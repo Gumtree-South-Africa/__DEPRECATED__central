@@ -40,12 +40,13 @@ public class ConversationThread extends AbstractConversationThread {
 
     @Override
     public AbstractConversationThread sameButUnread(String message) {
-        Optional<String> actualMessage = Optional.ofNullable(message);
-
-        if (!actualMessage.isPresent())
-            actualMessage = previewLastMessage;
-
+        Optional<String> actualMessage = message == null ? previewLastMessage : Optional.of(message);
         return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), true, actualMessage, buyerName, sellerName, buyerId, sellerId, messageDirection);
+    }
+
+    @Override
+    public AbstractConversationThread sameButRead() {
+        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), receivedAt, false, previewLastMessage, buyerName, sellerName, buyerId, sellerId, messageDirection);
     }
 
     public Optional<String> getSellerId() {
