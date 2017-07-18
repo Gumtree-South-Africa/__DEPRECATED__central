@@ -5,6 +5,7 @@ import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
+import com.datastax.driver.core.policies.TokenAwarePolicy;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
@@ -232,7 +233,7 @@ public class CassandraPersistenceConfiguration {
                                     // configured on the Cassandra server
                                             setReadTimeoutMillis(readTimeoutMillis)
                     ).
-                    withLoadBalancingPolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(cassandraDataCenter).build()).
+                    withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(cassandraDataCenter).build())).
                     addContactPointsWithPorts(cassandraContactPoints);
             if (StringUtils.hasLength(cassandraUsername)) {
                 builder.withAuthProvider(new PlainTextAuthProvider(cassandraUsername, cassandraPassword));
