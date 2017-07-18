@@ -32,11 +32,13 @@ public class IndexerActionConfiguration {
     private int workQueueSize;
     @Value("${replyts.indexer.streaming.conversationid.batch.size:3000}")
     private int conversationIdBatchSize;
-    
+    @Value("${replyts.indexer.streaming.timeout.sec:600}")
+    private int taskCompletionTimeoutSec;
+
     @Bean
     @Conditional(StreamingIndexerActionConditional.class)
     public IndexerAction streamingIndexer() {
-        return new BulkIndexerAction(conversationRepository, indexerBulkHandler, streamingThreadCount, workQueueSize, conversationIdBatchSize);
+        return new BulkIndexerAction(conversationRepository, indexerBulkHandler, streamingThreadCount, workQueueSize, conversationIdBatchSize, taskCompletionTimeoutSec);
     }
 
     @Bean

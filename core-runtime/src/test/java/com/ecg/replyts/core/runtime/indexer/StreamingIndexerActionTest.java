@@ -17,7 +17,7 @@ public class StreamingIndexerActionTest {
     ConversationRepository conversationRepository = mock(ConversationRepository.class);
     IndexerBulkHandler indexerBulkHandler = mock(IndexerBulkHandler.class);
 
-    BulkIndexerAction bulkIndexerAction = new BulkIndexerAction(conversationRepository, indexerBulkHandler, 8, 1000, 10);
+    BulkIndexerAction bulkIndexerAction = new BulkIndexerAction(conversationRepository, indexerBulkHandler, 8, 1000, 10, 20);
 
     @Test
     public void shouldIndexWithDateRange() throws Exception {
