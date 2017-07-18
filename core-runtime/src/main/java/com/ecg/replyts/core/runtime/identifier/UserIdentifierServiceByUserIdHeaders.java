@@ -6,6 +6,7 @@ import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class UserIdentifierServiceByUserIdHeaders implements UserIdentifierService {
@@ -33,12 +34,22 @@ public class UserIdentifierServiceByUserIdHeaders implements UserIdentifierServi
 
     @Override
     public Optional<String> getBuyerUserId(Conversation conversation) {
-        return Optional.ofNullable(conversation.getCustomValues().get(getBuyerUserIdName()));
+        return getBuyerUserId(conversation.getCustomValues());
     }
 
     @Override
     public Optional<String> getSellerUserId(Conversation conversation) {
-        return Optional.ofNullable(conversation.getCustomValues().get(getSellerUserIdName()));
+        return getSellerUserId(conversation.getCustomValues());
+    }
+
+    @Override
+    public Optional<String> getBuyerUserId(Map<String, String> mailHeaders) {
+        return Optional.ofNullable(mailHeaders.get(getBuyerUserIdName()));
+    }
+
+    @Override
+    public Optional<String> getSellerUserId(Map<String, String> mailHeaders) {
+        return Optional.ofNullable(mailHeaders.get(getSellerUserIdName()));
     }
 
     @Override

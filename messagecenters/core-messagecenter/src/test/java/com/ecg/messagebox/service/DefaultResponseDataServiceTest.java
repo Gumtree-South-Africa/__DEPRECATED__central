@@ -55,7 +55,7 @@ public class DefaultResponseDataServiceTest {
         Conversation rtsConversation = aConversation().withId(CONVERSATION_ID).withAdId(AD_ID)
                 .withCreatedAt(creationDateTime).withLastModifiedAt(new DateTime())
                 .withState(ConversationState.ACTIVE).withMessages(singletonList(rtsMsg)).withSeller(USER_ID_1, USER_ID_1).build();
-        when(userIdentifierService.getSellerUserId(any())).thenReturn(of(USER_ID_1));
+        when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(of(USER_ID_1));
 
         service.calculateResponseData(USER_ID_1, rtsConversation, rtsMsg);
 
@@ -72,7 +72,7 @@ public class DefaultResponseDataServiceTest {
 
         Conversation rtsConversation = aConversation().withId(CONVERSATION_ID).withAdId(AD_ID).withCreatedAt(creationDateTime).withLastModifiedAt(new DateTime())
                 .withState(ConversationState.ACTIVE).withMessages(Arrays.asList(firstRtsMessage, secondRtsMessage)).withSeller(USER_ID_1, USER_ID_1).build();
-        when(userIdentifierService.getSellerUserId(any())).thenReturn(of(USER_ID_1));
+        when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(of(USER_ID_1));
 
         service.calculateResponseData(USER_ID_1, rtsConversation, secondRtsMessage);
 
@@ -92,7 +92,7 @@ public class DefaultResponseDataServiceTest {
                 .withCreatedAt(creationDateTime).withLastModifiedAt(new DateTime())
                 .withState(ConversationState.ACTIVE).withSeller(USER_ID_1, USER_ID_1)
                 .withMessages(Arrays.asList(firstRtsMessage, secondRtsMessage, thirdRtsMessage)).build();
-        when(userIdentifierService.getSellerUserId(any())).thenReturn(of(USER_ID_1));
+        when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(of(USER_ID_1));
 
         service.calculateResponseData(USER_ID_1, rtsConversation, thirdRtsMessage);
 
@@ -109,7 +109,7 @@ public class DefaultResponseDataServiceTest {
         Conversation rtsConversation = aConversation().withId(CONVERSATION_ID).withAdId(AD_ID)
                 .withCreatedAt(creationDateTime).withLastModifiedAt(new DateTime())
                 .withState(ConversationState.ACTIVE).withMessages(singletonList(firstRtsMessage)).withSeller(USER_ID_1, USER_ID_1).build();
-        when(userIdentifierService.getSellerUserId(any())).thenReturn(of(USER_ID_1));
+        when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(of(USER_ID_1));
 
         service.calculateResponseData(USER_ID_1, rtsConversation, firstRtsMessage);
 
@@ -126,7 +126,7 @@ public class DefaultResponseDataServiceTest {
                 .withCreatedAt(creationDateTime).withLastModifiedAt(new DateTime())
                 .withState(ConversationState.ACTIVE).withMessages(singletonList(firstRtsMessage))
                 .withSeller(USER_ID_2, USER_ID_2).withBuyer(USER_ID_1, USER_ID_1).build();
-        when(userIdentifierService.getSellerUserId(any())).thenReturn(of(USER_ID_2));
+        when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(of(USER_ID_2));
 
         service.calculateResponseData(USER_ID_1, rtsConversation, firstRtsMessage);
 

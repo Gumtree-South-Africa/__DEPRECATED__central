@@ -30,30 +30,28 @@ public class PostBoxCleanupListenerTest {
     @Mock
     private UserIdentifierService userIdentifierServiceMock;
 
-    private ImmutableConversation.Builder convBuilder;
-
     private PostBoxCleanupListener listener;
 
     private static final String BUYER_USER_ID = "1";
     private static final String SELLER_USER_ID = "2";
+    private Conversation conversation;
 
     @Before
     public void setup() {
         listener = new PostBoxCleanupListener(postBoxServiceMock, userIdentifierServiceMock);
 
-        convBuilder = ImmutableConversation.Builder
+        conversation = ImmutableConversation.Builder
                 .aConversation()
                 .withId("cid")
-                .withState(CLOSED);
+                .withState(CLOSED)
+                .build();
 
-        when(userIdentifierServiceMock.getBuyerUserId(any())).thenReturn(of(BUYER_USER_ID));
-        when(userIdentifierServiceMock.getSellerUserId(any())).thenReturn(of(SELLER_USER_ID));
+        when(userIdentifierServiceMock.getBuyerUserId(conversation)).thenReturn(of(BUYER_USER_ID));
+        when(userIdentifierServiceMock.getSellerUserId(conversation)).thenReturn(of(SELLER_USER_ID));
     }
 
     @Test
     public void conversationDeletedEventIsProcessed() {
-        Conversation conversation = convBuilder.build();
-
         listener.eventsTriggered(conversation, Arrays.asList(new ConversationDeletedEvent(new DateTime())));
 
         verify(postBoxServiceMock).deleteConversation(BUYER_USER_ID, conversation.getId(), conversation.getAdId());
@@ -62,8 +60,6 @@ public class PostBoxCleanupListenerTest {
 
     @Test
     public void conversationClosedEventIsIgnored() {
-        Conversation conversation = convBuilder.build();
-
         listener.eventsTriggered(conversation, Arrays.asList(new ConversationClosedEvent(new ConversationClosedCommand(conversation.getId(), ConversationRole.Buyer, new DateTime()))));
 
         verify(postBoxServiceMock, never()).deleteConversation(BUYER_USER_ID, conversation.getId(), conversation.getAdId());

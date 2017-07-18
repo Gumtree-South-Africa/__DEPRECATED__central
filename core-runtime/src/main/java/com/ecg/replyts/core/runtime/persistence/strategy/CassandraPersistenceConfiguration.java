@@ -10,6 +10,7 @@ import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.runtime.MetricsService;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -55,8 +56,8 @@ public class CassandraPersistenceConfiguration {
     private ConsistencyLevel cassandraWriteConsistency;
 
     @Bean
-    public ConversationRepository conversationRepository(Session cassandraSessionForCore) {
-        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency);
+    public ConversationRepository conversationRepository(Session cassandraSessionForCore, UserIdentifierService userIdentifierService) {
+        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, userIdentifierService);
     }
 
     @Bean

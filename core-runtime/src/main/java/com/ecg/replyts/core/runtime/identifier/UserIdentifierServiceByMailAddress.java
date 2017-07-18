@@ -3,6 +3,7 @@ package com.ecg.replyts.core.runtime.identifier;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class UserIdentifierServiceByMailAddress implements UserIdentifierService {
@@ -37,8 +38,18 @@ public class UserIdentifierServiceByMailAddress implements UserIdentifierService
     }
 
     @Override
+    public Optional<String> getBuyerUserId(Map<String, String> mailHeaders) {
+        return Optional.ofNullable(mailHeaders.get(buyerUserIdName));
+    }
+
+    @Override
     public Optional<String> getSellerUserId(Conversation conversation) {
         return Optional.ofNullable(conversation.getSellerId());
+    }
+
+    @Override
+    public Optional<String> getSellerUserId(Map<String, String> mailHeaders) {
+        return Optional.ofNullable(mailHeaders.get(sellerUserIdName));
     }
 
     @Override

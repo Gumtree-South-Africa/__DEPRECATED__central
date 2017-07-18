@@ -7,6 +7,7 @@ import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.RiakIndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -85,8 +86,8 @@ public class HybridPersistenceConfiguration {
 
     @Bean
     @Primary
-    public HybridConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState) {
-        cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+    public HybridConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState, UserIdentifierService userIdentifierService) {
+        cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, userIdentifierService);
         cassandraConversationRepository.setObjectMapperConfigurer(objectMapperConfigurer);
 
         RiakConversationRepository riakRepository = useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins) : new RiakConversationRepository(riakClient, allowSiblings, lastWriteWins);

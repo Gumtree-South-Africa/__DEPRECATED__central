@@ -13,6 +13,7 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.StatementsBase;
@@ -45,6 +46,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
 
     private final Session session;
     private final Map<StatementsBase, PreparedStatement> preparedStatements;
+    private UserIdentifierService userIdentifierService;
     private final ConsistencyLevel readConsistency;
     private final ConsistencyLevel writeConsistency;
 
@@ -66,11 +68,12 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
 
     private ObjectMapper objectMapper;
 
-    public DefaultCassandraConversationRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
+    public DefaultCassandraConversationRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency, UserIdentifierService userIdentifierService) {
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
         this.preparedStatements = StatementsBase.prepare(Statements.class, session);
+        this.userIdentifierService = userIdentifierService;
     }
 
     @Override
@@ -299,16 +302,19 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     }
 
     private ConversationIndexKey getConversationCompoundKey(List<ConversationEvent> toBeCommittedEvents) {
-        ConversationIndexKey compoundKey = null;
         for (ConversationEvent e : toBeCommittedEvents) {
             if (e instanceof ConversationCreatedEvent) {
                 ConversationCreatedEvent createdEvent = ((ConversationCreatedEvent) e);
                 if (createdEvent.getState() != ConversationState.DEAD_ON_ARRIVAL) {
-                    compoundKey = new ConversationIndexKey(createdEvent.getBuyerId(), createdEvent.getSellerId(), createdEvent.getAdId());
+
+                    return new ConversationIndexKey(
+                            userIdentifierService.getBuyerUserId(createdEvent.getCustomValues()).orElse(createdEvent.getBuyerId()),
+                            userIdentifierService.getSellerUserId(createdEvent.getCustomValues()).orElse(createdEvent.getSellerId()),
+                            createdEvent.getAdId());
                 }
             }
         }
-        return compoundKey;
+        return null;
     }
 
     private void storeSecretIfNewlyCreated(BatchStatement batch, List<ConversationEvent> toBeCommittedEvents) {
@@ -325,18 +331,22 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     }
 
     @Override
-    public void deleteConversation(Conversation c) {
-        String conversationId = c.getId();
+    public void deleteConversation(Conversation conversation) {
+        String conversationId = conversation.getId();
         List<Long> conversationModificationDates = getConversationModificationDates(conversationId);
         try (Timer.Context ignored = deleteTimer.time()) {
-            if (c.getBuyerSecret() != null) {
-                session.execute(Statements.DELETE_CONVERSATION_SECRET.bind(this, c.getBuyerSecret()));
+            if (conversation.getBuyerSecret() != null) {
+                session.execute(Statements.DELETE_CONVERSATION_SECRET.bind(this, conversation.getBuyerSecret()));
             }
-            if (c.getSellerSecret() != null) {
-                session.execute(Statements.DELETE_CONVERSATION_SECRET.bind(this, c.getSellerSecret()));
+            if (conversation.getSellerSecret() != null) {
+                session.execute(Statements.DELETE_CONVERSATION_SECRET.bind(this, conversation.getSellerSecret()));
             }
-            if (c.getBuyerId() != null && c.getSellerId() != null && c.getAdId() != null) {
-                session.execute(Statements.DELETE_RESUME_IDX.bind(this, new ConversationIndexKey(c.getBuyerId(), c.getSellerId(), c.getAdId()).serialize()));
+            if (conversation.getBuyerId() != null && conversation.getSellerId() != null && conversation.getAdId() != null) {
+                session.execute(Statements.DELETE_RESUME_IDX.bind(this,
+                        new ConversationIndexKey(
+                                userIdentifierService.getBuyerUserId(conversation).orElse(conversation.getBuyerId()),
+                                userIdentifierService.getSellerUserId(conversation).orElse(conversation.getSellerId()),
+                                conversation.getAdId()).serialize()));
             }
 
             BatchStatement batch = new BatchStatement();
