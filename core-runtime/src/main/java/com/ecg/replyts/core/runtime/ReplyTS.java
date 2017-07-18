@@ -4,9 +4,6 @@ import com.ecg.replyts.core.api.processing.MessageFixer;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
-import com.hazelcast.config.Config;
-import com.hazelcast.config.FileSystemXmlConfig;
-import com.hazelcast.config.XmlConfigBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +12,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -41,31 +35,6 @@ public class ReplyTS {
     @Autowired(required = false)
     private List<MessageFixer> javaMailMessageFixers = emptyList();
 
-    // TODO: Move this to ParentConfiguration (for non-cloud environments) and CloudDiscoveryConfiguration (for cloud-
-    //       based deployments we want to initialize Hazelcast programmatically)
-
-    @Bean
-    public Config hazelcastConfiguration(@Value("${confDir}/hazelcast.xml") String location) throws IOException {
-        if (location.startsWith("classpath")) {
-            InputStream inputStream = new ClassPathResource(location.substring(location.indexOf(":") + 1)).getInputStream();
-            return new XmlConfigBuilder(inputStream).build();
-        } else
-            return new FileSystemXmlConfig(location);
-    }
-
-    // Need to wait for all ContextProviders to register themselves - so make this a non-lazy @Bean
-
-    @Bean
-    @Lazy(false)
-    @DependsOn("defaultContextsInitialized")
-    public Boolean started(@Value("${replyts.control.context:control-context.xml}") String contextLocation, EmbeddedWebserver webserver, StartupExperience experience, ApplicationContext context) {
-        webserver.context(new SpringContextProvider("/", new String[]{"classpath:" + contextLocation}, context));
-
-        webserver.start();
-
-        return experience.running(webserver.getPort());
-    }
-
     @PostConstruct
     public void reportThings() {
         LOG.info("With MessageProcessedListeners: {}", messageProcessedListeners.stream()
@@ -77,9 +46,22 @@ public class ReplyTS {
           .collect(joining(", ")));
     }
 
+    // Need to wait for all ContextProviders to register themselves - so make this a non-lazy @Bean
+
+    @Bean
+    @Lazy(false)
+    @DependsOn("defaultContextsInitialized")
+    public Boolean started(@Value("${replyts.control.context:control-context.xml}") String contextLocation, EmbeddedWebserver webserver, StartupExperience experience, ApplicationContext context) {
+        webserver.context(new SpringContextProvider("/", new String[] { "classpath:" + contextLocation }, context));
+
+        webserver.start();
+
+        return experience.running(webserver.getPort());
+    }
+
     public static void main(String[] args) throws Exception {
         try {
-            AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[]{
+            AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[] {
               "classpath:server-context.xml",
               "classpath:runtime-context.xml",
               "classpath*:/plugin-inf/*.xml",

@@ -3,9 +3,9 @@ package com.ecg.messagecenter.webapi;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
@@ -32,6 +32,7 @@ import java.util.Optional;
 
 import static org.joda.time.DateTime.now;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
+
 @Controller class ConversationThreadController {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxOverviewController.class);
 
@@ -40,20 +41,17 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
     private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION =
                     TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
 
-
-    private final RiakSimplePostBoxRepository postBoxRepository;
+    private final SimplePostBoxRepository postBoxRepository;
     private final ConversationRepository conversationRepository;
 
     @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;
 
     @Autowired public ConversationThreadController(ConversationRepository conversationRepository,
-                                                   RiakSimplePostBoxRepository postBoxRepository) {
-
+                                                   SimplePostBoxRepository postBoxRepository) {
         this.conversationRepository = conversationRepository;
         this.postBoxRepository = postBoxRepository;
     }
-
 
     @InitBinder public void initBinderInternal(WebDataBinder binder) {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());

@@ -6,101 +6,87 @@ import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
+import java.util.stream.Collectors;
 
 /**
- * regularly checks for modifications of plugin configurations and informs the responsible {@link ConfigurationAdmin}
- * about this change. Method {@link #start()} needs to be invoked to regularly do the check-
- *
- * @author mhuttar
+ * Regularly checks for modifications of plugin configurations and informs the responsible {@link ConfigurationAdmin}
+ * about this change.
  */
-@Component
-class Refresher {
+public class Refresher {
     private static final Logger LOG = LoggerFactory.getLogger(Refresher.class);
 
-    private final ConfigurationRepository repository;
-    private final ConfigurationAdmin<Object> admin;
-
-    private Timer refreshChecker;
-
     private static final long RATE = TimeUnit.MINUTES.toMillis(1);
+
+    @Autowired
+    private ConfigurationRepository repository;
 
     @Autowired(required = false)
     private List<ConfigurationRefreshEventListener> refreshEventListeners = Collections.emptyList();
 
-    Refresher(ConfigurationRepository repository, ConfigurationAdmin<Object> admin) {
-        this.repository = repository;
+    private ConfigurationAdmin<Object> admin;
+
+    public Refresher(ConfigurationAdmin<Object> admin) {
         this.admin = admin;
     }
 
-    /**
-     * starts regular refreshing. interval is {@link #RATE} in ms. Refreshing is done in a daemon thread.
-     */
-    public void start() {
-        if (refreshChecker == null) {
-            String threadname = "configuration-checker-" + admin.getAdminName();
-            LOG.info("Starting Configuration Refresher {}. Interval: {} ms", threadname, RATE);
-            refreshChecker = new Timer(threadname, true);
-            refreshChecker.schedule(new TimerTask() {
+    @PostConstruct
+    public void initialize() {
+        String threadName = "configuration-checker-" + admin.getAdminName();
+        Timer refreshChecker = new Timer(threadName, true);
 
-                @Override
-                public void run() {
-                    try {
-                        updateConfigurations();
-                    } catch (RuntimeException e) {
-                        LOG.error("Updating Plugin Configurations from Database failed", e);
-                    }
+        LOG.info("Refreshing configurations now and periodically refreshing with daemon thread {} every {} ms", threadName, RATE);
+
+        updateConfigurations();
+
+        refreshChecker.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    updateConfigurations();
+                } catch (RuntimeException e) {
+                    LOG.error("Updating Plugin Configurations from Database failed", e);
                 }
-            }, RATE, RATE);
-        }
+        } }, RATE, RATE);
     }
 
-    void updateConfigurations() {
-        Map<ConfigurationId, PluginConfiguration> runningConfigs = toMap(admin.getRunningServices());
-        Map<ConfigurationId, PluginConfiguration> newConfigs = new HashMap<>();
-        for (PluginConfiguration config : repository.getConfigurations()) {
-            if (admin.handlesConfiguration(config.getId())) {
-                newConfigs.put(config.getId(), config);
-            }
-        }
+    public void updateConfigurations() {
+        Map<ConfigurationId, PluginConfiguration> runningConfigs = admin.getRunningServices().stream()
+          .collect(Collectors.toMap((p) -> p.getConfiguration().getId(), (p) -> p.getConfiguration(), (a, b) -> b));
 
-        Set<ConfigurationId> configsToBeRemoved = new HashSet<>(runningConfigs.keySet());
-        configsToBeRemoved.removeAll(newConfigs.keySet());
+        Map<ConfigurationId, PluginConfiguration> newConfigs = repository.getConfigurations().stream()
+          .filter((c) -> admin.handlesConfiguration(c.getId()))
+          .collect(Collectors.toMap((c) -> c.getId(), (c) -> c, (a, b) -> b));
 
-        Set<PluginConfiguration> configsToBeUpdated = new HashSet<>();
-        for (Map.Entry<ConfigurationId, PluginConfiguration> configEntry : newConfigs.entrySet()) {
-            ConfigurationId configId = configEntry.getKey();
-            PluginConfiguration newConfiguration = configEntry.getValue();
-            PluginConfiguration oldConfiguration = runningConfigs.get(configId);
+        Set<ConfigurationId> configsToBeRemoved = runningConfigs.keySet().stream()
+          .filter((c) -> !newConfigs.containsKey(c))
+          .collect(Collectors.toSet());
 
-            if (oldConfiguration == null || oldConfiguration.getVersion() < newConfiguration.getVersion()) {
-                configsToBeUpdated.add(newConfiguration);
-            }
-        }
+        Set<PluginConfiguration> configsToBeUpdated = newConfigs.entrySet().stream()
+          .filter((c) -> {
+            PluginConfiguration newConfiguration = c.getValue(), oldConfiguration = runningConfigs.get(c.getKey());
+
+            return oldConfiguration == null || oldConfiguration.getVersion() < newConfiguration.getVersion();
+          })
+          .map(Map.Entry::getValue)
+          .collect(Collectors.toSet());
 
         for (ConfigurationId toDelete : configsToBeRemoved) {
             refreshEventListeners.stream()
-                    .filter(l -> l.notify(toDelete.getPluginFactory()))
-                    .forEach(l -> l.unregister(toDelete.getInstanceId()));
+              .filter(l -> l.notify(toDelete.getPluginFactory()))
+              .forEach(l -> l.unregister(toDelete.getInstanceId()));
 
             admin.deleteConfiguration(toDelete);
         }
 
-        for (PluginConfiguration toUpdate : configsToBeUpdated) {
-            admin.putConfiguration(toUpdate);
-        }
-
+        configsToBeUpdated.forEach((c) -> admin.putConfiguration(c));
     }
 
-    private Map<ConfigurationId, PluginConfiguration> toMap(List<PluginInstanceReference<Object>> input) {
-        Map<ConfigurationId, PluginConfiguration> res = new HashMap<>();
-        for (PluginInstanceReference<?> p : input) {
-            res.put(p.getConfiguration().getId(), p.getConfiguration());
-        }
-        return res;
+    private static Map<ConfigurationId, PluginConfiguration> toMap(List<PluginInstanceReference<Object>> input) {
+        return input.stream()
+          .collect(Collectors.toMap((p) -> p.getConfiguration().getId(), (p) -> p.getConfiguration()));
     }
 }

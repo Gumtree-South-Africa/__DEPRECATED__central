@@ -1,5 +1,6 @@
 package com.ecg.replyts.integration.test;
 
+import com.ecg.replyts.core.runtime.ParentConfiguration;
 import com.ecg.replyts.core.runtime.ReplyTS;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.io.Files;
@@ -16,7 +17,13 @@ import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
 import java.io.File;
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.setEnv;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -47,7 +54,6 @@ public final class ReplytsRunner {
             context = new AnnotationConfigApplicationContext();
 
             context.getEnvironment().setActiveProfiles(ReplyTS.EMBEDDED_PROFILE);
-            context.register(MailInterceptor.class);
 
             Properties properties = new Properties();
 
@@ -71,6 +77,8 @@ public final class ReplytsRunner {
             properties.put("node.passive", "true");
             properties.put("cluster.jmx.enabled", "false");
 
+            properties.put("service.discovery.enabled", "false");
+
             context.getEnvironment().getPropertySources().addFirst(new PropertiesPropertySource("test", properties));
 
             if (testProperties != null) {
@@ -79,20 +87,28 @@ public final class ReplytsRunner {
 
             context.registerShutdownHook();
 
-            PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(context.getClassLoader());
-            List<Resource> resources = new ArrayList<>();
-            resources.addAll(Arrays.asList(pmrl.getResources("classpath:server-context.xml")));
-            resources.addAll(Arrays.asList(pmrl.getResources("classpath:runtime-context.xml")));
-            resources.addAll(Arrays.asList(pmrl.getResources("classpath*:/plugin-inf/*.xml")));
+            context.register(ParentConfiguration.LegacyConfiguration.class);
 
-            for (Resource r : resources) {
-                XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);
-                reader.loadBeanDefinitions(r);
-            }
+            context.register(MailInterceptor.class);
+
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(context.getClassLoader());
+            Arrays.asList(
+              "classpath:server-context.xml",
+              "classpath:runtime-context.xml",
+              "classpath*:/plugin-inf/*.xml").stream()
+              .flatMap((x) -> {
+                try {
+                    return Arrays.stream(resolver.getResources(x));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+              })
+              .forEach((r) -> new XmlBeanDefinitionReader(context).loadBeanDefinitions(r));
 
             if (configurations != null && configurations.length != 0) {
                 context.register(configurations);
             }
+
             context.refresh();
 
             this.mailInterceptor = checkNotNull(context.getBean(MailInterceptor.class), "mailInterceptor");

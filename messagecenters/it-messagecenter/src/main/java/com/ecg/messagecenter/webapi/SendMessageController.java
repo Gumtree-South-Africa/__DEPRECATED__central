@@ -2,6 +2,7 @@ package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.chat.Template;
 import com.ecg.messagecenter.persistence.ConversationThread;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.util.AdUtil;
 import com.ecg.messagecenter.webapi.requests.ConversationContentPayload;
 import com.ecg.messagecenter.webapi.requests.MessageCenterSendMessageCommand;
@@ -10,7 +11,6 @@ import com.ecg.messagecenter.webapi.requests.StartConversationContentPayload;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.messagecenter.webapi.responses.ResponseUtil;
 import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -38,22 +38,22 @@ import java.util.function.Predicate;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
+
 /**
  * Created by jaludden on 20/11/15.
  */
 @Controller public class SendMessageController {
-
     private final Template template;
     private final String adIdPrefix;
     private MessageProcessingCoordinator coordinator;
     private ConversationRepository conversationRepository;
-    private RiakSimplePostBoxRepository postBoxRepository;
+    private SimplePostBoxRepository postBoxRepository;
     private MailCloakingService mailCloakingService;
 
     @Autowired public SendMessageController(MessageProcessingCoordinator coordinator,
                                             ConversationRepository conversationRepository,
                                             Template template,
-                                            RiakSimplePostBoxRepository postBoxRepository,
+                                            SimplePostBoxRepository postBoxRepository,
                                             MailCloakingService mailCloakingService,
                     @Value("${api.adIdPrefix:}") String adIdPrefix) {
         this.coordinator = coordinator;

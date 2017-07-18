@@ -1,18 +1,11 @@
 package com.ecg.messagecenter.pushmessage;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import net.sf.json.JSONObject;
 
 import java.util.Map;
+import java.util.Optional;
 
-/**
- * User: maldana
- * Date: 18.09.13
- * Time: 17:19
- *
- * @author maldana@ebay.de
- */
 public class PushMessagePayload {
 
     private final String email;
@@ -26,10 +19,10 @@ public class PushMessagePayload {
 
     public PushMessagePayload(String email, String message, String activity,
                     Map<String, String> details) {
-        this(email, message, activity, details, Optional.<Integer>absent(),
-                        Optional.<Map<String, String>>absent(),
-                        Optional.<Map<String, String>>absent(),
-                        Optional.<Map<String, String>>absent());
+        this(email, message, activity, details, Optional.<Integer>empty(),
+                        Optional.<Map<String, String>>empty(),
+                        Optional.<Map<String, String>>empty(),
+                        Optional.<Map<String, String>>empty());
     }
 
     public PushMessagePayload(String email, String message, String activity,
@@ -91,5 +84,4 @@ public class PushMessagePayload {
 
         return json.toString();
     }
-
 }

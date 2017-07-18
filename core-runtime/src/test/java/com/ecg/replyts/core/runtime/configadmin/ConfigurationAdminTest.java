@@ -11,19 +11,31 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 
-
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = ConfigurationAdminTest.TestContext.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ConfigurationAdminTest {
-    @Mock
+    @Autowired
     private ClusterRefreshPublisher clusterRefreshPublisher;
+
+    @Autowired
+    private ConfigurationAdmin<String> admin;
 
     public static class Factory1 implements BasePluginFactory<String> {
         @Nonnull
@@ -37,13 +49,6 @@ public class ConfigurationAdminTest {
         public String createPlugin(String instanceName, JsonNode configuration) {
             return "Factory2" + configuration;
         }
-    }
-
-    private ConfigurationAdmin<String> admin;
-
-    @Before
-    public void setUp() throws Exception {
-        admin = new ConfigurationAdmin<>(Arrays.asList(new Factory1(), new Factory2()), "", clusterRefreshPublisher);
     }
 
     @Test
@@ -87,5 +92,21 @@ public class ConfigurationAdminTest {
     public void informsBusOnDeleteConfiguration() {
         admin.deleteConfiguration(new ConfigurationId(Factory1.class, "inst1"));
         verify(clusterRefreshPublisher).publish();
+    }
+
+    @Configuration
+    static class TestContext {
+        @MockBean
+        private ClusterRefreshPublisher clusterRefreshPublisher;
+
+        @Bean
+        public List<BasePluginFactory<String>> factories() {
+            return Arrays.asList(new Factory1(), new Factory2());
+        }
+
+        @Bean
+        public ConfigurationAdmin<String> configurationAdmin(List<BasePluginFactory<String>> factories) {
+            return new ConfigurationAdmin<>(factories, "");
+        }
     }
 }

@@ -5,14 +5,14 @@ import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-
 /**
  * Manages Configurations/Plugins for a specific type. Will keep an ordered list of all plugins running and is able to
- * add, update or remove any on them when configration changes.
+ * add, update or remove any on them when configuration changes.
  * <p/>
  * Each Configuration Admin is only responsible for the list of {@link BasePluginFactory} instances, it receives. It
  * will reject all configurations for service factories, it does not know of.
@@ -20,29 +20,26 @@ import java.util.concurrent.atomic.AtomicReference;
  * @param <T>
  * @author mhuttar
  */
-// NOT A  @Service - Instantiated via ConfigurationAdminFactory.
 public class ConfigurationAdmin<T> {
-
     private static final Logger LOG = LoggerFactory.getLogger(ConfigurationAdmin.class);
 
-    private final List<BasePluginFactory<T>> factories;
+    @Autowired
+    private ClusterRefreshPublisher clusterRefreshPublisher;
 
-    private final Map<ConfigurationId, PluginInstanceReference<T>> knownServices;
+    private Map<ConfigurationId, PluginInstanceReference<T>> knownServices = new HashMap<>();
 
-    private final AtomicReference<List<PluginInstanceReference<T>>> runningServices = new AtomicReference<>();
+    private AtomicReference<List<PluginInstanceReference<T>>> runningServices = new AtomicReference() {{
+        set(new ArrayList<>());
+    }};
 
-    private final String adminName;
-    private final ClusterRefreshPublisher clusterRefreshPublisher;
+    private List<BasePluginFactory<T>> factories;
 
-    /**
-     * @param factories list of all factories capable of creating plugins of a given type.
-     */
-    public ConfigurationAdmin(List<? extends BasePluginFactory<T>> factories, String adminName, ClusterRefreshPublisher clusterRefreshPublisher) {
+    private String adminName;
+
+    public ConfigurationAdmin(List<BasePluginFactory<T>> factories, String adminName) {
+        this.factories = factories;
         this.adminName = adminName;
-        this.clusterRefreshPublisher = clusterRefreshPublisher;
-        this.factories = Collections.unmodifiableList(factories);
-        knownServices = new HashMap<>();
-        runningServices.set(new ArrayList<>());
+
         LOG.info("Starting Configuration Admin '{}' with known Factories {}", adminName, factories);
     }
 

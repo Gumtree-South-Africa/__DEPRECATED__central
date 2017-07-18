@@ -2,35 +2,26 @@ package com.ecg.messagecenter.pushmessage;
 
 import com.codahale.metrics.Counter;
 import com.ecg.messagecenter.cleanup.TextCleaner;
-import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.PostBoxInitializer;
+import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.util.MessageContentHelper;
 import com.ecg.messagecenter.util.MessageType;
 import com.ecg.messagecenter.webapi.responses.ResponseUtil;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import net.sf.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.lang.String.format;
 
-/**
- * @author maldana@ebay-kleinanzeigen.de
- */
-public class PushMessageOnUnreadConversationCallback
-                implements PostBoxInitializer.PostBoxWriteCallback {
-
+public class PushMessageOnUnreadConversationCallback implements SimplePostBoxInitializer.PostBoxWriteCallback {
     private static final Counter COUNTER_PUSH_SENT =
                     TimingReports.newCounter("message-box.push-message-sent");
     private static final Counter COUNTER_PUSH_NO_DEVICE =
@@ -57,23 +48,21 @@ public class PushMessageOnUnreadConversationCallback
         this.message = message;
     }
 
-    @Override public void success(PostBox<ConversationThread> postBox, boolean markedAsUnread) {
+    @Override
+    public void success(String email, Long unreadCount, boolean markedAsUnread) {
         // only push-trigger on unread use-case
-        if (!markedAsUnread) {
-            return;
+        if (markedAsUnread) {
+            sendPushMessage(email, unreadCount.intValue());
         }
-
-        sendPushMessage(postBox);
     }
 
-
-    void sendPushMessage(PostBox<ConversationThread> postBox) {
+    void sendPushMessage(String email, Integer unreadCount) {
         try {
             Optional<AdInfoLookup.AdInfo> adInfo =
                             adInfoLookup.lookupAdIInfo(conversation.getAdId());
 
             Optional<PushMessagePayload> payload =
-                            createPayloadBasedOnNotificationRules(conversation, message, postBox,
+                            createPayloadBasedOnNotificationRules(conversation, message, email, unreadCount,
                                             adInfo);
 
             if (!payload.isPresent()) {
@@ -111,12 +100,12 @@ public class PushMessageOnUnreadConversationCallback
     }
 
     private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(
-                    Conversation conversation, Message message, PostBox<ConversationThread> postBox,
+                    Conversation conversation, Message message, String email, Integer unreadCount,
                     Optional<AdInfoLookup.AdInfo> adInfo) {
         String pushMessage = createPushMessageText(conversation, message);
-        return Optional.of(new PushMessagePayload(postBox.getEmail(), pushMessage, "CHATMESSAGE",
+        return Optional.of(new PushMessagePayload(email, pushMessage, "CHATMESSAGE",
                                         ImmutableMap.of("ConversationId", conversation.getId()),
-                                        Optional.of(postBox.getUnreadConversations().size()),
+                                        Optional.of(unreadCount),
                                         Optional.of(gcmDetails(conversation, message, adInfo,
                                                         pushMessage, MessageType.isRobot(message))),
                                         Optional.of(apnsDetails(conversation, message, adInfo,
@@ -131,12 +120,8 @@ public class PushMessageOnUnreadConversationCallback
         return ImmutableMap.<String, String>builder().put("body",
                         MessageContentHelper.senderName(this.senderInfo(message, conversation))
                                         + ": " + messageBody)
-                        .put("title", adInfo.transform(new Function<AdInfoLookup.AdInfo, String>() {
-                            @Nullable @Override
-                            public String apply(@Nullable AdInfoLookup.AdInfo input) {
-                                return Optional.fromNullable(input.getTitle()).or("");
-                            }
-                        }).or("")).put("action-loc-key", "strViewBtn").put("badge", "1")
+                        .put("title", adInfo.map((x) -> x.getTitle()).orElse(""))
+                        .put("action-loc-key", "strViewBtn").put("badge", "1")
                         .put("sound", "default").build();
     }
 
@@ -145,27 +130,10 @@ public class PushMessageOnUnreadConversationCallback
         String messageBody = messageShort(message);
         return ImmutableMap.<String, String>builder()
                         .put("senderInfo", senderInfo(message, conversation))
-                        .put("senderMessage", messageBody).put("AdImageUrl", adInfo.transform(
-                                        new Function<AdInfoLookup.AdInfo, String>() {
-                                            @Nullable @Override public String apply(
-                                                            @Nullable AdInfoLookup.AdInfo input) {
-                                                return Optional.fromNullable(input.getImageUrl())
-                                                                .or("");
-                                            }
-                                        }).or("")).put("title", pushMessage).put("type", "3")
-                        .put("AdId", String.valueOf(adInfoLookup
-                                        .getAdIdFrom(conversation.getAdId()))).put("AdSubject",
-                                        adInfo.transform(
-                                                        new Function<AdInfoLookup.AdInfo, String>() {
-                                                            @Nullable @Override public String apply(
-                                                                            @Nullable
-                                                                            AdInfoLookup.AdInfo input) {
-                                                                return Optional.fromNullable(
-                                                                                "Kijiji: " + input
-                                                                                                .getTitle())
-                                                                                .or("");
-                                                            }
-                                                        }).or(""))
+                        .put("senderMessage", messageBody).put("AdImageUrl", adInfo.map((x) -> x.getImageUrl()).orElse(""))
+                        .put("title", pushMessage).put("type", "3")
+                        .put("AdId", String.valueOf(adInfoLookup.getAdIdFrom(conversation.getAdId())))
+                        .put("AdSubject", adInfo.map((x) -> "Kijiji: " + x.getTitle()).orElse(""))
                         .put("isRobot", isRobot.toString()).build();
     }
 
@@ -174,27 +142,12 @@ public class PushMessageOnUnreadConversationCallback
         String messageBody = messageShort(message);
         ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder()
                         .put("senderInfo", senderInfo(message, conversation))
-                        .put("senderMessage", messageBody).put("adImageUrl", adInfo.transform(
-                                        new Function<AdInfoLookup.AdInfo, String>() {
-                                            @Nullable @Override public String apply(
-                                                            @Nullable AdInfoLookup.AdInfo input) {
-                                                return Optional.fromNullable(input.getImageUrl())
-                                                                .or("");
-                                            }
-                                        }).or("")).put("title", messageBody)
+                        .put("senderMessage", messageBody).put("adImageUrl", adInfo.map((x) -> x.getImageUrl()).orElse(""))
                         .put("isRobot", isRobot.toString());
 
         JSONObject ebay = new JSONObject();
-        ebay.put("AdImageUrl", adInfo.transform(new Function<AdInfoLookup.AdInfo, String>() {
-            @Nullable @Override public String apply(@Nullable AdInfoLookup.AdInfo input) {
-                return Optional.fromNullable(input.getImageUrl()).or("");
-            }
-        }).or(""));
-        ebay.put("AdSubject", adInfo.transform(new Function<AdInfoLookup.AdInfo, String>() {
-            @Nullable @Override public String apply(@Nullable AdInfoLookup.AdInfo input) {
-                return Optional.fromNullable(input.getTitle()).or("");
-            }
-        }).or(""));
+        ebay.put("AdImageUrl", adInfo.map((x) -> x.getImageUrl()).orElse(""));
+        ebay.put("AdSubject", adInfo.map((x) -> x.getTitle()).orElse(""));
         ebay.put("Type", "3");
         ebay.put("ConversationId", conversation.getId());
         ebay.put("AdId", String.valueOf(adInfoLookup.getAdIdFrom(conversation.getAdId())));
@@ -214,14 +167,14 @@ public class PushMessageOnUnreadConversationCallback
             return GUMTREE_SENDER;
         } else {
             if (MessageDirection.BUYER_TO_SELLER.equals(message.getMessageDirection())) {
-                return Optional.fromNullable(conversation.getCustomValues().get("buyer-name"))
-                                .or(getNameFromMessages(conversation.getMessages(),
+                return Optional.ofNullable(conversation.getCustomValues().get("buyer-name"))
+                                .orElse(getNameFromMessages(conversation.getMessages(),
                                                 MessageDirection.BUYER_TO_SELLER));
             }
 
             if (MessageDirection.SELLER_TO_BUYER.equals(message.getMessageDirection())) {
-                return Optional.fromNullable(conversation.getCustomValues().get("seller-name"))
-                                .or(getNameFromMessages(conversation.getMessages(),
+                return Optional.ofNullable(conversation.getCustomValues().get("seller-name"))
+                                .orElse(getNameFromMessages(conversation.getMessages(),
                                                 MessageDirection.SELLER_TO_BUYER));
             }
         }

@@ -17,6 +17,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.pluginconfiguration.resultinspector.ResultInspector;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
+import com.ecg.replyts.core.runtime.configadmin.ClusterRefreshPublisher;
 import com.ecg.replyts.core.runtime.configadmin.ConfigurationAdmin;
 import com.ecg.replyts.core.runtime.configadmin.PluginInstanceReference;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
@@ -343,13 +344,16 @@ public class FilterChainTest {
 
     @Configuration
     static class TestContext {
+        @MockBean
+        private ClusterRefreshPublisher clusterRefreshPublisher;
+
         @Bean
         public ConfigurationAdmin<Filter> filterConfigurationAdmin() {
             return mock(ConfigurationAdmin.class);
         }
 
         @Bean
-        public ConfigurationAdmin<ResultInspector> resultInspectorConfigAdmin() {
+        public ConfigurationAdmin<ResultInspector> resultInspectorConfigurationAdmin() {
             return mock(ConfigurationAdmin.class);
         }
 

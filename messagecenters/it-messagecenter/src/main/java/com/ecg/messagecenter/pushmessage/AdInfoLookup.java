@@ -1,7 +1,6 @@
 package com.ecg.messagecenter.pushmessage;
 
 import com.ecg.messagecenter.util.AdUtil;
-import com.google.common.base.Optional;
 import com.google.common.io.CharStreams;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -21,6 +20,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -74,7 +74,7 @@ public class AdInfoLookup {
                             localcontext);
         } catch (Exception e) {
             LOG.error("Error fetching image-url for ad #" + adId + " " + e.getMessage(), e);
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 
@@ -95,9 +95,9 @@ public class AdInfoLookup {
                 case 200:
                     return lookupInfoFromResponse(response);
                 case 404:
-                    return Optional.absent();
+                    return Optional.empty();
                 default:
-                    return Optional.absent();
+                    return Optional.empty();
             }
         }
 

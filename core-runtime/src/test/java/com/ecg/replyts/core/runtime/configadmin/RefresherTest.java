@@ -9,7 +9,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,17 +24,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = RefresherTest.TestContext.class)
 public class RefresherTest {
+    @Autowired
+    private ConfigurationRepository repo;
 
+    @Autowired
+    private ConfigurationAdmin<Object> admin;
+
+    @Autowired
     private Refresher r;
-
-    @Mock
-    ConfigurationRepository repo;
-
-    @Mock
-    ConfigurationAdmin<Object> admin;
 
     private List<PluginConfiguration> configsFromRepo = new ArrayList<PluginConfiguration>();
 
@@ -40,13 +45,11 @@ public class RefresherTest {
         when(repo.getConfigurations()).thenReturn(configsFromRepo);
         when(admin.getRunningServices()).thenReturn(runningPlugins);
         when(admin.handlesConfiguration(any(ConfigurationId.class))).thenReturn(true);
-        r = new Refresher(repo, admin);
     }
 
     @Test
     public void launchesNewConfigurations() throws Exception {
         PluginConfiguration pi = pi(String.class, "instance1", 1l);
-        ;
         configsFromRepo.add(pi);
 
         r.updateConfigurations();
@@ -56,7 +59,6 @@ public class RefresherTest {
 
     @Test
     public void updatesExistingConfigurationWhenNewer() throws Exception {
-
         PluginConfiguration pi = pi(String.class, "instance1", 1l);
         runningPlugins.add(new PluginInstanceReference<Object>(pi, new Object()));
         PluginConfiguration pi2 = pi(String.class, "instance1", 4l);
@@ -71,7 +73,6 @@ public class RefresherTest {
 
     @Test
     public void doesNotUpdateExistingConfigurationWhenSameVersion() throws Exception {
-
         PluginConfiguration pi = pi(String.class, "instance1", 1l);
         runningPlugins.add(new PluginInstanceReference<Object>(pi, new Object()));
         PluginConfiguration pi2 = pi(String.class, "instance1", 1l);
@@ -86,7 +87,6 @@ public class RefresherTest {
 
     @Test
     public void addsSecondConfiguration() {
-
         PluginConfiguration pi = pi(String.class, "instance1", 1l);
         runningPlugins.add(new PluginInstanceReference<Object>(pi, new Object()));
         PluginConfiguration pi2 = pi(String.class, "instance2", 4l);
@@ -101,7 +101,6 @@ public class RefresherTest {
 
     @Test
     public void deletesOldConfiguration() {
-
         PluginConfiguration pi = pi(String.class, "instance1", 1l);
         runningPlugins.add(new PluginInstanceReference<Object>(pi, new Object()));
 
@@ -112,5 +111,19 @@ public class RefresherTest {
 
     private PluginConfiguration pi(Class serviceType, String instanceId, long version) {
         return new PluginConfiguration(new ConfigurationId(serviceType, instanceId), 1l, PluginState.ENABLED, version, JsonObjects.builder().build());
+    }
+
+    @Configuration
+    static class TestContext {
+        @MockBean
+        private ConfigurationRepository configurationRepository;
+
+        @MockBean
+        private ConfigurationAdmin<Object> configurationAdmin;
+
+        @Bean
+        public Refresher refresher() {
+            return new Refresher(configurationAdmin);
+        }
     }
 }

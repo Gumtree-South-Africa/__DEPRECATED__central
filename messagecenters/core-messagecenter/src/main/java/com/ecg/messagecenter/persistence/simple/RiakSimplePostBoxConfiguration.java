@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')}")
 public class RiakSimplePostBoxConfiguration {
-
     @Bean
     public RiakSimplePostBoxMerger postBoxMerger() {
         return new RiakSimplePostBoxMerger();

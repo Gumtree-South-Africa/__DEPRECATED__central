@@ -5,7 +5,6 @@ import org.joda.time.DateTime;
 import java.util.Optional;
 
 public class ConversationThread extends AbstractConversationThread {
-
     //introduced later therefore Option to be compatible with persistent data
     private Optional<String> robot;
     private Optional<String> offerId;

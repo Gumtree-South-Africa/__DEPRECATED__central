@@ -15,7 +15,6 @@ import java.util.Comparator;
  * @author mhuttar
  */
 public class PluginInstanceReference<T> {
-
     /**
      * Comparator to order plugins based on their priority. Higher priority values will be at the start of the list. If priorities are pairsAreEqual,
      * plugins are sorted by class and instance name.
@@ -64,5 +63,4 @@ public class PluginInstanceReference<T> {
     public String toString() {
         return config.getId().toString();
     }
-
 }

@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
+import com.ecg.replyts.core.runtime.configadmin.ClusterRefreshPublisher;
 import com.ecg.replyts.core.runtime.configadmin.ConfigurationAdmin;
 import com.ecg.replyts.core.runtime.configadmin.PluginInstanceReference;
 import org.junit.Before;
@@ -92,6 +93,9 @@ public class FilterListProcessorTest {
 
     @Configuration
     static class TestContext {
+        @MockBean
+        private ClusterRefreshPublisher clusterRefreshPublisher;
+
         @Bean
         public Filter filter1() {
             return mock(Filter.class);

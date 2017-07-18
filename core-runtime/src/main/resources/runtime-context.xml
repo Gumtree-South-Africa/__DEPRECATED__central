@@ -6,16 +6,11 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
     <context:annotation-config />
 
-    <bean class="com.ecg.replyts.core.runtime.ConfigAdminConfiguration" />
-    <bean class="com.ecg.replyts.core.runtime.configadmin.ClusterRefreshPublisher"/>
-    <bean class="com.ecg.replyts.core.runtime.configadmin.ClusterRefreshSubscriber"/>
-    <bean id="refreshManager" class="com.ecg.replyts.core.runtime.configadmin.RefresherManager"/>
-
     <context:component-scan base-package="com.ecg.replyts.app.mailreceiver" />
 
-    <context:component-scan base-package="com.ecg.replyts.core.runtime.workers" />
+    <context:component-scan base-package="com.ecg.replyts.core.runtime.configadmin" />
 
-    <bean class="com.ecg.replyts.core.runtime.configadmin.ConfigurationValidatorImp"/>
+    <context:component-scan base-package="com.ecg.replyts.core.runtime.workers" />
 
     <bean class="com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService"/>
     <bean class="com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter"/>

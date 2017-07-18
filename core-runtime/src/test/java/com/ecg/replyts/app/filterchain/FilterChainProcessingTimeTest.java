@@ -5,6 +5,7 @@ import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.resultinspector.ResultInspector;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
+import com.ecg.replyts.core.runtime.configadmin.ClusterRefreshPublisher;
 import com.ecg.replyts.core.runtime.configadmin.ConfigurationAdmin;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,8 +50,11 @@ public class FilterChainProcessingTimeTest {
 
     @Configuration
     static class TestContext {
+        @MockBean
+        private ClusterRefreshPublisher clusterRefreshPublisher;
+
         @Bean
-        public ConfigurationAdmin<ResultInspector> resultInspectorConfigAdmin() {
+        public ConfigurationAdmin<ResultInspector> resultInspectorConfigurationAdmin() {
             return mock(ConfigurationAdmin.class);
         }
     }

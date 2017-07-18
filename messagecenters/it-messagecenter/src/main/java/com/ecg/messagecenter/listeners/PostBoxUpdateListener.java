@@ -2,7 +2,7 @@ package com.ecg.messagecenter.listeners;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.persistence.PostBoxInitializer;
+import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.pushmessage.AdInfoLookup;
 import com.ecg.messagecenter.pushmessage.KmobilePushService;
 import com.ecg.messagecenter.pushmessage.PushMessageOnUnreadConversationCallback;
@@ -25,32 +25,22 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-/**
- * User: maldana
- * Date: 23.10.13
- * Time: 17:33
- *
- * @author maldana@ebay.de
- */
 @Component
 public class PostBoxUpdateListener implements MessageProcessedListener {
-
-    private static final Timer PROCESSING_TIMER =
-                    TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
-    private static final Counter PROCESSING_SUCCESS =
-                    TimingReports.newCounter("message-box.postBoxUpdateListener.success");
-    private static final Counter PROCESSING_FAILED =
-                    TimingReports.newCounter("message-box.postBoxUpdateListener.failed");
-
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
+    private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
+    private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
+    private static final Counter PROCESSING_FAILED = TimingReports.newCounter("message-box.postBoxUpdateListener.failed");
+
     private final UserNotificationRules userNotificationRules;
-    private final PostBoxInitializer postBoxInitializer;
+    private final SimplePostBoxInitializer postBoxInitializer;
     private final PushService pushService;
     private final AdInfoLookup adInfoLookup;
     private final Collection<String> disabledDomains;
 
-    @Autowired public PostBoxUpdateListener(PostBoxInitializer postBoxInitializer,
+    @Autowired
+    public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
                     @Value("${push-mobile.enabled:true}") boolean pushEnabled,
                     @Value("${push-mobile.host:}") String pushHost,
                     @Value("${push-mobile.port:80}") Integer pushPort,
@@ -81,8 +71,8 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         this.userNotificationRules = new UserNotificationRules();
     }
 
-    @Override public void messageProcessed(Conversation conversation, Message message) {
-
+    @Override
+    public void messageProcessed(Conversation conversation, Message message) {
         if (conversation.getState() == ConversationState.DEAD_ON_ARRIVAL) {
             return;
         }
@@ -94,7 +84,6 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         Timer.Context timerContext = PROCESSING_TIMER.time();
 
         try {
-
             if (!isPushEnabledFor(conversation)) {
                 return;
             }
@@ -123,10 +112,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                                 userNotificationRules.buyerShouldBeNotified(message));
             }
 
-
-
             PROCESSING_SUCCESS.inc();
-
         } catch (Exception e) {
             PROCESSING_FAILED.inc();
             throw new RuntimeException("Error with post-box syncing " + e.getMessage(), e);
@@ -138,15 +124,12 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private boolean isPushEnabledFor(Conversation conversation) {
         String buyerDomain = conversation.getCustomValues().get("buyer_domain");
         String sellerDomain = conversation.getCustomValues().get("seller_domain");
+
         return !(disabledDomains.contains(buyerDomain) || disabledDomains.contains(sellerDomain));
     }
 
-    private void updateMessageCenter(String email, Conversation conversation, Message message,
-                    boolean newReplyArrived) {
+    private void updateMessageCenter(String email, Conversation conversation, Message message, boolean newReplyArrived) {
         postBoxInitializer.moveConversationToPostBox(email, conversation, newReplyArrived,
-                        new PushMessageOnUnreadConversationCallback(pushService, adInfoLookup,
-                                        conversation, message));
+          new PushMessageOnUnreadConversationCallback(pushService, adInfoLookup, conversation, message));
     }
-
-
 }

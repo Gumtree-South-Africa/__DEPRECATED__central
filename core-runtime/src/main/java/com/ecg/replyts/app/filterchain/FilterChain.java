@@ -33,7 +33,7 @@ public class FilterChain {
     private static final Counter PROCESSING_TIME_EXCEEDED_COUNTER = TimingReports.newCounter("processing-exceeded");
 
     @Autowired
-    @Qualifier("resultInspectorConfigAdmin")
+    @Qualifier("resultInspectorConfigurationAdmin")
     private ConfigurationAdmin<ResultInspector> resultInspectorConfig;
 
     @Autowired

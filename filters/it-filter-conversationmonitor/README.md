@@ -19,5 +19,5 @@ The thresholds values represent the chars of the whole conversation. The replace
 Remember to activate the plugin using ReplyTs APIs in this way:
 
 ```
-curl -X PUT "http://localhost:42001/configv2/com.ebay.columbus.replyts2.conversationmonitor.ConversationMonitorFilterFactory/Default" -H "Content-Type: application/json" -d "{'priority': 100, 'state': 'ENABLED', 'configuration': {}}"
+curl -X PUT "http://localhost:42001/configv2/ConversationMonitorFilterFactory/Default" -H "Content-Type: application/json" -d "{'priority': 100, 'state': 'ENABLED', 'configuration': {}}"
 ```

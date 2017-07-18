@@ -7,7 +7,6 @@ import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.google.common.base.Optional;
 import net.sf.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -16,6 +15,7 @@ import org.mockito.ArgumentMatcher;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -71,7 +71,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         AdInfoLookup.AdInfo adInfo = new AdInfoLookup.AdInfo();
         adInfo.setImageUrl("http://image_url");
         adInfo.setTitle("Ad Title");
-        when(adInfoLookup.lookupAdIInfo(anyString())).thenReturn(Optional.fromNullable(adInfo));
+        when(adInfoLookup.lookupAdIInfo(anyString())).thenReturn(Optional.ofNullable(adInfo));
         TextCleaner.setInstance(new TextCleaner.GumtreeTextCleaner());
 
 
@@ -84,7 +84,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     }
 
     @Test public void doNotSendPushMessageIfNoRulesApply() {
-        listener.success(postBox, false);
+        listener.success(postBox.getEmail(), new Long(postBox.getUnreadConversations().size()), false);
 
         verify(pushService, never()).sendPushMessage(any(PushMessagePayload.class));
     }
@@ -93,7 +93,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     @Test public void sendPushMessageToSeller() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), new Long(postBox.getUnreadConversations().size()), true);
 
         verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override public boolean matches(Object o) {
@@ -107,7 +107,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     @Test public void sendPushMessageToBuyerIfRulesApply() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), new Long(postBox.getUnreadConversations().size()), true);
 
         verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override public boolean matches(Object o) {
@@ -120,7 +120,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     @Test public void testPushMessagePayload() {
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), new Long(postBox.getUnreadConversations().size()), true);
 
         verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override public boolean matches(Object o) {
@@ -141,7 +141,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         when(message.getHeaders()).thenReturn(messageHeaders);
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
 
-        listener.success(postBox, true);
+        listener.success(postBox.getEmail(), new Long(postBox.getUnreadConversations().size()), true);
 
         verify(pushService).sendPushMessage(argThat(new ArgumentMatcher<PushMessagePayload>() {
             @Override public boolean matches(Object o) {
@@ -162,10 +162,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         }));
     }
 
-
     private void listenerCallback() {
-        listener.sendPushMessage(postBox);
+        listener.sendPushMessage(postBox.getEmail(), postBox.getUnreadConversations().size());
     }
-
-
 }

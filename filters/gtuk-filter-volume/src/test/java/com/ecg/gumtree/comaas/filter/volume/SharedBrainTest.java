@@ -19,7 +19,6 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SharedBrainTest {
-
     private static final String NEW_MESSAGE_LISTENER_ID = "message-listener-id-new";
 
     @Mock

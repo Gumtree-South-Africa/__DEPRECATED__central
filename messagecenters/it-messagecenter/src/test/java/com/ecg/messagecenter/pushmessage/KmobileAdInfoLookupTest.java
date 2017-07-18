@@ -1,12 +1,12 @@
 package com.ecg.messagecenter.pushmessage;
 
-import com.google.common.base.Optional;
 import org.apache.http.HttpResponse;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;

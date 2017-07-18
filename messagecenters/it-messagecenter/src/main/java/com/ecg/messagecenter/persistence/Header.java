@@ -1,8 +1,5 @@
 package com.ecg.messagecenter.persistence;
 
-/**
- * Created by maotero on 7/09/2015.
- */
 public enum Header {
     OfferId("X-Offerid"),
     Robot("X-Robot");

@@ -4,9 +4,9 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterDeletePostBoxConversationCommandNew;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
 
-
 /**
  * User: maldana
  * Date: 24.10.13
@@ -36,27 +35,21 @@ import java.util.Arrays;
  * @author maldana@ebay.de
  */
 @Controller class PostBoxOverviewController {
+    private static final Logger LOG = LoggerFactory.getLogger(PostBoxOverviewController.class);
 
+    private static final Timer API_POSTBOX_BY_EMAIL = TimingReports.newTimer("webapi-postbox-by-email");
+    private static final Timer API_POSTBOX_CONVERSATION_DELETE_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-delete");
 
-    private static final Timer API_POSTBOX_BY_EMAIL =
-                    TimingReports.newTimer("webapi-postbox-by-email");
-    private static final Timer API_POSTBOX_CONVERSATION_DELETE_BY_ID =
-                    TimingReports.newTimer("webapi-postbox-conversation-delete");
+    private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX = TimingReports.newHistogram("webapi-postbox-num-conversations-of-postbox");
 
-    private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX =
-                    TimingReports.newHistogram("webapi-postbox-num-conversations-of-postbox");
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxOverviewController.class);
-
-
-    private final RiakSimplePostBoxRepository postBoxRepository;
+    private final SimplePostBoxRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
 
     @Autowired public PostBoxOverviewController(ConversationRepository conversationRepository,
-                                                RiakSimplePostBoxRepository postBoxRepository) {
+                                                SimplePostBoxRepository postBoxRepository) {
         this.postBoxRepository = postBoxRepository;
         this.responseBuilder = new PostBoxResponseBuilder(conversationRepository);
     }
-
 
     @InitBinder public void initBinderInternal(WebDataBinder binder) {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
@@ -104,7 +97,7 @@ import java.util.Arrays;
                                 newCounterMode);
             }
         } catch (RuntimeException e) {
-            LOGGER.error("Runtime Exception in PostBoxOverviewController: ", e);
+            LOG.error("Runtime Exception in PostBoxOverviewController: ", e);
             throw e;
 
         } finally {
