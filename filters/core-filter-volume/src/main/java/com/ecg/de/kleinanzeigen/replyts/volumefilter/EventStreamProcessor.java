@@ -1,60 +1,96 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import com.espertech.esper.client.Configuration;
-import com.espertech.esper.client.EPOnDemandQueryResult;
-import com.espertech.esper.client.EPServiceProvider;
-import com.espertech.esper.client.EPServiceProviderManager;
+import com.ecg.replyts.core.runtime.configadmin.ConfigurationRefreshEventListener;
+import com.espertech.esper.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Pattern;
 
-public class EventStreamProcessor {
+import static java.lang.String.format;
 
-    private static final String PROVIDER_NAME = "volumefilter_provider";
+public class EventStreamProcessor implements ConfigurationRefreshEventListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(EventStreamProcessor.class);
 
-    private final EPServiceProvider epServiceProvider;
+    private static final String PROVIDER_NAME = "volumefilter_provider";
+    private static final String MAIL_RECEIVED_EVENT = "MailReceivedEvent";
+    private static final String VELOCITY_FIELD_VALUE = "mailAddress";
+    private static final String VOLUME_NAME_PREFIX = "volume";
+    private static final Pattern VOLUME_PATTERN = Pattern.compile("[- %+()]");
 
-    public EventStreamProcessor(List<Quota> queues) {
+    private ConcurrentMap<String, List<EPStatement>> epWindows = new ConcurrentHashMap<>();
+    private EPServiceProvider epServiceProvider;
 
+    @PostConstruct
+    void initialize() {
         Configuration config = new Configuration();
-        config.addEventType("MailReceivedEvent", MailReceivedEvent.class);
-        EPServiceProviderManager.getProvider(PROVIDER_NAME, config).destroy();
-        epServiceProvider = EPServiceProviderManager.getProvider(PROVIDER_NAME, config);
 
+        config.addEventType(MAIL_RECEIVED_EVENT, MailReceivedEvent.class);
 
-        for (Quota quota : queues) {
-
-            String windowName = windowName(quota);
-
-
-            //private static final String CREATE_WIN = "create window ${windowName}.win:time(${windowLength}) as select `${entityField}` from `${eventType}`";
-            String createWindow = "create window " + windowName + ".win:time(" + quota.getDurationMinutes() + " min) as select `mailAddress` from `MailReceivedEvent`";
-            LOG.debug(createWindow);
-            epServiceProvider.getEPAdministrator().createEPL(createWindow);
-
-            String insertIntoWindow = "insert into " + windowName + " select `mailAddress` from `MailReceivedEvent`";
-            LOG.debug(insertIntoWindow);
-            epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
-
-        }
-
+        this.epServiceProvider = EPServiceProviderManager.getProvider(PROVIDER_NAME, config);
+        this.epServiceProvider.initialize();
     }
 
+    void register(String instanceId, List<Quota> queues) {
+        if (epWindows.containsKey(instanceId)) {
+            LOG.warn("EP Window '{}' already exists, not creating again", instanceId);
+            return;
+        }
 
-    private String windowName(Quota q) {
-        return ("quota" + q.getPerTimeValue() + q.getPerTimeUnit() + q.getScore()).toLowerCase();
+        List<EPStatement> statements = new ArrayList<>();
+        for (Quota quota : queues) {
+            String windowName = windowName(instanceId, quota);
+
+            String createWindow = format("create window %s.win:time(%d min) as select `%s` from `%s`",
+                    windowName, quota.getDurationMinutes(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
+
+            LOG.debug(createWindow);
+            EPStatement epl = epServiceProvider.getEPAdministrator().createEPL(createWindow);
+            statements.add(epl);
+
+            String insertIntoWindow = format("insert into %s select `%s` from `%s`", windowName, VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
+            LOG.debug(insertIntoWindow);
+            epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
+        }
+
+        epWindows.put(instanceId, statements);
+    }
+
+    private String windowName(String instanceId, Quota q) {
+        String sanitisedFilterName = VOLUME_PATTERN.matcher(instanceId).replaceAll("_");
+        return (VOLUME_NAME_PREFIX + sanitisedFilterName + "quota" + q.getPerTimeValue() + q.getPerTimeUnit() + q.getScore()).toLowerCase();
     }
 
     public void mailReceivedFrom(String mailAddress) {
         epServiceProvider.getEPRuntime().sendEvent(new MailReceivedEvent(mailAddress.toLowerCase()));
     }
 
-    long count(String mailAddress, Quota q) {
-        EPOnDemandQueryResult result = epServiceProvider.getEPRuntime().executeQuery("select count(*) from " + windowName(q) + " where mailAddress = '" + mailAddress.toLowerCase() + "'");
+    long count(String mailAddress, String instanceId, Quota quota) {
+        String query = format("select count(*) from %s where mailAddress = '%s'",
+                windowName(instanceId, quota), mailAddress.toLowerCase());
+
+        EPOnDemandQueryResult result = epServiceProvider.getEPRuntime().executeQuery(query);
         return (Long) result.iterator().next().get("count(*)");
     }
 
+    @Override
+    public boolean isApplicable(Class<?> clazz) {
+        return clazz.equals(VolumeFilterFactory.class);
+    }
+
+    @Override
+    public void unregister(String instanceId) {
+        epWindows.get(instanceId).stream()
+                .filter(Objects::nonNull)
+                .forEach(EPStatement::destroy);
+
+        epWindows.remove(instanceId);
+    }
 }

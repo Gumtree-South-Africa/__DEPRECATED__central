@@ -7,7 +7,7 @@ public interface ConfigurationRefreshEventListener {
      * @param clazz the ? extends BasePluginFactory classname
      * @return true is unregister should be called
      */
-    boolean notify(Class<?> clazz);
+    boolean isApplicable(Class<?> clazz);
 
     /**
      * Put any unregister code in this method

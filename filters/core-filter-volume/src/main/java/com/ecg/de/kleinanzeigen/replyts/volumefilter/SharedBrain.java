@@ -1,35 +1,25 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ITopic;
-import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
+import com.hazelcast.core.*;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-class SharedBrain {
+public class SharedBrain {
 
     private final ITopic<String> communicationBus;
-    private final AtomicReference<EventStreamProcessor> processor = new AtomicReference<EventStreamProcessor>();
+    private final EventStreamProcessor processor;
 
-    SharedBrain(HazelcastInstance hazelcastInstance) {
-        communicationBus = hazelcastInstance.getTopic("volumefilter_sender_address_exchange");
-        communicationBus.addMessageListener(new MessageListener<String>() {
-            @Override
-            public void onMessage(Message<String> message) {
-                processor.get().mailReceivedFrom(message.getMessageObject());
+    SharedBrain(HazelcastInstance hazelcastInstance, EventStreamProcessor processor) {
+        this.processor = processor;
+        this.communicationBus = hazelcastInstance.getTopic("volumefilter_sender_address_exchange");
+        this.communicationBus.addMessageListener(message -> {
+            Member publishingMember = message.getPublishingMember();
+            if (publishingMember != null && !publishingMember.localMember()) {
+                processor.mailReceivedFrom(message.getMessageObject());
             }
         });
     }
 
-    public void withProcessor(EventStreamProcessor processor) {
-        this.processor.set(processor);
-    }
-
-
-    public void markSeen(String mailAddress) {
+    void markSeen(String mailAddress) {
+        processor.mailReceivedFrom(mailAddress);
         communicationBus.publish(mailAddress);
     }
-
 }

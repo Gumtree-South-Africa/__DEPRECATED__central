@@ -56,7 +56,7 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
     }
 
     @Override
-    public boolean notify(Class<?> clazz) {
+    public boolean isApplicable(Class<?> clazz) {
         return clazz.equals(GumtreeVolumeFilterConfiguration.VolumeFilterFactory.class);
     }
 

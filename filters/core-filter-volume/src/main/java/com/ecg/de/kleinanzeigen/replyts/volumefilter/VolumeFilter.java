@@ -1,74 +1,51 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import com.codahale.metrics.Counter;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.search.RtsSearchResponse;
-import com.ecg.replyts.core.api.search.SearchService;
-import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
-import com.ecg.replyts.core.runtime.TimingReports;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import static org.joda.time.DateTime.now;
-
-/**
- * uses elastic search to query for the number of mails received by the mail's sender. if a quota is violated, a score is assigned.
- * Expects the given list of quotas to be sorted by score descending.
- *
- * @author mhuttar
- */
 class VolumeFilter implements Filter {
 
     private static final Logger LOG = LoggerFactory.getLogger(VolumeFilter.class);
 
-
-
-    private final EventStreamProcessor processor;
+    private final SharedBrain sharedBrain;
     private final List<Quota> sortedQuotas;
+    private final EventStreamProcessor processor;
+    private final String instanceId;
 
-
-    VolumeFilter(SharedBrain brain, List<Quota> sortedQuotas) {
-        this.processor = new EventStreamProcessor(sortedQuotas);
+    VolumeFilter(SharedBrain sharedBrain, List<Quota> sortedQuotas, EventStreamProcessor processor, String instanceId) {
+        this.sharedBrain = sharedBrain;
         this.sortedQuotas = sortedQuotas;
-        brain.withProcessor(processor);
+        this.processor = processor;
+        this.instanceId = instanceId;
     }
-
-
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         Message message = messageProcessingContext.getMessage();
         ConversationRole fromRole = message.getMessageDirection().getFromRole();
         String senderMailAddress = messageProcessingContext.getConversation().getUserId(fromRole);
-        processor.mailReceivedFrom(senderMailAddress);
 
+        sharedBrain.markSeen(senderMailAddress);
 
+        for (Quota quota : sortedQuotas) {
+            long mailsInTimeWindow = processor.count(senderMailAddress, instanceId, quota);
 
-        for (Quota q : sortedQuotas) {
+            LOG.debug("Num of mails in {} {}: {}", quota.getPerTimeValue(), quota.getPerTimeUnit(), mailsInTimeWindow);
 
-            // this mail (that is being processed right now), which is being processed right now, has not been indexed to ES yet
-            // therefore, we need to add it to the number of mails in timerange manually.
-
-            long mailsInTimeWindow = processor.count(senderMailAddress, q);
-
-
-            LOG.debug("Num of mails in {} {}: {}", q.getPerTimeValue(), q.getPerTimeUnit(), mailsInTimeWindow);
-
-
-            if(mailsInTimeWindow > q.getAllowance()) {
+            if (mailsInTimeWindow > quota.getAllowance()) {
                 return Collections.singletonList(new FilterFeedback(
-                        q.uihint(),
-                        q.describeViolation(mailsInTimeWindow),
-                        q.getScore(),
+                        quota.uihint(),
+                        quota.describeViolation(mailsInTimeWindow),
+                        quota.getScore(),
                         FilterResultState.OK));
             }
         }

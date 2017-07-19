@@ -16,7 +16,9 @@ public class EventStreamProcessorTest {
 
     @Before
     public void setUp() {
-        esp = new EventStreamProcessor(Lists.newArrayList(quota));
+        esp = new EventStreamProcessor();
+        esp.initialize();
+        esp.register("esp-instance", Lists.newArrayList(quota));
     }
 
     @Test
@@ -25,7 +27,7 @@ public class EventStreamProcessorTest {
         esp.mailReceivedFrom("foo@bar.com");
         esp.mailReceivedFrom("foo@bar.com");
 
-        assertThat(esp.count("foo@bar.com", quota), equalTo(3L));
+        assertThat(esp.count("foo@bar.com", "esp-instance", quota), equalTo(3L));
     }
 
     @Test
@@ -34,15 +36,12 @@ public class EventStreamProcessorTest {
         esp.mailReceivedFrom("bar@foo.com");
         esp.mailReceivedFrom("foo@bar.com");
 
-        assertThat(esp.count("foo@bar.com", quota), equalTo(2L));
-        assertThat(esp.count("bar@foo.com", quota), equalTo(1L));
+        assertThat(esp.count("foo@bar.com", "esp-instance", quota), equalTo(2L));
+        assertThat(esp.count("bar@foo.com", "esp-instance", quota), equalTo(1L));
     }
 
     @Test
     public void unknownUserCountZero() {
-        assertThat(esp.count("foo@bar.com", quota), equalTo(0L));
+        assertThat(esp.count("foo@bar.com", "esp-instance", quota), equalTo(0L));
     }
-
-
-
 }

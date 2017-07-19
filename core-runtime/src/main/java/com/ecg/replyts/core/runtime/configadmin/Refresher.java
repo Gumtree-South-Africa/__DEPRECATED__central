@@ -75,18 +75,23 @@ public class Refresher {
           .collect(Collectors.toSet());
 
         for (ConfigurationId toDelete : configsToBeRemoved) {
-            refreshEventListeners.stream()
-              .filter(l -> l.notify(toDelete.getPluginFactory()))
-              .forEach(l -> l.unregister(toDelete.getInstanceId()));
+            for (ConfigurationRefreshEventListener listener : refreshEventListeners) {
+                if (listener.isApplicable(toDelete.getPluginFactory())) {
+                    try {
+                        listener.unregister(toDelete.getInstanceId());
+                    } catch (Exception ex) {
+                        LOG.warn("Exception occurred during unregistering refresh event listener: " + toDelete, ex);
+                    }
+                }
+            }
 
-            admin.deleteConfiguration(toDelete);
+            try {
+                admin.deleteConfiguration(toDelete);
+            } catch (Exception ex) {
+                LOG.warn("Exception occurred during deleting the configuration: " + toDelete, ex);
+            }
         }
 
         configsToBeUpdated.forEach((c) -> admin.putConfiguration(c));
-    }
-
-    private static Map<ConfigurationId, PluginConfiguration> toMap(List<PluginInstanceReference<Object>> input) {
-        return input.stream()
-          .collect(Collectors.toMap((p) -> p.getConfiguration().getId(), (p) -> p.getConfiguration()));
     }
 }
