@@ -1,7 +1,5 @@
 package com.ecg.replyts.core.runtime.persistence.strategy;
 
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
@@ -10,6 +8,7 @@ import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.runtime.MetricsService;
+import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
@@ -265,7 +264,7 @@ public class CassandraPersistenceConfiguration {
         private void reportCassandraMetricsWithPrefix(Cluster cluster, String prefix) {
             MetricRegistry comaasRegistry = MetricsService.getInstance().getRegistry();
             cluster.init(); // this is totally safe to do here, check the javadoc
-            String fullPrefix = "cassandra." + prefix;
+            String fullPrefix = String.format("%s.cassandra.%s", TimingReports.getHostName(), prefix);
             comaasRegistry.removeMatching((name, metric) -> name != null && name.startsWith(fullPrefix + "."));
             comaasRegistry.register(fullPrefix, cluster.getMetrics().getRegistry());
         }
