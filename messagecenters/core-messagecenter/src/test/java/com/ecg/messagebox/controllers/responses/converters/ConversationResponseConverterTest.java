@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static com.datastax.driver.core.utils.UUIDs.timeBased;
@@ -151,6 +152,49 @@ public class ConversationResponseConverterTest {
         when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_2)).thenReturn(participantRespMock);
 
         ConversationResponse actual = convRespConverter.toConversationResponse(conversation);
+
+        verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_1);
+        verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_2);
+        verify(msgRespConverterMock).toMessageResponse(MSG_SELLER);
+        assertThat(actual, is(expected));
+    }
+
+    @Test
+    public void toConversationResponseWithoutMessages() {
+        MessageResponse msgResp = new MessageResponse("m1", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data");
+        MessageResponse expectedMsgResp = new MessageResponse("m1", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data");
+        expectedMsgResp.setIsRead(false);
+        ConversationThread conversation = new ConversationThread(
+                CONVERSATION_ID,
+                AD_ID,
+                PARTICIPANT_1.getUserId(),
+                ACTIVE,
+                RECEIVE,
+                asList(PARTICIPANT_1, PARTICIPANT_2),
+                MSG_SELLER,
+                new ConversationMetadata(now(), EMAIL_SUBJECT, CONVERSATION_TITLE))
+                .addMessages(new ArrayList<>())
+                .addNumUnreadMessages(PARTICIPANT_1.getUserId(), UNREAD_MSGS_COUNT)
+                .addNumUnreadMessages(PARTICIPANT_2.getUserId(), UNREAD_MSGS_COUNT);
+
+        ConversationResponse expected = new ConversationResponse(
+                CONVERSATION_ID,
+                AD_ID,
+                "active",
+                "receive",
+                asList(participantRespMock, participantRespMock),
+                expectedMsgResp,
+                toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
+                EMAIL_SUBJECT,
+                CONVERSATION_TITLE,
+                UNREAD_MSGS_COUNT,
+                Optional.of(new ArrayList<>()));
+
+        when(msgRespConverterMock.toMessageResponse(MSG_SELLER)).thenReturn(msgResp);
+        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_1)).thenReturn(participantRespMock);
+        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_2)).thenReturn(participantRespMock);
+
+        ConversationResponse actual = convRespConverter.toConversationResponseWithMessages(conversation);
 
         verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_1);
         verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_2);

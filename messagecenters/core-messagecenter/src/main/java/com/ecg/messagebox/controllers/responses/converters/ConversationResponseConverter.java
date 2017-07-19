@@ -29,9 +29,11 @@ public class ConversationResponseConverter {
         List<MessageResponse> messageResponses = conversationThread.getMessages().stream()
                 .map(msgRespConverter::toMessageResponse).collect(Collectors.toList());
 
-        int otherParticipantNumUnread = conversationThread.getHighestOtherParticipantNumUnread();
-        for (int i = messageResponses.size() - 1; i >= messageResponses.size() - otherParticipantNumUnread; i--) {
-            messageResponses.get(i).setIsRead(false);
+        if (messageResponses.size() > 0) {
+            int otherParticipantNumUnread = conversationThread.getHighestOtherParticipantNumUnread();
+            for (int i = messageResponses.size() - 1; i >= messageResponses.size() - otherParticipantNumUnread && i >= 0; i--) {
+                messageResponses.get(i).setIsRead(false);
+            }
         }
         return toConversationResponse(conversationThread, Optional.of(messageResponses));
     }
