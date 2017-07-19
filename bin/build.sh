@@ -221,6 +221,7 @@ function main() {
         docker/properties-to-consul-osx -file "distribution/conf/$TENANT/import_into_consul/docker.properties"
     fi
 
+    export COMAAS_HTTP_PORT=18081
     CMD="${MVN_CMD} ${MVN_ARGS} ${MVN_TASKS} -DtestLocalCassandraPort=${CASSANDRA_CONTAINER_PORT}"
     log "Executing: ${CMD}"
     ${CMD}

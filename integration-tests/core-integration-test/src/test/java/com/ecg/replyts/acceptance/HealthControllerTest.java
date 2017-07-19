@@ -14,7 +14,9 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.bus.BusAutoConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -23,23 +25,26 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
 import static com.ecg.replyts.core.runtime.ReplyTS.EMBEDDED_PROFILE;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.setEnv;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertNotNull;
 
-import javax.annotation.PostConstruct;
-import java.util.*;
-
 @RunWith(SpringRunner.class)
 @ContextHierarchy({
-  @ContextConfiguration(classes = HealthControllerTest.TestConfiguration.class),
-  @ContextConfiguration(classes = HealthControllerTest.DiscoveryConfiguration.class),
-  @ContextConfiguration(locations = "classpath:server-context.xml")
+        @ContextConfiguration(classes = HealthControllerTest.TestConfiguration.class),
+        @ContextConfiguration(classes = HealthControllerTest.DiscoveryConfiguration.class),
+        @ContextConfiguration(locations = "classpath:server-context.xml")
 })
 @ActiveProfiles(EMBEDDED_PROFILE)
 public class HealthControllerTest {
-    @Value("${replyts.http.port}")
+    @Value("#{environment.COMAAS_HTTP_PORT}")
     private Integer httpPort;
 
     @Test
@@ -68,7 +73,7 @@ public class HealthControllerTest {
             properties.put("confDir", "classpath:/integrationtest-conf");
             properties.put("replyts.control.context", "integration-test-control-context.xml");
 
-            properties.put("replyts.http.port", OpenPortFinder.findFreePort());
+            setEnv("COMAAS_HTTP_PORT", String.valueOf(OpenPortFinder.findFreePort()));
 
             // Disabling both will nonetheless make HealthController 'choose' Cassandra
 
@@ -90,7 +95,7 @@ public class HealthControllerTest {
     @Configuration
     @PropertySource("discovery.properties")
     @EnableDiscoveryClient
-    @EnableAutoConfiguration(exclude = { FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class })
+    @EnableAutoConfiguration(exclude = {FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class})
     public static class DiscoveryConfiguration {
         @Autowired
         private ConfigurableEnvironment environment;

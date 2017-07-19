@@ -19,7 +19,7 @@ import javax.annotation.PostConstruct;
 public class ParentConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(ParentConfiguration.class);
 
-    public static final String CONF_DIR_PROPERTY_SOURCE = "confDirProperties";
+    static final String CONF_DIR_PROPERTY_SOURCE = "confDirProperties";
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -30,13 +30,6 @@ public class ParentConfiguration {
     // This is no longer needed as soon as we move to the cloud. Keep for now
     @PostConstruct
     public void initializePersistenceStrategyIfMissing() {
-        // Check if the COMAAS_HTTP_PORT env var was set, and introduce it as the replyts.http.port. If not set, this value
-        // should come from the replyts.properties file.
-        String comaasHttpPort = System.getenv("COMAAS_HTTP_PORT");
-        if (comaasHttpPort != null) {
-            environment.getPropertySources().addFirst(new MapPropertySource("Environment-detected properties", ImmutableMap.of("replyts.http.port", comaasHttpPort)));
-        }
-
         if (discoveryEnabled) {
             return;
         }

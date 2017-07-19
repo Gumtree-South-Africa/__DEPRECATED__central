@@ -19,14 +19,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.annotation.PostConstruct;
 import java.util.Properties;
 
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.setEnv;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextHierarchy({
-    @ContextConfiguration(classes = SSLPlainHTTPTest.TestConfiguration.class),
-    @ContextConfiguration(locations = "classpath:server-context.xml")
+        @ContextConfiguration(classes = SSLPlainHTTPTest.TestConfiguration.class),
+        @ContextConfiguration(locations = "classpath:server-context.xml")
 })
 @ActiveProfiles(ReplyTS.EMBEDDED_PROFILE)
 public class SSLPlainHTTPTest {
-    @Value("${replyts.http.port}")
+    @Value("#{environment.COMAAS_HTTP_PORT}")
     private Integer httpPort;
     @Value("${replyts.ssl.port}")
     private Integer httpsPort;
@@ -67,7 +69,7 @@ public class SSLPlainHTTPTest {
             properties.put("confDir", "classpath:/integrationtest-conf");
             properties.put("replyts.control.context", "integration-test-control-context.xml");
 
-            properties.put("replyts.http.port", OpenPortFinder.findFreePort());
+            setEnv("COMAAS_HTTP_PORT", String.valueOf(OpenPortFinder.findFreePort()));
             properties.put("replyts.ssl.port", OpenPortFinder.findFreePort());
             properties.put("replyts.ssl.enabled", true);
             properties.put("replyts.ssl.store.format", "keystore");

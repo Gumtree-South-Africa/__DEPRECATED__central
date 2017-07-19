@@ -4,6 +4,8 @@ import com.ecg.replyts.core.runtime.ReplyTS;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.io.Files;
 import org.elasticsearch.client.Client;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -14,15 +16,14 @@ import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.setEnv;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class ReplytsRunner {
+    private static final Logger LOG = LoggerFactory.getLogger(ReplytsRunner.class);
+
     public static final String DEFAULT_CONFIG_RESOURCE_DIRECTORY = "/integrationtest-conf";
 
     private static final String ELASTIC_SEARCH_PREFIX = "comaas_integration_test_";
@@ -30,14 +31,13 @@ public final class ReplytsRunner {
     private final File dropFolder = Files.createTempDir();
     private final Integer httpPort = OpenPortFinder.findFreePort();
     private final Integer smtpOutPort = OpenPortFinder.findFreePort();
-    private final String elasticClusterName = ELASTIC_SEARCH_PREFIX + UUID.randomUUID();
 
     private Wiser wiser = new Wiser(smtpOutPort);
     private AnnotationConfigApplicationContext context;
     private Client searchClient;
     private MailInterceptor mailInterceptor;
 
-    public ReplytsRunner(Properties testProperties, String configResourcePrefix, Class<?>[] configurations) {
+    ReplytsRunner(Properties testProperties, String configResourcePrefix, Class<?>[] configurations) {
         wiser.start();
 
         if (!wiser.getServer().isRunning())
@@ -60,12 +60,13 @@ public final class ReplytsRunner {
 
             properties.put("persistence.cassandra.core.endpoint", CassandraIntegrationTestProvisioner.getEndPoint());
             properties.put("persistence.cassandra.mb.endpoint", CassandraIntegrationTestProvisioner.getEndPoint());
-            properties.put("replyts.http.port", String.valueOf(httpPort));
+            setEnv("COMAAS_HTTP_PORT", httpPort.toString());
             properties.put("replyts.ssl.enabled", "false");
             properties.put("delivery.smtp.port", String.valueOf(smtpOutPort));
 
             properties.put("mailreceiver.filesystem.dropfolder", dropFolder.getAbsolutePath());
 
+            String elasticClusterName = ELASTIC_SEARCH_PREFIX + UUID.randomUUID();
             properties.put("search.es.clustername", elasticClusterName);
 
             properties.put("node.passive", "true");
@@ -122,7 +123,7 @@ public final class ReplytsRunner {
         return httpPort;
     }
 
-    public Client getSearchClient() {
+    Client getSearchClient() {
         if (searchClient == null) {
             searchClient = context.getBean(Client.class);
 
@@ -134,23 +135,29 @@ public final class ReplytsRunner {
         return searchClient;
     }
 
-    public File getDropFolder() {
+    File getDropFolder() {
         return dropFolder;
     }
 
     private void deleteDirectory(File directory) {
         File[] files = directory.listFiles();
-        for (File file : files) {
-            if (file.isDirectory()) {
-                deleteDirectory(file);
-            } else {
-                file.delete();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDirectory(file);
+                } else {
+                    if (!file.delete()) {
+                        LOG.warn("Could not delete file {}", file);
+                    }
+                }
             }
         }
-        directory.delete();
+        if (!directory.delete()) {
+            LOG.warn("Could not delete directory {}", directory);
+        }
     }
 
-    public MailInterceptor getMailInterceptor() {
+    MailInterceptor getMailInterceptor() {
         return mailInterceptor;
     }
 }

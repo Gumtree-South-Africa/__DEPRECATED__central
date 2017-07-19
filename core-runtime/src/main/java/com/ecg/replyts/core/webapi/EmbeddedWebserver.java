@@ -28,13 +28,8 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.eclipse.jetty.http.HttpMethod.DELETE;
-import static org.eclipse.jetty.http.HttpMethod.GET;
-import static org.eclipse.jetty.http.HttpMethod.POST;
-import static org.eclipse.jetty.http.HttpMethod.PUT;
-import static org.eclipse.jetty.http.MimeTypes.Type.APPLICATION_JSON;
-import static org.eclipse.jetty.http.MimeTypes.Type.TEXT_JSON;
-import static org.eclipse.jetty.http.MimeTypes.Type.TEXT_PLAIN;
+import static org.eclipse.jetty.http.HttpMethod.*;
+import static org.eclipse.jetty.http.MimeTypes.Type.*;
 
 /**
  * Wrapper around basic Jetty webserver.
@@ -70,7 +65,7 @@ public class EmbeddedWebserver {
     @Autowired
     public EmbeddedWebserver(
             @Value("${replyts.ssl.enabled:false}") boolean isSSLEnabled,
-            @Value("${replyts.http.port:8081}") int httpPortNumber,
+            @Value("#{environment.COMAAS_HTTP_PORT ?: 8080}") int httpPortNumber,
             @Value("${replyts.http.timeout:5000}") long httpTimeoutMs,
             @Value("${replyts.http.blocking.timeout:5000}") long httpBlockingTimeoutMs,
             @Value("${replyts.jetty.socket.linger:-1}") int solinger,
@@ -93,16 +88,16 @@ public class EmbeddedWebserver {
 
         if (isSSLEnabled) {
             SSLConfiguration sslConfiguration = SSLConfiguration.createSSLConfiguration(environment);
-            SSLServerFactory factory = new SSLServerFactory(httpPortNumber, httpTimeoutMs, builder, sslConfiguration, httpMaxAcceptRequestQueueSize,
+            SSLServerFactory factory = new SSLServerFactory(httpPort, httpTimeoutMs, builder, sslConfiguration, httpMaxAcceptRequestQueueSize,
                     httpBlockingTimeoutMs, threadStopTimeoutMs, solinger);
             server = factory.createServer();
         } else {
-            HttpServerFactory factory = new HttpServerFactory(httpPortNumber, httpTimeoutMs, builder, httpMaxAcceptRequestQueueSize,
+            HttpServerFactory factory = new HttpServerFactory(httpPort, httpTimeoutMs, builder, httpMaxAcceptRequestQueueSize,
                     httpBlockingTimeoutMs, threadStopTimeoutMs, solinger);
             server = factory.createServer();
         }
 
-        LOG.info("Configuring Webserver for Port {}", httpPortNumber);
+        LOG.info("Configuring Webserver for Port {}", httpPort);
     }
 
     @PreDestroy

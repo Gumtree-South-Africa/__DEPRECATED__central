@@ -4,9 +4,9 @@ import com.basho.riak.client.IRiakClient;
 import com.basho.riak.client.cap.ConflictResolver;
 import com.basho.riak.client.convert.Converter;
 import com.ecg.messagecenter.chat.Template;
+import com.ecg.messagecenter.cronjobs.RiakSimplePostBoxCleanupCronJob;
 import com.ecg.messagecenter.listeners.PostBoxUpdateListener;
 import com.ecg.messagecenter.persistence.PostBoxInitializer;
-import com.ecg.messagecenter.cronjobs.RiakSimplePostBoxCleanupCronJob;
 import com.ecg.messagecenter.persistence.simple.*;
 import com.ecg.replyts.core.runtime.ReplyTS;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
@@ -27,14 +27,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.setEnv;
 import static org.junit.Assert.assertNotNull;
 
 /**
  * Created by jaludden on 30/05/2017.
  */
 public class ContextLoaderTest {
-
-
     private static final String ELASTIC_SEARCH_PREFIX = "comaas_integration_test_";
 
     private final File dropFolder = Files.createTempDir();
@@ -58,7 +57,7 @@ public class ContextLoaderTest {
         properties.load(resource.getInputStream());
 
         properties.put("persistence.cassandra.core.endpoint", CassandraIntegrationTestProvisioner.getEndPoint());
-        properties.put("replyts.http.port", String.valueOf(httpPort));
+        setEnv("COMAAS_HTTP_PORT", httpPort.toString());
         properties.put("replyts.ssl.enabled", "false");
         properties.put("delivery.smtp.port", String.valueOf(smtpOutPort));
 
@@ -77,9 +76,7 @@ public class ContextLoaderTest {
             put("replyts2.cleanup.postboxes.enabled", "true");
         }};
 
-        if (testProperties != null) {
-            properties.putAll(testProperties);
-        }
+        properties.putAll(testProperties);
 
         context.registerShutdownHook();
 

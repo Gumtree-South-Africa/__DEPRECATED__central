@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 @Configuration
 @PropertySource("discovery.properties")
 @EnableDiscoveryClient
-@EnableAutoConfiguration(exclude = { FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class })
+@EnableAutoConfiguration(exclude = {FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class})
 @Import(ConsulConfigBootstrapConfiguration.class)
 @ConditionalOnExpression("#{'${service.discovery.enabled:false}' == 'true'}")
 public class CloudDiscoveryConfiguration {
@@ -60,9 +60,9 @@ public class CloudDiscoveryConfiguration {
     private static final String LOGGER_APPENDER_KAFKA_ACCESS_LOGS_TOPIC = "service.discovery.logger.appender.access.logs.topic";
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
-      "persistence.cassandra.core.endpoint", "cassandra",
-      "persistence.cassandra.mb.endpoint", "cassandra",
-      "search.es.endpoints", "elasticsearch"
+            "persistence.cassandra.core.endpoint", "cassandra",
+            "persistence.cassandra.mb.endpoint", "cassandra",
+            "search.es.endpoints", "elasticsearch"
     );
 
     private static final String LOG_APPENDER_SERVICE = "kafkalog";
@@ -82,6 +82,9 @@ public class CloudDiscoveryConfiguration {
     @Value("${replyts.tenant:unknown}")
     private String tenant;
 
+    @Value("#{environment.COMAAS_HTTP_PORT ?: 8080}")
+    private Integer port;
+
     private KafkaAppender accessLogAppender = new KafkaAppender();
 
     @Bean
@@ -91,7 +94,7 @@ public class CloudDiscoveryConfiguration {
 
     @PostConstruct
     private void initializeDiscovery() {
-        // XXX: Temporary fix until we switch to Spring Boot (this jumpstarts the lifecycle which fetches the properties)
+        // XXX: Temporary fix until we switch to Spring Boot (this jump starts the lifecycle which fetches the properties)
 
         lifecycle.onApplicationEvent(new EmbeddedServletContainerInitializedEvent(
                 new EmbeddedWebApplicationContext(),
@@ -106,9 +109,7 @@ public class CloudDiscoveryConfiguration {
 
                     @Override
                     public int getPort() {
-                        // This is a dummy value and will be overwritten by the properties file or
-                        // the COMAAS_HTTP_PORT system env var. The env var has precedence over the properties file var.
-                        return 0;
+                        return port;
                     }
                 }
         ));
@@ -176,7 +177,7 @@ public class CloudDiscoveryConfiguration {
 
             if (source instanceof EnumerablePropertySource) {
                 Arrays.stream(((EnumerablePropertySource) source).getPropertyNames())
-                  .forEach(name -> effectiveProperties.put(name, source.getProperty(name)));
+                        .forEach(name -> effectiveProperties.put(name, source.getProperty(name)));
             } else {
                 throw new IllegalStateException("Could not enumerate property source #{}!");
             }

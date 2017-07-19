@@ -32,6 +32,7 @@ function deploy() {
   tar -zxf ${BUILD_DIR}/comaas-${TENANT}-configuration-${TIMESTAMP}-${GIT_HASH}.tar.gz ./import_into_consul/comaas-qa.properties
 
   MD5=($(md5sum -b ${BUILD_DIR}/${ARTIFACT_NAME}))
+  # Known issue: port no longer available in that file. Nomad needs to supply a random port instead. TODO, RP
   PORT=$(grep ^replyts.http.port= ./import_into_consul/comaas-qa.properties | cut -d'=' -f2)
 
   cp distribution/nomad/comaas_deploy_jenkins.json comaas_deploy_jenkins.json
