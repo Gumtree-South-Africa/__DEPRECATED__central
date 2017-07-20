@@ -3,6 +3,7 @@ package com.ecg.replyts.core.runtime.persistence.strategy;
 import com.codahale.metrics.MetricRegistry;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
+import com.datastax.driver.core.policies.ExponentialReconnectionPolicy;
 import com.datastax.driver.core.policies.TokenAwarePolicy;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
@@ -148,6 +149,12 @@ public class CassandraPersistenceConfiguration {
         @Value("${persistence.cassandra.slowquerylog.threshold.ms:30000}")
         private long slowQueryThresholdMs;
 
+        @Value("${persistence.cassandra.exp.reconnection.delay.base.ms:250}")
+        private long expReconnectionPolicyBaseDelay;
+
+        @Value("${persistence.cassandra.exp.reconnection.delay.max.ms:30000}")
+        private long expReconnectionPolicyMaxDelay;
+
         private Collection<InetSocketAddress> cassandraContactPointsForMb;
 
         private Session cassandraSessionForCore;
@@ -225,16 +232,18 @@ public class CassandraPersistenceConfiguration {
                                                 String cassandraUsername, String cassandraPassword, String cassandraKeyspace) {
             LOG.info("Connecting to Cassandra dc {}, contactpoints {}, user '{}'", cassandraDataCenter, cassandraContactPoints, cassandraUsername);
             LOG.debug("Setting Cassandra readTimeoutMillis to {}", readTimeoutMillis);
-            Cluster.Builder builder = Cluster.
-                    builder().
-                    withSocketOptions(
+            Cluster.Builder builder = Cluster.builder()
+                    .withSocketOptions(
                             new SocketOptions().
                                     // this sets timeouts for both reads and writes and should be larger than the value
                                     // configured on the Cassandra server
                                             setReadTimeoutMillis(readTimeoutMillis)
-                    ).
-                    withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(cassandraDataCenter).build())).
-                    addContactPointsWithPorts(cassandraContactPoints);
+                    )
+                    .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(cassandraDataCenter).build()))
+                    // For (250, 30_000) will be: 250, 500, 1000, 2000, 4000, 8000, 16000, 30000, 30000, 30000...
+                    .withReconnectionPolicy(new ExponentialReconnectionPolicy(expReconnectionPolicyBaseDelay, expReconnectionPolicyMaxDelay))
+                    .addContactPointsWithPorts(cassandraContactPoints);
+
             if (StringUtils.hasLength(cassandraUsername)) {
                 builder.withAuthProvider(new PlainTextAuthProvider(cassandraUsername, cassandraPassword));
             }
@@ -252,9 +261,9 @@ public class CassandraPersistenceConfiguration {
 
             Cluster cassandraCluster = builder.withoutJMXReporting().build();
 
-            QueryLogger queryLogger = QueryLogger.builder(cassandraCluster).
-                    withConstantThreshold(slowQueryThresholdMs).
-                    build();
+            QueryLogger queryLogger = QueryLogger.builder(cassandraCluster)
+                    .withConstantThreshold(slowQueryThresholdMs)
+                    .build();
             cassandraCluster.register(queryLogger);
 
             Session cassandraSession = cassandraCluster.connect(cassandraKeyspace);
