@@ -30,7 +30,7 @@ public class ConfigApiAcceptanceTest {
 
     @Test
     public void respondsWithCorrectContentType() {
-        RestAssured.expect().header("Content-Type", "application/json;charset=UTF-8")
+        RestAssured.expect().header("Content-Type", "application/json;charset=utf-8")
                 .when().get(subPath(""));
     }
 
