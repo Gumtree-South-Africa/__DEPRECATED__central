@@ -158,8 +158,12 @@ public class CronJobService implements CheckProvider {
                 statusMonitor.start(cronExecution);
                 invokeMonitored(type);
             } finally {
-                clusterJobLock.unlock();
-                statusMonitor.end(cronExecution);
+                try {
+                    clusterJobLock.unlock();
+                    statusMonitor.end(cronExecution);
+                } catch (Exception e) {
+                    LOG.error("failed to clean up after a job execution", e);
+                }
             }
         }
     }

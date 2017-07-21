@@ -191,7 +191,11 @@ public class ChunkedPostboxMigrationAction {
                     migratedConversationThreadCounter.get(),
                     submittedBatchCounter.get(), processedBatchCounter.get());
         } finally {
-            hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock
+            try {
+                hazelcast.getLock(IndexingMode.MIGRATION.toString()).forceUnlock(); // have to use force variant as current thread is not the owner of the lock
+            } catch (Exception e) {
+                LOG.error("Failed to release the migration log", e);
+            }
         }
     }
 

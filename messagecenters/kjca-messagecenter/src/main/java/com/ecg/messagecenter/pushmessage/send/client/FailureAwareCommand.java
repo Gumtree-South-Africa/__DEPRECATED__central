@@ -3,6 +3,7 @@ package com.ecg.messagecenter.pushmessage.send.client;
 import ca.kijiji.discovery.ServiceEndpoint;
 import ca.kijiji.tracing.TraceLogFilter;
 import ca.kijiji.tracing.TraceThreadLocal;
+import com.google.common.io.Closeables;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixThreadPoolKey;
@@ -80,9 +81,7 @@ abstract class FailureAwareCommand<T> extends HystrixCommand<T> {
             throw failure;
         } finally {
             HttpClientUtils.closeQuietly(response);
-            if (responseContent != null) {
-                responseContent.close();
-            }
+            Closeables.closeQuietly(responseContent);
         }
     }
 

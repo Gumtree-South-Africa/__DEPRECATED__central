@@ -95,21 +95,16 @@ public class SmtpPing {
      */
     public void ping(final String hostName, final int port, final int timeout) throws Exception {
         final ExceptionHolder exceptionHolder = new ExceptionHolder();
-        final Socket sock = new Socket(hostName, port);
 
-        try {
+        try (Socket sock = new Socket(hostName, port)) {
             Thread pingThread = new Thread(new PingRunnable(sock, exceptionHolder));
             pingThread.start();
             pingThread.join(timeout);
             exceptionHolder.passOn();
-        } finally {
             if (!sock.isClosed()) {
-                closeSilently(sock);
                 throw new IOException("Socket Timeout with SMTP Server on " + hostName + ":" + port + ". Timeout was " + timeout);
             }
-
         }
-
     }
 
     private void closeSilently(Closeable c) {

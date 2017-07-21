@@ -109,7 +109,11 @@ public class EchelonFilter implements Filter {
                     }catch(IOException ex){
                         LOG.error("Error notifying " + notifyUrl, ex);
                     }finally {
-                        connection.disconnect();
+                        try {
+                            connection.disconnect();
+                        } catch (Exception e) {
+                            LOG.error("error closing the connection", e);
+                        }
                     }
                 }
             }catch(Exception ex) {

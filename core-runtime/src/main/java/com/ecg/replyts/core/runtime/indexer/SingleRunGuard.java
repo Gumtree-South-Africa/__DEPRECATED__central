@@ -34,7 +34,11 @@ public class SingleRunGuard {
             throw new RuntimeException(e);
         } finally {
             if (lock.isLocked()) {
-                lock.unlock();
+                try {
+                    lock.unlock();
+                } catch (Exception e) {
+                    LOG.error("failed to release the lock", e);
+                }
             }
         }
     }

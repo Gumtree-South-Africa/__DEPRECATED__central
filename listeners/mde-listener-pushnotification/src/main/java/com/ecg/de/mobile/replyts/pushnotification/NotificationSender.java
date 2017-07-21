@@ -79,7 +79,7 @@ public class NotificationSender {
                 return false;
             } finally {
                 if (response.getEntity() != null) {
-                    EntityUtils.consume(response.getEntity());
+                    EntityUtils.consumeQuietly(response.getEntity());
                 }
             }
         }

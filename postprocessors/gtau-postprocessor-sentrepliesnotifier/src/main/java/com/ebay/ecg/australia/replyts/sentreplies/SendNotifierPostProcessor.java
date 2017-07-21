@@ -66,7 +66,11 @@ public class SendNotifierPostProcessor implements PostProcessor {
                             LOGGER.error("Error notifying " + notifyUrl, e);
                         }
                         finally {
-                            connection.disconnect();
+                            try {
+                                connection.disconnect();
+                            } catch (Exception e) {
+                                LOGGER.error("error closing the connection", e);
+                            }
                         }
                     }
                 }
