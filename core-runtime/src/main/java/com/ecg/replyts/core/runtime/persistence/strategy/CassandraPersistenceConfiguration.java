@@ -2,9 +2,7 @@ package com.ecg.replyts.core.runtime.persistence.strategy;
 
 import com.codahale.metrics.MetricRegistry;
 import com.datastax.driver.core.*;
-import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
-import com.datastax.driver.core.policies.ExponentialReconnectionPolicy;
-import com.datastax.driver.core.policies.TokenAwarePolicy;
+import com.datastax.driver.core.policies.*;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
@@ -155,6 +153,9 @@ public class CassandraPersistenceConfiguration {
         @Value("${persistence.cassandra.exp.reconnection.delay.max.ms:30000}")
         private long expReconnectionPolicyMaxDelay;
 
+        @Value("${persistence.cassandra.retry.never:true}")
+        private boolean neverRetry;
+
         private Collection<InetSocketAddress> cassandraContactPointsForMb;
 
         private Session cassandraSessionForCore;
@@ -242,6 +243,7 @@ public class CassandraPersistenceConfiguration {
                     .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(cassandraDataCenter).build()))
                     // For (250, 30_000) will be: 250, 500, 1000, 2000, 4000, 8000, 16000, 30000, 30000, 30000...
                     .withReconnectionPolicy(new ExponentialReconnectionPolicy(expReconnectionPolicyBaseDelay, expReconnectionPolicyMaxDelay))
+                    .withRetryPolicy(neverRetry ? FallthroughRetryPolicy.INSTANCE : DefaultRetryPolicy.INSTANCE)
                     .addContactPointsWithPorts(cassandraContactPoints);
 
             if (StringUtils.hasLength(cassandraUsername)) {
