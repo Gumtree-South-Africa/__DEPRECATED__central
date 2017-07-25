@@ -8,7 +8,6 @@ import com.ecg.replyts.core.api.model.conversation.command.AddCustomValueCommand
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +23,11 @@ class ConversationResumer {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationResumer.class);
 
     private final ConversationRepository conversationRepository;
-    private UserIdentifierService userIdentifierService;
     private final boolean enableResuming;
 
     @Autowired
-    ConversationResumer(ConversationRepository conversationRepository, UserIdentifierService userIdentifierService, @Value("${replyts.allowConversationResume:true}")boolean enableResuming) {
+    ConversationResumer(ConversationRepository conversationRepository, @Value("${replyts.allowConversationResume:true}")boolean enableResuming) {
         this.conversationRepository = conversationRepository;
-        this.userIdentifierService = userIdentifierService;
         this.enableResuming = enableResuming;
     }
 
@@ -40,20 +37,9 @@ class ConversationResumer {
         }
 
         ConversationStartInfo info = new ConversationStartInfo(context);
-        Map<String, String> headers = info.customHeaders();
-
-        String buyerAddress = info.buyer().getAddress();
-        String sellerAddress = info.seller().getAddress();
-
-        String buyerId = userIdentifierService.getBuyerUserId(headers).orElse(buyerAddress);
-        String sellerId = userIdentifierService.getSellerUserId(headers).orElse(sellerAddress);
-
-        ConversationIndexKey indexKeyBuyerToSeller = new ConversationIndexKey(buyerId, sellerId, info.adId());
-        ConversationIndexKey indexKeySellerToBuyer = new ConversationIndexKey(sellerId, buyerId, info.adId());
-
         return
-                tryResume(context, indexKeyBuyerToSeller, MessageDirection.BUYER_TO_SELLER) ||
-                tryResume(context, indexKeySellerToBuyer, MessageDirection.SELLER_TO_BUYER);
+                tryResume(context, info.asConversationIndexKeyBuyerToSeller(), MessageDirection.BUYER_TO_SELLER) ||
+                tryResume(context, info.asConversationIndexKeySellerToBuyer(), MessageDirection.SELLER_TO_BUYER);
     }
 
     private boolean tryResume(MessageProcessingContext context, ConversationIndexKey key, MessageDirection direction) {

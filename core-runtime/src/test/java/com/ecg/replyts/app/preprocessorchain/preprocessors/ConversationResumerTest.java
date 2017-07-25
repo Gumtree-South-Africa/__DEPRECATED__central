@@ -7,7 +7,6 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +52,7 @@ public class ConversationResumerTest {
         when(conv.getCustomValues()).thenReturn(Collections.<String, String>emptyMap());
         when(conv.getId()).thenReturn("convID");
         
-        resumer = new ConversationResumer(repo, new UserIdentifierServiceFactory().createUserIdentifierService(), true);
+        resumer = new ConversationResumer(repo, true);
     }
 
     @Test
@@ -80,7 +79,7 @@ public class ConversationResumerTest {
 
     @Test
     public void doesNotResumeConversationIfFeatureDisabled() {
-        resumer = new ConversationResumer(repo, new UserIdentifierServiceFactory().createUserIdentifierService(), false);
+        resumer = new ConversationResumer(repo, false);
         prepareMailFromBuyerToSeller();
         prepareExistingConversation();
 

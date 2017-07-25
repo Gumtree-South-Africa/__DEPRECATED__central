@@ -33,4 +33,12 @@ class ConversationStartInfo {
     public Map<String, String> customHeaders() {
         return ctx.getMail().getCustomHeaders();
     }
+
+    public ConversationIndexKey asConversationIndexKeyBuyerToSeller() {
+        return new ConversationIndexKey(buyer().getAddress(), seller().getAddress(), adId());
+    }
+
+    public ConversationIndexKey asConversationIndexKeySellerToBuyer() {
+        return new ConversationIndexKey(seller().getAddress(), buyer().getAddress(), adId());
+    }
 }

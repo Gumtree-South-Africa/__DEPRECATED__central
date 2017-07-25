@@ -8,7 +8,6 @@ import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
-import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.*;
@@ -74,8 +73,8 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
 
     @Bean
-    public ConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState, UserIdentifierService userIdentifierService) {
-        DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, userIdentifierService);
+    public ConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState) {
+        DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
         RiakConversationRepository riakRepository = useBucketNamePrefix ? new QuietReadOnlyRiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastwriteWins) : new RiakConversationRepository(riakClient, allowSiblings, lastwriteWins);
 
         cassandraRepository.setObjectMapperConfigurer(objectMapperConfigurer);

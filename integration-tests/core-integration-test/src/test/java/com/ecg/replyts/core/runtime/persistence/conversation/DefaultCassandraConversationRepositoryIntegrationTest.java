@@ -9,7 +9,6 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEven
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
-import com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -41,11 +40,7 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
             session = casdb.initStdSchema(KEYSPACE);
         }
 
-        DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(
-                session,
-                ConsistencyLevel.ONE,
-                ConsistencyLevel.ONE,
-                new UserIdentifierServiceFactory().createUserIdentifierService());
+        DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
         myRepo.setObjectMapperConfigurer(new JacksonAwareObjectMapperConfigurer());
 
         return myRepo;
