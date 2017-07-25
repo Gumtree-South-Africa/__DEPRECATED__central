@@ -1,6 +1,7 @@
 package com.ecg.replyts.core.runtime.persistence.strategy;
 
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.RatioGauge;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.*;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
@@ -35,7 +36,9 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
+import static com.codahale.metrics.MetricRegistry.name;
 import static java.util.stream.Collectors.toList;
 
 @Configuration
@@ -262,19 +265,21 @@ public class CassandraPersistenceConfiguration {
 
             Cluster cassandraCluster = builder.withoutJMXReporting().build();
 
-            QueryLogger queryLogger = QueryLogger.builder(cassandraCluster)
-                    .withConstantThreshold(slowQueryThresholdMs)
-                    .build();
-            cassandraCluster.register(queryLogger);
-
             Session cassandraSession = cassandraCluster.connect(cassandraKeyspace);
             return new Object[]{cassandraCluster, cassandraSession};
         }
 
         private void reportCassandraMetricsWithPrefix(Cluster cluster, String prefix) {
-            MetricRegistry comaasRegistry = MetricsService.getInstance().getRegistry();
-            cluster.init(); // this is totally safe to do here, check the javadoc
             String fullPrefix = String.format("%s.cassandra.%s", TimingReports.getHostName(), prefix);
+            MetricRegistry comaasRegistry = MetricsService.getInstance().getRegistry();
+
+            LatencyTracker latencyTracker = (host, statement, exception, newLatencyNanos) -> {
+                if (exception == null) {
+                    comaasRegistry.histogram(fullPrefix + ".custom.queryLatencyNanos").update(newLatencyNanos);
+                }
+            };
+            cluster.register(latencyTracker);
+            cluster.init(); // this is totally safe to do here, check the javadoc
             comaasRegistry.removeMatching((name, metric) -> name != null && name.startsWith(fullPrefix + "."));
             comaasRegistry.register(fullPrefix, cluster.getMetrics().getRegistry());
         }
