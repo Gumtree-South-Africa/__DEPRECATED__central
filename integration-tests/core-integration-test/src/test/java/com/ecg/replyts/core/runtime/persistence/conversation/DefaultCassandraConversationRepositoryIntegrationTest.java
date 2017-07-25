@@ -3,12 +3,15 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.utils.UUIDs;
+import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
+import com.ecg.replyts.app.preprocessorchain.preprocessors.IdBasedConversationResumer;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.command.*;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -17,6 +20,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,7 +44,11 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
             session = casdb.initStdSchema(KEYSPACE);
         }
 
-        DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
+        ConversationResumer resumer = new IdBasedConversationResumer();
+
+        ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierServiceFactory().createUserIdentifierService());
+
+        DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, resumer);
         myRepo.setObjectMapperConfigurer(new JacksonAwareObjectMapperConfigurer());
 
         return myRepo;

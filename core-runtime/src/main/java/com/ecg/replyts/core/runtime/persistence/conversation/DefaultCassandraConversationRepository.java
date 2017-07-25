@@ -4,6 +4,7 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.utils.UUIDs;
+import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
@@ -66,11 +67,14 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
 
     private ObjectMapper objectMapper;
 
-    public DefaultCassandraConversationRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
+    private ConversationResumer resumer;
+
+    public DefaultCassandraConversationRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency, ConversationResumer resumer) {
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
         this.preparedStatements = StatementsBase.prepare(Statements.class, session);
+        this.resumer = resumer;
     }
 
     @Override
@@ -277,11 +281,11 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         // Lookup the compound key (optional) and the last modified date
         DateTime modifiedDateTime = getConversationModifiedDateTime(toBeCommittedEvents);
         Date modifiedDate = modifiedDateTime.toDate();
-        ConversationIndexKey compoundKey = getConversationCompoundKey(toBeCommittedEvents);
+        Optional<ConversationIndexKey> compoundKey = getConversationCompoundKey(toBeCommittedEvents);
 
-        if (compoundKey != null) {
+        if (compoundKey.isPresent()) {
             // It's a new conversation.
-            batch.add(Statements.INSERT_RESUME_IDX.bind(this, compoundKey.serialize(), conversationId));
+            batch.add(Statements.INSERT_RESUME_IDX.bind(this, compoundKey.get().serialize(), conversationId));
         }
 
         batch.add(Statements.INSERT_CONVERSATION_MODIFICATION_IDX.bind(this, conversationId, modifiedDate));
@@ -298,17 +302,11 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         return modifiedDateTime;
     }
 
-    private ConversationIndexKey getConversationCompoundKey(List<ConversationEvent> toBeCommittedEvents) {
-        ConversationIndexKey compoundKey = null;
-        for (ConversationEvent e : toBeCommittedEvents) {
-            if (e instanceof ConversationCreatedEvent) {
-                ConversationCreatedEvent createdEvent = ((ConversationCreatedEvent) e);
-                if (createdEvent.getState() != ConversationState.DEAD_ON_ARRIVAL) {
-                    compoundKey = new ConversationIndexKey(createdEvent.getBuyerId(), createdEvent.getSellerId(), createdEvent.getAdId());
-                }
-            }
-        }
-        return compoundKey;
+    private Optional<ConversationIndexKey> getConversationCompoundKey(List<ConversationEvent> toBeCommittedEvents) {
+        return toBeCommittedEvents.stream()
+          .filter((e) -> e instanceof ConversationCreatedEvent && ((ConversationCreatedEvent) e).getState() != ConversationState.DEAD_ON_ARRIVAL)
+          .map((e) -> resumer.keyFromCreatedEvent((ConversationCreatedEvent) e))
+          .findFirst();
     }
 
     private void storeSecretIfNewlyCreated(BatchStatement batch, List<ConversationEvent> toBeCommittedEvents) {
@@ -336,7 +334,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
                 session.execute(Statements.DELETE_CONVERSATION_SECRET.bind(this, c.getSellerSecret()));
             }
             if (c.getBuyerId() != null && c.getSellerId() != null && c.getAdId() != null) {
-                session.execute(Statements.DELETE_RESUME_IDX.bind(this, new ConversationIndexKey(c.getBuyerId(), c.getSellerId(), c.getAdId()).serialize()));
+                session.execute(Statements.DELETE_RESUME_IDX.bind(this, resumer.keyFromConversation(c).serialize()));
             }
 
             BatchStatement batch = new BatchStatement();

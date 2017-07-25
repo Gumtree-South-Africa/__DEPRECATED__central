@@ -7,6 +7,7 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -52,7 +54,9 @@ public class ConversationResumerTest {
         when(conv.getCustomValues()).thenReturn(Collections.<String, String>emptyMap());
         when(conv.getId()).thenReturn("convID");
         
-        resumer = new ConversationResumer(repo, true);
+        resumer = new IdBasedConversationResumer();
+
+        ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierServiceFactory().createUserIdentifierService());
     }
 
     @Test
@@ -60,7 +64,7 @@ public class ConversationResumerTest {
         prepareMailFromBuyerToSeller();
         prepareExistingConversation();
 
-        assertTrue(resumer.resumeExistingConversation(context));
+        assertTrue(resumer.resumeExistingConversation(repo, context));
 
         verify(context).setConversation(conv);
         verify(context).setMessageDirection(MessageDirection.BUYER_TO_SELLER);
@@ -71,20 +75,10 @@ public class ConversationResumerTest {
         prepareMailFromSellerToBuyer();
         prepareExistingConversation();
 
-        assertTrue(resumer.resumeExistingConversation(context));
+        assertTrue(resumer.resumeExistingConversation(repo, context));
 
         verify(context).setConversation(conv);
         verify(context).setMessageDirection(MessageDirection.SELLER_TO_BUYER);
-    }
-
-    @Test
-    public void doesNotResumeConversationIfFeatureDisabled() {
-        resumer = new ConversationResumer(repo, false);
-        prepareMailFromBuyerToSeller();
-        prepareExistingConversation();
-
-        assertFalse(resumer.resumeExistingConversation(context));
-        verify(context, never()).setConversation(conv);
     }
 
     @Test
@@ -92,7 +86,7 @@ public class ConversationResumerTest {
         prepareMailFromBuyerToSeller();
         prepareNonExistingConversation();
 
-        assertFalse(resumer.resumeExistingConversation(context));
+        assertFalse(resumer.resumeExistingConversation(repo, context));
 
         verify(context, never()).setConversation(any(MutableConversation.class));
         verify(context, never()).setMessageDirection(any(MessageDirection.class));
@@ -105,7 +99,7 @@ public class ConversationResumerTest {
 
         when(mail.getCustomHeaders()).thenReturn(ImmutableMap.of("foo", "bar", "scot", "car"));
 
-        resumer.resumeExistingConversation(context);
+        resumer.resumeExistingConversation(repo, context);
 
         verify(context, times(2)).addCommand(addCustomValueCommandCapture.capture());
         List<AddCustomValueCommand> values = addCustomValueCommandCapture.getAllValues();
@@ -135,6 +129,4 @@ public class ConversationResumerTest {
     private void prepareNonExistingConversation() {
         when(repo.findExistingConversationFor(any())).thenReturn(Optional.empty());
     }
-
-
 }

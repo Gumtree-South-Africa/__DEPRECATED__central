@@ -13,7 +13,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class UserIdentifierServiceByMailAddressTest {
-
     private Conversation conversation = mock(Conversation.class);
 
     private UserIdentifierService userIdentifierService = new UserIdentifierServiceByMailAddress();

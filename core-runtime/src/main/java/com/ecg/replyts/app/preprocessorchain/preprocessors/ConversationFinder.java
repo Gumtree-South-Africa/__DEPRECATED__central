@@ -5,6 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
+import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -17,11 +18,11 @@ import static com.ecg.replyts.core.api.model.conversation.command.AddMessageComm
 
 @Component("conversationFinder")
 public class ConversationFinder implements PreProcessor {
-
     private static final Logger LOG = LoggerFactory.getLogger(ConversationFinder.class);
 
     private final NewConversationCreator newConversationCreator;
     private final ExistingConversationLoader existingConversationLoader;
+    private final ConversationRepository conversationRepository;
     private final ConversationResumer conversationResumer;
     private final String[] platformDomains;
 
@@ -30,9 +31,11 @@ public class ConversationFinder implements PreProcessor {
             NewConversationCreator newConversationCreator,
             ExistingConversationLoader existingConversationLoader,
             @Value("${mailcloaking.domains}") String[] platformDomains,
+            ConversationRepository conversationRepository,
             ConversationResumer conversationResumer) {
         this.newConversationCreator = newConversationCreator;
         this.existingConversationLoader = existingConversationLoader;
+        this.conversationRepository = conversationRepository;
         this.conversationResumer = conversationResumer;
         this.platformDomains = platformDomains.clone();
     }
@@ -63,7 +66,7 @@ public class ConversationFinder implements PreProcessor {
                 return;
             }
         } else {
-            boolean wasResumed = conversationResumer.resumeExistingConversation(context);
+            boolean wasResumed = conversationResumer.resumeExistingConversation(conversationRepository, context);
             if (!wasResumed) {
                 LOG.debug("Create new Conversation");
                 newConversationCreator.setupNewConversation(context);

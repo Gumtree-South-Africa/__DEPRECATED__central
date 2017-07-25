@@ -4,6 +4,7 @@ import com.basho.riak.client.IRiakClient;
 import com.basho.riak.client.RiakRetryFailedException;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
+import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
@@ -69,6 +70,9 @@ public class HybridPersistenceConfiguration {
     @Autowired
     private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
 
+    @Autowired
+    private ConversationResumer resumer;
+
     @Value("${migration.conversations.deepMigration.enabled:false}")
     private boolean deepMigrationEnabled;
 
@@ -86,7 +90,7 @@ public class HybridPersistenceConfiguration {
     @Bean
     @Primary
     public HybridConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState) {
-        cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+        cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer);
         cassandraConversationRepository.setObjectMapperConfigurer(objectMapperConfigurer);
 
         RiakConversationRepository riakRepository = useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins) : new RiakConversationRepository(riakClient, allowSiblings, lastWriteWins);

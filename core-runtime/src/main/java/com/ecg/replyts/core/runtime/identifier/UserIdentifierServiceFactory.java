@@ -43,5 +43,4 @@ public class UserIdentifierServiceFactory {
     private boolean userIdDisabledForTenant() {
         return !TENANTS_ENABLED_FOR_USER_ID.contains(tenant);
     }
-
 }

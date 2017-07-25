@@ -4,6 +4,7 @@ import com.basho.riak.client.IRiakClient;
 import com.basho.riak.client.RiakRetryFailedException;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
+import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
@@ -39,7 +40,6 @@ import org.springframework.context.annotation.Import;
 })
 @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid-riak-readonly")
 public class ReadOnlyRiakHybridPersistenceConfiguration {
-
     private static final boolean NO_DEEP_MIGRATION = false;
 
     // Cassandra
@@ -72,9 +72,12 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     @Autowired
     private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
 
+    @Autowired
+    private ConversationResumer resumer;
+
     @Bean
     public ConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState) {
-        DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
+        DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer);
         RiakConversationRepository riakRepository = useBucketNamePrefix ? new QuietReadOnlyRiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastwriteWins) : new RiakConversationRepository(riakClient, allowSiblings, lastwriteWins);
 
         cassandraRepository.setObjectMapperConfigurer(objectMapperConfigurer);

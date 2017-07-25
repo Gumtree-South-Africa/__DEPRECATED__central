@@ -1,49 +1,35 @@
 package com.ecg.replyts.app.preprocessorchain.preprocessors;
 
-
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddCustomValueCommand;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Optional;
 
-@Component
-class ConversationResumer {
-
+public abstract class ConversationResumer {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationResumer.class);
 
-    private final ConversationRepository conversationRepository;
-    private final boolean enableResuming;
+    public abstract boolean resumeExistingConversation(ConversationRepository repository, MessageProcessingContext context);
 
-    @Autowired
-    ConversationResumer(ConversationRepository conversationRepository, @Value("${replyts.allowConversationResume:true}")boolean enableResuming) {
-        this.conversationRepository = conversationRepository;
-        this.enableResuming = enableResuming;
+    public ConversationIndexKey keyFromCreatedEvent(ConversationCreatedEvent event) {
+        return new ConversationIndexKey(event.getBuyerId(), event.getSellerId(), event.getAdId());
     }
 
-    public boolean resumeExistingConversation(MessageProcessingContext context) {
-        if (!enableResuming) {
-            return false;
-        }
-
-        ConversationStartInfo info = new ConversationStartInfo(context);
-        return
-                tryResume(context, info.asConversationIndexKeyBuyerToSeller(), MessageDirection.BUYER_TO_SELLER) ||
-                tryResume(context, info.asConversationIndexKeySellerToBuyer(), MessageDirection.SELLER_TO_BUYER);
+    public ConversationIndexKey keyFromConversation(Conversation conversation) {
+        return new ConversationIndexKey(conversation.getBuyerId(), conversation.getSellerId(), conversation.getAdId());
     }
 
-    private boolean tryResume(MessageProcessingContext context, ConversationIndexKey key, MessageDirection direction) {
-        Optional<Conversation> existingConversation = conversationRepository.findExistingConversationFor(key);
+    protected boolean tryResume(ConversationRepository repository, MessageProcessingContext context, MessageDirection direction, ConversationIndexKey key) {
+        Optional<Conversation> existingConversation = repository.findExistingConversationFor(key);
+
         if (existingConversation.isPresent()) {
             context.setConversation((MutableConversation) existingConversation.get());
             context.setMessageDirection(direction);
@@ -51,8 +37,10 @@ class ConversationResumer {
             addNewCustomValuesToConversation(context);
 
             LOG.debug("Attaching message to existing conversation '{}': buyerId, sellerId and adId match ({}).", existingConversation.get().getId(), direction);
+
             return true;
         }
+
         return false;
     }
 

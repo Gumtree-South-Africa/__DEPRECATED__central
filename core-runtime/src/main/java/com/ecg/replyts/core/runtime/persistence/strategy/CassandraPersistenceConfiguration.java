@@ -4,6 +4,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.RatioGauge;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.*;
+import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
@@ -55,9 +56,12 @@ public class CassandraPersistenceConfiguration {
     @Autowired
     private ConsistencyLevel cassandraWriteConsistency;
 
+    @Autowired
+    private ConversationResumer resumer;
+
     @Bean
     public ConversationRepository conversationRepository(Session cassandraSessionForCore) {
-        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency);
+        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer);
     }
 
     @Bean

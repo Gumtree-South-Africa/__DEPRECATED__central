@@ -33,7 +33,6 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConversationFinderTest {
-
     @Mock
     private MultiTennantMailCloakingService mailCloakingService;
 
@@ -68,7 +67,7 @@ public class ConversationFinderTest {
 
     @Before
     public void setUp() throws Exception {
-        conversationFinder = new ConversationFinder(newConversationCreator, existingConversationLoader, new String[]{"ebay.com"}, conversationResumer);
+        conversationFinder = new ConversationFinder(newConversationCreator, existingConversationLoader, new String[]{"ebay.com"}, conversationRepository, conversationResumer);
     }
 
     @Test
@@ -85,7 +84,7 @@ public class ConversationFinderTest {
     @Test
     public void ifConversationResumableDoNotStartNewConversation() {
 
-        when(conversationResumer.resumeExistingConversation(any(MessageProcessingContext.class))).thenReturn(true);
+        when(conversationResumer.resumeExistingConversation(any(ConversationRepository.class), any(MessageProcessingContext.class))).thenReturn(true);
 
         when(mail.getFrom()).thenReturn("buyer@host.com");
         when(mail.getDeliveredTo()).thenReturn("somebody@host2.com");
@@ -101,7 +100,7 @@ public class ConversationFinderTest {
 
         conversationFinder.preProcess(messageProcessingContext);
 
-        verify(conversationResumer).resumeExistingConversation(messageProcessingContext);
+        verify(conversationResumer).resumeExistingConversation(conversationRepository, messageProcessingContext);
         verify(newConversationCreator, never()).setupNewConversation(messageProcessingContext);
     }
 
@@ -131,7 +130,7 @@ public class ConversationFinderTest {
         when(mail.getFrom()).thenReturn("buyer.123@host.com");
         when(mail.getDeliveredTo()).thenReturn("somebody@host2.com");
         when(mail.getLastReferencedMessageId()).thenReturn(Optional.<String>absent());
-        when(conversationResumer.resumeExistingConversation(any(MessageProcessingContext.class))).thenReturn(false);
+        when(conversationResumer.resumeExistingConversation(any(ConversationRepository.class), any(MessageProcessingContext.class))).thenReturn(false);
 
         MessageProcessingContext messageProcessingContext = spy(new MessageProcessingContext(mail, "1", processingTimeGuard));
         when(mutableConversation.getImmutableConversation()).thenReturn(mock(ImmutableConversation.class));
@@ -165,5 +164,4 @@ public class ConversationFinderTest {
         verify(messageProcessingContext).addCommand(any(AddMessageCommand.class));
         verify(newConversationCreator, never()).setupNewConversation(any(MessageProcessingContext.class));
     }
-
 }
