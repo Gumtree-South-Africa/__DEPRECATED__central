@@ -7,9 +7,6 @@ import com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrat
 import com.github.danielwegener.logback.kafka.encoding.LayoutKafkaMessageEncoder;
 import com.github.danielwegener.logback.kafka.keying.RoundRobinKeyingStrategy;
 import com.google.common.collect.ImmutableMap;
-import com.hazelcast.config.Config;
-import com.hazelcast.config.FileSystemXmlConfig;
-import com.hazelcast.config.XmlConfigBuilder;
 import net.logstash.logback.layout.LogstashAccessLayout;
 import net.logstash.logback.layout.LogstashLayout;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -21,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
-import org.springframework.boot.autoconfigure.hazelcast.HazelcastAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.embedded.EmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
@@ -41,16 +37,10 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -100,21 +90,6 @@ public class CloudDiscoveryConfiguration {
     @Bean
     public KafkaAppender accessLogAppender() {
         return accessLogAppender;
-    }
-
-    // TODO: Move this to a configuration-based Hazelcast Config; see e.g.
-    //
-    // https://stackoverflow.com/questions/20385973/how-do-you-programmatically-configure-hazelcast-for-the-multicast-discovery-mech
-    //
-    // Note that the Hazelcast instance is auto-created by Spring Boot's HazelcastAutoConfiguration
-
-    @Bean
-    public Config hazelcastConfiguration(@Value("${confDir}/hazelcast.xml") String location) throws IOException {
-        if (location.startsWith("classpath")) {
-            return new XmlConfigBuilder(new ClassPathResource(location.substring(location.indexOf(":") + 1)).getInputStream()).build();
-        } else {
-            return new XmlConfigBuilder(location).build();
-        }
     }
 
     @PostConstruct
