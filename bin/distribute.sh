@@ -22,10 +22,6 @@ if [[ "$TENANT" == "mde" ]] || [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "ebayk
     echo "Distribution not supported for $TENANT, because it's already live in the cloud"
     exit
 fi
-if [[ "$TENANT" == "it" ]]; then
-    echo "Tenant $TENANT currently not supported"
-    exit
-fi
 
 # Repackage into packages for the TENANT's environment
 `dirname $0`/repackage.sh ${TENANT} ${GIT_HASH} ${BUILD_DIR}/comaas-${TENANT}-comaasqa-${GIT_HASH}-nomad.tar.gz ${TIMESTAMP}

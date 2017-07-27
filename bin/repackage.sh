@@ -96,6 +96,9 @@ function repackage() {
         cd .. && rm -rf lib && zip -r ${PACKAGE_BASE}.jar . && cd ..
         echo "Created ${PACKAGE_BASE}.jar"
         ;;
+      it)
+        echo "No need to repackage IT"
+        ;;
       *)
         echo "Unknown tenant $TENANT"
         exit 1

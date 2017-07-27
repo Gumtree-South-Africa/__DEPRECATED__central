@@ -68,6 +68,9 @@ if [ ${TENANT} == "gtuk" ]; then
 #    ./bin/upload_ecg_swift.sh ${TENANT} ${DEB_PACK} ${TIMESTAMP} legacy
 #    exit
 fi
+if [ ${TENANT} == "it" ]; then
+	./bin/upload-packages-to-repos.sh ${TENANT} ${GIT_HASH} ${TIMESTAMP}
+fi
 
 if [[ "$TENANT" == "mde" ]] || [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "ebayk" ]] || [[ "$TENANT" == "gtau" ]]; then
     echo "Uploading not supported for $TENANT, because it's already live in the cloud"
