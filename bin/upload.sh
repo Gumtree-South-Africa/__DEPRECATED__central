@@ -70,6 +70,7 @@ if [ ${TENANT} == "gtuk" ]; then
 fi
 if [ ${TENANT} == "it" ]; then
 	./bin/upload-packages-to-repos.sh ${TENANT} ${GIT_HASH} ${TIMESTAMP}
+	exit
 fi
 
 if [[ "$TENANT" == "mde" ]] || [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "ebayk" ]] || [[ "$TENANT" == "gtau" ]]; then
