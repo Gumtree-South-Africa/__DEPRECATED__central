@@ -1,7 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.strategy;
 
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.RatioGauge;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.*;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
@@ -37,9 +36,7 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
-import static com.codahale.metrics.MetricRegistry.name;
 import static java.util.stream.Collectors.toList;
 
 @Configuration
@@ -268,6 +265,11 @@ public class CassandraPersistenceConfiguration {
             builder.withPoolingOptions(poolingOptions);
 
             Cluster cassandraCluster = builder.withoutJMXReporting().build();
+
+            QueryLogger queryLogger = QueryLogger.builder(cassandraCluster).
+                    withConstantThreshold(slowQueryThresholdMs).
+                    build();
+            cassandraCluster.register(queryLogger);
 
             Session cassandraSession = cassandraCluster.connect(cassandraKeyspace);
             return new Object[]{cassandraCluster, cassandraSession};
