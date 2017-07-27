@@ -16,17 +16,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * a {@code MessageProcessedListener} for formatting conversation data to suit data warehouse requirements.
  */
 public class DataWarehouseEventLogListener implements MessageProcessedListener {
+    private static final Logger LOG = LoggerFactory.getLogger(DataWarehouseEventLogListener.class);
 
     private static final String FILTER_NAME = "filterName";
 
     private static final String FILTER_INSTANCE = "filterInstance";
-
-    private static final Logger LOG = LoggerFactory.getLogger(DataWarehouseEventLogListener.class);
 
     private static final List<String> EXCLUDED_FILTERS = ImmutableList.of("com.ecg.replyts.app.filterchain.FilterChain",
             "com.ecg.replyts.app.preprocessorchain.preprocessors.AutomatedMailRemover");
@@ -37,12 +37,6 @@ public class DataWarehouseEventLogListener implements MessageProcessedListener {
 
     private final Timer timer = TimingReports.newTimer("datawarehouse-eventlog-process-timer");
 
-    /**
-     * Constructor.
-     *
-     * @param eventPublisher the endpoint to publish events to
-     * @param clock          for time based logic
-     */
     public DataWarehouseEventLogListener(EventPublisher eventPublisher, Clock clock) {
         this.eventPublisher = eventPublisher;
         this.clock = clock;
@@ -50,21 +44,18 @@ public class DataWarehouseEventLogListener implements MessageProcessedListener {
 
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
-        Timer.Context timerContext = null;
-        try {
-            timerContext = timer.time();
-            eventPublisher.publish(event(conversation, message));
-        } catch (Exception ex) {
-            LOG.error(String.format("Error creating reporting event log payload for conversation %s and message %s",
-                    conversation.getId(), message.getId()), ex);
-        } finally {
-            if (timerContext != null) {
-                timerContext.stop();
-            }
+        try (Timer.Context ignore = timer.time()) {
+            event(conversation, message).ifPresent(eventPublisher::publish);
+        } catch (Exception e) {
+            LOG.error("Error creating reporting event log payload for conversation {} and message {}", conversation.getId(), message.getId(), e);
         }
     }
 
-    private MessageProcessedEvent event(Conversation conversation, Message message) throws Exception {
+    private Optional<MessageProcessedEvent> event(Conversation conversation, Message message) throws Exception {
+        // Often, the conversation.getAdId() call returns null. This is a known error that is also happening on RTS2 in GTUK.
+        if (conversation.getAdId() == null) {
+            return Optional.empty();
+        }
 
         MessageProcessedEvent.Builder builder = new MessageProcessedEvent.Builder()
                 .messageId(message.getId())
@@ -94,18 +85,18 @@ public class DataWarehouseEventLogListener implements MessageProcessedListener {
 
                     FilterResultState resultState = processingFeedback.getResultState();
                     builder.addFilterResult(new FilterExecutionResult.Builder()
-                                    .filterName(pfRoot.get(FILTER_NAME).textValue())
-                                    .filterInstance(pfRoot.get(FILTER_INSTANCE).textValue())
-                                    .uiHint(processingFeedback.getUiHint())
-                                    .score(processingFeedback.getScore())
-                                    .evaluation(processingFeedback.isEvaluation())
-                                    .resultState(resultState.name())
+                            .filterName(pfRoot.get(FILTER_NAME).textValue())
+                            .filterInstance(pfRoot.get(FILTER_INSTANCE).textValue())
+                            .uiHint(processingFeedback.getUiHint())
+                            .score(processingFeedback.getScore())
+                            .evaluation(processingFeedback.isEvaluation())
+                            .resultState(resultState.name())
                     );
                 }
             }
         }
 
-        return builder.createMessageProcessedEvent();
+        return Optional.of(builder.createMessageProcessedEvent());
     }
 
     private boolean isBogusRts2Filter(ProcessingFeedback feedback) {
