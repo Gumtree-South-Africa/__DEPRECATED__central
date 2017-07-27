@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
+import org.springframework.boot.autoconfigure.hazelcast.HazelcastAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.embedded.EmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
@@ -49,7 +50,7 @@ import java.util.stream.Collectors;
 @Configuration
 @PropertySource("discovery.properties")
 @EnableDiscoveryClient
-@EnableAutoConfiguration(exclude = {FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class})
+@EnableAutoConfiguration(exclude = { FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class, HazelcastAutoConfiguration.class })
 @Import(ConsulConfigBootstrapConfiguration.class)
 @ConditionalOnExpression("#{'${service.discovery.enabled:false}' == 'true'}")
 public class CloudDiscoveryConfiguration {
@@ -60,9 +61,9 @@ public class CloudDiscoveryConfiguration {
     private static final String LOGGER_APPENDER_KAFKA_ACCESS_LOGS_TOPIC = "service.discovery.logger.appender.access.logs.topic";
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
-            "persistence.cassandra.core.endpoint", "cassandra",
-            "persistence.cassandra.mb.endpoint", "cassandra",
-            "search.es.endpoints", "elasticsearch"
+      "persistence.cassandra.core.endpoint", "cassandra",
+      "persistence.cassandra.mb.endpoint", "cassandra",
+      "search.es.endpoints", "elasticsearch"
     );
 
     private static final String LOG_APPENDER_SERVICE = "kafkalog";
@@ -195,17 +196,17 @@ public class CloudDiscoveryConfiguration {
             List<ServiceInstance> discoveredInstances = discoveryClient.getInstances(service);
 
             List<String> instances = discoveredInstances.stream()
-                    .filter(instance -> instance.getMetadata().containsKey("tenant-" + tenant))
-                    .peek(instance -> LOG.debug("Discovered tenant specific service {}", instance))
-                    .map(instance -> instance.getHost() + ":" + instance.getPort())
-                    .collect(Collectors.toList());
+              .filter(instance -> instance.getMetadata().containsKey("tenant-" + tenant))
+              .peek(instance -> LOG.debug("Discovered tenant specific service {}", instance))
+              .map(instance -> instance.getHost() + ":" + instance.getPort())
+              .collect(Collectors.toList());
 
             if (instances.size() == 0 && discoveredInstances.size() > 0) {
                 instances = discoveredInstances.stream()
-                        .filter(instance -> instance.getMetadata().keySet().stream().filter(key -> key.startsWith("tenant-")).count() == 0)
-                        .peek(instance -> LOG.debug("Discovered shared service {}", instance))
-                        .map(instance -> instance.getHost() + ":" + instance.getPort())
-                        .collect(Collectors.toList());
+                  .filter(instance -> instance.getMetadata().keySet().stream().filter(key -> key.startsWith("tenant-")).count() == 0)
+                  .peek(instance -> LOG.debug("Discovered shared service {}", instance))
+                  .map(instance -> instance.getHost() + ":" + instance.getPort())
+                  .collect(Collectors.toList());
             }
 
             if (instances.size() > 0) {

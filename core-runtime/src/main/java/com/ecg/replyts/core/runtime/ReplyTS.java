@@ -4,6 +4,11 @@ import com.ecg.replyts.core.api.processing.MessageFixer;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.FileSystemXmlConfig;
+import com.hazelcast.config.XmlConfigBuilder;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +17,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -44,6 +52,27 @@ public class ReplyTS {
         LOG.info("With Mail Fixers: {}", javaMailMessageFixers.stream()
           .map(fixer -> fixer.getClass().getCanonicalName())
           .collect(joining(", ")));
+    }
+
+    @Bean
+    public Config hazelcastConfiguration(@Value("${confDir}/hazelcast.xml") String location) throws IOException {
+        if (location.startsWith("classpath")) {
+            InputStream inputStream = new ClassPathResource(location.substring(location.indexOf(":") + 1)).getInputStream();
+            return new XmlConfigBuilder(inputStream).build();
+        } else {
+            return new FileSystemXmlConfig(location);
+        }
+    }
+
+    @Bean
+    public HazelcastInstance hazelcastInstance(Config config) {
+        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(config);
+
+        LOG.info("Hazelcast Cluster Members (name): " + hazelcastInstance.getConfig().getGroupConfig().getName());
+        LOG.info("Hazelcast Cluster Members (configured): " + config.getNetworkConfig().getJoin().getTcpIpConfig().getMembers());
+        LOG.info("Hazelcast Cluster Members (actually): " + hazelcastInstance.getCluster().getMembers());
+
+        return hazelcastInstance;
     }
 
     // Need to wait for all ContextProviders to register themselves - so make this a non-lazy @Bean

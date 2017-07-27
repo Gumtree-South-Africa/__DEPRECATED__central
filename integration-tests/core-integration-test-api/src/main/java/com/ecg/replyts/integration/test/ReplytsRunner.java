@@ -87,8 +87,6 @@ public final class ReplytsRunner {
 
             context.registerShutdownHook();
 
-            context.register(ParentConfiguration.LegacyConfiguration.class);
-
             context.register(MailInterceptor.class);
 
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(context.getClassLoader());
