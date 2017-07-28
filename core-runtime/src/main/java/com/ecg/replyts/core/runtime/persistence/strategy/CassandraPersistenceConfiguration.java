@@ -100,6 +100,16 @@ public class CassandraPersistenceConfiguration {
     @Configuration
     @ConditionalOnExpression("#{'${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid')}")
     public static class CassandraClientConfiguration {
+
+        /**
+         * Defines a latency threshold for the percentile tracker used with the speculative execution policy.
+         * If the value is too high (e.g. due to a durable outage) there's a risk that the percentile tracker will start
+         * providing too high values for p9x, so that the speculative policy becomes effectively disabled.
+         * If the value is too low there's a risk for comaas to start firing too many speculative executions overloading
+         * the cassandra cluster.
+         */
+        private static final int HIGHEST_TRACKABLE_LATENCY_MILLIS = 15000;
+
         @Value("${persistence.cassandra.consistency.read:#{null}}")
         private ConsistencyLevel cassandraReadConsistency;
 
@@ -158,6 +168,15 @@ public class CassandraPersistenceConfiguration {
 
         @Value("${persistence.cassandra.retry.never:true}")
         private boolean neverRetry;
+
+        @Value("${persistence.cassandra.speculative.policy.enabled:true}")
+        private boolean speculativePolicyEnabled;
+
+        @Value("${persistence.cassandra.speculative.policy.percentile:95.0}")
+        private double speculativePolicyPercentile;
+
+        @Value("${persistence.cassandra.speculative.policy.executions:1}")
+        private int speculativePolicyMaxExecutions;
 
         private Collection<InetSocketAddress> cassandraContactPointsForMb;
 
@@ -247,6 +266,11 @@ public class CassandraPersistenceConfiguration {
                     // For (250, 30_000) will be: 250, 500, 1000, 2000, 4000, 8000, 16000, 30000, 30000, 30000...
                     .withReconnectionPolicy(new ExponentialReconnectionPolicy(expReconnectionPolicyBaseDelay, expReconnectionPolicyMaxDelay))
                     .withRetryPolicy(neverRetry ? FallthroughRetryPolicy.INSTANCE : DefaultRetryPolicy.INSTANCE)
+                    .withSpeculativeExecutionPolicy(buildSpeculativeExecutionPolicy(cassandraContactPoints))
+                    // See http://docs.datastax.com/en/developer/java-driver/2.1/manual/speculative_execution/#request-ordering-and-client-timestamps
+                    // for explanations why is this necessary when using a speculative policy
+                    .withTimestampGenerator(speculativePolicyEnabled ? new AtomicMonotonicTimestampGenerator()
+                            : ServerSideTimestampGenerator.INSTANCE)
                     .addContactPointsWithPorts(cassandraContactPoints);
 
             if (StringUtils.hasLength(cassandraUsername)) {
@@ -254,11 +278,11 @@ public class CassandraPersistenceConfiguration {
             }
 
             // Pooling options in Protocol V3
-            PoolingOptions poolingOptions = new PoolingOptions();
-            poolingOptions.setMaxConnectionsPerHost(HostDistance.LOCAL, 10);
-            poolingOptions.setMaxConnectionsPerHost(HostDistance.REMOTE, 2);
-            poolingOptions.setCoreConnectionsPerHost(HostDistance.LOCAL, 2);
-            poolingOptions.setCoreConnectionsPerHost(HostDistance.REMOTE, 1);
+            PoolingOptions poolingOptions = new PoolingOptions()
+                    .setMaxConnectionsPerHost(HostDistance.LOCAL, 10)
+                    .setMaxConnectionsPerHost(HostDistance.REMOTE, 2)
+                    .setCoreConnectionsPerHost(HostDistance.LOCAL, 2)
+                    .setCoreConnectionsPerHost(HostDistance.REMOTE, 1);
             if (idleTimeoutSeconds != null) {
                 poolingOptions.setIdleTimeoutSeconds(idleTimeoutSeconds);
             }
@@ -273,6 +297,20 @@ public class CassandraPersistenceConfiguration {
 
             Session cassandraSession = cassandraCluster.connect(cassandraKeyspace);
             return new Object[]{cassandraCluster, cassandraSession};
+        }
+
+        private SpeculativeExecutionPolicy buildSpeculativeExecutionPolicy(Collection<InetSocketAddress> cassandraContactPoints) {
+            // A non-default (noop) speculative execution policy won't work (throwing NoHostAvailableException)
+            // if there's only one host available.
+            if (!speculativePolicyEnabled || cassandraContactPoints.size() <= 1) {
+                return Policies.defaultSpeculativeExecutionPolicy(); // NOOP speculative policy
+            }
+
+            PercentileTracker percentileTracker = ClusterWidePercentileTracker
+                    .builder(HIGHEST_TRACKABLE_LATENCY_MILLIS) // do not include queries slower than the value into the percentile calculations
+                    .build();
+            return new PercentileSpeculativeExecutionPolicy(percentileTracker, speculativePolicyPercentile,
+                    speculativePolicyMaxExecutions);
         }
 
         private void reportCassandraMetricsWithPrefix(Cluster cluster, String prefix) {
