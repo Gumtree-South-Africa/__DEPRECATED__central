@@ -62,7 +62,7 @@ public class ConversationFinder implements PreProcessor {
             LOG.debug("Load existing Conversation for {}", to.getAddress());
             existingConversationLoader.loadExistingConversation(context);
             if (context.isTerminated()) {
-                LOG.debug("Message belongs to terminated context due to {}", context.getTermination().getReason());
+                LOG.warn("Message belongs to terminated context due to {}", context.getTermination().getReason());
                 return;
             }
         } else {
