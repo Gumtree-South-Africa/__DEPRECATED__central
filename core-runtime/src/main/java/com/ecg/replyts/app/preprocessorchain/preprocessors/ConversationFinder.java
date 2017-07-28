@@ -1,5 +1,6 @@
 package com.ecg.replyts.app.preprocessorchain.preprocessors;
 
+import com.codahale.metrics.Counter;
 import com.ecg.replyts.app.preprocessorchain.PreProcessor;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
@@ -7,6 +8,7 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,7 @@ import static com.ecg.replyts.core.api.model.conversation.command.AddMessageComm
 @Component("conversationFinder")
 public class ConversationFinder implements PreProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationFinder.class);
+    private static final Counter TERMINATED_MESSAGE_COUNTER = TimingReports.newCounter("message-terminated-and-discarded");
 
     private final NewConversationCreator newConversationCreator;
     private final ExistingConversationLoader existingConversationLoader;
@@ -62,7 +65,10 @@ public class ConversationFinder implements PreProcessor {
             LOG.debug("Load existing Conversation for {}", to.getAddress());
             existingConversationLoader.loadExistingConversation(context);
             if (context.isTerminated()) {
-                LOG.warn("Message belongs to terminated context due to {}", context.getTermination().getReason());
+                final String messageId = context.hasConversation() ? context.getMessage().getId() : "unknown";
+                LOG.warn("Message {} belongs to terminated context. Termination state: {}, reason: {}",
+                        messageId, context.getTermination().getEndState(), context.getTermination().getReason());
+                TERMINATED_MESSAGE_COUNTER.inc();
                 return;
             }
         } else {

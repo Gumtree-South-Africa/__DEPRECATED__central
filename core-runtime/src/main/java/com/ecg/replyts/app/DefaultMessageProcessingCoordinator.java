@@ -1,5 +1,6 @@
 package com.ecg.replyts.app;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -38,6 +39,8 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("processing-total");
 
+    private static final Counter UNPARSEABLE_COUNTER = TimingReports.newCounter("processing-unparseable-counter");
+
     private final Guids guids;
     private final List<MessageProcessedListener> messageProcessedListeners = new ArrayList<>();
     private final ProcessingFlow processingFlow;
@@ -47,9 +50,9 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
     @Autowired
     public DefaultMessageProcessingCoordinator(Guids guids,
-                                        @Autowired(required = false) Collection<MessageProcessedListener> messageProcessedListeners,
-                                        ProcessingFlow processingFlow, ProcessingFinalizer persister,
-                                        ProcessingContextFactory processingContextFactory) {
+                                               @Autowired(required = false) Collection<MessageProcessedListener> messageProcessedListeners,
+                                               ProcessingFlow processingFlow, ProcessingFinalizer persister,
+                                               ProcessingContextFactory processingContextFactory) {
         this.guids = checkNotNull(guids, "guids");
         if (messageProcessedListeners != null) {
             this.messageProcessedListeners.addAll(messageProcessedListeners);
@@ -70,7 +73,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             byte[] bytes = ByteStreams.toByteArray(input);
             LOG.debug("Received new message. Size {} bytes", bytes.length);
 
-            Optional<Mail> mail = parseMail(bytes);
+            java.util.Optional<Mail> mail = parseMail(bytes);
 
             if (!mail.isPresent()) {
                 // Return here, if unparseable, message is persisted in parse mail.
@@ -84,11 +87,11 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
             if (context.isTerminated()) {
                 handleTermination(
-                  context.getTermination(),
-                  context.getMessageId(),
-                  fromNullable(context.getMail()),
-                  fromNullable(((DefaultMutableConversation) context.mutableConversation())),
-                  bytes);
+                        context.getTermination(),
+                        context.getMessageId(),
+                        fromNullable(context.getMail()),
+                        fromNullable(((DefaultMutableConversation) context.mutableConversation())),
+                        bytes);
             } else {
                 handleSuccess(context, bytes);
             }
@@ -96,7 +99,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         }
     }
 
-    private Optional<Mail> parseMail(byte[] incomingMailContents) {
+    private java.util.Optional<Mail> parseMail(byte[] incomingMailContents) {
         try {
             Mail mail = Mails.readMail(incomingMailContents);
 
@@ -104,14 +107,15 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 throw new ParsingException("Delivered-To header missing");
             }
 
-            return Optional.of(mail);
+            return java.util.Optional.of(mail);
         } catch (ParsingException e) {
-            LOG.warn("Could not parse mail", e);
-            handleTermination(Termination.unparseable(e), guids.nextGuid(), Optional.absent(),
-                    Optional.absent(), incomingMailContents);
+            UNPARSEABLE_COUNTER.inc();
+            final String messageId = guids.nextGuid();
+            LOG.warn("Could not parse mail with id {}", messageId, e);
+            handleTermination(Termination.unparseable(e), messageId, Optional.absent(), Optional.absent(), incomingMailContents);
         }
 
-        return Optional.absent();
+        return java.util.Optional.empty();
     }
 
     private void handleSuccess(MessageProcessingContext context, byte[] messageBytes) {
@@ -120,11 +124,11 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         byte[] outgoing = Mails.writeToBuffer(context.getOutgoingMail());
 
         persister.persistAndIndex(
-          ((DefaultMutableConversation) context.mutableConversation()),
-          context.getMessageId(),
-          messageBytes,
-          Optional.of(outgoing),
-          Termination.sent());
+                ((DefaultMutableConversation) context.mutableConversation()),
+                context.getMessageId(),
+                messageBytes,
+                Optional.of(outgoing),
+                Termination.sent());
 
         onMessageProcessed(context.getConversation(), context.getMessage());
     }
@@ -136,7 +140,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         checkNotNull(messageBytes);
 
         DefaultMutableConversation c = conversation.or(() ->
-          processingContextFactory.deadConversationForMessageIdConversationId(messageId, guids.nextGuid(), mail));
+                processingContextFactory.deadConversationForMessageIdConversationId(messageId, guids.nextGuid(), mail));
 
         persister.persistAndIndex(c, messageId, messageBytes, Optional.absent(), termination);
 

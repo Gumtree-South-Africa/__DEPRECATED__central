@@ -1,6 +1,6 @@
 package com.ecg.replyts.app.preprocessorchain.preprocessors;
 
-
+import com.codahale.metrics.Counter;
 import com.ecg.replyts.core.api.model.CloakedReceiverContext;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
@@ -8,20 +8,19 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static com.ecg.replyts.core.api.util.CommonsLang.not;
-
+import java.util.Optional;
 
 @Component
 class ExistingConversationLoader {
-
     private static final Logger LOG = LoggerFactory.getLogger(ExistingConversationLoader.class);
+    private static final Counter ORPHANED_COUNTER = TimingReports.newCounter("message-orphaned-counter");
 
     private final MailCloakingService mailCloakingService;
 
@@ -30,10 +29,11 @@ class ExistingConversationLoader {
         this.mailCloakingService = mailCloakingService;
     }
 
-    public void loadExistingConversation(MessageProcessingContext context) {
+    void loadExistingConversation(MessageProcessingContext context) {
         Optional<CloakedReceiverContext> receiver = mailCloakingService.resolveUser(context.getOriginalTo());
-        if (not(receiver.isPresent())) {
+        if (!receiver.isPresent()) {
             context.terminateProcessing(MessageState.ORPHANED, this, "Conversation for " + context.getOriginalTo() + " does not exist");
+            ORPHANED_COUNTER.inc();
             return;
         }
         ConversationRole receiverRole = receiver.get().getRole();

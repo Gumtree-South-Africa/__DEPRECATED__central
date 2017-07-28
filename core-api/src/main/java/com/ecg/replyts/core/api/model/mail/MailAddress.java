@@ -39,14 +39,12 @@ public class MailAddress {
 
         MailAddress that = (MailAddress) o;
 
-        if (address != null ? !address.equals(that.address) : that.address != null) return false;
-
-        return true;
+        return address.equals(that.address);
     }
 
     @Override
     public int hashCode() {
-        return address != null ? address.hashCode() : 0;
+        return address.hashCode();
     }
 
     @Override

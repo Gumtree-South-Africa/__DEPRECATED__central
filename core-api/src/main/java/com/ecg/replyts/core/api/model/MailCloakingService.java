@@ -3,7 +3,8 @@ package com.ecg.replyts.core.api.model;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
 
 /**
  * @author mhuttar

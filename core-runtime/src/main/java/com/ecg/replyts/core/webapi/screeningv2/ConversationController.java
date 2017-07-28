@@ -4,7 +4,6 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.core.api.model.CloakedReceiverContext;
 import com.ecg.replyts.core.api.model.MailCloakingService;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
@@ -22,7 +21,6 @@ import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +28,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -109,7 +108,7 @@ class ConversationController {
         byId.applyCommand(new AddCustomValueCommand(convId, cmd.getKey(), cmd.getValue()));
 
         ((DefaultMutableConversation)byId).commit(conversationRepository, conversationEventListeners);
-        searchIndexer.updateSearchSync(Collections.singletonList((Conversation)byId));
+        searchIndexer.updateSearchSync(Collections.singletonList(byId));
 
         return ResponseObject.of(converter.convertConversation(byId));
     }

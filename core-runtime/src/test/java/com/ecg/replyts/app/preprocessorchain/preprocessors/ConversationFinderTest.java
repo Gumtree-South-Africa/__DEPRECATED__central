@@ -24,12 +24,7 @@ import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConversationFinderTest {
@@ -107,7 +102,6 @@ public class ConversationFinderTest {
     @Test
     public void doesNotAddMessageWhenCannotLoadExistingConversation() {
         doAnswer(new Answer<Void>() {
-
             @Override
             public Void answer(InvocationOnMock invocation) {
                 MessageProcessingContext context = (MessageProcessingContext) invocation.getArguments()[0];

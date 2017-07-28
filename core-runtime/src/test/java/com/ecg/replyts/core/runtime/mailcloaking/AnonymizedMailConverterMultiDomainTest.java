@@ -15,16 +15,12 @@ import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AnonymizedMailConverterMultiDomainTest {
-    private static final String BUYER = "Buyer";
-    private static final String SELLER = "Seller";
     private static final String[] DOMAINS = {"ebay.com", "kijiji.it"};
 
     @Mock
@@ -33,13 +29,30 @@ public class AnonymizedMailConverterMultiDomainTest {
     @Mock
     private Conversation conversation;
 
-    private AnonymizedMailConverter anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS, ".");
+    private AnonymizedMailConverter anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS);
 
     @Before
     public void setUp() throws Exception {
         when(context.getConversation()).thenReturn(conversation);
 
         when(conversation.getSecretFor(any(ConversationRole.class))).thenReturn("any");
+    }
+
+    @Test
+    public void uncloakValidAddressRegardlessOfSeparator() {
+        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer.1234@ebay.com")));
+        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer-1234@ebay.com")));
+        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("BuyerX1234@ebay.com")));
+        assertEquals("234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer1234@ebay.com")));
+        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer.1234@kijiji.it")));
+        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer-1234@kijiji.it")));
+        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("BuyerX1234@kijiji.it")));
+        assertEquals("234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer1234@kijiji.it")));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void failWhenNoSeparatorAndMessageId() {
+        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer@ebay.com")));
     }
 
     @Test
@@ -85,5 +98,4 @@ public class AnonymizedMailConverterMultiDomainTest {
         assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer.1234@kijiji.it")));
         assertEquals("4321", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer.4321@ebay.com")));
     }
-
 }

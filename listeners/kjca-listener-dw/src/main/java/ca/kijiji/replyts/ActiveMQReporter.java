@@ -3,20 +3,14 @@ package ca.kijiji.replyts;
 import ca.kijiji.replyts.emailblockedfilter.EmailBlockedFilterFactory;
 import ca.kijiji.replyts.ipblockedfilter.IpBlockedFilterFactory;
 import ca.kijiji.replyts.json.JsonTransformer;
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Timer;
 import ca.kijiji.replyts.model.ReplyTSConversationDTO;
 import ca.kijiji.replyts.model.ReplyTSMessageDTO;
 import ca.kijiji.replyts.model.ReplyTSProcessedMessageEventDTO;
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Timer;
 import com.ecg.de.kleinanzeigen.replyts.userfilter.UserfilterFactory;
 import com.ecg.replyts.app.filterchain.FilterChain;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.FilterResultState;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
-import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.google.common.collect.ImmutableList;
@@ -35,16 +29,16 @@ import java.util.Map;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 @Component
-/**
+/*
  * Listens for message-processed events and reports current conversation and message
  * states to the data warehouse queue, which is processed in Box's Batch runner.
  */
 public class ActiveMQReporter implements MessageProcessedListener {
     static final String QUEUE_NAME = "replytsMessageProcessedEventQueue";
-    static final Timer REPORTER_TIMER = TimingReports.newTimer("amq-reporter");
-    static final Counter JMS_EXCEPTION_COUNTER = TimingReports.newCounter("amq-reporter.exceptions");
+    private static final Timer REPORTER_TIMER = TimingReports.newTimer("amq-reporter");
+    private static final Counter JMS_EXCEPTION_COUNTER = TimingReports.newCounter("amq-reporter.exceptions");
 
-    static final String EMAIL_MESSAGE_ORIGIN = "email";
+    private static final String EMAIL_MESSAGE_ORIGIN = "email";
 
     private final JmsTemplate jmsTemplate;
     private final String buyerPrefix;
@@ -59,7 +53,7 @@ public class ActiveMQReporter implements MessageProcessedListener {
             @Qualifier("dwJmsTemplate") JmsTemplate jmsTemplate,
             @Value("${mailcloaking.localized.buyer}") String buyerPrefix,
             @Value("${mailcloaking.localized.seller}") String sellerPrefix,
-            @Value("${mailcloaking.seperator:.}") String mailCloakingSeparator
+            @Value("${mailcloaking.seperator:.}") String mailCloakingSeparator // Do not ever change this, you will break replies to existing messages.
     ) {
         this.jmsTemplate = jmsTemplate;
         this.buyerPrefix = buyerPrefix;
@@ -69,8 +63,7 @@ public class ActiveMQReporter implements MessageProcessedListener {
 
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
-        Timer.Context timer = REPORTER_TIMER.time();
-        try {
+        try (Timer.Context ignored = REPORTER_TIMER.time()) {
             if (shouldIgnoreMessage(message)) {
                 return;
             }
@@ -86,8 +79,6 @@ public class ActiveMQReporter implements MessageProcessedListener {
                 JMS_EXCEPTION_COUNTER.inc();
                 throw e;
             }
-        } finally {
-            timer.stop();
         }
     }
 

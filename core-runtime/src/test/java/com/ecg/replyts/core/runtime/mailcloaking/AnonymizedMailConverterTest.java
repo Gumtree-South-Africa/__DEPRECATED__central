@@ -8,17 +8,13 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AnonymizedMailConverterTest {
-
     private static final String[] DOMAINS = {"ebay.com"};
 
     @Mock
@@ -30,7 +26,7 @@ public class AnonymizedMailConverterTest {
     @Mock
     private Mail mail;
 
-    private AnonymizedMailConverter anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS, ".");
+    private AnonymizedMailConverter anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS);
 
     @Test
     public void validCloakedEmailAddressesAreUncloakable() {
@@ -49,8 +45,16 @@ public class AnonymizedMailConverterTest {
     }
 
     @Test
-    public void uncloakValidAddress() {
+    public void uncloakValidAddressRegardlessOfSeparator() {
         assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer.1234@ebay.com")));
+        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer-1234@ebay.com")));
+        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("BuyerX1234@ebay.com")));
+        assertEquals("234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer1234@ebay.com")));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void failWhenNoSeparatorAndMessageId() {
+        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer@ebay.com")));
     }
 
     @Test
@@ -60,31 +64,25 @@ public class AnonymizedMailConverterTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void uncloakInvalidAddress() {
-        anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer.1234@ecg.com"));
+        anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer.1234@example.com"));
     }
 
     @Test
     public void cloakValidAddressWithSpecialChars() {
-        anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS, "-");
+        anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS);
         when(context.getConversation()).thenReturn(conversation);
-        Mockito.when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("1234");
+        when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("1234");
         when(context.getMail()).thenReturn(mail);
-        MailAddress expected = new MailAddress("Buyer-1234@ebay.com");
+        MailAddress expected = new MailAddress("Buyer.1234@ebay.com");
         assertEquals(expected, anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer));
     }
 
     @Test
     public void cloakValidAddress() {
         when(context.getConversation()).thenReturn(conversation);
-        Mockito.when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("1234");
+        when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("1234");
         MailAddress expected = new MailAddress("Buyer.1234@ebay.com");
         when(context.getMail()).thenReturn(mail);
         assertEquals(expected, anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer));
     }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void failedWithNotSingleChars() throws Exception {
-        anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS, "---");
-    }
-
 }

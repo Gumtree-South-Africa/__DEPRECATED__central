@@ -1,6 +1,5 @@
 package com.ecg.replyts.app.preprocessorchain.preprocessors;
 
-
 import com.ecg.replyts.core.api.model.CloakedReceiverContext;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
@@ -10,25 +9,22 @@ import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
-import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Optional;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExistingConversationLoaderTest {
-
     @Mock
     private MultiTennantMailCloakingService mailCloakingService;
 
@@ -70,7 +66,7 @@ public class ExistingConversationLoaderTest {
 
     @Test
     public void terminatesWhenConversationNotLoaded() {
-        when(mailCloakingService.resolveUser(any(MailAddress.class))).thenReturn(Optional.<CloakedReceiverContext>absent());
+        when(mailCloakingService.resolveUser(any(MailAddress.class))).thenReturn(Optional.empty());
 
         existingConversationLoader.loadExistingConversation(context);
 
@@ -78,5 +74,4 @@ public class ExistingConversationLoaderTest {
 
         verify(context, never()).setConversation(any(MutableConversation.class));
     }
-
 }
