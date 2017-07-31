@@ -5,6 +5,7 @@
     <logger name="com.ecg.replyts.core.runtime.indexer" level="DEBUG" />
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
     <logger name="com.ecg.au.gumtree.messagelogging" level="DEBUG"/>
+    <logger name="com.ebay.ecg.replyts.robot" level="DEBUG"/>
     <logger name="message-json-log" level="INFO">
         <appender name="DWH_DAILY" class="com.ecg.au.gumtree.messagelogging.RTSDBAppender">
             <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">

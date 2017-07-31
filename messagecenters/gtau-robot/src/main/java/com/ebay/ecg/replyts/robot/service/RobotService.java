@@ -11,6 +11,7 @@ import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder;
 import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.api.processing.ModerationService;
@@ -19,6 +20,7 @@ import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
 import com.ecg.replyts.core.runtime.cluster.Guids;
+import com.ecg.replyts.core.runtime.listener.ConversationEventListener;
 import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import com.ecg.replyts.core.runtime.mailparser.StructuredMail;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
@@ -55,30 +57,29 @@ import static com.ecg.replyts.core.api.model.conversation.command.AddMessageComm
 public class RobotService {
     private final static Logger LOGGER = LoggerFactory.getLogger(RobotService.class);
 
-    private final MutableConversationRepository conversationRepository;
-    private final ModerationService moderationService;
-    private final SearchService searchService;
-    private final Guids guids;
+    @Autowired
+    private MutableConversationRepository conversationRepository;
+
+    @Autowired
+    private ModerationService moderationService;
+
+    @Autowired
+    private SearchService searchService;
+
+    @Autowired
+    private Guids guids;
 
     @Autowired
     private ConversationEventListeners conversationEventListeners;
 
-    @Autowired (required = false)
+    @Autowired(required = false)
     private MailRepository mailRepository;
 
-    @Autowired (required = false)
+    @Autowired(required = false)
     private MailPublisher mailPublisher;
 
-    @Autowired
-    public RobotService(MutableConversationRepository conversationRepository,
-                        ModerationService moderationService,
-                        SearchService searchService,
-                        Guids guids) {
-        this.conversationRepository = conversationRepository;
-        this.moderationService = moderationService;
-        this.searchService = searchService;
-        this.guids = guids;
-    }
+    @Autowired(required = false)
+    private HeldMailRepository heldMailRepository;
 
     public void addMessageToConversation(String conversationId, MessagePayload payload) throws IOException, MimeException {
         Optional<MutableConversation> conversation = Optional.fromNullable(conversationRepository.getById(conversationId));
@@ -174,6 +175,9 @@ public class RobotService {
         }
         if (mailPublisher != null) {
             mailPublisher.publishMail(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)), Optional.<byte[]>absent());
+        }
+        if (heldMailRepository != null) {
+            heldMailRepository.write(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)));
         }
 
         LOGGER.debug("Done persisting message " + messageId + ".");

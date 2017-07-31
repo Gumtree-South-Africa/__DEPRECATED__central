@@ -2,37 +2,53 @@ package com.ebay.ecg.replyts.robot.service;
 
 import com.ebay.ecg.replyts.robot.api.requests.payload.MessagePayload;
 import com.ebay.ecg.replyts.robot.api.requests.payload.MessageSender;
+import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.persistence.MailRepository;
+import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.processing.ModerationService;
-import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.runtime.cluster.Guids;
+import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
-import org.junit.Before;
+import com.google.common.collect.Maps;
+import org.joda.time.DateTime;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
-/**
- * Created by gafabic on 5/2/16.
- */
+@RunWith(MockitoJUnitRunner.class)
 public class RobotServiceTest {
 
-    private RobotService robotService;
+    @Mock
+    private MutableConversationRepository conversationRepository;
 
-    @Before
-    public void setup() {
-        this.robotService = new RobotService(
-                Mockito.mock(MutableConversationRepository.class),
-                Mockito.mock(ModerationService.class),
-                Mockito.mock(SearchService.class),
-                Mockito.mock(Guids.class)
-            );
-    }
+    @Mock
+    private Guids guids = mock(Guids.class);
+
+    @Mock
+    private HeldMailRepository heldMailRepository = mock(HeldMailRepository.class);
+
+    @Mock
+    private ConversationEventListeners conversationEventListeners = mock(ConversationEventListeners.class);
+
+    @Mock
+    private ModerationService moderationService;
+
+    @InjectMocks
+    private RobotService robotService;
 
     @Test
     public void testHeadersAreSetCorrectlyForNoLinkMessage() throws Exception {
@@ -43,10 +59,10 @@ public class RobotServiceTest {
         message.setRichMessageText("This is a rich message");
         payload.setRichTextMessage(message);
 
-        Conversation conversation = Mockito.mock(Conversation.class);
-        Mockito.when(conversation.getAdId()).thenReturn("AD-ID");
-        Mockito.when(conversation.getSellerId()).thenReturn("seller@seller.com");
-        Mockito.when(conversation.getBuyerId()).thenReturn("buyer@buyer.com");
+        Conversation conversation = mock(Conversation.class);
+        when(conversation.getAdId()).thenReturn("AD-ID");
+        when(conversation.getSellerId()).thenReturn("seller@seller.com");
+        when(conversation.getBuyerId()).thenReturn("buyer@buyer.com");
 
         Mail mail = robotService.aRobotMail(conversation, payload);
 
@@ -75,10 +91,10 @@ public class RobotServiceTest {
         payload.setSender(sender);
 
 
-        Conversation conversation = Mockito.mock(Conversation.class);
-        Mockito.when(conversation.getAdId()).thenReturn("AD-ID");
-        Mockito.when(conversation.getSellerId()).thenReturn("seller@seller.com");
-        Mockito.when(conversation.getBuyerId()).thenReturn("buyer@buyer.com");
+        Conversation conversation = mock(Conversation.class);
+        when(conversation.getAdId()).thenReturn("AD-ID");
+        when(conversation.getSellerId()).thenReturn("seller@seller.com");
+        when(conversation.getBuyerId()).thenReturn("buyer@buyer.com");
 
         Mail mail = robotService.aRobotMail(conversation, payload);
 
@@ -92,5 +108,22 @@ public class RobotServiceTest {
         assertNull(mail.getUniqueHeader("X-RichText-Links"));
         assertEquals("{\"name\":\"The name\",\"senderIcons\":[{\"name\":\"test\",\"url\":\"http://test\"},{\"name\":\"test2\",\"url\":\"http://test2\"}]}", mail.getUniqueHeader("X-Message-Sender"));
     }
-}
 
+    @Test
+    public void addMessageToConversationStoresMail() throws Exception {
+        String convId = "convId";
+        String msgId = "msgId";
+        MessagePayload payload = new MessagePayload() {{
+            setMessage("msg");
+            setMessageDirection(MessageDirection.BUYER_TO_SELLER.name());
+        }};
+        DefaultMutableConversation conversation = DefaultMutableConversation.create(new NewConversationCommand(convId, "1", "buyer@example.com", "seller@example.com", "sec1", "sec2", new DateTime(), ConversationState.ACTIVE, Maps.newHashMap()));
+
+        when(conversationRepository.getById(convId)).thenReturn(conversation);
+        when(guids.nextGuid()).thenReturn(msgId);
+
+        robotService.addMessageToConversation(convId, payload);
+
+        verify(heldMailRepository).write(eq(msgId), any(byte[].class));
+    }
+}
