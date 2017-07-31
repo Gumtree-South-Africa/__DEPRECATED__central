@@ -1,8 +1,1 @@
-<included>
-    <logger name="com.ecg.de.ebayk.messagecenter" level="INFO"/>
-    <logger name="com.ecg.replyts" level="DEBUG"/>
-    <logger name="com.ecg.de" level="INFO"/>
-    <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
-    <logger name="com.ecg.replyts.core.runtime.cluster.monitor" level="INFO"/>
-    <logger name="org.springframework.cloud" level="INFO"/>
-</included>
+<included/>
