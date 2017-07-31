@@ -28,7 +28,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
 @Configuration
-@ComponentScan(basePackages = "com.ecg", useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
+@ComponentScan(value = { "com.ecg", "com.ebay" }, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
 @Import({ StartupExperience.class, EmbeddedWebserver.class })
 public class ReplyTS {
     private static final Logger LOG = LoggerFactory.getLogger(ReplyTS.class);

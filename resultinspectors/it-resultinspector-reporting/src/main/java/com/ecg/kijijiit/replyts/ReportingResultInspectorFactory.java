@@ -5,11 +5,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.resultinspector.ResultInspec
 import com.fasterxml.jackson.databind.JsonNode;
 import com.timgroup.statsd.StatsDClient;
 
-/**
- * Created by jaludden on 09/05/17.
- */
 public class ReportingResultInspectorFactory implements ResultInspectorFactory {
-
     private StatsDClient statsDClient;
 
     public ReportingResultInspectorFactory(StatsDClient statsDClient) {

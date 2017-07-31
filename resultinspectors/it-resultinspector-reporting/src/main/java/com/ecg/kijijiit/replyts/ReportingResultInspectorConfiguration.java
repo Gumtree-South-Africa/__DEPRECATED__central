@@ -10,15 +10,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Created by fmaffioletti on 10/28/15.
- */
 @ComaasPlugin
 @Configuration
 public class ReportingResultInspectorConfiguration {
-
-    private static final Logger LOG =
-                    LoggerFactory.getLogger(ReportingResultInspectorConfiguration.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ReportingResultInspectorConfiguration.class);
 
     private StatsDClient statsDClient;
 
