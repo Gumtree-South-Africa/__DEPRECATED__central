@@ -1,4 +1,4 @@
-package com.ecg.kijijiit.replyts;
+package com.ecg.it.kijiji.replyts;
 
 import com.ecg.replyts.app.postprocessorchain.PostProcessor;
 import com.ecg.replyts.core.api.model.mail.MutableMail;

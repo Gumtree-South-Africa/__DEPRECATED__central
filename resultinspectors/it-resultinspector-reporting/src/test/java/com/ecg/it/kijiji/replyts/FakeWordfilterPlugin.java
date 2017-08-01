@@ -1,4 +1,4 @@
-package com.ecg.kijijiit.replyts;
+package com.ecg.it.kijiji.replyts;
 
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;

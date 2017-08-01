@@ -1,6 +1,5 @@
-package com.ebay.columbus.replyts2.quickreply;
+package com.ecg.it.kijiji.replyts;
 
-import com.ecg.kijijiit.replyts.QuickReplyPostProcessorConfiguration;
 import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Assert;

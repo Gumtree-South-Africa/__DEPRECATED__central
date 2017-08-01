@@ -1,4 +1,4 @@
-package com.ecg.kijijiit.replyts;
+package com.ecg.it.kijiji.replyts;
 
 import com.ecg.replyts.core.runtime.ComaasPlugin;
 import org.springframework.context.annotation.Configuration;
