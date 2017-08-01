@@ -52,8 +52,9 @@ public class DataWarehouseEventLogListener implements MessageProcessedListener {
     }
 
     private Optional<MessageProcessedEvent> event(Conversation conversation, Message message) throws Exception {
-        // Often, the conversation.getAdId() call returns null. This is a known error that is also happening on RTS2 in GTUK.
-        if (conversation.getAdId() == null) {
+        // Often, the categoryid is null. This is a known error that is also happening on RTS2 in GTUK.
+        if (conversation.getCustomValues().get("categoryid") == null) {
+            LOG.debug("No categoryId found for message {} in conversation {}", message.getId(), conversation.getId());
             return Optional.empty();
         }
 
