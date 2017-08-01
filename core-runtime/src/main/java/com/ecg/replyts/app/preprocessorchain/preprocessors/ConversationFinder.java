@@ -21,6 +21,7 @@ import static com.ecg.replyts.core.api.model.conversation.command.AddMessageComm
 @Component("conversationFinder")
 public class ConversationFinder implements PreProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationFinder.class);
+    private static final Logger TERMINATED_MESSAGE_LOG = LoggerFactory.getLogger("TerminatedMessageLogger");
     private static final Counter TERMINATED_MESSAGE_COUNTER = TimingReports.newCounter("message-terminated-and-discarded");
 
     private final NewConversationCreator newConversationCreator;
@@ -66,7 +67,7 @@ public class ConversationFinder implements PreProcessor {
             existingConversationLoader.loadExistingConversation(context);
             if (context.isTerminated()) {
                 final String messageId = context.hasConversation() ? context.getMessage().getId() : "unknown";
-                LOG.warn("Message {} belongs to terminated context. Termination state: {}, reason: {}",
+                TERMINATED_MESSAGE_LOG.warn("Message {} belongs to terminated context. Termination state: {}, reason: {}",
                         messageId, context.getTermination().getEndState(), context.getTermination().getReason());
                 TERMINATED_MESSAGE_COUNTER.inc();
                 return;
