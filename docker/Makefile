@@ -1,6 +1,6 @@
 DOCKER_COMPOSE  = docker-compose
 BROWSE          = open
-PROPS2CONSUL    = ./properties-to-consul-osx
+PROPS2CONSUL    = docker run --net docker_default --rm --volume $$PWD/..:/code -w /code/docker registry.ecg.so/properties-to-consul:0.0.4 -consul http://docker_consul_1:8500
 CASS_IMG_VER    = 0.0.6
 
 .PHONY: up down ui import logs cassandra-image push-cassandra-image pull
@@ -15,7 +15,7 @@ ui:
 	@$(BROWSE) http://localhost:8000
 
 import:
-	@find ../distribution/conf -name docker.properties | xargs -n1 $(PROPS2CONSUL) -file
+	find ../distribution/conf -name docker.properties -exec $(PROPS2CONSUL) -file {} \;
 
 logs:
 	@$(DOCKER_COMPOSE) logs -f
