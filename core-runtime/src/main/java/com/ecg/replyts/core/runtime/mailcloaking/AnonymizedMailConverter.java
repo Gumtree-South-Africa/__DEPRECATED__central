@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class AnonymizedMailConverter {
-    private static final char MAIL_CLOAKING_SEPARATOR = '.'; // Do not ever change this, you will break replies to existing messages.
+    private static final char MAIL_CLOAKING_SEPARATOR = '-'; // Do not ever change this, you will break replies to existing messages.
 
     private final String buyerRole;
     private final String sellerRole;

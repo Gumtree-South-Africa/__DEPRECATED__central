@@ -12,7 +12,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class AnonymizesOutgoingMailAcceptanceTest {
-
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
@@ -30,11 +29,10 @@ public class AnonymizesOutgoingMailAcceptanceTest {
         String sender = conversationStarterMail.getFrom()[0].toString();
         String receiver = conversationStarterMail.getRecipients(Message.RecipientType.TO)[0].toString();
 
-        String senderPattern = "^(Buyer|Seller)\\.[0-9a-zA-Z]+@test-platform\\.com";
+        String senderPattern = "^(Buyer|Seller)-[0-9a-zA-Z]+@test-platform\\.com";
         assertTrue("Sender " + sender + " must match pattern when being cloaked " + senderPattern, sender.matches(senderPattern));
         assertEquals("max@mail.com", receiver);
     }
-
 
     @Test
     public void supportsRepliesToAnonymizedMailAddress() throws Exception {
@@ -53,5 +51,4 @@ public class AnonymizesOutgoingMailAcceptanceTest {
 
         assertEquals("buyer@host.com", receiver);
     }
-
 }

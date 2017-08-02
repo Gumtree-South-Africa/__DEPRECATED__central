@@ -59,7 +59,7 @@ public class AnonymizedMailConverterTest {
 
     @Test
     public void uncloakIgnoreCase() {
-        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("BUYER.1234@EBAY.COM")));
+        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("BUYER-1234@EBAY.COM")));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -73,7 +73,7 @@ public class AnonymizedMailConverterTest {
         when(context.getConversation()).thenReturn(conversation);
         when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("1234");
         when(context.getMail()).thenReturn(mail);
-        MailAddress expected = new MailAddress("Buyer.1234@ebay.com");
+        MailAddress expected = new MailAddress("Buyer-1234@ebay.com");
         assertEquals(expected, anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer));
     }
 
@@ -81,7 +81,7 @@ public class AnonymizedMailConverterTest {
     public void cloakValidAddress() {
         when(context.getConversation()).thenReturn(conversation);
         when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("1234");
-        MailAddress expected = new MailAddress("Buyer.1234@ebay.com");
+        MailAddress expected = new MailAddress("Buyer-1234@ebay.com");
         when(context.getMail()).thenReturn(mail);
         assertEquals(expected, anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer));
     }
