@@ -1,5 +1,6 @@
 package com.ecg.messagebox.persistence;
 
+import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.model.*;
 import org.joda.time.DateTime;
 
@@ -120,4 +121,12 @@ public interface CassandraPostBoxRepository {
      * @return all conversation IDs for given user limited to given limit amount.
      */
     List<String> resolveConversationIdsByUserIdAndAdId(String userId, String adId, int limit);
+
+    /**
+     * Creates an empty conversation and returns a conversationId
+     * @param emptyConversationRequest
+     * @param newConversationId
+     * @return
+     */
+    String createEmptyConversation(EmptyConversationRequest emptyConversationRequest, String newConversationId);
 }

@@ -2,6 +2,7 @@ package com.ecg.messagebox.persistence;
 
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
+import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.persistence.jsonconverter.JsonConverter;
@@ -49,6 +50,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer getConversationModificationsByHourTimer = newTimer("cassandra.postBoxRepo.v2.getConversationModificationsByHour");
     private final Timer getLastConversationModificationTimer = newTimer("cassandra.postBoxRepo.v2.getLastConversationModificationTimer");
     private final Timer resolveConversationIdsByUserIdAndAdId = newTimer("cassandra.postBoxRepo.v2.resolveConversationIdsByUserIdAndAdId");
+    private final Timer createEmptyConversationTimer = newTimer("cassandra.postBoxRepo.v2.createEmptyConversation");
 
     private final Session session;
     private final ConsistencyLevel readConsistency;
@@ -265,19 +267,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     @Override
     public void createConversation(String userId, ConversationThread conversation, Message message, boolean incrementUnreadCount) {
         try (Timer.Context ignored = createConversationTimer.time()) {
-            String conversationId = conversation.getId();
-            String participantsJson = jsonConverter.toParticipantsJson(userId, conversationId, conversation.getParticipants());
-            String messageJson = jsonConverter.toMessageJson(userId, conversationId, message);
-            String metadataJson = jsonConverter.toConversationMetadataJson(userId, conversationId, conversation.getMetadata());
-
-            BatchStatement batch = new BatchStatement();
-
-            batch.add(Statements.UPDATE_CONVERSATION.bind(this, conversation.getAdId(), Visibility.ACTIVE.getCode(), MessageNotification.RECEIVE.getCode(),
-                    participantsJson, messageJson, metadataJson, userId, conversationId));
-            newMessageCqlStatements(userId, conversationId, conversation.getAdId(), message, incrementUnreadCount).forEach(batch::add);
-
-            batch.setConsistencyLevel(getWriteConsistency());
-            session.execute(batch);
+            createConversation(conversation.getId(), userId, conversation.getAdId(), conversation.getParticipants(), message, conversation.getMetadata(), incrementUnreadCount);
         }
     }
 
@@ -297,10 +287,17 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     private List<Statement> newMessageCqlStatements(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount) {
+        return newMessageCqlStatements(userId, conversationId, adId, message, incrementUnreadCount, true);
+    }
+
+    private List<Statement> newMessageCqlStatements(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount, boolean insertMessage) {
         List<Statement> statements = new ArrayList<>();
         statements.add(Statements.UPDATE_AD_CONVERSATION_INDEX.bind(this, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
-        String messageMetadata = jsonConverter.toMessageMetadataJson(userId, conversationId, message);
-        statements.add(Statements.INSERT_MESSAGE.bind(this, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
+
+        if(insertMessage) {
+            String messageMetadata = jsonConverter.toMessageMetadataJson(userId, conversationId, message);
+            statements.add(Statements.INSERT_MESSAGE.bind(this, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
+        }
 
         if (incrementUnreadCount) {
             int newUnreadCount = getConversationUnreadCount(userId, conversationId) + 1;
@@ -396,6 +393,46 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                     .map(row -> row.getString("convid"))
                     .collect(toList());
         }
+    }
+
+    @Override
+    public String createEmptyConversation(EmptyConversationRequest emptyConversation, String newConversationId) {
+
+        try (Timer.Context ignored = createEmptyConversationTimer.time()) {
+
+            createConversation(
+                    newConversationId,
+                    emptyConversation.getSenderId(),
+                    emptyConversation.getAdId(),
+                    new ArrayList(emptyConversation.getParticipants().values()),
+                    emptyConversation.getMessage(),
+                    new ConversationMetadata(DateTime.now(), emptyConversation.getAdTitle(), emptyConversation.getAdTitle()),
+                    false,
+                    false
+            );
+
+            return newConversationId;
+        }
+    }
+
+    private void createConversation(String conversationId, String senderId, String adId, List<Participant> participants, Message message, ConversationMetadata metadata, boolean incrementUnreadCount) {
+        createConversation(conversationId, senderId, adId, participants, message, metadata, incrementUnreadCount, true);
+    }
+
+    private void createConversation(String conversationId, String senderId, String adId, List<Participant> participants, Message message, ConversationMetadata metadata, boolean incrementUnreadCount, boolean insertMessage) {
+
+        String participantsJson = jsonConverter.toParticipantsJson(senderId, conversationId, participants);
+        String messageJson = jsonConverter.toMessageJson(senderId, conversationId, message);
+        String metadataJson = jsonConverter.toConversationMetadataJson(senderId, conversationId, metadata);
+
+        BatchStatement batch = new BatchStatement();
+
+        batch.add(Statements.UPDATE_CONVERSATION.bind(this, adId, Visibility.ACTIVE.getCode(), MessageNotification.RECEIVE.getCode(),
+                participantsJson, messageJson, metadataJson, senderId, conversationId));
+        newMessageCqlStatements(senderId, conversationId, adId, message, incrementUnreadCount, insertMessage).forEach(batch::add);
+
+        batch.setConsistencyLevel(getWriteConsistency());
+        session.execute(batch);
     }
 
     public ConsistencyLevel getReadConsistency() {

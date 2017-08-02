@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.Random;
 
 @Component
-class UniqueConversationSecret {
+public class UniqueConversationSecret {
 
     private static final Random RANDOM = new Random(System.nanoTime());
     private static final int MAX_RETRIES = 10;

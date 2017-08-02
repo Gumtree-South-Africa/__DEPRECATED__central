@@ -3,17 +3,21 @@ package com.ecg.messagebox.service;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.utils.UUIDs;
+import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
+import com.ecg.replyts.core.runtime.service.NewConversationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
@@ -26,6 +30,7 @@ public class CassandraPostBoxService implements PostBoxService {
     private final BlockUserRepository blockUserRepository;
     private final UserIdentifierService userIdentifierService;
     private final ResponseDataService responseDataService;
+    private final NewConversationService newConversationService;
 
     private final Timer processNewMessageTimer = newTimer("postBoxService.v2.processNewMessage");
     private final Timer getConversationTimer = newTimer("postBoxService.v2.getConversation");
@@ -35,6 +40,7 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
     private final Timer deleteConversationsTimer = newTimer("postBoxService.v2.deleteConversation");
     private final Timer resolveConversationIdByUserIdAndAdId = newTimer("postBoxService.v2.resolveConversationIdsByUserIdAndAdId");
+    private final Timer createEmptyConversation = newTimer("postBoxService.v2.createEmptyConversation");
 
     private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
 
@@ -44,13 +50,15 @@ public class CassandraPostBoxService implements PostBoxService {
             UserIdentifierService userIdentifierService,
             BlockUserRepository blockUserRepository,
             ResponseDataService responseDataService,
-            MessagesResponseFactory messagesResponseFactory
+            MessagesResponseFactory messagesResponseFactory,
+            NewConversationService newConversationService
     ) {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.messagesResponseFactory = messagesResponseFactory;
         this.blockUserRepository = blockUserRepository;
         this.responseDataService = responseDataService;
+        this.newConversationService = newConversationService;
     }
 
     @SuppressWarnings("Duplicates")
@@ -163,9 +171,39 @@ public class CassandraPostBoxService implements PostBoxService {
         }
     }
 
+    @Override
+    public Optional<String> createEmptyConversation(EmptyConversationRequest emptyConversationRequest) {
+        try (Timer.Context ignored = createEmptyConversation.time()) {
+
+            Map<ParticipantRole, Participant> participantMap = emptyConversationRequest.getParticipants();
+
+            Optional<String> buyerEmail = getParticipantEmail(participantMap, ParticipantRole.BUYER);
+            Optional<String> sellerEmail = getParticipantEmail(participantMap, ParticipantRole.SELLER);
+
+            if(buyerEmail.isPresent() && sellerEmail.isPresent()) {
+
+                String newConversationId = newConversationService.nextGuid();
+                postBoxRepository.createEmptyConversation(emptyConversationRequest, newConversationId);
+
+                newConversationService.commitConversation(
+                        newConversationId,
+                        emptyConversationRequest.getAdId(),
+                        buyerEmail.get(),
+                        sellerEmail.get(),
+                        ConversationState.ACTIVE
+                );
+
+                return Optional.of(newConversationId);
+
+            } else {
+                return Optional.empty();
+            }
+        }
+    }
+
     private List<Participant> getParticipants(Conversation rtsConversation) {
         return new ArrayList<Participant>(2) {{
-            add(new Participant(getBuyerUserId(rtsConversation), customValue(rtsConversation, "buyer-name"), rtsConversation.getBuyerId(), ParticipantRole.BUYER));
+            add(new Participant(getBuyerUserId(rtsConversation), customValue(rtsConversation, "buyer-name"), rtsConversation.getBuyerId(), BUYER));
             add(new Participant(getSellerUserId(rtsConversation), customValue(rtsConversation, "seller-name"), rtsConversation.getSellerId(), ParticipantRole.SELLER));
         }};
     }
@@ -188,5 +226,9 @@ public class CassandraPostBoxService implements PostBoxService {
 
     private String customValue(Conversation rtsConversation, String customValueKey) {
         return rtsConversation.getCustomValues().get(customValueKey);
+    }
+
+    private Optional<String> getParticipantEmail(Map<ParticipantRole, Participant> participantsMap, ParticipantRole participantRole) {
+        return participantsMap.containsKey(participantRole) ? Optional.of(participantsMap.get(participantRole).getEmail()) : Optional.empty();
     }
 }

@@ -1,6 +1,7 @@
 package com.ecg.messagebox.controllers;
 
 import com.codahale.metrics.Timer;
+import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.controllers.responses.ConversationsResponse;
 import com.ecg.messagebox.controllers.responses.converters.ConversationsResponseConverter;
 import com.ecg.messagebox.model.PostBox;
@@ -11,29 +12,37 @@ import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Controller
-public class ConversationsController {
+public class ConversationsController extends ResponseEntityExceptionHandler {
 
     private static final String CONVERSATIONS_RESOURCE = "/users/{userId}/conversations";
     private static final String CONVERSATION_IDS_BY_ADID_RESOURCE = "/users/{userId}/ads/{adId}/conversations/ids";
+    private static final String CONVERSATION_ADS_RESOURCE = "/users/{userId}/ads/{adId}";
+    private static final String MISSING_PARTICIPANT_MESSAGE = "Missing participant for buyer or seller";
 
     private final Timer getConversationsTimer = TimingReports.newTimer("webapi.get-conversations");
     private final Timer executeActionsTimer = TimingReports.newTimer("webapi.execute-actions");
     private final Timer getConversationIdsByAdId = TimingReports.newTimer("webapi.get-conversation-ids-by-adid");
+    private final Timer postEmptyConversation = TimingReports.newTimer("webapi.post-empty-conversation");
 
     private final PostBoxService postBoxService;
     private final ConversationsResponseConverter responseConverter;
@@ -111,5 +120,19 @@ public class ConversationsController {
         }
     }
 
+    @RequestMapping(value = CONVERSATION_ADS_RESOURCE, produces = APPLICATION_JSON_UTF8_VALUE, method = POST)
+    @ResponseBody
+    ResponseEntity<ResponseObject<?>> createEmptyConversation(@Valid @RequestBody EmptyConversationRequest emptyConversation, BindingResult bindingResult) {
 
+        try (Timer.Context ignored = postEmptyConversation.time()) {
+
+            if(bindingResult.hasErrors()) {
+                return new ResponseEntity(HttpStatus.BAD_REQUEST);
+            }
+
+            Optional<String> conversationId = postBoxService.createEmptyConversation(emptyConversation);
+
+            return conversationId.isPresent() ? new ResponseEntity(ResponseObject.of(conversationId.get()), HttpStatus.OK) : new ResponseEntity(MISSING_PARTICIPANT_MESSAGE, HttpStatus.BAD_REQUEST);
+        }
+    }
 }

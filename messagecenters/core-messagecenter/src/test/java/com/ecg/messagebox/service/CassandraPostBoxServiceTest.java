@@ -1,8 +1,10 @@
 package com.ecg.messagebox.service;
 
 import com.datastax.driver.core.utils.UUIDs;
+import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
+import com.ecg.messagebox.util.EmptyConversationFixture;
 import com.ecg.messagebox.util.MessagePreProcessor;
 import com.ecg.messagebox.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.*;
@@ -10,6 +12,7 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
+import com.ecg.replyts.core.runtime.service.NewConversationService;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
@@ -97,6 +100,8 @@ public class CassandraPostBoxServiceTest {
     private ResponseDataService responseDataService;
     @Mock
     private PostBox postBox;
+    @Mock
+    private NewConversationService newConversationService;
 
     @Autowired
     private MessagesResponseFactory messagesResponseFactory;
@@ -107,7 +112,7 @@ public class CassandraPostBoxServiceTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         DateTimeUtils.setCurrentMillisFixed(now().getMillis());
-        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService, blockUserRepo, responseDataService, messagesResponseFactory);
+        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService, blockUserRepo, responseDataService, messagesResponseFactory, newConversationService);
         when(userIdentifierService.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierService.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(blockUserRepo.areUsersBlocked(any(), any())).thenReturn(false);
@@ -292,6 +297,45 @@ public class CassandraPostBoxServiceTest {
         service.deleteConversation(USER_ID_1, CONVERSATION_ID_1, AD_ID_1);
 
         verify(conversationsRepo).deleteConversation(USER_ID_1, CONVERSATION_ID_1, AD_ID_1);
+    }
+
+    @Test
+    public void createEmptyConversation() {
+
+        EmptyConversationRequest request = EmptyConversationFixture.validEmptyConversation();
+
+        when(conversationsRepo.createEmptyConversation(any(EmptyConversationRequest.class), anyString())).thenReturn(CONVERSATION_ID_1);
+        when(newConversationService.nextGuid()).thenReturn(CONVERSATION_ID_1);
+
+        Optional<String> resultConversationId = service.createEmptyConversation(request);
+
+        Assert.assertTrue(resultConversationId.isPresent());
+        Assert.assertEquals("Should get back expected conversationId", Optional.of(CONVERSATION_ID_1), resultConversationId);
+
+        verify(conversationsRepo).createEmptyConversation(eq(request), eq(CONVERSATION_ID_1));
+        verify(newConversationService).nextGuid();
+        verify(newConversationService).commitConversation(eq(CONVERSATION_ID_1), eq(request.getAdId()), eq(EmptyConversationFixture.BUYER_EMAIL_1), eq(EmptyConversationFixture.SELLER_EMAIL_1), eq(ConversationState.ACTIVE));
+    }
+
+    @Test
+    public void createEmptyConversationWhenSellerEmailCantBeFound() {
+
+        final String SECRETS = "thisisasecret";
+
+        EmptyConversationRequest request = EmptyConversationFixture.validEmptyConversation();
+        request.setParticipants(new HashMap<>()); // set it empty for it to fail
+
+        when(conversationsRepo.createEmptyConversation(any(EmptyConversationRequest.class), anyString())).thenReturn(CONVERSATION_ID_1);
+        when(newConversationService.nextGuid()).thenReturn(CONVERSATION_ID_1);
+        when(newConversationService.nextSecret()).thenReturn(SECRETS);
+
+        Optional<String> resultConversationId = service.createEmptyConversation(request);
+
+        Assert.assertFalse(resultConversationId.isPresent());
+        Assert.assertEquals(Optional.empty(), resultConversationId);
+
+        verifyZeroInteractions(conversationsRepo);
+        verifyZeroInteractions(newConversationService);
     }
 
     private ImmutableConversation.Builder newConversation(String id) {
