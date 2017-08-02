@@ -6,9 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
@@ -38,15 +36,15 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
         this.epServiceProvider.initialize();
     }
 
-    void register(String instanceId, List<Quota> queues) {
-        if (epWindows.containsKey(instanceId)) {
-            LOG.warn("EP Window '{}' already exists, not creating again", instanceId);
-            return;
-        }
-
+    void register(String instanceId, List<Quota> quotas) {
         List<EPStatement> statements = new ArrayList<>();
-        for (Quota quota : queues) {
+        for (Quota quota : quotas) {
             String windowName = windowName(instanceId, quota);
+
+            if (epWindows.containsKey(windowName)) {
+                LOG.warn("EP Window '{}' already exists, not creating again", windowName);
+                return;
+            }
 
             String createWindow = format("create window %s.win:time(%d min) as select `%s` from `%s`",
                     windowName, quota.getDurationMinutes(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
@@ -58,9 +56,9 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
             String insertIntoWindow = format("insert into %s select `%s` from `%s`", windowName, VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
             LOG.debug(insertIntoWindow);
             epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
-        }
 
-        epWindows.put(instanceId, statements);
+            epWindows.put(windowName, statements);
+        }
     }
 
     private String windowName(String instanceId, Quota q) {
@@ -78,6 +76,10 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
 
         EPOnDemandQueryResult result = epServiceProvider.getEPRuntime().executeQuery(query);
         return (Long) result.iterator().next().get("count(*)");
+    }
+
+    Map<String, List<EPStatement>> getWindows() {
+        return Collections.unmodifiableMap(epWindows);
     }
 
     @Override
