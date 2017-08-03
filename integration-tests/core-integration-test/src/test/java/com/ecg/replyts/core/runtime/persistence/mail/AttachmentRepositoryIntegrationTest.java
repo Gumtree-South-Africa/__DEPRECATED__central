@@ -36,7 +36,7 @@ import static org.junit.Assert.assertNotNull;
         "swift.tenant=comaas-qa",
         "replyts.swift.container=test-container",
         "swift.username=comaas-qa-swift",
-        "swift.password=[]k+77~@*!CY(]Za",
+        "swift.password=Z6J$6QfV@HU1%aGv",
 })
 @Ignore
 public class AttachmentRepositoryIntegrationTest {
