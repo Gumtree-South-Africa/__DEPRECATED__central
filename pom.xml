@@ -436,6 +436,7 @@
         <bouncycastle-version>1.50</bouncycastle-version>
         <bouncycastle-jdk>jdk15on</bouncycastle-jdk>
         <cassandra-client-version>2.1.10</cassandra-client-version>
+        <HdrHistogram.version>2.1.9</HdrHistogram.version>
         <cobertura-maven-version>2.5.2</cobertura-maven-version>
         <cglib-version>3.1</cglib-version>
         <elasticsearch-version>1.7.5</elasticsearch-version>
@@ -1766,6 +1767,11 @@
                         <groupId>org.ow2.asm</groupId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.hdrhistogram</groupId>
+                <artifactId>HdrHistogram</artifactId>
+                <version>${HdrHistogram.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.subethamail</groupId>
