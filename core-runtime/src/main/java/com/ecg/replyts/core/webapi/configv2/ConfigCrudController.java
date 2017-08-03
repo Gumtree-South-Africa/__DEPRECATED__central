@@ -36,7 +36,7 @@ import static java.lang.String.format;
  * <h1>Read</h1>
  * <p/>
  * <pre>
- * curl -i -H "Accept: Application/Json" -"Content-Type: Application/Json" -X GET http://localhost:8081/configv2/
+ * curl -i -H "Accept: Application/Json" -H "Content-Type: Application/Json" -X GET http://localhost:8081/configv2/
  * </pre>
  * <p/>
  * Retrieve a listing of all configurations with data that are persisted right now. This does not guarantee that those
