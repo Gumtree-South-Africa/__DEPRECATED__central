@@ -6,10 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -20,10 +24,8 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
     private static final String PROVIDER_NAME = "volumefilter_provider";
     private static final String MAIL_RECEIVED_EVENT = "MailReceivedEvent";
     private static final String VELOCITY_FIELD_VALUE = "mailAddress";
-    private static final String VOLUME_NAME_PREFIX = "volume";
-    private static final Pattern VOLUME_PATTERN = Pattern.compile("[- %+()]");
 
-    private ConcurrentMap<String, List<EPStatement>> epWindows = new ConcurrentHashMap<>();
+    private ConcurrentMap<Window, EPStatement> epWindows = new ConcurrentHashMap<>();
     private EPServiceProvider epServiceProvider;
 
     @PostConstruct
@@ -37,33 +39,26 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
     }
 
     void register(String instanceId, List<Quota> quotas) {
-        List<EPStatement> statements = new ArrayList<>();
         for (Quota quota : quotas) {
-            String windowName = windowName(instanceId, quota);
+            Window window = new Window(instanceId, quota);
 
-            if (epWindows.containsKey(windowName)) {
-                LOG.warn("EP Window '{}' already exists, not creating again", windowName);
+            if (epWindows.containsKey(window)) {
+                LOG.warn("EP Window '{}' already exists, not creating again", window);
                 return;
             }
 
             String createWindow = format("create window %s.win:time(%d min) as select `%s` from `%s`",
-                    windowName, quota.getDurationMinutes(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
+                    window, quota.getDurationMinutes(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
 
             LOG.debug(createWindow);
-            EPStatement epl = epServiceProvider.getEPAdministrator().createEPL(createWindow);
-            statements.add(epl);
+            EPStatement statement = epServiceProvider.getEPAdministrator().createEPL(createWindow);
 
-            String insertIntoWindow = format("insert into %s select `%s` from `%s`", windowName, VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
+            String insertIntoWindow = format("insert into %s select `%s` from `%s`", window, VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
             LOG.debug(insertIntoWindow);
             epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
 
-            epWindows.put(windowName, statements);
+            epWindows.putIfAbsent(window, statement);
         }
-    }
-
-    private String windowName(String instanceId, Quota q) {
-        String sanitisedFilterName = VOLUME_PATTERN.matcher(instanceId).replaceAll("_");
-        return (VOLUME_NAME_PREFIX + sanitisedFilterName + "quota" + q.getPerTimeValue() + q.getPerTimeUnit() + q.getScore()).toLowerCase();
     }
 
     public void mailReceivedFrom(String mailAddress) {
@@ -72,13 +67,13 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
 
     long count(String mailAddress, String instanceId, Quota quota) {
         String query = format("select count(*) from %s where mailAddress = '%s'",
-                windowName(instanceId, quota), mailAddress.toLowerCase());
+                Window.name(instanceId, quota), mailAddress.toLowerCase());
 
         EPOnDemandQueryResult result = epServiceProvider.getEPRuntime().executeQuery(query);
         return (Long) result.iterator().next().get("count(*)");
     }
 
-    Map<String, List<EPStatement>> getWindows() {
+    Map<Window, EPStatement> getWindows() {
         return Collections.unmodifiableMap(epWindows);
     }
 
@@ -89,10 +84,66 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
 
     @Override
     public void unregister(String instanceId) {
-        epWindows.get(instanceId).stream()
-                .filter(Objects::nonNull)
-                .forEach(EPStatement::destroy);
+        List<Window> windows = epWindows.entrySet().stream()
+                // filter the windows with instanceId
+                .filter(entry -> instanceId.equals(entry.getKey().instanceId))
+                // destroy Statements belonging to the filtered windows
+                .peek(entry -> entry.getValue().destroy())
+                // get windows to delete them later on
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
 
-        epWindows.remove(instanceId);
+        windows.forEach(epWindows::remove);
+    }
+
+    /**
+     * Time window which is composed by filter INSTANCE_ID and QUOTA.
+     */
+    static class Window {
+
+        private static final String VOLUME_NAME_PREFIX = "volume";
+        private static final Pattern VOLUME_PATTERN = Pattern.compile("[- %+()]");
+
+        private final String instanceId;
+        private final Quota quota;
+        private final String windowName;
+
+        Window(String instanceId, Quota quota) {
+            this.instanceId = instanceId;
+            this.quota = quota;
+            this.windowName = name(instanceId, quota);
+        }
+
+        public String getInstanceId() {
+            return instanceId;
+        }
+
+        private static String name(String instanceId, Quota q) {
+            String sanitisedFilterName = VOLUME_PATTERN.matcher(instanceId).replaceAll("_");
+            return (VOLUME_NAME_PREFIX + sanitisedFilterName + "quota" + q.getPerTimeValue() + q.getPerTimeUnit() + q.getScore()).toLowerCase();
+        }
+
+        @Override
+        public String toString() {
+            return windowName;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Window window = (Window) o;
+            return Objects.equals(instanceId, window.instanceId) &&
+                    Objects.equals(quota, window.quota);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(instanceId, quota);
+        }
     }
 }

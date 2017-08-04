@@ -2,21 +2,16 @@ package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
 import com.espertech.esper.client.EPStatement;
 import com.google.common.collect.Lists;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class EventStreamProcessorTest {
 
@@ -60,28 +55,65 @@ public class EventStreamProcessorTest {
         Quota quota2 = new Quota(10, 10, TimeUnit.MINUTES, 20);
         Quota quota3 = new Quota(20, 20, TimeUnit.MINUTES, 30);
 
+        String instanceId = "volumefilter";
+
         EventStreamProcessor esp = new EventStreamProcessor();
         esp.initialize();
-        esp.register("volumefilter", Arrays.asList(quota1, quota2, quota3, quota1, quota2));
+        esp.register(instanceId, Arrays.asList(quota1, quota2, quota3, quota1, quota2));
 
-        Map<String, List<EPStatement>> windows = esp.getWindows();
+        Map<EventStreamProcessor.Window, EPStatement> windows = esp.getWindows();
         assertEquals(3, windows.size());
 
-        assertTrue(windows.containsKey("volumevolumefilterquota10minutes10"));
-        assertTrue(windows.containsKey("volumevolumefilterquota10minutes20"));
-        assertTrue(windows.containsKey("volumevolumefilterquota20minutes30"));
+        assertTrue(windows.containsKey(new EventStreamProcessor.Window(instanceId, quota1)));
+        assertTrue(windows.containsKey(new EventStreamProcessor.Window(instanceId, quota2)));
+        assertTrue(windows.containsKey(new EventStreamProcessor.Window(instanceId, quota3)));
 
-        esp.register("volumefilter", Arrays.asList(quota1, quota2, quota3, quota1, quota2));
-        Map<String, List<EPStatement>> windows2 = esp.getWindows();
+        esp.register(instanceId, Arrays.asList(quota1, quota2, quota3, quota1, quota2));
+        Map<EventStreamProcessor.Window, EPStatement> windows2 = esp.getWindows();
         assertEquals(3, windows2.size());
 
-        assertTrue(windows2.containsKey("volumevolumefilterquota10minutes10"));
-        assertTrue(windows2.containsKey("volumevolumefilterquota10minutes20"));
-        assertTrue(windows2.containsKey("volumevolumefilterquota20minutes30"));
+        assertTrue(windows2.containsKey(new EventStreamProcessor.Window(instanceId, quota1)));
+        assertTrue(windows2.containsKey(new EventStreamProcessor.Window(instanceId, quota2)));
+        assertTrue(windows2.containsKey(new EventStreamProcessor.Window(instanceId, quota1)));
 
         // The second register call does not change the instances in windows map.
-        assertSame(windows.containsKey("volumevolumefilterquota10minutes10"), windows2.containsKey("volumevolumefilterquota10minutes10"));
-        assertSame(windows.containsKey("volumevolumefilterquota10minutes20"), windows2.containsKey("volumevolumefilterquota10minutes20"));
-        assertSame(windows.containsKey("volumevolumefilterquota20minutes30"), windows2.containsKey("volumevolumefilterquota20minutes30"));
+        assertSame(windows.containsKey(new EventStreamProcessor.Window(instanceId, quota1)),
+                windows2.containsKey(new EventStreamProcessor.Window(instanceId, quota1)));
+        assertSame(windows.containsKey(new EventStreamProcessor.Window(instanceId, quota1)),
+                windows2.containsKey(new EventStreamProcessor.Window(instanceId, quota1)));
+        assertSame(windows.containsKey(new EventStreamProcessor.Window(instanceId, quota1)),
+                windows2.containsKey(new EventStreamProcessor.Window(instanceId, quota1)));
+    }
+
+    @Test
+    public void testUnregister() {
+        Quota quota1 = new Quota(10, 10, TimeUnit.MINUTES, 10);
+        Quota quota2 = new Quota(10, 10, TimeUnit.MINUTES, 20);
+        Quota quota3 = new Quota(20, 20, TimeUnit.MINUTES, 30);
+
+        String instanceId = "volumefilter-1";
+
+        Quota quota4 = new Quota(50, 30, TimeUnit.MINUTES, 10);
+        Quota quota5 = new Quota(60, 10, TimeUnit.DAYS, 30);
+        Quota quota6 = new Quota(70, 20, TimeUnit.DAYS, 30);
+
+        String instanceId2 = "volumefilter-2";
+
+        EventStreamProcessor esp = new EventStreamProcessor();
+        esp.initialize();
+        esp.register(instanceId, Arrays.asList(quota1, quota2, quota3));
+        esp.register(instanceId2, Arrays.asList(quota4, quota5, quota6));
+
+        Map<EventStreamProcessor.Window, EPStatement> windows = esp.getWindows();
+        assertEquals(6, windows.size());
+
+        esp.unregister(instanceId);
+
+        Map<EventStreamProcessor.Window, EPStatement> windows1 = esp.getWindows();
+        assertEquals(3, windows1.size());
+
+        boolean onlyInstance2windows = windows1.keySet().stream()
+                .allMatch(window -> instanceId2.equals(window.getInstanceId()));
+        assertTrue(onlyInstance2windows);
     }
 }
