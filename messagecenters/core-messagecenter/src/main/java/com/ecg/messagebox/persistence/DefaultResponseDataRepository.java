@@ -118,7 +118,8 @@ public class DefaultResponseDataRepository implements ResponseDataRepository {
             return repository.preparedStatements
                     .get(this)
                     .bind(values)
-                    .setConsistencyLevel(getConsistencyLevel(repository));
+                    .setConsistencyLevel(getConsistencyLevel(repository))
+                    .setIdempotent(!modifying);
         }
 
         private ConsistencyLevel getConsistencyLevel(DefaultResponseDataRepository repository) {

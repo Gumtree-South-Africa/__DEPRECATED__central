@@ -8,11 +8,12 @@ import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.PersistenceException;
 import com.ecg.replyts.core.runtime.persistence.ValueSizeConstraint;
-import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -134,7 +135,8 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
                     .get(this)
                     .bind(values)
                     .setConsistencyLevel(getConsistencyLevel(repository))
-                    .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
+                    .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
+                    .setIdempotent(!modifying);
         }
 
         private ConsistencyLevel getConsistencyLevel(CassandraConfigurationRepository repository) {

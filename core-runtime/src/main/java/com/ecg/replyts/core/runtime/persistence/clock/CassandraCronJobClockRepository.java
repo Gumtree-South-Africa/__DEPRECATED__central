@@ -3,11 +3,8 @@ package com.ecg.replyts.core.runtime.persistence.clock;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -91,7 +88,8 @@ public class CassandraCronJobClockRepository implements CronJobClockRepository {
                     .get(this)
                     .bind(values)
                     .setConsistencyLevel(getConsistencyLevel(repository))
-                    .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
+                    .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
+                    .setIdempotent(!modifying);
         }
 
         private ConsistencyLevel getConsistencyLevel(CassandraCronJobClockRepository repository) {

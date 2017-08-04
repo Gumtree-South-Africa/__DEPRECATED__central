@@ -289,7 +289,6 @@ public class CassandraPersistenceConfiguration {
             builder.withPoolingOptions(poolingOptions);
 
             Cluster cassandraCluster = builder.withoutJMXReporting().build();
-
             QueryLogger queryLogger = QueryLogger.builder(cassandraCluster).
                     withConstantThreshold(slowQueryThresholdMs).
                     build();

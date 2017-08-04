@@ -88,7 +88,8 @@ public class CassandraVolumeFilterEventRepository implements VolumeFilterEventRe
                     .get(this)
                     .bind(values)
                     .setConsistencyLevel(getConsistencyLevel(repository))
-                    .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
+                    .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
+                    .setIdempotent(!modifying);
         }
 
         private ConsistencyLevel getConsistencyLevel(CassandraVolumeFilterEventRepository repository) {

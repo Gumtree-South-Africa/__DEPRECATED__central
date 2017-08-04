@@ -3,12 +3,9 @@ package com.ecg.replyts.core.runtime.indexer;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 
-import java.util.Collections;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -112,7 +109,8 @@ public class CassandraIndexerClockRepository implements IndexerClockRepository {
         public Statement bind(CassandraIndexerClockRepository repository, Object... values) {
             return repository.preparedStatements.get(this).bind(values).
                     setConsistencyLevel(getConsistency(repository)).
-                    setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
+                    setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL).
+                    setIdempotent(!modifying);
         }
 
         private ConsistencyLevel getConsistency(CassandraIndexerClockRepository repository) {

@@ -522,7 +522,8 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             return repository.preparedStatements
                     .get(this)
                     .bind(values)
-                    .setConsistencyLevel(getConsistencyLevel(repository));
+                    .setConsistencyLevel(getConsistencyLevel(repository))
+                    .setIdempotent(!modifying);
         }
 
         private ConsistencyLevel getConsistencyLevel(DefaultCassandraPostBoxRepository repository) {

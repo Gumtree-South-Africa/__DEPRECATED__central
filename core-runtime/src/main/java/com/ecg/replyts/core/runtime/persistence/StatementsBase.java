@@ -30,7 +30,8 @@ public class StatementsBase {
           .get(this)
           .bind(values)
           .setConsistencyLevel(getConsistencyLevel(repository))
-          .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
+          .setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
+          .setIdempotent(!modifying);
     }
 
     public ConsistencyLevel getConsistencyLevel(CassandraRepository repository) {
