@@ -32,13 +32,14 @@ public class MdePushNotificationListener implements MessageProcessedListener {
 
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
-        String customerId = getCustomerId(conversation, message);
+        String customerId = getPushRecipientCustomerId(conversation, message);
         if (isAnonymousId(customerId)) {
             LOG.info("Skip push notification for anonymous customer {}", customerId);
             return;
         }
         messageRepository
                 .getLastMessage(customerId, conversation.getId())
+                .filter(lastMessage -> isNotOwnMessage(customerId, lastMessage.getSenderUserId()))
                 .map(com.ecg.de.mobile.replyts.pushnotification.model.Message::getMetadata)
                 .map(MessageMetadata::getText)
                 .ifPresent(text -> sendPushNotification(conversation, customerId, text));
@@ -55,7 +56,11 @@ public class MdePushNotificationListener implements MessageProcessedListener {
         ));
     }
 
-    private String getCustomerId(Conversation conversation, com.ecg.replyts.core.api.model.conversation.Message msg) {
+    private boolean isNotOwnMessage(String customerId, String senderUserId) {
+        return !senderUserId.equals(customerId);
+    }
+
+    private String getPushRecipientCustomerId(Conversation conversation, com.ecg.replyts.core.api.model.conversation.Message msg) {
         if (msg.getMessageDirection() == MessageDirection.BUYER_TO_SELLER) {
             return conversation.getCustomValues().get(PROPERTY_SELLER_ID);
         }

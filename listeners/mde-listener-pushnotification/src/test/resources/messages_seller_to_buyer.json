@@ -1,0 +1,33 @@
+[{
+    "id": "5:2srfkgv:287addsadas",
+    "messageDirection": "SELLER_TO_BUYER",
+    "state": "SENT",
+    "filterResultState": "OK",
+    "humanResultState": "UNCHECKED",
+    "headers": {
+      "From": "Hermann \u003chermann-114@ebay.de\u003e",
+      "Reply-To": "hermann-114@ebay.de",
+      "To": "Smith \u003cSmith-114@ebay.de\u003e",
+      "Delivered-To": "Smith \u003cSmith-114@ebay.de\u003e",
+      "X-ADID": "COMA4022",
+      "X-Cust-From-Userid": "222022",
+      "X-Cust-Buyer-Name": "MrSmith",
+      "X-Cust-To-Userid": "111022",
+      "X-Cust-Seller-Name": "MrHermann",
+      "X-Cust-Buyer_Customer_Id": "222022",
+      "X-Conversation-Title": "Audi A4",
+      "X-Cust-Seller_Customer_Id": "111022",
+      "X-Message-Metadata": "{\"hello\":\"metadata\"}",
+      "X-Report-Demand": "false"
+    },
+    "plainTextBody": "just some text",
+    "attachments": [],
+    "textParts": [
+      "just some text"
+    ],
+    "processingFeedback": [],
+    "lastEditor": {},
+    "version": 2,
+    "eventTimeUUID": "1fc3a320-269f-11e7-918b-55387862b9d9"
+  }
+]

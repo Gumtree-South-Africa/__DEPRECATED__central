@@ -50,16 +50,23 @@ public class MdePushNotificationListenerTest {
     }
 
     @Test
-    public void testListener() throws IOException {
-        Conversation conversation = getConversation();
+    public void listenerSendsPushNotification() throws IOException {
+        Conversation conversation = getConversation("/messages_buyer_to_seller.json");
         listener.messageProcessed(conversation, Iterables.getLast(conversation.getMessages()));
         MdePushMessagePayload expected = gson.fromJson(resultingPayload, MdePushMessagePayload.class);
         Mockito.verify(notificationSender, times(1)).send(expected);
     }
 
-    private Conversation getConversation() throws IOException {
+    @Test
+    public void noPushNotificationForOwnMessage() throws IOException {
+        Conversation conversation = getConversation("/messages_seller_to_buyer.json");
+        listener.messageProcessed(conversation, Iterables.getLast(conversation.getMessages()));
+        Mockito.verifyZeroInteractions(notificationSender);
+    }
+
+    private Conversation getConversation(String messagesFileName) throws IOException {
         Conversation conversation = gson.fromJson(loadFileAsString("/conversation.json"), ImmutableConversation.class);
-        ImmutableMessage[] messages = gson.fromJson(loadFileAsString("/messages.json"), ImmutableMessage[].class);
+        ImmutableMessage[] messages = gson.fromJson(loadFileAsString(messagesFileName), ImmutableMessage[].class);
         return ImmutableConversation.Builder.aConversation(conversation)
                 .withMessages(Arrays.asList(messages))
                 .withCreatedAt(new DateTime())
