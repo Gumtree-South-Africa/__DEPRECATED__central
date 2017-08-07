@@ -83,9 +83,6 @@ public class CloudDiscoveryConfiguration {
     @Value("${replyts.tenant:unknown}")
     private String tenant;
 
-    @Value("#{environment.COMAAS_HTTP_PORT ?: 8080}")
-    private Integer port;
-
     private KafkaAppender accessLogAppender = new KafkaAppender();
 
     @Bean
@@ -110,7 +107,8 @@ public class CloudDiscoveryConfiguration {
 
                     @Override
                     public int getPort() {
-                        return port;
+                        // This breaks registration in Consul, on purpose, so it cannot be accidentally turned on in discovery.properties.
+                        return 0;
                     }
                 }
         ));
