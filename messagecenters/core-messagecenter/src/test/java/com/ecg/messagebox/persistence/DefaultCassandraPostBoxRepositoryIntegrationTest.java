@@ -276,31 +276,6 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     }
 
     @Test
-    public void getConversationModificationsByDate() throws Exception {
-        Map<DateTime, Integer> datesWithCounts = new LinkedHashMap<>();
-        datesWithCounts.put(DateTime.now().minusMonths(8), 7);
-        datesWithCounts.put(DateTime.now(), 5);
-
-        ConversationThread c1 = insertConversationWithMessagesByDate(UID1, UID2, CID, ADID, datesWithCounts);
-
-        List<ConversationModification> newModList = conversationsRepo
-                .getConversationModificationsByHour(c1.getLatestMessage().getReceivedDate().hourOfDay().roundFloorCopy())
-                .collect(Collectors.toList());
-
-        List<ConversationModification> oldModList = conversationsRepo
-                .getConversationModificationsByHour(c1.getMessages().get(0).getReceivedDate().hourOfDay().roundFloorCopy())
-                .collect(Collectors.toList());
-
-        List<ConversationModification> noModList = conversationsRepo
-                .getConversationModificationsByHour(c1.getMessages().get(0).getReceivedDate().plusHours(10).hourOfDay().roundFloorCopy())
-                .collect(Collectors.toList());
-
-        assertEquals(10, newModList.size());
-        assertEquals(14, oldModList.size());
-        assertEquals(0, noModList.size());
-    }
-
-    @Test
     public void getLastConversationModification() throws Exception {
         ConversationThread c1 = insertConversationWithMessages(UID1, UID2, CID, ADID, 5);
 

@@ -2,12 +2,10 @@ package com.ecg.messagebox.persistence;
 
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.model.*;
-import org.joda.time.DateTime;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * The user's conversations repository for Cassandra.
@@ -108,8 +106,6 @@ public interface CassandraPostBoxRepository {
     void deleteConversation(String userId, String conversationId, String adId);
 
     Map<String, String> getConversationAdIdsMap(String userId, List<String> conversationIds);
-
-    Stream<ConversationModification> getConversationModificationsByHour(DateTime date);
 
     ConversationModification getLastConversationModification(String userId, String convId);
 

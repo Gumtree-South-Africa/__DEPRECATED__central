@@ -307,8 +307,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         }
 
         statements.add(Statements.INSERT_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, conversationId, message.getId(), adId));
-        Date modifiedDate = message.getReceivedDate().hourOfDay().roundFloorCopy().toDate();
-        statements.add(Statements.INSERT_CONVERSATION_MODIFICATION_IDX_BY_DATE.bind(this, modifiedDate, message.getId(), userId, conversationId));
 
         return statements;
     }
@@ -336,17 +334,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         batch.add(Statements.DELETE_CONVERSATION_UNREAD_COUNT.bind(this, userId, conversationId));
         batch.add(Statements.DELETE_AD_CONVERSATION_UNREAD_COUNT.bind(this, userId, adId, conversationId));
         batch.add(Statements.DELETE_CONVERSATION_MESSAGES.bind(this, userId, conversationId));
+        batch.add(Statements.DELETE_AD_CONVERSATION_MODIFICATION_IDXS.bind(this, userId, conversationId));
         batch.setConsistencyLevel(getWriteConsistency());
         session.execute(batch);
-
-        ResultSet resultSet = session.execute(Statements.SELECT_AD_CONVERSATION_MODIFICATION_IDXS.bind(this, userId, conversationId));
-        StreamUtils.toStream(resultSet)
-                .map(row -> row.getUUID("msgid"))
-                .forEach(messageId -> {
-                    Date modifiedDate = new DateTime(unixTimestamp(messageId)).hourOfDay().roundFloorCopy().toDate();
-                    session.execute(Statements.DELETE_CONVERSATION_MODIFICATION_IDX_BY_DATE.bind(this, modifiedDate, messageId, userId, conversationId));
-                });
-        session.execute(Statements.DELETE_AD_CONVERSATION_MODIFICATION_IDXS.bind(this, userId, conversationId));
     }
 
     @Override
@@ -355,17 +345,6 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             ResultSet resultSet = session.execute(Statements.SELECT_AD_IDS.bind(this, userId, conversationIds));
             return StreamUtils.toStream(resultSet)
                     .collect(Collectors.toMap(row -> row.getString("convid"), row -> row.getString("adid")));
-        }
-    }
-
-    @Override
-    public Stream<ConversationModification> getConversationModificationsByHour(DateTime date) {
-        DateTime dateTimeRoundedAtHour = date.hourOfDay().roundFloorCopy();
-        try (Timer.Context ignored = getConversationModificationsByHourTimer.time()) {
-            Statement bound = Statements.SELECT_CONVERSATION_MODIFICATION_IDX_BY_DATE.bind(this, dateTimeRoundedAtHour.toDate());
-            ResultSet resultSet = session.execute(bound);
-            return StreamUtils.toStream(resultSet)
-                    .map(row -> new ConversationModification(row.getString("usrid"), row.getString("convid"), row.getUUID("msgid"), dateTimeRoundedAtHour));
         }
     }
 
@@ -482,9 +461,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         // cleanup of old messages and conversations
         INSERT_AD_CONVERSATION_MODIFICATION_IDX("INSERT INTO mb_ad_conversation_modification_idx (usrid, convid, msgid, adid) VALUES (?, ?, ?, ?)", true),
-        INSERT_CONVERSATION_MODIFICATION_IDX_BY_DATE("INSERT INTO mb_conversation_modification_idx_by_date (modifdate, msgid, usrid, convid) VALUES (?, ?, ?, ?)", true),
 
-        SELECT_CONVERSATION_MODIFICATION_IDX_BY_DATE("SELECT usrid, convid, msgid FROM mb_conversation_modification_idx_by_date WHERE modifdate = ?"),
         SELECT_AD_CONVERSATION_MODIFICATION_IDXS("SELECT adid, msgid FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ?"),
         SELECT_LATEST_AD_CONVERSATION_MODIFICATION_IDX("SELECT adid, msgid FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ? LIMIT 1"),
 
@@ -495,8 +472,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         DELETE_CONVERSATION_MESSAGES("DELETE FROM mb_messages WHERE usrid = ? AND convid = ?", true),
 
         DELETE_AD_CONVERSATION_MODIFICATION_IDX("DELETE FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ? AND msgid = ?", true),
-        DELETE_AD_CONVERSATION_MODIFICATION_IDXS("DELETE FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ?", true),
-        DELETE_CONVERSATION_MODIFICATION_IDX_BY_DATE("DELETE FROM mb_conversation_modification_idx_by_date WHERE modifdate = ? AND msgid = ? AND usrid = ? AND convid = ?", true);
+        DELETE_AD_CONVERSATION_MODIFICATION_IDXS("DELETE FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ?", true);
 
         private final String cql;
         private final boolean modifying;

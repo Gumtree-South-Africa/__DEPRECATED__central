@@ -126,27 +126,6 @@ CREATE TABLE IF NOT EXISTS mb_ad_conversation_modification_idx (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99.0PERCENTILE';
 
-CREATE TABLE IF NOT EXISTS mb_conversation_modification_idx_by_date (
-    modifdate timestamp,
-    msgid timeuuid,
-    usrid text,
-    convid text,
-    PRIMARY KEY (modifdate, msgid, usrid, convid)
-) WITH CLUSTERING ORDER BY (msgid DESC, usrid ASC, convid ASC)
-    AND bloom_filter_fp_chance = 0.01
-    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
-    AND comment = 'Used for cleanup of old conversations. Columns: year, month, day, message id, user id, conversation id'
-    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
-    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-    AND dclocal_read_repair_chance = 0.1
-    AND default_time_to_live = 0
-    AND gc_grace_seconds = 864000
-    AND max_index_interval = 2048
-    AND memtable_flush_period_in_ms = 0
-    AND min_index_interval = 128
-    AND read_repair_chance = 0.0
-    AND speculative_retry = '99.0PERCENTILE';
-
 CREATE TABLE IF NOT EXISTS mb_response_data (
     userid text,
     convid text,
