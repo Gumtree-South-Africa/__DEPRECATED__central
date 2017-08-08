@@ -43,7 +43,7 @@ function join_by {
 # Remove old builds
 function clean_old_builds() {
     BUILDS_TO_KEEP=${2}
-    hashes_to_keep=$(git log -${BUILDS_TO_KEEP} --pretty=format:"%h")
+    hashes_to_keep=$(git log -${BUILDS_TO_KEEP} --pretty=format:"%h" master)
     joined=$(join_by '|' ${hashes_to_keep})
     set +o errexit
     files=$(swift list comaas --prefix ${TENANT}/$1 | grep --invert-match --extended-regexp "($joined)")
@@ -62,9 +62,9 @@ function upload_it() {
 }
 
 # Rough size calculation: (nr of tenants) * (environments) * (size of artifact) * (desired build history)
-# Currently 6 * 2 * 100 * (40 + 10) ~= 60 gb
+# Currently 6 * 2 * 100 * (50 + 10) ~= 80 gb
 clean_old_builds sandbox 10
-clean_old_builds prod 40
+clean_old_builds prod 50
 
 delete_folder sandbox
 delete_folder prod
