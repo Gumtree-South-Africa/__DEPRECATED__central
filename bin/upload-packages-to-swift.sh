@@ -43,7 +43,7 @@ function join_by {
 # Remove old builds
 function clean_old_builds() {
     BUILDS_TO_KEEP=${2}
-    hashes_to_keep=$(git log -${BUILDS_TO_KEEP} --pretty=format:"%h" master)
+    hashes_to_keep=$(git log -${BUILDS_TO_KEEP} --pretty=format:"%h" origin/master)
     joined=$(join_by '|' ${hashes_to_keep})
     set +o errexit
     files=$(swift list comaas --prefix ${TENANT}/$1 | grep --invert-match --extended-regexp "($joined)")
