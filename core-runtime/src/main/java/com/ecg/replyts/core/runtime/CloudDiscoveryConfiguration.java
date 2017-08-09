@@ -1,6 +1,7 @@
 package com.ecg.replyts.core.runtime;
 
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.filter.ThresholdFilter;
 import ch.qos.logback.core.LayoutBase;
 import com.github.danielwegener.logback.kafka.KafkaAppender;
 import com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy;
@@ -223,6 +224,9 @@ public class CloudDiscoveryConfiguration {
         KafkaAppender appender = new KafkaAppender();
 
         fillInKafkaAppender(context, topic, appender, new LogstashLayout());
+        ThresholdFilter filter = new ThresholdFilter();
+        filter.setLevel("INFO");
+        appender.addFilter(filter);
 
         return appender;
     }
