@@ -57,5 +57,5 @@ echo "done."
 
 echo "Post this to the #ecg-comaas-$TENANT channel in Slack:"
 echo
-echo "We've successfully deployed Comaas for ${TENANT} version \`${NEW_HASH}\` to ${ENV}."
+echo "We've successfully deployed Comaas for ${TENANT} version \`${NEW_HASH}\` to ${ENV} in $LOCATION."
 echo
