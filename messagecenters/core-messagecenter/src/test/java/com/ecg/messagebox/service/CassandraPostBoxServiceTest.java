@@ -344,6 +344,23 @@ public class CassandraPostBoxServiceTest {
         verifyZeroInteractions(newConversationService);
     }
 
+    @Test
+
+    public void createSystemMessage() {
+        service.createSystemMessage(USER_ID_1, CONVERSATION_ID_1, AD_ID_1, "text", "custom data");
+
+        ArgumentCaptor<com.ecg.messagebox.model.Message> captor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
+
+        verify(conversationsRepo).addSystemMessage(eq(USER_ID_1), eq(CONVERSATION_ID_1), eq(AD_ID_1), captor.capture());
+
+        com.ecg.messagebox.model.Message verifyMessage = captor.getValue();
+
+        Assert.assertEquals("text", verifyMessage.getText());
+        Assert.assertEquals(CassandraPostBoxService.SYSTEM_MESSAGE_USER_ID, verifyMessage.getSenderUserId());
+        Assert.assertEquals(MessageType.SYSTEM_MESSAGE, verifyMessage.getType());
+        Assert.assertEquals("custom data", verifyMessage.getCustomData());
+    }
+
     private ImmutableConversation.Builder newConversation(String id) {
         return aConversation()
                 .withId(id)

@@ -12,7 +12,7 @@ import java.util.Optional;
  * <p>
  * The counter needs to be incremented with 1 for new messages.
  * </p><p>
- * Resetting the counter to 0 is done by calling {@link #resetConversationUnreadCount(String, String, String)}.
+ * Resetting the counter to 0 is done by calling {@link #resetConversationUnreadCount(String, String, String, String)}.
  * </p>
  */
 public interface CassandraPostBoxRepository {
@@ -93,6 +93,16 @@ public interface CassandraPostBoxRepository {
      * @param incrementUnreadCount if true, the conversation's unread count will be incremented, otherwise not
      */
     void addMessage(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount);
+
+    /**
+     * Adds system message to an existing conversation.
+     *
+     * @param userId               identifier of user that this conversation belongs to
+     * @param conversationId       id of the conversation to add the message to
+     * @param adId                 advertisement id
+     * @param message              the new message to be added
+     */
+    void addSystemMessage(String userId, String conversationId, String adId, Message message);
 
     /**
      * Change conversation visibilities for a postbox.

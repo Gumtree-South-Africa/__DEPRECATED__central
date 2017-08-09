@@ -1,9 +1,8 @@
 package com.ecg.messagebox.controllers;
 
-import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
-import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.http.MediaType;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static org.hamcrest.Matchers.equalTo;
@@ -46,11 +45,15 @@ public class UnreadCountsControllerAcceptanceTest extends ReplyTsIntegrationTest
                 .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/unread-counts");
 
         // mark conversation 1 as read
-        RestAssured.given()
-                .expect()
-                .statusCode(200)
+        RestAssured
+            .given()
+                .header("Content-Type", "application/json")
+                .log().all()
+            .when()
+                .post("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/conversations/" + convId1 + "?action=mark-as-read")
+            .then()
                 .body("body.unreadMessagesCount", equalTo(0))
-                .post("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/conversations/" + convId1 + "?action=mark-as-read");
+                .statusCode(200);
 
         RestAssured.given()
                 .expect()

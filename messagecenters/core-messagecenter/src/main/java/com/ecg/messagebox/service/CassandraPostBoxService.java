@@ -47,8 +47,11 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer deleteConversationsTimer = newTimer("postBoxService.v2.deleteConversation");
     private final Timer resolveConversationIdByUserIdAndAdId = newTimer("postBoxService.v2.resolveConversationIdsByUserIdAndAdId");
     private final Timer createEmptyConversation = newTimer("postBoxService.v2.createEmptyConversationProjection");
+    private final Timer createSystemMessage = newTimer("postBoxService.v2.createSystemMessage");
 
     private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
+
+    protected static final String SYSTEM_MESSAGE_USER_ID = "-1";
 
     @Autowired
     public CassandraPostBoxService(
@@ -211,6 +214,16 @@ public class CassandraPostBoxService implements PostBoxService {
             } else {
                 return Optional.empty();
             }
+        }
+    }
+
+    @Override
+    public void createSystemMessage(String userId, String conversationId, String adId, String text, String customData) {
+        try (Timer.Context ignored = createSystemMessage.time()) {
+
+            Message systemMessage = new Message(UUIDs.timeBased(), text, SYSTEM_MESSAGE_USER_ID, MessageType.SYSTEM_MESSAGE, customData);
+
+            postBoxRepository.addSystemMessage(userId, conversationId, adId, systemMessage);
         }
     }
 

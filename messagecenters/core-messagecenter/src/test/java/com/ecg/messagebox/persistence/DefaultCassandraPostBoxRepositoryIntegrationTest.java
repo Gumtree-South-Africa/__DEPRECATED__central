@@ -136,6 +136,23 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     }
 
     @Test
+    public void getConversationWithMessagesAndSystemMessage_someMessages() throws Exception {
+        ConversationThread newConversation = insertConversationWithMessages(UID1, UID2, CID, ADID, 50);
+
+        List<Message> messages = newConversation.getMessages().subList(41, 50);
+
+        Message systemMessage = new Message(UUIDs.timeBased(), "text", "-1", MessageType.SYSTEM_MESSAGE, "custom data");
+
+        conversationsRepo.addSystemMessage(UID1, CID, ADID, systemMessage);
+
+        Optional<ConversationThread> actual = conversationsRepo.getConversationWithMessages(UID1, CID, NO_MSG_ID_CURSOR, 10);
+
+        assertEquals(true, actual.isPresent());
+        assertEquals(messages, actual.get().getMessages().subList(0, 9));
+        assertEquals(systemMessage, actual.get().getMessages().get(9));
+    }
+
+    @Test
     public void getConversationWithMessages_noMessages() throws Exception {
         UUID oldUuid = UUIDs.startOf(DateTime.now().minusSeconds(1).getMillis());
         insertConversationWithMessages(UID1, UID2, CID, ADID, 50);

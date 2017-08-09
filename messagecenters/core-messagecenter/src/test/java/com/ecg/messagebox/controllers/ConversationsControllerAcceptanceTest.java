@@ -12,8 +12,6 @@ import org.junit.Test;
 import org.springframework.http.MediaType;
 import com.datastax.driver.core.utils.UUIDs;
 
-import java.util.HashMap;
-
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -32,8 +30,8 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
 
     private static MailBuilder MAIL2 = aNewMail()
             .from("buyer3@buyer.com")
-            .to("seller2@seller.com")
-            .header("X-CUST-" + "user-id-buyer", "3")
+            .to("seller100@seller.com")
+            .header("X-CUST-" + "user-id-buyer", "1")
             .header("X-CUST-" + "user-id-seller", "2")
             .adId("232323")
             .plainBody("first contact from buyer 3");

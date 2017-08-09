@@ -40,6 +40,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer getConversationMessagesTimer = newTimer("cassandra.postBoxRepo.v2.getConversationMessages");
     private final Timer createConversationTimer = newTimer("cassandra.postBoxRepo.v2.createConversation");
     private final Timer addMessageTimer = newTimer("cassandra.postBoxRepo.v2.addMessage");
+    private final Timer addSystemMessageTimer = newTimer("cassandra.postBoxRepo.v2.addSystemMessage");
     private final Timer getConversationAdIdsMapTimer = newTimer("cassandra.postBoxRepo.v2.getConversationAdIdsMap");
     private final Timer resetConversationUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.resetConversationUnreadCount");
     private final Timer changeConversationVisibilitiesTimer = newTimer("cassandra.postBoxRepo.v2.changeConversationVisibilities");
@@ -284,6 +285,21 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         }
     }
 
+    @Override
+    public void addSystemMessage(String userId, String conversationId, String adId, Message message) {
+        try (Timer.Context ignored = addSystemMessageTimer.time()) {
+            String messageJson = jsonConverter.toMessageJson(userId, conversationId, message);
+
+            BatchStatement batch = new BatchStatement();
+
+            batch.add(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE.bind(this, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
+            newSystemMessageCqlStatements(userId, conversationId, adId, message).forEach(batch::add);
+
+            batch.setConsistencyLevel(getWriteConsistency());
+            session.execute(batch);
+        }
+    }
+
     private List<Statement> newMessageCqlStatements(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount) {
         return newMessageCqlStatements(userId, conversationId, adId, message, incrementUnreadCount, true);
     }
@@ -299,10 +315,26 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         if (incrementUnreadCount) {
             int newUnreadCount = getConversationUnreadCount(userId, conversationId) + 1;
+            int newOtherParticipantUnreadCount = getConversationOtherParticipantUnreadCount(message.getSenderUserId(), conversationId) + 1;
             statements.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, newUnreadCount, userId, conversationId));
-            statements.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, newUnreadCount, message.getSenderUserId(), conversationId));
+            statements.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, newOtherParticipantUnreadCount, message.getSenderUserId(), conversationId));
             statements.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, newUnreadCount, userId, adId, conversationId));
         }
+
+        statements.add(Statements.INSERT_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, conversationId, message.getId(), adId));
+
+        return statements;
+    }
+
+    private List<Statement> newSystemMessageCqlStatements(String userId, String conversationId, String adId, Message message) {
+        List<Statement> statements = new ArrayList<>();
+        statements.add(Statements.UPDATE_AD_CONVERSATION_INDEX.bind(this, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
+        String messageMetadata = jsonConverter.toMessageMetadataJson(userId, conversationId, message);
+        statements.add(Statements.INSERT_MESSAGE.bind(this, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
+
+        int newUnreadCount = getConversationUnreadCount(userId, conversationId) + 1;
+        statements.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, newUnreadCount, userId, conversationId));
+        statements.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, newUnreadCount, userId, adId, conversationId));
 
         statements.add(Statements.INSERT_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, conversationId, message.getId(), adId));
 
@@ -443,6 +475,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR("SELECT msgid, type, metadata FROM mb_messages WHERE usrid = ? AND convid = ? LIMIT ?"),
         SELECT_CONVERSATION_MESSAGES_WITH_CURSOR("SELECT msgid, type, metadata FROM mb_messages WHERE usrid = ? AND convid = ? AND msgid < ? LIMIT ?"),
         SELECT_CONVERSATION_IDS_BY_USER_ID_AND_AD_ID("SELECT convid from mb_ad_conversation_idx WHERE usrid = ? AND adid = ? LIMIT ?"),
+        SELECT_CONVERSATION_AD_ID("SELECT adid FROM mb_conversations WHERE usrid = ? AND convid = ?"),
 
         // update a single conversation when a new message comes in
         UPDATE_CONVERSATION_UNREAD_COUNT("UPDATE mb_conversation_unread_counts SET unread = ? WHERE usrid = ? AND convid = ?", true),

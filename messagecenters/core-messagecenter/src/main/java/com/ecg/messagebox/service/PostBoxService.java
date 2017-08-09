@@ -31,4 +31,6 @@ public interface PostBoxService {
     List<String> resolveConversationIdByUserIdAndAdId(String userId, String adId, int resultsLimit);
 
     Optional<String> createEmptyConversation(EmptyConversationRequest emptyConversation);
+
+    void createSystemMessage(String userId, String conversationId, String adId, String text, String customData);
 }
