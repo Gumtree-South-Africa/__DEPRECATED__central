@@ -3,7 +3,6 @@ package com.ecg.messagebox.persistence;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.jsonconverter.JsonConverter;
 import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
@@ -293,7 +292,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
          */
         String newConversationId = guid();
 
-        String resultConversationId = conversationsRepo.createEmptyConversation(EmptyConversationFixture.validEmptyConversationRequest(ADID, UID1, UID2), newConversationId);
+        String resultConversationId = conversationsRepo.createEmptyConversationProjection(EmptyConversationFixture.validEmptyConversationRequest(ADID, UID1, UID2), newConversationId, UID1);
 
         assertEquals("creation should be successful", newConversationId, resultConversationId);
 

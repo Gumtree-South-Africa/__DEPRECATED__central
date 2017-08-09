@@ -10,6 +10,7 @@ import com.jayway.restassured.response.Response;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.MediaType;
+import com.datastax.driver.core.utils.UUIDs;
 
 import java.util.HashMap;
 
@@ -119,7 +120,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
         String newConversationId = emptyExtractableResponse.path("body");
 
         /**
-         * 2. Get conversation
+         * 2.1 Get conversation from buyer projection
          */
 
         RestAssured
@@ -135,18 +136,41 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
                 .body("body.emailSubject", equalTo(AD_TITLE))
                 .body("body.id", equalTo(newConversationId));
 
+        /**
+         * 2.2 Get conversation from seller projection
+         */
+
+        RestAssured
+            .given()
+                .log().all()
+            .when()
+                .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/"+SELLER_ID_1+"/conversations/"+newConversationId)
+            .then()
+                .statusCode(200)
+                .body("body.messages.size()", equalTo(0))
+                .body("body.latestMessage.text", equalTo(AD_TITLE))
+                .body("body.latestMessage.senderUserId", equalTo(BUYER_ID_1))
+                .body("body.emailSubject", equalTo(AD_TITLE))
+                .body("body.id", equalTo(newConversationId));
 
         /**
-         * 3. Send canned enquiry
+         * 3. Seller sends canned enquiry
          */
 
         final String SELECTED_CANNED_ENQUIRY = "This is my canned enquiry";
+
+        String firstMessageId = UUIDs.timeBased().toString();
 
         MailBuilder firstMessageForEmptyConversation = aNewMail()
                 .from(BUYER_EMAIL_1)
                 .to(SELLER_EMAIL_1)
                 .header("X-CUST-" + "user-id-buyer", BUYER_ID_1)
                 .header("X-CUST-" + "user-id-seller", SELLER_ID_1)
+                .header("X-REPLY-CHANNEL", "desktop")
+                .header("X-RTS2", "true")
+                .header("X-USER-MESSAGE", SELECTED_CANNED_ENQUIRY)
+                .header("X-MESSAGE-TYPE", "chat")
+                .header("X-MESSAGE-ID", firstMessageId)
                 .adId(ADVERT_ID)
                 .plainBody(SELECTED_CANNED_ENQUIRY);
 
@@ -156,7 +180,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
         Assert.assertEquals("conversation id should match", newConversationId, conversationIdAfterMail);
 
         /**
-         * 4. Get conversation with canned enquiry
+         * 4.1 Get conversation with canned enquiry from buyer projection
          */
 
         RestAssured
@@ -168,8 +192,97 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
                 .statusCode(200)
                 .body("body.messages.size()", equalTo(1))
                 .body("body.messages[0].text", equalTo(SELECTED_CANNED_ENQUIRY))
+                .body("body.messages[0].id", equalTo(firstMessageId))
                 .body("body.latestMessage.text", equalTo(SELECTED_CANNED_ENQUIRY))
                 .body("body.latestMessage.senderUserId", equalTo(BUYER_ID_1))
+                .body("body.emailSubject", equalTo(AD_TITLE))
+                .body("body.id", equalTo(newConversationId));
+
+        /**
+         * 4.2 Get conversation with canned enquiry from seller projection
+         */
+
+        RestAssured
+            .given()
+                .log().all()
+            .when()
+                .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/"+SELLER_ID_1+"/conversations/"+newConversationId)
+            .then()
+                .statusCode(200)
+                .body("body.messages.size()", equalTo(1))
+                .body("body.messages[0].text", equalTo(SELECTED_CANNED_ENQUIRY))
+                .body("body.messages[0].id", equalTo(firstMessageId))
+                .body("body.latestMessage.text", equalTo(SELECTED_CANNED_ENQUIRY))
+                .body("body.latestMessage.senderUserId", equalTo(BUYER_ID_1))
+                .body("body.emailSubject", equalTo(AD_TITLE))
+                .body("body.id", equalTo(newConversationId)).extract();
+
+        /**
+         * 5. Buyer replies to canned enquiry
+         */
+
+        final String REPLY_TO_ENQUIRY = "This is reply to the canned enquiry";
+
+        String replyMessageId = UUIDs.timeBased().toString();
+
+        MailBuilder replyToCannedEnquiry = aNewMail()
+                .from(SELLER_EMAIL_1)
+                .to(BUYER_EMAIL_1)
+                .header("X-CUST-" + "user-id-buyer", BUYER_ID_1)
+                .header("X-CUST-" + "user-id-seller", SELLER_ID_1)
+                .header("X-MESSAGE-TYPE", "chat")
+                .header("X-REPLY-CHANNEL", "desktop")
+                .header("X-RTS2", "true")
+                .header("X-USER-MESSAGE", REPLY_TO_ENQUIRY)
+                .header("X-MESSAGE-TYPE", "chat")
+                .header("X-MESSAGE-ID", replyMessageId)
+                .adId(ADVERT_ID)
+                .plainBody(REPLY_TO_ENQUIRY);
+
+        String conversationIdAfterReply = testRule.deliver(replyToCannedEnquiry).getConversation().getId();
+        testRule.waitForMail();
+
+        Assert.assertEquals("conversation id should match", newConversationId, conversationIdAfterReply);
+
+        /**
+         * 6.1 Get conversation with canned enquiry and reply from buyer projection
+         */
+
+        RestAssured
+            .given()
+                .log().all()
+            .when()
+                .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/"+BUYER_ID_1+"/conversations/"+newConversationId)
+            .then()
+                .statusCode(200)
+                .body("body.messages.size()", equalTo(2))
+                .body("body.messages[0].text", equalTo(SELECTED_CANNED_ENQUIRY))
+                .body("body.messages[0].id", equalTo(firstMessageId))
+                .body("body.messages[1].text", equalTo(REPLY_TO_ENQUIRY))
+                .body("body.messages[1].id", equalTo(replyMessageId))
+                .body("body.latestMessage.text", equalTo(REPLY_TO_ENQUIRY))
+                .body("body.latestMessage.senderUserId", equalTo(SELLER_ID_1))
+                .body("body.emailSubject", equalTo(AD_TITLE))
+                .body("body.id", equalTo(newConversationId));
+
+        /**
+         * 6.2 Get conversation with canned enquiry and reply from seller projection
+         */
+
+        RestAssured
+            .given()
+                .log().all()
+            .when()
+                .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/"+SELLER_ID_1+"/conversations/"+newConversationId)
+            .then()
+                .statusCode(200)
+                .body("body.messages.size()", equalTo(2))
+                .body("body.messages[0].text", equalTo(SELECTED_CANNED_ENQUIRY))
+                .body("body.messages[0].id", equalTo(firstMessageId))
+                .body("body.messages[1].text", equalTo(REPLY_TO_ENQUIRY))
+                .body("body.messages[1].id", equalTo(replyMessageId))
+                .body("body.latestMessage.text", equalTo(REPLY_TO_ENQUIRY))
+                .body("body.latestMessage.senderUserId", equalTo(SELLER_ID_1))
                 .body("body.emailSubject", equalTo(AD_TITLE))
                 .body("body.id", equalTo(newConversationId));
     }

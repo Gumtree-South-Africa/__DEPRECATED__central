@@ -40,7 +40,7 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
     private final Timer deleteConversationsTimer = newTimer("postBoxService.v2.deleteConversation");
     private final Timer resolveConversationIdByUserIdAndAdId = newTimer("postBoxService.v2.resolveConversationIdsByUserIdAndAdId");
-    private final Timer createEmptyConversation = newTimer("postBoxService.v2.createEmptyConversation");
+    private final Timer createEmptyConversation = newTimer("postBoxService.v2.createEmptyConversationProjection");
 
     private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
 
@@ -177,19 +177,20 @@ public class CassandraPostBoxService implements PostBoxService {
 
             Map<ParticipantRole, Participant> participantMap = emptyConversationRequest.getParticipants();
 
-            Optional<String> buyerEmail = getParticipantEmail(participantMap, ParticipantRole.BUYER);
-            Optional<String> sellerEmail = getParticipantEmail(participantMap, ParticipantRole.SELLER);
+            Optional<Participant> buyer = getParticipant(participantMap, ParticipantRole.BUYER);
+            Optional<Participant> seller = getParticipant(participantMap, ParticipantRole.SELLER);
 
-            if(buyerEmail.isPresent() && sellerEmail.isPresent()) {
+            if(buyer.isPresent() && seller.isPresent()) {
 
                 String newConversationId = newConversationService.nextGuid();
-                postBoxRepository.createEmptyConversation(emptyConversationRequest, newConversationId);
+                postBoxRepository.createEmptyConversationProjection(emptyConversationRequest, newConversationId, buyer.get().getUserId());
+                postBoxRepository.createEmptyConversationProjection(emptyConversationRequest, newConversationId, seller.get().getUserId());
 
                 newConversationService.commitConversation(
                         newConversationId,
                         emptyConversationRequest.getAdId(),
-                        buyerEmail.get(),
-                        sellerEmail.get(),
+                        buyer.get().getEmail(),
+                        seller.get().getEmail(),
                         ConversationState.ACTIVE
                 );
 
@@ -228,7 +229,7 @@ public class CassandraPostBoxService implements PostBoxService {
         return rtsConversation.getCustomValues().get(customValueKey);
     }
 
-    private Optional<String> getParticipantEmail(Map<ParticipantRole, Participant> participantsMap, ParticipantRole participantRole) {
-        return participantsMap.containsKey(participantRole) ? Optional.of(participantsMap.get(participantRole).getEmail()) : Optional.empty();
+    private Optional<Participant> getParticipant(Map<ParticipantRole, Participant> participantsMap, ParticipantRole participantRole) {
+        return participantsMap.containsKey(participantRole) ? Optional.of(participantsMap.get(participantRole)) : Optional.empty();
     }
 }

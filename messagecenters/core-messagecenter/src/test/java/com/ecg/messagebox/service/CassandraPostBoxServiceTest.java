@@ -304,7 +304,8 @@ public class CassandraPostBoxServiceTest {
 
         EmptyConversationRequest request = EmptyConversationFixture.validEmptyConversation();
 
-        when(conversationsRepo.createEmptyConversation(any(EmptyConversationRequest.class), anyString())).thenReturn(CONVERSATION_ID_1);
+        when(conversationsRepo.createEmptyConversationProjection(any(EmptyConversationRequest.class), anyString(), eq(EmptyConversationFixture.SELLER_ID_1))).thenReturn(CONVERSATION_ID_1);
+        when(conversationsRepo.createEmptyConversationProjection(any(EmptyConversationRequest.class), anyString(), eq(EmptyConversationFixture.BUYER_ID_1))).thenReturn(CONVERSATION_ID_1);
         when(newConversationService.nextGuid()).thenReturn(CONVERSATION_ID_1);
 
         Optional<String> resultConversationId = service.createEmptyConversation(request);
@@ -312,7 +313,8 @@ public class CassandraPostBoxServiceTest {
         Assert.assertTrue(resultConversationId.isPresent());
         Assert.assertEquals("Should get back expected conversationId", Optional.of(CONVERSATION_ID_1), resultConversationId);
 
-        verify(conversationsRepo).createEmptyConversation(eq(request), eq(CONVERSATION_ID_1));
+        verify(conversationsRepo).createEmptyConversationProjection(eq(request), eq(CONVERSATION_ID_1), eq(EmptyConversationFixture.SELLER_ID_1));
+        verify(conversationsRepo).createEmptyConversationProjection(eq(request), eq(CONVERSATION_ID_1), eq(EmptyConversationFixture.BUYER_ID_1));
         verify(newConversationService).nextGuid();
         verify(newConversationService).commitConversation(eq(CONVERSATION_ID_1), eq(request.getAdId()), eq(EmptyConversationFixture.BUYER_EMAIL_1), eq(EmptyConversationFixture.SELLER_EMAIL_1), eq(ConversationState.ACTIVE));
     }
@@ -325,7 +327,7 @@ public class CassandraPostBoxServiceTest {
         EmptyConversationRequest request = EmptyConversationFixture.validEmptyConversation();
         request.setParticipants(new HashMap<>()); // set it empty for it to fail
 
-        when(conversationsRepo.createEmptyConversation(any(EmptyConversationRequest.class), anyString())).thenReturn(CONVERSATION_ID_1);
+        when(conversationsRepo.createEmptyConversationProjection(any(EmptyConversationRequest.class), anyString(), eq(EmptyConversationFixture.SELLER_ID_1))).thenReturn(CONVERSATION_ID_1);
         when(newConversationService.nextGuid()).thenReturn(CONVERSATION_ID_1);
         when(newConversationService.nextSecret()).thenReturn(SECRETS);
 

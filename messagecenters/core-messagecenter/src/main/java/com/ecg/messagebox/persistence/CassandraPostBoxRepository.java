@@ -122,7 +122,8 @@ public interface CassandraPostBoxRepository {
      * Creates an empty conversation and returns a conversationId
      * @param emptyConversationRequest
      * @param newConversationId
+     * @param userId
      * @return
      */
-    String createEmptyConversation(EmptyConversationRequest emptyConversationRequest, String newConversationId);
+    String createEmptyConversationProjection(EmptyConversationRequest emptyConversationRequest, String newConversationId, String userId);
 }

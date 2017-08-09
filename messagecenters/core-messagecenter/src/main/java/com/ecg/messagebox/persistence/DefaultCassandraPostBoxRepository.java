@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.datastax.driver.core.utils.UUIDs.unixTimestamp;
 import static com.ecg.messagebox.model.Visibility.get;
@@ -47,10 +46,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer getUserUnreadCountsTimer = newTimer("cassandra.postBoxRepo.v2.getUserUnreadCounts");
     private final Timer getConversationUnreadCountMapTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCountMap");
     private final Timer getConversationUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCount");
-    private final Timer getConversationModificationsByHourTimer = newTimer("cassandra.postBoxRepo.v2.getConversationModificationsByHour");
     private final Timer getLastConversationModificationTimer = newTimer("cassandra.postBoxRepo.v2.getLastConversationModificationTimer");
     private final Timer resolveConversationIdsByUserIdAndAdId = newTimer("cassandra.postBoxRepo.v2.resolveConversationIdsByUserIdAndAdId");
-    private final Timer createEmptyConversationTimer = newTimer("cassandra.postBoxRepo.v2.createEmptyConversation");
+    private final Timer createEmptyConversationTimer = newTimer("cassandra.postBoxRepo.v2.createEmptyConversationProjection");
 
     private final Session session;
     private final ConsistencyLevel readConsistency;
@@ -375,13 +373,13 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public String createEmptyConversation(EmptyConversationRequest emptyConversation, String newConversationId) {
+    public String createEmptyConversationProjection(EmptyConversationRequest emptyConversation, String newConversationId, String userId) {
 
         try (Timer.Context ignored = createEmptyConversationTimer.time()) {
 
             createConversation(
                     newConversationId,
-                    emptyConversation.getSenderId(),
+                    userId,
                     emptyConversation.getAdId(),
                     new ArrayList(emptyConversation.getParticipants().values()),
                     emptyConversation.getMessage(),
