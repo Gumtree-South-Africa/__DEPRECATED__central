@@ -51,6 +51,7 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
             String value = extractValue(volumeFilterField, messageContext.getMessage(), messageContext.getConversation());
 
             if (GumtreeFilterUtil.hasExemptedCategory(volumeFilterConfig, messageContext)) {
+                LOG.trace("Not filtering because has exempted category");
                 return Collections.emptyList();
             }
 
@@ -58,6 +59,7 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
                 return Collections.emptyList();
             }
 
+            LOG.trace("Proceeding to actual filter");
             return processVolumeFilter(volumeFilterConfig, value, instanceName);
         }
     }
@@ -67,11 +69,15 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
         if (markedSeenByVolumeFilter == null) {
             markedSeenByVolumeFilter = false;
         }
+
+        LOG.trace("Mail was {}marked as already seen by volume filter {}", ((boolean) markedSeenByVolumeFilter ? "" : "not "), instanceName);
+
         if ((boolean) markedSeenByVolumeFilter) {
             return;
         }
 
         if (!isFirstMessage(context.getMessage(), context.getConversation())) {
+            LOG.trace("Not marking as seen because not first message for volume filter {}", instanceName);
             return;
         }
         Conversation conversation = context.getConversation();
@@ -89,26 +95,21 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
         int messageThreshold = volumeFilterConfig.getMessages();
         long mailsInTimeWindow = eventStreamProcessor.count(value, instanceName);
 
-        LOG.debug("Num of mails in {} {}: {}, - for volume field {}", seconds, "seconds", mailsInTimeWindow, value);
+        LOG.debug("Num of mails in {} {}: {}, - for volume field {}, instance {}", seconds, "seconds", mailsInTimeWindow, value, instanceName);
 
         List<FilterFeedback> reasons = new ArrayList<>();
         boolean volumeExceeded = mailsInTimeWindow > messageThreshold;
 
         if (volumeFilterConfig.isExceeding() && volumeExceeded) {
-
-            LOG.debug("Volume exceeded. {} mails in time window of {} {} for volume field {}", mailsInTimeWindow,
-                    seconds, "seconds", value);
+            LOG.debug("Volume exceeded. {} mails in time window of {} seconds for volume field {}, instance {}", seconds, "seconds", mailsInTimeWindow, value, instanceName);
 
             String shortDescription = String.format("More than %d messages in %d seconds", messageThreshold, seconds);
             addFilterFeedbackReason(volumeFilterConfig, value, reasons, shortDescription);
         } else if (!volumeFilterConfig.isExceeding() && !volumeExceeded) {
-
-            LOG.debug("Volume too low. {} mails in time window of {} {} for volume field {}", mailsInTimeWindow,
-                    seconds, "seconds", value);
+            LOG.debug("Volume too low. {} mails in time window of {} seconds for volume field {}, instance {}", seconds, "seconds", mailsInTimeWindow, value, instanceName);
 
             String shortDescription = String.format("Less than %d messages in %d seconds", messageThreshold, seconds);
             addFilterFeedbackReason(volumeFilterConfig, value, reasons, shortDescription);
-
         }
         return reasons;
     }

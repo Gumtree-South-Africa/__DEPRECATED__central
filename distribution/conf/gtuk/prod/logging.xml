@@ -5,4 +5,6 @@
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
     <logger name="com.ecg.replyts.core.runtime.cluster.monitor" level="INFO"/>
     <logger name="org.springframework.cloud" level="INFO"/>
+    <logger name="com.ecg.gumtree.comaas.filter" level="DEBUG"/>
+    <logger name="com.ecg.gumtree.comaas.filter.GumtreeVolumeFilter" level="TRACE"/>
 </included>

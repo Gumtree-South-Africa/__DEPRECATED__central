@@ -5,4 +5,5 @@
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
     <logger name="com.ecg.au.gumtree.messagelogging" level="DEBUG"/>
     <logger name="com.ecg.gumtree.comaas.filter" level="DEBUG"/>
+    <logger name="com.ecg.gumtree.comaas.filter.GumtreeVolumeFilter" level="TRACE"/>
 </included>
