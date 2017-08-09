@@ -36,13 +36,13 @@ public class RobotServiceTest {
     private MutableConversationRepository conversationRepository;
 
     @Mock
-    private Guids guids = mock(Guids.class);
+    private Guids guids;
 
     @Mock
-    private HeldMailRepository heldMailRepository = mock(HeldMailRepository.class);
+    private HeldMailRepository heldMailRepository;
 
     @Mock
-    private ConversationEventListeners conversationEventListeners = mock(ConversationEventListeners.class);
+    private ConversationEventListeners conversationEventListeners;
 
     @Mock
     private ModerationService moderationService;
