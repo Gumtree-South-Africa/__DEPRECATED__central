@@ -99,6 +99,7 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
 
         List<FilterFeedback> reasons = new ArrayList<>();
         boolean volumeExceeded = mailsInTimeWindow > messageThreshold;
+        LOG.trace("boolean volumeExceeded = mailsInTimeWindow > messageThreshold; {} = {} > {}", volumeExceeded, mailsInTimeWindow, messageThreshold);
 
         if (volumeFilterConfig.isExceeding() && volumeExceeded) {
             LOG.debug("Volume exceeded. {} mails in time window of {} seconds for volume field {}, instance {}", seconds, "seconds", mailsInTimeWindow, value, instanceName);
