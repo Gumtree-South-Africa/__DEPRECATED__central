@@ -12,11 +12,11 @@
       "X-ADID": "COMA4022",
       "X-Cust-From-Userid": "222022",
       "X-Cust-Buyer-Name": "MrSmith",
-      "X-Cust-To-Userid": "111022",
+      "X-Cust-To-Userid": "222022",
       "X-Cust-Seller-Name": "MrHermann",
       "X-Cust-Buyer_Customer_Id": "222022",
       "X-Conversation-Title": "Audi A4",
-      "X-Cust-Seller_Customer_Id": "111022",
+      "X-Cust-Seller_Customer_Id": "222022",
       "X-Message-Metadata": "{\"hello\":\"metadata\"}",
       "X-Report-Demand": "false"
     },
