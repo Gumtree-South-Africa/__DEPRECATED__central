@@ -364,6 +364,7 @@
                         <configuration>
                             <name>t</name>
                             <pattern>yyyyMMddHHmm</pattern>
+                            <locale>en,US</locale>
                         </configuration>
                     </execution>
                 </executions>
