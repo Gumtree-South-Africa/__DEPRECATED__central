@@ -3,8 +3,9 @@ package com.ecg.replyts.core.runtime.indexer;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -36,13 +37,13 @@ public class IndexerActionConfiguration {
     private int taskCompletionTimeoutSec;
 
     @Bean
-    @Conditional(StreamingIndexerActionConditional.class)
+    @ConditionalOnProperty(name = "persistence.strategy", havingValue = "cassandra")
     public IndexerAction streamingIndexer() {
         return new BulkIndexerAction(conversationRepository, indexerBulkHandler, streamingThreadCount, workQueueSize, conversationIdBatchSize, taskCompletionTimeoutSec);
     }
 
     @Bean
-    @Conditional(ChunkedIndexerActionConditional.class)
+    @ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid') }")
     public IndexerAction chunkedIndexer() {
         return new ChunkedIndexerAction(conversationRepository, indexerChunkHandler, chunkedThreadCount, chunkSizeMinutes);
     }
