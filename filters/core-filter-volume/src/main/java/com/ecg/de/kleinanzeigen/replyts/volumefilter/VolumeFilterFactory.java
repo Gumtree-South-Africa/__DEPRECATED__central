@@ -3,11 +3,18 @@ package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 import com.hazelcast.core.HazelcastInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class VolumeFilterFactory implements FilterFactory {
+
+    private static final Logger LOG = LoggerFactory.getLogger(VolumeFilterFactory.class);
 
     private final HazelcastInstance hazelcastInstance;
     private final EventStreamProcessor eventStreamProcessor;
@@ -23,8 +30,11 @@ public class VolumeFilterFactory implements FilterFactory {
         ConfigurationParser configuration = new ConfigurationParser(jsonConfiguration);
         SharedBrain sharedBrain = new SharedBrain(hazelcastInstance, eventStreamProcessor);
 
-        eventStreamProcessor.register(instanceId, configuration.get());
+        List<Window> windows = Lists.transform(configuration.get(), q -> new Window(instanceId, q));
 
-        return new VolumeFilter(sharedBrain, configuration.get(), eventStreamProcessor, instanceId);
+        LOG.info("Registering a new VolumeFilter's instance with windows {}", windows);
+        eventStreamProcessor.register(windows);
+
+        return new VolumeFilter(sharedBrain, eventStreamProcessor, windows);
     }
 }

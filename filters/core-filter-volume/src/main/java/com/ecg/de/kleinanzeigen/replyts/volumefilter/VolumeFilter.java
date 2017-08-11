@@ -11,40 +11,48 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 class VolumeFilter implements Filter {
 
     private static final Logger LOG = LoggerFactory.getLogger(VolumeFilter.class);
 
-    private final SharedBrain sharedBrain;
-    private final List<Quota> sortedQuotas;
-    private final EventStreamProcessor processor;
-    private final String instanceId;
+    private static final String ESPER_ALREADY_NOTIFIED = "ESPER_ALREADY_NOTIFIED";
 
-    VolumeFilter(SharedBrain sharedBrain, List<Quota> sortedQuotas, EventStreamProcessor processor, String instanceId) {
+    private final SharedBrain sharedBrain;
+    private final List<Window> windows;
+    private final EventStreamProcessor processor;
+
+    VolumeFilter(SharedBrain sharedBrain, EventStreamProcessor processor, List<Window> windows) {
         this.sharedBrain = sharedBrain;
-        this.sortedQuotas = sortedQuotas;
         this.processor = processor;
-        this.instanceId = instanceId;
+        this.windows = windows;
     }
 
     @Override
-    public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
-        Message message = messageProcessingContext.getMessage();
+    public List<FilterFeedback> filter(MessageProcessingContext context) {
+        Message message = context.getMessage();
         ConversationRole fromRole = message.getMessageDirection().getFromRole();
-        String senderMailAddress = messageProcessingContext.getConversation().getUserId(fromRole);
+        String senderMail = context.getConversation().getUserId(fromRole);
 
-        sharedBrain.markSeen(senderMailAddress);
+        // Only the first VolumeFilter should notify the other Esper/Hazelcast nodes.
+        Map<String, Object> filterContext = context.getFilterContext();
+        if (!filterContext.containsKey(ESPER_ALREADY_NOTIFIED)) {
+            LOG.debug("Marking a messages '{}' sent by user '{}' as seen and publish to Hazelcast.", message.getId(), senderMail);
+            sharedBrain.markSeen(senderMail);
+            filterContext.put(ESPER_ALREADY_NOTIFIED, Boolean.TRUE);
+        }
 
-        for (Quota quota : sortedQuotas) {
-            long mailsInTimeWindow = processor.count(senderMailAddress, instanceId, quota);
+        for (Window window : windows) {
+            long mailsInWindow = processor.count(senderMail, window);
+            Quota quota = window.getQuota();
 
-            LOG.debug("Num of mails in {} {}: {}", quota.getPerTimeValue(), quota.getPerTimeUnit(), mailsInTimeWindow);
+            LOG.debug("Num of mails in {} {} for [{}]: {}", quota.getPerTimeValue(), quota.getPerTimeUnit(), senderMail, mailsInWindow);
 
-            if (mailsInTimeWindow > quota.getAllowance()) {
+            if (mailsInWindow > quota.getAllowance()) {
                 return Collections.singletonList(new FilterFeedback(
                         quota.uihint(),
-                        quota.describeViolation(mailsInTimeWindow),
+                        quota.describeViolation(mailsInWindow),
                         quota.getScore(),
                         FilterResultState.OK));
             }

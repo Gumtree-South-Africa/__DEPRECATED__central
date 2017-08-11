@@ -1,8 +1,6 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.ibm.icu.util.TimeUnitAmount;
 
 import java.util.concurrent.TimeUnit;
 
@@ -10,7 +8,7 @@ import java.util.concurrent.TimeUnit;
  * defines one quota (maximum number of mails allowed within a given time slice). if the quota is exceeded, a score is assigned to the message exceeding the quota.
  * @author mhuttar
  */
-class Quota implements Comparable<Quota>{
+public class Quota implements Comparable<Quota>{
 
     private final int allowance;
 
