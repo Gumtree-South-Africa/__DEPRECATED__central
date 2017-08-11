@@ -1,5 +1,7 @@
 package com.ecg.replyts.core.runtime;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.Context;
 import com.ecg.replyts.core.api.processing.MessageFixer;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
@@ -89,6 +91,8 @@ public class ReplyTS {
     }
 
     public static void main(String[] args) throws Exception {
+        setLoggerContextProperties();
+
         try {
             AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[]{
                     "classpath:server-context.xml",
@@ -106,5 +110,11 @@ public class ReplyTS {
 
             throw e;
         }
+    }
+
+    private static void setLoggerContextProperties() {
+        LoggerContext loggerContext = (LoggerContext)LoggerFactory.getILoggerFactory();
+        loggerContext.putProperty("application", ReplyTS.class.getPackage().getImplementationTitle());
+        loggerContext.putProperty("revision", ReplyTS.class.getPackage().getImplementationVersion());
     }
 }

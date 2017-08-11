@@ -1,11 +1,9 @@
 package com.ecg.replyts.core.webapi;
 
-
 import ch.qos.logback.access.jetty.RequestLogImpl;
-import ch.qos.logback.core.status.OnConsoleStatusListener;
+import ch.qos.logback.classic.LoggerContext;
 import com.ecg.replyts.core.runtime.MetricsService;
 import com.ecg.replyts.core.webapi.util.ServerStartupLifecycleListener;
-import com.github.danielwegener.logback.kafka.KafkaAppender;
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.ConnectorStatistics;
 import org.eclipse.jetty.server.Handler;
@@ -21,7 +19,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
-import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,14 +45,8 @@ public class EmbeddedWebserver {
 
     private boolean isStarted = false;
 
-    @Autowired(required = false)
-    private KafkaAppender accessLogAppender;
-
     @Value("${cluster.jmx.enabled:true}")
     private boolean isJmxEnabled = false;
-
-    @Value("${confDir:conf}/logback-access.xml")
-    private String logbackAccessFileName;
 
     private boolean instrument;
 
@@ -129,11 +120,7 @@ public class EmbeddedWebserver {
             handlers.addHandler(instrument(createContextHandler()));
         }
 
-        Handler accessLoggingHandler = createAccessLoggingHandler();
-        if (accessLoggingHandler != null) {
-            LOG.info("Access logging is enabled");
-            handlers.addHandler(instrument(accessLoggingHandler));
-        }
+        handlers.addHandler(instrument(createAccessLoggingHandler()));
 
         server.setHandler(handlers);
 
@@ -185,35 +172,13 @@ public class EmbeddedWebserver {
         if (handlers.getBean(RequestLogHandler.class) != null) {
             throw new IllegalStateException("This EmbeddedWebserver already has a request-logging handler associated with it");
         }
+        RequestLogImpl logger = new RequestLogImpl();
 
-        if (accessLogAppender != null && accessLogAppender.isStarted()) {
-            LOG.info("Found valid Kafka appender for access logging");
+        LoggerContext loggerContext = (LoggerContext)LoggerFactory.getILoggerFactory();
+        loggerContext.getCopyOfPropertyMap().forEach(logger::putProperty);
 
-            RequestLogImpl logger = new RequestLogImpl();
-
-            logger.getStatusManager().add(new OnConsoleStatusListener());
-            logger.addAppender(accessLogAppender);
-
-            // Also start a file logger if configured
-            if (new File(logbackAccessFileName).exists()) {
-                LOG.info("Found config file for access logging: " + logbackAccessFileName);
-                logger.setFileName(logbackAccessFileName);
-            }
-
-            return startRequestLogHandler(logger);
-        } else if (new File(logbackAccessFileName).exists()) {
-
-            RequestLogImpl logger = new RequestLogImpl();
-
-            LOG.info("Found config file for access logging: " + logbackAccessFileName);
-            logger.setFileName(logbackAccessFileName);
-
-            return startRequestLogHandler(logger);
-        } else {
-            LOG.info("Did not find config file {} for access logging and Kafka (access) logging is disabled", logbackAccessFileName);
-
-            return null;
-        }
+        logger.setResource("/logback-access.xml");
+        return startRequestLogHandler(logger);
     }
 
     private Handler startRequestLogHandler(RequestLogImpl logger) {

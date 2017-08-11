@@ -1,0 +1,29 @@
+<configuration>
+
+    <statusListener class="ch.qos.logback.core.status.OnErrorConsoleStatusListener"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.AccessEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <version/>
+                <method><fieldName>method</fieldName></method>
+                <statusCode><fieldName>statusCode</fieldName></statusCode>
+                <requestedUrl><fieldName>requestedUrl</fieldName></requestedUrl>
+                <requestedUri><fieldName>requestedUri</fieldName></requestedUri>
+                <remoteHost><fieldName>remoteHost</fieldName></remoteHost>
+                <contentLength><fieldName>contentLength</fieldName></contentLength>
+                <elapsedTime><fieldName>elapsedTime</fieldName></elapsedTime>
+                <pattern>
+                    <pattern>
+                        {"userAgent": "%i{User-Agent}", "host": "%i{Host}"}
+                    </pattern>
+                </pattern>
+                <context />
+            </providers>
+        </encoder>
+    </appender>
+
+    <appender-ref ref="STDOUT"/>
+
+</configuration>
