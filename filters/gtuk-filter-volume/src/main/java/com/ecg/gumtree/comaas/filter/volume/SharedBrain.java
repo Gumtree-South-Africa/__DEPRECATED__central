@@ -18,7 +18,7 @@ public class SharedBrain {
 
     SharedBrain(HazelcastInstance hazelcastInstance, EventStreamProcessor eventStreamProcessor) {
         this.processor.set(eventStreamProcessor);
-        communicationBus = hazelcastInstance.getTopic(GUMTREE_VELOCITY_FILTER_EXCHANGE);
+        communicationBus = hazelcastInstance.getReliableTopic(GUMTREE_VELOCITY_FILTER_EXCHANGE);
         updateMessageListener();
     }
 

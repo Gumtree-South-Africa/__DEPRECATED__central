@@ -1,6 +1,7 @@
 package com.ecg.gumtree.comaas.filter.volume;
 
 import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
+import com.ecg.gumtree.comaas.filter.volume.monitoring.VolumeFilterMonitoringConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.runtime.ComaasPlugin;
@@ -12,7 +13,7 @@ import org.springframework.context.annotation.Import;
 
 @ComaasPlugin
 @Configuration
-@Import({EventStreamProcessor.class, SharedBrain.class})
+@Import({EventStreamProcessor.class, SharedBrain.class, VolumeFilterMonitoringConfiguration.class})
 public class GumtreeVolumeFilterConfiguration {
     @Bean
     public FilterFactory volumeFilterFactory(SearchService service, EventStreamProcessor eventStreamProcessor, SharedBrain sharedBrain) {

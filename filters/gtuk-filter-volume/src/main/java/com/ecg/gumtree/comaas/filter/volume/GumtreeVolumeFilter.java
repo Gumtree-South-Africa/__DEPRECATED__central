@@ -95,19 +95,19 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
         int messageThreshold = volumeFilterConfig.getMessages();
         long mailsInTimeWindow = eventStreamProcessor.count(value, instanceName);
 
-        LOG.debug("Num of mails in {} {}: {}, - for volume field {}, instance {}", seconds, "seconds", mailsInTimeWindow, value, instanceName);
+        LOG.debug("Num of mails in {} seconds: {}, - for volume field {}, instance {}", seconds, mailsInTimeWindow, value, instanceName);
 
         List<FilterFeedback> reasons = new ArrayList<>();
         boolean volumeExceeded = mailsInTimeWindow > messageThreshold;
         LOG.trace("boolean volumeExceeded = mailsInTimeWindow > messageThreshold; {} = {} > {}", volumeExceeded, mailsInTimeWindow, messageThreshold);
 
         if (volumeFilterConfig.isExceeding() && volumeExceeded) {
-            LOG.debug("Volume exceeded. {} mails in time window of {} seconds for volume field {}, instance {}", seconds, "seconds", mailsInTimeWindow, value, instanceName);
+            LOG.debug("Volume exceeded. {} mails in time window of {} seconds for volume field {}, instance {}", mailsInTimeWindow, seconds, value, instanceName);
 
             String shortDescription = String.format("More than %d messages in %d seconds", messageThreshold, seconds);
             addFilterFeedbackReason(volumeFilterConfig, value, reasons, shortDescription);
         } else if (!volumeFilterConfig.isExceeding() && !volumeExceeded) {
-            LOG.debug("Volume too low. {} mails in time window of {} seconds for volume field {}, instance {}", seconds, "seconds", mailsInTimeWindow, value, instanceName);
+            LOG.debug("Volume too low. {} mails in time window of {} seconds for volume field {}, instance {}", mailsInTimeWindow, seconds, value, instanceName);
 
             String shortDescription = String.format("Less than %d messages in %d seconds", messageThreshold, seconds);
             addFilterFeedbackReason(volumeFilterConfig, value, reasons, shortDescription);
