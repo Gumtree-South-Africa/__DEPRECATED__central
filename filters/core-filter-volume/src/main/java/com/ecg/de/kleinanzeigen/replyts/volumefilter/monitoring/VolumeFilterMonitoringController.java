@@ -6,10 +6,16 @@ import com.ecg.de.kleinanzeigen.replyts.volumefilter.Window;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.Member;
+import com.hazelcast.nio.Address;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,10 +28,18 @@ import java.util.Map;
 @RestController
 public class VolumeFilterMonitoringController {
 
-    private EventStreamProcessor eventStreamProcessor;
+    private static String NODE_STATUS_URL_PATTERN = "http://%s:%d/volume-filter/monitoring/{email}";
 
-    VolumeFilterMonitoringController(EventStreamProcessor eventStreamProcessor) {
+    private final HazelcastInstance hazelcastInstance;
+    private final EventStreamProcessor eventStreamProcessor;
+    private final int httpPort;
+    private final RestTemplate restTemplate;
+
+    VolumeFilterMonitoringController(HazelcastInstance hazelcastInstance, EventStreamProcessor eventStreamProcessor, int httpPort) {
+        this.hazelcastInstance = hazelcastInstance;
         this.eventStreamProcessor = eventStreamProcessor;
+        this.httpPort = httpPort;
+        this.restTemplate = new RestTemplate();
     }
 
     /**
@@ -73,6 +87,32 @@ public class VolumeFilterMonitoringController {
         for (Window window : summary.getWindows()) {
             long count = eventStreamProcessor.count(email, window);
             results.attr(window.getWindowName(), count);
+        }
+
+        return results.build();
+    }
+
+    /**
+     * Collects Esper's details across all nodes and returns current status of all windows of the particular {@code email}.
+     *
+     * @param email user's email.
+     * @return current status of the Esper's across all nodes of the particular {@code email}.
+     */
+    @RequestMapping(value = "/{email:.+}/all", method = RequestMethod.GET)
+    public ObjectNode getCountFromEntireCluster(@PathVariable("email") String email) {
+        JsonObjects.Builder results = JsonObjects.builder();
+        for (Member member : hazelcastInstance.getCluster().getMembers()) {
+            Address address = member.getAddress();
+
+            ResponseEntity<String> response =
+                    restTemplate.getForEntity(String.format(NODE_STATUS_URL_PATTERN, address.getHost(), httpPort), String.class, email);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                results.attr(address.getHost(), JsonObjects.parse(response.getBody()));
+            } else {
+                String error = String.format("Error occurred during count endpoint invocation. Status: %d", response.getStatusCodeValue());
+                results.attr(address.getHost(), error);
+            }
         }
 
         return results.build();
