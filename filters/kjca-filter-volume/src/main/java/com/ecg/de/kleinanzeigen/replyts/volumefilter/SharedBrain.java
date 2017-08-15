@@ -31,7 +31,7 @@ class SharedBrain {
             HazelcastInstance hazelcastInstance,
             EventStreamProcessor eventStreamProcessor
     ) {
-        communicationBus = hazelcastInstance.getTopic("volumefilter_sender_address_exchange_" + name);
+        communicationBus = hazelcastInstance.getReliableTopic("volumefilter_sender_address_exchange_" + name);
         processor.set(eventStreamProcessor);
 
         communicationBus.addMessageListener(message -> {

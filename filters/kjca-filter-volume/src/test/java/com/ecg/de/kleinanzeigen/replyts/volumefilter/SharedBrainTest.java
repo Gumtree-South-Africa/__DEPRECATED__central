@@ -45,7 +45,7 @@ public class SharedBrainTest {
     public void setUp() throws Exception {
         MapConfig mapConfig = mock(MapConfig.class);
 
-        when(hazelcastInstance.getTopic(anyString())).thenReturn(communicationBus);
+        when(hazelcastInstance.getReliableTopic(anyString())).thenReturn(communicationBus);
         when(hazelcastInstance.getConfig()).thenReturn(hazelcastConfig);
         when(hazelcastConfig.getMapConfig(anyString())).thenReturn(mapConfig);
 

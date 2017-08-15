@@ -14,7 +14,7 @@ class SharedBrain {
     private final AtomicReference<EventStreamProcessor> processor = new AtomicReference<EventStreamProcessor>();
 
     SharedBrain(HazelcastInstance hazelcastInstance) {
-        communicationBus = hazelcastInstance.getTopic("volumefilter_sender_address_exchange");
+        communicationBus = hazelcastInstance.getReliableTopic("volumefilter_sender_address_exchange");
         communicationBus.addMessageListener(new MessageListener<String>() {
             @Override
             public void onMessage(Message<String> message) {
