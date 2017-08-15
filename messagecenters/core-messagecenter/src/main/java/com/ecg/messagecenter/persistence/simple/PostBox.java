@@ -4,15 +4,16 @@ import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.Counter;
 import com.ecg.messagecenter.util.MessageCenterConstants;
 import com.ecg.replyts.core.api.util.Pairwise;
-import com.google.common.base.*;
+import com.google.common.base.Function;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.collect.FluentIterable;
+import com.google.common.base.Preconditions;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.joda.time.DateTime.now;
@@ -20,20 +21,32 @@ import static org.joda.time.DateTime.now;
 public class PostBox<T extends AbstractConversationThread> {
     private static final Logger LOG = LoggerFactory.getLogger(PostBox.class);
 
+    private final PostBoxId id;
     private final String email;
     private final List<T> conversationThreads;
     private final Counter newRepliesCounter;
     private final int maxAgeDays;
 
-    public PostBox(String email, Optional<Long> newRepliesCounter, List<T> conversationThreads, int maxAgeDays) {
-        this(email, newRepliesCounter.isPresent() ? new Counter(newRepliesCounter.get()) : new Counter(), conversationThreads, maxAgeDays);
+    public PostBox(String email, List<T> conversations, int maxAgeDays) {
+        this(email, new Counter(), conversations, maxAgeDays);
     }
 
-    public PostBox(String email, Counter newRepliesCounter, List<T> conversationThreads, int maxAgeDays) {
+    public PostBox(String email, Optional<Long> newRepliesCounter, List<T> conversations, int maxAgeDays) {
+        this(email, newRepliesCounter.isPresent() ? new Counter(newRepliesCounter.get()) : new Counter(), conversations, maxAgeDays);
+    }
+
+    public PostBox(String email, Counter newRepliesCounter, List<T> conversations, int maxAgeDays) {
+        this(PostBoxId.fromEmail(email), email, newRepliesCounter, conversations, maxAgeDays);
+    }
+
+    public PostBox(PostBoxId id, String email, Counter newRepliesCounter, List<T> conversationThreads, int maxAgeDays) {
+        Preconditions.checkNotNull(id);
         Preconditions.checkNotNull(email);
         Preconditions.checkNotNull(conversationThreads);
+        this.id = id;
         this.maxAgeDays = maxAgeDays;
-        this.conversationThreads = cleanupAndSortByModificationCreationDate(conversationThreads);
+        List<T> cthreads = new ArrayList<>(conversationThreads);
+        this.conversationThreads = cleanupAndSortByModificationCreationDate(cthreads);
         this.email = email.toLowerCase();
         this.newRepliesCounter = newRepliesCounter;
     }
@@ -43,11 +56,11 @@ public class PostBox<T extends AbstractConversationThread> {
     }
 
     public List<T> getConversationThreads() {
-        return FluentIterable.from(conversationThreads)
-                .limit(500) // we cap to 500 to not kill the persistence store for very large objects
-                .toList();
+        return conversationThreads.stream()
+                // we cap to 500 to not kill the persistence store for very large objects
+                .limit(500)
+                .collect(Collectors.toList());
     }
-
 
     public static final Comparator<AbstractConversationThread> RECEIVED_MODIFIED_CREATION_DATE = Comparator.comparing(
             (AbstractConversationThread c) -> c.getReceivedAt().getMillis()).reversed()
@@ -70,20 +83,11 @@ public class PostBox<T extends AbstractConversationThread> {
         return Optional.empty();
     }
 
-    public void markConversationUnread(String conversationId, String message) {
-        newRepliesCounter.inc();
+    // This methods returns a copy of the conversation with all the conversation read and with modifiedDate set to now
+    public Optional<T> cloneConversationMarkAsRead(String conversationId) {
         Optional<T> oldConversation = removeConversation(conversationId);
         if (oldConversation.isPresent()) {
-            conversationThreads.add((T) oldConversation.get().sameButUnread(message));
-        } else {
-            LOG.error("trying to mark conversation as unread but the conversation id '{}' is not in the postbox.", conversationId);
-        }
-    }
-
-    public Optional<AbstractConversationThread> markConversationRead(String conversationId) {
-        Optional<T> oldConversation = removeConversation(conversationId);
-        if (oldConversation.isPresent()) {
-            T newConversation = (T) oldConversation.get().sameButRead();
+            T newConversation = (T) oldConversation.get().newReadConversation();
             conversationThreads.add(newConversation);
             return Optional.of(newConversation);
         } else {
@@ -91,6 +95,10 @@ public class PostBox<T extends AbstractConversationThread> {
         }
 
         return Optional.empty();
+    }
+
+    public void sortConversations() {
+        conversationThreads.sort(RECEIVED_MODIFIED_CREATION_DATE);
     }
 
     public Map<String, T> getUnreadConversations() {
@@ -101,7 +109,7 @@ public class PostBox<T extends AbstractConversationThread> {
         return getUnreadConversationsInternal(Optional.of(MessageCenterConstants.MAX_DISPLAY_CONVERSATIONS_TO_USER));
     }
 
-    public Map<String, T> getUnreadConversationsInternal(Optional<Integer> maxSize) {
+    private Map<String, T> getUnreadConversationsInternal(Optional<Integer> maxSize) {
         Map<String, T> unreadConversations = new LinkedHashMap<>();
 
         List<T> threads;
@@ -120,22 +128,31 @@ public class PostBox<T extends AbstractConversationThread> {
     }
 
     public List<T> getConversationThreadsCapTo(int page, int maxSize) {
-        return FluentIterable.from(conversationThreads)
+        return conversationThreads.stream()
                 .skip(page * maxSize)
                 .limit(maxSize)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public List<T> getFilteredConversationThreads(Predicate<T> filter, int page, int maxSize) {
-        return FluentIterable.from(conversationThreads)
+        return conversationThreads.stream()
                 .filter(filter)
                 .skip(page * maxSize)
                 .limit(maxSize)
-                .toList();
+                .collect(Collectors.toList());
+    }
+
+    public boolean containsConversation(AbstractConversationThread conversation) {
+        return conversationThreads.stream()
+                .anyMatch(con -> con.getConversationId().equals(conversation.getConversationId()));
     }
 
     public String getEmail() {
         return email;
+    }
+
+    public PostBoxId getId() {
+        return id;
     }
 
     @Override
@@ -193,7 +210,7 @@ public class PostBox<T extends AbstractConversationThread> {
 
     private List<T> cleanupAndSortByModificationCreationDate(List<T> conversationThreads) {
         List<T> sorted = cleanupExpiredConversations(conversationThreads);
-        Collections.sort(sorted, RECEIVED_MODIFIED_CREATION_DATE);
+        sorted.sort(RECEIVED_MODIFIED_CREATION_DATE);
         return sorted;
     }
 
@@ -209,7 +226,7 @@ public class PostBox<T extends AbstractConversationThread> {
 
         objstr.append("\nNumber of conversations " + conversationThreads.size() + "\n");
         List<AbstractConversationThread> cThreads = new ArrayList<>(conversationThreads);
-        Collections.sort(conversationThreads, RECEIVED_MODIFIED_CREATION_DATE);
+        conversationThreads.sort(RECEIVED_MODIFIED_CREATION_DATE);
 
         for(AbstractConversationThread ct: cThreads) {
             objstr.append(stringer.apply(ct));

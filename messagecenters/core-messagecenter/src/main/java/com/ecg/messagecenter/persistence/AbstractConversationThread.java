@@ -59,9 +59,10 @@ public abstract class AbstractConversationThread {
         this.messageDirection = messageDirection;
     }
 
-    public abstract AbstractConversationThread sameButUnread(String message);
-
-    public abstract AbstractConversationThread sameButRead();
+    /*
+     * Clone the ConversationThread set all conversations to read and change modifiedDate to now
+     */
+    public abstract AbstractConversationThread newReadConversation();
 
     public boolean containsNewListAggregateData() {
         return previewLastMessage.isPresent() && messageDirection.isPresent();
@@ -165,7 +166,7 @@ public abstract class AbstractConversationThread {
     public String fullToString() {
         StringBuilder objstr = new StringBuilder(this.toString());
         objstr.append(MoreObjects.toStringHelper(this)
-                .add("receivedAt", receivedAt!= null ? receivedAt.toDateTime(DateTimeZone.UTC) : "")
+                .add("receivedAt", receivedAt != null ? receivedAt.toDateTime(DateTimeZone.UTC) : "")
                 .add("previewLastMessage", previewLastMessage)
                 .add("buyerName", buyerName)
                 .add("sellerName", sellerName)

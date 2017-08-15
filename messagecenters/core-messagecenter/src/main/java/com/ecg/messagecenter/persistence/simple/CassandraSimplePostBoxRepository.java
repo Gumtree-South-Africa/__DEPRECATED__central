@@ -188,58 +188,60 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
     @Override
     public void markConversationsAsRead(PostBox postBox, List<AbstractConversationThread> conversations) {
-        PostBoxId postBoxId = PostBoxId.fromEmail(postBox.getEmail());
-
         try (Timer.Context ignored = writeTimer.time()) {
             BatchStatement batch = new BatchStatement();
 
             for (AbstractConversationThread conversation: conversations) {
                 String conversationId = conversation.getConversationId();
-                ((PostBox<AbstractConversationThread>) postBox).markConversationRead(conversationId).ifPresent(readConversation -> {
+                ((PostBox<AbstractConversationThread>) postBox).cloneConversationMarkAsRead(conversationId).ifPresent(readConversation -> {
                     Optional<String> jsonValue = toJson(readConversation);
 
                     if (jsonValue.isPresent()) {
                         DateTime timestamp = readConversation.getModifiedAt();
                         DateTime roundedToHour = timestamp.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
-                        batch.add(Statements.UPDATE_CONVERSATION_THREAD.bind(this, jsonValue.get(), postBoxId.asString(), conversationId));
-                        batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, 0, postBoxId.asString(), conversationId));
-                        batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_LATEST.bind(this, postBoxId.asString(), conversationId, timestamp.toDate()));
-                        batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this, postBoxId.asString(), conversationId, timestamp.toDate(), roundedToHour.toDate()));
+                        batch.add(Statements.UPDATE_CONVERSATION_THREAD.bind(this, jsonValue.get(), postBox.getId().asString(), conversationId));
+                        batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, 0, postBox.getId().asString(), conversationId));
+                        batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_LATEST.bind(this, postBox.getId().asString(), conversationId, timestamp.toDate()));
+                        batch.add(Statements.INSERT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this, postBox.getId().asString(), conversationId, timestamp.toDate(), roundedToHour.toDate()));
                     }
                 });
             }
 
             session.execute(batch);
         }
+
+        // Sorting conversation, required as their status was changed (e.g. unread->read)
+        postBox.sortConversations();
     }
 
     /**
-     * TODO pbouda: This implementation is used only in hybrid to avoid setting current modification time during the migration.
+     * This implementation is used only in hybrid to avoid setting current modification time during the migration.
      */
     void markConversationsAsReadForHybrid(PostBox postBox, List<AbstractConversationThread> conversations) {
-        PostBoxId postBoxId = PostBoxId.fromEmail(postBox.getEmail());
-
         try (Timer.Context ignored = writeTimer.time()) {
             BatchStatement batch = new BatchStatement();
 
             for (AbstractConversationThread conversation: conversations) {
                 String conversationId = conversation.getConversationId();
-                ((PostBox<AbstractConversationThread>) postBox).markConversationRead(conversationId).ifPresent(readConversation -> {
+                ((PostBox<AbstractConversationThread>) postBox).cloneConversationMarkAsRead(conversationId).ifPresent(readConversation -> {
                     Optional<String> jsonValue = toJson(readConversation);
 
                     if (jsonValue.isPresent()) {
-                        batch.add(Statements.UPDATE_CONVERSATION_THREAD.bind(this, jsonValue.get(), postBoxId.asString(), conversationId));
-                        batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, 0, postBoxId.asString(), conversationId));
+                        batch.add(Statements.UPDATE_CONVERSATION_THREAD.bind(this, jsonValue.get(), postBox.getId().asString(), conversationId));
+                        batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, 0, postBox.getId().asString(), conversationId));
                     }
                 });
             }
 
             session.execute(batch);
         }
+
+        // Sorting conversation, required as their status was changed (e.g. unread->read)
+        postBox.sortConversations();
     }
 
     /**
-     * TODO pbouda: Used only for a migration, delete candidate.
+     * Used only for a migration, delete candidate.
      */
     public void writeThread(PostBoxId id, AbstractConversationThread conversationThread) {
         try (Timer.Context ignored = writeThreadTimer.time()) {
@@ -353,6 +355,16 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     public int unreadCountInConversation(PostBoxId id, String conversationId) {
         Row unreadCount = session.execute(Statements.SELECT_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, id.asString(), conversationId)).one();
         return unreadCount != null ? unreadCount.getInt("num_unread") : 0;
+    }
+
+    @Override
+    public int unreadCountInConversations(PostBoxId id, List<AbstractConversationThread> conversations) {
+        Map<String, Integer> unreads = gatherUnreadCounts(id);
+
+        return conversations.stream()
+                .map(AbstractConversationThread::getConversationId)
+                .mapToInt(unreads::get)
+                .sum();
     }
 
     private Stream<ConversationThreadModificationDate> streamConversationThreadModificationsByHour(Date roundedToHour) {

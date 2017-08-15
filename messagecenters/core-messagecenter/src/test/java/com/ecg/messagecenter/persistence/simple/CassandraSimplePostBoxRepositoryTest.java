@@ -3,6 +3,7 @@ package com.ecg.messagecenter.persistence.simple;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.persistence.Counter;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.joda.time.DateTime;
@@ -186,6 +187,26 @@ public class CassandraSimplePostBoxRepositoryTest {
     }
 
     @Test
+    public void unreadCountInConversations() throws Exception {
+        String email = "unreadCountInConversations@bar.com";
+        PostBoxId postBoxId = PostBoxId.fromEmail(email);
+
+        AbstractConversationThread thread1 = createConversationThread(now(), "mark-conversation-1");
+        postBoxRepository.upsertThread(postBoxId, thread1, true);
+        postBoxRepository.upsertThread(postBoxId, thread1, true);
+        AbstractConversationThread thread2 = createConversationThread(now(), "mark-conversation-2");
+        postBoxRepository.upsertThread(postBoxId, thread2, true);
+        AbstractConversationThread thread3 = createConversationThread(now(), "mark-conversation-3");
+
+        List<AbstractConversationThread> conversations = Arrays.asList(thread1, thread2, thread3);
+        PostBox box = new PostBox<>(email, Optional.empty(), conversations, 25);
+        postBoxRepository.write(box);
+
+        int unreadCount = postBoxRepository.unreadCountInConversations(postBoxId, conversations);
+        assertEquals(3, unreadCount);
+    }
+
+    @Test
     public void markConversationAsRead() throws Exception {
         String email = "markconversation@bar.com";
         DateTime now = now();
@@ -204,7 +225,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         assertTrue(postBoxRepository.threadById(postBoxId, "mark-conversation-1").get().isContainsUnreadMessages());
         assertFalse(postBoxRepository.threadById(postBoxId, "mark-conversation-2").get().isContainsUnreadMessages());
 
-        postBoxRepository.markConversationsAsRead(postBox);
+        postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
         assertFalse(postBoxRepository.threadById(postBoxId, "mark-conversation-1").get().isContainsUnreadMessages());
         assertFalse(postBoxRepository.threadById(postBoxId, "mark-conversation-2").get().isContainsUnreadMessages());
         assertFalse(((AbstractConversationThread) postBox.lookupConversation("mark-conversation-1").get()).isContainsUnreadMessages());
@@ -223,7 +244,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2), 25);
         postBoxRepository.write(box);
 
-        postBoxRepository.markConversationsAsRead(box);
+        postBoxRepository.markConversationsAsRead(box, box.getConversationThreads());
 
         thread1 = postBoxRepository.threadById(postBoxId, "mark-conversation-modify-1").get();
         thread2 = postBoxRepository.threadById(postBoxId, "mark-conversation-modify-2").get();
@@ -251,6 +272,36 @@ public class CassandraSimplePostBoxRepositoryTest {
 
         assertFalse(thread1.getModifiedAt().isAfter(oldModified));
         assertTrue(thread2.getModifiedAt().isAfter(oldModified));
+    }
+
+    @Test
+    public void markConversationAsReadSorting() throws Exception {
+        String email = "markconversationsorting@bar.com";
+        PostBoxId postBoxId = PostBoxId.fromEmail(email);
+
+        AbstractConversationThread thread1 = createConversationThread(now().minusDays(1), "mark-conversation-1");
+        postBoxRepository.upsertThread(postBoxId, thread1, true);
+        AbstractConversationThread thread2 = createConversationThread(now().minusDays(2), "mark-conversation-2");
+        AbstractConversationThread thread3 = createConversationThread(now().minusDays(3), "mark-conversation-3");
+        AbstractConversationThread thread4 = createConversationThread(now().minusDays(4), "mark-conversation-4");
+        postBoxRepository.upsertThread(postBoxId, thread4, true);
+        postBoxRepository.upsertThread(postBoxId, thread4, true);
+        AbstractConversationThread thread5 = createConversationThread(now().minusDays(5), "mark-conversation-5");
+
+        List<AbstractConversationThread> conversations = Arrays.asList(thread1, thread2, thread3, thread4, thread5);
+
+        PostBox box = new PostBox<>(email, new Counter(3), conversations, 25);
+        postBoxRepository.write(box);
+
+        PostBox<AbstractConversationThread> postBox = postBoxRepository.byId(postBoxId);
+        postBoxRepository.markConversationsAsRead(postBox, conversations);
+
+        assertEquals(5, postBox.getConversationThreads().size());
+        assertEquals("mark-conversation-1", postBox.getConversationThreads().get(0).getConversationId());
+        assertEquals("mark-conversation-2", postBox.getConversationThreads().get(1).getConversationId());
+        assertEquals("mark-conversation-3", postBox.getConversationThreads().get(2).getConversationId());
+        assertEquals("mark-conversation-4", postBox.getConversationThreads().get(3).getConversationId());
+        assertEquals("mark-conversation-5", postBox.getConversationThreads().get(4).getConversationId());
     }
 
     @Test

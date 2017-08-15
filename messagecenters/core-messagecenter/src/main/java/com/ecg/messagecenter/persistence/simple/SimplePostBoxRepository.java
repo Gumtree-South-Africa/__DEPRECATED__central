@@ -4,6 +4,7 @@ import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import org.joda.time.DateTime;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Repository for the 'simple' variety of the PostBox store. The 'simple' variety is a hybrid of the 1st generation
@@ -28,10 +29,6 @@ public interface SimplePostBoxRepository {
         markConversationsAsRead(postBox, Collections.singletonList(conversation));
     }
 
-    default void markConversationsAsRead(PostBox postBox) {
-        markConversationsAsRead(postBox, postBox.getConversationThreads());
-    }
-
     void markConversationsAsRead(PostBox postBox, List<AbstractConversationThread> conversations);
 
     void cleanup(DateTime time);
@@ -41,4 +38,6 @@ public interface SimplePostBoxRepository {
     Long upsertThread(PostBoxId id, AbstractConversationThread conversationThread, boolean markAsUnread);
 
     int unreadCountInConversation(PostBoxId id, String conversationId);
+
+    int unreadCountInConversations(PostBoxId id, List<AbstractConversationThread> conversations);
 }

@@ -8,10 +8,9 @@ import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.util.ConversationBoundnessFinder;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 public class PostBoxResponseBuilder {
 
@@ -37,8 +36,10 @@ public class PostBoxResponseBuilder {
 
         initConversationsPayload(email, postBox.getFilteredConversationThreads(roleFilter(role, email), page, size), postBoxResponse);
 
-        int filteredSize = FluentIterable.from(postBox.getConversationThreads())
-                .filter(roleFilter(role, email)).size();
+        int filteredSize = (int) postBox.getConversationThreads().stream()
+                .filter(roleFilter(role, email))
+                .count();
+
         postBoxResponse.meta(filteredSize, page, size);
 
         return ResponseObject.of(postBoxResponse);
@@ -69,11 +70,6 @@ public class PostBoxResponseBuilder {
     }
 
     private Predicate<AbstractConversationThread> roleFilter(ConversationRole role, String email){
-        return conversationThread -> {
-            if (role == null) {
-                return true;
-            }
-            return role == ConversationBoundnessFinder.lookupUsersRole(email, conversationThread);
-        };
+        return conversationThread -> role == null || role == ConversationBoundnessFinder.lookupUsersRole(email, conversationThread);
     }
 }

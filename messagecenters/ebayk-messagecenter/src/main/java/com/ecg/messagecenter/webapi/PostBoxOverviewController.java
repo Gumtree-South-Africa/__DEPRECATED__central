@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 @RestController
 public class PostBoxOverviewController {
@@ -75,8 +76,12 @@ public class PostBoxOverviewController {
         try (Timer.Context ignored = API_POSTBOX_BY_EMAIL.time()) {
             PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
             API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
-            postBox.resetReplies();
-            postBoxRepository.markConversationsAsRead(postBox);
+
+            List conversations = postBox.getConversationThreadsCapTo(page, size);
+            int totalUnreads = postBoxRepository.unreadCountInConversations(postBox.getId(), conversations);
+            postBox.decrementNewReplies(totalUnreads);
+
+            postBoxRepository.markConversationsAsRead(postBox, conversations);
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox);
         }
     }

@@ -122,6 +122,17 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
     }
 
     @Override
+    public int unreadCountInConversations(PostBoxId id, List<AbstractConversationThread> conversations) {
+        LOG.debug("RiakReadOnlySimplePostBoxRepository.unreadCountInConversationIds was called");
+
+        PostBox<AbstractConversationThread> postBox = byId(id);
+        return conversations.stream()
+                .filter(postBox::containsConversation)
+                .mapToInt(conversation -> unreadCountInConversation(id, conversation.getConversationId()))
+                .sum();
+    }
+
+    @Override
     public Optional<AbstractConversationThread> threadById(PostBoxId id, String conversationId) {
         PostBox postBox = byId(id);
 

@@ -4,13 +4,13 @@ import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static junit.framework.Assert.assertEquals;
@@ -47,17 +47,6 @@ public class PostBoxTest {
 
         assertEquals("123", conversationThreads.get(0).getAdId());
         assertTrue(conversationThreads.size() == 2);
-    }
-
-    @Test
-    public void marksConversationAsUnread() {
-        PostBox postBox = new PostBox("bla@blah.com", Optional.of(0l), Lists.newArrayList(
-          new ConversationThread("adid1", "convid2", now().minusDays(4), now(), now(), false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty())
-        ), 180);
-
-        postBox.markConversationUnread("convid2", null);
-        assertEquals(1, postBox.getNewRepliesCounter().getValue());
-        assertTrue(postBox.getUnreadConversations().containsKey("convid2"));
     }
 
     @Test
@@ -160,13 +149,7 @@ public class PostBoxTest {
         }
 
         @Override
-        public ConversationThread sameButUnread(String message) {
-            Optional<String> actualMessage = message == null ? previewLastMessage : Optional.of(message);
-            return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), true, actualMessage, buyerName, sellerName, buyerId, messageDirection);
-        }
-
-        @Override
-        public ConversationThread sameButRead() {
+        public ConversationThread newReadConversation() {
             return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), receivedAt, false, previewLastMessage, buyerName, sellerName, buyerId, messageDirection);
         }
     }

@@ -66,14 +66,9 @@ public class ConversationThread extends AbstractConversationThread {
         this.status = status;
     }
 
-    @Override
-    public ConversationThread sameButUnread(String message) {
-        Optional<String> actualMessage = message == null ? previewLastMessage : Optional.of(message);
-        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), DateTime.now(), true, actualMessage, buyerName, sellerName, buyerId, sellerId, messageDirection, robot, offerId, lastMessageAttachments, lastMessageId, buyerAnonymousEmail, sellerAnonymousEmail, status);
-    }
 
     @Override
-    public ConversationThread sameButRead() {
+    public ConversationThread newReadConversation() {
         return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), receivedAt, false, previewLastMessage, buyerName, sellerName, buyerId, sellerId, messageDirection, robot, offerId, lastMessageAttachments, lastMessageId, buyerAnonymousEmail, sellerAnonymousEmail, status);
     }
 

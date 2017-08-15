@@ -213,6 +213,11 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
     }
 
     @Override
+    public int unreadCountInConversations(PostBoxId id, List<AbstractConversationThread> conversations) {
+        return cassandraRepository.unreadCountInConversations(id, conversations);
+    }
+
+    @Override
     public long getMessagesCount(DateTime fromDate, DateTime toDate) {
         return riakRepository.getMessagesCount(fromDate, toDate);
     }
