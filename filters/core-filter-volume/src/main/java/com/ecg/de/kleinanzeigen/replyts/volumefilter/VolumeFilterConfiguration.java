@@ -22,9 +22,4 @@ public class VolumeFilterConfiguration {
     public EventStreamProcessor eventStreamProcessor() {
         return new EventStreamProcessor();
     }
-
-    @Bean
-    public SharedBrain sharedBrain(HazelcastInstance hazelcast, EventStreamProcessor eventStreamProcessor) {
-        return new SharedBrain(hazelcast, eventStreamProcessor);
-    }
 }
