@@ -31,6 +31,16 @@ public final class EmptyConversationFixture {
         emptyConversationRequest.setAdId(ADVERT_ID);
         emptyConversationRequest.setAdTitle(AD_TITLE);
 
+        Map<String, String> customValues = new HashMap<>();
+        customValues.put("from-userid", BUYER_ID_1);
+        customValues.put("to-userid", SELLER_ID_1);
+        customValues.put("from", BUYER_NAME);
+        customValues.put("to", SELLER_NAME);
+        customValues.put("buyer-name", BUYER_NAME);
+        customValues.put("seller-name", SELLER_NAME);
+
+        emptyConversationRequest.setCustomValues(customValues);
+
         Message message = new Message(timeBased(), MessageType.CHAT, new MessageMetadata(AD_TITLE, BUYER_ID_1));
         emptyConversationRequest.setMessage(message);
 

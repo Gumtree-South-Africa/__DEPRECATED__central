@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class NewConversationService {
@@ -26,7 +27,7 @@ public class NewConversationService {
         this.mutableConversationRepository = mutableConversationRepository;
     }
 
-    public void commitConversation(String convId, String adId, String buyerEmail, String sellerEmail, ConversationState conversationState) {
+    public void commitConversation(String convId, String adId, String buyerEmail, String sellerEmail, ConversationState conversationState, Map<String, String> customValues) {
 
         ConversationCreatedEvent conversationCreatedEvent = new ConversationCreatedEvent(
                 convId,
@@ -37,7 +38,7 @@ public class NewConversationService {
                 nextSecret(),
                 new DateTime(),
                 conversationState,
-                new HashMap<>()
+                customValues
         );
 
         mutableConversationRepository.commit(convId, Arrays.asList(conversationCreatedEvent));

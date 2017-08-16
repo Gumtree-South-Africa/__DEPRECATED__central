@@ -106,7 +106,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
         Response emptyConversationResponse = RestAssured
             .given()
                 .body(toJson(validEmptyConversation()))
-                .header("Content-Type", MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .header("Content-Type", "application/json")
                 .log().all()
             .when()
                 .post("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/"+BUYER_ID_1+"/ads/"+ADVERT_ID);
@@ -302,8 +302,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
     @Test
     public void createEmptyConversationMissingParticipants() throws Exception {
 
-        EmptyConversationRequest emptyConversationRequest = EmptyConversationFixture.validEmptyConversation();
-        emptyConversationRequest.setParticipants(new HashMap());
+        EmptyConversationRequest emptyConversationRequest = EmptyConversationFixture.invalidEmptyConversation();
 
         Response emptyConversationResponse = RestAssured
                 .given()

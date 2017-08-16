@@ -14,7 +14,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
@@ -81,10 +83,11 @@ public class NewConversationServiceTest {
         String buyerEmail = "buyerEmail@marktplaats.nl";
         String sellerEmail = "buyerEmail@marktplaats.nl";
         ConversationState convState = ConversationState.ACTIVE;
+        Map<String, String> customValues = new HashMap();
 
         ArgumentCaptor<List<ConversationEvent>> listCaptor = ArgumentCaptor.forClass((Class) List.class);
 
-        newConversationService.commitConversation(convId, adId, buyerEmail, sellerEmail, convState);
+        newConversationService.commitConversation(convId, adId, buyerEmail, sellerEmail, convState, customValues);
 
         verify(conversationRepository).commit(eq(convId), listCaptor.capture());
 

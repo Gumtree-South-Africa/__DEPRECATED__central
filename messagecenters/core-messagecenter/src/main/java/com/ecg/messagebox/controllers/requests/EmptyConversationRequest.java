@@ -1,6 +1,5 @@
 package com.ecg.messagebox.controllers.requests;
 
-import com.ecg.messagebox.model.ConversationMetadata;
 import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.model.Participant;
 import com.ecg.messagebox.model.ParticipantRole;
@@ -10,7 +9,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class EmptyConversationRequest {
@@ -35,6 +33,11 @@ public class EmptyConversationRequest {
     @Valid
     @NotNull
     private Message message;
+
+    @Valid
+    @Size(min = 2)
+    @NotNull
+    private Map<String, String> customValues;
 
     public String getAdId() {
         return adId;
@@ -75,5 +78,13 @@ public class EmptyConversationRequest {
 
     public void setMessage(Message message) {
         this.message = message;
+    }
+
+    public Map<String, String> getCustomValues() {
+        return customValues;
+    }
+
+    public void setCustomValues(Map<String, String> customValues) {
+        this.customValues = customValues;
     }
 }

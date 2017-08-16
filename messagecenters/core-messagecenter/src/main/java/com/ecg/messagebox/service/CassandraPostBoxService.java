@@ -191,7 +191,8 @@ public class CassandraPostBoxService implements PostBoxService {
                         emptyConversationRequest.getAdId(),
                         buyer.get().getEmail(),
                         seller.get().getEmail(),
-                        ConversationState.ACTIVE
+                        ConversationState.ACTIVE,
+                        emptyConversationRequest.getCustomValues()
                 );
 
                 return Optional.of(newConversationId);

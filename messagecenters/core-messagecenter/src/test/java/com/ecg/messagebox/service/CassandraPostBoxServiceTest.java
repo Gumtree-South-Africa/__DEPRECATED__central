@@ -316,7 +316,7 @@ public class CassandraPostBoxServiceTest {
         verify(conversationsRepo).createEmptyConversationProjection(eq(request), eq(CONVERSATION_ID_1), eq(EmptyConversationFixture.SELLER_ID_1));
         verify(conversationsRepo).createEmptyConversationProjection(eq(request), eq(CONVERSATION_ID_1), eq(EmptyConversationFixture.BUYER_ID_1));
         verify(newConversationService).nextGuid();
-        verify(newConversationService).commitConversation(eq(CONVERSATION_ID_1), eq(request.getAdId()), eq(EmptyConversationFixture.BUYER_EMAIL_1), eq(EmptyConversationFixture.SELLER_EMAIL_1), eq(ConversationState.ACTIVE));
+        verify(newConversationService).commitConversation(eq(CONVERSATION_ID_1), eq(request.getAdId()), eq(EmptyConversationFixture.BUYER_EMAIL_1), eq(EmptyConversationFixture.SELLER_EMAIL_1), eq(ConversationState.ACTIVE), anyMap());
     }
 
     @Test
@@ -324,8 +324,7 @@ public class CassandraPostBoxServiceTest {
 
         final String SECRETS = "thisisasecret";
 
-        EmptyConversationRequest request = EmptyConversationFixture.validEmptyConversation();
-        request.setParticipants(new HashMap<>()); // set it empty for it to fail
+        EmptyConversationRequest request = EmptyConversationFixture.invalidEmptyConversation();
 
         when(conversationsRepo.createEmptyConversationProjection(any(EmptyConversationRequest.class), anyString(), eq(EmptyConversationFixture.SELLER_ID_1))).thenReturn(CONVERSATION_ID_1);
         when(newConversationService.nextGuid()).thenReturn(CONVERSATION_ID_1);
