@@ -208,9 +208,33 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      * inspector configuration. blocks until the configured service is up and running.
      */
     public Configuration.ConfigurationId registerConfig(Class<? extends BasePluginFactory> type, ObjectNode config, long priority) {
-        Configuration.ConfigurationId c = new Configuration.ConfigurationId(type.getName(), "instance-" + COUNTER.incrementAndGet());
+        return registerConfigWithInstanceId("instance-" + COUNTER.incrementAndGet(), type, config, priority);
+    }
+
+    /**
+     * registers a new filter/resultinspector config to the configapi, effectively starting up a new filter or result
+     * inspector configuration. blocks until the configured service is up and running.
+     */
+    public Configuration.ConfigurationId registerConfigWithInstanceId(String instanceId,
+                                                                      Class<? extends BasePluginFactory> type,
+                                                                      ObjectNode config,
+                                                                      long priority) {
+        Configuration.ConfigurationId c = new Configuration.ConfigurationId(type.getName(), instanceId);
         LOG.info("Created config " + c + " with priority " + priority);
         client.putConfiguration(new Configuration(c, PluginState.ENABLED, priority, config));
+        waitUntilConfigurationChangeIsPropagated();
+        return c;
+    }
+
+    /**
+     * unregisters a configuration, effectively switching that service off. blocks until that service is offline.
+     */
+    public void deleteConfig(Configuration.ConfigurationId c) {
+        client.deleteConfiguration(c);
+        waitUntilConfigurationChangeIsPropagated();
+    }
+
+    private void waitUntilConfigurationChangeIsPropagated() {
         try {
             // TODO kobyakov: the method does work as intended, but it's not used as intended in the tests:
             // a configuration is actually registered in comaas synchronously, by calling this method,
@@ -221,14 +245,6 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         } catch (InterruptedException e) {
             throw new RuntimeException("interrupted while waiting for the configuration registration", e);
         }
-        return c;
-    }
-
-    /**
-     * unregisters a configuration, effectively switching that service off. blocks until that service is offline.
-     */
-    public void deleteConfig(Configuration.ConfigurationId c) {
-        client.deleteConfiguration(c);
     }
 
     /**

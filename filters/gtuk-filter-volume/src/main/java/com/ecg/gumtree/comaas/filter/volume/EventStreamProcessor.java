@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import static java.lang.String.format;
 
@@ -29,8 +28,8 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
 
     private EPServiceProvider epServiceProvider;
 
-    private ConcurrentMap<String, EPStatement> epWindows = new ConcurrentHashMap<>();
-    private Map<String, VelocityFilterConfig> velocityFilterConfigs = new ConcurrentHashMap<>();
+    private final Map<String, EsperWindowLifecycle> epWindowLifecycles = new ConcurrentHashMap<>();
+    private final Map<String, VelocityFilterConfig> velocityFilterConfigs = new ConcurrentHashMap<>();
 
     @PostConstruct
     private void initialize() {
@@ -44,22 +43,13 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
 
     void register(String instanceId, VelocityFilterConfig filterConfig) {
         String windowName = windowName(instanceId);
-        if (epWindows.containsKey(windowName)) {
+        if (epWindowLifecycles.containsKey(windowName)) {
             LOG.info("EP Window '{}' already exists, not creating again", windowName);
             return;
         }
 
         this.velocityFilterConfigs.put(instanceId, filterConfig);
-        String createWindow = format("create window %s.win:time(%d sec) as select `%s` from `%s`",
-                windowName, filterConfig.getSeconds(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
-
-        LOG.info(createWindow);
-        EPStatement epl = epServiceProvider.getEPAdministrator().createEPL(createWindow);
-        epWindows.put(windowName, epl);
-
-        String insertIntoWindow = format("insert into %s select `%s` from `%s`", windowName, VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
-        LOG.info(insertIntoWindow);
-        epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
+        epWindowLifecycles.put(windowName, createWindow(instanceId, filterConfig));
     }
 
     @Override
@@ -70,11 +60,42 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
     @Override
     public void unregister(String instanceId) {
         String windowName = windowName(instanceId);
-        EPStatement toBeUnregistered = epWindows.get(windowName);
-        if (toBeUnregistered != null) {
-            toBeUnregistered.destroy();
-            epWindows.remove(windowName);
+        EsperWindowLifecycle lifecycle = epWindowLifecycles.remove(windowName);
+        if (lifecycle != null) {
+            lifecycle.destroy();
             velocityFilterConfigs.remove(instanceId);
+        }
+    }
+
+    private EsperWindowLifecycle createWindow(String instanceId, VelocityFilterConfig filterConfig) {
+        String windowName = windowName(instanceId);
+        String createWindow = format("create window %s.win:time(%d sec) as select `%s` from `%s`",
+                windowName, filterConfig.getSeconds(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
+        LOG.info(createWindow);
+        EPStatement createWindowStatement = epServiceProvider.getEPAdministrator().createEPL(createWindow);
+        String insertIntoWindow = format("insert into %s select `%s` from `%s`", windowName,
+                VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
+        LOG.info(insertIntoWindow);
+        EPStatement insertIntoWindowStatement = epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
+        return new EsperWindowLifecycle(createWindowStatement, insertIntoWindowStatement);
+    }
+
+    private static class EsperWindowLifecycle {
+        private final EPStatement createWindowStatement;
+        private final EPStatement insertIntoWindowStatement;
+
+        EsperWindowLifecycle(EPStatement createWindowStatement, EPStatement insertIntoWindowStatement) {
+            this.createWindowStatement = createWindowStatement;
+            this.insertIntoWindowStatement = insertIntoWindowStatement;
+        }
+
+        void destroy() {
+            if (!this.createWindowStatement.isDestroyed()) {
+                this.createWindowStatement.destroy();
+            }
+            if (!this.insertIntoWindowStatement.isDestroyed()) {
+                this.insertIntoWindowStatement.destroy();
+            }
         }
     }
 
