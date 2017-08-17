@@ -25,6 +25,10 @@ Import the `replyts2` keyspace with this command:
 
 Note that you will have to install Docker on your local machines, the automated tests rely on it.
 
+### Possible issues
+
+Wrong jks file: `sun.security.validator.ValidatorException: PKIX path building failed` -> Remove `comaas.jks` form the root directory and restart `build.sh` script.
+
 ### Native Cassandra
 
 If you want to be able to run Cassandra natively, download Cassandra from http://archive.apache.org/dist/cassandra/2.1.15/ to your machine and put it in /opt/cassandra. Alternatively, use `brew install homebrew/versions/cassandra21`.
