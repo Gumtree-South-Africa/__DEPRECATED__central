@@ -53,7 +53,7 @@ public class MessagePreProcessor {
                         return key1.compareTo(key2);
                     }
                 })
-                .map(key -> environment.getProperty(key))
+                .map(environment::getProperty)
                 .map(Pattern::compile)
                 .collect(Collectors.toList());
     }

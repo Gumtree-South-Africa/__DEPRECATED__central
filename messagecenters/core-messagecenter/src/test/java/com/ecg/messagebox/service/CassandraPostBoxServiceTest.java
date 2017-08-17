@@ -2,6 +2,7 @@ package com.ecg.messagebox.service;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
+import com.ecg.messagebox.events.ConversationUpdateEventProcessor;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.util.EmptyConversationFixture;
@@ -102,6 +103,8 @@ public class CassandraPostBoxServiceTest {
     private PostBox postBox;
     @Mock
     private NewConversationService newConversationService;
+    @Mock
+    private ConversationUpdateEventProcessor updateEventProcessor;
 
     @Autowired
     private MessagesResponseFactory messagesResponseFactory;
@@ -112,7 +115,8 @@ public class CassandraPostBoxServiceTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         DateTimeUtils.setCurrentMillisFixed(now().getMillis());
-        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService, blockUserRepo, responseDataService, messagesResponseFactory, newConversationService);
+        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService, blockUserRepo,
+                responseDataService, messagesResponseFactory, newConversationService, updateEventProcessor);
         when(userIdentifierService.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierService.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(blockUserRepo.areUsersBlocked(any(), any())).thenReturn(false);
@@ -149,6 +153,7 @@ public class CassandraPostBoxServiceTest {
         Assert.assertEquals(messageIdDate.year(), currentTime.year());
 
         verify(responseDataService).calculateResponseData(USER_ID_1, conversation, rtsMsg2);
+        verify(updateEventProcessor).publishConversationUpdate(conversation, rtsMsg2, "text 123");
     }
 
     @Test

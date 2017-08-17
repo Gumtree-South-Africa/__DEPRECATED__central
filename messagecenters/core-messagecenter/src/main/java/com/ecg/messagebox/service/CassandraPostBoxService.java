@@ -4,6 +4,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
+import com.ecg.messagebox.events.ConversationUpdateEventProcessor;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.util.MessagesResponseFactory;
@@ -33,6 +34,7 @@ public class CassandraPostBoxService implements PostBoxService {
     private final UserIdentifierService userIdentifierService;
     private final ResponseDataService responseDataService;
     private final NewConversationService newConversationService;
+    private final ConversationUpdateEventProcessor conversationUpdateEventProcessor;
 
     private final Timer processNewMessageTimer = newTimer("postBoxService.v2.processNewMessage");
     private final Timer getConversationTimer = newTimer("postBoxService.v2.getConversation");
@@ -53,7 +55,8 @@ public class CassandraPostBoxService implements PostBoxService {
             BlockUserRepository blockUserRepository,
             ResponseDataService responseDataService,
             MessagesResponseFactory messagesResponseFactory,
-            NewConversationService newConversationService
+            NewConversationService newConversationService,
+            ConversationUpdateEventProcessor conversationUpdateEventProcessor
     ) {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
@@ -61,6 +64,7 @@ public class CassandraPostBoxService implements PostBoxService {
         this.blockUserRepository = blockUserRepository;
         this.responseDataService = responseDataService;
         this.newConversationService = newConversationService;
+        this.conversationUpdateEventProcessor = conversationUpdateEventProcessor;
     }
 
     @SuppressWarnings("Duplicates")
@@ -108,6 +112,7 @@ public class CassandraPostBoxService implements PostBoxService {
                 }
 
                 responseDataService.calculateResponseData(userId, rtsConversation, rtsMessage);
+                conversationUpdateEventProcessor.publishConversationUpdate(rtsConversation, rtsMessage, messageText);
             }
         }
     }

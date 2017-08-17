@@ -23,7 +23,7 @@ Note that you will have to install Docker on your local machines, the automated 
 
 ### Possible issues
 
-Wrong jks file: `sun.security.validator.ValidatorException: PKIX path building failed` -> Remove `comaas.jks` form the root directory and restart `build.sh` script.
+Wrong jks file: `sun.security.validator.ValidatorException: PKIX path building failed` -> Remove `comaas.jks` from the root directory and restart `build.sh` script.
 
 ### Native Cassandra
 
