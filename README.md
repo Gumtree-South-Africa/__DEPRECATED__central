@@ -5,6 +5,16 @@ Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/ecg-co
 Also clone the [vagrant machine](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant) and start it (see [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant#get-started)).
 
 ### Docker
+
+#### Add the following to the Docker -> Preferences -> Daemon -> Advanced:
+```
+{
+  "debug" : true,
+  "disable-legacy-registry" : false,
+  "experimental" : true
+}
+```
+
 Install [Docker](https://docs.docker.com/engine/installation/mac/) to be able to run tests. Alternatively, `brew cask install docker` and start `Docker.app`.
 
 Start a container with Cassandra like this:
