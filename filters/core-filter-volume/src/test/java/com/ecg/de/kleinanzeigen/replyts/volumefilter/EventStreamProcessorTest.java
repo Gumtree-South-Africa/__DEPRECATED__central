@@ -1,6 +1,5 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import com.espertech.esper.client.EPStatement;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -68,7 +67,7 @@ public class EventStreamProcessorTest {
 
         esp.register(win1);
 
-        Map<Window, EPStatement> windows = esp.getWindowsStatements();
+        Map<Window, EventStreamProcessor.EsperWindowLifecycle> windows = esp.getWindowsStatements();
         assertEquals(3, windows.size());
 
         assertTrue(windows.containsKey(new Window(instanceId, quota1)));
@@ -80,7 +79,7 @@ public class EventStreamProcessorTest {
                 .collect(Collectors.toList());
 
         esp.register(win2);
-        Map<Window, EPStatement> windows2 = esp.getWindowsStatements();
+        Map<Window, EventStreamProcessor.EsperWindowLifecycle> windows2 = esp.getWindowsStatements();
         assertEquals(3, windows2.size());
 
         assertTrue(windows2.containsKey(new Window(instanceId, quota1)));
@@ -125,12 +124,12 @@ public class EventStreamProcessorTest {
 
         esp.register(windows2);
 
-        Map<Window, EPStatement> win = esp.getWindowsStatements();
+        Map<Window, EventStreamProcessor.EsperWindowLifecycle> win = esp.getWindowsStatements();
         assertEquals(6, win.size());
 
         esp.unregister(instanceId);
 
-        Map<Window, EPStatement> win1 = esp.getWindowsStatements();
+        Map<Window, EventStreamProcessor.EsperWindowLifecycle> win1 = esp.getWindowsStatements();
         assertEquals(3, win1.size());
 
         boolean onlyInstance2windows = win1.keySet().stream()

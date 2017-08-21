@@ -1,7 +1,5 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import com.google.common.collect.Lists;
-import junit.framework.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;

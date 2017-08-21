@@ -1,10 +1,12 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
+import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Rule;
 import org.junit.Test;
@@ -12,13 +14,28 @@ import org.junit.Test;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.junit.Assert.assertEquals;
 
-/**
- * @author mhuttar
- */
 public class VolumeFilterIntegrationTest {
-
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
+
+    @Test
+    public void testMultipleRegistrations() {
+        rule.deleteConfig(registerVolumeConfig());
+        registerVolumeConfig();
+
+        MailInterceptor.ProcessedMail response = rule.deliver(
+                MailBuilder.aNewMail().adId("123").from("whatever@example.com").to("bar@foo.com").htmlBody("oobar")
+        );
+        assertEquals(MessageState.SENT, response.getMessage().getState());
+        assertEquals(0, response.getMessage().getProcessingFeedback().size());
+    }
+
+    private Configuration.ConfigurationId registerVolumeConfig() {
+        final ArrayNode add = JsonObjects.newJsonArray().add(JsonObjects.builder().attr("allowance", "1").attr("perTimeValue", "1").attr("perTimeUnit", "DAYS").attr("score", "100").build());
+        final ObjectNode rules1 = JsonObjects.builder().attr("rules", add).build();
+
+        return rule.registerConfigWithInstanceId("volume", VolumeFilterFactory.class, rules1, 100);
+    }
 
     @Test
     public void violatesQuota() throws Exception {

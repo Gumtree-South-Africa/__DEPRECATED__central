@@ -2,24 +2,21 @@ package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
 import com.google.common.base.Objects;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
  * defines one quota (maximum number of mails allowed within a given time slice). if the quota is exceeded, a score is assigned to the message exceeding the quota.
+ *
  * @author mhuttar
  */
-public class Quota implements Comparable<Quota>{
-
+public class Quota implements Comparable<Quota> {
     private final int allowance;
-
     private final int perTimeValue;
-
     private final TimeUnit perTimeUnit;
-
     private final int score;
 
-
-    public Quota(int allowance, int perTimeValue, TimeUnit perTimeUnit, int score) {
+    Quota(int allowance, int perTimeValue, TimeUnit perTimeUnit, int score) {
         this.allowance = allowance;
         this.perTimeValue = perTimeValue;
         this.perTimeUnit = perTimeUnit;
@@ -44,10 +41,10 @@ public class Quota implements Comparable<Quota>{
 
     @Override
     public boolean equals(Object other) {
-        if(!(other instanceof Quota)) {
+        if (!(other instanceof Quota)) {
             return false;
         }
-        Quota otherQ=(Quota) other;
+        Quota otherQ = (Quota) other;
         return Objects.equal(allowance, otherQ.allowance) &&
                 Objects.equal(score, otherQ.score) &&
                 Objects.equal(perTimeUnit.toMillis(perTimeValue), otherQ.perTimeUnit.toMillis(otherQ.perTimeValue));
@@ -60,22 +57,19 @@ public class Quota implements Comparable<Quota>{
     }
 
     @Override
-    public int compareTo(Quota quota) {
+    public int compareTo(@Nonnull Quota quota) {
         return quota.score - score;
     }
 
-
-    public int getDurationMinutes() {
-        return (int)perTimeUnit.toMinutes(perTimeValue);
+    int getDurationMinutes() {
+        return (int) perTimeUnit.toMinutes(perTimeValue);
     }
 
-
-    public String uihint() {
+    String uiHint() {
         return String.format("max %s/%s %s", allowance, perTimeValue, perTimeUnit);
     }
 
-    public String describeViolation(long numberOfMailsInTimerange) {
-        return String.format("User sent %s mails in %s %s", numberOfMailsInTimerange, perTimeValue, perTimeUnit);
+    String describeViolation(long numberOfMailsInTimeRange) {
+        return String.format("User sent %s mails in %s %s", numberOfMailsInTimeRange, perTimeValue, perTimeUnit);
     }
-
 }

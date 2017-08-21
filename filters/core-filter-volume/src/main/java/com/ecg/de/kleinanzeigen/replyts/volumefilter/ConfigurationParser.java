@@ -19,12 +19,10 @@ import static com.google.common.collect.Sets.newHashSet;
  * @author mhuttar
  */
 class ConfigurationParser {
-
-
     private final ImmutableList<Quota> quotas;
 
-    public ConfigurationParser(JsonNode jsonNode) {
-        List<Quota> quotas = new ArrayList<Quota>();
+    ConfigurationParser(JsonNode jsonNode) {
+        List<Quota> quotas = new ArrayList<>();
 
         ArrayNode rulesArray = (ArrayNode) jsonNode.get("rules");
         Preconditions.checkArgument(rulesArray != null, "given config does not contain a rules element.");
@@ -37,7 +35,6 @@ class ConfigurationParser {
         }
 
         this.quotas = ImmutableList.copyOf(quotas);
-
     }
 
     public List<Quota> get() {
@@ -54,6 +51,4 @@ class ConfigurationParser {
         int score = n.get("score").asInt();
         return new Quota(allowance, perTimeValue, perTimeUnit, score);
     }
-
-
 }

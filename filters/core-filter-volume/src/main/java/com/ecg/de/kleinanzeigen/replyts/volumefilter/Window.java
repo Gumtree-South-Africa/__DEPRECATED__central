@@ -3,11 +3,7 @@ package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-/**
- * Time window which is composed by filter INSTANCE_ID and QUOTA.
- */
 public class Window {
-
     private static final String VOLUME_NAME_PREFIX = "volume";
     private static final Pattern VOLUME_PATTERN = Pattern.compile("[- %+()]");
 
@@ -21,7 +17,7 @@ public class Window {
         this.windowName = name(instanceId, quota);
     }
 
-    public String getInstanceId() {
+    String getInstanceId() {
         return instanceId;
     }
 

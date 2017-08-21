@@ -12,20 +12,18 @@ import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
 public class EventStreamProcessor implements ConfigurationRefreshEventListener {
-
     private static final Logger LOG = LoggerFactory.getLogger(EventStreamProcessor.class);
 
     private static final String PROVIDER_NAME = "volumefilter_provider";
     private static final String MAIL_RECEIVED_EVENT = "MailReceivedEvent";
     private static final String VELOCITY_FIELD_VALUE = "mailAddress";
 
-    private ConcurrentMap<Window, EPStatement> epWindows = new ConcurrentHashMap<>();
+    private ConcurrentMap<Window, EsperWindowLifecycle> epWindows = new ConcurrentHashMap<>();
     private EPServiceProvider epServiceProvider;
 
     @PostConstruct
@@ -45,17 +43,7 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
                 return;
             }
 
-            String createWindow = format("create window %s.win:time(%d min) as select `%s` from `%s`",
-                    window.getWindowName(), window.getQuota().getDurationMinutes(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
-
-            LOG.debug(createWindow);
-            EPStatement statement = epServiceProvider.getEPAdministrator().createEPL(createWindow);
-
-            String insertIntoWindow = format("insert into %s select `%s` from `%s`", window.getWindowName(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
-            LOG.debug(insertIntoWindow);
-            epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
-
-            epWindows.putIfAbsent(window, statement);
+            epWindows.computeIfAbsent(window, this::createWindowLifeCycle);
         }
     }
 
@@ -69,7 +57,7 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
         return new Summary(internalWindows, Collections.unmodifiableCollection(epWindows.keySet()), eventTypes);
     }
 
-    public void mailReceivedFrom(String mailAddress) {
+    void mailReceivedFrom(String mailAddress) {
         epServiceProvider.getEPRuntime().sendEvent(new MailReceivedEvent(mailAddress.toLowerCase()));
     }
 
@@ -80,7 +68,7 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
         return (Long) result.iterator().next().get("count(*)");
     }
 
-    Map<Window, EPStatement> getWindowsStatements() {
+    Map<Window, EsperWindowLifecycle> getWindowsStatements() {
         return Collections.unmodifiableMap(epWindows);
     }
 
@@ -94,17 +82,53 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
         List<Window> windows = epWindows.entrySet().stream()
                 // filter the windows with instanceId
                 .filter(entry -> instanceId.equals(entry.getKey().getInstanceId()))
-                // destroy Statements belonging to the filtered windows
-                .peek(entry -> entry.getValue().destroy())
                 // get windows to delete them later on
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-        windows.forEach(epWindows::remove);
+        windows.forEach(window -> {
+                    EsperWindowLifecycle lifecycle = epWindows.remove(window);
+                    if (lifecycle != null) {
+                        lifecycle.destroy();
+                    }
+                }
+        );
+    }
+
+    private EsperWindowLifecycle createWindowLifeCycle(Window window) {
+        String createWindow = format("create window %s.win:time(%d min) as select `%s` from `%s`",
+                window.getWindowName(), window.getQuota().getDurationMinutes(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
+        LOG.info(createWindow);
+        EPStatement createWindowStatement = epServiceProvider.getEPAdministrator().createEPL(createWindow);
+
+        String insertIntoWindow = format("insert into %s select `%s` from `%s`", window.getWindowName(),
+                VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
+        LOG.info(insertIntoWindow);
+        EPStatement insertIntoWindowStatement = epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
+
+        return new EsperWindowLifecycle(createWindowStatement, insertIntoWindowStatement);
+    }
+
+    static class EsperWindowLifecycle {
+        private final EPStatement createWindowStatement;
+        private final EPStatement insertIntoWindowStatement;
+
+        EsperWindowLifecycle(EPStatement createWindowStatement, EPStatement insertIntoWindowStatement) {
+            this.createWindowStatement = createWindowStatement;
+            this.insertIntoWindowStatement = insertIntoWindowStatement;
+        }
+
+        void destroy() {
+            if (!this.createWindowStatement.isDestroyed()) {
+                this.createWindowStatement.destroy();
+            }
+            if (!this.insertIntoWindowStatement.isDestroyed()) {
+                this.insertIntoWindowStatement.destroy();
+            }
+        }
     }
 
     public static class Summary {
-
         private final List<String> internalWindows;
         private final Multimap<String, Quota> instanceIdToQuota;
         private final Collection<Window> windows;

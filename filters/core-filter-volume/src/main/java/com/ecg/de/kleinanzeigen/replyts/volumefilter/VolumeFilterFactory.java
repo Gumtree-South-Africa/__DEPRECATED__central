@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class VolumeFilterFactory implements FilterFactory {
 

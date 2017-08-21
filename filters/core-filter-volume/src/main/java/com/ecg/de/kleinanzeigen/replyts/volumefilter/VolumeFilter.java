@@ -51,7 +51,7 @@ class VolumeFilter implements Filter {
 
             if (mailsInWindow > quota.getAllowance()) {
                 return Collections.singletonList(new FilterFeedback(
-                        quota.uihint(),
+                        quota.uiHint(),
                         quota.describeViolation(mailsInWindow),
                         quota.getScore(),
                         FilterResultState.OK));
