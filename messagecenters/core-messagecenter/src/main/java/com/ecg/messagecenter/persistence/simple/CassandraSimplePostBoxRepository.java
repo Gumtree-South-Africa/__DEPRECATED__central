@@ -191,7 +191,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         try (Timer.Context ignored = writeTimer.time()) {
             BatchStatement batch = new BatchStatement();
 
-            for (AbstractConversationThread conversation: conversations) {
+            for (AbstractConversationThread conversation : conversations) {
                 String conversationId = conversation.getConversationId();
                 ((PostBox<AbstractConversationThread>) postBox).cloneConversationMarkAsRead(conversationId).ifPresent(readConversation -> {
                     Optional<String> jsonValue = toJson(readConversation);
@@ -221,7 +221,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         try (Timer.Context ignored = writeTimer.time()) {
             BatchStatement batch = new BatchStatement();
 
-            for (AbstractConversationThread conversation: conversations) {
+            for (AbstractConversationThread conversation : conversations) {
                 String conversationId = conversation.getConversationId();
                 ((PostBox<AbstractConversationThread>) postBox).cloneConversationMarkAsRead(conversationId).ifPresent(readConversation -> {
                     Optional<String> jsonValue = toJson(readConversation);
@@ -363,7 +363,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
         return conversations.stream()
                 .map(AbstractConversationThread::getConversationId)
-                .mapToInt(unreads::get)
+                .mapToInt(convid -> unreads.getOrDefault(convid, 0))
                 .sum();
     }
 
@@ -395,7 +395,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     public void deleteConversations(PostBox postBox, List<String> convIds) {
         try (Timer.Context ignored = deleteConversationThreadBatchTimer.time()) {
             BatchStatement batch = new BatchStatement();
-            for(String conv: convIds) {
+            for (String conv : convIds) {
                 deleteConversationThreadStatements(batch, PostBoxId.fromEmail(postBox.getEmail()), conv);
             }
             batch.setConsistencyLevel(writeConsistency).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);

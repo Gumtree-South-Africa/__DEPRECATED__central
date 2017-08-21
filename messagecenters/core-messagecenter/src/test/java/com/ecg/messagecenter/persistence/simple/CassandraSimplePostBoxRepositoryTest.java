@@ -6,6 +6,7 @@ import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.Counter;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
+import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -205,6 +206,28 @@ public class CassandraSimplePostBoxRepositoryTest {
         int unreadCount = postBoxRepository.unreadCountInConversations(postBoxId, conversations);
         assertEquals(3, unreadCount);
     }
+
+
+    @Test
+    public void unreadCountInConversationsNewConversation() throws Exception {
+        String email = "unreadCountInConversations@bar.com";
+        PostBoxId postBoxId = PostBoxId.fromEmail(email);
+
+        AbstractConversationThread thread1 = createConversationThread(now(), "mark-conversation-1");
+        postBoxRepository.upsertThread(postBoxId, thread1, true);
+        postBoxRepository.upsertThread(postBoxId, thread1, true);
+        AbstractConversationThread thread2 = createConversationThread(now(), "mark-conversation-2");
+        postBoxRepository.upsertThread(postBoxId, thread2, true);
+        AbstractConversationThread thread3 = createConversationThread(now(), "mark-conversation-3");
+
+        List<AbstractConversationThread> conversations = Arrays.asList(thread1, thread2, thread3);
+        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2), 25);
+        postBoxRepository.write(box);
+
+        int unreadCount = postBoxRepository.unreadCountInConversations(postBoxId, conversations);
+        assertEquals(3, unreadCount);
+    }
+
 
     @Test
     public void markConversationAsRead() throws Exception {
