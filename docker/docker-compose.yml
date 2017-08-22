@@ -28,7 +28,7 @@ services:
     - "8090:8025" # web ui
     - "8025:1025"
   cassandra:
-    image: registry.ecg.so/comaas_cassandra_data:0.0.6
+    image: docker-registry.ecg.so/comaas/cassandra_data:0.0.6
     ports:
     - "9042:9042"
     environment:

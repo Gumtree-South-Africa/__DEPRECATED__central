@@ -6,22 +6,18 @@ Also clone the [vagrant machine](https://github.corp.ebay.com/ecg-comaas/ecg-com
 
 ### Docker
 
-#### Add the following to the Docker -> Preferences -> Daemon -> Advanced:
-```
-{
-  "debug" : true,
-  "disable-legacy-registry" : false,
-  "experimental" : true
-}
-```
-
 Install [Docker](https://docs.docker.com/engine/installation/mac/) to be able to run tests. Alternatively, `brew cask install docker` and start `Docker.app`.
 
-Start a container with Cassandra like this:
-`docker run --detach --publish 9042:9042 --name cassandra cassandra:2.1.15`
+One time setup:
+`docker login docker-registry.ecg.so`
 
-Import the `replyts2` keyspace with this command:
-`docker run --rm --link cassandra:cassandra --volume ~/dev/ecg-comaas-central:/code --workdir /code cassandra:2.1.15 bin/setup-cassandra.sh cassandra replyts2 no`
+Start all Comaas supporting services by running:
+```
+cd docker
+make up
+# make import # if you want to manually import all docker.properties for all tenants, not needed when using the build.sh script
+```
+Remove all containers using `cd docker; make down`
 
 Note that you will have to install Docker on your local machines, the automated tests rely on it.
 

@@ -1,7 +1,8 @@
-DOCKER_COMPOSE  = docker-compose
-BROWSE          = open
-PROPS2CONSUL    = docker run --net docker_default --rm --volume $$PWD/..:/code -w /code/docker registry.ecg.so/properties-to-consul:0.0.4 -consul http://docker_consul_1:8500
-CASS_IMG_VER    = 0.0.6
+DOCKER_COMPOSE = docker-compose
+BROWSE         = open
+PROPS2CONSUL   = docker run --net docker_default --rm --volume $$PWD/..:/code -w /code/docker docker-registry.ecg.so/comaas/properties-to-consul:0.0.4 -consul http://docker_consul_1:8500
+CASS_IMG_VER   = 0.0.6
+CASS_IMG_NAME  = docker-registry.ecg.so/comaas/cassandra_data:$(CASS_IMG_VER)
 
 .PHONY: up down ui import logs cassandra-image push-cassandra-image pull
 
@@ -22,11 +23,11 @@ logs:
 
 cassandra-image:
 	@find .. -name \*cql -not -path "../docker/*" -exec cp {} cassandra/ \;
-	@docker build -t registry.ecg.so/comaas_cassandra_data:$(CASS_IMG_VER) cassandra
+	@docker build -t $(CASS_IMG_NAME) cassandra
 	@rm -f cassandra/*cql
 
 push-cassandra-image:
-	@docker push registry.ecg.so/comaas_cassandra_data:$(CASS_IMG_VER)
+	@docker push $(CASS_IMG_NAME)
 
 pull:
 	@$(DOCKER_COMPOSE) pull
