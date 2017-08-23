@@ -28,8 +28,8 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
 @Configuration
-@ComponentScan(value = { "com.ecg", "com.ebay" }, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
-@Import({ StartupExperience.class, EmbeddedWebserver.class })
+@ComponentScan(value = {"com.ecg", "com.ebay"}, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
+@Import({StartupExperience.class, EmbeddedWebserver.class})
 public class ReplyTS {
     private static final Logger LOG = LoggerFactory.getLogger(ReplyTS.class);
 
@@ -46,12 +46,12 @@ public class ReplyTS {
     @PostConstruct
     public void reportThings() {
         LOG.info("With MessageProcessedListeners: {}", messageProcessedListeners.stream()
-          .map(listener -> listener.getClass().getCanonicalName())
-          .collect(joining(", ")));
+                .map(listener -> listener.getClass().getCanonicalName())
+                .collect(joining(", ")));
 
         LOG.info("With Mail Fixers: {}", javaMailMessageFixers.stream()
-          .map(fixer -> fixer.getClass().getCanonicalName())
-          .collect(joining(", ")));
+                .map(fixer -> fixer.getClass().getCanonicalName())
+                .collect(joining(", ")));
     }
 
     @Bean
@@ -81,7 +81,7 @@ public class ReplyTS {
     @Lazy(false)
     @DependsOn("defaultContextsInitialized")
     public Boolean started(@Value("${replyts.control.context:control-context.xml}") String contextLocation, EmbeddedWebserver webserver, StartupExperience experience, ApplicationContext context) {
-        webserver.context(new SpringContextProvider("/", new String[] { "classpath:" + contextLocation }, context));
+        webserver.context(new SpringContextProvider("/", new String[]{"classpath:" + contextLocation}, context));
 
         webserver.start();
 
@@ -90,10 +90,10 @@ public class ReplyTS {
 
     public static void main(String[] args) throws Exception {
         try {
-            AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[] {
-              "classpath:server-context.xml",
-              "classpath:runtime-context.xml",
-              "classpath*:/plugin-inf/*.xml",
+            AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[]{
+                    "classpath:server-context.xml",
+                    "classpath:runtime-context.xml",
+                    "classpath*:/plugin-inf/*.xml",
             }, false, new AnnotationConfigApplicationContext(ParentConfiguration.class));
 
             context.getEnvironment().setActiveProfiles(PRODUCTIVE_PROFILE);

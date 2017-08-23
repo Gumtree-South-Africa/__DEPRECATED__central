@@ -15,7 +15,6 @@ import org.springframework.util.Assert;
 import java.util.Optional;
 
 public class MessageReceivedListener implements MessageProcessedListener {
-
     private static final Logger LOG = LoggerFactory.getLogger(MessageReceivedListener.class);
     private static final int MAX_CHARS = 250;
 
@@ -32,17 +31,14 @@ public class MessageReceivedListener implements MessageProcessedListener {
     public void messageProcessed(Conversation conversation, Message message) {
         if (pluginEnabled) {
             switch (message.getState()) {
-
                 case SENT:
                     rabbitEventPublisher.publishEvent(getEvent(conversation, message)
                             .orElseThrow(() -> new IllegalStateException("Event should not be null")));
                     break;
-
                 default:
-                    break;//Do nothing
+                    break;
             }
         }
-
     }
 
     private Optional<MessageReceivedEvent> getEvent(Conversation conversation, Message message) {
@@ -60,7 +56,7 @@ public class MessageReceivedListener implements MessageProcessedListener {
                     .build());
         } catch (Exception e) {
             LOG.error("En error occurred while creating the event");
-            return null;
+            return Optional.empty();
         }
     }
 

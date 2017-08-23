@@ -34,7 +34,7 @@ public class SharedBrainTest {
     @Test
     public void addMessageListener() {
         when(communicationBus.addMessageListener(any())).thenReturn(NEW_MESSAGE_LISTENER_ID);
-        when(hazelcastInstance.<String>getReliableTopic(GUMTREE_VELOCITY_FILTER_EXCHANGE)).thenReturn(communicationBus);
+        when(hazelcastInstance.<String>getTopic(GUMTREE_VELOCITY_FILTER_EXCHANGE)).thenReturn(communicationBus);
 
         SharedBrain sharedBrain = new SharedBrain(hazelcastInstance, eventStreamProcessor);
         AtomicReference<String> messageListenerId = (AtomicReference<String>) ReflectionTestUtils.getField(sharedBrain, "messageListenerId");

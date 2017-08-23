@@ -13,7 +13,7 @@ down:
 	@$(DOCKER_COMPOSE) down --remove-orphans --volumes
 
 ui:
-	@$(BROWSE) http://localhost:8000
+	@$(BROWSE) http://localhost:8091
 
 import:
 	find ../distribution/conf -name docker.properties -exec $(PROPS2CONSUL) -file {} \;

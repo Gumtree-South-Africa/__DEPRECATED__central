@@ -9,7 +9,7 @@ services:
   hashi-ui:
     image: jippi/hashi-ui
     ports:
-    - "8000:3000" # web ui
+    - "8091:3000" # web ui
     environment:
       CONSUL_ENABLE: 1
       CONSUL_ADDR: consul:8500
