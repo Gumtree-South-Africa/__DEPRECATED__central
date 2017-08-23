@@ -185,7 +185,7 @@ public class FilesystemMailDataProviderTest {
 
             File currentFile = new File(failuresDir, failedFileName.toString());
 
-            assertThat(currentFile.exists(), is(true));
+            assertThat(currentFile + " doesn't exist", currentFile.exists(), is(true));
 
             //prepare for next loop
             currentFile.setLastModified(System.currentTimeMillis() - 6 * 1000 * 60);

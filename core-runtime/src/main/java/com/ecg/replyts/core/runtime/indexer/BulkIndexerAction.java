@@ -64,7 +64,8 @@ public class BulkIndexerAction implements IndexerAction {
         try {
             indexingCompleted = indexerBulkHandler.awaitCompletion(1, TimeUnit.HOURS);
         } catch (InterruptedException ine) {
-            LOGGER.error("Indexing did not complete due to interruption or timeout", ine);
+            Thread.currentThread().interrupt();
+            LOGGER.warn("Indexing did not complete due to interruption or timeout");
         } catch (Exception e) {
             LOGGER.error("Indexing failed with exception", e);
         }
@@ -80,7 +81,7 @@ public class BulkIndexerAction implements IndexerAction {
     public void indexConversations(Stream<String> conversations) {
         List<Future> futures = new ArrayList<>();
         Iterators.partition(conversations.iterator(), conversationIdBatchSize).forEachRemaining(ids -> {
-            Set<String> unqids = new HashSet(ids);
+            Set<String> unqids = new HashSet<>(ids);
             submittedConvCounter.addAndGet(unqids.size());
             taskCounter.incrementAndGet();
             LOGGER.info("Scheduling for indexing batch {} containing {} conversations, {} submitted in total", taskCounter.get(), unqids.size(), submittedConvCounter.get());

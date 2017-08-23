@@ -1,7 +1,6 @@
 package com.ecg.replyts.core.runtime.migrator;
 
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -29,7 +28,7 @@ public class ResultFetcher {
                 counter.incrementAndGet();
                 t.get(completionTimeoutSec, TimeUnit.SECONDS);
             } catch (InterruptedException in) {
-                log.error("Interrupted during waiting for future completion", in);
+                log.warn("Interrupted while waiting for future completion");
                 Thread.currentThread().interrupt();
             } catch (ExecutionException e) {
                 log.error("ExecutionException", e);

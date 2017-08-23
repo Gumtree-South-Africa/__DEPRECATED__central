@@ -30,7 +30,7 @@ public class SingleRunGuard {
                 return false;
             }
         } catch (InterruptedException e) {
-            LOG.error("Interrupted while waiting on a lock", e);
+            LOG.error("Interrupted while waiting on a lock");
             throw new RuntimeException(e);
         } finally {
             if (lock.isLocked()) {

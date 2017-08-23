@@ -6,7 +6,6 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ListenableActionFuture;
-import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -57,7 +56,8 @@ public class SearchIndexer {
             if (response.hasFailures()) {
                 throw new RuntimeException(response.buildFailureMessage());
             }
-        } catch (InterruptedException ignore) {
+        } catch (InterruptedException e) {
+            LOG.warn("the thread has been interrupted");
             Thread.currentThread().interrupt();
         } catch (ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);

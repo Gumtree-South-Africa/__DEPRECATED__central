@@ -292,15 +292,17 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             }));
         });
 
-        cleanUpTasks.forEach(task -> {
+        for (Future<?> task : cleanUpTasks) {
             try {
                 task.get();
             } catch (ExecutionException | RuntimeException e) {
                 LOG.error("ConversationThread cleanup task execution failure", e);
             } catch (InterruptedException e) {
+                LOG.warn("The cleanup task has been interrupted");
                 Thread.currentThread().interrupt();
+                return;
             }
-        });
+        }
 
         LOG.info("Cleanup: Finished deleting conversations");
     }

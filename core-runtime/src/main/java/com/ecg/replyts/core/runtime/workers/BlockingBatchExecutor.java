@@ -81,6 +81,7 @@ public class BlockingBatchExecutor<T> {
                 }
             }
         } catch (InterruptedException ie) {
+            LOG.warn("interrupted while waiting for the pool to be shut down");
             pool.shutdownNow();
             Thread.currentThread().interrupt();
         }

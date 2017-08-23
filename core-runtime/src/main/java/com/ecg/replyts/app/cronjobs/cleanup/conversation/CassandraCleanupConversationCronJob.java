@@ -132,15 +132,17 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
             }));
         });
 
-        cleanUpTasks.stream().forEach(task -> {
+        for (Future<?> task : cleanUpTasks) {
             try {
                 task.get();
             } catch (ExecutionException | RuntimeException e) {
                 LOG.error("Conversation cleanup task execution failure", e);
             } catch (InterruptedException e) {
+                LOG.warn("The cleanup task has been interrupted");
                 Thread.currentThread().interrupt();
+                return;
             }
-        });
+        }
 
         cronJobClockRepository.set(CLEANUP_CONVERSATION_JOB_NAME, now(), cleanupDate);
 

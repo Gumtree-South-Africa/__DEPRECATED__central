@@ -3,6 +3,8 @@ package com.ecg.de.kleinanzeigen;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -20,6 +22,7 @@ import java.util.concurrent.TimeUnit;
  * @param <V> Type of value
  */
 public class AsyncProducer<K, V> {
+    private static final Logger LOG = LoggerFactory.getLogger(AsyncProducer.class);
 
     // The max number of records to buffer
     private static final int MAX_BUFFERED_RECORDS = 5_000;
@@ -62,7 +65,8 @@ public class AsyncProducer<K, V> {
             if (!terminated) {
                 executor.shutdownNow();
             }
-        } catch (InterruptedException ignore) {
+        } catch (InterruptedException e) {
+            LOG.warn("Interrupted while waiting for the pool to be shut down");
             Thread.currentThread().interrupt();
         }
         producer.close();

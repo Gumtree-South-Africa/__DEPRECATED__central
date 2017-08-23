@@ -21,7 +21,7 @@ public class Util {
                 counter.incrementAndGet();
                 t.get(completionTimeoutSec, TimeUnit.SECONDS);
             } catch (InterruptedException in) {
-                log.error("Not completed", in);
+                log.warn("Interrupted");
                 Thread.currentThread().interrupt();
             } catch (ExecutionException e) {
                 log.error("ExecutionException", e);

@@ -14,12 +14,11 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
+import static com.google.common.base.Preconditions.*;
 import static java.lang.String.format;
 
 @Component("mailDataProvider")
@@ -30,8 +29,8 @@ public class FilesystemMailDataProvider implements Runnable {
     private static final Counter FAILED_COUNTER = TimingReports.newCounter("processing_failed");
     private static final Counter ABANDONED_RETRY_COUNTER = TimingReports.newCounter("processing_failed_abandoned");
 
-    static final String FAILED_PREFIX = "f_";
     static final String FAILED_DIRECTORY_NAME = "failed";
+    static final String FAILED_PREFIX = "f_";
     static final String INCOMING_FILE_PREFIX = "pre_";
     static final String PROCESSING_FILE_PREFIX = "inwork_";
 
@@ -41,7 +40,7 @@ public class FilesystemMailDataProvider implements Runnable {
     private ClusterModeManager clusterModeManager;
 
     @Autowired
-    private MessageProcessingCoordinator consumer;
+    private MessageProcessingCoordinator messageProcessor;
 
     @Value("${mailreceiver.filesystem.dropfolder}")
     private String dropfolder;
@@ -50,7 +49,7 @@ public class FilesystemMailDataProvider implements Runnable {
     private int retryDelayMinutes;
 
     @Value("${mailreceiver.watch.retrydelay.millis:1000}")
-    private int watchRetryDelay;
+    private int watchRetryDelayMs;
 
     @Value("${mailreceiver.retries}")
     private int retryCounter;
@@ -63,10 +62,14 @@ public class FilesystemMailDataProvider implements Runnable {
 
     private String abandonedFileNameMatchPattern;
 
+
+
     @PostConstruct
     public void initialize() {
         this.mailDataDirectory = new File(dropfolder);
         this.failedDirectory = new File(mailDataDirectory, FAILED_DIRECTORY_NAME);
+
+        checkArgument(this.mailDataDirectory.isDirectory(), "%s is not a directory", mailDataDirectory);
 
         if (!failedDirectory.exists() && !failedDirectory.mkdirs()) {
             throw new IllegalStateException(format("Couldn't create '%s' directory", FAILED_DIRECTORY_NAME));
@@ -93,41 +96,51 @@ public class FilesystemMailDataProvider implements Runnable {
 
                 LOG.info("Cleanup dropfolder: renaming {} to {}", file.getName(), targetName.getName());
 
-                file.renameTo(targetName);
+                checkState(file.renameTo(targetName), "failed to rename %s to %s", file.getName(), targetName);
             }
         }
 
-        LOG.info("Scanning dropfolder {} every {} ms for files starting with {}", mailDataDirectory.getAbsolutePath(), watchRetryDelay, INCOMING_FILE_PREFIX);
+        LOG.info("Scanning dropfolder {} every {} ms for files starting with {}", mailDataDirectory.getAbsolutePath(),
+                watchRetryDelayMs, INCOMING_FILE_PREFIX);
     }
 
     @Override
     public void run() {
-        if (Stream
-          .concat(Arrays.stream(mailDataDirectory.listFiles(INCOMING_FILE_FILTER)), Arrays.stream(failedDirectory.listFiles(failedFileFilter)))
-          .filter((file) -> {
-            if (!shouldProcessMessagesNow()) {
-                return false;
-            }
+        if (!shouldProcessMessagesNow()) {
+            return;
+        }
 
-            File tempFilename = new File(mailDataDirectory, PROCESSING_FILE_PREFIX + file.getName());
+        process(mailDataDirectory.listFiles(INCOMING_FILE_FILTER));
+        process(failedDirectory.listFiles(failedFileFilter));
 
-            if (file.renameTo(tempFilename)) {
-                process(tempFilename, file);
-            }
-
-            return true;
-          }).count() == 0) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(watchRetryDelay);
-            } catch (InterruptedException e) {
-                LOG.error("Interrupted while waiting for mails", e);
-            }
+        try {
+            TimeUnit.MILLISECONDS.sleep(watchRetryDelayMs);
+        } catch (InterruptedException e) {
+            LOG.warn("Interrupted while waiting for mails");
+            Thread.currentThread().interrupt();
         }
     }
 
-    private void process(File tempFilename, File originalFilename) {
+    private void process(File[] originalFilenames) {
+        checkNotNull(originalFilenames, "a dropfolder listFiles call produced a null result");
+        for (File f : originalFilenames) {
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
+            processOne(f);
+        }
+    }
+
+    private void processOne(File originalFilename) {
+        File tempFilename = new File(mailDataDirectory, PROCESSING_FILE_PREFIX + originalFilename.getName());
+
+        if (!originalFilename.renameTo(tempFilename)) {
+            // Some other thread probably picked up the file already
+            return;
+        }
+
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(tempFilename))) {
-            consumer.accept(inputStream);
+            messageProcessor.accept(inputStream);
         } catch (Exception e) {
             FAILED_COUNTER.inc();
 

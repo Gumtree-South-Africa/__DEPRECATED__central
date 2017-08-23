@@ -94,7 +94,7 @@ public class Comparer {
             try {
                 t.get();
             } catch (InterruptedException in) {
-                LOG.error("Not completed", in);
+                LOG.error("Interrupted");
                 Thread.currentThread().interrupt();
             } catch (ExecutionException e) {
                 LOG.error("ExecutionException", e);
