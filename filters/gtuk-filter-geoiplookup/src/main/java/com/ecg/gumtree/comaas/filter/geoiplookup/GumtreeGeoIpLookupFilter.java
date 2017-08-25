@@ -45,7 +45,7 @@ public class GumtreeGeoIpLookupFilter implements com.ecg.replyts.core.api.plugin
                 return Collections.emptyList();
             }
 
-            LOG.debug("About to check IP {}", ip);
+            LOG.trace("About to check IP {}", ip);
 
             Optional<String> countryOpt = lookupCountry(ip);
             if (!countryOpt.isPresent()) {
@@ -53,7 +53,7 @@ public class GumtreeGeoIpLookupFilter implements com.ecg.replyts.core.api.plugin
             }
 
             String country = countryOpt.get();
-            LOG.debug("IP {} - origin is {}", ip, country);
+            LOG.trace("IP {} - origin is {}", ip, country);
 
             // Output an 'OK' reason with the found country code
             messageContext.getFilterContext().put("country", country);
@@ -69,14 +69,14 @@ public class GumtreeGeoIpLookupFilter implements com.ecg.replyts.core.api.plugin
             long start = System.currentTimeMillis();
             String country = geoIpService.getCountryCode(ip);
             long end = System.currentTimeMillis();
-            LOG.debug("IP lookup query took " + (end - start) + "ms");
+            LOG.trace("IP lookup query took {} ms", end - start);
 
             if (StringUtils.isBlank(country)) {
-                LOG.debug("Could not determine location type of Ip {}", ip);
+                LOG.trace("Could not determine location type of Ip {}", ip);
                 return Optional.empty();
             }
 
-            LOG.debug("Location for IP {} is {}", ip, country);
+            LOG.trace("Location for IP {} is {}", ip, country);
             return Optional.of(country);
 
         } catch (Exception e) {

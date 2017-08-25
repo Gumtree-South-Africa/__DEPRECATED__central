@@ -38,7 +38,7 @@ public class EchelonFilter implements Filter {
 
     public EchelonFilter(EchelonFilterConfiguration config) {
         super();
-        LOG.info("Creating new instance of EchelonFilter: " + hashCode());
+        LOG.info("Creating new instance of EchelonFilter: {}", hashCode());
         endpointUrl = config.getEndpointUrl();
         endpointTimeout = config.getEndpointTimeout();
         score = config.getScore();
@@ -85,7 +85,7 @@ public class EchelonFilter implements Filter {
                     try{
                         connection.setRequestMethod("GET");
                         connection.setReadTimeout(endpointTimeout);
-                        LOG.debug("Sending echelon request [{}]",connection.getURL());
+                        LOG.trace("Sending echelon request [{}]", connection.getURL());
                         connection.connect();
                         final int responseCode = connection.getResponseCode();
                         if (HttpURLConnection.HTTP_OK == responseCode) {

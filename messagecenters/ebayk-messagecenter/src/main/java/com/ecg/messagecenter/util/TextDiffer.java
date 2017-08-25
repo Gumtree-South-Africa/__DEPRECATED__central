@@ -78,7 +78,7 @@ public class TextDiffer {
         }
 
         long duration = System.currentTimeMillis() - start;
-        LOG.debug("initNGrams() for " + diffInput.toString() + ", Duration: " + duration);
+        LOG.trace("initNGrams() for {}, Duration: {}", diffInput, duration);
 
         return nGrams;
     }
@@ -184,7 +184,12 @@ public class TextDiffer {
             }
         }
 
-        LOG.debug("cleanupMatches() for " + diffInput.toString() + " ngrams: " + ngramsOfText.size() + ", cleanup-candidates: " + indexedMatches.size() + ", cleaned-up: " + (ngramsOfText.size() - nGramSizeCounter) + ", Duration: " + (System.currentTimeMillis() - start));
+        LOG.debug("cleanupMatches() for {} ngrams: {}, cleanup-candidates: {}, cleaned-up: {}, Duration: {}",
+                diffInput,
+                ngramsOfText.size(),
+                indexedMatches.size(),
+                ngramsOfText.size() - nGramSizeCounter,
+                System.currentTimeMillis() - start);
 
         return new TextCleanerResult(b.toString().trim());
     }

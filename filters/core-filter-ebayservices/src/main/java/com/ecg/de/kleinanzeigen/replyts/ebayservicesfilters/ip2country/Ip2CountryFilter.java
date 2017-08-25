@@ -20,7 +20,7 @@ import static java.util.Collections.emptyList;
  */
 class Ip2CountryFilter implements Filter {
 
-    private final Logger LOG = LoggerFactory.getLogger(Ip2CountryFilter.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Ip2CountryFilter.class);
 
     private final Ip2CountryRules countryRules;
     private final Ip2CountryResolver resolver;
@@ -36,20 +36,20 @@ class Ip2CountryFilter implements Filter {
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         Optional<String> ipStr = extractor.retrieveIpAddress(messageProcessingContext);
-        if(!ipStr.isPresent()) {
+        if (!ipStr.isPresent()) {
             LOG.debug("Message does not have an IP address header");
             return emptyList();
         }
 
 
-        LOG.debug("Finding country for IP Address {}", ipStr.get());
+        LOG.trace("Finding country for IP Address {}", ipStr.get());
         Optional<String> resolveCountryCode = resolver.resolve(ipStr.get());
-        LOG.debug("IP {} is from country {}", ipStr.get(), resolveCountryCode.or("UNRESOLVABLE"));
-        if(!resolveCountryCode.isPresent())
+        LOG.trace("IP {} is from country {}", ipStr.get(), resolveCountryCode.or("UNRESOLVABLE"));
+        if (!resolveCountryCode.isPresent())
             return emptyList();
 
-        int scoreForCountry =  countryRules.getScoreForCountry(resolveCountryCode.get());
-        if(scoreForCountry == 0)
+        int scoreForCountry = countryRules.getScoreForCountry(resolveCountryCode.get());
+        if (scoreForCountry == 0)
             return emptyList();
 
 
@@ -59,6 +59,6 @@ class Ip2CountryFilter implements Filter {
                         "Mail from country: " + resolveCountryCode.get(),
                         scoreForCountry,
                         FilterResultState.OK
-                        ));
+                ));
     }
 }

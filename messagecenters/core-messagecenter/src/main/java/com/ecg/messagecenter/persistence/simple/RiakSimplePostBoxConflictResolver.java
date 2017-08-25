@@ -3,15 +3,12 @@ package com.ecg.messagecenter.persistence.simple;
 import com.basho.riak.client.cap.ConflictResolver;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
-
-import static java.lang.String.format;
 
 public class RiakSimplePostBoxConflictResolver implements ConflictResolver<PostBox> {
     private static final Logger LOG = LoggerFactory.getLogger(RiakSimplePostBoxConflictResolver.class);
@@ -37,9 +34,9 @@ public class RiakSimplePostBoxConflictResolver implements ConflictResolver<PostB
         POSTBOX_MERGE_COUNTER.inc();
 
         if (postBoxesToResolve.size() > 5) {
-            LOG.info(format("High number '%d' of siblings found for postbox #%s",
+            LOG.info("High number '{}' of siblings found for postbox #{}",
                     postBoxesToResolve.size(),
-                    postBoxesToResolve.iterator().next().getEmail()));
+                    postBoxesToResolve.iterator().next().getEmail());
         }
 
         return merger.merge(postBoxesToResolve);

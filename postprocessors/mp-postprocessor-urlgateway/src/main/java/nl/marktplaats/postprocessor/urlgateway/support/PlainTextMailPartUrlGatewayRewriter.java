@@ -1,8 +1,5 @@
 package nl.marktplaats.postprocessor.urlgateway.support;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,9 +18,6 @@ import static java.lang.String.format;
  * @author Erik van Oosten
  */
 public class PlainTextMailPartUrlGatewayRewriter implements UrlGatewayRewriter {
-
-    private static final Logger LOG = LoggerFactory.getLogger(PlainTextMailPartUrlGatewayRewriter.class);
-
     // Taken from http://en.wikipedia.org/wiki/List_of_Internet_top-level_domains
     private static final String TOP_LEVEL_DOMAIN_PATTERN =
             "(?:" +

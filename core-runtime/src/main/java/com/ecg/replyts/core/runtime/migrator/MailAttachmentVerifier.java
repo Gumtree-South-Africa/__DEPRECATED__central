@@ -16,7 +16,6 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -254,7 +253,7 @@ public class MailAttachmentVerifier {
         try {
             return inbound ? mailRepository.readInboundMail(messageId) : mailRepository.readOutboundMail(messageId);
         } catch (Exception ex) {
-            LOG.error(String.format("[%s] Failed to load mail for message ID '%s' ", verificationId, messageId), ex);
+            LOG.error("[{}] Failed to load mail for message ID '{}' ", verificationId, messageId, ex);
             return null;
         }
     }

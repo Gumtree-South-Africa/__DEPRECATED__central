@@ -10,8 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StatsApiNotifier {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Replyts2StatsNotifier.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Replyts2StatsNotifier.class);
     private final AsyncHttpClient asyncHttpClient;
 
     private final String statsUrl;
@@ -38,8 +37,8 @@ public class StatsApiNotifier {
             public Response onCompleted(Response response) throws Exception {
                 int statusCode = response.getStatusCode();
                 if (statusCode != 200) {
-                    LOGGER.warn("Stats response, while trying to send advert stats, was not ok. " +
-                            "Status code is: " + statusCode);
+                    LOG.warn("Stats response, while trying to send advert stats, was not ok. " +
+                            "Status code is: {}", statusCode);
                 }
                 timerContext.stop();
                 return response;
@@ -47,7 +46,7 @@ public class StatsApiNotifier {
 
             @Override
             public void onThrowable(Throwable t) {
-                LOGGER.warn(t.getMessage());
+                LOG.warn(t.getMessage());
                 timerContext.stop();
                 super.onThrowable(t);
             }

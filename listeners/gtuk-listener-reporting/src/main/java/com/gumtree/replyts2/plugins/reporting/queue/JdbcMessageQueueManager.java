@@ -29,7 +29,7 @@ public class JdbcMessageQueueManager implements MessageQueueManager {
         try {
             jdbcTemplate.update(INSERT_SQL, messageId, categoryId, date);
         } catch (Exception e) {
-            LOG.warn(String.format("Held message could not be inserted into db queue: %s", messageId), e);
+            LOG.warn("Held message could not be inserted into db queue: {}", messageId, e);
         }
 
     }
@@ -39,7 +39,7 @@ public class JdbcMessageQueueManager implements MessageQueueManager {
             int rows = jdbcTemplate.update(DELETE_SQL, messageId);
             return rows > 0;
         } catch (Exception e) {
-            LOG.warn(String.format("Queued message could not be removed from db queue: %s", messageId), e);
+            LOG.warn("Queued message could not be removed from db queue: {}", messageId, e);
             return false;
         }
 

@@ -28,7 +28,7 @@ public class QuickReplyFilter implements Filter {
     }
 
     @Override public List<FilterFeedback> filter(MessageProcessingContext context) {
-        LOG.debug("Applying QuickReply filter");
+        LOG.trace("Applying QuickReply filter");
 
         if (!isFirstMessage(context.getConversation())) {
             return Collections.emptyList();

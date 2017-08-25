@@ -7,8 +7,6 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,9 +15,6 @@ import java.util.Optional;
  * @author mhuttar
  */
 public class FilterRulePerformanceListener implements MessageProcessedListener {
-
-    private final Logger LOG = LoggerFactory.getLogger("hadoop_filter_performance");
-
     private static final PerformanceLogLine LINE_BUILDER = new PerformanceLogLine();
     private final HadoopEventEmitter hadoopEmitter;
 

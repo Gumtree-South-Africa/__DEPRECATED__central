@@ -27,7 +27,7 @@ import java.util.ResourceBundle;
 
 
 public class ContactMessageSmsService {
-    private static final Logger logger = LoggerFactory.getLogger(ContactMessageSmsService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ContactMessageSmsService.class);
     private static Map<String, String> ABBREVIATIONS = new HashMap<String, String>();
 
     static {
@@ -55,10 +55,10 @@ public class ContactMessageSmsService {
 
     public boolean send(ContactMessage contactMessage) throws Exception {
         if (StringUtils.isEmpty(apiUrl)) {
-            logger.warn("Not sending sms messages, apiUrl not configured.");
+            LOG.warn("Not sending sms messages, apiUrl not configured.");
             return false;
         }
-        
+
         String message = createMessage(contactMessage);
 
         String phoneNumber = contactMessage.getSmsPhoneNumber();
@@ -88,13 +88,13 @@ public class ContactMessageSmsService {
                 StatusLine statusLine = response.getStatusLine();
 
                 if (statusLine == null) {
-                    logger.warn("Invalid Response statusLine null");
+                    LOG.warn("Invalid Response statusLine null");
                     return false;
                 }
                 if (200 <= statusLine.getStatusCode() && statusLine.getStatusCode() < 400) {
                     return true;
                 }
-                logger.warn("Failed response status code {}, body: {}",
+                LOG.warn("Failed response status code {}, body: {}",
                         statusLine.getStatusCode(),
                         EntityUtils.toString(response.getEntity(), "UTF-8")
                 );

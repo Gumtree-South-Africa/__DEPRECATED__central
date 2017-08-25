@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MessageLoggingListener implements MessageProcessedListener {
 
-    private final Logger LOG = LoggerFactory.getLogger("message-json-log");
+    private final static Logger LOG = LoggerFactory.getLogger("message-json-log");
 
     private static final Logger ERR_LOG = LoggerFactory.getLogger(MessageLoggingListener.class);
 
@@ -25,7 +25,7 @@ public class MessageLoggingListener implements MessageProcessedListener {
                 LOG.info(EVENT_NAMER.jsonLogEntry(conversation, message));
             }
         } catch (RuntimeException e) {
-            ERR_LOG.error("Message logging failed",e);
+            ERR_LOG.error("Message logging failed", e);
         }
     }
 }

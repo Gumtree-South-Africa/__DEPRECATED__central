@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 public class EventStreamProcessor {
-
     private static final Logger LOG = LoggerFactory.getLogger(EventStreamProcessor.class);
 
     private final EPServiceProvider epServiceProvider;
@@ -55,7 +54,7 @@ public class EventStreamProcessor {
     }
 
     public void mailReceivedFrom(String mailAddress) {
-        LOG.debug("register a received mail occurrence from '{}'", mailAddress);
+        LOG.trace("register a received mail occurrence from '{}'", mailAddress);
         epServiceProvider.getEPRuntime().sendEvent(new MailReceivedEvent(mailAddress.toLowerCase()));
     }
 

@@ -14,8 +14,7 @@ import static com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders.CLIEN
  * Created by reweber on 16/07/15.
  */
 public class Replyts2StatsNotifier implements MessageProcessedListener {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Replyts2StatsNotifier.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Replyts2StatsNotifier.class);
 
     private NotificationService notificationService;
     private Boolean sendGoogleAnalyticsEventEnabled;
@@ -30,7 +29,7 @@ public class Replyts2StatsNotifier implements MessageProcessedListener {
         switch (message.getState()) {
             case SENT:
                 if (isFirstMessage(conversation)) {
-                    LOGGER.debug("Sending notification to the system");
+                    LOG.trace("Sending notification to the system");
                     notificationService.notifyReplySuccesfullySent(conversation.getBuyerId(), conversation.getAdId(),
                             getClientId(message), sendGoogleAnalyticsEventEnabled);
                 }

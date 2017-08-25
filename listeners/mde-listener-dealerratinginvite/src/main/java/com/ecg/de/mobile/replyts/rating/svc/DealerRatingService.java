@@ -25,7 +25,7 @@ import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
 
 public class DealerRatingService {
 
-    private final static Logger logger = LoggerFactory.getLogger(DealerRatingService.class);
+    private final static Logger LOG = LoggerFactory.getLogger(DealerRatingService.class);
 
     private final DealerRatingServiceClient client;
     private final boolean isActive;
@@ -44,7 +44,7 @@ public class DealerRatingService {
                 .setConverter(new GsonConverter(new GsonBuilder()
                         .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
                         .create()))
-                .setLog(logger::info)
+                .setLog(LOG::info)
                 .build()
                 .create(DealerRatingServiceClient.class);
 
@@ -62,26 +62,26 @@ public class DealerRatingService {
             try {
                 if (isSourceAllowed(invite)) {
                     if (message.getState() == MessageState.SENT) {
-                        logger.info("Persisting via service, " + invite.getDealerId() + "; " + invite.getBuyerEmail());
+                        LOG.trace("Persisting via service, {}; {}", invite.getDealerId(), invite.getBuyerEmail());
                         client.createEmailInvite(invite);
                     } else {
-                        logger.info("Don't create email trigger because message is in state {}", message.getState());
+                        LOG.trace("Don't create email trigger because message is in state {}", message.getState());
                     }
                 }
             } catch (RetrofitError error) {
                 if(error.getResponse() != null && error.getResponse().getStatus() == SC_CONFLICT) {
 
                     if(invite!=null) {
-                        logger.debug("Invite has already been emailed for dealerId {} and email {}", invite.getDealerId(), invite.getBuyerEmail());
+                        LOG.trace("Invite has already been emailed for dealerId {} and email {}", invite.getDealerId(), invite.getBuyerEmail());
                     } else {
-                        logger.debug("The invite has already been emailed - ignoring");
+                        LOG.trace("The invite has already been emailed - ignoring");
                     }
                 } else {
                     throw error;
                 }
             }
         } else {
-            logger.debug("DealerRating plugin not active");
+            LOG.trace("DealerRating plugin not active");
         }
     }
 

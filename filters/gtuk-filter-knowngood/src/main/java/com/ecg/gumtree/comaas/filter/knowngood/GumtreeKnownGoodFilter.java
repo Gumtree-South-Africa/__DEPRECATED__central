@@ -49,7 +49,7 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
 
             if (knownGood) {
                 Mail mail = messageContext.getMail();
-                LOG.debug("Sender '" + mail.getFrom() + "' is known good");
+                LOG.trace("Sender '{}' is known good", mail.getFrom());
 
                 String description = longDescription(this.getClass(), pluginConfig.getInstanceId(), filterConfig.getVersion(), MESSAGE);
 

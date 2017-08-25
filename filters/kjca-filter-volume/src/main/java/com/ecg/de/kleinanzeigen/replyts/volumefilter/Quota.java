@@ -21,7 +21,6 @@ class Quota implements Comparable<Quota>{
     private final TimeUnit scoreMemoryDurationUnit;
     private final int scoreMemoryDurationValue;
 
-
     public Quota(int allowance, int perTimeValue, TimeUnit perTimeUnit, int score, int scoreMemoryDurationValue, TimeUnit scoreMemoryDurationUnit) {
         this.allowance = allowance;
         this.perTimeValue = perTimeValue;

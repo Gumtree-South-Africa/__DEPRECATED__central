@@ -221,7 +221,7 @@ public class ChunkedPostboxMigrationAction {
                     }
 
                 } catch (Exception e) {
-                    LOG.error(String.format("Migrator could not load postbox %s from repository - skipping it", postboxId), e);
+                    LOG.error("Migrator could not load postbox {} from repository - skipping it", postboxId, e);
                     FAILED_POSTBOX_IDS.info(postboxId);
                 }
             }

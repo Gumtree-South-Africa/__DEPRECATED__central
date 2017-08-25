@@ -58,7 +58,7 @@ public class IpBlockedFilter implements Filter {
     private boolean checkIfIpBlockedInLeGrid(String ipAddress) {
         Map<String, Boolean> result = this.tnsApiClient.getJsonAsMap("/replier/ip/" + ipAddress + "/is-blocked");
         boolean isBlocked = result.get(IS_BLOCKED_KEY);
-        LOG.debug("Is IP {} blocked? {}", ipAddress, isBlocked);
+        LOG.trace("Is IP {} blocked? {}", ipAddress, isBlocked);
         return isBlocked;
     }
 

@@ -26,10 +26,10 @@ public class ReportingResultInspector implements ResultInspector {
         }
 
         feedback.stream()
-          .filter(f -> f.getDescription() != null)
-          .filter(f -> f.getDescription().toLowerCase().contains("matched word"))
-          .map(f -> f.getUiHint())
-          .peek(uh -> LOG.debug("Sending feedback:{} ", uh))
-          .forEach(uh -> statsDClient.incrementCounter(uh));
+                .filter(f -> f.getDescription() != null)
+                .filter(f -> f.getDescription().toLowerCase().contains("matched word"))
+                .map(f -> f.getUiHint())
+                .peek(uh -> LOG.trace("Sending feedback:{} ", uh))
+                .forEach(uh -> statsDClient.incrementCounter(uh));
     }
 }

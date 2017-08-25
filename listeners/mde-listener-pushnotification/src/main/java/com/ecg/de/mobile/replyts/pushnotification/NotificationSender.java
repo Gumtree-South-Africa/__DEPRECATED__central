@@ -40,7 +40,7 @@ public class NotificationSender {
 
         try {
             HttpPost request = post(payload);
-            LOG.debug("Sending request to push notification service: {}", request);
+            LOG.trace("Sending request to push notification service: {}", request);
             httpClient.execute(request, SuccessStatusCodeResponseHandler.INSTANCE);
         } catch (Exception e) {
             LOG.error("Unable to send push notification: {}", e.getMessage(), e);

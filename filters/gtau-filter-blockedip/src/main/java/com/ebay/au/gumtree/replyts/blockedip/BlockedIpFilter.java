@@ -21,10 +21,11 @@ import java.util.List;
  * @author mdarapour
  */
 public class BlockedIpFilter implements Filter {
+    private static final Logger LOG = LoggerFactory.getLogger(BlockedIpFilter.class);
+
     public static final String IP_ADDR_HEADER = "X-Cust-Ip";
 
     private static final List<FilterFeedback> OK_OUTCOME_NO_SCORE = Collections.emptyList();
-    private static final Logger LOGGER = LoggerFactory.getLogger(BlockedIpFilter.class);
 
     private JdbcTemplate jdbcTemplate;
     private final String filtername;
@@ -38,8 +39,8 @@ public class BlockedIpFilter implements Filter {
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         String ip = messageProcessingContext.getMessage().getHeaders().get(IP_ADDR_HEADER);
 
-        if(Strings.isNullOrEmpty(ip)) {
-            LOGGER.debug("IP Header not found");
+        if (Strings.isNullOrEmpty(ip)) {
+            LOG.trace("IP Header not found");
             return OK_OUTCOME_NO_SCORE;
         }
 
@@ -51,10 +52,10 @@ public class BlockedIpFilter implements Filter {
         }, ip);
 
         Collections.sort(expirationDates);
-        boolean ipIsBlocked = !expirationDates.isEmpty() && expirationDates.get(expirationDates.size()-1).after(new Timestamp(System.currentTimeMillis()));
+        boolean ipIsBlocked = !expirationDates.isEmpty() && expirationDates.get(expirationDates.size() - 1).after(new Timestamp(System.currentTimeMillis()));
 
         if (ipIsBlocked) {
-            LOGGER.debug("IP is blocked. ["+ip+"]");
+            LOG.trace("IP is blocked. [{}]", ip);
             return ImmutableList.<FilterFeedback>of(new FilterFeedback(
                     "BLOCKED",
                     "IP Address is blocked " + ip,
@@ -62,7 +63,7 @@ public class BlockedIpFilter implements Filter {
                     FilterResultState.DROPPED));
         }
 
-        LOGGER.debug("IP is not blocked. ["+ip+"]");
+        LOG.trace("IP is not blocked. [{}]", ip);
         return OK_OUTCOME_NO_SCORE;
     }
 }

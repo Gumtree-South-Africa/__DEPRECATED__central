@@ -1,7 +1,6 @@
 package com.ecg.de.mobile.replyts.comafilterservice.filters;
 
 public class PhoneNumber {
-
     private final int countryCode;
 
     private final String displayNumber;

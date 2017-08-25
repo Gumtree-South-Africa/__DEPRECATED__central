@@ -13,7 +13,6 @@ import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -62,8 +61,8 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         Optional<String> sellerUserIdOpt = userIdentifierService.getUserIdentificationOfConversation(conv, ConversationRole.Seller);
 
         if (!buyerUserIdOpt.isPresent() || !sellerUserIdOpt.isPresent()) {
-            LOGGER.error(String.format("No buyer or seller id available for conversation %s, conversation state %s and message %s",
-                    conv.getId(), conv.getState(), msg.getId()));
+            LOGGER.error("No buyer or seller id available for conversation {}, conversation state {} and message {}",
+                    conv.getId(), conv.getState(), msg.getId());
             missingUserIdsCounter.inc();
             return;
         }

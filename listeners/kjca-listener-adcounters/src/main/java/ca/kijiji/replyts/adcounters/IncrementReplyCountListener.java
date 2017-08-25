@@ -29,7 +29,7 @@ class IncrementReplyCountListener implements MessageProcessedListener {
         if (message.getState() == MessageState.SENT && isInitialPlatformReply(message)) {
             try {
                 tnsApiClient.incrementReplyCount(conversation.getAdId());
-                LOG.debug("Request for incrementing Ad({}) reply count has completed.", conversation.getAdId());
+                LOG.trace("Request for incrementing Ad({}) reply count has completed.", conversation.getAdId());
             } catch (Exception e) {
                 LOG.error("Increment reply count failed for Ad {} ", conversation.getAdId(), e);
             }

@@ -24,24 +24,21 @@ public class BlockedUserFilter implements Filter {
         this.userStateService = userStateService;
     }
 
-    @Override public List<FilterFeedback> filter(MessageProcessingContext context) {
-
-        LOG.debug("Applying filter");
+    @Override
+    public List<FilterFeedback> filter(MessageProcessingContext context) {
         MessageDirection messageDirection = context.getMessageDirection();
-        String senderMailAddress =
-                        context.getConversation().getUserIdFor(messageDirection.getFromRole());
+        String senderMailAddress = context.getConversation().getUserIdFor(messageDirection.getFromRole());
         boolean blocked = false;
         try {
             blocked = userStateService.isBlocked(senderMailAddress);
         } catch (Exception e) {
-            LOG.error("Failed to apply filter senderEmail: " + senderMailAddress + " : " + e
-                            .getMessage(), e);
+            LOG.error("Failed to apply filter senderEmail: {} : {}", senderMailAddress, e.getMessage(), e);
         }
 
         if (blocked) {
             return ImmutableList.<FilterFeedback>of(new FilterFeedback("BLOCKED",
-                            String.format("User [%s] is blocked.", senderMailAddress), 0,
-                            FilterResultState.DROPPED));
+                    String.format("User [%s] is blocked.", senderMailAddress), 0,
+                    FilterResultState.DROPPED));
         }
         return Collections.emptyList();
     }

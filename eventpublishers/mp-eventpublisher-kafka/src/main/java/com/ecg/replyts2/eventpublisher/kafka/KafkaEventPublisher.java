@@ -40,7 +40,7 @@ public class KafkaEventPublisher implements EventPublisher {
             CONVERSATION_EVENT_PUBLISHED.inc(events.size());
 
         } catch (FailedToSendMessageException e) {
-            LOGGER.error(String.format("An error happened while trying to send a message: %s", e.getMessage()));
+            LOGGER.error("An error happened while trying to send a message: {}", e.getMessage());
             CONVERSATION_EVENT_FAILED.inc();
         }
     }
@@ -53,7 +53,7 @@ public class KafkaEventPublisher implements EventPublisher {
             USER_EVENT_PUBLISHED.inc(events.size());
 
         } catch (FailedToSendMessageException e) {
-            LOGGER.error(String.format("An error happened while trying to send a message: %s", e.getMessage()));
+            LOGGER.error("An error happened while trying to send a message: {}", e.getMessage());
             USER_EVENT_FAILED.inc();
         }
     }

@@ -37,8 +37,7 @@ public abstract class ActivableFilter implements Filter {
         String userType = headers.get(USER_TYPE.getHeaderName());
 
         if (skipFor(categories) || !runFor(categories, userType)) {
-            LOG.debug("Skip filter {} for categories {} and userType {}",
-                    this.getClass().getSimpleName(), categories, userType);
+            LOG.debug("Skip filter {} for categories {} and userType {}", this.getClass().getSimpleName(), categories, userType);
             return Collections.emptyList();
         }
 

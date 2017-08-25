@@ -51,7 +51,7 @@ class MailDoNotAnonymizeHandler {
                 preserveReplyTo();
 
 
-                LOG.info("De-anonymizing mail sender " + fromMailAddress.getAddress());
+                LOG.trace("De-anonymizing mail sender {}", fromMailAddress.getAddress());
 
             }
 

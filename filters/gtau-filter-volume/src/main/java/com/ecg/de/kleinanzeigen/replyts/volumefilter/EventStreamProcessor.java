@@ -10,10 +10,9 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 public class EventStreamProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(EventStreamProcessor.class);
 
     private static final String PROVIDER_NAME = "volumefilter_provider";
-
-    private static final Logger LOG = LoggerFactory.getLogger(EventStreamProcessor.class);
 
     private final EPServiceProvider epServiceProvider;
 

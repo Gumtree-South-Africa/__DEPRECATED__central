@@ -79,23 +79,23 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
                 LOG.info("sent push messsage succesfully");
                 COUNTER_PUSH_SENT.inc();
             } else if (PushService.Result.Status.NOT_FOUND == sendPushResult.getStatus()) {
-                LOG.info(format("Not found sending push for conversation '%s' and message '%s'",
-                                conversation.getId(), message.getId()));
+                LOG.info("Not found sending push for conversation '{}' and message '{}'",
+                                conversation.getId(), message.getId());
                 COUNTER_PUSH_NO_DEVICE.inc();
             } else if (PushService.Result.Status.ERROR == sendPushResult.getStatus()) {
                 COUNTER_PUSH_FAILED.inc();
-                LOG.error(format("Error sending push for conversation '%s' and message '%s'",
+                LOG.error("Error sending push for conversation '{}' and message '{}'",
                                 conversation.getId(), message.getId()),
                                 sendPushResult.getException().get());
             } else {
-                LOG.error(format("Unkown status returned from push service status: '%s'",
-                                sendPushResult.getStatus().toString()));
+                LOG.error("Unknown status returned from push service status: '{}'",
+                                sendPushResult.getStatus().toString());
             }
 
         } catch (Exception e) {
             COUNTER_PUSH_FAILED.inc();
-            LOG.error(format("Error sending push for conversation '%s' and message '%s'",
-                            conversation.getId(), message.getId()), e);
+            LOG.error("Error sending push for conversation '{}' and message '{}'",
+                            conversation.getId(), message.getId(), e);
         }
     }
 

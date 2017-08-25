@@ -12,9 +12,6 @@ import java.util.Set;
  * User: beckart
  */
 class MailUniqueIdPostProcessor implements PostProcessor {
-
-
-
     private UniqueIdGenerator uniqueIdGenerator;
 
     private final Set<String> ignoredEmailAddresses;

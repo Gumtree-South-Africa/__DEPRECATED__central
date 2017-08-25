@@ -9,16 +9,13 @@ import org.slf4j.LoggerFactory;
  * User: beckart
  */
 class MailAddMetadataHandler {
+    private static final Logger LOG = LoggerFactory.getLogger(MailAddMetadataHandler.class);
 
     static final String MESSAGE_ID_PLACEHOLDER = "$MESSAGE_ID$";
 
     static final String CONVERSATION_ID_PLACEHOLDER = "$CONVERSATION_ID$";
 
     static final String ANONYMIZED_SENDER_ADDRESS = "$ANONYMIZED_SENDER_ADDRESS$";
-
-
-
-    private static final Logger LOG = LoggerFactory.getLogger(MailAddMetadataHandler.class);
 
     private final MessageProcessingContext messageProcessingContext;
 
@@ -61,8 +58,4 @@ class MailAddMetadataHandler {
             LOG.error("Error while adding metadata!", e);
         }
     }
-
-
-
-
 }

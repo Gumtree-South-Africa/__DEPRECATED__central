@@ -43,7 +43,7 @@ public class RabbitEventPublisher implements EventPublisher {
             MESSAGE_SENT_EVENT_PUBLISHED.inc();
 
         } catch (IOException e) {
-            LOGGER.error(String.format("An error happened when creating the connection: %s", e.getMessage()));
+            LOGGER.error("An error happened when creating the connection: {}", e.getMessage());
             MESSAGE_SENT_EVENT_FAILED.inc();
         }
     }

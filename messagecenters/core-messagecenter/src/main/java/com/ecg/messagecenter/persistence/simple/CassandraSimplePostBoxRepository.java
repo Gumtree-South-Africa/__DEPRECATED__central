@@ -83,7 +83,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         this.preparedStatements = StatementsBase.prepare(Statements.class, session);
     }
 
-    public CassandraSimplePostBoxRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
+    CassandraSimplePostBoxRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
@@ -243,7 +243,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     /**
      * Used only for a migration, delete candidate.
      */
-    public void writeThread(PostBoxId id, AbstractConversationThread conversationThread) {
+    void writeThread(PostBoxId id, AbstractConversationThread conversationThread) {
         try (Timer.Context ignored = writeThreadTimer.time()) {
             BatchStatement batch = new BatchStatement();
             int numUnreadMessages = unreadCountInConversation(id, conversationThread.getConversationId());
@@ -436,7 +436,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         }
     }
 
-    public void deleteOnlyConversationThreadModification(ConversationThreadModificationDate modification) {
+    private void deleteOnlyConversationThreadModification(ConversationThreadModificationDate modification) {
         try (Timer.Context ignored = deleteOldConversationThreadModificationDateTimer.time()) {
             Statement statement = Statements.DELETE_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this,
                     modification.getRoundedModificationDate(), modification.getModificationDate(),

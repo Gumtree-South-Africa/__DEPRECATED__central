@@ -107,7 +107,7 @@ public class ResponsivenessFilesystemSink implements ResponsivenessSink {
     }
 
     private void flushBuffer(String writerId, List<ResponsivenessRecord> recordsForWriter) {
-        LOG.debug("Flushing buffer for writer [{}]", writerId);
+        LOG.trace("Flushing buffer for writer [{}]", writerId);
 
         if (recordsForWriter.isEmpty()) {
             return;

@@ -43,13 +43,13 @@ class FilterListProcessor {
 
             PluginState pluginState = filterReference.getState();
             if (pluginState == PluginState.DISABLED) {
-                LOG.debug("Skipping Filter {}", filterReference);
+                LOG.trace("Skipping Filter {}", filterReference);
                 continue;
             }
             // break processing if total processing time has been exceeded
             timeGuard.check();
 
-            LOG.debug("Applying Filter {}", filterReference);
+            LOG.trace("Applying Filter {}", filterReference);
             Filter filter = filterReference.getCreatedService();
             ConfigurationId filterId = filterReference.getConfiguration().getId();
             try (Timer.Context ignore = metrics.newOrExistingTimerFor(filterId)) {

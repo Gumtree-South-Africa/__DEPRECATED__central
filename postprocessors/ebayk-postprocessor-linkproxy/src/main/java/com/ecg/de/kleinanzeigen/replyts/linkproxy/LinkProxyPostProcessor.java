@@ -14,10 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.HashSet;
 
 public class LinkProxyPostProcessor implements PostProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(LinkProxyPostProcessor.class);
 
     private final Escaper escaper;
-
-    private static final Logger LOG = LoggerFactory.getLogger(LinkProxyPostProcessor.class);
 
     @Autowired
     public LinkProxyPostProcessor(@Value("${replyts.linkescaper.proxyurl}") String referringDomain,

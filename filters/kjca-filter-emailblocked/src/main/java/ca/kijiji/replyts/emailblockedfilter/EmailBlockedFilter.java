@@ -68,7 +68,7 @@ public class EmailBlockedFilter implements Filter {
     private boolean checkIfEmailBlockedInLeGrid(String from) {
         Map<String, Boolean> result = tnsApiClient.getJsonAsMap("/replier/email/" + from + "/is-blocked");
         boolean isBlocked = result.get(IS_BLOCKED_KEY);
-        LOG.debug("Is email {} blocked? {}", from, isBlocked);
+        LOG.trace("Is email {} blocked? {}", from, isBlocked);
         return isBlocked;
     }
 

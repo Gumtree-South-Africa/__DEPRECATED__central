@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * Determines the log event based on the given moderationState
  */
 class EventCreator {
-    private final Logger LOG = LoggerFactory.getLogger(EventCreator.class);
+    private final static Logger LOG = LoggerFactory.getLogger(EventCreator.class);
 
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
     private static final Pattern NON_PARSEABLE = Pattern.compile("[^a-zA-Z0-9]");
@@ -65,13 +65,13 @@ class EventCreator {
     private int convertVersionToSemanticVersion(Message message) {
         // what comes in: version 0 = messageCreatedEvent, version 1 = messageFilteredEvent, version 2 = messageTerminatedEvent
         // what we want here: version 1 = message was filtered and sent/held/blocked, version 2 = message was moderated for the first time, version 3 = message was moderated for the second time
-        return message.getVersion()-1;
+        return message.getVersion() - 1;
     }
 
     private void includeConversationBasedCustomHeaders(Conversation conversation, Builder builder) {
-        Map<String,String> headers = Maps.filterKeys(conversation.getCustomValues(), Predicates.in(INCLUDED_HEADERS));
+        Map<String, String> headers = Maps.filterKeys(conversation.getCustomValues(), Predicates.in(INCLUDED_HEADERS));
         for (Entry<String, String> customVal : headers.entrySet()) {
-            LOG.debug(customVal.getKey());
+            LOG.trace(customVal.getKey());
             builder.attr(customValueKey(customVal.getKey()), customVal.getValue());
         }
     }

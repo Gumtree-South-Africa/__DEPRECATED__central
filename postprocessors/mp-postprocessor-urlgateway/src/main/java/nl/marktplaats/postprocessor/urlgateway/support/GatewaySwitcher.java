@@ -21,7 +21,6 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
  * @author Erik van Oosten
  */
 public class GatewaySwitcher {
-
     private static final Logger LOG = LoggerFactory.getLogger(GatewaySwitcher.class);
 
     /**

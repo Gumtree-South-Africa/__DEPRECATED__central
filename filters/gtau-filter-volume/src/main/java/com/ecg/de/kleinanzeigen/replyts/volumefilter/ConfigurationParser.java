@@ -17,13 +17,11 @@ import static com.google.common.collect.Sets.newHashSet;
  * @author mhuttar
  */
 class ConfigurationParser {
-
-
     private final ImmutableList<Quota> quotas;
     private Set<String> whitelistedEmails;
 
     public ConfigurationParser(JsonNode jsonNode) {
-        List<Quota> quotas = new ArrayList<Quota>();
+        List<Quota> quotas = new ArrayList<>();
 
         final Optional<ArrayNode> whitelistedEmails = Optional.ofNullable((ArrayNode) jsonNode.get("whitelistedEmails"));
         if (whitelistedEmails.isPresent()) {
@@ -40,11 +38,11 @@ class ConfigurationParser {
 
         ArrayNode rulesArray = (ArrayNode) jsonNode.get("rules");
         Preconditions.checkArgument(rulesArray != null, "given config does not contain a rules element.");
-        for(JsonNode n : rulesArray) {
+        for (JsonNode n : rulesArray) {
             quotas.add(convert(n));
         }
         Collections.sort(quotas);
-        if(newHashSet(quotas).size() != quotas.size()) {
+        if (newHashSet(quotas).size() != quotas.size()) {
             throw new RuntimeException("Duplicate Rules found - they are not allowed");
         }
 

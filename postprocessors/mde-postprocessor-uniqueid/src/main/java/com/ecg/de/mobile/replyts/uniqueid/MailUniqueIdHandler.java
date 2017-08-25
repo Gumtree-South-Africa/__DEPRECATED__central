@@ -12,7 +12,6 @@ import java.util.Set;
  * User: beckart
  */
 class MailUniqueIdHandler {
-
     private static final Logger LOG = LoggerFactory.getLogger(MailUniqueIdHandler.class);
     public static final String X_MOBILEDE_BUYER_ID = "X-MOBILEDE-BUYER-ID";
 

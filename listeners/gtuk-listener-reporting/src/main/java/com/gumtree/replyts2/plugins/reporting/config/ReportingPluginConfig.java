@@ -72,7 +72,7 @@ public class ReportingPluginConfig {
         dataSource.setMaximumPoolSize(poolSize);
 
         LOG.info("Data warehouse event logging to database is enabled");
-        LOG.info(String.format("Data warehouse event logging using maximum pool size of %d", poolSize));
+        LOG.info("Data warehouse event logging using maximum pool size of {}", poolSize);
         return dataSource;
     }
 

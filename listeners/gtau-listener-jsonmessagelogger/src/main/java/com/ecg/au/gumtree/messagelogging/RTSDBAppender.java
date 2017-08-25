@@ -5,26 +5,23 @@ import ch.qos.logback.core.db.DBAppenderBase;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
  * @author mdarapour
  */
 public class RTSDBAppender extends DBAppenderBase<ILoggingEvent> {
-    private static final JsonNode EMPTY_NODE = new TextNode("-");
-
     private static final Logger LOG = LoggerFactory.getLogger(RTSDBAppender.class);
+
+    private static final JsonNode EMPTY_NODE = new TextNode("-");
 
     protected static final String insertSQL;
 
@@ -72,7 +69,7 @@ public class RTSDBAppender extends DBAppenderBase<ILoggingEvent> {
                 log("WARN: Failed to insert json event");
                 addWarn("Failed to insert json event");
             }
-            LOG.debug("Successfully wrote event");
+            LOG.trace("Successfully wrote event");
         } catch (Throwable ex) {
             log("ERROR: Could not log the event", ex);
             throw ex;

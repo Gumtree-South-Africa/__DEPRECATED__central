@@ -43,7 +43,7 @@ public class GumtreeGeoIpFilter implements com.ecg.replyts.core.api.pluginconfig
                 return Collections.emptyList();
             }
 
-            LOG.debug("Origin is {}", country);
+            LOG.trace("Origin is {}", country);
 
             if (filterConfig.getCountrySet().contains(country)) {
                 String ip = context.getMessage().getHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());

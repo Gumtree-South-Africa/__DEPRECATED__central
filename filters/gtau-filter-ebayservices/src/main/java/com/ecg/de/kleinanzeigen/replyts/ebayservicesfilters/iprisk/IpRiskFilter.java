@@ -43,13 +43,13 @@ class IpRiskFilter implements Filter {
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         Optional<String> ipAddr = ipAddressExtractor.retrieveIpAddress(messageProcessingContext);
-        LOG.debug("Determining IP Risk for {}", ipAddr.or("NO IP FOUND"));
+        LOG.trace("Determining IP Risk for {}", ipAddr.or("NO IP FOUND"));
         if(ipAddr.isPresent()) {
             try {
                 IPRatingInfo ipRating = ipRatingService.getIpRating(ipAddr.get());
                 if(ipRating != null && ipRating.getIpBadLevel() != null) {
                     int score = ipLevelMap.get(ipRating.getIpBadLevel().name());
-                    LOG.debug("IP {} got rating {} -> Score {}", ipAddr.get(), ipRating.getIpBadLevel().name(), score);
+                    LOG.trace("IP {} got rating {} -> Score {}", ipAddr.get(), ipRating.getIpBadLevel().name(), score);
                     if(score != 0) {
                         return ImmutableList.<FilterFeedback>of(
                                 new FilterFeedback(

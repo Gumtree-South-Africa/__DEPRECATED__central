@@ -12,10 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class JdbcEventPublisher implements EventPublisher {
+    private static final Logger LOG = LoggerFactory.getLogger(JdbcEventPublisher.class);
 
     private static ObjectMapper mapper = new ObjectMapper();
-
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcEventPublisher.class);
 
     public static final String EVENT_LOG_TABLE = "rts2_event_log";
 
@@ -68,9 +67,9 @@ public class JdbcEventPublisher implements EventPublisher {
             insertEvent.execute(parameters);
 
         } catch (Exception ex) {
-            LOG.error(String.format("Failed to write event to event log for message %s in conversation %s",
+            LOG.error("Failed to write event to event log for message {} in conversation {}",
                     event.getMessageId(),
-                    event.getConversationId()));
+                    event.getConversationId());
         }
     }
 

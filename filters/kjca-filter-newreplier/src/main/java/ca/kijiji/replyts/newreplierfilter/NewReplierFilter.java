@@ -17,7 +17,7 @@ public class NewReplierFilter extends ActivableFilter {
 
     private static final Logger LOG = LoggerFactory.getLogger(NewReplierFilter.class);
 
-    static final String IS_NEW_KEY = "is-new";
+    private static final String IS_NEW_KEY = "is-new";
 
     private final int newReplierScore;
     private final TnsApiClient tnsApiClient;
@@ -54,7 +54,7 @@ public class NewReplierFilter extends ActivableFilter {
         Map<String, Boolean> result = tnsApiClient.getJsonAsMap("/replier/email/" + from + "/is-new");
 
         boolean isNew = result.get(IS_NEW_KEY);
-        LOG.debug("Is user {} new? {}", from, isNew);
+        LOG.trace("Is user {} new? {}", from, isNew);
         return isNew;
     }
 

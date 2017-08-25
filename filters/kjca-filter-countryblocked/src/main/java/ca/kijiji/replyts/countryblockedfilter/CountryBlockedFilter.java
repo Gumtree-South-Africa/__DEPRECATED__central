@@ -46,7 +46,6 @@ public class CountryBlockedFilter implements Filter {
             LOG.warn("Exception caught when calling grid. Assuming country not blocked.", e);
         }
 
-
         if (countryIsBlocked) {
             feedbacks.add(new FilterFeedback("country is blocked", "IP country is blocked",
                     countryBlockedScore, FilterResultState.DROPPED));
@@ -58,7 +57,7 @@ public class CountryBlockedFilter implements Filter {
     private boolean checkIfCountryBlockedInLeGrid(String ipAddress) {
         Map<String, Boolean> result = this.tnsApiClient.getJsonAsMap("/replier/ip-address/" + ipAddress + "/is-country-blocked");
         boolean isBlocked = result.get(IS_COUNTRY_BLOCKED_KEY);
-        LOG.debug("Is {} country blocked? {}", ipAddress, isBlocked);
+        LOG.trace("Is {} country blocked? {}", ipAddress, isBlocked);
         return isBlocked;
     }
 

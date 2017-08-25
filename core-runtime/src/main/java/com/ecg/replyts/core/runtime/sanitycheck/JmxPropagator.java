@@ -16,8 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.String.format;
-
 
 /**
  * Register all checks from {@link CheckAdapterAggregator} at the MBean server.<br>
@@ -58,7 +56,7 @@ public class JmxPropagator {
             try {
                 registerAdapter(adapter);
             } catch (JMException e) {
-                LOG.error(format("registration of Sanity Check failed: %s", namingStrategy.buildJMXName(adapter)), e);
+                LOG.error("registration of Sanity Check failed: {}", namingStrategy.buildJMXName(adapter), e);
             }
         }
     }
@@ -148,7 +146,7 @@ public class JmxPropagator {
             server.unregisterMBean(oname);
             LOG.info("Unregister JMX bean: " + oname);
         } catch (JMException e) {
-            LOG.warn(format("Error during unregistering MBean %s: %s", oname.toString(), e.getMessage()));
+            LOG.warn("Error during unregistering MBean {}: {}", oname, e.getMessage());
         }
     }
 

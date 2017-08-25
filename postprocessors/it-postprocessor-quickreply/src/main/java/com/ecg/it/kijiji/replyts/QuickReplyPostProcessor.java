@@ -26,7 +26,7 @@ public class QuickReplyPostProcessor implements PostProcessor {
 
         this.resolvedPlaceholders = Lists.newArrayList(Splitter.on(",").trimResults().omitEmptyStrings().split(placeholders));
 
-        LOG.debug("QuickReply resolved placeholders: " + resolvedPlaceholders);
+        LOG.trace("QuickReply resolved placeholders: {}", resolvedPlaceholders);
 
         Preconditions.checkNotNull(this.resolvedPlaceholders, "resolvedPlaceholders cannot be null");
     }

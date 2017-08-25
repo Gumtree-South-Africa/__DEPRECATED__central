@@ -10,10 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OpenImmoDeanonymizerListener implements PostProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(OpenImmoDeanonymizerListener.class);
 
     private static final int LAST_LISTENER = 200;
-
-    private static final Logger LOG = LoggerFactory.getLogger(OpenImmoDeanonymizerListener.class);
 
     static final String AD_API_USER_ID = "X-Cust-Ad-Api-User-Id";
 

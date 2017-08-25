@@ -16,10 +16,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class Wordfilter extends ActivableFilter {
+    private static final Logger LOG = LoggerFactory.getLogger(Wordfilter.class);
 
     static final String CATEGORY_ID = "categoryid";
-
-    private static final Logger LOG = LoggerFactory.getLogger(Wordfilter.class);
 
     private final List<PatternEntry> patterns;
     private final boolean ignoreDuplicatePatterns;
@@ -43,11 +42,7 @@ class Wordfilter extends ActivableFilter {
             every message is now a "follow-up", and we can stop filtering. Otherwise, spammers
             will just send 2+ messages via the platform to bypass this filter.
             */
-            LOG.debug(
-                    "Ignoring follow-up in conv id [{}], msg id [{}]",
-                    context.getConversation().getId(),
-                    context.getMessageId()
-            );
+            LOG.trace("Ignoring follow-up in conv id [{}], msg id [{}]", context.getConversation().getId(), context.getMessageId());
 
             return Collections.emptyList();
         }
@@ -132,12 +127,7 @@ class Wordfilter extends ActivableFilter {
                                 FilterResultState.OK));
             }
         } catch (RuntimeException | StackOverflowError e) {
-            // Don't print the full stack trace. It's useless.
-            LOG.warn("Skipping Regular Expression '{}' on conv/msg '{}/{}'. {}",
-                    pattern,
-                    conversationId,
-                    messageId,
-                    e.toString());
+            LOG.warn("Skipping Regular Expression '{}' on conv/msg '{}/{}'. {}", pattern, conversationId, messageId, e.toString());
         }
     }
 }

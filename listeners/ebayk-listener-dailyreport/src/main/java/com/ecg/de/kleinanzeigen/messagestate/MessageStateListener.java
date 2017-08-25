@@ -13,9 +13,7 @@ import org.slf4j.LoggerFactory;
  * @author mhuttar
  */
 public class MessageStateListener implements MessageProcessedListener {
-
     private static final Logger LOG = LoggerFactory.getLogger(MessageStateListener.class);
-
 
     private static final MessageToEventName EVENT_NAMER = new MessageToEventName();
     private final HadoopEventEmitter hadoopEmitter;

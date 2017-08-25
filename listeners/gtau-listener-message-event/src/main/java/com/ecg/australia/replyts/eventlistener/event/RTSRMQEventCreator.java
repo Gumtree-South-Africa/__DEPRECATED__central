@@ -39,7 +39,7 @@ public class RTSRMQEventCreator {
             if (messageRequestCreatedEvent != null) {
                 eventHandlerClient.fire(messageRequestCreatedEvent);
 
-                LOG.info("Sent MessageCreatedEvent conversationId: {}, messageId: {}, adId: {}, sellerMail: {}, buyerMail: {}",
+                LOG.trace("Sent MessageCreatedEvent conversationId: {}, messageId: {}, adId: {}, sellerMail: {}, buyerMail: {}",
                         messageRequestCreatedEvent.getConversationInfo().getMessageConversationInfo().getConversationId(),
                         messageRequestCreatedEvent.getConversationInfo().getMessageConversationInfo().getMessageId(),
                         messageRequestCreatedEvent.getConversationInfo().getAdId(),
@@ -64,8 +64,7 @@ public class RTSRMQEventCreator {
      * Create the MessageCreatedEvent which will be sent to RabbitMQ.
      *
      * @param conversation the Conversation
-     * @param message the Message
-     *
+     * @param message      the Message
      * @return MessageCreatedEvent the event to send to RabbitMQ
      */
     protected MessageEvents.MessageCreatedEvent createMessageRequestCreatedEvent(final Conversation conversation, final Message message) {
@@ -107,13 +106,13 @@ public class RTSRMQEventCreator {
                 }
             }
 
-            if(conversation.getAdId() != null)
+            if (conversation.getAdId() != null)
                 conversationInfoBuilder.setAdId(conversation.getAdId());
 
-            if(conversation.getSellerId() != null)
+            if (conversation.getSellerId() != null)
                 conversationInfoBuilder.setSellerMail(conversation.getSellerId());
 
-            if(conversation.getBuyerId() != null)
+            if (conversation.getBuyerId() != null)
                 conversationInfoBuilder.setBuyerMail(conversation.getBuyerId());
 
             if (conversation.getState() != null) {
@@ -161,15 +160,19 @@ public class RTSRMQEventCreator {
             final Entities.MessageConversationInfo messageConversationInfo = messageConvInfoBuilder.build();
             conversationInfoBuilder.setMessageConversationInfo(messageConversationInfo);
 
-            LOG.info("MessageConversationInfo: " + conversation.getId() + ", " + messageDirection + ", " + messageId + ", " + messageState +
-                    ", " + messageReceivedAt + ", " + replyChannel);
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("MessageConversationInfo: " + conversation.getId() + ", " + messageDirection + ", " + messageId + ", " + messageState +
+                        ", " + messageReceivedAt + ", " + replyChannel);
+            }
 
             final Entities.ConversationInfo conversationInfo = conversationInfoBuilder.build();
 
-            LOG.info("ConversationInfo: " + conversationState + ", " + conversation.getAdId() +
-                    ", " + conversation.getSellerId() + ", " + conversation.getBuyerId() + ", " + messageSize +
-                    ", " + conversationCreatedAt + ", " +  conversationLastModifiedAt +
-                    ", " + categoryId + ", " + ip + ", " + userAgent);
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("ConversationInfo: " + conversationState + ", " + conversation.getAdId() +
+                        ", " + conversation.getSellerId() + ", " + conversation.getBuyerId() + ", " + messageSize +
+                        ", " + conversationCreatedAt + ", " + conversationLastModifiedAt +
+                        ", " + categoryId + ", " + ip + ", " + userAgent);
+            }
 
             final OriginDefinition.Origin origin = OriginDefinition.Origin.newBuilder()
                     .setTimestamp(System.currentTimeMillis())
@@ -180,7 +183,7 @@ public class RTSRMQEventCreator {
                     .setConversationInfo(conversationInfo)
                     .build();
         } else {
-            LOG.info(" No conversation: " + conversation);
+            LOG.trace(" No conversation: {}", conversation);
             return null;
         }
     }

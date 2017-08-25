@@ -8,7 +8,6 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -16,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class FilterService implements Filter {
+    private static final Logger LOG = LoggerFactory.getLogger(FilterService.class);
 
     public static final String CUSTOM_HEADER_PREFIX = "X-Cust-";
     static final String CUSTOM_HEADER_MESSAGE_TYPE = CUSTOM_HEADER_PREFIX + "Message_Type";
@@ -25,10 +25,6 @@ public class FilterService implements Filter {
     static final String DEALER = "DEALER";
     private final ComaFilterService comaFilterService;
     private final ContactMessageAssembler contactMessageAssembler;
-
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FilterService.class);
-
 
     FilterService(ComaFilterService comaFilterService, ContactMessageAssembler contactMessageAssembler) {
         this.comaFilterService = comaFilterService;
@@ -66,21 +62,21 @@ public class FilterService implements Filter {
     private Collection<String> applyFiltersToMessage(MessageProcessingContext messageContext) {
         // do not check messages coming from dealers
         if (isDealerBuyer(messageContext)) {
-            LOGGER.info("Do not use filter service on mail to adid {}: buyer is dealer.", messageContext.getMail().getAdId());
+            LOG.trace("Do not use filter service on mail to adid {}: buyer is dealer.", messageContext.getMail().getAdId());
             return Collections.emptySet();
         }
 
         try {
             if (isConversationMessage(messageContext)) {
-                LOGGER.info("Filter service for conversation on ADID={}", messageContext.getMail().getAdId());
+                LOG.trace("Filter service for conversation on ADID={}", messageContext.getMail().getAdId());
                 return comaFilterService.getFilterResultsForConversation(contactMessageAssembler.getContactMessage(messageContext));
             } else {
-                LOGGER.info("Filter service for message on ADID={}", messageContext.getMail().getAdId());
+                LOG.trace("Filter service for message on ADID={}", messageContext.getMail().getAdId());
                 return comaFilterService.getFilterResultsForMessage(contactMessageAssembler.getContactMessage(messageContext));
             }
 
         } catch (Exception e) {
-            LOGGER.error("Filter service failed: {}", e.getMessage(), e);
+            LOG.error("Filter service failed: {}", e.getMessage(), e);
             return Collections.emptySet();
         }
     }

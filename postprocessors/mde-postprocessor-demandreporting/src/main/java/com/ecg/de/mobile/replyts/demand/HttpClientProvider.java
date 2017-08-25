@@ -15,8 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.net.URI;
 
 public class HttpClientProvider {
-
-    private static final Logger logger = LoggerFactory.getLogger(HttpClientProvider.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HttpClientProvider.class);
     private final Config config;
     private HttpClient client;
 
@@ -30,15 +29,15 @@ public class HttpClientProvider {
         HttpParams clientParams = new BasicHttpParams();
         clientParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, config.connectionTimeout());
         clientParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.socketTimeout());
-        logger.info("Set connection timeout to {} ms and socket timeout to {} ms", config.connectionTimeout(), config.socketTimeout());
+        LOG.info("Set connection timeout to {} ms and socket timeout to {} ms", config.connectionTimeout(), config.socketTimeout());
 
-        logger.info("Providing http client with proxyURI: " + config.proxyUri());
+        LOG.info("Providing http client with proxyURI: {}", config.proxyUri());
         if (config.proxyUri() != null && !config.proxyUri().toString().trim().equals("null")) {
-            logger.info("Configured http client with proxyURI: " + config.proxyUri());
+            LOG.info("Configured http client with proxyURI: {}", config.proxyUri());
             HttpHost proxyHost = new HttpHost(config.proxyUri().getHost(), config.proxyUri().getPort());
             clientParams.setParameter(ConnRouteParams.DEFAULT_PROXY, proxyHost);
         } else {
-            logger.info("Http client will be configured without proxy");
+            LOG.info("Http client will be configured without proxy");
         }
 
         client = new DefaultHttpClient(connectionManager, clientParams);
@@ -51,7 +50,7 @@ public class HttpClientProvider {
                 client.getConnectionManager().shutdown();
             }
         } catch (Exception e) {
-            logger.info("Failed to shutdown httpclient", e);
+            LOG.info("Failed to shutdown httpclient", e);
         } finally {
             client = null;
         }

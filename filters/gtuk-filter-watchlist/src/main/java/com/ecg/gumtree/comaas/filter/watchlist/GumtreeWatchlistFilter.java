@@ -23,6 +23,8 @@ import java.util.List;
 import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
 
 public class GumtreeWatchlistFilter implements com.ecg.replyts.core.api.pluginconfiguration.filter.Filter {
+    private static final Logger LOG = LoggerFactory.getLogger(GumtreeWatchlistFilter.class);
+
     private static final Timer TIMER = TimingReports.newTimer("watchlist-filter-process-time");
 
     private Filter pluginConfig;
@@ -30,8 +32,6 @@ public class GumtreeWatchlistFilter implements com.ecg.replyts.core.api.pluginco
     private ChecklistApi checklistApi;
 
     private static final String SHORT_DESCRIPTION = "Sender on watchlist";
-
-    private static final Logger LOG = LoggerFactory.getLogger(GumtreeWatchlistFilter.class);
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageContext) throws ProcessingTimeExceededException {

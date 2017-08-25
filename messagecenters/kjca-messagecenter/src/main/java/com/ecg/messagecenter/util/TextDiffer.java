@@ -13,9 +13,7 @@ import java.util.regex.Pattern;
  * @author maldana@ebay-kleinanzeigen.de
  */
 public class TextDiffer {
-
     private static final Logger LOG = LoggerFactory.getLogger(TextDiffer.class);
-
 
     static final Pattern NEWLINE = Pattern.compile("(\r?\n)+");
     static final Pattern EMPTY_SPACE = Pattern.compile(" +");
@@ -78,7 +76,7 @@ public class TextDiffer {
         }
 
         long duration = System.currentTimeMillis() - start;
-        LOG.debug("initNGrams() for " + diffInput.toString() + ", Duration: " + duration);
+        LOG.trace("initNGrams() for {}, Duration: {}", diffInput, duration);
 
         return nGrams;
     }
@@ -184,7 +182,12 @@ public class TextDiffer {
             }
         }
 
-        LOG.debug("cleanupMatches() for " + diffInput.toString() + " ngrams: " + ngramsOfText.size() + ", cleanup-candidates: " + indexedMatches.size() + ", cleaned-up: " + (ngramsOfText.size() - nGramSizeCounter) + ", Duration: " + (System.currentTimeMillis() - start));
+        LOG.debug("cleanupMatches() for {} ngrams: {}, cleanup-candidates: {}, cleaned-up: {}, Duration: {}",
+                diffInput,
+                ngramsOfText.size(),
+                indexedMatches.size(),
+                ngramsOfText.size() - nGramSizeCounter,
+                System.currentTimeMillis() - start);
 
         return new TextCleanerResult(b.toString().trim());
     }

@@ -14,13 +14,12 @@ import java.util.Map;
  * @author Erik van Oosten
  */
 public class HtmlMailPartUrlGatewayRewriter implements UrlGatewayRewriter {
-
     private static final Logger LOG = LoggerFactory.getLogger(HtmlMailPartUrlGatewayRewriter.class);
 
     /** {@inheritDoc} */
     @Override
     public String rewriteUrls(String content, GatewaySwitcher gatewaySwitcher) {
-        LOG.debug("Inserting safety text in html part.");
+        LOG.trace("Inserting safety text in html part.");
 
         Source source = new Source(content);
         source.setLogger(null);

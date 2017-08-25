@@ -17,8 +17,7 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 public class RabbitEventPublisher implements EventPublisher {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RabbitEventPublisher.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RabbitEventPublisher.class);
 
     private static final Counter MESSAGE_SENT_EVENT_PUBLISHED = TimingReports.newCounter("event-publisher.message-sent-event-published");
     private static final Counter MESSAGE_SENT_EVENT_FAILED = TimingReports.newCounter("event-publisher.message-sent-event-failed");
@@ -42,15 +41,17 @@ public class RabbitEventPublisher implements EventPublisher {
 
             AMQP.BasicProperties properties = createPublishProperties(event);
             channel.basicPublish(exchangeName, routingKey, properties, event.toJsonString().getBytes());
-            LOGGER.info(String.format(" Event Sent:\n%s ", event.getEventLoggerFriendly()));
+            if (LOG.isTraceEnabled()) {
+                LOG.trace(" Event Sent:\n{} ", event.getEventLoggerFriendly());
+            }
             MESSAGE_SENT_EVENT_PUBLISHED.inc();
 
             cleanup(connection, channel);
         } catch (IOException e) {
-            LOGGER.error(String.format("An error happened when creating the connection: %s", e.getMessage()));
+            LOG.error("An error happened when creating the connection: {}", e.getMessage());
             MESSAGE_SENT_EVENT_FAILED.inc();
         } catch (TimeoutException e) {
-            LOGGER.error(String.format("Could not create the connection in a reasonable time: %s", e.getMessage()));
+            LOG.error("Could not create the connection in a reasonable time: {}", e.getMessage());
             MESSAGE_SENT_EVENT_FAILED.inc();
         }
     }

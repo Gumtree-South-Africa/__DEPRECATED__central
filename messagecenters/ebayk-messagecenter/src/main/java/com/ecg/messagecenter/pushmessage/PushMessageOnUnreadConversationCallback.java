@@ -17,7 +17,6 @@ import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
-import static java.lang.String.format;
 
 /**
  * @author maldana@ebay-kleinanzeigen.de
@@ -79,11 +78,11 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
 
             if (PushService.Result.Status.ERROR == sendPushResult.getStatus()) {
                 COUNTER_PUSH_FAILED.inc();
-                LOG.error(format("Error sending push for conversation '%s' and message '%s'", conversation.getId(), message.getId()), sendPushResult.getException().get());
+                LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), sendPushResult.getException().get());
             }
         } catch (Exception e) {
             COUNTER_PUSH_FAILED.inc();
-            LOG.error(format("Error sending push for conversation '%s' and message '%s'", conversation.getId(), message.getId()), e);
+            LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), e);
         }
     }
 

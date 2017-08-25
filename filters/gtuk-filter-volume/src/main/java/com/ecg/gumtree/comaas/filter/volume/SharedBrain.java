@@ -24,26 +24,26 @@ public class SharedBrain {
 
     private void updateMessageListener() {
         String newMessageListenerId = communicationBus.addMessageListener(message -> processor.get().mailReceivedFrom(message.getMessageObject()));
-        LOG.info("Registered new message listener " + newMessageListenerId);
+        LOG.info("Registered new message listener {}", newMessageListenerId);
 
         String oldMessageId = messageListenerId.getAndSet(newMessageListenerId);
         if (oldMessageId != null) {
             boolean removalResult = communicationBus.removeMessageListener(oldMessageId);
-            LOG.info("Removed old message listener [" + oldMessageId + "] result: " + removalResult);
+            LOG.info("Removed old message listener [{}] result: {}", oldMessageId, removalResult);
         }
     }
 
     void markSeen(String emailAddress, String ipAddress, String cookieId) {
         if (emailAddress != null) {
-            LOG.debug(String.format("Publishing email address [%s] to all known rts nodes", emailAddress));
+            LOG.trace("Publishing email address [{}] to all known rts nodes", emailAddress);
             communicationBus.publish(emailAddress);
         }
         if (ipAddress != null) {
-            LOG.debug(String.format("Publishing ip address [%s] to all known rts nodes", ipAddress));
+            LOG.trace("Publishing ip address [{}] to all known rts nodes", ipAddress);
             communicationBus.publish(ipAddress);
         }
         if (cookieId != null) {
-            LOG.debug(String.format("Publishing cookie id [%s] to all known rts nodes", cookieId));
+            LOG.trace("Publishing cookie id [{}] to all known rts nodes", cookieId);
             communicationBus.publish(cookieId);
         }
     }

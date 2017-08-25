@@ -14,8 +14,6 @@ import java.io.IOException;
 
 @Component
 public class JsonConverter {
-    private static final Logger LOG = LoggerFactory.getLogger(JsonConverter.class);
-
     private ObjectMapper objectMapper;
 
     @Autowired

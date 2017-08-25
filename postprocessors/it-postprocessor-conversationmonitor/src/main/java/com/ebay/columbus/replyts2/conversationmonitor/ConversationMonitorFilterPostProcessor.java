@@ -17,14 +17,13 @@ import java.util.stream.Collectors;
  * Created by fmaffioletti on 7/31/14.
  */
 public class ConversationMonitorFilterPostProcessor implements PostProcessor {
-    private static final Logger LOG =
-                    LoggerFactory.getLogger(ConversationMonitorFilterPostProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationMonitorFilterPostProcessor.class);
 
     private final List<ReplacedChar> replacedCharsList;
 
     public ConversationMonitorFilterPostProcessor(String replacedChars) {
         this.replacedCharsList = buildReplacedChars(replacedChars);
-        LOG.debug("Conversation monitor replaced chars: " + replacedChars);
+        LOG.trace("Conversation monitor replaced chars: {}", replacedChars);
     }
 
     @Override public void postProcess(MessageProcessingContext context) {

@@ -47,7 +47,7 @@ class UserStateFilter implements Filter {
                     return Collections.emptyList();
                 }
                 int score = config.get(userState.name());
-                LOG.debug("User State for {} is {} --> Score: {}", sender, userState, score);
+                LOG.trace("User State for {} is {} --> Score: {}", sender, userState, score);
                 if (score != 0) {
                     return ImmutableList.of(
                             new FilterFeedback(

@@ -58,7 +58,7 @@ public class AnonymizeEmailPostProcessor implements PostProcessor {
             String anonymizedSender = mail.getFrom();
             String platformDomain = "@" + platformDomains[0];
 
-            LOG.debug("Replacing unanonymized '" + unanonymizedSender + "' with '" + anonymizedSender + "'.");
+            LOG.trace("Replacing unanonymized '{} with '{}'.", unanonymizedSender, anonymizedSender);
 
             // loop through all text parts and replace all occurrences
             for (TypedContent<String> textPart : mail.getTextParts(false)) {
@@ -71,10 +71,10 @@ public class AnonymizeEmailPostProcessor implements PostProcessor {
             // of the receiver.
 
         } catch (PersistenceException pe) {
-            LOG.error("Could not retrieve conversation for message with id " + message.getId(), pe);
+            LOG.error("Could not retrieve conversation for message with id {}", message.getId(), pe);
 
         } catch (StackOverflowError e) {
-            LOG.error("Could not process message with id " + message.getId(), e);
+            LOG.error("Could not process message with id {}", message.getId(), e);
             throw e;
         }
     }
@@ -127,7 +127,7 @@ public class AnonymizeEmailPostProcessor implements PostProcessor {
                             }
                         }
                     } catch (Throwable t) {
-                        LOG.error(String.format("Failed to replace '%s', '%s'", pattern, line));
+                        LOG.error("Failed to replace '{}', '{}'", pattern, line);
                     }
                 }
             }

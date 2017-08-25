@@ -9,10 +9,9 @@ import java.util.Comparator;
 import java.util.List;
 
 public class RuleSorter implements Comparator<VolumeRule> {
-
-    public List<VolumeRule> orderRules(VolumeFilterConfiguration config) {
-        List<VolumeRule> rules = new ArrayList<VolumeRule>(config.getConfig());
-        Collections.sort(rules, this);
+    List<VolumeRule> orderRules(VolumeFilterConfiguration config) {
+        List<VolumeRule> rules = new ArrayList<>(config.getConfig());
+        rules.sort(this);
         return Collections.unmodifiableList(rules);
     }
 

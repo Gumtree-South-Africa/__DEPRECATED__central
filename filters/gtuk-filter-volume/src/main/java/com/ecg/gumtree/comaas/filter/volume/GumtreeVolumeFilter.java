@@ -95,7 +95,7 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
         int messageThreshold = volumeFilterConfig.getMessages();
         long mailsInTimeWindow = eventStreamProcessor.count(value, instanceName);
 
-        LOG.debug("Num of mails in {} seconds: {}, - for volume field {}, instance {}", seconds, mailsInTimeWindow, value, instanceName);
+        LOG.trace("Num of mails in {} seconds: {}, - for volume field {}, instance {}", seconds, mailsInTimeWindow, value, instanceName);
 
         List<FilterFeedback> reasons = new ArrayList<>();
         boolean volumeExceeded = mailsInTimeWindow > messageThreshold;
@@ -128,14 +128,14 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
     private boolean canBypassFilter(VelocityFilterConfig filterConfig, MessageProcessingContext messageContext,
                                     VelocityFilterConfig.FilterField filterField, String value) {
         if (!isFirstMessage(messageContext.getMessage(), messageContext.getConversation())) {
-            LOG.debug(String.format("Second or greater message for this ad by this user. " +
-                    "Bypassing volume filter for message id [%s]", messageContext.getMessageId()));
+            LOG.trace("Second or greater message for this ad by this user. " +
+                    "Bypassing volume filter for message id [{}]", messageContext.getMessageId());
             return true;
         }
 
         if (isTemporarilyWhiteListed(filterField, value, filterConfig.getWhitelistSeconds())) {
-            LOG.debug(String.format("Temporarily whitelisted user with volume field [%s]. " +
-                    "Bypassing volume filter for message id [%s]", filterField, messageContext.getMessageId()));
+            LOG.trace("Temporarily whitelisted user with volume field [{}]. " +
+                    "Bypassing volume filter for message id [{}]", filterField, messageContext.getMessageId());
             return true;
         }
 
@@ -185,7 +185,7 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
                 return true;
             }
         } catch (PersistenceException e) {
-            LOG.error(String.format("Could not search for messages matching field %s and value %s", field, value), e);
+            LOG.error("Could not search for messages matching field {} and value {}", field, value, e);
         }
 
         return false;

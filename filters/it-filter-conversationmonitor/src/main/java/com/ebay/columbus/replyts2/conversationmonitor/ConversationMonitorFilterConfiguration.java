@@ -20,8 +20,7 @@ import java.util.stream.Collectors;
 @Configuration
 @ComponentScan("com.ebay.columbus.replyts2.conversationmonitor")
 public class ConversationMonitorFilterConfiguration {
-    private static final Logger LOG =
-                    LoggerFactory.getLogger(ConversationMonitorFilterConfiguration.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationMonitorFilterConfiguration.class);
 
     @Value("${replyts.conversation.monitor.trigger.chars}")
     private String triggerChars;
@@ -44,7 +43,7 @@ public class ConversationMonitorFilterConfiguration {
         LOG.debug("Conversation monitor threshold check enabled " + this.thresholdCheckEnabled);
 
         triggerCharsList = Arrays.stream(triggerChars.split(","))
-          .filter(tc -> StringUtils.hasText(tc))
+          .filter(StringUtils::hasText)
           .map(tc ->(char) Integer.parseInt(tc.trim()))
           .map(tc -> Character.toString(tc))
           .collect(Collectors.collectingAndThen(Collectors.toList(), ImmutableList::copyOf));

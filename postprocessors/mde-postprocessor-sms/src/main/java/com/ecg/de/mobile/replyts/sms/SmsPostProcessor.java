@@ -28,9 +28,9 @@ public class SmsPostProcessor implements PostProcessor {
     public void postProcess(MessageProcessingContext messageContext) {
         ContactMessage contactMessage = ContactMessageAssembler.assemble(messageContext.getConversation().getBuyerId(), messageContext.getMail().getSentDate(), messageContext.getMessage().getHeaders());
 
-        LOG.debug("SmsPostProcessor contactMessage " + contactMessage);
+        LOG.trace("SmsPostProcessor contactMessage {}", contactMessage);
         boolean result = sendSms(contactMessage);
-        LOG.info("sendSms " + result);
+        LOG.trace("sendSms {}", result);
     }
 
 

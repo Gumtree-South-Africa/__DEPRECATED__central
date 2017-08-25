@@ -20,10 +20,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 
 class Wordfilter implements Filter {
+    private static final Logger LOG = LoggerFactory.getLogger(Wordfilter.class);
 
     static final String CATEGORY_ID = "categoryid";
 
-    private static final Logger LOG = LoggerFactory.getLogger(Wordfilter.class);
     private static final Timer REGEX_TIMER = TimingReports.newTimer("core.wordfilter.regex.timing");
     private static final Counter SKIPPED_REGEX_COUNTER = TimingReports.newCounter("core.wordfilter.regex.counter.skipped");
 

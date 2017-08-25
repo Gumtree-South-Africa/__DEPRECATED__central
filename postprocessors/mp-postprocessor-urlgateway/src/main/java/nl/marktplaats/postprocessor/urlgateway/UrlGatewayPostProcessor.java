@@ -34,7 +34,7 @@ public class UrlGatewayPostProcessor implements PostProcessor {
 
         MutableMail outboundMail = messageProcessingContext.getOutgoingMail();
 
-        LOG.debug("UrlGatewayPostProcessor for message #" + message.getId());
+        LOG.trace("UrlGatewayPostProcessor for message #{}", message.getId());
 
         List<TypedContent<String>> typedContents = outboundMail.getTextParts(false);
         if (typedContents.isEmpty()) {
@@ -53,7 +53,6 @@ public class UrlGatewayPostProcessor implements PostProcessor {
                 String existingContent = typedContent.getContent();
                 String newContent = urlGatewayRewriter.rewriteUrls(existingContent, gatewaySwitcher);
 
-                // LOG.debug("New text: " + newContent);
                 typedContent.overrideContent(newContent);
             }
         }

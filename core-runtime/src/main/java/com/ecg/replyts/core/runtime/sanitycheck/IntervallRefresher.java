@@ -9,8 +9,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-import static java.lang.String.format;
-
 
 class IntervallRefresher {
 
@@ -36,7 +34,7 @@ class IntervallRefresher {
      * Starts with the periodically checking.
      */
     public void start() {
-        LOG.info(format("The sanity check interval is %d seconds.", interval));
+        LOG.info("The sanity check interval is {} seconds.", interval);
 
         long intervalInMilliseconds = TimeUnit.MILLISECONDS.convert(interval, TimeUnit.SECONDS);
         timer.scheduleAtFixedRate(new TimerTask() {

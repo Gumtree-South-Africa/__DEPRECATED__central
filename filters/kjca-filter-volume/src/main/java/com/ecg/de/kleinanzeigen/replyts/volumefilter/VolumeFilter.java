@@ -64,7 +64,7 @@ class VolumeFilter extends ActivableFilter {
         String senderMailAddress = messageProcessingContext.getConversation().getUserId(fromRole);
 
         if (ignoreFollowUps && !messageProcessingContext.getMail().containsHeader(Mail.ADID_HEADER)) {
-            LOG.debug("Ignoring follow-up from [{}]. Msg id: [{}]", senderMailAddress, message.getId());
+            LOG.trace("Ignoring follow-up from [{}]. Msg id: [{}]", senderMailAddress, message.getId());
             return Collections.emptyList();
         }
 
@@ -78,7 +78,7 @@ class VolumeFilter extends ActivableFilter {
         for (Quota q : sortedQuotas) {
             long mailsInTimeWindow = processor.count(senderMailAddress, q);
 
-            LOG.debug("Num of mails in {} {}: {}", q.getPerTimeValue(), q.getPerTimeUnit(), mailsInTimeWindow);
+            LOG.trace("Num of mails in {} {}: {}", q.getPerTimeValue(), q.getPerTimeUnit(), mailsInTimeWindow);
 
             if (mailsInTimeWindow > q.getAllowance()) {
                 String violationDescription = q.describeViolation(mailsInTimeWindow);

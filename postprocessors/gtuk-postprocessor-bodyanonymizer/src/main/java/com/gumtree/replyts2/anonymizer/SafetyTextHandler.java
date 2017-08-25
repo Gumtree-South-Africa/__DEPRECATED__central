@@ -27,40 +27,40 @@ public class SafetyTextHandler {
 
     public void process(Conversation conversation, Message message, Mail mail) {
 
-        LOG.debug("Running subsequent anonymise format post process for message #" + message.getId());
+        LOG.trace("Running subsequent anonymise format post process for message #" + message.getId());
 
         // only apply to messages from seller to buyer
         if (MessageDirection.SELLER_TO_BUYER.equals(message.getMessageDirection())) {
 
             if (isFirstSendableMessageFromSeller(conversation)) {
-                LOG.debug("Format text is required for message " + message.getId());
+                LOG.trace("Format text is required for message {}", message.getId());
                 String formatText = messageBodyAnonymizerConfig.getSafetyTextFormat();
 
-                Map<String,String> headers = message.getHeaders();
+                Map<String, String> headers = message.getHeaders();
 
-                LOG.debug("Conversation headers: " + headers.toString());
+                LOG.trace("Conversation headers: {}", headers);
 
                 if (shouldRevealBuyerEmail(headers) && isKnownGood(headers)) {
                     formatText = messageBodyAnonymizerConfig.getKnownGoodSellerSafetyTextFormat();
                 }
 
                 String textToInsert = String.format(formatText, mail.getFrom());
-                LOG.debug("Safety text to insert: " + textToInsert);
+                LOG.trace("Safety text to insert: " + textToInsert);
                 List<TypedContent<String>> typedContents = mail.getTextParts(false);
 
                 // Find the first mutable content & do the replacement.
                 for (TypedContent<String> typedContent : typedContents) {
                     if (typedContent.isMutable()) {
-                        LOG.debug("Inserting safety text into message #" + message.getId());
+                        LOG.trace("Inserting safety text into message #{}", message.getId());
                         String existingContent = typedContent.getContent();
                         String newContent;
 
-                        if  (MediaTypeHelper.isHtmlCompatibleType(typedContent.getMediaType())) {
-                            LOG.debug("Content type is HTML. Doing cleverer insert...");
+                        if (MediaTypeHelper.isHtmlCompatibleType(typedContent.getMediaType())) {
+                            LOG.trace("Content type is HTML. Doing cleverer insert...");
                             textToInsert = textToInsert.replaceAll("\n", "<br>");
                             newContent = "<html><p>" + textToInsert + "</p><br></html>" + existingContent;
                         } else {
-                            LOG.debug("Content type is plain text. Doing standard insert...");
+                            LOG.trace("Content type is plain text. Doing standard insert...");
                             textToInsert = textToInsert.replaceAll("<br>", "\n");
                             newContent = textToInsert + "\n\n" + existingContent;
                         }
@@ -83,15 +83,15 @@ public class SafetyTextHandler {
 
     private boolean isFirstSendableMessageFromSeller(Conversation conversation) {
         if (conversation.getMessages() == null) {
-            LOG.debug("Conversation " + conversation.getId() + " has no messages");
+            LOG.trace("Conversation {} has no messages", conversation.getId());
             return false;
         }
         return !conversation.getMessages().stream()
-                    .limit(conversation.getMessages().size() - 1)
-                    .anyMatch(message ->
-                                    MessageState.SENT.equals(message.getState()) &&
-                                            MessageDirection.SELLER_TO_BUYER.equals(message.getMessageDirection())
-                    );
+                .limit(conversation.getMessages().size() - 1)
+                .anyMatch(message ->
+                        MessageState.SENT.equals(message.getState()) &&
+                                MessageDirection.SELLER_TO_BUYER.equals(message.getMessageDirection())
+                );
     }
 
     private boolean isKnownGood(Map<String, String> headers) {

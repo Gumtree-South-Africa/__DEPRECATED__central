@@ -48,9 +48,9 @@ public class SmtpMailDeliveryService implements MailDeliveryService {
             sender.setUsername(config.getUsername());
             sender.setPassword(config.getPassword());
 
-            LOG.info(String.format("Mail Delivery SMTP Configuration: %s@%s", config.getUsername(), config.getHost()));
+            LOG.info("Mail Delivery SMTP Configuration: {}@{}", config.getUsername(), config.getHost());
         } else {
-            LOG.info(String.format("Mail Delivery SMTP Configuration: <anonymous>@%s", config.getHost()));
+            LOG.info("Mail Delivery SMTP Configuration: <anonymous>@{}", config.getHost());
         }
     }
 

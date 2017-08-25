@@ -3,8 +3,6 @@ package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.iprisk;
 import com.ebay.marketplace.security.v1.services.IPRatingInfo;
 import com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.IpAddressExtractor;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
-import com.ecg.replyts.core.api.model.conversation.ImmutableProcessingFeedback;
-import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -45,13 +43,13 @@ class IpRiskFilter implements Filter {
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         Optional<String> ipAddr = ipAddressExtractor.retrieveIpAddress(messageProcessingContext);
-        LOG.debug("Determinating IP Risk for {}", ipAddr.or("NO IP FOUND"));
+        LOG.trace("Determinating IP Risk for {}", ipAddr.or("NO IP FOUND"));
         if(ipAddr.isPresent()) {
             try {
                 IPRatingInfo ipRating = ipRatingService.getIpRating(ipAddr.get());
                 if(ipRating != null && ipRating.getIpBadLevel() != null) {
                     int score = ipLevelMap.get(ipRating.getIpBadLevel().name());
-                    LOG.debug("IP {} got rating {} -> Score {}", ipAddr.get(), ipRating.getIpBadLevel().name(), score);
+                    LOG.trace("IP {} got rating {} -> Score {}", ipAddr.get(), ipRating.getIpBadLevel().name(), score);
                     if(score != 0) {
                         return ImmutableList.<FilterFeedback>of(
                                 new FilterFeedback(

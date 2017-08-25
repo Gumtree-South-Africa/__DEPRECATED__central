@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 
 
 public final class DealerRatingInviteListener implements MessageProcessedListener {
+    private static final Logger LOG = LoggerFactory.getLogger(DealerRatingInviteListener.class);
 
     private static final String CUSTOM_HEADER_PREFIX = "X-Cust-";
-    private static final Logger logger = LoggerFactory.getLogger(DealerRatingInviteListener.class);
 
     private final DealerRatingService service;
 
@@ -23,11 +23,11 @@ public final class DealerRatingInviteListener implements MessageProcessedListene
     @Override
     public void messageProcessed(final Conversation conversation, final Message message) {
         if (isInitialDealerMessage(message)) {
-            logger.info("Received initial message, " + message.getId());
+            LOG.trace("Received initial message, {}", message.getId());
             try {
                 service.saveInvitation(message, conversation.getId());
             } catch (Exception e) {
-                logger.error("Error saving invite", e);
+                LOG.error("Error saving invite", e);
             }
         }
     }

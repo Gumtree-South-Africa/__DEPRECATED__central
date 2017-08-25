@@ -34,7 +34,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * This implementation of UserStateService queries the data source through ZAPI
  * Created by ddallemule on 2/10/14.
  */
-@Service public class ZapiUserStateService implements UserStateService {
+@Service
+public class ZapiUserStateService implements UserStateService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZapiUserStateService.class);
 
@@ -44,12 +45,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
     public static final String STATE = "status";
     public static final String BLACKLISTED_VALUE = "5";
     private static final List<HttpClient> CREATED_CLIENTS =
-                    Collections.synchronizedList(new ArrayList<>());
+            Collections.synchronizedList(new ArrayList<>());
 
     static {
         // cleanup all connection pools on vm shutdown
         Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 for (HttpClient client : CREATED_CLIENTS) {
                     // try/catch - prevent loop break
                     try {
@@ -62,21 +64,23 @@ import static com.google.common.base.Preconditions.checkNotNull;
         });
     }
 
-    @Autowired public ZapiUserStateService(@Value("${zapi.hostname}") String baseUrl,
-                    @Value("${api.connectionTimeout:1500}") Integer connectionTimeout,
-                    @Value("${api.connectionManagerTimeout:1500}") Integer connectionManagerTimeout,
-                    @Value("${api.socketTimeout:2500}") Integer socketTimeout,
-                    @Value("${api.maxConnectionsPerHost:40}") Integer maxConnectionsPerHost,
-                    @Value("${api.maxConnectionsPerHost:40}") Integer maxTotalConnections) {
+    @Autowired
+    public ZapiUserStateService(@Value("${zapi.hostname}") String baseUrl,
+                                @Value("${api.connectionTimeout:1500}") Integer connectionTimeout,
+                                @Value("${api.connectionManagerTimeout:1500}") Integer connectionManagerTimeout,
+                                @Value("${api.socketTimeout:2500}") Integer socketTimeout,
+                                @Value("${api.maxConnectionsPerHost:40}") Integer maxConnectionsPerHost,
+                                @Value("${api.maxConnectionsPerHost:40}") Integer maxTotalConnections) {
         this.baseUrl = baseUrl;
         this.httpClient =
-                        buildHttpClient(connectionTimeout, connectionManagerTimeout, socketTimeout,
-                                        maxConnectionsPerHost, maxTotalConnections);
+                buildHttpClient(connectionTimeout, connectionManagerTimeout, socketTimeout,
+                        maxConnectionsPerHost, maxTotalConnections);
     }
 
-    @Override public boolean isBlocked(String userEmail) throws Exception {
+    @Override
+    public boolean isBlocked(String userEmail) throws Exception {
         return httpClient.execute(new HttpHost(baseUrl), createRequestMethod(userEmail),
-                        new UserStateResponseHandler(), new BasicHttpContext());
+                new UserStateResponseHandler(), new BasicHttpContext());
     }
 
     private HttpGet createRequestMethod(String userEmail) {
@@ -87,26 +91,26 @@ import static com.google.common.base.Preconditions.checkNotNull;
     }
 
     public static CloseableHttpClient buildHttpClient(int connectionTimeout,
-                    int connectionManagerTimeout, int socketTimeout, int maxConnectionsPerHost,
-                    int maxTotalConnections) {
+                                                      int connectionManagerTimeout, int socketTimeout, int maxConnectionsPerHost,
+                                                      int maxTotalConnections) {
         HttpClientBuilder clientBuilder = HttpClientBuilder.create();
         clientBuilder.setDefaultRequestConfig(
-                        createRequestConfig(connectionTimeout, connectionManagerTimeout,
-                                        socketTimeout));
+                createRequestConfig(connectionTimeout, connectionManagerTimeout,
+                        socketTimeout));
         clientBuilder.setConnectionManager(
-                        createConnectionManager(maxConnectionsPerHost, maxTotalConnections));
+                createConnectionManager(maxConnectionsPerHost, maxTotalConnections));
         return clientBuilder.build();
     }
 
     private static RequestConfig createRequestConfig(int connectionTimeout,
-                    int connectionManagerTimeout, int socketTimeout) {
+                                                     int connectionManagerTimeout, int socketTimeout) {
         return RequestConfig.custom().setSocketTimeout(socketTimeout)
-                        .setConnectionRequestTimeout(connectionTimeout)
-                        .setConnectTimeout(connectionManagerTimeout).build();
+                .setConnectionRequestTimeout(connectionTimeout)
+                .setConnectTimeout(connectionManagerTimeout).build();
     }
 
     private static PoolingHttpClientConnectionManager createConnectionManager(
-                    int maxConnectionsPerHost, int maxTotalConnections) {
+            int maxConnectionsPerHost, int maxTotalConnections) {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(maxTotalConnections);
         cm.setDefaultMaxPerRoute(maxConnectionsPerHost);
@@ -115,25 +119,24 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
     private class UserStateResponseHandler implements ResponseHandler<Boolean> {
 
-        @Override public Boolean handleResponse(HttpResponse httpResponse) throws IOException {
+        @Override
+        public Boolean handleResponse(HttpResponse httpResponse) throws IOException {
             return checkStatusCode(httpResponse.getStatusLine().getStatusCode()) && parseResponse(
-                            CharStreams.toString(new InputStreamReader(
-                                            httpResponse.getEntity().getContent(), "UTF-8")));
+                    CharStreams.toString(new InputStreamReader(
+                            httpResponse.getEntity().getContent(), "UTF-8")));
         }
 
         private boolean checkStatusCode(int statusCode) {
-            LOG.debug("StatusCode: " + statusCode);
+            LOG.trace("StatusCode: {}", statusCode);
             return statusCode < 400;
         }
 
         private boolean parseResponse(String payload) throws IOException {
-            LOG.debug("Payload: " + payload);
+            LOG.trace("Payload: {}", payload);
             JsonNode jsonNode = new ObjectMapper().readTree(payload);
             JsonNode stateValue = jsonNode.get(STATE);
-            checkNotNull(stateValue, String.format("Cannot find user state in message payload: %s",
-                            payload));
+            checkNotNull(stateValue, "Cannot find user state in message payload: %s", payload);
             return stateValue.asText().equalsIgnoreCase(BLACKLISTED_VALUE);
         }
-
     }
 }

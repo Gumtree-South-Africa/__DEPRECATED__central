@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
 public class NotificationService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(NotificationService.class);
 
     private static final Timer REQUEST_STATS_TIMER = TimingReports.newTimer("stats-notifier.timer");
     private static final Timer REQUEST_GA_TIMER = TimingReports.newTimer("ga-notifier.timer");
@@ -27,11 +27,11 @@ public class NotificationService {
     public void notifyReplySuccesfullySent(String buyerId, String adId, Optional<String> clientId,
                                            Boolean sendGoogleAnalyticsEventEnabled) {
         statsApiNotifier.sendAsyncNotification(buyerId, adId, REQUEST_STATS_TIMER);
-        LOGGER.debug("Notification sent to Stats");
+        LOG.trace("Notification sent to Stats");
         if (clientId.isPresent() && sendGoogleAnalyticsEventEnabled) {
-            LOGGER.debug(String.format("Client Id to use for GA: %s", clientId));
+            LOG.trace("Client Id to use for GA: {}", clientId);
             googleAnalyticsService.sendAsyncEvent(createReplySuccessEvent(clientId.get()), Optional.of(REQUEST_GA_TIMER));
-            LOGGER.debug("Notification sent to GA");
+            LOG.trace("Notification sent to GA");
         }
 
     }

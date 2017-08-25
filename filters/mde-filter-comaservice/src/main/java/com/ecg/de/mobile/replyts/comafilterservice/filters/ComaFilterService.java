@@ -15,8 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class ComaFilterService {
-
-    private final static Logger LOGGER = LoggerFactory.getLogger(ComaFilterService.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ComaFilterService.class);
 
     private static final Gson GSON = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
@@ -37,7 +36,7 @@ public class ComaFilterService {
                 .setEndpoint(webserviceUrl)
                 .setErrorHandler(new FilterServiceErrorHandler())
                 .setConverter(new GsonConverter(GSON))
-                .setLog(LOGGER::info)
+                .setLog(LOG::info)
                 .setClient(new ComaFilterServiceHttpClient())
                 .build()
                 .create(ComaFilterServiceClient.class);
@@ -54,7 +53,7 @@ public class ComaFilterService {
     }
 
     public Collection<String> getFilterResultsForMessage(ContactMessage message) {
-        LOGGER.debug("Processing message ContactMessage {}.", message);
+        LOG.trace("Processing message ContactMessage {}.", message);
         if (!active) {
             return Collections.emptySet();
         }
@@ -62,7 +61,7 @@ public class ComaFilterService {
     }
 
     public Collection<String> getFilterResultsForConversation(ContactMessage message) {
-        LOGGER.debug("Processing conversation ContactMessage {}.", message);
+        LOG.trace("Processing conversation ContactMessage {}.", message);
         if (!active) {
             return Collections.emptySet();
         }

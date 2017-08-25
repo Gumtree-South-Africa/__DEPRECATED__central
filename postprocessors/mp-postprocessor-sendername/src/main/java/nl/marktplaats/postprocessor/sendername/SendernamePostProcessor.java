@@ -57,9 +57,9 @@ public class SendernamePostProcessor implements PostProcessor {
 
         String originalFrom = outboundMail.getFrom();
         String newFrom = smtpSafeEmailAddress(originalFrom, formattedSenderName, conversation.getId() + "-" + message.getId());
-        LOG.debug("New From: " + newFrom);
+        LOG.trace("New From: {}", newFrom);
         replaceFromHeader(outboundMail, newFrom);
-        LOG.debug("New Mail's From Header: " + outboundMail.getFrom());
+        LOG.trace("New Mail's From Header: {}", outboundMail.getFrom());
     }
 
     @Override
@@ -93,7 +93,7 @@ public class SendernamePostProcessor implements PostProcessor {
         try {
             return (new InternetAddress(originalFrom, formattedSenderName)).toString();
         } catch (UnsupportedEncodingException e) {
-            LOG.error("Could not process message {}" + messageId, e);
+            LOG.error("Could not process message {}", messageId, e);
             throw new RuntimeException(e);
         }
     }

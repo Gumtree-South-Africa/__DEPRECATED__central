@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class HttpClientFactory {
+    private static final Logger LOG = LoggerFactory.getLogger(HttpClientFactory.class);
 
     @Value("${replyts2-ebayservicesfilters-plugin.httpclient.maxConnectionTtlSeconds:120}")
     private int maxConnectionTtlSeconds;
@@ -47,8 +48,6 @@ public class HttpClientFactory {
     private Integer proxyPort;
 
     private PoolingClientConnectionManager poolingConnectionManager;
-
-    private static final Logger LOG = LoggerFactory.getLogger(HttpClientFactory.class);
 
     @Bean
     public HttpClient buildClient() {

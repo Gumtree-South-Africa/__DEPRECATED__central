@@ -50,9 +50,9 @@ class PostBoxConflictResolver implements ConflictResolver<PostBox> {
         POSTBOX_SIBLING_COUNT_HISTOGRAM.update(postBoxesToResolve.size());
 
         if (postBoxesToResolve.size() > 5) {
-            LOG.info(format("High number '%d' of siblings found for postbox #%s",
+            LOG.info("High number '{}' of siblings found for postbox #{}",
                             postBoxesToResolve.size(),
-                            postBoxesToResolve.iterator().next().getEmail()));
+                            postBoxesToResolve.iterator().next().getEmail());
         }
 
 

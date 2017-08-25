@@ -31,7 +31,7 @@ public class ConversationMonitorFilter implements Filter {
     private Map<String, Integer> triggerCharsMatched;
 
     public ConversationMonitorFilter(Long warnSizeThreshold, Long errorSizeThreshold,
-                    List<String> triggerCharsList, boolean thresholdCheckEnabled) {
+                                     List<String> triggerCharsList, boolean thresholdCheckEnabled) {
         this.warnSizeThreshold = warnSizeThreshold;
         this.errorSizeThreshold = errorSizeThreshold;
         this.triggerCharsList = triggerCharsList;
@@ -46,24 +46,25 @@ public class ConversationMonitorFilter implements Filter {
         triggerCharsMatched.put(triggerChar, triggerCharsMatched.get(triggerChar) + amount);
     }
 
-    @Override public List<FilterFeedback> filter(MessageProcessingContext context) {
-        LOG.debug("Applying ConversationMonitor filter");
+    @Override
+    public List<FilterFeedback> filter(MessageProcessingContext context) {
+        LOG.trace("Applying ConversationMonitor filter");
         ImmutableList.Builder<FilterFeedback> filterFeedbackList = ImmutableList.builder();
 
         Long sizeOfConversation = context.getConversation().getMessages().stream().mapToLong(message -> message.getPlainTextBody().length()).sum();
 
 
         context.getConversation().getMessages().stream().forEach(message ->
-            triggerCharsList.stream().
-                    filter(triggerChar -> message.getPlainTextBody().contains(triggerChar)).
-                    forEach(triggerChar -> {
-                        incrementTriggerCharCount(triggerChar,
-                        StringUtils.countOccurrencesOf(message.getPlainTextBody(), triggerChar));
-                        LOG.error("Conversation with ID [" + context.getConversation().getId()
-                                + "] created at [" + context.getConversation().getCreatedAt()
-                                + "] contains a trigger char [" + triggerChar
-                                + "] in message with ID [" + message.getId() + "]");
-            })
+                triggerCharsList.stream().
+                        filter(triggerChar -> message.getPlainTextBody().contains(triggerChar)).
+                        forEach(triggerChar -> {
+                            incrementTriggerCharCount(triggerChar,
+                                    StringUtils.countOccurrencesOf(message.getPlainTextBody(), triggerChar));
+                            LOG.error("Conversation with ID [" + context.getConversation().getId()
+                                    + "] created at [" + context.getConversation().getCreatedAt()
+                                    + "] contains a trigger char [" + triggerChar
+                                    + "] in message with ID [" + message.getId() + "]");
+                        })
         );
 
         triggerCharsMatched.keySet().stream().filter(triggerChar -> triggerCharsMatched.get(triggerChar) > 0).forEach(triggerChar -> {
@@ -73,30 +74,28 @@ public class ConversationMonitorFilter implements Filter {
                     + "] of this trigger char [" + triggerChar + "]");
         });
 
-        triggerCharsMatched.keySet().stream().forEach( triggerChar  -> triggerCharsMatched.put(triggerChar, 0));
+        triggerCharsMatched.keySet().stream().forEach(triggerChar -> triggerCharsMatched.put(triggerChar, 0));
 
-        LOG.debug("Conversation with ID [" + context.getConversation().getId() + "] created at ["
-                        + context.getConversation().getCreatedAt() + "] has size ["
-                        + sizeOfConversation + "]");
+        LOG.trace("Conversation with ID [{}] created at [{}] has size [{}]", context.getConversation().getId(), context.getConversation().getCreatedAt(), sizeOfConversation);
 
         if (thresholdCheckEnabled) {
             if (errorSizeThreshold != null && sizeOfConversation > errorSizeThreshold) {
                 LOG.error("Conversation with ID [" + context.getConversation().getId()
-                                + "] has size [" + sizeOfConversation
-                                + "] greater than error threshold [" + errorSizeThreshold + "]");
+                        + "] has size [" + sizeOfConversation
+                        + "] greater than error threshold [" + errorSizeThreshold + "]");
                 filterFeedbackList.add(new FilterFeedback(CONVERSATION_MONITOR_HINT,
-                                CONVERSATION_MONITOR_REASON
-                                                + " found a conversation with size greater than error threshold",
-                                0, FilterResultState.OK));
+                        CONVERSATION_MONITOR_REASON
+                                + " found a conversation with size greater than error threshold",
+                        0, FilterResultState.OK));
 
             } else if (warnSizeThreshold != null && sizeOfConversation > warnSizeThreshold) {
                 LOG.warn("Conversation with ID [" + context.getConversation().getId()
-                                + "] has size [" + sizeOfConversation
-                                + "] greater than the warn threshold [" + warnSizeThreshold + "]");
+                        + "] has size [" + sizeOfConversation
+                        + "] greater than the warn threshold [" + warnSizeThreshold + "]");
                 filterFeedbackList.add(new FilterFeedback(CONVERSATION_MONITOR_HINT,
-                                CONVERSATION_MONITOR_REASON
-                                                + " found a conversation with size greater than warning threshold",
-                                0, FilterResultState.OK));
+                        CONVERSATION_MONITOR_REASON
+                                + " found a conversation with size greater than warning threshold",
+                        0, FilterResultState.OK));
 
             }
         }

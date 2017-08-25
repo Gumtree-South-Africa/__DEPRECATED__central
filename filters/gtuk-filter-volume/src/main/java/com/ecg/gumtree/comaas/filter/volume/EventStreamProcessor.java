@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.lang.String.format;
 
 @Component
-public class EventStreamProcessor implements ConfigurationRefreshEventListener {
+    public class EventStreamProcessor implements ConfigurationRefreshEventListener {
     private static final Logger LOG = LoggerFactory.getLogger(EventStreamProcessor.class);
 
     private static final String PROVIDER_NAME = "gumtree_volume_filter_provider";
@@ -110,7 +110,7 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
     }
 
     void mailReceivedFrom(String volumeFieldValue) {
-        LOG.debug(format("received event [%s] to store internally", volumeFieldValue));
+        LOG.trace("received event [{}] to store internally", volumeFieldValue);
         epServiceProvider.getEPRuntime().sendEvent(new MailReceivedEvent(volumeFieldValue.toLowerCase()));
     }
 
@@ -119,8 +119,9 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
         LOG.trace("esper count query: {}", query);
         EPOnDemandQueryResult result = epServiceProvider.getEPRuntime().executeQuery(query);
 
-        LOG.trace("query result: {}", result.iterator().next());
-        return (Long) result.iterator().next().get("count(*)");
+        EventBean eventBean = result.iterator().next();
+        LOG.trace("query result: {}", eventBean);
+        return (Long) eventBean.get("count(*)");
     }
 
     String windowName(String instanceId) {

@@ -60,7 +60,7 @@ class VolumeFilter implements Filter {
             long mailsInTimeWindow = processor.count(senderMailAddress, q);
 
 
-            LOG.debug("Num of mails in {} {}: {}", q.getPerTimeValue(), q.getPerTimeUnit(), mailsInTimeWindow);
+            LOG.trace("Num of mails in {} {}: {}", q.getPerTimeValue(), q.getPerTimeUnit(), mailsInTimeWindow);
 
 
             if (mailsInTimeWindow > q.getAllowance()) {
@@ -78,7 +78,7 @@ class VolumeFilter implements Filter {
     private boolean isWhitelisted(Message message, String senderMailAddress) {
         final Optional<String> contactType = Optional.ofNullable(message.getHeaders()).map(m -> m.get(CONTACT_TYPE_CUST_HEADER));
 
-        /**
+        /*
          * We will whitelist this message if
          * (1) The sender email address is one of the whitelisted emails in the configuration and
          * (2) The message has a header "X-Cust-Contact-Type" with value "CALL_BACK_REQUEST"

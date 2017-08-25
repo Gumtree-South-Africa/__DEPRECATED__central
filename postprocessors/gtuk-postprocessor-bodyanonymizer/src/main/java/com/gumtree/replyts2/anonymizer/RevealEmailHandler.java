@@ -36,21 +36,21 @@ public class RevealEmailHandler {
                 String formatText = messageBodyAnonymizerConfig.getKnownGoodInsertFooterFormat();
                 String buyerEmail = conversation.getBuyerId();
                 String textToInsert = String.format(formatText, buyerEmail);
-                LOG.debug("Buyer email reveal required. Inserting text: " + textToInsert);
+                LOG.trace("Buyer email reveal required. Inserting text: {}", textToInsert);
 
                 // Find the first mutable content & do the replacement.
                 for (TypedContent<String> typedContent : typedContents) {
                     if (typedContent.isMutable()) {
-                        LOG.debug("Inserting buyer email reveal text into message #" + message.getId());
+                        LOG.trace("Inserting buyer email reveal text into message #{}", message.getId());
                         String existingContent = typedContent.getContent();
                         String newContent;
 
                         if (MediaTypeHelper.isHtmlCompatibleType(typedContent.getMediaType())) {
-                            LOG.debug("Content type is HTML. Doing cleverer insert...");
+                            LOG.trace("Content type is HTML. Doing cleverer insert...");
                             textToInsert = textToInsert.replaceAll("\n", "<br>");
                             newContent = existingContent + "<html><br><p>" + textToInsert + "</p></html>";
                         } else {
-                            LOG.debug("Content type is plain text. Doing standard insert...");
+                            LOG.trace("Content type is plain text. Doing standard insert...");
                             textToInsert = textToInsert.replaceAll("<br>", "\n");
                             newContent = existingContent + "\n\n" + textToInsert;
                         }

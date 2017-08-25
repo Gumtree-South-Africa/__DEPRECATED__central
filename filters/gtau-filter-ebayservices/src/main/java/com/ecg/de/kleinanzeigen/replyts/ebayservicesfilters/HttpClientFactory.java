@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class HttpClientFactory {
+    private static final Logger LOG = LoggerFactory.getLogger(HttpClientFactory.class);
 
     @Value("${replyts2-ebayservicesfilters-plugin.httpclient.maxConnectionTtlSeconds:120}")
     private int maxConnectionTtlSeconds;
@@ -48,12 +49,10 @@ public class HttpClientFactory {
 
     private PoolingClientConnectionManager poolingConnectionManager;
 
-    private static final Logger LOG = LoggerFactory.getLogger(HttpClientFactory.class);
-
     @Bean
     public HttpClient buildClient() {
 
-        LOG.info("eBay Service Filters. Max Connections (PerRoute/Total): {}/{}. Timeouts (conn/so): {}/{}", maxConnectionsPerRoute, maxConnections, connectionTimeout, socketTimeout);
+        LOG.trace("eBay Service Filters. Max Connections (PerRoute/Total): {}/{}. Timeouts (conn/so): {}/{}", maxConnectionsPerRoute, maxConnections, connectionTimeout, socketTimeout);
         SchemeRegistry registry = SchemeRegistryFactory.createDefault();
 
         poolingConnectionManager = new PoolingClientConnectionManager(registry, maxConnectionTtlSeconds, TimeUnit.SECONDS);

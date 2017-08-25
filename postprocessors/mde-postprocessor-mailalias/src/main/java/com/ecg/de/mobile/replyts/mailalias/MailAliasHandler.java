@@ -1,6 +1,5 @@
 package com.ecg.de.mobile.replyts.mailalias;
 
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.base.Optional;
@@ -25,12 +24,8 @@ class MailAliasHandler {
     }
 
 
-
     public void handle() {
         try {
-
-            MessageDirection direction = messageProcessingContext.getMessageDirection();
-
             Optional<String> aliasName = Optional.fromNullable(messageProcessingContext.getMail().getFromName());
 
             if (aliasName.isPresent()) {
@@ -46,6 +41,5 @@ class MailAliasHandler {
     private String formatMailAddress(String name, String address) throws UnsupportedEncodingException {
         return new InternetAddress(address, name).toString();
     }
-
 
 }

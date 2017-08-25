@@ -23,7 +23,7 @@ public class MessagingUrlPostProcessor implements PostProcessor {
 
         MutableMail outboundMail = messageProcessingContext.getOutgoingMail();
 
-        LOG.debug("MessagingUrlPostProcessor for message #" + message.getId());
+        LOG.trace("MessagingUrlPostProcessor for message #{}", message.getId());
 
         List<TypedContent<String>> typedContents = outboundMail.getTextParts(false);
         if (typedContents.isEmpty()) {

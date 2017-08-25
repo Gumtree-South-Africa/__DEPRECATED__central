@@ -18,12 +18,11 @@ import java.net.URL;
  * @author mdarapour
  */
 public class SendNotifierPostProcessor implements PostProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(SendNotifierPostProcessor.class);
 
     public static final String ALWAYS_NOTIFY_FLAG = "always-notify-flag";
 
     private static final String XML_BODY_CONTENT = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SendNotifierPostProcessor.class);
 
     private final SendNotifierConfig config;
 
@@ -46,7 +45,7 @@ public class SendNotifierPostProcessor implements PostProcessor {
                         sbBodyText.append(textPart.getContent());
                     }
                     if (sbBodyText.toString().contains(XML_BODY_CONTENT)) {
-                        LOGGER.info(
+                        LOG.trace(
                                 "Message body contains XML content - ignoring this conversation id [{}], message id [{}] to prevent double counting of replies",
                                 conversation.getId(), context.getMessageId());
                     }
@@ -59,24 +58,24 @@ public class SendNotifierPostProcessor implements PostProcessor {
                             connection.connect();
                             final int responseCode = connection.getResponseCode();
                             if (HttpURLConnection.HTTP_OK != responseCode) {
-                                LOGGER.warn(notifyUrl + ": " + responseCode);
+                                LOG.warn(notifyUrl + ": " + responseCode);
                             }
                         }
                         catch (IOException e) {
-                            LOGGER.error("Error notifying " + notifyUrl, e);
+                            LOG.error("Error notifying {}", notifyUrl, e);
                         }
                         finally {
                             try {
                                 connection.disconnect();
                             } catch (Exception e) {
-                                LOGGER.error("error closing the connection", e);
+                                LOG.error("error closing the connection", e);
                             }
                         }
                     }
                 }
             }
             catch (Exception ex) {
-                LOGGER.error(" Skipping it.", ex);
+                LOG.error(" Skipping it.", ex);
             }
         }
     }
@@ -86,14 +85,14 @@ public class SendNotifierPostProcessor implements PostProcessor {
 
         // If this is the first message from the buyer to the seller
         if (1 == conversation.getMessages().size()) {
-            LOGGER.debug("Notify clients as it is the first message in conversation.");
+            LOG.trace("Notify clients as it is the first message in conversation.");
             return true;
         }
 
         // Check if notify override has been set.
         // In this case always notify the client.
         if (isNotifyOverride(conversation)) {
-            LOGGER.debug("Notify clients because 'always notify flag' is set.");
+            LOG.trace("Notify clients because 'always notify flag' is set.");
             return true;
         }
 
@@ -109,14 +108,15 @@ public class SendNotifierPostProcessor implements PostProcessor {
         if (isNotifyOverride(conversation)) {
             sb.append("&o=true");
         }
-        LOGGER.debug("Notify URL [{}].", sb.toString());
-        return sb.toString();
+        String result = sb.toString();
+        LOG.trace("Notify URL [{}].", result);
+        return result;
     }
 
     private boolean isNotifyOverride(Conversation conversation) {
-        LOGGER.debug("Conversation custom values [{}].", conversation.getCustomValues());
+        LOG.trace("Conversation custom values [{}].", conversation.getCustomValues());
         Object isNotifyOverrideFlag = conversation.getCustomValues().get(ALWAYS_NOTIFY_FLAG);
-        LOGGER.debug("Always notify flag [{}].", isNotifyOverrideFlag);
+        LOG.trace("Always notify flag [{}].", isNotifyOverrideFlag);
         return (isNotifyOverrideFlag != null && Boolean.valueOf(isNotifyOverrideFlag.toString()));
     }
 

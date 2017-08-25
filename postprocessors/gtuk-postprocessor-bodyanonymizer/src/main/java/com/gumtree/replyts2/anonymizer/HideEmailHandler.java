@@ -30,7 +30,7 @@ public class HideEmailHandler {
 
     public void process(MessageProcessingContext context) {
         if (shouldNotAnonymize(context.getMessage().getHeaders())) {
-            LOG.debug("Anonymization is off. Skipping.");
+            LOG.trace("Anonymization is off. Skipping.");
             return;
         }
 
@@ -44,12 +44,12 @@ public class HideEmailHandler {
                 case BUYER_TO_SELLER:
                     mailAddress = mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation);
                     content = StringUtils.replace(content, conversation.getBuyerId(), mailAddress.getAddress());
-                    LOG.debug("Replaced buyer's real email with anonymous");
+                    LOG.trace("Replaced buyer's real email with anonymous");
                     break;
                 case SELLER_TO_BUYER:
                     mailAddress = mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conversation);
                     content = StringUtils.replace(content, conversation.getSellerId(), mailAddress.getAddress());
-                    LOG.debug("Replaced seller's real email with anonymous");
+                    LOG.trace("Replaced seller's real email with anonymous");
                     break;
                 default:
                     return;

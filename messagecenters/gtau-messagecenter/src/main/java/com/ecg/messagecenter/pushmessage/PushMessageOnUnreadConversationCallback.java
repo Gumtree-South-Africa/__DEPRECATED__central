@@ -19,8 +19,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static java.lang.String.format;
-
 public class PushMessageOnUnreadConversationCallback implements SimplePostBoxInitializer.PostBoxWriteCallback {
     private static final Logger LOG = LoggerFactory.getLogger(PushMessageOnUnreadConversationCallback.class);
 
@@ -92,12 +90,12 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
 
             if (PushService.Result.Status.ERROR == sendPushResult.getStatus()) {
                 COUNTER_PUSH_FAILED.inc();
-                LOG.error(format("Error sending push for conversation '%s' and message '%s'", conversation.getId(), message.getId()), sendPushResult.getException().get());
+                LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), sendPushResult.getException().get());
             }
 
         } catch (Exception e) {
             COUNTER_PUSH_FAILED.inc();
-            LOG.error(format("Error sending push for conversation '%s' and message '%s'", conversation.getId(), message.getId()), e);
+            LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), e);
         }
     }
 

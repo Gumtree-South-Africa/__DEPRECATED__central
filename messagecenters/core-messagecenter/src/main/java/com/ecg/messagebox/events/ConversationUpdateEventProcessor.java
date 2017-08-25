@@ -23,7 +23,6 @@ import java.util.Properties;
 import java.util.function.Supplier;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 
 @Component
@@ -54,11 +53,11 @@ public class ConversationUpdateEventProcessor {
 
     void init(Supplier<EventConverter> eventConverter, Supplier<ConversationUpdateKafkaPublisher> publisher) {
         if (enabled) {
-            log.info(format("Enabling submitting of the events to the kafka topic: %s", topic));
+            log.info("Enabling submitting of the events to the kafka topic: {}", topic);
             this.eventConverter = eventConverter.get();
             this.publisher = publisher.get();
         } else {
-            log.info(format("Disabled submitting of the events to the kafka topic: %s", topic));
+            log.info("Disabled submitting of the events to the kafka topic: {}", topic);
         }
     }
 

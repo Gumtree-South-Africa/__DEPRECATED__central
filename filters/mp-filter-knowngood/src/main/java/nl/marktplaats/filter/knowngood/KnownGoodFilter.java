@@ -11,11 +11,12 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class KnownGoodFilter implements Filter {
-
-    private static final Logger log = LoggerFactory.getLogger(KnownGoodFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(KnownGoodFilter.class);
 
     private String filterName;
     private KnownGoodFilterConfig knownGoodFilterConfig;
@@ -34,7 +35,7 @@ public class KnownGoodFilter implements Filter {
 
         String knownGood = getKnownGood(conv.getCustomValues(), message.getMessageDirection());
         if (knownGood != null) {
-            log.debug("Sender '" + mail.getFrom() + "' is known good (" + knownGood + ")");
+            LOG.trace("Sender '{}' is known good ({})", mail.getFrom(), knownGood);
             reasons.add(new FilterFeedback(mail.getFrom(), "Sender is known good: " + knownGood, 0, FilterResultState.ACCEPT_AND_TERMINATE));
         }
 
@@ -46,7 +47,7 @@ public class KnownGoodFilter implements Filter {
                 ? knownGoodFilterConfig.getInitiatorGoodHeader()
                 : knownGoodFilterConfig.getResponderGoodHeader();
 
-        log.debug("HEADER: "+knownGoodHeader +"; HEADERS: " + headers);
+        LOG.trace("HEADER: {}; HEADERS: {}", knownGoodHeader, headers);
 
         if (headers.containsKey(knownGoodHeader) && headers.get(knownGoodHeader) != null) {
             return headers.get(knownGoodHeader);

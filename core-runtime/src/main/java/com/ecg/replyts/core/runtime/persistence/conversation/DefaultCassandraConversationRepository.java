@@ -81,7 +81,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     public MutableConversation getById(String conversationId) {
         try (Timer.Context ignored = getByIdTimer.time()) {
             List<ConversationEvent> events = getConversationEvents(conversationId);
-            LOG.debug("Found {} events for Conversation with id {} in Cassandra", events.size(), conversationId);
+            LOG.trace("Found {} events for Conversation with id {} in Cassandra", events.size(), conversationId);
             if (events.isEmpty()) {
                 return null;
             }
@@ -256,7 +256,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
             batch.setConsistencyLevel(getWriteConsistency()).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
 
             committedBatchSizeHistogram.update(batch.size());
-            LOG.debug("Saving conversation {}, with {} events and batch size {} to Cassandra", conversationId, toBeCommittedEvents.size(), batch.size());
+            LOG.trace("Saving conversation {}, with {} events and batch size {} to Cassandra", conversationId, toBeCommittedEvents.size(), batch.size());
 
             session.execute(batch);
         }
@@ -283,10 +283,8 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         Date modifiedDate = modifiedDateTime.toDate();
         Optional<ConversationIndexKey> compoundKey = getConversationCompoundKey(toBeCommittedEvents);
 
-        if (compoundKey.isPresent()) {
-            // It's a new conversation.
-            batch.add(Statements.INSERT_RESUME_IDX.bind(this, compoundKey.get().serialize(), conversationId));
-        }
+        // It's a new conversation.
+        compoundKey.ifPresent(conversationIndexKey -> batch.add(Statements.INSERT_RESUME_IDX.bind(this, conversationIndexKey.serialize(), conversationId)));
 
         batch.add(Statements.INSERT_CONVERSATION_MODIFICATION_IDX.bind(this, conversationId, modifiedDate));
     }
@@ -304,9 +302,9 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
 
     private Optional<ConversationIndexKey> getConversationCompoundKey(List<ConversationEvent> toBeCommittedEvents) {
         return toBeCommittedEvents.stream()
-          .filter((e) -> e instanceof ConversationCreatedEvent && ((ConversationCreatedEvent) e).getState() != ConversationState.DEAD_ON_ARRIVAL)
-          .map((e) -> resumer.keyFromCreatedEvent((ConversationCreatedEvent) e))
-          .findFirst();
+                .filter((e) -> e instanceof ConversationCreatedEvent && ((ConversationCreatedEvent) e).getState() != ConversationState.DEAD_ON_ARRIVAL)
+                .map((e) -> resumer.keyFromCreatedEvent((ConversationCreatedEvent) e))
+                .findFirst();
     }
 
     private void storeSecretIfNewlyCreated(BatchStatement batch, List<ConversationEvent> toBeCommittedEvents) {

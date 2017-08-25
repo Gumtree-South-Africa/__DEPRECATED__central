@@ -35,7 +35,7 @@ public class KafkaMailPublisher implements MailPublisher {
             MESSAGE_SENT_EVENT_PUBLISHED.inc();
 
         } catch (FailedToSendMessageException e) {
-            LOGGER.error(String.format("An error happened while trying to publish a message with id: %s to kafka", messageId), e);
+            LOGGER.error("An error happened while trying to publish a message with id: {} to kafka", messageId, e);
             MESSAGE_SENT_EVENT_FAILED.inc();
         }
     }

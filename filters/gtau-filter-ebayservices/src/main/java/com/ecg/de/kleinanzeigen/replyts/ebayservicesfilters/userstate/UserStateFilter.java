@@ -40,7 +40,7 @@ class UserStateFilter implements Filter {
 
             if(badgeData != null) {
                 int score = config.get(badgeData.getUserState().name());
-                LOG.debug("User State for {} is {} --> Score: {}", sender, badgeData.getUserState().name(), score);
+                LOG.trace("User State for {} is {} --> Score: {}", sender, badgeData.getUserState().name(), score);
                 if(score != 0) {
                     return ImmutableList.<FilterFeedback>of(
                             new FilterFeedback(

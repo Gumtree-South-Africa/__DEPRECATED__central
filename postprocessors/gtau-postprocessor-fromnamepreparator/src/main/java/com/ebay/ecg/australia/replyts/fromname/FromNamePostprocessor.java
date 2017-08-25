@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
  * @author mdarapour
  */
 public class FromNamePostprocessor implements PostProcessor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FromNamePostprocessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FromNamePostprocessor.class);
 
     private FromNamePostprocessorConfig config;
 
@@ -40,16 +40,16 @@ public class FromNamePostprocessor implements PostProcessor {
                         cleanUpName(name),
                         outboundMail.getFrom());
 
-                LOGGER.info("Injecting from name: " + name);
+                LOG.trace("Injecting from name: {}", name);
 
                 try  {
                     outboundMail.addHeader("From", mail);
                 } catch (Exception e) {
-                    LOGGER.warn("Couldn't inject name in from", e);
+                    LOG.warn("Couldn't inject name in from", e);
                 }
             }
         } catch (PersistenceException e) {
-            LOGGER.error("Couldn't read conversation headers. Ignoring message", e);
+            LOG.error("Couldn't read conversation headers. Ignoring message", e);
         }
     }
 

@@ -28,16 +28,16 @@ public class MdePushNotificationListener implements MessageProcessedListener {
 
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
-        LOG.debug("processing conversation {}", conversation.getId());
+        LOG.trace("processing conversation {}", conversation.getId());
         final String senderId = message.getHeaders().get(X_CUST_FROM_USERID);
         final String recipientId = message.getHeaders().get(X_CUST_TO_USERID);
 
         if (isAnonymousId(recipientId)) {
-            LOG.debug("skip push notification - anonymous recipient {}", recipientId);
+            LOG.trace("skip push notification - anonymous recipient {}", recipientId);
             return;
         }
         if (isOwnMessage(recipientId, senderId)) {
-            LOG.info("skip push notification - recipient and sender are the same. Recipient {}, sender {}.", recipientId, senderId);
+            LOG.debug("skip push notification - recipient and sender are the same. Recipient {}, sender {}.", recipientId, senderId);
             return;
         }
 
@@ -48,7 +48,7 @@ public class MdePushNotificationListener implements MessageProcessedListener {
     }
 
     private void sendPushNotification(Conversation conversation, String recipientId, String senderId, String text) {
-        LOG.info("Sending push notification to customer [{}]. Message sender was [{}] ...", recipientId, senderId);
+        LOG.trace("Sending push notification to customer [{}]. Message sender was [{}] ...", recipientId, senderId);
         sender.send(new MdePushMessagePayload(
                 conversation.getId(),
                 convertAdIdToNumeric(conversation.getAdId()),

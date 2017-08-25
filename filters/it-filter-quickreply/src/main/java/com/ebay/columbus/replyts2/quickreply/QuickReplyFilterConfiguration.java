@@ -35,7 +35,7 @@ public class QuickReplyFilterConfiguration {
 
         Preconditions.checkNotNull(this.resolvedCustomHeaders, "resolvedCustomHeaders cannot be null");
 
-        LOG.debug("QuickReply resolved custom headers " + resolvedCustomHeaders);
+        LOG.trace("QuickReply resolved custom headers {}", resolvedCustomHeaders);
     }
 
     @Bean

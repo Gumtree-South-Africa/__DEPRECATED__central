@@ -14,7 +14,7 @@ import java.util.Map;
  * @author mdarapour
  */
 public class HeaderInjectorPostprocessor implements PostProcessor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HeaderInjectorPostprocessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HeaderInjectorPostprocessor.class);
 
     private HeaderInjectorPostprocessorConfig config;
 
@@ -26,25 +26,25 @@ public class HeaderInjectorPostprocessor implements PostProcessor {
 
     @Override
     public void postProcess(MessageProcessingContext context) {
-        LOGGER.info("Going to inject: " + config.getHeadersToInject());
+        LOG.trace("Going to inject: {}", config.getHeadersToInject());
         try {
             //TODO not sure if this must be custom headers or all headers
             Map<String,String> headers = context.getMail().getUniqueHeaders();
-            LOGGER.info("Got headers: " + headers.keySet());
+            LOG.trace("Got headers: {}", headers.keySet());
             for (String header : config.getHeadersToInject()) {
                 // TODO headers are shown in CamelCase
                 String headerValue = headers.get(header);
                 if (headerValue != null) {
                     try {
-                        LOGGER.info("Injecting " + header + ": " + headerValue);
+                        LOG.trace("Injecting {}: {}", header, headerValue);
                         context.getOutgoingMail().addHeader(header.toUpperCase(), headerValue);
                     } catch (Exception e) {
-                        LOGGER.error("Couldn't add header to message (" + header + ": " + headerValue + ")", e);
+                        LOG.error("Couldn't add header to message ({}: {})", header, headerValue, e);
                     }
                 }
             }
         } catch (PersistenceException e) {
-            LOGGER.error("Couldn't read conversation headers. Ignoring message", e);
+            LOG.error("Couldn't read conversation headers. Ignoring message", e);
         }
     }
 

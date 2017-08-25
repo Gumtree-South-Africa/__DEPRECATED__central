@@ -119,8 +119,7 @@ public class GumtreeUrlFilter implements com.ecg.replyts.core.api.pluginconfigur
                 String urlParts[] = url.split("\\.");
                 if (urlParts.length == 2) {
                     if (!isUrl(urlParts[0], urlParts[1])) {
-                        LOG.debug("URL Filter found " + url
-                                + " in message, but concluded that it might not actually be a URL");
+                        LOG.debug("URL Filter found {} in message, but concluded that it might not actually be a URL", url);
                         iterator.remove();
                     }
                 }

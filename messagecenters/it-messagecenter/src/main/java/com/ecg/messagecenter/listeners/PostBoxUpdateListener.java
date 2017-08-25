@@ -89,9 +89,9 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             }
 
             if (conversation.getSellerId() == null || conversation.getBuyerId() == null) {
-                LOG.info(String.format("No seller or buyer email available for conversation #%s and conv-state %s and message #%s",
+                LOG.info("No seller or buyer email available for conversation #{} and conv-state {} and message #{}",
                                                 conversation.getId(), conversation.getState(),
-                                                message.getId()));
+                                                message.getId());
                 return;
             }
 

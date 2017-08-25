@@ -24,7 +24,7 @@ import static java.util.Collections.emptyList;
  * everywhere, and they will flow as far as they can get (flow stops at the end, or if it is terminated before)
  */
 @Component
-public class ProcessingFlow {
+class ProcessingFlow {
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingFlow.class);
 
     @Autowired
@@ -49,9 +49,9 @@ public class ProcessingFlow {
     private final Timer mailFixersTimer = TimingReports.newTimer("send-fail-fixers");
     private final Counter emailDeliverySkippedTimer = TimingReports.newCounter("email-delivery-skipped");
 
-    public void inputForPreProcessor(MessageProcessingContext context) {
+    void inputForPreProcessor(MessageProcessingContext context) {
         try (Timer.Context ignore = preProcessorTimer.time()) {
-            LOG.debug("PreProcessing Message {}", context.getMessageId());
+            LOG.trace("PreProcessing Message {}", context.getMessageId());
             preProcessor.preProcess(context);
         }
 
@@ -60,9 +60,9 @@ public class ProcessingFlow {
         }
     }
 
-    public void inputForFilterChain(MessageProcessingContext context) {
+    void inputForFilterChain(MessageProcessingContext context) {
         try (Timer.Context ignore = filterChainTimer.time()) {
-            LOG.debug("Filtering Message {}", context.getMessageId());
+            LOG.trace("Filtering Message {}", context.getMessageId());
             filterChain.filter(context);
         }
 
@@ -71,9 +71,9 @@ public class ProcessingFlow {
         }
     }
 
-    public void inputForPostProcessor(MessageProcessingContext context) {
+    void inputForPostProcessor(MessageProcessingContext context) {
         try (Timer.Context ignore = postProcessorTimer.time()) {
-            LOG.debug("PostProcessing Message {}", context.getMessageId());
+            LOG.trace("PostProcessing Message {}", context.getMessageId());
             postProcessor.postProcess(context);
         }
 
@@ -84,7 +84,7 @@ public class ProcessingFlow {
         inputForSending(context);
     }
 
-    public void inputForSending(MessageProcessingContext context) {
+    void inputForSending(MessageProcessingContext context) {
         if (context.isSkipDeliveryChannel(MessageProcessingContext.DELIVERY_CHANNEL_MAIL)) {
             emailDeliverySkippedTimer.inc();
             LOG.debug("E-mail delivery switched off for Message {}", context.getMessageId());
@@ -118,7 +118,7 @@ public class ProcessingFlow {
 
     private void doTimedSend(MessageProcessingContext context) throws MailDeliveryException {
         try (Timer.Context ignore = sendingTimer.time()) {
-            LOG.debug("Sending Message {}", context.getMessageId());
+            LOG.trace("Sending Message {}", context.getMessageId());
             mailDeliveryService.deliverMail(context.getOutgoingMail());
         }
     }

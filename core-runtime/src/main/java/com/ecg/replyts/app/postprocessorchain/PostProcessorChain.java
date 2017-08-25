@@ -8,7 +8,6 @@ import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -23,19 +22,17 @@ public class PostProcessorChain {
     @PostConstruct
     public void orderPostProcessors() {
         LOG.info("Custom Postprocesors Registered: {}", postProcessors);
-        Collections.sort(this.postProcessors, new OrderComparator());
+        this.postProcessors.sort(new OrderComparator());
     }
 
     public void postProcess(MessageProcessingContext context) {
         for (PostProcessor postProcessor : postProcessors) {
-            LOG.debug("Applying post-processor {} for message id {}",
-                    postProcessor.getClass().getSimpleName(), context.getMessageId());
+            LOG.trace("Applying post-processor {} for message id {}", postProcessor.getClass().getSimpleName(), context.getMessageId());
 
             postProcessor.postProcess(context);
 
             if (context.isTerminated()) {
-                LOG.debug("Stop processing mail after post-processor {}",
-                        postProcessor.getClass().getSimpleName());
+                LOG.debug("Stop processing mail after post-processor {}", postProcessor.getClass().getSimpleName());
                 break;
             }
         }

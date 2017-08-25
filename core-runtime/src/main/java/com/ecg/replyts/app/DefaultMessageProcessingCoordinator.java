@@ -73,7 +73,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     public final java.util.Optional<String> accept(@WillNotClose InputStream input) throws IOException {
         try (Timer.Context ignored = OVERALL_TIMER.time()) {
             byte[] bytes = ByteStreams.toByteArray(input);
-            LOG.debug("Received new message. Size {} bytes", bytes.length);
+            LOG.trace("Received new message. Size {} bytes", bytes.length);
 
             java.util.Optional<Mail> mail = parseMail(bytes);
 
@@ -84,7 +84,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), guids.nextGuid());
             setMDC(context);
-            LOG.info("Received Message {}", context.getMessageId());
+            LOG.trace("Received Message {}", context.getMessageId());
 
             processingFlow.inputForPreProcessor(context);
 
@@ -128,7 +128,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     }
 
     private void handleSuccess(MessageProcessingContext context, byte[] messageBytes) {
-        LOG.debug("Message {} (conversation: {}) successfully sent.", context.getMessageId(), context.getConversation().getId());
+        LOG.trace("Message {} (conversation: {}) successfully sent.", context.getMessageId(), context.getConversation().getId());
 
         byte[] outgoing = Mails.writeToBuffer(context.getOutgoingMail());
 
@@ -158,7 +158,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
     private void onMessageProcessed(Conversation c, Message m) {
         for (MessageProcessedListener listener : messageProcessedListeners) {
-            LOG.debug("Informing Message Processed listener {} about completed message", listener.getClass());
+            LOG.trace("Informing Message Processed listener {} about completed message", listener.getClass());
 
             try {
                 listener.messageProcessed(c, m);

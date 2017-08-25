@@ -11,8 +11,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import static java.lang.String.format;
-
 /**
  * Wrap a Riak client to provide a health check for the cluster the single node see.
  */
@@ -47,7 +45,7 @@ class RiakClientHealthWrapper {
         Set<String> ringMembers = ImmutableSet.copyOf(nodeStats.ringMembers());
         String queriedNode = nodeStats.nodename();
 
-        LOG.debug(format("Stats for node %s: connected nodes: %s, ring members: %s", queriedNode, connectedNodes, ringMembers));
+        LOG.debug("Stats for node {}: connected nodes: {}, ring members: {}", queriedNode, connectedNodes, ringMembers);
 
         // Check for single node cluster. This might happen when a node was remove from the cluster and later started up again
         // but without putting back to cluster. The node locks like a single-node-cluster. Data written to this node are lost.

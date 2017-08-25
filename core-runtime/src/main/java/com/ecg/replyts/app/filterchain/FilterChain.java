@@ -73,13 +73,13 @@ public class FilterChain {
         } catch (ProcessingTimeExceededException e) {
             PROCESSING_TIME_EXCEEDED_COUNTER.inc();
             context.terminateProcessing(MessageState.DISCARDED, this, format(DISCARDING_TEMPLATE, e.getMessage()));
-            LOG.warn(format("Processing time exceeded, message %s DISCARDED", context.getMessageId()), e);
+            LOG.warn("Processing time exceeded, message {} DISCARDED", context.getMessageId(), e);
         }
     }
 
     private void inspectProcessingFeedback(List<ProcessingFeedback> allFeedback) {
         for (PluginInstanceReference<ResultInspector> inspectorRef : resultInspectorConfig.getRunningServices()) {
-            LOG.debug("Applying Result Inspector {}", inspectorRef);
+            LOG.trace("Applying Result Inspector {}", inspectorRef);
             ResultInspector resultInspector = inspectorRef.getCreatedService();
             resultInspector.inspect(allFeedback);
         }
@@ -88,7 +88,7 @@ public class FilterChain {
     private FilterResultState findOverallResultState(List<ProcessingFeedback> allFeedback) {
         FilterResultState overallResultState = FilterResultState.OK;
         for (ProcessingFeedback feedback : allFeedback) {
-            LOG.debug("Processing Feedback from {}:{}. Score {}, State {}. Evaluation: {} ", feedback.getFilterName(), feedback.getFilterName(), feedback.getScore(), feedback.getResultState(), feedback.isEvaluation());
+            LOG.trace("Processing Feedback from {}:{}. Score {}, State {}. Evaluation: {} ", feedback.getFilterName(), feedback.getFilterName(), feedback.getScore(), feedback.getResultState(), feedback.isEvaluation());
             if (!feedback.isEvaluation()) {
                 FilterResultState resultState = feedback.getResultState();
                 if (overallResultState.hasLowerPriorityThan(resultState)) {

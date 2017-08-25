@@ -18,7 +18,7 @@ import static de.mobile.cs.filter.domain.BadwordType.SWEARWORD;
 
 @Component
 class CsFilterServiceClient {
-    private static final Logger logger = LoggerFactory.getLogger(CsFilterServiceClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CsFilterServiceClient.class);
 
     private static final BadwordDTO FAILED_BADWORD = BadwordDTO.newBuilder()
             .id("FAILED")
@@ -51,7 +51,7 @@ class CsFilterServiceClient {
                     .filter(badword -> badword.getType() == SWEARWORD)
                     .collect(Collectors.toList());
         } catch (Exception ex) {
-            logger.error("cs filter service failed", ex);
+            LOG.error("cs filter service failed", ex);
             return Collections.singletonList(FAILED_BADWORD);
         }
     }

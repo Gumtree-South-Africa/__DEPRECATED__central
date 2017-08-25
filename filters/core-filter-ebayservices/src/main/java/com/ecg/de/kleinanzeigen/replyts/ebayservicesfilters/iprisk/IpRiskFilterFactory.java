@@ -21,13 +21,13 @@ import org.springframework.stereotype.Component;
 @Component
 class IpRiskFilterFactory implements FilterFactory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IpRiskFilterFactory.class);
+    private static final Logger LOG = LoggerFactory.getLogger(IpRiskFilterFactory.class);
 
     private final IpRatingService ipRatingService;
 
     @Autowired
     public IpRiskFilterFactory(HttpClient client, @Qualifier("esconfig-ipaddr") Config config) {
-        LOGGER.info("Configured proxy for IpRiskFilter: '{}'", config.proxyUrl());
+        LOG.info("Configured proxy for IpRiskFilter: '{}'", config.proxyUrl());
         this.ipRatingService = new IpRatingServiceImpl(client, config);
     }
 

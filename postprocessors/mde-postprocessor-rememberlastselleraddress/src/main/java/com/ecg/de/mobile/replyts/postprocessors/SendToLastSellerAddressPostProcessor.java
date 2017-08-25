@@ -1,14 +1,5 @@
 package com.ecg.de.mobile.replyts.postprocessors;
 
-import java.util.List;
-
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
-
 import com.ecg.replyts.app.postprocessorchain.PostProcessor;
 import com.ecg.replyts.app.postprocessorchain.postprocessors.Anonymizer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -16,21 +7,26 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
+
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import java.util.List;
 
 
 /**
  * Replaces the email address TO a seller, if it differs from address of last response of seller in these conversation.
- * 
  */
 public class SendToLastSellerAddressPostProcessor implements PostProcessor {
-
-    private static final Logger logger = LoggerFactory.getLogger(SendToLastSellerAddressPostProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SendToLastSellerAddressPostProcessor.class);
 
     @Override
     public void postProcess(MessageProcessingContext context) {
 
         if (context.getMessageDirection() == MessageDirection.SELLER_TO_BUYER) {
-            logger.debug("Message {}: Ignoring seller-to-buyer message direction.", context.getMessageId());
+            LOG.trace("Message {}: Ignoring seller-to-buyer message direction.", context.getMessageId());
             return;
         }
 
@@ -47,7 +43,7 @@ public class SendToLastSellerAddressPostProcessor implements PostProcessor {
 
             if (lastAddress.equals(currentAddress)) {
 
-                logger.debug("Message {}: Nothing to change", context.getMessageId());
+                LOG.trace("Message {}: Nothing to change", context.getMessageId());
 
             } else {
 
@@ -55,13 +51,13 @@ public class SendToLastSellerAddressPostProcessor implements PostProcessor {
 
                 context.getOutgoingMail().setTo(newTo);
 
-                logger.info("Message {}: Replaced delivery address {} with last seller address {}.",
-                    context.getMessageId(), currentAddress, lastAddress);
+                LOG.trace("Message {}: Replaced delivery address {} with last seller address {}.",
+                        context.getMessageId(), currentAddress, lastAddress);
             }
 
         } catch (AddressException e) {
-            logger.warn("Message {}: Invalid Address {}  or {}", context.getMessageId(), lastFromHeader,
-                conversation.getSellerId());
+            LOG.warn("Message {}: Invalid Address {}  or {}", context.getMessageId(), lastFromHeader,
+                    conversation.getSellerId());
         }
     }
 

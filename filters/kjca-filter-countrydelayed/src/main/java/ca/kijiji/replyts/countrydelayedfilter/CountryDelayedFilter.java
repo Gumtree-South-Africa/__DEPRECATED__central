@@ -58,7 +58,7 @@ public class CountryDelayedFilter implements Filter {
     private boolean checkIfCountryDelayedInLeGrid(String ipAddress) {
         Map<String, Boolean> result = this.tnsApiClient.getJsonAsMap("/replier/ip-address/" + ipAddress + "/is-country-delayed");
         boolean isDelayed = result.get(IS_COUNTRY_DELAYED_KEY);
-        LOG.debug("Is {} country delayed? {}", ipAddress, isDelayed);
+        LOG.trace("Is {} country delayed? {}", ipAddress, isDelayed);
         return isDelayed;
     }
 
