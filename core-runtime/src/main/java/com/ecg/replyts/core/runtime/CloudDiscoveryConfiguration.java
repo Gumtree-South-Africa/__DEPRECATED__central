@@ -35,16 +35,17 @@ import java.util.stream.Collectors;
 @Configuration
 @PropertySource("discovery.properties")
 @EnableDiscoveryClient
-@EnableAutoConfiguration(exclude = { FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class, HazelcastAutoConfiguration.class })
+@EnableAutoConfiguration(exclude = {FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class, HazelcastAutoConfiguration.class})
 @Import(ConsulConfigBootstrapConfiguration.class)
 @ConditionalOnExpression("#{'${service.discovery.enabled:false}' == 'true'}")
 public class CloudDiscoveryConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CloudDiscoveryConfiguration.class);
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
-      "persistence.cassandra.core.endpoint", "cassandra",
-      "persistence.cassandra.mb.endpoint", "cassandra",
-      "search.es.endpoints", "elasticsearch"
+            "persistence.cassandra.core.endpoint", "cassandra",
+            "persistence.cassandra.mb.endpoint", "cassandra",
+            "queue.kafka.endpoint", "kafkacore",
+            "search.es.endpoints", "elasticsearch"
     );
 
     @Autowired
@@ -134,17 +135,17 @@ public class CloudDiscoveryConfiguration {
             List<ServiceInstance> discoveredInstances = discoveryClient.getInstances(service);
 
             List<String> instances = discoveredInstances.stream()
-              .filter(instance -> instance.getMetadata().containsKey("tenant-" + tenant))
-              .peek(instance -> LOG.debug("Discovered tenant specific service {}", instance))
-              .map(instance -> instance.getHost() + ":" + instance.getPort())
-              .collect(Collectors.toList());
+                    .filter(instance -> instance.getMetadata().containsKey("tenant-" + tenant))
+                    .peek(instance -> LOG.debug("Discovered tenant specific service {}", instance))
+                    .map(instance -> instance.getHost() + ":" + instance.getPort())
+                    .collect(Collectors.toList());
 
             if (instances.size() == 0 && discoveredInstances.size() > 0) {
                 instances = discoveredInstances.stream()
-                  .filter(instance -> instance.getMetadata().keySet().stream().filter(key -> key.startsWith("tenant-")).count() == 0)
-                  .peek(instance -> LOG.debug("Discovered shared service {}", instance))
-                  .map(instance -> instance.getHost() + ":" + instance.getPort())
-                  .collect(Collectors.toList());
+                        .filter(instance -> instance.getMetadata().keySet().stream().filter(key -> key.startsWith("tenant-")).count() == 0)
+                        .peek(instance -> LOG.debug("Discovered shared service {}", instance))
+                        .map(instance -> instance.getHost() + ":" + instance.getPort())
+                        .collect(Collectors.toList());
             }
 
             if (instances.size() > 0) {

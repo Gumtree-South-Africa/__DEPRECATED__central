@@ -1,10 +1,13 @@
 package ca.kijiji.replyts.user_behaviour.responsiveness.model;
 
+import com.ecg.replyts.core.runtime.csv.CsvSerializable;
+
 import java.time.Instant;
 import java.util.Objects;
 
-public class ResponsivenessRecord {
-    private static final long serialVersionUID = 1L;
+public final class ResponsivenessRecord implements CsvSerializable {
+
+    private static final long serialVersionUID = -4755850017320860832L;
 
     private final int version;
     private final long userId;
@@ -22,6 +25,14 @@ public class ResponsivenessRecord {
         this.timestamp = timestamp;
     }
 
+    public int getVersion() {
+        return version;
+    }
+
+    public long getUserId() {
+        return userId;
+    }
+
     public String getConversationId() {
         return conversationId;
     }
@@ -30,20 +41,12 @@ public class ResponsivenessRecord {
         return messageId;
     }
 
-    public Instant getTimestamp() {
-        return timestamp;
-    }
-
     public int getTimeToRespondInSeconds() {
         return timeToRespondInSeconds;
     }
 
-    public long getUserId() {
-        return userId;
-    }
-
-    public int getVersion() {
-        return version;
+    public Instant getTimestamp() {
+        return timestamp;
     }
 
     @Override
@@ -66,14 +69,19 @@ public class ResponsivenessRecord {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ResponsivenessRecord{");
-        sb.append("userId=").append(userId);
-        sb.append(", conversationId='").append(conversationId).append('\'');
-        sb.append(", messageId='").append(messageId).append('\'');
-        sb.append(", timestamp=").append(timestamp);
-        sb.append(", timeToRespondInSeconds=").append(timeToRespondInSeconds);
-        sb.append(", version=").append(version);
-        sb.append('}');
-        return sb.toString();
+        return "ResponsivenessRecord{" +
+                "version=" + version +
+                ", userId=" + userId +
+                ", conversationId='" + conversationId + '\'' +
+                ", messageId='" + messageId + '\'' +
+                ", timeToRespondInSeconds=" + timeToRespondInSeconds +
+                ", timestamp=" + timestamp +
+                '}';
+    }
+
+    @Override
+    public String toCsvLine() {
+        return version + "," + userId + "," + conversationId + "," + messageId + "," + timeToRespondInSeconds + ","
+                + (timestamp == null ? null : timestamp.toEpochMilli());
     }
 }

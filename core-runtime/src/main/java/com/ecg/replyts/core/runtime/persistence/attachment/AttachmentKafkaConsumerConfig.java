@@ -1,4 +1,4 @@
-package com.ecg.replyts.core.runtime.persistence.queue;
+package com.ecg.replyts.core.runtime.persistence.attachment;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -11,7 +11,7 @@ import java.util.Properties;
 
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 
-public class KafkaConsumerConfig<K, V> {
+public class AttachmentKafkaConsumerConfig<K, V> {
 
     @Value("${kafka.attachment.servers:replyts.dev.kjdev.ca:9092}")
     private String servers;
@@ -53,5 +53,4 @@ public class KafkaConsumerConfig<K, V> {
     public void close() {
         consumer.close();
     }
-
 }

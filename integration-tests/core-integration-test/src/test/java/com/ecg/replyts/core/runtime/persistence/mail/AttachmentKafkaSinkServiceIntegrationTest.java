@@ -1,9 +1,9 @@
 package com.ecg.replyts.core.runtime.persistence.mail;
 
 import com.ecg.replyts.core.api.model.mail.TypedContent;
-import com.ecg.replyts.core.runtime.persistence.queue.KafkaConsumerConfig;
-import com.ecg.replyts.core.runtime.persistence.queue.KafkaProducerConfig;
-import com.ecg.replyts.core.runtime.persistence.queue.KafkaSinkService;
+import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentKafkaConsumerConfig;
+import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentKafkaProducerConfig;
+import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentKafkaSinkService;
 import com.google.common.net.MediaType;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -24,14 +24,14 @@ import static org.junit.Assert.assertEquals;
 
 @Ignore
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = KafkaSinkServiceIntegrationTest.TestContext.class)
-public class KafkaSinkServiceIntegrationTest {
+@ContextConfiguration(classes = AttachmentKafkaSinkServiceIntegrationTest.TestContext.class)
+public class AttachmentKafkaSinkServiceIntegrationTest {
 
     @Autowired
-    private KafkaSinkService attachmentSinkService;
+    private AttachmentKafkaSinkService attachmentSinkService;
 
     @Autowired
-    private KafkaConsumerConfig<String, byte[]> consumerConfig;
+    private AttachmentKafkaConsumerConfig<String, byte[]> consumerConfig;
 
 
     String container = "container";
@@ -86,18 +86,18 @@ public class KafkaSinkServiceIntegrationTest {
     static class TestContext {
 
         @Bean
-        KafkaConsumerConfig<String, byte[]> kafkaConsumerConfig() {
-            return new KafkaConsumerConfig<>();
+        AttachmentKafkaConsumerConfig<String, byte[]> kafkaConsumerConfig() {
+            return new AttachmentKafkaConsumerConfig<>();
         }
 
         @Bean
-        KafkaSinkService kafkaSinkService() {
-            return new KafkaSinkService();
+        AttachmentKafkaSinkService kafkaSinkService() {
+            return new AttachmentKafkaSinkService();
         }
 
         @Bean
-        KafkaProducerConfig<String, byte[]> kafkaProducerConfig() {
-            return new KafkaProducerConfig<>();
+        AttachmentKafkaProducerConfig<String, byte[]> kafkaProducerConfig() {
+            return new AttachmentKafkaProducerConfig<>();
         }
 
     }

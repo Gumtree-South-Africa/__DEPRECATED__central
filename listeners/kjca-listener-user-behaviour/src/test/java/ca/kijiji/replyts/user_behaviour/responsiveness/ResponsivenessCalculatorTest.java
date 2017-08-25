@@ -15,29 +15,26 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 public class ResponsivenessCalculatorTest {
-    static final String MSG_ID = "1";
-    static final String CONV_ID = MSG_ID;
-    static final String AD_ID = "12345";
-    static final String REPLIER_EMAIL = "replier@kijiji.ca";
-    static final String REPLIER_SECRET = "abc123";
-    static final String POSTER_EMAIL = "poster@kijiji.ca";
-    static final String POSTER_SECRET = "qwe321";
-    static final String REPLIER_NAME = "Replier Name";
-    static final String REPLIER_ID = "789";
-    static final String POSTER_ID = "123";
+
+    private static final String MSG_ID = "1";
+    private static final String CONV_ID = "1";
+    private static final String AD_ID = "12345";
+    private static final String REPLIER_EMAIL = "replier@kijiji.ca";
+    private static final String REPLIER_SECRET = "abc123";
+    private static final String POSTER_EMAIL = "poster@kijiji.ca";
+    private static final String POSTER_SECRET = "qwe321";
+    private static final String REPLIER_NAME = "Replier Name";
+    private static final String REPLIER_ID = "789";
+    private static final String POSTER_ID = "123";
 
     private ResponsivenessCalculator calculator;
 
-    private DateTime now;
     private DateTime msgReceivedDate;
-    private DateTime convCreatedDate;
-    private DateTime convModifiedDate;
     private ImmutableMessage.Builder msgBuilder;
     private ImmutableConversation.Builder convBuilder;
 
@@ -45,10 +42,9 @@ public class ResponsivenessCalculatorTest {
     public void setUp() throws Exception {
         calculator = new ResponsivenessCalculator();
 
-        now = DateTime.now(DateTimeZone.UTC);
+        DateTime now = DateTime.now(DateTimeZone.UTC);
         msgReceivedDate = now.minusMinutes(10);
-        convCreatedDate = msgReceivedDate.minusSeconds(1);
-        convModifiedDate = now;
+        DateTime convCreatedDate = msgReceivedDate.minusSeconds(1);
         msgBuilder = ImmutableMessage.Builder.aMessage()
                 .withId(MSG_ID)
                 .withMessageDirection(MessageDirection.BUYER_TO_SELLER)
@@ -67,7 +63,7 @@ public class ResponsivenessCalculatorTest {
                 .withSeller(POSTER_EMAIL, POSTER_SECRET)
                 .withState(ConversationState.ACTIVE)
                 .withCreatedAt(convCreatedDate)
-                .withLastModifiedAt(convModifiedDate);
+                .withLastModifiedAt(now);
     }
 
     @Test
@@ -97,11 +93,12 @@ public class ResponsivenessCalculatorTest {
 
         ResponsivenessRecord record = calculator.calculateResponsiveness(conversation, response);
 
-        assertThat(record.getUserId(), equalTo(Long.valueOf(POSTER_ID)));
-        assertThat(record.getTimeToRespondInSeconds(), equalTo(600));
-        assertThat(record.getConversationId(), equalTo(CONV_ID));
         assertThat(record.getVersion(), equalTo(ResponsivenessCalculator.VERSION));
+        assertThat(record.getUserId(), equalTo(Long.valueOf(POSTER_ID)));
+        assertThat(record.getConversationId(), equalTo(CONV_ID));
         assertThat(record.getMessageId(), equalTo("2"));
+        assertThat(record.getTimeToRespondInSeconds(), equalTo(600));
+        assertThat(record.getTimestamp(), notNullValue());
     }
 
     @Test

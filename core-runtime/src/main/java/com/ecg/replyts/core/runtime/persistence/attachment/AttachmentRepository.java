@@ -8,7 +8,6 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
-import com.ecg.replyts.core.runtime.persistence.queue.KafkaSinkService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,7 @@ public class AttachmentRepository {
     private final Timer STORE_ATTACHMENT = TimingReports.newTimer("attachments.store-attachment-timer");
 
     @Autowired
-    private KafkaSinkService kafkaSinkService;
+    private AttachmentKafkaSinkService attachmentKafkaSinkService;
 
     @Autowired
     private SwiftAttachmentRepository swiftAttachmentRepository;
@@ -93,7 +92,7 @@ public class AttachmentRepository {
     public void storeAttachment(String messageId, String aname, TypedContent<byte[]> attachment) {
         try (Timer.Context ignored = STORE_ATTACHMENT.time()) {
             LOG.debug("Storing message {}, attachment {} , size {} bytes", messageId, aname, attachment.getContent().length);
-            kafkaSinkService.store(getCompositeKey(messageId, aname), attachment);
+            attachmentKafkaSinkService.store(getCompositeKey(messageId, aname), attachment);
         }
 
         ATTACHMENT_SIZE_HISTOGRAM.update(attachment.getContent().length);

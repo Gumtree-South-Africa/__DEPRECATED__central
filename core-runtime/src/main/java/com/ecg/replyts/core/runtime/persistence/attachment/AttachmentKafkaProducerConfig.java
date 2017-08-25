@@ -1,4 +1,4 @@
-package com.ecg.replyts.core.runtime.persistence.queue;
+package com.ecg.replyts.core.runtime.persistence.attachment;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.slf4j.Logger;
@@ -11,10 +11,9 @@ import java.util.Properties;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
-public class KafkaProducerConfig<K, V> {
+public class AttachmentKafkaProducerConfig<K, V> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaProducerConfig.class);
-
+    private static final Logger LOG = LoggerFactory.getLogger(AttachmentKafkaProducerConfig.class);
 
     @Value("${kafka.attachment.servers:replyts.dev.kjdev.ca:9092}")
     private String servers;

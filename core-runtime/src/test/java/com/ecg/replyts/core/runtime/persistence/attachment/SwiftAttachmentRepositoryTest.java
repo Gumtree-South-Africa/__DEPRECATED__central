@@ -1,7 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.attachment;
 
 import com.datastax.driver.core.utils.UUIDs;
-
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -9,7 +8,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -19,8 +17,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static junit.framework.TestCase.assertEquals;
@@ -105,7 +105,7 @@ public class SwiftAttachmentRepositoryTest {
 
 
     @Configuration
-    @Import(AttachmentConfiguration.class)
+    @Import(AttachmentConfig.class)
     static class TestContext {
         @Bean
         SwiftAttachmentRepository swiftAttachmentRepository() {

@@ -1,19 +1,18 @@
-package ca.kijiji.replyts.user_behaviour.responsiveness.reporter.fs;
+package ca.kijiji.replyts.user_behaviour.responsiveness.reporter.sink;
 
-import ca.kijiji.replyts.user_behaviour.responsiveness.UserResponsivenessListener;
 import ca.kijiji.replyts.user_behaviour.responsiveness.model.ResponsivenessRecord;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.google.common.collect.ImmutableMap;
+import com.ecg.replyts.core.runtime.csv.CsvUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nonnull;
+import javax.annotation.PreDestroy;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -23,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
@@ -39,7 +37,8 @@ import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
  * Records are written out to a temporary file and then renamed.
  */
 @Component
-public class ResponsivenessFilesystemSink {
+@ConditionalOnExpression("#{'${user-behaviour.responsiveness.sink:fs}' == 'fs'}")
+public class ResponsivenessFilesystemSink implements ResponsivenessSink {
     private static final Logger LOG = LoggerFactory.getLogger(ResponsivenessFilesystemSink.class);
 
     private final String targetDirectoryPath;
@@ -47,7 +46,6 @@ public class ResponsivenessFilesystemSink {
     private final int maxBufferedEvents;
     private final String filenamePrefixDuringWrite;
     private final String filenamePrefixAfterFlush;
-    private final Clock clock;
 
     private final Map<String, List<ResponsivenessRecord>> buffer = new HashMap<>();
 
@@ -58,19 +56,17 @@ public class ResponsivenessFilesystemSink {
 
     @Autowired
     public ResponsivenessFilesystemSink(
-            @Value("${user-behaviour.responsiveness.fs-export.dir}") String targetDirectoryPath,
-            @Value("${user-behaviour.responsiveness.fs-export.everyNEvents}") int flushEveryNEvents,
-            @Value("${user-behaviour.responsiveness.fs-export.maxBufferedEvents}") int maxBufferedEvents,
-            @Value("${user-behaviour.responsiveness.fs-export.fileNamePrefixDuringWrite}") String filenamePrefixDuringWrite,
-            @Value("${user-behaviour.responsiveness.fs-export.fileNamePrefixAfterFlush}") String filenamePrefixAfterFlush,
-            @Qualifier("responsivenessFSSinkClock") Clock clock
+            @Value("${user-behaviour.responsiveness.fs-export.dir:/tmp/rts-flume-dropfolder}") String targetDirectoryPath,
+            @Value("${user-behaviour.responsiveness.fs-export.everyNEvents:1}") int flushEveryNEvents,
+            @Value("${user-behaviour.responsiveness.fs-export.maxBufferedEvents:1}") int maxBufferedEvents,
+            @Value("${user-behaviour.responsiveness.fs-export.fileNamePrefixDuringWrite:in-progress-}") String filenamePrefixDuringWrite,
+            @Value("${user-behaviour.responsiveness.fs-export.fileNamePrefixAfterFlush:ready-}") String filenamePrefixAfterFlush
     ) {
         this.targetDirectoryPath = targetDirectoryPath;
         this.flushEveryNEvents = flushEveryNEvents;
         this.maxBufferedEvents = maxBufferedEvents;
         this.filenamePrefixDuringWrite = filenamePrefixDuringWrite;
         this.filenamePrefixAfterFlush = filenamePrefixAfterFlush;
-        this.clock = clock;
 
         File targetDir = new File(targetDirectoryPath);
         if (!targetDir.exists() && !targetDir.mkdir()) {
@@ -88,34 +84,26 @@ public class ResponsivenessFilesystemSink {
         );
     }
 
-    /**
-     * Write out the provided record onto the filesystem.
-     * <p>
-     * The operation is buffered, so the provided data may not be written out right away.
-     *
-     * @param uniqueWriterId Unique identifier of the caller, such as thread id.
-     *                       This will be part of the filename.
-     * @param record         The record to write out.
-     */
-    public void storeResponsivenessRecord(@Nonnull String uniqueWriterId, @Nonnull ResponsivenessRecord record) {
-        List<ResponsivenessRecord> recordsForWriter = buffer.getOrDefault(uniqueWriterId, new ArrayList<>(flushEveryNEvents));
+    @Override
+    public void storeRecord(String writerId, ResponsivenessRecord record) {
+        List<ResponsivenessRecord> recordsForWriter = buffer.getOrDefault(writerId, new ArrayList<>(flushEveryNEvents));
 
         if (recordsForWriter.size() >= maxBufferedEvents) {
             lostEventsCounter.inc();
-            LOG.warn("Buffer for writer [{}] exceeded limit [{}]. Lost event: {}", uniqueWriterId, maxBufferedEvents, record);
+            LOG.warn("Buffer for writer [{}] exceeded limit [{}]. Lost event: {}", writerId, maxBufferedEvents, record);
             return;
         }
 
         recordsForWriter.add(record);
-        if (!buffer.containsKey(uniqueWriterId)) {
-            buffer.put(uniqueWriterId, recordsForWriter);
+        if (!buffer.containsKey(writerId)) {
+            buffer.put(writerId, recordsForWriter);
         }
 
         if (recordsForWriter.size() < flushEveryNEvents) {
             return;
         }
 
-        flushBuffer(uniqueWriterId, recordsForWriter);
+        flushBuffer(writerId, recordsForWriter);
     }
 
     private void flushBuffer(String writerId, List<ResponsivenessRecord> recordsForWriter) {
@@ -125,16 +113,15 @@ public class ResponsivenessFilesystemSink {
             return;
         }
 
-        long now = clock.instant().toEpochMilli();
         String pathPrefix = targetDirectoryPath + File.separator;
-        String pathSuffix = writerId + "-" + now;
+        String pathSuffix = writerId + "-" + Clock.systemUTC().instant().toEpochMilli();
         File inProgressFile = new File(pathPrefix + filenamePrefixDuringWrite + pathSuffix);
         File finalTargetFile = new File(pathPrefix + filenamePrefixAfterFlush + pathSuffix);
 
         try (Timer.Context ignored = flushTimer.time()) {
             try (FileWriter fileWriter = new FileWriter(inProgressFile)) {
                 BufferedWriter writer = IOUtils.buffer(fileWriter);
-                writer.append(recordsToCSV(recordsForWriter)).flush();
+                writer.append(CsvUtils.toCsv(recordsForWriter)).flush();
             }
             recordsForWriter.clear();
             if (!inProgressFile.renameTo(finalTargetFile)) {
@@ -147,27 +134,8 @@ public class ResponsivenessFilesystemSink {
         }
     }
 
-    // For testing
-    Map<String, List<ResponsivenessRecord>> getBuffer() {
-        return ImmutableMap.copyOf(buffer);
-    }
-
-    private String recordsToCSV(List<ResponsivenessRecord> records) {
-        return records.stream().map(this::recordToCSV).collect(Collectors.joining("\n"));
-    }
-
-    private String recordToCSV(ResponsivenessRecord record) {
-        return record.getVersion() + "," + record.getUserId() + "," + record.getConversationId()
-                + "," + record.getMessageId() + "," + record.getTimeToRespondInSeconds()
-                + "," + record.getTimestamp().toEpochMilli();
-    }
-
-    /**
-     * Flush all buffered data.
-     * <p>
-     * This should only be called once by {@link UserResponsivenessListener} at shut down.
-     */
-    public void flushAll() {
+    @PreDestroy
+    private void flushAll() {
         LOG.info("Flushing all buffers");
         for (Map.Entry<String, List<ResponsivenessRecord>> bufferForWriter : buffer.entrySet()) {
             flushBuffer(bufferForWriter.getKey(), bufferForWriter.getValue());

@@ -1,7 +1,5 @@
 package com.ecg.replyts.core.runtime.persistence.attachment;
 
-import com.ecg.replyts.core.runtime.persistence.queue.KafkaProducerConfig;
-import com.ecg.replyts.core.runtime.persistence.queue.KafkaSinkService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(name = "swift.attachment.storage.enabled", havingValue = "true")
-public class AttachmentConfiguration {
+public class AttachmentConfig {
 
     @Bean
     public SwiftAttachmentRepository swiftAttachmentRepository() {
@@ -17,13 +15,13 @@ public class AttachmentConfiguration {
     }
 
     @Bean
-    public KafkaProducerConfig<String, byte[]> kafkaProducerConfig() {
-        return new KafkaProducerConfig<>();
+    public AttachmentKafkaProducerConfig<String, byte[]> kafkaProducerConfig() {
+        return new AttachmentKafkaProducerConfig<>();
     }
 
     @Bean
-    public KafkaSinkService kafkaSinkService() {
-        return new KafkaSinkService();
+    public AttachmentKafkaSinkService kafkaSinkService() {
+        return new AttachmentKafkaSinkService();
     }
 
     @Bean

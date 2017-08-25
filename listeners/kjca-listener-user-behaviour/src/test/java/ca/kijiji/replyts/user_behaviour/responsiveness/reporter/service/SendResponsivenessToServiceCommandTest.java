@@ -1,159 +1,186 @@
 package ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service;
 
-import ca.kijiji.discovery.*;
+import ca.kijiji.discovery.ServiceEndpoint;
+import ca.kijiji.replyts.user_behaviour.responsiveness.model.ResponsivenessRecord;
 import ca.kijiji.tracing.TraceLogFilter;
-import com.google.common.collect.ImmutableList;
+import com.codahale.metrics.Counter;
+import com.ecg.replyts.core.runtime.retry.RetryException;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
+import com.netflix.hystrix.Hystrix;
+import com.netflix.hystrix.HystrixCommand;
+import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.message.BasicStatusLine;
 import org.apache.http.util.EntityUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
 
-import static ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service.SendResponsivenessToServiceCommand.*;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = SendResponsivenessToServiceCommandTest.TestConfiguration.class)
 public class SendResponsivenessToServiceCommandTest {
-    private static final long USER_ID = 1L;
-    private static final int TTR_S = 10;
-    private static final String TRACE_VALUE = "trace-number";
+
+    private static final String DEFAULT_CONVERSATION_ID = "c1";
+    private static final String DEFAULT_MESSAGE_ID = "m1";
+    private static final long DEFAULT_USER_ID = 1L;
+    private static final int DEFAULT_SECONDS_TO_RESPOND = 10;
+    private static final String DEFAULT_HOST = "localhost";
+    private static final int DEFAULT_PORT = 8080;
+
+    private SendResponsivenessToServiceCommand objectUnderTest;
 
     @Mock
-    private ca.kijiji.discovery.ServiceDirectory serviceDirectory;
-    @Mock
-    private CloseableHttpClient httpClient;
-    @Mock
-    private CloseableHttpResponse httpResponse;
+    private EndpointDiscoveryService endpointDiscoveryServiceMock;
 
-    @Captor
-    private ArgumentCaptor<HttpHost> httpHostArgumentCaptor;
-    @Captor
-    private ArgumentCaptor<HttpPost> httpPostRequestArgumentCaptor;
+    @Mock
+    private CloseableHttpClient httpClientMock;
 
-    private SendResponsivenessToServiceCommand command;
-    private LookupResult lookupResult;
-    private StatusLine successStatusLine;
+    @Autowired
+    @InjectMocks
+    private HystrixCommand.Setter setter;
 
     @Before
     public void setUp() throws Exception {
-        command = new SendResponsivenessToServiceCommand(serviceDirectory, httpClient, TRACE_VALUE, USER_ID, TTR_S, true);
-        lookupResult = new LookupResult(ImmutableList.of(new ServiceEndpoint("host1", 3000), new ServiceEndpoint("host2", 3001)));
-        successStatusLine = new BasicStatusLine(new ProtocolVersion("http", 1, 1), 204, "No Content");
+        MockitoAnnotations.initMocks(this);
+        objectUnderTest = new SendResponsivenessToServiceCommand(endpointDiscoveryServiceMock, httpClientMock, setter);
+    }
 
-        doReturn(lookupResult).when(serviceDirectory).lookup(any(SelectAll.class), eq(new LookupRequest(SERVICE_NAME, HTTP)));
-        doReturn(httpResponse).when(httpClient).execute(any(HttpHost.class), any(HttpPost.class));
-        doReturn(new BasicHttpEntity()).when(httpResponse).getEntity();
-        doReturn(successStatusLine).when(httpResponse).getStatusLine();
+    @Test(expected = RuntimeException.class)
+    public void whenNoEndpoints_shouldThrowException() throws Exception {
+        objectUnderTest.setResponsivenessRecord(getDefaultRecord());
+        when(endpointDiscoveryServiceMock.discoverEndpoints()).thenReturn(Collections.emptyList());
+
+        objectUnderTest.run();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void whenNoRecord_shouldThrowException() throws Exception {
+        when(endpointDiscoveryServiceMock.discoverEndpoints()).thenReturn(Collections.emptyList());
+
+        objectUnderTest.run();
+    }
+
+    @Test(expected = RetryException.class)
+    @SuppressWarnings("unchecked")
+    public void whenDiscoveryFailed_shouldThrowException() throws Exception {
+        objectUnderTest.setResponsivenessRecord(getDefaultRecord());
+        when(endpointDiscoveryServiceMock.discoverEndpoints()).thenThrow(RetryException.class);
+
+        objectUnderTest.run();
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void whenSingleEndpointFailed_shouldThrowException() throws Exception {
+        objectUnderTest.setResponsivenessRecord(getDefaultRecord());
+        when(endpointDiscoveryServiceMock.discoverEndpoints()).thenReturn(Collections.singletonList(new ServiceEndpoint(DEFAULT_HOST, DEFAULT_PORT)));
+
+        objectUnderTest.run();
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void whenSingleEndpointResponseStatusIncorrect_shouldThrowException() throws Exception {
+        objectUnderTest.setResponsivenessRecord(getDefaultRecord());
+        when(endpointDiscoveryServiceMock.discoverEndpoints()).thenReturn(Collections.singletonList(new ServiceEndpoint(DEFAULT_HOST, DEFAULT_PORT)));
+        configureHttpResponse(DEFAULT_HOST, DEFAULT_PORT, HttpStatus.SC_OK);
+
+        objectUnderTest.run();
     }
 
     @Test
-    public void everythingWorkedOnTheFirstTry() throws Exception {
-        command.run();
+    public void whenSingleEndpointSucceeded_shouldSucceed() throws Exception {
+        objectUnderTest.setResponsivenessRecord(getDefaultRecord());
+        when(endpointDiscoveryServiceMock.discoverEndpoints()).thenReturn(Collections.singletonList(new ServiceEndpoint(DEFAULT_HOST, DEFAULT_PORT)));
+        configureHttpResponse(DEFAULT_HOST, DEFAULT_PORT, HttpStatus.SC_NO_CONTENT);
 
-        verify(httpClient).execute(httpHostArgumentCaptor.capture(), httpPostRequestArgumentCaptor.capture());
-        assertThat(httpHostArgumentCaptor.getValue().getHostName(), equalTo("host1"));
-        assertThat(httpHostArgumentCaptor.getValue().getPort(), equalTo(3000));
-        assertThat(httpPostRequestArgumentCaptor.getValue().getFirstHeader(TraceLogFilter.TRACE_HEADER).getValue(), equalTo(TRACE_VALUE));
-        assertThat(httpPostRequestArgumentCaptor.getValue().getURI().getPath(), equalTo(ENDPOINT));
-
-        verifyRequestEntity();
+        assertThat(objectUnderTest.run()).isNull();
     }
 
     @Test
-    public void discoveryFailsOnce_retried() throws Exception {
-        doThrow(DiscoveryFailedException.class).doReturn(lookupResult)
-                .when(serviceDirectory).lookup(any(SelectAll.class), eq(new LookupRequest(SERVICE_NAME, HTTP)));
+    public void whenFirstEndpointFailed_shouldTrySecondEndpoint() throws Exception {
+        objectUnderTest.setResponsivenessRecord(getDefaultRecord());
+        when(endpointDiscoveryServiceMock.discoverEndpoints()).thenReturn(Arrays.asList(
+                new ServiceEndpoint("fake_host", 7777),
+                new ServiceEndpoint(DEFAULT_HOST, DEFAULT_PORT))
+        );
+        configureHttpResponse(DEFAULT_HOST, DEFAULT_PORT, HttpStatus.SC_NO_CONTENT);
 
-        command.run();
-
-        verify(httpClient).execute(httpHostArgumentCaptor.capture(), httpPostRequestArgumentCaptor.capture());
-        assertThat(httpHostArgumentCaptor.getValue().getHostName(), equalTo("host1"));
-        assertThat(httpHostArgumentCaptor.getValue().getPort(), equalTo(3000));
-        assertThat(httpPostRequestArgumentCaptor.getValue().getFirstHeader(TraceLogFilter.TRACE_HEADER).getValue(), equalTo(TRACE_VALUE));
-        assertThat(httpPostRequestArgumentCaptor.getValue().getURI().getPath(), equalTo(ENDPOINT));
-
-        verifyRequestEntity();
-    }
-
-    @Test(expected = DiscoveryFailedException.class)
-    public void discoveryFailsTwice_notRetried() throws Exception {
-        doThrow(DiscoveryFailedException.class)
-                .when(serviceDirectory).lookup(any(SelectAll.class), eq(new LookupRequest(SERVICE_NAME, HTTP)));
-
-        command.run();
+        assertThat(objectUnderTest.run()).isNull();
     }
 
     @Test
-    public void firstEndpointFails_secondOneTried() throws Exception {
-        doThrow(IOException.class).when(httpClient).execute(eq(new HttpHost("host1", 3000)), any(HttpPost.class));
+    public void verifyHttpRequest() throws Exception {
+        objectUnderTest.setResponsivenessRecord(getDefaultRecord());
+        when(endpointDiscoveryServiceMock.discoverEndpoints()).thenReturn(Collections.singletonList(new ServiceEndpoint(DEFAULT_HOST, DEFAULT_PORT)));
+        configureHttpResponse(DEFAULT_HOST, DEFAULT_PORT, HttpStatus.SC_NO_CONTENT);
 
-        command.run();
+        objectUnderTest.run();
 
-        verify(httpClient, Mockito.times(2)).execute(httpHostArgumentCaptor.capture(), httpPostRequestArgumentCaptor.capture());
-        assertThat(httpHostArgumentCaptor.getValue().getHostName(), equalTo("host2"));
-        assertThat(httpHostArgumentCaptor.getValue().getPort(), equalTo(3001));
-        assertThat(httpPostRequestArgumentCaptor.getValue().getFirstHeader(TraceLogFilter.TRACE_HEADER).getValue(), equalTo(TRACE_VALUE));
-        assertThat(httpPostRequestArgumentCaptor.getValue().getURI().getPath(), equalTo(ENDPOINT));
-
-        verifyRequestEntity();
+        ArgumentCaptor<HttpPost> httpPostCaptor = ArgumentCaptor.forClass(HttpPost.class);
+        verify(httpClientMock).execute(eq(new HttpHost(DEFAULT_HOST, DEFAULT_PORT)), httpPostCaptor.capture());
+        verifyHttpRequest(httpPostCaptor);
     }
 
-    @Test(expected = RuntimeException.class, timeout = 2000)
-    public void secondEndpointFails_abortWithException() throws Exception {
-        doThrow(IOException.class).when(httpClient).execute(eq(new HttpHost("host1", 3000)), any(HttpPost.class));
-        doThrow(IOException.class).when(httpClient).execute(eq(new HttpHost("host2", 3001)), any(HttpPost.class));
-
-        command.run();
+    private static ResponsivenessRecord getDefaultRecord() {
+        return new ResponsivenessRecord(1, DEFAULT_USER_ID, DEFAULT_CONVERSATION_ID, DEFAULT_MESSAGE_ID, DEFAULT_SECONDS_TO_RESPOND, Instant.now());
     }
 
-    @Test
-    public void errorInResponse_retried() throws Exception {
-        StatusLine serverError = new BasicStatusLine(new ProtocolVersion("http", 1, 1), 500, "Server error");
+    private void configureHttpResponse(String host, int port, int status) throws IOException {
+        CloseableHttpResponse responseMock = mock(CloseableHttpResponse.class);
+        StatusLine statusLineMock = mock(StatusLine.class);
 
-        doReturn(httpResponse).when(httpClient).execute(any(HttpHost.class), any(HttpPost.class));
-        doReturn(serverError).doReturn(successStatusLine).when(httpResponse).getStatusLine();
-
-        command.run();
-
-        verify(httpClient, times(2)).execute(httpHostArgumentCaptor.capture(), httpPostRequestArgumentCaptor.capture());
-        assertThat(httpHostArgumentCaptor.getValue().getHostName(), equalTo("host2"));
-        assertThat(httpHostArgumentCaptor.getValue().getPort(), equalTo(3001));
-        assertThat(httpPostRequestArgumentCaptor.getValue().getFirstHeader(TraceLogFilter.TRACE_HEADER).getValue(), equalTo(TRACE_VALUE));
-        assertThat(httpPostRequestArgumentCaptor.getValue().getURI().getPath(), equalTo(ENDPOINT));
-
-        verifyRequestEntity();
+        when(responseMock.getEntity()).thenReturn(mock(HttpEntity.class));
+        when(responseMock.getStatusLine()).thenReturn(statusLineMock);
+        when(statusLineMock.getStatusCode()).thenReturn(status);
+        when(httpClientMock.execute(eq(new HttpHost(host, port)), any(HttpPost.class))).thenReturn(responseMock);
     }
 
-    private void verifyRequestEntity() throws IOException {
-        HttpEntity entity = httpPostRequestArgumentCaptor.getValue().getEntity();
-        String requestJson = EntityUtils.toString(entity);
+    private void verifyHttpRequest(ArgumentCaptor<HttpPost> httpPostCaptor) throws IOException {
+        HttpPost actualRequest = httpPostCaptor.getValue();
+        Header traceHeader = actualRequest.getFirstHeader(TraceLogFilter.TRACE_HEADER);
+        assertThat(traceHeader.getValue()).isEqualTo(DEFAULT_CONVERSATION_ID + "/" + DEFAULT_MESSAGE_ID);
+
+        HttpEntity entity = actualRequest.getEntity();
+        assertThat(ContentType.get(entity).getMimeType()).isEqualTo(ContentType.APPLICATION_JSON.getMimeType());
+
+        String requestJson = EntityUtils.toString(actualRequest.getEntity());
         DocumentContext documentContext = JsonPath.parse(requestJson);
         Long uid = documentContext.read("$.uid", Long.class);
         Integer timeToRespond = documentContext.read("$.ttr_s");
-        assertThat(uid, equalTo(USER_ID));
-        assertThat(timeToRespond, equalTo(TTR_S));
-        assertThat(ContentType.get(entity).getMimeType(), equalTo("application/json"));
+        assertThat(uid).isEqualTo(DEFAULT_USER_ID);
+        assertThat(timeToRespond).isEqualTo(DEFAULT_SECONDS_TO_RESPOND);
+    }
+
+    @Configuration
+    static class TestConfiguration {
+
+        @Bean
+        @Qualifier("userBehaviourHystrixConfig")
+        public HystrixCommand.Setter userBehaviourHystrixConfig() {
+            return HystrixCommandConfigurationProvider.provideUserBehaviourConfig(true);
+        }
     }
 }

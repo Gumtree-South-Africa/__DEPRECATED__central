@@ -11,15 +11,7 @@
     </parent>
 
     <artifactId>kjca-listener-user-behaviour</artifactId>
-    <description>
-        <![CDATA[
-        Reports information about reply-related user behaviour
-        ]]>
-    </description>
-
-    <properties>
-        <jsonpath-version>2.2.0</jsonpath-version>
-    </properties>
+    <description>Reports information about reply-related user behaviour</description>
 
     <dependencies>
         <dependency>
@@ -29,10 +21,6 @@
                 <exclusion>
                     <groupId>org.ow2.asm</groupId>
                     <artifactId>asm</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpclient</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -46,11 +34,6 @@
         <dependency>
             <groupId>ca.kijiji</groupId>
             <artifactId>service-discovery</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>ca.kijiji</groupId>
-            <artifactId>kijiji-tracing</artifactId>
         </dependency>
 
         <dependency>
@@ -80,16 +63,12 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>
 
         <!-- Testing -->
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -103,15 +82,17 @@
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
-            <version>${jsonpath-version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#TODO: to be removed when migrated to new Jenkins
 
 if [ -z ${TENANT+x} ]; then
     TENANT="none"

@@ -1,4 +1,4 @@
-package com.ecg.replyts.core.runtime.persistence.queue;
+package com.ecg.replyts.core.runtime.persistence.attachment;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
@@ -15,8 +15,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class KafkaSinkService {
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaSinkService.class);
+public class AttachmentKafkaSinkService {
+    private static final Logger LOG = LoggerFactory.getLogger(AttachmentKafkaSinkService.class);
 
     private static final Timer SAVE = TimingReports.newTimer("attachment.kafka-save-timer");
     private static final Counter ATTACHMENT_COUNTER = TimingReports.newCounter("attachment.kafka-attachment-counter");
@@ -28,7 +28,7 @@ public class KafkaSinkService {
     private String topic;
 
     @Autowired
-    private KafkaProducerConfig<String, byte[]> producerConfig;
+    private AttachmentKafkaProducerConfig<String, byte[]> producerConfig;
 
     public String getTopic() {
         return topic;
