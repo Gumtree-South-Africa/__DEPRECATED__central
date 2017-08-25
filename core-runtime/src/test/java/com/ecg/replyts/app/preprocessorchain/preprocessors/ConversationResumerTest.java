@@ -9,6 +9,7 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory;
 import com.google.common.collect.ImmutableMap;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,13 +17,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.slf4j.MDC;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -53,10 +56,16 @@ public class ConversationResumerTest {
 
         when(conv.getCustomValues()).thenReturn(Collections.<String, String>emptyMap());
         when(conv.getId()).thenReturn("convID");
-        
+
         resumer = new IdBasedConversationResumer();
 
         ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierServiceFactory().createUserIdentifierService());
+    }
+
+    @After
+    public void after()
+    {
+        MDC.clear();
     }
 
     @Test
@@ -64,7 +73,8 @@ public class ConversationResumerTest {
         prepareMailFromBuyerToSeller();
         prepareExistingConversation();
 
-        assertTrue(resumer.resumeExistingConversation(repo, context));
+        assertThat(resumer.resumeExistingConversation(repo, context)).isTrue();
+        assertThat(MDC.get(CONVERSATION_ID)).isEqualTo("convID");
 
         verify(context).setConversation(conv);
         verify(context).setMessageDirection(MessageDirection.BUYER_TO_SELLER);
@@ -75,7 +85,7 @@ public class ConversationResumerTest {
         prepareMailFromSellerToBuyer();
         prepareExistingConversation();
 
-        assertTrue(resumer.resumeExistingConversation(repo, context));
+        assertThat(resumer.resumeExistingConversation(repo, context)).isTrue();
 
         verify(context).setConversation(conv);
         verify(context).setMessageDirection(MessageDirection.SELLER_TO_BUYER);
@@ -86,7 +96,7 @@ public class ConversationResumerTest {
         prepareMailFromBuyerToSeller();
         prepareNonExistingConversation();
 
-        assertFalse(resumer.resumeExistingConversation(repo, context));
+        assertThat(resumer.resumeExistingConversation(repo, context)).isFalse();
 
         verify(context, never()).setConversation(any(MutableConversation.class));
         verify(context, never()).setMessageDirection(any(MessageDirection.class));
@@ -103,10 +113,10 @@ public class ConversationResumerTest {
 
         verify(context, times(2)).addCommand(addCustomValueCommandCapture.capture());
         List<AddCustomValueCommand> values = addCustomValueCommandCapture.getAllValues();
-        assertEquals("foo", values.get(0).getKey());
-        assertEquals("bar", values.get(0).getValue());
-        assertEquals("scot", values.get(1).getKey());
-        assertEquals("car", values.get(1).getValue());
+        assertThat(values.get(0).getKey()).isEqualTo("foo");
+        assertThat(values.get(0).getValue()).isEqualTo("bar");
+        assertThat(values.get(1).getKey()).isEqualTo("scot");
+        assertThat(values.get(1).getValue()).isEqualTo("car");
     }
 
     private void prepareMailFromBuyerToSeller() {

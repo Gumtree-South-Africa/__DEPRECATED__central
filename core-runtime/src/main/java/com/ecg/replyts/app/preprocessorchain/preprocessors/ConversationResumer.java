@@ -10,9 +10,12 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.Map;
 import java.util.Optional;
+
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
 
 public abstract class ConversationResumer {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationResumer.class);
@@ -31,6 +34,7 @@ public abstract class ConversationResumer {
         Optional<Conversation> existingConversation = repository.findExistingConversationFor(key);
 
         if (existingConversation.isPresent()) {
+            MDC.put(CONVERSATION_ID, existingConversation.get().getId());
             context.setConversation((MutableConversation) existingConversation.get());
             context.setMessageDirection(direction);
 

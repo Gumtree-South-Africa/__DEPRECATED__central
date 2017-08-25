@@ -9,10 +9,12 @@ import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewConversationCommand;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
 
 /**
  * Set up a new conversation for an initial contact mail.
@@ -38,9 +40,8 @@ class NewConversationCreator {
 
         ConversationStartInfo info = new ConversationStartInfo(context);
 
-
         String newConversationId = guids.nextGuid();
-
+        MDC.put(CONVERSATION_ID, newConversationId);
 
         String buyerSecret = uniqueConversationSecret.nextSecret();
         String sellerSecret = uniqueConversationSecret.nextSecret();

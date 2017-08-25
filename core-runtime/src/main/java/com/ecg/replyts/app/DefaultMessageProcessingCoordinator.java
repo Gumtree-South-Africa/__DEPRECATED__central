@@ -16,6 +16,7 @@ import com.google.common.base.Optional;
 import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.MESSAGE_ID;
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -81,6 +83,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             }
 
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), guids.nextGuid());
+            MDC.put(MESSAGE_ID, context.getMessageId());
             LOG.debug("Received Message {}", context.getMessageId());
 
             processingFlow.inputForPreProcessor(context);

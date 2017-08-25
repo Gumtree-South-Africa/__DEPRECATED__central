@@ -7,6 +7,7 @@ import com.ecg.replyts.core.runtime.cluster.ClusterMode;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -161,6 +162,7 @@ public class FilesystemMailDataProvider implements Runnable {
             if (tempFilename.exists() && !tempFilename.delete()) {
                 LOG.error("Failed to delete mail {} from dropfolder after successful processing", tempFilename.getName());
             }
+            MDC.clear();
         }
     }
 

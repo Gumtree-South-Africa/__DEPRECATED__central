@@ -5,15 +5,16 @@ import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.ecg.replyts.core.runtime.cluster.Guids;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.slf4j.MDC;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -24,7 +25,6 @@ public class NewConversationCreatorTest {
 
     @Mock
     private Guids guids;
-
 
     private MessageProcessingContext context;
     @Mock
@@ -46,6 +46,12 @@ public class NewConversationCreatorTest {
         creator = new NewConversationCreator(guids, convSecret);
     }
 
+    @After
+    public void after()
+    {
+        MDC.clear();
+    }
+
     @Test
     public void prefersReplyToOverFromHeaderWhenChoosingSender() throws Exception {
         when(mail.getDeliveredTo()).thenReturn("to@host.com");
@@ -53,21 +59,19 @@ public class NewConversationCreatorTest {
         when(mail.getReplyTo()).thenReturn("replyto@host.com");
         creator.setupNewConversation(context);
 
-        assertThat(context.getConversation().getBuyerId(), is("replyto@host.com"));
-
+        assertThat(context.getConversation().getBuyerId()).isEqualTo("replyto@host.com");
     }
 
     @Test
     public void createsMessageContextProperly() {
         when(mail.getDeliveredTo()).thenReturn("to@host.com");
         when(mail.getFrom()).thenReturn("from@host.com");
-
         creator.setupNewConversation(context);
 
-        assertEquals("332211", context.getConversation().getAdId());
-        assertEquals(MessageDirection.BUYER_TO_SELLER, context.getMessageDirection());
-        assertEquals("secretofbuyer", context.getConversation().getBuyerSecret());
-        assertEquals("secretofseller", context.getConversation().getSellerSecret());
-
+        assertThat(context.getConversation().getAdId()).isEqualTo("332211");
+        assertThat(context.getMessageDirection()).isEqualTo(MessageDirection.BUYER_TO_SELLER);
+        assertThat(context.getConversation().getBuyerSecret()).isEqualTo("secretofbuyer");
+        assertThat(context.getConversation().getSellerSecret()).isEqualTo("secretofseller");
+        assertThat(MDC.get(CONVERSATION_ID)).isEqualTo("foobar@foobar");
     }
 }
