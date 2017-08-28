@@ -5,6 +5,8 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.google.common.collect.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -18,6 +20,8 @@ import java.util.Optional;
  * @param <T> the specific type of AbstractConversationType this initializer works with (different tenants have their own implementations - which we will ideally consolidate soon)
  */
 public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConversationThread> {
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractSimplePostBoxInitializer.class);
+
     @Autowired
     protected SimplePostBoxRepository postBoxRepository;
 
@@ -31,7 +35,7 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
             String email,
             Conversation conversation,
             boolean newReplyArrived,
-            PostBoxWriteCallback postBoxWriteCallback) {
+            PostBoxWriteCallback... postBoxWriteCallbacks) {
 
         // We don't want to continue spamming PostBox for user if it was set as ignored before
         if (conversation.isClosedBy(ConversationRole.getRole(email, conversation))) {
@@ -60,7 +64,13 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
 
         long newUnreadCount = postBoxRepository.upsertThread(postBoxId, conversationThread, newReplyArrived);
 
-        postBoxWriteCallback.success(email, newUnreadCount, newReplyArrived);
+        for (PostBoxWriteCallback callback : postBoxWriteCallbacks) {
+            try {
+                callback.success(email, newUnreadCount, newReplyArrived);
+            } catch (Exception e) {
+                LOG.error("Exception attempting to escape {}.success()! Continuing to next registered PostBoxWriteCallback (if any).", callback.getClass().getSimpleName(), e);
+            }
+        }
     }
 
     private boolean shouldReuseExistingThread(Optional<? extends AbstractConversationThread> existingThread, @Nonnull String newMessage) {

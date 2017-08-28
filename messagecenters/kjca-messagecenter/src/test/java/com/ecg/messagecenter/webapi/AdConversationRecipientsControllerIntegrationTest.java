@@ -41,6 +41,7 @@ public class AdConversationRecipientsControllerIntegrationTest {
         properties.put("replyts.tenant", "kjca");
         properties.put("push-mobile.enabled","false");
         properties.put("persistence.strategy", "riak");
+        properties.put("unread.count.cache.queue", "devull");
 
         return properties;
     }).get());

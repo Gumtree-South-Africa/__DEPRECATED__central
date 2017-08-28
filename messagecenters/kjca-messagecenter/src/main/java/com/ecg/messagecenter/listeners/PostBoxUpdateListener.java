@@ -41,6 +41,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final UserInfoLookup userInfoLookup;
     private final Integer pushServicePercentage;
     private final TextAnonymizer textAnonymizer;
+    private final UnreadCountCacher unreadCountCacher;
 
     @Autowired
     public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
@@ -55,11 +56,13 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                                  @Value("${capi.maxConnectionsPerHost:40}") Integer maxConnectionsPerHost,
                                  @Value("${capi.retryCount:1}") Integer retryCount,
                                  @Value("${send.push.percentage:0}") Integer pushServicePercentage,
-                                 @Qualifier("pushMessageJmsTemplate") JmsTemplate jmsTemplate,
+                                 @Qualifier("messageCentreJmsTemplate") JmsTemplate jmsTemplate,
                                  @Qualifier("sendPushService") PushService sendPushService,
-                                 TextAnonymizer textAnonymizer) {
+                                 TextAnonymizer textAnonymizer,
+                                 UnreadCountCacher unreadCountCacher) {
         this.postBoxInitializer = postBoxInitializer;
         this.textAnonymizer = textAnonymizer;
+        this.unreadCountCacher = unreadCountCacher;
 
         final Configuration configuration = new Configuration(capiHost, capiPort, capiUsername, capiPassword, connectionTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, retryCount);
         this.adInfoLookup = new AdInfoLookup(configuration);
@@ -127,6 +130,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                         userInfoLookup,
                         conversation,
                         message
-                ));
+                ),
+                unreadCountCacher);
     }
 }

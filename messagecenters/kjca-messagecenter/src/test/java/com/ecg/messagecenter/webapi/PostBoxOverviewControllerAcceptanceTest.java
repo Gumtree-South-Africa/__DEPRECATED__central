@@ -18,6 +18,7 @@ public class PostBoxOverviewControllerAcceptanceTest {
     private final Properties testProperties = new Properties() {{
         put("replyts.tenant", "kjca");
         put("persistence.strategy", "riak");
+        put("unread.count.cache.queue", "devull");
     }};
 
     @Rule
