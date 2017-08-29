@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.util.Assert;
 import com.ecg.replyts.core.api.util.Pairwise;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
@@ -38,6 +39,7 @@ public class MessageAddedEvent extends ConversationEvent {
     private final List<String> textParts;
 
     @JsonCreator
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public MessageAddedEvent( // NOSONAR
                               @JsonProperty("messageId") String messageId,
                               @JsonProperty("messageDirection") MessageDirection messageDirection,
