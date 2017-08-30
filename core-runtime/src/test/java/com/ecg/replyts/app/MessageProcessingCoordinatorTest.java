@@ -2,6 +2,7 @@ package com.ecg.replyts.app;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.Termination;
 import com.ecg.replyts.core.runtime.cluster.Guids;
@@ -95,6 +96,8 @@ public class MessageProcessingCoordinatorTest {
         when(context.getMessageId()).thenReturn("1");
         when(processingContextFactory.deadConversationForMessageIdConversationId(anyString(), anyString(), any(Optional.class))).thenReturn(deadConversation);
         when(context.getConversation()).thenReturn(conversation);
+        when(context.getOriginalTo()).thenReturn(new MailAddress("originalTo"));
+        when(context.getOriginalFrom()).thenReturn(new MailAddress("originalFrom"));
     }
 
     @Test

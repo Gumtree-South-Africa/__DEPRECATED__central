@@ -12,6 +12,7 @@ import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.ecg.replyts.core.runtime.service.NewConversationService;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,7 @@ import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
 import static org.joda.time.DateTime.now;
 
 @Component
@@ -183,6 +185,7 @@ public class CassandraPostBoxService implements PostBoxService {
             if(buyer.isPresent() && seller.isPresent()) {
 
                 String newConversationId = newConversationService.nextGuid();
+                MDC.put(CONVERSATION_ID, newConversationId);
                 postBoxRepository.createEmptyConversationProjection(emptyConversationRequest, newConversationId, buyer.get().getUserId());
                 postBoxRepository.createEmptyConversationProjection(emptyConversationRequest, newConversationId, seller.get().getUserId());
 

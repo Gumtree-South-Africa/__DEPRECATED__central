@@ -6,6 +6,10 @@ public class MDCConstants {
         throw new AssertionError();
     }
 
-    public static final String CONVERSATION_ID = "conversationId";
-    public static final String MESSAGE_ID = "messageId";
+    public static final String APPLICATION = "application";
+    public static final String CONVERSATION_ID = "conversation_id";
+    public static final String MAIL_FROM = "mail_from";
+    public static final String MAIL_TO = "mail_to";
+    public static final String MESSAGE_ID = "message_id";
+    public static final String REVISION = "revision";
 }
