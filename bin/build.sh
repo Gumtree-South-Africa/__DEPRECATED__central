@@ -15,7 +15,7 @@ function fatal() {
 }
 
 readonly ARGS="$@"
-readonly DIR=$(dirname $0)
+export DIR=$(dirname $0)
 
 REVISION="$(git rev-parse --short HEAD)"
 # Override REVISION in case of an in-progress Gerrit review
@@ -118,7 +118,7 @@ function parseCmd() {
 }
 
 function main() {
-    source "${DIR}/_cassandra_docker.sh"
+    source "${DIR}/docker-test-env.sh"
     local start=$(date +"%s")
 
     # export region as on salt-managed environments
@@ -131,16 +131,8 @@ function main() {
 
     # skip tests and set concurrency based on whether tests should be run
     if [[ ${RUN_TESTS} -eq 1 ]]; then
-        # A workaround for Jenkins builder nodes to clean up cassandra containers which weren't stopped due to failed builds
-        # (for more examples of the following pattern see https://github.com/search?q=ugly+hack&ref=cmdform&type=Code )
-        set +o nounset
-        local SSH_CONNECTION="$SSH_CONNECTION"
-        set -o nounset
-        if [ -n "$SSH_CONNECTION" ] ; then
-            stopDanglingCassandras
-        fi
-        startCassandra
-        trap "stopCassandra" EXIT TERM
+        startEnv
+        trap "stopEnv" EXIT TERM
 
         MVN_ARGS="$MVN_ARGS"
         MVN_TASKS="clean package"
@@ -222,11 +214,11 @@ function main() {
     fi
 
     export COMAAS_HTTP_PORT=18081
-    CMD="${MVN_CMD} ${MVN_ARGS} ${MVN_TASKS} -DtestLocalCassandraPort=${CASSANDRA_CONTAINER_PORT}"
+    CMD="${MVN_CMD} ${MVN_ARGS} ${MVN_TASKS}"
     log "Executing: ${CMD}"
     ${CMD}
 
-    stopCassandra
+    stopEnv
 
     local end=$(date +"%s")
     local diff=$(($end-$start))

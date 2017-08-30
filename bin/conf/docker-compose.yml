@@ -2,19 +2,16 @@ version: '3'
 services:
   cassandra:
     image: docker-registry.ecg.so/comaas/cassandra_data:0.0.9
-    container_name: "cassandra_test_${TENANT}_${CREATION_SECONDS}"
     ports:
     - "9042:9042"
     environment:
       SERVICE_9042_NAME: cassandra
   zookeeper:
     image: docker-registry.ecg.so/comaas/wurstmeister/zookeeper
-    container_name: "zookeeper_test_${TENANT}_${CREATION_SECONDS}"
     ports:
       - "2181:2181"
   kafka:
     image: docker-registry.ecg.so/comaas/wurstmeister/kafka
-    container_name: "kafka_test_${TENANT}_${CREATION_SECONDS}"
     ports:
       - "9092:9092"
     environment:
