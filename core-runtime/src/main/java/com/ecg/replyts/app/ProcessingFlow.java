@@ -1,5 +1,6 @@
 package com.ecg.replyts.app;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.app.filterchain.FilterChain;
 import com.ecg.replyts.app.postprocessorchain.PostProcessorChain;
@@ -46,6 +47,7 @@ public class ProcessingFlow {
     private final Timer postProcessorTimer = TimingReports.newTimer("postProcessor");
     private final Timer sendingTimer = TimingReports.newTimer("sending");
     private final Timer mailFixersTimer = TimingReports.newTimer("send-fail-fixers");
+    private final Counter emailDeliverySkippedTimer = TimingReports.newCounter("email-delivery-skipped");
 
     public void inputForPreProcessor(MessageProcessingContext context) {
         try (Timer.Context ignore = preProcessorTimer.time()) {
@@ -84,6 +86,8 @@ public class ProcessingFlow {
 
     public void inputForSending(MessageProcessingContext context) {
         if (context.isSkipDeliveryChannel(MessageProcessingContext.DELIVERY_CHANNEL_MAIL)) {
+            emailDeliverySkippedTimer.inc();
+            LOG.debug("E-mail delivery switched off for Message {}", context.getMessageId());
             return;
         }
 
