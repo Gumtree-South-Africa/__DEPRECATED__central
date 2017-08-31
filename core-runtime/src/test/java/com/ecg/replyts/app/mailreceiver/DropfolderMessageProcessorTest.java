@@ -34,17 +34,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = FilesystemMailDataProviderTest.TestContext.class)
+@ContextConfiguration(classes = DropfolderMessageProcessorTest.TestContext.class)
 @TestPropertySource(properties = {
-  "mailreceiver.filesystem.dropfolder = #{systemProperties['java.io.tmpdir']}",
+        "mailreceiver.filesystem.dropfolder = #{systemProperties['java.io.tmpdir']}",
 
-  "mailreceiver.retrydelay.minutes = 5",
+        "mailreceiver.retrydelay.minutes = 5",
 
-  "mailreceiver.watch.retrydelay.millis = 1000",
+        "mailreceiver.watch.retrydelay.millis = 1000",
 
-  "mailreceiver.retries = 5"
+        "mailreceiver.retries = 5"
 })
-public class FilesystemMailDataProviderTest {
+public class DropfolderMessageProcessorTest {
     @Autowired
     private MessageProcessingCoordinator consumer;
 
@@ -52,7 +52,7 @@ public class FilesystemMailDataProviderTest {
     private ClusterModeManager clusterModeManager;
 
     @Autowired
-    private FilesystemMailDataProvider instance;
+    private DropfolderMessageProcessor instance;
 
     private File watchedDirectory;
 
@@ -68,7 +68,7 @@ public class FilesystemMailDataProviderTest {
         for (File file : new File(System.getProperty("java.io.tmpdir")).listFiles(new TempFileFilter())) {
             file.delete();
         }
-        for (File file : new File(System.getProperty("java.io.tmpdir"), FilesystemMailDataProvider.FAILED_DIRECTORY_NAME).listFiles(new TempFileFilter())) {
+        for (File file : new File(System.getProperty("java.io.tmpdir"), DropfolderMessageProcessor.FAILED_DIRECTORY_NAME).listFiles(new TempFileFilter())) {
             file.delete();
         }
     }
@@ -81,7 +81,8 @@ public class FilesystemMailDataProviderTest {
         File file2 = spy(temp);
         when(watchedDirectory.listFiles(any(FileFilter.class))).thenReturn(new File[]{file1, file2}, new File[]{file2});
 
-        instance.run();
+        instance.processNext();
+        instance.processNext();
 
         verify(file1, times(1)).renameTo(any(File.class));
         verify(file2, times(1)).renameTo(any(File.class));
@@ -96,9 +97,9 @@ public class FilesystemMailDataProviderTest {
         when(watchedDirectory.listFiles(any(FileFilter.class))).thenReturn(new File[]{file});
         doThrow(new IOException()).when(consumer).accept(any(InputStream.class));
 
-        instance.run();
+        instance.processNext();
 
-        File renamedTempFile = new File(tempDir + "/failed/" + FilesystemMailDataProvider.FAILED_PREFIX + file.getName());
+        File renamedTempFile = new File(tempDir + "/failed/" + DropfolderMessageProcessor.FAILED_PREFIX + file.getName());
 
         assertThat(renamedTempFile.exists(), is(true));
         renamedTempFile.deleteOnExit();
@@ -108,13 +109,14 @@ public class FilesystemMailDataProviderTest {
     public void workerWillPickupNewAndFailedMails() throws Exception {
         File file = File.createTempFile("pre_junit-temp", "tempfile");
         String tempDir = file.getParentFile().getPath();
-        File failuresDir = new File(tempDir, FilesystemMailDataProvider.FAILED_DIRECTORY_NAME);
+        File failuresDir = new File(tempDir, DropfolderMessageProcessor.FAILED_DIRECTORY_NAME);
         failuresDir.mkdir();
-        File failed = new File(failuresDir, FilesystemMailDataProvider.FAILED_PREFIX + "file");
+        File failed = new File(failuresDir, DropfolderMessageProcessor.FAILED_PREFIX + "file");
         failed.createNewFile();
         failed.setLastModified(System.currentTimeMillis() - 60 * 1000 * 5);
 
-        instance.run();
+        instance.processNext();
+        instance.processNext();
 
         verify(consumer, times(2)).accept(any(InputStream.class));
     }
@@ -122,13 +124,13 @@ public class FilesystemMailDataProviderTest {
     @Test
     public void workerWillPickupFailedMailsWithoutNewMails() throws Exception {
         String tempDir = System.getProperty("java.io.tmpdir");
-        File failuresDir = new File(tempDir, FilesystemMailDataProvider.FAILED_DIRECTORY_NAME);
+        File failuresDir = new File(tempDir, DropfolderMessageProcessor.FAILED_DIRECTORY_NAME);
         failuresDir.mkdir();
-        File failed = new File(failuresDir, FilesystemMailDataProvider.FAILED_PREFIX + "file");
+        File failed = new File(failuresDir, DropfolderMessageProcessor.FAILED_PREFIX + "file");
         failed.createNewFile();
         failed.setLastModified(System.currentTimeMillis() - 60 * 1000 * 5);
 
-        instance.run();
+        instance.processNext();
 
         verify(consumer, times(1)).accept(any(InputStream.class));
     }
@@ -137,15 +139,15 @@ public class FilesystemMailDataProviderTest {
     public void workerWillNotPickupTooOldFailedMails() throws Exception {
 
         String tempDir = System.getProperty("java.io.tmpdir");
-        File failuresDir = new File(tempDir, FilesystemMailDataProvider.FAILED_DIRECTORY_NAME);
+        File failuresDir = new File(tempDir, DropfolderMessageProcessor.FAILED_DIRECTORY_NAME);
         failuresDir.mkdir();
-        File failed = new File(failuresDir, FilesystemMailDataProvider.FAILED_PREFIX + FilesystemMailDataProvider.FAILED_PREFIX + FilesystemMailDataProvider.FAILED_PREFIX + FilesystemMailDataProvider.FAILED_PREFIX + FilesystemMailDataProvider.FAILED_PREFIX + FilesystemMailDataProvider.FAILED_PREFIX + "file");
+        File failed = new File(failuresDir, DropfolderMessageProcessor.FAILED_PREFIX + DropfolderMessageProcessor.FAILED_PREFIX + DropfolderMessageProcessor.FAILED_PREFIX + DropfolderMessageProcessor.FAILED_PREFIX + DropfolderMessageProcessor.FAILED_PREFIX + DropfolderMessageProcessor.FAILED_PREFIX + "file");
         failed.createNewFile();
         failed.setLastModified(System.currentTimeMillis() - 60 * 1000 * 5);
 
         assertTrue(failed.getName().matches("^(?:f_){6}(?!f_).*$"));
 
-        instance.run();
+        instance.processNext();
 
         verify(consumer, never()).accept(any(InputStream.class));
     }
@@ -154,13 +156,13 @@ public class FilesystemMailDataProviderTest {
     public void workerWillNotPickupTooYoungFailedMails() throws Exception {
 
         String tempDir = System.getProperty("java.io.tmpdir");
-        File failuresDir = new File(tempDir, FilesystemMailDataProvider.FAILED_DIRECTORY_NAME);
+        File failuresDir = new File(tempDir, DropfolderMessageProcessor.FAILED_DIRECTORY_NAME);
         failuresDir.mkdir();
-        File failed = new File(failuresDir, FilesystemMailDataProvider.FAILED_PREFIX + "file");
+        File failed = new File(failuresDir, DropfolderMessageProcessor.FAILED_PREFIX + "file");
         failed.createNewFile();
         failed.setLastModified(System.currentTimeMillis() - 60 * 1000 * 4);
 
-        instance.run();
+        instance.processNext();
 
         verify(consumer, never()).accept(any(InputStream.class));
     }
@@ -169,7 +171,7 @@ public class FilesystemMailDataProviderTest {
     public void workerWillIncreaseFailurePrefixAppropriately() throws Exception {
         File file = File.createTempFile("pre_junit-temp", "tempfile");
         String tempDir = System.getProperty("java.io.tmpdir");
-        File failuresDir = new File(tempDir, FilesystemMailDataProvider.FAILED_DIRECTORY_NAME);
+        File failuresDir = new File(tempDir, DropfolderMessageProcessor.FAILED_DIRECTORY_NAME);
         failuresDir.mkdir();
 
         doThrow(new IOException()).when(consumer).accept(any(InputStream.class));
@@ -177,11 +179,11 @@ public class FilesystemMailDataProviderTest {
         for (int i = 1; i <= 6; i++) {
             StringBuilder failedFileName = new StringBuilder();
             for (int j = 1; j <= i; j++) {
-                failedFileName.append(FilesystemMailDataProvider.FAILED_PREFIX);
+                failedFileName.append(DropfolderMessageProcessor.FAILED_PREFIX);
             }
             failedFileName.append(file.getName());
 
-            instance.run();
+            instance.processNext();
 
             File currentFile = new File(failuresDir, failedFileName.toString());
 
@@ -192,7 +194,7 @@ public class FilesystemMailDataProviderTest {
         }
 
         //one more try, should not result in invocation of consumer.accept
-        instance.run();
+        instance.processNext();
 
         //5: last iteration must not result in actual processing
         verify(consumer, times(6)).accept(any(InputStream.class));
@@ -202,15 +204,15 @@ public class FilesystemMailDataProviderTest {
     public void workerWillDeleteInputFileOnProcessingSuccess() throws Exception {
         File file = File.createTempFile("pre_junit-temp", "tempfile");
         String tempDir = System.getProperty("java.io.tmpdir");
-        File failuresDir = new File(tempDir, FilesystemMailDataProvider.FAILED_DIRECTORY_NAME);
+        File failuresDir = new File(tempDir, DropfolderMessageProcessor.FAILED_DIRECTORY_NAME);
         failuresDir.mkdir();
 
-        instance.run();
+        instance.processNext();
 
         File[] inprogressFiles = new File(tempDir).listFiles(new FileFilter() {
             @Override
             public boolean accept(File file) {
-                return file.getName().startsWith(FilesystemMailDataProvider.PROCESSING_FILE_PREFIX);
+                return file.getName().startsWith(DropfolderMessageProcessor.PROCESSING_FILE_PREFIX);
             }
 
         });
@@ -224,20 +226,20 @@ public class FilesystemMailDataProviderTest {
 
         public TempFileFilter() {
             tempDir = new File(System.getProperty("java.io.tmpdir"));
-            failedDir = new File(tempDir, FilesystemMailDataProvider.FAILED_DIRECTORY_NAME);
+            failedDir = new File(tempDir, DropfolderMessageProcessor.FAILED_DIRECTORY_NAME);
         }
 
         @Override
         public boolean accept(File file) {
             return (file.getParentFile().equals(tempDir) || file.getParentFile().equals(failedDir)) &&
-              (file.getName().startsWith(FilesystemMailDataProvider.FAILED_PREFIX) ||
-              file.getName().startsWith(FilesystemMailDataProvider.INCOMING_FILE_PREFIX) ||
-              file.getName().startsWith(FilesystemMailDataProvider.PROCESSING_FILE_PREFIX));
+                    (file.getName().startsWith(DropfolderMessageProcessor.FAILED_PREFIX) ||
+                            file.getName().startsWith(DropfolderMessageProcessor.INCOMING_FILE_PREFIX) ||
+                            file.getName().startsWith(DropfolderMessageProcessor.PROCESSING_FILE_PREFIX));
         }
     }
 
     @Configuration
-    @Import(FilesystemMailDataProvider.class)
+    @Import(DropfolderMessageProcessor.class)
     static class TestContext {
         @MockBean
         private MessageProcessingCoordinator consumer;

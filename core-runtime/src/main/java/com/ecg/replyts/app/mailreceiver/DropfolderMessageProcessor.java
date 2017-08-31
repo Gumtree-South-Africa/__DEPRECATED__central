@@ -15,6 +15,10 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,8 +28,8 @@ import static java.lang.String.format;
 
 @Component("mailDataProvider")
 @ConditionalOnProperty(name = "mail.provider.strategy", havingValue = "fs", matchIfMissing = true)
-public class FilesystemMailDataProvider implements Runnable {
-    private static final Logger LOG = LoggerFactory.getLogger(FilesystemMailDataProvider.class);
+public class DropfolderMessageProcessor implements MessageProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(DropfolderMessageProcessor.class);
 
     private static final Counter FAILED_COUNTER = TimingReports.newCounter("processing_failed");
     private static final Counter ABANDONED_RETRY_COUNTER = TimingReports.newCounter("processing_failed_abandoned");
@@ -40,20 +44,20 @@ public class FilesystemMailDataProvider implements Runnable {
     @Autowired(required = false)
     private ClusterModeManager clusterModeManager;
 
-    @Autowired
-    private MessageProcessingCoordinator messageProcessor;
-
     @Value("${mailreceiver.filesystem.dropfolder}")
     private String dropfolder;
 
     @Value("${mailreceiver.retrydelay.minutes}")
-    private int retryDelayMinutes;
+    private int retryOnFailedMessagePeriod;
 
     @Value("${mailreceiver.watch.retrydelay.millis:1000}")
     private int watchRetryDelayMs;
 
     @Value("${mailreceiver.retries}")
     private int retryCounter;
+
+    @Autowired
+    private MessageProcessingCoordinator messageProcessor;
 
     private File mailDataDirectory;
 
@@ -63,7 +67,7 @@ public class FilesystemMailDataProvider implements Runnable {
 
     private String abandonedFileNameMatchPattern;
 
-
+    private final BlockingQueue<File> messageFilesQueue = new LinkedBlockingQueue<>();
 
     @PostConstruct
     public void initialize() {
@@ -80,7 +84,7 @@ public class FilesystemMailDataProvider implements Runnable {
 
         this.failedFileFilter = file -> {
             Matcher matcher = failureFileNamePattern.matcher(file.getName());
-            boolean fileIsOldEnough = file.lastModified() < (System.currentTimeMillis() - (retryDelayMinutes * 60L * 1000L));
+            boolean fileIsOldEnough = file.lastModified() < (System.currentTimeMillis() - (retryOnFailedMessagePeriod * 60L * 1000L));
 
             return matcher.matches() && fileIsOldEnough;
         };
@@ -106,33 +110,39 @@ public class FilesystemMailDataProvider implements Runnable {
     }
 
     @Override
-    public void run() {
-        if (!shouldProcessMessagesNow()) {
-            return;
-        }
-
-        process(mailDataDirectory.listFiles(INCOMING_FILE_FILTER));
-        process(failedDirectory.listFiles(failedFileFilter));
-
-        try {
-            TimeUnit.MILLISECONDS.sleep(watchRetryDelayMs);
-        } catch (InterruptedException e) {
-            LOG.warn("Interrupted while waiting for mails");
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private void process(File[] originalFilenames) {
-        checkNotNull(originalFilenames, "a dropfolder listFiles call produced a null result");
-        for (File f : originalFilenames) {
-            if (Thread.currentThread().isInterrupted()) {
+    public void processNext() throws InterruptedException {
+        if (shouldProcessMessagesNow()) {
+            Optional<File> nextMessage = nextMessage();
+            if (nextMessage.isPresent()) {
+                process(nextMessage.get());
                 return;
             }
-            processOne(f);
         }
+
+        TimeUnit.MILLISECONDS.sleep(watchRetryDelayMs);
     }
 
-    private void processOne(File originalFilename) {
+    private Optional<File> nextMessage() {
+        File nextFile = messageFilesQueue.poll();
+        if (nextFile != null) {
+            return Optional.of(nextFile);
+        }
+
+        synchronized (messageFilesQueue) {
+            if (messageFilesQueue.isEmpty()) {
+                File[] incoming = mailDataDirectory.listFiles(INCOMING_FILE_FILTER);
+                checkNotNull(incoming, "listFiles with incoming filter call produced a null result");
+                messageFilesQueue.addAll(Arrays.asList(incoming));
+                File[] failed = failedDirectory.listFiles(failedFileFilter);
+                checkNotNull(failed, "listFiles with failed filter call produced a null result");
+                messageFilesQueue.addAll(Arrays.asList(failed));
+            }
+        }
+        
+        return Optional.ofNullable(messageFilesQueue.poll());
+    }
+
+    private void process(File originalFilename) {
         File tempFilename = new File(mailDataDirectory, PROCESSING_FILE_PREFIX + originalFilename.getName());
 
         if (!originalFilename.renameTo(tempFilename)) {
