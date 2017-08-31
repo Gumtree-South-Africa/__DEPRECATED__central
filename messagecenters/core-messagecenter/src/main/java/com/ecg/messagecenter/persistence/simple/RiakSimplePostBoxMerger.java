@@ -59,6 +59,9 @@ public class RiakSimplePostBoxMerger {
     }
 
     private void putIfNewerVersion(Map<String, AbstractConversationThread> latestThreadVersions, AbstractConversationThread thread) {
+        if (thread == null) {
+            return;
+        }
         String conversationId = thread.getConversationId();
         if (latestThreadVersions.containsKey(conversationId)) {
             AbstractConversationThread previousConversation = latestThreadVersions.get(conversationId);
