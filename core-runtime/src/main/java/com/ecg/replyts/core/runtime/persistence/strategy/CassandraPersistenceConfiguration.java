@@ -134,7 +134,7 @@ public class CassandraPersistenceConfiguration {
         @Value("${persistence.cassandra.jobs.idleTimeoutSeconds:#{null}}")
         private Integer idleTimeoutSecondsForJobs;
 
-        @Value("${persistence.cassandra.core.read.timeout.ms:61000}")
+        @Value("${persistence.cassandra.core.read.timeout.ms:12000}")
         private Integer readTimeoutMillisForCore;
 
         private Collection<InetSocketAddress> cassandraContactPointsForCore;
@@ -154,7 +154,7 @@ public class CassandraPersistenceConfiguration {
         @Value("${persistence.cassandra.mb.idleTimeoutSeconds:#{null}}")
         private Integer idleTimeoutSecondsForMb;
 
-        @Value("${persistence.cassandra.mb.read.timeout.ms:61000}")
+        @Value("${persistence.cassandra.mb.read.timeout.ms:12000}")
         private Integer readTimeoutMillisForMb;
 
         @Value("${persistence.cassandra.slowquerylog.threshold.ms:30000}")
