@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ public class Refresher {
     private static final Logger LOG = LoggerFactory.getLogger(Refresher.class);
 
     private static final long RATE = TimeUnit.MINUTES.toMillis(1);
+    private final String threadName;
 
     @Autowired
     private ConfigurationRepository repository;
@@ -29,15 +31,16 @@ public class Refresher {
 
     private ConfigurationAdmin<Object> admin;
 
+    private final Timer refreshChecker;
+
     public Refresher(ConfigurationAdmin<Object> admin) {
         this.admin = admin;
+        threadName = "configuration-checker-" + admin.getAdminName();
+        this.refreshChecker = new Timer(threadName, true);
     }
 
     @PostConstruct
     public void initialize() {
-        String threadName = "configuration-checker-" + admin.getAdminName();
-        Timer refreshChecker = new Timer(threadName, true);
-
         LOG.info("Refreshing configurations now and periodically refreshing with daemon thread {} every {} ms", threadName, RATE);
 
         updateConfigurations();
@@ -51,6 +54,11 @@ public class Refresher {
                     LOG.error("Updating Plugin Configurations from Database failed", e);
                 }
         } }, RATE, RATE);
+    }
+
+    @PreDestroy
+    public void destroy() {
+        refreshChecker.cancel();
     }
 
     public void updateConfigurations() {
