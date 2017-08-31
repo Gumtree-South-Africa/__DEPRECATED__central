@@ -14,4 +14,5 @@ public class MDCConstants {
     public static final String MAIL_TO = "mail_to";
     public static final String MESSAGE_ID = "message_id";
     public static final String REVISION = "revision";
+    public static final String TENANT = "tenant";
 }

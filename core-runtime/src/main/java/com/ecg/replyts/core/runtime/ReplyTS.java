@@ -1,10 +1,8 @@
 package com.ecg.replyts.core.runtime;
 
 import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.core.Context;
 import com.ecg.replyts.core.api.processing.MessageFixer;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
-import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import com.hazelcast.config.Config;
@@ -27,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
@@ -115,7 +114,7 @@ public class ReplyTS {
 
     private static void setLoggerContextProperties() {
         LoggerContext loggerContext = (LoggerContext)LoggerFactory.getILoggerFactory();
-        loggerContext.putProperty(MDCConstants.APPLICATION, ReplyTS.class.getPackage().getImplementationTitle());
-        loggerContext.putProperty(MDCConstants.REVISION, ReplyTS.class.getPackage().getImplementationVersion());
+        loggerContext.putProperty(APPLICATION, ReplyTS.class.getPackage().getImplementationTitle());
+        loggerContext.putProperty(REVISION, ReplyTS.class.getPackage().getImplementationVersion());
     }
 }
