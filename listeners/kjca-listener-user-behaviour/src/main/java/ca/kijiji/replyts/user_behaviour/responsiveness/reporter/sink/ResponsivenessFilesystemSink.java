@@ -1,5 +1,6 @@
 package ca.kijiji.replyts.user_behaviour.responsiveness.reporter.sink;
 
+import ca.kijiji.replyts.user_behaviour.responsiveness.UserResponsivenessListener;
 import ca.kijiji.replyts.user_behaviour.responsiveness.model.ResponsivenessRecord;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
@@ -9,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +40,7 @@ import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
  */
 @Component
 @ConditionalOnExpression("#{'${user-behaviour.responsiveness.sink:fs}' == 'fs'}")
+@ConditionalOnBean(UserResponsivenessListener.class)
 public class ResponsivenessFilesystemSink implements ResponsivenessSink {
     private static final Logger LOG = LoggerFactory.getLogger(ResponsivenessFilesystemSink.class);
 

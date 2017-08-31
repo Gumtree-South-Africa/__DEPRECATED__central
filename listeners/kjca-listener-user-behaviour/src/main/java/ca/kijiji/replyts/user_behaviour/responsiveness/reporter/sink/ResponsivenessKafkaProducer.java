@@ -1,9 +1,11 @@
 package ca.kijiji.replyts.user_behaviour.responsiveness.reporter.sink;
 
+import ca.kijiji.replyts.user_behaviour.responsiveness.UserResponsivenessListener;
 import ca.kijiji.replyts.user_behaviour.responsiveness.model.ResponsivenessRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -14,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
 @Component
+@ConditionalOnBean(UserResponsivenessListener.class)
 public class ResponsivenessKafkaProducer {
 
     @Value("${queue.kafka.endpoint:localhost:9092}")

@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import org.joda.time.DateTime;
 import org.joda.time.Seconds;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -19,6 +20,7 @@ import java.util.ListIterator;
  * For details, see https://ecgwiki.corp.ebay.com/x/ehn-Bw (page id 134158714)
  */
 @Component
+@ConditionalOnBean(UserResponsivenessListener.class)
 public class ResponsivenessCalculator {
     static final int VERSION = 1; // Format version. We may add/change fields in the future.
 
