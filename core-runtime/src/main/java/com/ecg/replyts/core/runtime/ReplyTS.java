@@ -19,13 +19,15 @@ import org.springframework.context.annotation.*;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
+import uk.org.lidalia.sysoutslf4j.context.SysOutOverSLF4J;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.APPLICATION;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.REVISION;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
@@ -91,6 +93,8 @@ public class ReplyTS {
     }
 
     public static void main(String[] args) throws Exception {
+        SysOutOverSLF4J.sendSystemOutAndErrToSLF4J();
+
         setLoggerContextProperties();
 
         try {

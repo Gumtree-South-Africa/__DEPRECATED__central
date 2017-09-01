@@ -174,6 +174,7 @@ public class EmbeddedWebserver {
             throw new IllegalStateException("This EmbeddedWebserver already has a request-logging handler associated with it");
         }
         RequestLogImpl logger = new RequestLogImpl();
+        logger.setQuiet(true);
 
         LoggerContext loggerContext = (LoggerContext)LoggerFactory.getILoggerFactory();
         loggerContext.getCopyOfPropertyMap().forEach(logger::putProperty);

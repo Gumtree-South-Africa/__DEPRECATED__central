@@ -1,11 +1,11 @@
 <configuration scan="true" scanPeriod="30 seconds">
-    <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="STDERR" class="com.ecg.replyts.core.runtime.logging.FileDescriptorAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <fieldNames>
                 <levelValue>[ignore]</levelValue>
             </fieldNames>
         </encoder>
-        <target>System.err</target>
+        <target>FileDescriptor.err</target>
     </appender>
 
     <root level="INFO">
