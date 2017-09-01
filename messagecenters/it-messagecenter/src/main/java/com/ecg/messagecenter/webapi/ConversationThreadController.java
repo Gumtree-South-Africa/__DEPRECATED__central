@@ -147,7 +147,7 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
         ConversationThread updatedConversation = null;
         for (ConversationThread item : postBox.getConversationThreads()) {
             if (item.getConversationId().equals(conversationId) && item.isContainsUnreadMessages()) {
-                new ConversationThread(item.getAdId(),
+                updatedConversation = new ConversationThread(item.getAdId(),
                         item.getConversationId(),
                         item.getCreatedAt(),
                         now(),
