@@ -12,10 +12,13 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
 
 @Component
 class ExistingConversationLoader {
@@ -40,7 +43,7 @@ class ExistingConversationLoader {
         MutableConversation conversation = receiver.get().getConversation();
         context.setConversation(conversation);
         context.setMessageDirection(MessageDirection.getWithToRole(receiverRole));
-
+        MDC.put(CONVERSATION_ID, conversation.getId());
         LOG.debug("Receiver {} belongs to Conversation {}. Receiver is {}", context.getOriginalTo(), receiver.get().getConversation().getId(), receiverRole);
     }
 }
