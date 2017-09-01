@@ -71,7 +71,8 @@ public class EmbeddedWebserver {
         ThreadPoolBuilder builder = new ThreadPoolBuilder()
                 .withMaxThreads(maxThreads)
                 .withInstrumentation(instrumented)
-                .withQueueSize(maxThreadQueueSize);
+                .withQueueSize(maxThreadQueueSize)
+                .withName(EmbeddedWebserver.class.getSimpleName());
 
         HttpServerFactory factory = new HttpServerFactory(httpPortNumber, httpTimeoutMs, builder, httpMaxAcceptRequestQueueSize,
                 httpBlockingTimeoutMs, threadStopTimeoutMs, solinger);

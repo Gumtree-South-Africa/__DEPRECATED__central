@@ -12,6 +12,7 @@ public class ThreadPoolBuilder {
     private int maxThreads;
     private int maxThreadQueueSize;
     private boolean instrumented;
+    private String name = "ThreadPool";
 
     /**
      * The maximum processing threads
@@ -34,6 +35,12 @@ public class ThreadPoolBuilder {
         return this;
     }
 
+    public ThreadPoolBuilder withName(String name)
+    {
+        this.name = name;
+        return this;
+    }
+
     /**
      * @return The thread pool configured with the given values.
      */
@@ -47,7 +54,7 @@ public class ThreadPoolBuilder {
         } else {
             threadPool = new QueuedThreadPool(maxThreads, MIN_THREADS_JETTY_DEFAULT, IDLE_TIMEOUT_JETTY_DEFAULT, queue);
         }
-        threadPool.setName("ThreadPool");
+        threadPool.setName(name);
         // allow stopping the thread after 10 seconds of idling
         threadPool.setIdleTimeout(10000);
         return threadPool;
