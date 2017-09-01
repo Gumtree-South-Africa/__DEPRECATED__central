@@ -15,7 +15,7 @@ import org.slf4j.MDC;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 
 public abstract class ConversationResumer {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationResumer.class);
@@ -35,6 +35,9 @@ public abstract class ConversationResumer {
 
         if (existingConversation.isPresent()) {
             MDC.put(CONVERSATION_ID, existingConversation.get().getId());
+            ConversationStartInfo info = new ConversationStartInfo(context);
+            MDC.put(MAIL_BUYER, info.buyer().getAddress());
+            MDC.put(MAIL_SELLER, info.seller().getAddress());
             context.setConversation((MutableConversation) existingConversation.get());
             context.setMessageDirection(direction);
 

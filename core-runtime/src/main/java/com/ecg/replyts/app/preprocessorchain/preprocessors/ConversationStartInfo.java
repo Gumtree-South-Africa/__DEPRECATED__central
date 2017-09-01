@@ -7,7 +7,7 @@ import com.google.common.base.Strings;
 
 import java.util.Map;
 
-class ConversationStartInfo {
+public class ConversationStartInfo {
     private final MessageProcessingContext context;
 
     public ConversationStartInfo(MessageProcessingContext context) {

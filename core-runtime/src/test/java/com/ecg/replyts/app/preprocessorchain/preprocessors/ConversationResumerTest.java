@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
@@ -75,6 +75,8 @@ public class ConversationResumerTest {
 
         assertThat(resumer.resumeExistingConversation(repo, context)).isTrue();
         assertThat(MDC.get(CONVERSATION_ID)).isEqualTo("convID");
+        assertThat(MDC.get(MAIL_BUYER)).isEqualTo("buyer@host.com");
+        assertThat(MDC.get(MAIL_SELLER)).isEqualTo("seller@host.com");
 
         verify(context).setConversation(conv);
         verify(context).setMessageDirection(MessageDirection.BUYER_TO_SELLER);

@@ -13,7 +13,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.MDC;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -73,5 +73,7 @@ public class NewConversationCreatorTest {
         assertThat(context.getConversation().getBuyerSecret()).isEqualTo("secretofbuyer");
         assertThat(context.getConversation().getSellerSecret()).isEqualTo("secretofseller");
         assertThat(MDC.get(CONVERSATION_ID)).isEqualTo("foobar@foobar");
+        assertThat(MDC.get(MAIL_BUYER)).isEqualTo("from@host.com");
+        assertThat(MDC.get(MAIL_SELLER)).isEqualTo("to@host.com");
     }
 }

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 
 @Component
 class ExistingConversationLoader {
@@ -41,6 +41,10 @@ class ExistingConversationLoader {
         }
         ConversationRole receiverRole = receiver.get().getRole();
         MutableConversation conversation = receiver.get().getConversation();
+        MDC.put(CONVERSATION_ID, conversation.getId());
+        ConversationStartInfo info = new ConversationStartInfo(context);
+        MDC.put(MAIL_BUYER, info.buyer().getAddress());
+        MDC.put(MAIL_SELLER, info.seller().getAddress());
         context.setConversation(conversation);
         context.setMessageDirection(MessageDirection.getWithToRole(receiverRole));
         MDC.put(CONVERSATION_ID, conversation.getId());

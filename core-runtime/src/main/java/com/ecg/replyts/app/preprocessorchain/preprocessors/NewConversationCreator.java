@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewConversationCommand;
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 
 /**
  * Set up a new conversation for an initial contact mail.
@@ -42,6 +42,8 @@ class NewConversationCreator {
 
         String newConversationId = guids.nextGuid();
         MDC.put(CONVERSATION_ID, newConversationId);
+        MDC.put(MAIL_BUYER, info.buyer().getAddress());
+        MDC.put(MAIL_SELLER, info.seller().getAddress());
 
         String buyerSecret = uniqueConversationSecret.nextSecret();
         String sellerSecret = uniqueConversationSecret.nextSecret();

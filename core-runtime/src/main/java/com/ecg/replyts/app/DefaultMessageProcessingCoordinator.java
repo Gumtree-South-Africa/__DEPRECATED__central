@@ -30,7 +30,6 @@ import java.util.List;
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static net.logstash.logback.argument.StructuredArguments.value;
 
 /**
  * Coordinates a message flowing through the system and is therefore the main entry point for a message running through
@@ -84,9 +83,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             }
 
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), guids.nextGuid());
-            MDC.put(MESSAGE_ID, context.getMessageId());
-            MDC.put(MAIL_FROM, context.getOriginalFrom().getAddress());
-            MDC.put(MAIL_TO, context.getOriginalTo().getAddress());
+            setMDC(context);
             LOG.info("Received Message {}", context.getMessageId());
 
             processingFlow.inputForPreProcessor(context);
@@ -103,6 +100,12 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             }
             return java.util.Optional.of(context.getMessageId());
         }
+    }
+
+    private void setMDC(MessageProcessingContext context) {
+        MDC.put(MESSAGE_ID, context.getMessageId());
+        MDC.put(MAIL_FROM, context.getOriginalFrom().getAddress());
+        MDC.put(MAIL_TO, context.getOriginalTo().getAddress());
     }
 
     private java.util.Optional<Mail> parseMail(byte[] incomingMailContents) {

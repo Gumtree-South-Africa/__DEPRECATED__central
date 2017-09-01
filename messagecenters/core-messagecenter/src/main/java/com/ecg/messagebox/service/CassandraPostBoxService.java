@@ -23,7 +23,7 @@ import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 import static org.joda.time.DateTime.now;
 
 @Component
@@ -191,6 +191,8 @@ public class CassandraPostBoxService implements PostBoxService {
 
                 String newConversationId = newConversationService.nextGuid();
                 MDC.put(CONVERSATION_ID, newConversationId);
+                MDC.put(MAIL_BUYER, buyer.get().getEmail());
+                MDC.put(MAIL_SELLER, seller.get().getEmail());
                 postBoxRepository.createEmptyConversationProjection(emptyConversationRequest, newConversationId, buyer.get().getUserId());
                 postBoxRepository.createEmptyConversationProjection(emptyConversationRequest, newConversationId, seller.get().getUserId());
 
