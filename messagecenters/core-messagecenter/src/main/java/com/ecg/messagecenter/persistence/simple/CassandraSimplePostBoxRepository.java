@@ -110,7 +110,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
                             newRepliesCount.addAndGet(unreadCount);
                         });
             });
-            LOG.debug("Found {} threads ({} unread) for PostBox with email {} in Cassandra", conversationThreads.size(), newRepliesCount, id.asString());
+            LOG.trace("Found {} threads ({} unread) for PostBox with email {} in Cassandra", conversationThreads.size(), newRepliesCount, id.asString());
 
             return new PostBox(id.asString(), Optional.of(newRepliesCount.get()), conversationThreads, maxAgeDays);
         }

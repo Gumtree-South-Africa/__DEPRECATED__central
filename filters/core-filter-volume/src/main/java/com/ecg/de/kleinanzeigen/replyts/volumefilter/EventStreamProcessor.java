@@ -98,12 +98,12 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
     private EsperWindowLifecycle createWindowLifeCycle(Window window) {
         String createWindow = format("create window %s.win:time(%d min) as select `%s` from `%s`",
                 window.getWindowName(), window.getQuota().getDurationMinutes(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
-        LOG.info(createWindow);
+        LOG.trace(createWindow);
         EPStatement createWindowStatement = epServiceProvider.getEPAdministrator().createEPL(createWindow);
 
-        String insertIntoWindow = format("insert into %s select `%s` from `%s`", window.getWindowName(),
-                VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
-        LOG.info(insertIntoWindow);
+        String insertIntoWindow = format("insert into %s select `%s` from `%s`",
+                window.getWindowName(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
+        LOG.trace(insertIntoWindow);
         EPStatement insertIntoWindowStatement = epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
 
         return new EsperWindowLifecycle(createWindowStatement, insertIntoWindowStatement);

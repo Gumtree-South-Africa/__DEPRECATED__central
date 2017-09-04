@@ -38,7 +38,6 @@ class VolumeFilter implements Filter {
         // Only the first VolumeFilter should notify the other Esper/Hazelcast nodes.
         Map<String, Object> filterContext = context.getFilterContext();
         if (!filterContext.containsKey(ESPER_ALREADY_NOTIFIED)) {
-            LOG.debug("Marking a messages '{}' sent by user '{}' as seen and publish to Hazelcast.", message.getId(), senderMail);
             sharedBrain.markSeen(senderMail);
             filterContext.put(ESPER_ALREADY_NOTIFIED, Boolean.TRUE);
         }
