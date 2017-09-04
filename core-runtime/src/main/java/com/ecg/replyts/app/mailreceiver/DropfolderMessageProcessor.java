@@ -74,8 +74,6 @@ public class DropfolderMessageProcessor implements MessageProcessor {
         this.mailDataDirectory = new File(dropfolder);
         this.failedDirectory = new File(mailDataDirectory, FAILED_DIRECTORY_NAME);
 
-        checkArgument(this.mailDataDirectory.isDirectory(), "%s is not a directory", mailDataDirectory);
-
         if (!failedDirectory.exists() && !failedDirectory.mkdirs()) {
             throw new IllegalStateException(format("Couldn't create '%s' directory", FAILED_DIRECTORY_NAME));
         }
