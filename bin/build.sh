@@ -62,7 +62,7 @@ else
     # If we are running on a builder environment then the certificates should have been installed in
     # /etc/ssl/certs/java/cacerts (mobile-ca-certificates doesn't support Oracle JDK)
 
-    MVN_ARGS="-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStorePassword=changeit $MVN_ARGS"
+    MVN_ARGS="-Djavax.net.ssl.trustStore=/etc/java-8-oracle/security/cacerts -Djavax.net.ssl.trustStorePassword=changeit $MVN_ARGS"
 fi
 
 function parseCmd() {
