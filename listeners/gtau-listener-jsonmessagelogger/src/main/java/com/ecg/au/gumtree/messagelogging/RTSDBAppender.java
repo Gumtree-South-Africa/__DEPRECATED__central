@@ -5,7 +5,6 @@ import ch.qos.logback.core.db.DBAppenderBase;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +12,7 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Optional;
 
 
 /**
@@ -117,6 +117,6 @@ public class RTSDBAppender extends DBAppenderBase<ILoggingEvent> {
     }
 
     private String asText(JsonNode node) {
-        return Optional.fromNullable(node).or(EMPTY_NODE).asText();
+        return Optional.ofNullable(node).orElse(EMPTY_NODE).asText();
     }
 }

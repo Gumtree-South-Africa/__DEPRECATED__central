@@ -2,7 +2,8 @@ package com.ecg.messagecenter.webapi.requests;
 
 import com.ecg.replyts.core.api.webapi.Method;
 import com.ecg.replyts.core.api.webapi.commands.TypedCommand;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
 
 public class MessageCenterBlockCommand implements TypedCommand {
 
@@ -28,6 +29,6 @@ public class MessageCenterBlockCommand implements TypedCommand {
 
     @Override
     public Optional<String> jsonPayload() {
-        return Optional.absent();
+        return Optional.empty();
     }
 }

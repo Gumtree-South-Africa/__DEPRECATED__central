@@ -1,14 +1,10 @@
 package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.ip2country;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 import java.util.Map;
+import java.util.Optional;
 
-/**
- * User: acharton
- * Date: 12/17/12
- */
 class Ip2CountryRules {
 
     private final int defaultScore;
@@ -21,7 +17,7 @@ class Ip2CountryRules {
 
     public int getScoreForCountry(String country) {
         Preconditions.checkNotNull(country);
-        Optional<Integer> scoreFromCountry = Optional.fromNullable(countryScores.get(country.toLowerCase()));
-        return scoreFromCountry.or(defaultScore);
+        Optional<Integer> scoreFromCountry = Optional.ofNullable(countryScores.get(country.toLowerCase()));
+        return scoreFromCountry.orElse(defaultScore);
     }
 }

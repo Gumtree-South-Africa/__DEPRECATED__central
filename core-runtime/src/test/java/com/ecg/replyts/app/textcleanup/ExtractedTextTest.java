@@ -2,21 +2,21 @@ package com.ecg.replyts.app.textcleanup;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Optional;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
-/**
- */
 @RunWith(MockitoJUnitRunner.class)
 public class ExtractedTextTest {
+
     @Mock
     private Conversation conversation;
 
@@ -40,7 +40,7 @@ public class ExtractedTextTest {
 
     @Test
     public void returnsFullMailBodyWhenNoPreviousMessageAvailable() {
-        when(finder.previousMessage(any(Message.class), any(Conversation.class))).thenReturn(Optional.<Message>absent());
+        when(finder.previousMessage(any(Message.class), any(Conversation.class))).thenReturn(Optional.empty());
         when(message1.getPlainTextBody()).thenReturn("the full plain text");
         assertEquals("the full plain text", text.in(conversation));
     }

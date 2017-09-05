@@ -2,7 +2,8 @@ package com.ecg.replyts.app.textcleanup;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
 
 /**
  * This class unpackIfGzipped a diff from a given message, base on give conversation to find previous message and diff them.

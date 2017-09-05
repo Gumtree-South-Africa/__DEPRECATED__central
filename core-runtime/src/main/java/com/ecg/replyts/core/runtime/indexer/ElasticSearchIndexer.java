@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-import static com.google.common.base.Optional.fromNullable;
 import static org.joda.time.DateTimeZone.UTC;
 
 class ElasticSearchIndexer implements Indexer {
@@ -82,7 +82,7 @@ class ElasticSearchIndexer implements Indexer {
         healthCheck.reportDelta(Status.OK, Message.shortInfo(startMsg));
 
         try {
-            DateTime dateFrom = fromNullable(indexerClockRepository.get()).or(indexStartPoint.startTimeForFullIndex());
+            DateTime dateFrom = Optional.ofNullable(indexerClockRepository.get()).orElse(indexStartPoint.startTimeForFullIndex());
 
             doIndexFromDate(dateFrom, IndexingMode.DELTA);
 

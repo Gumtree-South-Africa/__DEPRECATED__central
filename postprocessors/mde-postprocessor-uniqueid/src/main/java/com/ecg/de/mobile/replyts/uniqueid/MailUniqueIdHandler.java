@@ -2,15 +2,12 @@ package com.ecg.de.mobile.replyts.uniqueid;
 
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.Set;
 
-/**
- * User: beckart
- */
 class MailUniqueIdHandler {
     private static final Logger LOG = LoggerFactory.getLogger(MailUniqueIdHandler.class);
     public static final String X_MOBILEDE_BUYER_ID = "X-MOBILEDE-BUYER-ID";
@@ -29,7 +26,7 @@ class MailUniqueIdHandler {
 
     private boolean isSellerDealer() {
 
-        Optional<String> header = Optional.fromNullable(messageProcessingContext.getConversation().getCustomValues().get("seller_type"));
+        Optional<String> header = Optional.ofNullable(messageProcessingContext.getConversation().getCustomValues().get("seller_type"));
         return header.isPresent() && header.get().equals("DEALER");
     }
 

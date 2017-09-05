@@ -1,10 +1,10 @@
 package com.ecg.replyts.core.api.persistence;
 
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**

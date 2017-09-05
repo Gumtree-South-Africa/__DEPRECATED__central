@@ -24,7 +24,7 @@ public class MessageModeratedEvent extends ConversationEvent {
         this(command.getMessageId(),
                 command.getDecidedAt(),
                 command.getModerationAction().getModerationResultState(),
-                command.getModerationAction().getEditor().orNull());
+                command.getModerationAction().getEditor().orElse(null));
     }
 
     @JsonCreator

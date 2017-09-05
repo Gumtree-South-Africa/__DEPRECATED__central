@@ -9,7 +9,6 @@ import com.ecg.replyts.core.api.search.RtsSearchResponse.IDHolder;
 import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +16,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
+
+import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
@@ -69,20 +70,20 @@ public class MessageSenderTest {
     public void moderatesAllFoundMessagesToSent() {
         sender.work();
 
-        verify(moderationService).changeMessageState(conv1, "123a", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.<String>absent()));
-        verify(moderationService).changeMessageState(conv2, "123b", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.<String>absent()));
-        verify(moderationService).changeMessageState(conv3, "123c", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.<String>absent()));
+        verify(moderationService).changeMessageState(conv1, "123a", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
+        verify(moderationService).changeMessageState(conv2, "123b", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
+        verify(moderationService).changeMessageState(conv3, "123c", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
     }
 
     @Test
     public void moderatesOtherMessagesIfOneFails() {
-        doThrow(new RuntimeException()).when(moderationService).changeMessageState(conv1, "123a", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.<String>absent()));
+        doThrow(new RuntimeException()).when(moderationService).changeMessageState(conv1, "123a", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
 
         sender.work();
 
-        verify(moderationService).changeMessageState(conv1, "123a", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.<String>absent()));
-        verify(moderationService).changeMessageState(conv2, "123b", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.<String>absent()));
-        verify(moderationService).changeMessageState(conv3, "123c", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.<String>absent()));
+        verify(moderationService).changeMessageState(conv1, "123a", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
+        verify(moderationService).changeMessageState(conv2, "123b", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
+        verify(moderationService).changeMessageState(conv3, "123c", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
 
 
     }

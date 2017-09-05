@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.listener;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 /**
  * Called when mail is processed and ready to be published

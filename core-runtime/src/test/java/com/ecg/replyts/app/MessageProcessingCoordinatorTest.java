@@ -11,7 +11,6 @@ import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
-import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -107,7 +107,7 @@ public class MessageProcessingCoordinatorTest {
 
         coordinator.accept(is);
 
-        verify(persister).persistAndIndex(deadConversation, "1", "foo".getBytes(), Optional.absent(), Termination.unparseable(exception));
+        verify(persister).persistAndIndex(deadConversation, "1", "foo".getBytes(), Optional.empty(), Termination.unparseable(exception));
     }
 
     @Test
@@ -129,14 +129,14 @@ public class MessageProcessingCoordinatorTest {
     public void persistsUnassignableMailAsOrphaned() throws Exception {
         terminateWith(MessageState.ORPHANED, this, "orphaned", false);
         coordinator.accept(is);
-        verify(persister).persistAndIndex(deadConversation, "1", "foo".getBytes(), Optional.absent(), new Termination(MessageState.ORPHANED, MessageProcessingCoordinatorTest.class, "orphaned"));
+        verify(persister).persistAndIndex(deadConversation, "1", "foo".getBytes(), Optional.empty(), new Termination(MessageState.ORPHANED, MessageProcessingCoordinatorTest.class, "orphaned"));
     }
 
     @Test
     public void persistsTerminatedMail() throws Exception {
         terminateWith(MessageState.BLOCKED, this, "blocked", true);
         coordinator.accept(is);
-        verify(persister).persistAndIndex(conversation, "1", "foo".getBytes(), Optional.absent(), new Termination(MessageState.BLOCKED, MessageProcessingCoordinatorTest.class, "blocked"));
+        verify(persister).persistAndIndex(conversation, "1", "foo".getBytes(), Optional.empty(), new Termination(MessageState.BLOCKED, MessageProcessingCoordinatorTest.class, "blocked"));
     }
 
     @Test

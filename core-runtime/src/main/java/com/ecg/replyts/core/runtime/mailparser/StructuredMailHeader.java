@@ -1,7 +1,6 @@
 package com.ecg.replyts.core.runtime.mailparser;
 
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
@@ -25,6 +24,7 @@ import javax.mail.internet.InternetAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 class StructuredMailHeader {
 
@@ -93,11 +93,11 @@ class StructuredMailHeader {
         String decodedName = HEADER_DECODER.normalizeHeaderName(name);
         return containsHeader(decodedName) ?
                 ImmutableList.copyOf(decodedNormalizedHeaders.get(decodedName))
-                : Collections.<String>emptyList();
+                : Collections.emptyList();
     }
 
     public Map<String, List<String>> all() {
-        ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.<String, List<String>>builder();
+        ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
         for (String key : decodedNormalizedHeaders.keySet()) {
             builder.put(key, ImmutableList.copyOf(decodedNormalizedHeaders.get(key)));
         }
@@ -105,7 +105,7 @@ class StructuredMailHeader {
     }
 
     public Map<String, String> unique() {
-        ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder();
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
         for (String key : decodedNormalizedHeaders.keySet()) {
             builder.put(key, decodedNormalizedHeaders.get(key).iterator().next());
         }
@@ -122,7 +122,7 @@ class StructuredMailHeader {
     Optional<InternetAddress> getHeaderAsInternetAddress(String headername) {
         Field field = mail.getHeader().getField(headername);
         if (field == null) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         String fieldBody = field.getBody();
@@ -140,7 +140,7 @@ class StructuredMailHeader {
 
         if (lastOpenBracket >= nextClosedBracket) {
             LOG.warn("Could not parse mail address '" + fieldBody + "'", originalException);
-            return Optional.absent();
+            return Optional.empty();
         }
 
         String stringBetweenBrackets = fieldBody.substring(lastOpenBracket + 1, nextClosedBracket);
@@ -148,12 +148,12 @@ class StructuredMailHeader {
             return Optional.of(new InternetAddress(stringBetweenBrackets));
         } catch (AddressException e) {
             LOG.warn("Could not parse mail address '" + fieldBody + "'", e);
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 
     public List<String> getMailAddressesFromHeader(String fieldName) {
-        Builder<String> resultBuilder = ImmutableList.<String>builder();
+        Builder<String> resultBuilder = ImmutableList.builder();
         AddressList addressList = AddressListFieldImpl.PARSER.parse(mail.getHeader().getField(fieldName), new DecodeMonitor()).getAddressList();
         for (Address address : addressList) {
             if (address instanceof Mailbox) {

@@ -9,7 +9,6 @@ import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.eclipse.jetty.server.Server;
@@ -27,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
 
@@ -214,7 +214,7 @@ public class FilterServiceIntegrationTest {
         private static String jsonResponse = "";
 
         public static void reset() {
-            contactMessage = Optional.absent();
+            contactMessage = Optional.empty();
             jsonResponse = "";
         }
         

@@ -5,19 +5,15 @@ import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 
-/**
- * User: acharton
- * Date: 12/17/12
- */
 class Ip2CountryFilter implements Filter {
 
     private final Logger LOG = LoggerFactory.getLogger(Ip2CountryFilter.class);
@@ -46,7 +42,7 @@ class Ip2CountryFilter implements Filter {
 
         LOG.debug("Finding country for IP Address {}", ipStr.get());
         Optional<String> resolveCountryCode = resolver.resolve(ipStr.get());
-        LOG.debug("IP {} is from country {}", ipStr.get(), resolveCountryCode.or("UNRESOLVABLE"));
+        LOG.debug("IP {} is from country {}", ipStr.get(), resolveCountryCode.orElse("UNRESOLVABLE"));
         if(!resolveCountryCode.isPresent())
             return emptyList();
 
@@ -55,7 +51,7 @@ class Ip2CountryFilter implements Filter {
             return emptyList();
 
 
-        return ImmutableList.<FilterFeedback>of(
+        return ImmutableList.of(
                 new FilterFeedback(
                         resolveCountryCode.get(),
                         "Mail from country: " + resolveCountryCode.get(),

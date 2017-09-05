@@ -20,12 +20,10 @@ import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
 import com.ecg.replyts.core.runtime.cluster.Guids;
-import com.ecg.replyts.core.runtime.listener.ConversationEventListener;
 import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import com.ecg.replyts.core.runtime.mailparser.StructuredMail;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import net.sf.json.JSONSerializer;
@@ -43,10 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
 
@@ -82,7 +77,7 @@ public class RobotService {
     private HeldMailRepository heldMailRepository;
 
     public void addMessageToConversation(String conversationId, MessagePayload payload) throws IOException, MimeException {
-        Optional<MutableConversation> conversation = Optional.fromNullable(conversationRepository.getById(conversationId));
+        Optional<MutableConversation> conversation = Optional.ofNullable(conversationRepository.getById(conversationId));
         // We don't want to send any message to invalid or inactive conversations
         if (!conversation.isPresent() || !ConversationState.ACTIVE.equals(conversation.get().getState())) {
             throw new ConversationNotFoundException("Conversation " + conversationId + " not found.");
@@ -171,10 +166,10 @@ public class RobotService {
 
         // TODO Review - Do we need to store attachments here
         if (mailRepository != null) {
-            mailRepository.persistMail(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)), Optional.<byte[]>absent());
+            mailRepository.persistMail(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)), Optional.empty());
         }
         if (mailPublisher != null) {
-            mailPublisher.publishMail(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)), Optional.<byte[]>absent());
+            mailPublisher.publishMail(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)), Optional.empty());
         }
         if (heldMailRepository != null) {
             heldMailRepository.write(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)));
@@ -182,7 +177,7 @@ public class RobotService {
 
         LOGGER.debug("Done persisting message " + messageId + ".");
 
-        moderationService.changeMessageState(conversation, messageId, new ModerationAction(ModerationResultState.GOOD, Optional.<String>absent()));
+        moderationService.changeMessageState(conversation, messageId, new ModerationAction(ModerationResultState.GOOD, Optional.empty()));
 
         LOGGER.debug("Done changing message state of " + messageId + " to GOOD.");
     }

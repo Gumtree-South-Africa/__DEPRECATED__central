@@ -3,16 +3,9 @@ package com.ecg.replyts.core.api.webapi.commands;
 
 import com.ecg.replyts.core.api.webapi.Method;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
-import com.google.common.base.Optional;
 
-import static com.google.common.base.Optional.absent;
+import java.util.Optional;
 
-/**
- * Webservice Method Reference to Retrieve a complete Mail (identified by it's associated Message Id) in it's raw form
- * for download.
- *
- * @author huttar
- */
 public class GetRawMailCommand implements TypedCommand {
 
     public static final String MAPPING = "/mail/{messageId}/{mailType}";
@@ -38,7 +31,7 @@ public class GetRawMailCommand implements TypedCommand {
 
     @Override
     public Optional<String> jsonPayload() {
-        return absent();
+        return Optional.empty();
     }
 
 

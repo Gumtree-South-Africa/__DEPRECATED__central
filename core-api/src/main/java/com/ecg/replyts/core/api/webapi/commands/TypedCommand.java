@@ -1,7 +1,8 @@
 package com.ecg.replyts.core.api.webapi.commands;
 
 import com.ecg.replyts.core.api.webapi.Method;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
 
 /**
  * Describes a call to one of ReplyTS webservices.

@@ -4,7 +4,6 @@ import com.codahale.metrics.Gauge;
 import com.ecg.replyts.core.api.cron.CronJobExecutor;
 import com.ecg.replyts.core.api.sanitychecks.Check;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.base.Optional;
 import com.hazelcast.core.HazelcastInstance;
 
 import java.util.*;
@@ -58,7 +57,7 @@ class MonitoringSupport {
 
     void success(Class<? extends CronJobExecutor> type) {
 
-        completed(type, Optional.<Exception>absent());
+        completed(type, Optional.empty());
     }
 
     void failure(Class<? extends CronJobExecutor> type, Exception e) {
@@ -68,7 +67,7 @@ class MonitoringSupport {
     private void completed(Class<? extends CronJobExecutor> type, Optional<Exception> e) {
         DistributedCronCheck check = checks.get(type);
         check.setRunning(false);
-        check.setState(new Date(), e.orNull());
+        check.setState(new Date(), e.orElse(null));
     }
 
 }

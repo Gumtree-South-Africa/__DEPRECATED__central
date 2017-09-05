@@ -2,16 +2,9 @@ package com.ecg.replyts.core.api.webapi.commands;
 
 
 import com.ecg.replyts.core.api.webapi.Method;
-import com.google.common.base.Optional;
 
-import static com.google.common.base.Optional.absent;
+import java.util.Optional;
 
-/**
- * Webservice Method Reference to Retrieve a complete Mail (identified by it's associated Message Id) in it's raw form
- * for download.
- *
- * @author huttar
- */
 public class GetConversationCommand implements TypedCommand {
 
     public static final String MAPPING = "/conversation/{conversationId}";
@@ -35,7 +28,7 @@ public class GetConversationCommand implements TypedCommand {
 
     @Override
     public Optional<String> jsonPayload() {
-        return absent();
+        return Optional.empty();
     }
 
 }

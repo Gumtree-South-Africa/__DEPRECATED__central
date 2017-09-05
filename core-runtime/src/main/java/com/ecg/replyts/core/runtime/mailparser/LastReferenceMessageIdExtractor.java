@@ -1,10 +1,10 @@
 package com.ecg.replyts.core.runtime.mailparser;
 
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,6 +33,6 @@ class LastReferenceMessageIdExtractor {
                         " for mail " + m.getMessageId());
             }
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 }

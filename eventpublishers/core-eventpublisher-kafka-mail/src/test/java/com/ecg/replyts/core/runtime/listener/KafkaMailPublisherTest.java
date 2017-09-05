@@ -19,9 +19,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static com.ecg.replyts.core.runtime.persistence.mail.StoredMail.extract;
-import static com.google.common.base.Optional.of;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
@@ -46,15 +44,15 @@ public class KafkaMailPublisherTest {
         byte[] data1 = new byte[]{0x01, 0x00, 0x00};
         byte[] data2 = new byte[]{0x02, 0x00, 0x00};
 
-        mailPublisher.publishMail("key1", data1, of(data2));
+        mailPublisher.publishMail("key1", data1, Optional.of(data2));
         verify(producer).send(producedMessagesCaptor.capture());
         KeyedMessage<String, byte[]> m = producedMessagesCaptor.getValue();
         assertThat(m.topic(), is("test.core.mail"));
         assertThat(m.partitionKey(), is("key1"));
-        assertEqualZipEntries(uncompress(m.message()), uncompress(new StoredMail(data1, of(data2)).compress()));
+        assertEqualZipEntries(uncompress(m.message()), uncompress(new StoredMail(data1, Optional.of(data2)).compress()));
         StoredMail sm = extract(m.message());
         assertThat(sm.getInboundContents(), is(data1));
-        assertThat(sm.getOutboundContents().orNull(), is(data2));
+        assertThat(sm.getOutboundContents().orElse(null), is(data2));
     }
 
     private static void assertEqualZipEntries(Map<String, byte[]> actual, Map<String, byte[]> expected) {

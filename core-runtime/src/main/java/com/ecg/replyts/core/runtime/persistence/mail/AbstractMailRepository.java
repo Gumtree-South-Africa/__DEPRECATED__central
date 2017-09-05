@@ -18,7 +18,7 @@ import static com.ecg.replyts.core.runtime.persistence.mail.StoredMail.extract;
 public abstract class AbstractMailRepository implements MailRepository {
 
     @Override
-    public void persistMail(String messageId, byte[] mailData, com.google.common.base.Optional<byte[]> outgoingMailData) {
+    public void persistMail(String messageId, byte[] mailData, Optional<byte[]> outgoingMailData) {
         this.doPersist(messageId, new StoredMail(mailData, outgoingMailData).compress());
     }
 
@@ -35,8 +35,9 @@ public abstract class AbstractMailRepository implements MailRepository {
 
     @Override
     public byte[] readOutboundMail(String messageId) {
+
         return this.doLoad(messageId)
-                .map(mailData -> extract(mailData).getOutboundContents().orNull())
+                .map(mailData -> extract(mailData).getOutboundContents().orElse(null))
                 .orElse(null);
     }
 

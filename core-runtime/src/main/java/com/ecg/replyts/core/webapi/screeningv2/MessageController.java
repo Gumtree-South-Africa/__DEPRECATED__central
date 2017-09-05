@@ -17,7 +17,6 @@ import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.MessageRts;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
-import com.google.common.base.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -78,9 +78,7 @@ public class MessageController {
             return ResponseObject.of(RequestState.ENTITY_OUTDATED, String.format("The state of the message with id %s has already changed", messageId));
         }
 
-        Optional<String> editor = Optional.fromNullable(mmc.getEditor());
-
-        moderationService.changeMessageState(conversation, messageId, new ModerationAction(newState, editor));
+        moderationService.changeMessageState(conversation, messageId, new ModerationAction(newState, Optional.ofNullable(mmc.getEditor())));
 
         return ResponseObject.success("Set message state to " + newState);
     }

@@ -2,11 +2,11 @@ package com.ecg.replyts.app.textcleanup;
 
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Extracts the text that is added by this message, compared to the

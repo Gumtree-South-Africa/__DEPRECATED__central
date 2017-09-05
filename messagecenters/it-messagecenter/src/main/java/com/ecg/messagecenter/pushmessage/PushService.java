@@ -1,12 +1,8 @@
 package com.ecg.messagecenter.pushmessage;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 
-/**
- * @author mdarapour
- */
 public abstract class PushService {
-    public static final String PUSH_DELIVERY_CHANNEL = "push";
 
     public abstract Result sendPushMessage(final PushMessagePayload payload);
 
@@ -15,7 +11,6 @@ public abstract class PushService {
         public enum Status {
             OK, NOT_FOUND, ERROR
         }
-
 
         private PushMessagePayload payload;
         private KmobilePushService.Result.Status status;
@@ -28,15 +23,12 @@ public abstract class PushService {
             this.e = e;
         }
 
-
         public static Result ok(PushMessagePayload payload) {
-            return new Result(payload, KmobilePushService.Result.Status.OK,
-                            Optional.<Exception>absent());
+            return new Result(payload, KmobilePushService.Result.Status.OK, Optional.empty());
         }
 
         public static Result notFound(PushMessagePayload payload) {
-            return new Result(payload, KmobilePushService.Result.Status.NOT_FOUND,
-                            Optional.<Exception>absent());
+            return new Result(payload, KmobilePushService.Result.Status.NOT_FOUND, Optional.empty());
         }
 
         public static Result error(PushMessagePayload payload, Exception e) {

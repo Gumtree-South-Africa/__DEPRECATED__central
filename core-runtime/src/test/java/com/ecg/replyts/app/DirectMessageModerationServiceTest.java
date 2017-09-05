@@ -12,7 +12,6 @@ import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
-import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +22,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
@@ -77,7 +77,7 @@ public class DirectMessageModerationServiceTest {
 
     @Test
     public void moderateSendable() {
-        mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.GOOD, Optional.<String>absent()));
+        mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.GOOD, Optional.empty()));
 
         verify(flow).inputForPostProcessor(any(MessageProcessingContext.class));
         verify(mailRepository).persistMail(eq("1"), any(byte[].class), any(Optional.class));
@@ -87,7 +87,7 @@ public class DirectMessageModerationServiceTest {
 
     @Test
     public void updatesMailAndIndexOnNotSendable() {
-        mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.BAD, Optional.<String>absent()));
+        mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.BAD, Optional.empty()));
 
         verify(c).commit(conversationRepository, conversationEventListeners);
         verify(searchIndexer).updateSearchAsync(Arrays.<Conversation>asList(c));
@@ -96,12 +96,12 @@ public class DirectMessageModerationServiceTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void rejectIllegalState() {
-        mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.UNCHECKED, Optional.<String>absent()));
+        mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.UNCHECKED, Optional.empty()));
     }
 
     @Test
     public void informsListenersAfterCompletion() {
-        mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.BAD, Optional.<String>absent()));
+        mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.BAD, Optional.empty()));
         verify(listener).messageProcessed(c, m);
     }
 }

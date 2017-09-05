@@ -3,9 +3,9 @@ package com.ecg.messagecenter.webapi.requests;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.core.api.webapi.Method;
 import com.ecg.replyts.core.api.webapi.commands.TypedCommand;
-import com.google.common.base.Optional;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

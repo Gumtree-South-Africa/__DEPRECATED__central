@@ -1,11 +1,12 @@
 package com.ecg.replyts.app.textcleanup;
 
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.google.common.base.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -27,7 +28,7 @@ public class EmailAddedTextExtractorTest {
     public void newMessageResultsInEntireText() {
         when(message.getPlainTextBody()).thenReturn("message text");
 
-        assertEquals("message text", EmailAddedTextExtractor.getNewText(message).in(Optional.<Message>absent()));
+        assertEquals("message text", EmailAddedTextExtractor.getNewText(message).in(Optional.empty()));
     }
 
     @Test

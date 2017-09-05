@@ -8,7 +8,6 @@ import com.ebay.ecg.replyts.robot.api.requests.payload.MessagePayload;
 import com.ebay.ecg.replyts.robot.api.requests.payload.MessageSender;
 import com.ebay.ecg.replyts.robot.service.RobotService;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.base.Optional;
 import com.google.protobuf.GeneratedMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +16,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-/**
- * Created by nmao on 11/01/2016.
- */
 @Component
 public class RabbitMQConsumer implements EventHandler {
 
@@ -86,7 +83,7 @@ public class RabbitMQConsumer implements EventHandler {
         messageSender.setName(senderEntity.getName());
 
         List<Entities.MessageSenderIcon> icons =
-                Optional.fromNullable(senderEntity.getIconList()).or(Collections.<Entities.MessageSenderIcon>emptyList());
+                Optional.ofNullable(senderEntity.getIconList()).orElse(Collections.emptyList());
         for (Entities.MessageSenderIcon icon : icons) {
             messageSender.addSenderIcon(icon.getName(), icon.getSource());
         }

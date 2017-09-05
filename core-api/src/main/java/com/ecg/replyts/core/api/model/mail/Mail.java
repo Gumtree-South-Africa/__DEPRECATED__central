@@ -1,6 +1,5 @@
 package com.ecg.replyts.core.api.model.mail;
 
-import com.google.common.base.Optional;
 import com.google.common.net.MediaType;
 
 import java.io.IOException;
@@ -8,6 +7,7 @@ import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface Mail {
     /**

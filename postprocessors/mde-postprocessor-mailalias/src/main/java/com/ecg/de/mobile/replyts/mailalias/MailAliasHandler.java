@@ -2,12 +2,12 @@ package com.ecg.de.mobile.replyts.mailalias;
 
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 
 /**
  * User: beckart
@@ -26,7 +26,7 @@ class MailAliasHandler {
 
     public void handle() {
         try {
-            Optional<String> aliasName = Optional.fromNullable(messageProcessingContext.getMail().getFromName());
+            Optional<String> aliasName = Optional.ofNullable(messageProcessingContext.getMail().getFromName());
 
             if (aliasName.isPresent()) {
                 String senderMail = messageProcessingContext.getOutgoingMail().getFrom();

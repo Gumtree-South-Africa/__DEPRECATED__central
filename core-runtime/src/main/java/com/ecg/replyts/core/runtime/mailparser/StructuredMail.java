@@ -5,7 +5,6 @@ import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.runtime.mailfixers.ContentTransferEncodingMultipartFix;
 import com.ecg.replyts.core.runtime.mailfixers.ContentTypeBoundaryFix;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.net.MediaType;
 import org.apache.james.mime4j.dom.Entity;
@@ -20,9 +19,9 @@ import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.ecg.replyts.core.runtime.mailparser.MimeHelper.*;
-import static com.google.common.base.Optional.fromNullable;
 import static java.lang.String.format;
 
 /**
@@ -189,8 +188,8 @@ public class StructuredMail implements Mail {
 
     @Override
     public MediaType getMainContentType() {
-        Optional<String> header = fromNullable(getUniqueHeader("Content-Type"));
-        String filteredHeader = header.or("text/plain").trim();
+        Optional<String> header = Optional.ofNullable(getUniqueHeader("Content-Type"));
+        String filteredHeader = header.orElse("text/plain").trim();
 
         // some mail clients will have a semicolon at the end of the mediatype. this violates against the
         // media type format and causes MediaType.parse to crash

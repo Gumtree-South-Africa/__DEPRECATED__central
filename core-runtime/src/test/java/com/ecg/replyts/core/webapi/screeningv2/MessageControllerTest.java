@@ -17,7 +17,6 @@ import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
@@ -29,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -72,7 +72,7 @@ public class MessageControllerTest {
         positiveModeration.setNewMessageState(ModerationResultState.GOOD);
 
         conversation = DefaultMutableConversation.create(new NewConversationCommand(
-                CONVERSATION_ID, AD_ID, BUYER_ID, SELLER_ID, BUYER_SECRET, SELLER_SECRET, now, ConversationState.ACTIVE, new HashMap<String, String>()
+                CONVERSATION_ID, AD_ID, BUYER_ID, SELLER_ID, BUYER_SECRET, SELLER_SECRET, now, ConversationState.ACTIVE, new HashMap<>()
         ));
     }
 
@@ -99,7 +99,7 @@ public class MessageControllerTest {
         when(conversationRepository.getById(CONVERSATION_ID)).thenReturn(conversation);
         conversation.applyCommand(new AddMessageCommand(
                 CONVERSATION_ID, MESSAGE_ID, MessageState.HELD, MessageDirection.BUYER_TO_SELLER,
-                now, "", "", ImmutableMap.<String, String>of(), ImmutableList.of(), ImmutableList.of()));
+                now, "", "", ImmutableMap.of(), ImmutableList.of(), ImmutableList.of()));
 
         ModerateMessagePayload timedOutMessage = new ModerateMessagePayload();
         timedOutMessage.setEditor(EDITOR_NAME);
@@ -114,11 +114,11 @@ public class MessageControllerTest {
 
         conversation.applyCommand(new AddMessageCommand(
                 CONVERSATION_ID, MESSAGE_ID, MessageState.HELD, MessageDirection.BUYER_TO_SELLER,
-                now, "", "", ImmutableMap.<String, String>of(), ImmutableList.of(), ImmutableList.of()));
+                now, "", "", ImmutableMap.of(), ImmutableList.of(), ImmutableList.of()));
 
         ResponseObject<?> responseObject = messageController.changeMessageState(CONVERSATION_ID, MESSAGE_ID, positiveModeration);
 
-        verify(moderationService).changeMessageState(conversation, MESSAGE_ID, new ModerationAction(ModerationResultState.GOOD, Optional.fromNullable(EDITOR_NAME)));
+        verify(moderationService).changeMessageState(conversation, MESSAGE_ID, new ModerationAction(ModerationResultState.GOOD, Optional.ofNullable(EDITOR_NAME)));
 
         assertThat(responseObject.getStatus().getState(), equalTo(RequestState.SUCCESS));
     }
@@ -137,7 +137,7 @@ public class MessageControllerTest {
                 CONVERSATION_ID, MESSAGE_ID, MessageState.HELD, MessageDirection.BUYER_TO_SELLER,
                 now, "", "", ImmutableMap.of(), ImmutableList.of(), ImmutableList.of()));
         conversation.applyCommand(
-                new MessageModeratedCommand(CONVERSATION_ID, MESSAGE_ID, now, new ModerationAction(ModerationResultState.BAD, Optional.fromNullable(EDITOR_NAME)))
+                new MessageModeratedCommand(CONVERSATION_ID, MESSAGE_ID, now, new ModerationAction(ModerationResultState.BAD, Optional.ofNullable(EDITOR_NAME)))
         );
 
         ResponseObject<?> response = messageController.changeMessageState(CONVERSATION_ID, MESSAGE_ID, moderationCommandWithOldState);

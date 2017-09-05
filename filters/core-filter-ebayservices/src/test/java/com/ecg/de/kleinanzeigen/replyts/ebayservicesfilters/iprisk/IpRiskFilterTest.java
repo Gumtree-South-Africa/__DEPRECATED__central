@@ -6,7 +6,6 @@ import com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.IpAddressExtractor;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import de.mobile.ebay.service.IpRatingService;
 import de.mobile.ebay.service.ServiceException;
@@ -17,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
+import java.util.Optional;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
@@ -24,10 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
-/**
- * User: acharton
- * Date: 12/18/12
- */
 @RunWith(MockitoJUnitRunner.class)
 public class IpRiskFilterTest {
 
@@ -73,7 +69,7 @@ public class IpRiskFilterTest {
 
     @Test
     public void ignoreIfNoIp() throws Exception {
-        when(iae.retrieveIpAddress(mpc)).thenReturn(Optional.<String>absent());
+        when(iae.retrieveIpAddress(mpc)).thenReturn(Optional.empty());
 
         assertTrue(feedback().isEmpty());
     }

@@ -2,11 +2,9 @@ package com.ecg.messagecenter.webapi.requests;
 
 import com.ecg.replyts.core.api.webapi.Method;
 import com.ecg.replyts.core.api.webapi.commands.TypedCommand;
-import com.google.common.base.Optional;
 
-/**
- * @author elvalencia
- */
+import java.util.Optional;
+
 public class MessageCenterGetAdConversationRecipientsCommand implements TypedCommand {
 
     public static final String MAPPING = "/postboxes/{urlEncodedSellerEmail}/ad/{adId}/buyeremails";
@@ -31,6 +29,6 @@ public class MessageCenterGetAdConversationRecipientsCommand implements TypedCom
 
     @Override
     public Optional<String> jsonPayload() {
-        return Optional.absent();
+        return Optional.empty();
     }
 }

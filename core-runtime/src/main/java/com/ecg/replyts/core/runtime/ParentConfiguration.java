@@ -1,8 +1,6 @@
 package com.ecg.replyts.core.runtime;
 
 import com.google.common.collect.ImmutableMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +17,6 @@ import static com.ecg.replyts.core.runtime.logging.MDCConstants.TENANT;
 @PropertySource(name = ParentConfiguration.CONF_DIR_PROPERTY_SOURCE, value = "file:${confDir}/replyts.properties")
 @Import(CloudDiscoveryConfiguration.class)
 public class ParentConfiguration {
-    private static final Logger LOG = LoggerFactory.getLogger(ParentConfiguration.class);
 
     static final String CONF_DIR_PROPERTY_SOURCE = "confDirProperties";
 

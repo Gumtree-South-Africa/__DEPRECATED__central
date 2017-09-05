@@ -1,7 +1,5 @@
 package com.ecg.replyts.core.runtime.persistence.mail;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.nothome.delta.Delta;
@@ -13,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -64,7 +63,7 @@ public class StoredMail {
                 }
             }
 
-            return new StoredMail(inbound, Optional.fromNullable(outbound));
+            return new StoredMail(inbound, Optional.ofNullable(outbound));
 
         } catch (IOException e) {
             throw new RuntimeException(e);

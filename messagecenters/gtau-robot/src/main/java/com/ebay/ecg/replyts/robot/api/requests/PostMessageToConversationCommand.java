@@ -2,7 +2,8 @@ package com.ebay.ecg.replyts.robot.api.requests;
 
 import com.ecg.replyts.core.api.webapi.Method;
 import com.ecg.replyts.core.api.webapi.commands.TypedCommand;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
 
 /**
  * @author mdarapour
@@ -29,6 +30,6 @@ public class PostMessageToConversationCommand implements TypedCommand {
 
     @Override
     public Optional<String> jsonPayload() {
-        return Optional.absent();
+        return Optional.empty();
     }
 }

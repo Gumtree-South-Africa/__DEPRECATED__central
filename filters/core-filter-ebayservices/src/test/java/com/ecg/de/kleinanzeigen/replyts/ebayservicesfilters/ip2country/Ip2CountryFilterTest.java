@@ -4,7 +4,6 @@ import com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.IpAddressExtractor;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,17 +11,13 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
-
-/**
- * User: acharton
- * Date: 12/17/12
- */
 
 @RunWith(MockitoJUnitRunner.class)
 public class Ip2CountryFilterTest {
@@ -62,14 +57,14 @@ public class Ip2CountryFilterTest {
 
     @Test
     public void ignoreByIpResolver() throws Exception {
-        when(resolver.resolve(anyString())).thenReturn(Optional.<String>absent());
+        when(resolver.resolve(anyString())).thenReturn(Optional.empty());
 
         assertTrue(ip2CountryFilter.filter(messageProcessingContext).isEmpty());
     }
 
     @Test
     public void ignoreWhenIpNotExtractable() throws Exception {
-        when(extractor.retrieveIpAddress(messageProcessingContext)).thenReturn(Optional.<String>absent());
+        when(extractor.retrieveIpAddress(messageProcessingContext)).thenReturn(Optional.empty());
 
         assertTrue(ip2CountryFilter.filter(messageProcessingContext).isEmpty());
     }

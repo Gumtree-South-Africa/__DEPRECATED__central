@@ -3,11 +3,9 @@ package com.ecg.de.kleinanzeigen.ruleperformance;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Optional;
 
-/**
- * @author mhuttar
- */
+import java.util.Optional;
+
 class PerformanceLogLine {
 
     public static final char SEPERATOR = '\t';
@@ -24,7 +22,7 @@ class PerformanceLogLine {
                 .append(SEPERATOR)
                 .append(pf.getScore())
                 .append(SEPERATOR)
-                .append(Optional.fromNullable(pf.getResultState()).or(FilterResultState.OK))
+                .append(Optional.ofNullable(pf.getResultState()).orElse(FilterResultState.OK))
                 .append(SEPERATOR)
                 .append(filterUiHint(pf));
 

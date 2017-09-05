@@ -187,7 +187,7 @@ public class CronJobService implements CheckProvider {
             cronJobExecutor.execute();
             timing.stop();
             monitoringSupport.success(type);
-            LOG.info("Cron Job {} completed in {}", jobType, timing.toString());
+            LOG.info("Cron Job {} completed in {}", type, timing);
         } catch (Exception e) {
             LOG.error("Cron Job aborted Abnormally: " + jobType, e);
             monitoringSupport.failure(type, e);

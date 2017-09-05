@@ -14,10 +14,6 @@ import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
-/**
- * User: acharton
- * Date: 12/17/12
- */
 @RunWith(MockitoJUnitRunner.class)
 public class Ip2CountryResolverTest {
 

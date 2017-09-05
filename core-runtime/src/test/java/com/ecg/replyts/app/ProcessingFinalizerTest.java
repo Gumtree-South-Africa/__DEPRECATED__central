@@ -10,7 +10,6 @@ import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
-import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +22,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -69,7 +69,7 @@ public class ProcessingFinalizerTest {
 
     @Test
     public void alwaysTerminatesMessageWhenCompleted() {
-        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.absent(), termination);
+        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.empty(), termination);
         verify(conv).applyCommand(any(MessageTerminatedCommand.class));
     }
 

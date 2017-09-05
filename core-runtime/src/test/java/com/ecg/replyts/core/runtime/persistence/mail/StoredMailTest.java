@@ -1,7 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.mail;
 
 import com.ecg.replyts.core.runtime.persistence.GZip;
-import com.google.common.base.Optional;
 import com.google.common.io.Files;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Ignore;
@@ -11,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 
@@ -23,7 +23,7 @@ public class StoredMailTest {
 
     @Test
     public void createsCompresedArchiveWithOnlyInboundMail() {
-        new StoredMail("these are inbound mail contents!".getBytes(), Optional.<byte[]>absent()).compress();
+        new StoredMail("these are inbound mail contents!".getBytes(), Optional.empty()).compress();
     }
 
     @Test

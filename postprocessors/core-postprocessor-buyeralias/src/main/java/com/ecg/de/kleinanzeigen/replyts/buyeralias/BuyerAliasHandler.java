@@ -3,17 +3,13 @@ package com.ecg.de.kleinanzeigen.replyts.buyeralias;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 
-/**
- * User: acharton
- * Date: 11/12/13
- */
 class BuyerAliasHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(BuyerAliasHandler.class);
@@ -41,7 +37,7 @@ class BuyerAliasHandler {
 
             MessageDirection direction = messageProcessingContext.getMessageDirection();
 
-            Optional<String> aliasName = Optional.absent();
+            Optional<String> aliasName = Optional.empty();
             if (direction == MessageDirection.BUYER_TO_SELLER && containsBuyerName()) {
                 aliasName = Optional.of(buildAlias(buyerHeaderName));
             } else if (direction == MessageDirection.SELLER_TO_BUYER && containsSellerName()) {

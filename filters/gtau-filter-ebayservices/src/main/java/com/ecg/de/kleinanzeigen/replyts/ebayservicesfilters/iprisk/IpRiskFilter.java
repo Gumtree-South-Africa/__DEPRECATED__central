@@ -6,7 +6,6 @@ import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import de.mobile.ebay.service.IpRatingService;
 import de.mobile.ebay.service.ServiceException;
@@ -16,14 +15,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-/**
- * Created with IntelliJ IDEA.
- * User: acharton
- * Date: 12/18/12
- * Time: 12:18 PM
- * Tyo change this template use File | Settings | File Templates.
- */
 class IpRiskFilter implements Filter {
 
     private static final Logger LOG = LoggerFactory.getLogger(IpRiskFilter.class);
@@ -43,7 +36,7 @@ class IpRiskFilter implements Filter {
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         Optional<String> ipAddr = ipAddressExtractor.retrieveIpAddress(messageProcessingContext);
-        LOG.trace("Determining IP Risk for {}", ipAddr.or("NO IP FOUND"));
+        LOG.trace("Determining IP Risk for {}", ipAddr.orElse("NO IP FOUND"));
         if(ipAddr.isPresent()) {
             try {
                 IPRatingInfo ipRating = ipRatingService.getIpRating(ipAddr.get());
@@ -51,7 +44,7 @@ class IpRiskFilter implements Filter {
                     int score = ipLevelMap.get(ipRating.getIpBadLevel().name());
                     LOG.trace("IP {} got rating {} -> Score {}", ipAddr.get(), ipRating.getIpBadLevel().name(), score);
                     if(score != 0) {
-                        return ImmutableList.<FilterFeedback>of(
+                        return ImmutableList.of(
                                 new FilterFeedback(
                                         ipAddr.get(),
                                         "IP is rated as: " + ipRating.getIpBadLevel().name(),

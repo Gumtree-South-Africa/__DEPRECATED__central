@@ -3,13 +3,12 @@ package com.ecg.replyts.core.api.webapi.commands;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.webapi.Method;
 import com.ecg.replyts.core.api.webapi.commands.payloads.ModerateMessagePayload;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static com.ecg.replyts.core.api.util.JsonObjects.getObjectMapper;
-import static com.google.common.base.Optional.of;
 
 public class CloseConversationCommand implements TypedCommand {
 
@@ -45,11 +44,9 @@ public class CloseConversationCommand implements TypedCommand {
     @Override
     public Optional<String> jsonPayload() {
         try {
-            return of(getObjectMapper().writeValueAsString(payload));
+            return Optional.of(getObjectMapper().writeValueAsString(payload));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-
 }

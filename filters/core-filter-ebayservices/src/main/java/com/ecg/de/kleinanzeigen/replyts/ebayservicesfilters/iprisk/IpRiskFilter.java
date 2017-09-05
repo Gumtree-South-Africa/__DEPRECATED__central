@@ -6,7 +6,6 @@ import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import de.mobile.ebay.service.IpRatingService;
 import de.mobile.ebay.service.ServiceException;
@@ -16,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created with IntelliJ IDEA.
@@ -43,7 +43,7 @@ class IpRiskFilter implements Filter {
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         Optional<String> ipAddr = ipAddressExtractor.retrieveIpAddress(messageProcessingContext);
-        LOG.trace("Determinating IP Risk for {}", ipAddr.or("NO IP FOUND"));
+        LOG.trace("Determinating IP Risk for {}", ipAddr.orElse("NO IP FOUND"));
         if(ipAddr.isPresent()) {
             try {
                 IPRatingInfo ipRating = ipRatingService.getIpRating(ipAddr.get());

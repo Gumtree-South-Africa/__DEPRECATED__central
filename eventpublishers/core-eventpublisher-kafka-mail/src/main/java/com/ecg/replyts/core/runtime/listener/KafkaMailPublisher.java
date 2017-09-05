@@ -2,12 +2,13 @@ package com.ecg.replyts.core.runtime.listener;
 
 import com.codahale.metrics.Counter;
 import com.ecg.replyts.core.runtime.persistence.mail.StoredMail;
-import com.google.common.base.Optional;
 import kafka.common.FailedToSendMessageException;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 

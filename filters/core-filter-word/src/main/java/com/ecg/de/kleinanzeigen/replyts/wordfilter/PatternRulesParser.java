@@ -2,12 +2,12 @@ package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 class PatternRulesParser {
@@ -37,7 +37,7 @@ class PatternRulesParser {
     }
 
     private List<String> listOfCategoryIds(JsonNode json) {
-        Iterable<JsonNode> nodes = Optional.<Iterable<JsonNode>>fromNullable(json.get(CATEGORY_IDS_FIELD)).or(Collections.<JsonNode>emptyList());
+        Iterable<JsonNode> nodes = Optional.<Iterable<JsonNode>>ofNullable(json.get(CATEGORY_IDS_FIELD)).orElse(Collections.emptyList());
         ImmutableList.Builder<String> idList = ImmutableList.builder();
         for(JsonNode categoryId : nodes) {
             idList.add(categoryId.asText());

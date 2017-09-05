@@ -2,22 +2,19 @@ package com.ecg.de.mobile.replyts.deanonymize;
 
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 
-/**
- * User: beckart
- */
 class MailDoNotAnonymizeHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(MailDoNotAnonymizeHandler.class);
 
-    public static final String X_DO_NOT_ANONYMIZE = "X-DO-NOT-ANONYMIZE";
+    private static final String X_DO_NOT_ANONYMIZE = "X-DO-NOT-ANONYMIZE";
 
     private final MessageProcessingContext messageProcessingContext;
 
@@ -29,32 +26,21 @@ class MailDoNotAnonymizeHandler {
     }
 
     private boolean doNotAnonymize() {
-
-        Optional<String> doNotAnonymizeHeader = Optional.fromNullable(messageProcessingContext.getMail().getUniqueHeader(X_DO_NOT_ANONYMIZE));
-
+        Optional<String> doNotAnonymizeHeader = Optional.ofNullable(messageProcessingContext.getMail().getUniqueHeader(X_DO_NOT_ANONYMIZE));
         return doNotAnonymizeHeader.isPresent() && doNotAnonymizeHeader.get().trim().toLowerCase().equals(password.toLowerCase());
-
     }
 
     private String formatMailAddress(String name, String address) throws UnsupportedEncodingException {
         return new InternetAddress(address, name).toString();
     }
 
-    public void handle() {
+    void handle() {
         try {
-
             if(doNotAnonymize()) {
-
                 MailAddress fromMailAddress = preserveOriginalFrom();
-
-
                 preserveReplyTo();
-
-
                 LOG.trace("De-anonymizing mail sender {}", fromMailAddress.getAddress());
-
             }
-
         } catch (Exception e) {
             LOG.error("Error while de-anonymizing!", e);
         }
@@ -62,9 +48,7 @@ class MailDoNotAnonymizeHandler {
 
     private MailAddress preserveOriginalFrom() throws UnsupportedEncodingException {
         MailAddress fromMailAddress = messageProcessingContext.getOriginalFrom();
-
-        Optional<String> aliasName = Optional.fromNullable(messageProcessingContext.getMail().getFromName());
-
+        Optional<String> aliasName = Optional.ofNullable(messageProcessingContext.getMail().getFromName());
         MailAddress mailAddress;
 
         if(aliasName.isPresent() && StringUtils.hasText(aliasName.get())) {
@@ -84,6 +68,4 @@ class MailDoNotAnonymizeHandler {
             messageProcessingContext.getOutgoingMail().addHeader("Reply-To", replyTo);
         }
     }
-
-
 }

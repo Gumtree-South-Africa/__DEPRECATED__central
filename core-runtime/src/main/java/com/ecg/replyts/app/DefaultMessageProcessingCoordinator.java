@@ -12,7 +12,6 @@ import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
-import com.google.common.base.Optional;
 import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +25,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
-import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -92,8 +91,8 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 handleTermination(
                         context.getTermination(),
                         context.getMessageId(),
-                        fromNullable(context.getMail()),
-                        fromNullable(((DefaultMutableConversation) context.mutableConversation())),
+                        Optional.ofNullable(context.getMail()),
+                        Optional.ofNullable(((DefaultMutableConversation) context.mutableConversation())),
                         bytes);
             } else {
                 handleSuccess(context, bytes);
@@ -121,7 +120,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             UNPARSEABLE_COUNTER.inc();
             final String messageId = guids.nextGuid();
             LOG.warn("Could not parse mail with id {}", messageId, e);
-            handleTermination(Termination.unparseable(e), messageId, Optional.absent(), Optional.absent(), incomingMailContents);
+            handleTermination(Termination.unparseable(e), messageId, Optional.empty(), Optional.empty(), incomingMailContents);
         }
 
         return java.util.Optional.empty();
@@ -148,10 +147,10 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         checkNotNull(messageId);
         checkNotNull(messageBytes);
 
-        DefaultMutableConversation c = conversation.or(() ->
+        DefaultMutableConversation c = conversation.orElseGet(() ->
                 processingContextFactory.deadConversationForMessageIdConversationId(messageId, guids.nextGuid(), mail));
 
-        persister.persistAndIndex(c, messageId, messageBytes, Optional.absent(), termination);
+        persister.persistAndIndex(c, messageId, messageBytes, Optional.empty(), termination);
 
         onMessageProcessed(c, c.getMessageById(messageId));
     }

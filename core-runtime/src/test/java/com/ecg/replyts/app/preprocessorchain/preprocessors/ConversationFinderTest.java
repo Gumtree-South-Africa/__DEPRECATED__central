@@ -9,9 +9,7 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.ecg.replyts.core.runtime.cluster.Guids;
-import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
-import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,14 +20,14 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
+import java.util.Optional;
+
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConversationFinderTest {
-    @Mock
-    private MultiTennantMailCloakingService mailCloakingService;
 
     @Mock
     private ConversationRepository conversationRepository;
@@ -45,9 +43,6 @@ public class ConversationFinderTest {
 
     @Mock
     private MutableMail mail;
-
-    @Mock
-    private ImmutableConversation conversation;
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private MutableConversation mutableConversation ;
@@ -83,7 +78,7 @@ public class ConversationFinderTest {
 
         when(mail.getFrom()).thenReturn("buyer@host.com");
         when(mail.getDeliveredTo()).thenReturn("somebody@host2.com");
-        when(mail.getLastReferencedMessageId()).thenReturn(Optional.<String>absent());
+        when(mail.getLastReferencedMessageId()).thenReturn(Optional.empty());
 
         MessageProcessingContext messageProcessingContext = spy(new MessageProcessingContext(mail, "1", processingTimeGuard));
         when(mutableConversation.getImmutableConversation()).thenReturn(mock(ImmutableConversation.class));
@@ -123,7 +118,7 @@ public class ConversationFinderTest {
     public void createsNewConversationWhenNotReply() {
         when(mail.getFrom()).thenReturn("buyer.123@host.com");
         when(mail.getDeliveredTo()).thenReturn("somebody@host2.com");
-        when(mail.getLastReferencedMessageId()).thenReturn(Optional.<String>absent());
+        when(mail.getLastReferencedMessageId()).thenReturn(Optional.empty());
         when(conversationResumer.resumeExistingConversation(any(ConversationRepository.class), any(MessageProcessingContext.class))).thenReturn(false);
 
         MessageProcessingContext messageProcessingContext = spy(new MessageProcessingContext(mail, "1", processingTimeGuard));
@@ -144,7 +139,7 @@ public class ConversationFinderTest {
 
         when(mail.getFrom()).thenReturn("buyer.123@host.com");
         when(mail.getDeliveredTo()).thenReturn("somebody@ebay.com");
-        when(mail.getLastReferencedMessageId()).thenReturn(Optional.<String>absent());
+        when(mail.getLastReferencedMessageId()).thenReturn(Optional.empty());
 
         MessageProcessingContext messageProcessingContext = spy(new MessageProcessingContext(mail, "1", processingTimeGuard));
 

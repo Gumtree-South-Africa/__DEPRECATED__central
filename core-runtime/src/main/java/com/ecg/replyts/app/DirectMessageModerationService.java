@@ -1,6 +1,5 @@
 package com.ecg.replyts.app;
 
-import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.MessageModeratedCommand;
@@ -17,7 +16,6 @@ import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
@@ -28,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static org.joda.time.DateTime.now;
@@ -101,7 +100,7 @@ public class DirectMessageModerationService implements ModerationService {
 
         heldMailRepository.remove(messageId);
 
-        searchIndexer.updateSearchAsync(ImmutableList.<Conversation>of(conversation));
+        searchIndexer.updateSearchAsync(ImmutableList.of(conversation));
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
 

@@ -2,13 +2,11 @@ package com.ebay.ecg.replyts.robot.api.requests;
 
 import com.ecg.replyts.core.api.webapi.Method;
 import com.ecg.replyts.core.api.webapi.commands.TypedCommand;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
 
 import static java.lang.String.format;
 
-/**
- * @author mdarapour
- */
 public class PostMessageToConversationsForAdCommand implements TypedCommand {
 
     public static final String MAPPING = "/users/{email}/ads/{adId}";
@@ -33,6 +31,6 @@ public class PostMessageToConversationsForAdCommand implements TypedCommand {
 
     @Override
     public Optional<String> jsonPayload() {
-        return Optional.absent();
+        return Optional.empty();
     }
 }

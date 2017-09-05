@@ -6,17 +6,14 @@ import com.ebay.ecg.gumtree.australia.lbs2.TrackingGeoLocationService;
 import com.ebay.ecg.gumtree.australia.lbs2.config.TrackingGeolocationConfiguration;
 import com.ebay.ecg.gumtree.australia.lbs2.impl.TrackingGeoLocationServiceImpl;
 import com.ebay.ecg.gumtree.australia.lbs2.payload.LocationType;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-/**
- * User: acharton
- * Date: 12/17/12
- */
+import java.util.Optional;
+
 @Component
 class Ip2CountryResolver {
 
@@ -44,7 +41,7 @@ class Ip2CountryResolver {
             LOG.debug("The full error was: ", e);
         }
 
-        return Optional.absent();
+        return Optional.empty();
 
     }
 }

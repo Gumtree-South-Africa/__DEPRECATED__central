@@ -3,9 +3,10 @@ package com.ecg.replyts.core.runtime.sanitycheck.adapter;
 import com.ecg.replyts.core.api.sanitychecks.Message;
 import com.ecg.replyts.core.api.sanitychecks.Result;
 import com.ecg.replyts.core.api.sanitychecks.Status;
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 
 final class SwitchLogger {

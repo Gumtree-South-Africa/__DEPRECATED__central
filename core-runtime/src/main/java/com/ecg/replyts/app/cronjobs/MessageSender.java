@@ -9,7 +9,6 @@ import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
-import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +18,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Component
 class MessageSender {
@@ -64,7 +64,8 @@ class MessageSender {
         LOG.info("About to change state for {} documents " , searchResponse.getCount());
         for (IDHolder idHolder : searchResponse.getResult()) {
             try {
-                moderationService.changeMessageState(conversationRepository.getById(idHolder.getConversationId()), idHolder.getMessageId(), new ModerationAction(ModerationResultState.TIMED_OUT, Optional.<String>absent()));
+                moderationService.changeMessageState(conversationRepository.getById(idHolder.getConversationId()), idHolder.getMessageId(),
+                        new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
             } catch (RuntimeException e) {
                 LOG.warn("could not auto send message after retention time - skipping conv/msg " + idHolder.getConversationId() + "/" + idHolder.getMessageId(), e);
             }

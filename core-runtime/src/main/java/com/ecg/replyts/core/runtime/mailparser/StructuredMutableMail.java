@@ -4,7 +4,6 @@ import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.processing.MessageFixer;
-import com.google.common.base.Optional;
 import com.google.common.net.MediaType;
 import org.apache.james.mime4j.dom.Message;
 
@@ -13,6 +12,7 @@ import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 class StructuredMutableMail implements MutableMail {
     private final StructuredMail mail;

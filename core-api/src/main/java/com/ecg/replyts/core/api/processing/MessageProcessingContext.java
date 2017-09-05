@@ -5,7 +5,6 @@ import com.ecg.replyts.core.api.model.conversation.command.ConversationCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
-import com.google.common.base.Optional;
 
 import java.util.*;
 

@@ -3,10 +3,10 @@ package com.ecg.replyts.core.api.processing;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.google.common.base.Optional;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNull;
@@ -36,7 +36,7 @@ public class MessageProcessingContextTest {
                 mockMessage("1:1", "<ABC@abc.com>"),
                 mockMessage("2:2", "<DEF@abc.com>"));
 
-        MessageProcessingContext context = createContextUnderTest(conversation, Optional.<String>absent());
+        MessageProcessingContext context = createContextUnderTest(conversation, Optional.empty());
 
         assertNull(context.getInResponseToMessageId());
     }
