@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static java.lang.String.format;
-
 public class PushMessageOnUnreadConversationCallback implements SimplePostBoxInitializer.PostBoxWriteCallback {
     private static final Counter COUNTER_PUSH_SENT =
                     TimingReports.newCounter("message-box.push-message-sent");
@@ -85,7 +83,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             } else if (PushService.Result.Status.ERROR == sendPushResult.getStatus()) {
                 COUNTER_PUSH_FAILED.inc();
                 LOG.error("Error sending push for conversation '{}' and message '{}'",
-                                conversation.getId(), message.getId()),
+                                conversation.getId(), message.getId(),
                                 sendPushResult.getException().get());
             } else {
                 LOG.error("Unknown status returned from push service status: '{}'",
