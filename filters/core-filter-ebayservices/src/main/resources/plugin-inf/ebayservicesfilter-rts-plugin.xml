@@ -4,47 +4,69 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <bean id="okHttpClientFactory" factory-bean="httpClientFactoryBuilder" factory-method="build"/>
+    <bean id="okHttpClientFactory" factory-bean="restClientFactoryBuilder" factory-method="build"/>
 
     <bean id="ebayservices.proxy" class="java.lang.String">
         <constructor-arg value="#{systemEnvironment['http_proxy']?:'${replyts2-ebayservicesfilters-plugin.proxyurl:}'}"></constructor-arg>
     </bean>
 
-    <bean id="httpClientFactoryBuilder" class="de.mobile.ebay.service.lbs.HttpClientFactoryBuilder">
-        <property name="maxTotalConnections" value="100" />
-        <property name="connectionTimeout" value="3000" />
-        <property name="socketTimeout" value="3000" />
-        <property name="proxyUrl" ref="ebayservices.proxy" />
+    <bean id="restClientFactoryBuilder" class="de.mobile.ebay.service.restclient.RestClientFactoryBuilder">
+        <property name="maxTotalConnections" value="100"/>
+        <property name="socketTimeout" value="3000"/>
+        <property name="connectionTimeout" value="3000"/>
+        <property name="proxyUrl" ref="ebayservices.proxy"/>
     </bean>
 
     <bean id="lbs-esconfig-ipc" class="de.mobile.ebay.service.lbs.ServiceConfigBean">
-        <property name="endpointUrl" value="${ebayIPTrackingService.endpointUrl:https://api.ebay.com/base/location/v2/}" />
-        <property name="oAuthUrl" value="https://idauth.ebay.com/idauth/site/" />
-        <property name="queryId" value="ecgebayk_geoloc_ip_1" />
-        <property name="clientId" value="urn:ebay-marketplace-consumerid:a4335f20-7467-4b26-b1a2-c0ec26ec3c02" />
-        <property name="clientSecret" value="91c5d3ae-2ecc-4e48-9b9b-072c7159878c" />
+        <property name="endpointUrl" value="${replyts2-ebayservicesfilters-plugin.trackingGeoLocationService.endpointUrl:https://api.ebay.com/base/location/v2/}" />
+        <property name="clientId" value="${replyts2-ebayservicesfilters-plugin.trackingGeoLocationService.security.clientId}"/>
+        <property name="clientSecret" value="${replyts2-ebayservicesfilters-plugin.trackingGeoLocationService.security.clientSecret}" />
+        <property name="OAuthUrl" value="${replyts2-ebayservicesfilters-plugin.trackingGeoLocationService.oauthUrl:https://idauth.ebay.com/idauth/site/}"/>
+        <property name="queryId" value="${replyts2-ebayservicesfilters-plugin.trackingGeoLocationService.queryId}"/>
     </bean>
 
     <bean id="esconfig-ipc" class="de.mobile.ebay.service.impl.ServiceConfigBean">
-        <property name="iafToken" value="${replyts2-ebayservicesfilters-plugin.ip.iaftoken}" />
-        <property name="appName" value="${replyts2-ebayservicesfilters-plugin.ip.appname}" />
-        <property name="endpointUrl" value="http://svcs.ebay.com/services/personalization/v1/TrackingGeoLocationService" />
+        <property name="endpointUrl" value="${replyts2-ebayservicesfilters-plugin.ip.endpointUrl:https://svcs.ebay.com/ws/spf}" />
+        <property name="appName" value="" />
         <property name="proxyUrl" ref="ebayservices.proxy" />
     </bean>
 
 
     <bean id="esconfig-ipaddr" class="de.mobile.ebay.service.impl.ServiceConfigBean">
-        <property name="iafToken" value="${replyts2-ebayservicesfilters-plugin.ip.iaftoken}" />
-        <property name="appName" value="${replyts2-ebayservicesfilters-plugin.ip.appname}" />
-        <property name="endpointUrl" value="https://svcs.ebay.com/ws/spf" />
+        <property name="endpointUrl" value="${replyts2-ebayservicesfilters-plugin.ip.endpointUrl:https://svcs.ebay.com/ws/spf}" />
+        <property name="appName" value="" />
         <property name="proxyUrl" ref="ebayservices.proxy" />
     </bean>
 
     <bean id="esconfig-user" class="de.mobile.ebay.service.impl.ServiceConfigBean">
-        <property name="iafToken" value="${replyts2-ebayservicesfilters-plugin.user.iaftoken}" />
-        <property name="appName" value="${replyts2-ebayservicesfilters-plugin.user.appname}" />
-        <property name="endpointUrl" value="https://svcs.ebay.com/ws/spf" />
+        <property name="endpointUrl" value="${replyts2-ebayservicesfilters-plugin.user.endpointUrl:https://svcs.ebay.com/ws/spf}" />
+        <property name="appName" value="" />
         <property name="proxyUrl" ref="ebayservices.proxy" />
+    </bean>
+
+    <bean id="ebayOAuthTokenProvider" class="de.mobile.ebay.service.oauthtoken.OAuthTokenProviderImpl">
+        <constructor-arg>
+            <bean factory-bean="ebayOAuthTokenRestClientFactoryBuilder" factory-method="build"/>
+        </constructor-arg>
+        <constructor-arg>
+            <bean class="de.mobile.ebay.service.oauthtoken.OAuthProviderConfigBean">
+                <property name="endpointUrl" value="${replyts2-ebayservicesfilters-plugin.oauthtoken.endpointUrl:https://api.ebay.com/}"/>
+                <property name="clientId" value="${replyts2-ebayservicesfilters-plugin.oauthtoken.clientId}"/>
+                <property name="clientSecret" value="${replyts2-ebayservicesfilters-plugin.oauthtoken.clientSecret}"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="ebayUserServiceTokenProvider" class="de.mobile.ebay.service.impl.UserServiceStaticTokenProvider">
+        <constructor-arg name="token" value="${replyts2-ebayservicesfilters-plugin.user.iafToken}"/>
+    </bean>
+
+    <bean id="ebayOAuthTokenRestClientFactoryBuilder"
+          class="de.mobile.ebay.service.restclient.RestClientFactoryBuilder">
+        <property name="maxTotalConnections" value="100"/>
+        <property name="socketTimeout" value="3000"/>
+        <property name="connectionTimeout" value="3000"/>
+        <property name="proxyUrl" ref="ebayservices.proxy"/>
     </bean>
 
     <context:component-scan base-package="com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters"></context:component-scan>

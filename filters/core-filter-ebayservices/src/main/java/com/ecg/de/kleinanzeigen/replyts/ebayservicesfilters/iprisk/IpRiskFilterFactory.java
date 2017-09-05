@@ -5,8 +5,9 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import de.mobile.ebay.service.IpRatingService;
-import de.mobile.ebay.service.impl.Config;
+import de.mobile.ebay.service.OAuthTokenProvider;
 import de.mobile.ebay.service.impl.IpRatingServiceImpl;
+import de.mobile.ebay.service.impl.ServiceConfigBean;
 import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +27,9 @@ class IpRiskFilterFactory implements FilterFactory {
     private final IpRatingService ipRatingService;
 
     @Autowired
-    public IpRiskFilterFactory(HttpClient client, @Qualifier("esconfig-ipaddr") Config config) {
+    public IpRiskFilterFactory(HttpClient client, @Qualifier("esconfig-ipaddr") ServiceConfigBean config, @Qualifier("ebayOAuthTokenProvider") OAuthTokenProvider tokenService) {
         LOG.info("Configured proxy for IpRiskFilter: '{}'", config.proxyUrl());
-        this.ipRatingService = new IpRatingServiceImpl(client, config);
+        this.ipRatingService = new IpRatingServiceImpl(client, config, tokenService);
     }
 
     @Override

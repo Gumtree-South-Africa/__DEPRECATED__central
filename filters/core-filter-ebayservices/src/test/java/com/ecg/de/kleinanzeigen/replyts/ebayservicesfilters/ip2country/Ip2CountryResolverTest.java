@@ -1,7 +1,6 @@
 package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.ip2country;
 
 import com.ebay.marketplace.personalization.v1.services.LocationType;
-import com.google.common.base.Optional;
 import de.mobile.ebay.service.ServiceException;
 import de.mobile.ebay.service.TrackingGeoLocationService;
 import org.junit.Before;

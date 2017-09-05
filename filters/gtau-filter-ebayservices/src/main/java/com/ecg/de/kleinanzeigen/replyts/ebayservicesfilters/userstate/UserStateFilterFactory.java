@@ -5,6 +5,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import de.mobile.ebay.service.UserService;
 import de.mobile.ebay.service.impl.Config;
+import de.mobile.ebay.service.OAuthTokenProvider;
 import de.mobile.ebay.service.impl.UserServiceImpl;
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,8 @@ class UserStateFilterFactory implements FilterFactory {
     private final UserService userService;
 
     @Autowired
-    public UserStateFilterFactory(HttpClient client, @Qualifier("esconfig-user") Config config) {
-        this.userService = new UserServiceImpl(client, config);
+    public UserStateFilterFactory(HttpClient client, @Qualifier("esconfig-user") Config config, @Qualifier("ebayUserServiceTokenProvider") OAuthTokenProvider tokenService) {
+        this.userService = new UserServiceImpl(client, config, tokenService);
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import de.mobile.ebay.service.IpRatingService;
 import de.mobile.ebay.service.impl.Config;
 import de.mobile.ebay.service.impl.IpRatingServiceImpl;
+import de.mobile.ebay.service.OAuthTokenProvider;
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,8 +23,8 @@ class IpRiskFilterFactory implements FilterFactory {
     private final IpRatingService ipRatingService;
 
     @Autowired
-    public IpRiskFilterFactory(HttpClient client, @Qualifier("esconfig-ipaddr") Config config) {
-        this.ipRatingService = new IpRatingServiceImpl(client, config);
+    public IpRiskFilterFactory(HttpClient client, @Qualifier("esconfig-ipaddr") Config config, @Qualifier("ebayOAuthTokenProvider") OAuthTokenProvider tokenService) {
+        this.ipRatingService = new IpRatingServiceImpl(client, config, tokenService);
     }
 
     @Override

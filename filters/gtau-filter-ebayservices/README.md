@@ -38,7 +38,6 @@ These filters will need valid eBay API credentials in order to work. (IAF tokens
 
 ```
 replyts2-ebayservicesfilters-plugin.ip.appname
-replyts2-ebayservicesfilters-plugin.ip.iaftoken
 
  # attention: normally different IAF tokens apply for the user filter than for the IP filters.
 replyts2-ebayservicesfilters-plugin.user.appname
