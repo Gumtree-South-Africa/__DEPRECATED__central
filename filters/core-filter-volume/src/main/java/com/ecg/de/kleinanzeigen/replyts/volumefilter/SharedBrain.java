@@ -3,10 +3,12 @@ package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Member;
+import net.logstash.logback.marker.Markers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
+import static net.logstash.logback.marker.Markers.append;
 
 public class SharedBrain {
 
@@ -23,14 +25,14 @@ public class SharedBrain {
         this.communicationBus.addMessageListener(message -> {
             Member publishingMember = message.getPublishingMember();
             if (publishingMember != null && !publishingMember.localMember()) {
-                LOG.debug("volume-notification-in", kv("notification_value", message.getMessageObject()));
+                LOG.debug(append("notification_value", message.getMessageObject()), "volume-notification-in");
                 processor.mailReceivedFrom(message.getMessageObject());
             }
         });
     }
 
     void markSeen(String mailAddress) {
-        LOG.debug("volume-notification-out", kv("notification_value", mailAddress));
+        LOG.debug(append("notification_value", mailAddress), "volume-notification-out");
         processor.mailReceivedFrom(mailAddress);
         communicationBus.publish(mailAddress);
     }
