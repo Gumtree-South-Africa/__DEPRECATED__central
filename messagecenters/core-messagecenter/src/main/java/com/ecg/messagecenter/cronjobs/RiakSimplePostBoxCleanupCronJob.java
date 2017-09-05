@@ -32,7 +32,7 @@ public class RiakSimplePostBoxCleanupCronJob implements CronJobExecutor {
 
         DateTime deletePostBoxesBefore = now().minusDays(cleanupDayBoundary);
 
-        LOG.info("Deleting PostBoxes untouched for more than {} days: everything before '{}'", cleanupDayBoundary, deletePostBoxesBefore);
+        LOG.info("Cleanup: Deleting PostBoxes untouched for more than {} days: everything before '{}'", cleanupDayBoundary, deletePostBoxesBefore);
 
         try {
             riakSimplePostBoxRepository.cleanup(deletePostBoxesBefore);

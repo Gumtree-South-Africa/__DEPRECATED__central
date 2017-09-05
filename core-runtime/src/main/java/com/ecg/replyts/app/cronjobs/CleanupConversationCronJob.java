@@ -45,7 +45,7 @@ public class CleanupConversationCronJob implements CronJobExecutor {
         final long logInterval = logInterval(config.getMaxResults());
         final AtomicLong deleteCounter = new AtomicLong();
 
-        LOG.info("Cleanup: Deleting conversations older than {} days, everything before '{}'", config.getMaxConversationAgeDays(), deleteEverythingBefore);
+        LOG.trace("Cleanup: Deleting conversations older than {} days, everything before '{}'", config.getMaxConversationAgeDays(), deleteEverythingBefore);
 
         final Set<String> conversationsToDelete;
         try {
@@ -55,7 +55,7 @@ public class CleanupConversationCronJob implements CronJobExecutor {
             return;
         }
 
-        LOG.info("Cleanup: Found {} conversations to delete", conversationsToDelete.size());
+        LOG.trace("Cleanup: Found {} conversations to delete", conversationsToDelete.size());
 
         try {
             new BlockingBatchExecutor<String>("cleanup-conversation", 2, 2, TimeUnit.HOURS).executeAll(

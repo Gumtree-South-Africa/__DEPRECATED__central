@@ -31,7 +31,7 @@ public class CleanupMailCronJob implements CronJobExecutor {
     public void execute() throws Exception {
         final DateTime deleteEverythingBefore = now().minusDays(config.getMaxMailAgeDays());
 
-        LOG.info("Deleting Mails older than {} days: everything before '{}', maxResults: '{}'", config.getMaxMailAgeDays(), deleteEverythingBefore, config.getMaxResults());
+        LOG.info("Cleanup: Deleting Mails older than {} days: everything before '{}', maxResults: '{}'", config.getMaxMailAgeDays(), deleteEverythingBefore, config.getMaxResults());
         mailRepository.deleteMailsByOlderThan(deleteEverythingBefore, config.getMaxResults(), config.getNumCleanUpThreads());
     }
 

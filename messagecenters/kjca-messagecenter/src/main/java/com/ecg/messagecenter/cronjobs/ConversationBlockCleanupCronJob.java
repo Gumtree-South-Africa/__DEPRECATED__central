@@ -36,7 +36,7 @@ public class ConversationBlockCleanupCronJob implements CronJobExecutor {
     public void execute() throws Exception {
         DateTime deleteBlocksBefore = now(DateTimeZone.UTC).minusDays(maxAgeDays);
 
-        LOG.info("Deleting user conversation blocks before '{}'", deleteBlocksBefore);
+        LOG.info("Cleanup: Deleting user conversation blocks before '{}'", deleteBlocksBefore);
 
         try {
             conversationBlockRepo.cleanup(deleteBlocksBefore);

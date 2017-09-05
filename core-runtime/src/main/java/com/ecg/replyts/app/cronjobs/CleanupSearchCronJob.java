@@ -32,7 +32,7 @@ public class CleanupSearchCronJob implements CronJobExecutor {
     public void execute() throws Exception {
         DateTime deleteEverythingBefore = now().minusDays(config.getMaxConversationAgeDays());
 
-        LOG.info("Deleting SearchIndex older than {} days: everything before '{}'", config.getMaxConversationAgeDays(), deleteEverythingBefore);
+        LOG.info("Cleanup: Deleting SearchIndex older than {} days: everything before '{}'", config.getMaxConversationAgeDays(), deleteEverythingBefore);
 
         try {
             searchService.delete(Range.closed(new DateTime(0), now().minusDays(config.getMaxConversationAgeDays())));

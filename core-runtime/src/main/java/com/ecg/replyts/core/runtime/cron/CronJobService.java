@@ -175,20 +175,21 @@ public class CronJobService implements CheckProvider {
      */
     void invokeMonitored(Class<? extends CronJobExecutor> type) {
         CronJobExecutor cronJobExecutor = cronReg.get(type);
+        String jobType = type.getSimpleName();
         if (cronJobExecutor == null) {
-            LOG.error("No Job of type " + type + " available. ");
+            LOG.error("No Job of type {} available", jobType);
             return;
         }
         try {
-            LOG.info("Invoking Cron Job {}", type);
+            LOG.trace("Invoking Cron Job {}", jobType);
             monitoringSupport.start(type);
             Stopwatch timing = Stopwatch.createStarted();
             cronJobExecutor.execute();
             timing.stop();
             monitoringSupport.success(type);
-            LOG.info("Cron Job {} completed in {}", type, timing.toString());
+            LOG.info("Cron Job {} completed in {}", jobType, timing.toString());
         } catch (Exception e) {
-            LOG.error("Cron Job aborted Abnormally: " + type, e);
+            LOG.error("Cron Job aborted Abnormally: " + jobType, e);
             monitoringSupport.failure(type, e);
         }
 

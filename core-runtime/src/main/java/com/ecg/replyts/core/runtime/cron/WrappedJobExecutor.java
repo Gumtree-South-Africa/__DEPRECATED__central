@@ -19,12 +19,12 @@ public class WrappedJobExecutor implements Job {
         String jobType = jobKey.getGroup();
         String jobName = jobKey.getName();
         try {
-            LOG.info("Executing Job {}:{}", jobType, jobName);
+            LOG.trace("Executing Job {}:{}", jobType, jobName);
             @SuppressWarnings("unchecked")
             Class<? extends CronJobExecutor> executorType = (Class<? extends CronJobExecutor>) Class.forName(jobName);
             CronJobService srvc = (CronJobService) ctx.getScheduler().getContext().get(CronJobService.CRON_JOB_SERVICE);
             srvc.invokeMonitoredIfLeader(executorType);
-            LOG.info("Job Execution Complete {}:{}", jobType, jobName);
+            LOG.trace("Job Execution Complete {}:{}", jobType, jobName);
         } catch (Exception ex) {
             LOG.error("Failed executing Cron Job " + jobName, ex);
             throw new RuntimeException(ex);

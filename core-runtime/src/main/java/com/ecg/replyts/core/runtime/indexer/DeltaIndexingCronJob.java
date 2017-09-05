@@ -30,7 +30,7 @@ public class DeltaIndexingCronJob implements CronJobExecutor {
     @Override
     public void execute() throws Exception {
         if (enabled.equals("false") || !enabled.equals(region)) {
-            LOG.info("Not running DeltaIndexingCronJob, enabled == {}", enabled);
+            LOG.info("Indexing: Not running DeltaIndexingCronJob, enabled == {}", enabled);
             return;
         }
 
