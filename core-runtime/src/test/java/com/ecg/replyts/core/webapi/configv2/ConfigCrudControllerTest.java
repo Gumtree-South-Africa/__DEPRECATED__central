@@ -23,10 +23,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConfigCrudControllerTest {
+
+
     private ConfigCrudController configCrudController;
 
     @Mock
@@ -36,9 +40,9 @@ public class ConfigCrudControllerTest {
     private ConfigurationUpdateNotifier updateNotifier;
 
     @Mock
-    private PluginConfiguration pluginConfiguration;
+    private PluginConfiguration pc;
 
-    private List<PluginConfiguration> configList = new ArrayList<>();
+    private List<PluginConfiguration> configList = new ArrayList<PluginConfiguration>();
 
     private JsonNode validPutData;
 
@@ -46,18 +50,16 @@ public class ConfigCrudControllerTest {
     public void setup() throws Exception {
         configCrudController = new ConfigCrudController(repository, updateNotifier);
         when(repository.getConfigurations()).thenReturn(configList);
-        configList.add(pluginConfiguration);
-        when(pluginConfiguration.getId()).thenReturn(new ConfigurationId(FilterFactory.class, "fooinstance"));
-        when(pluginConfiguration.getVersion()).thenReturn(12L);
-        when(pluginConfiguration.getPriority()).thenReturn(222L);
-        when(pluginConfiguration.getState()).thenReturn(PluginState.ENABLED);
-        when(pluginConfiguration.getConfiguration()).thenReturn(JsonObjects.parse("{foo: 322}"));
+        configList.add(pc);
+        when(pc.getId()).thenReturn(new ConfigurationId(FilterFactory.class, "fooinstance"));
+        when(pc.getVersion()).thenReturn(12l);
+        when(pc.getPriority()).thenReturn(222l);
+        when(pc.getState()).thenReturn(PluginState.ENABLED);
+        when(pc.getConfiguration()).thenReturn(JsonObjects.parse("{foo: 322}"));
 
         when(updateNotifier.validateConfiguration(Mockito.any(PluginConfiguration.class))).thenReturn(true);
 
         validPutData = JsonObjects.builder().attr("configuration", JsonObjects.newJsonObject()).build();
-
-        when(repository.getConfigurationsAsJson()).thenCallRealMethod();
     }
 
     @Test
@@ -69,8 +71,8 @@ public class ConfigCrudControllerTest {
 
         assertEquals(1, configs.size());
         assertEquals("ENABLED", firstConfig.get("state").textValue());
-        assertEquals(12L, firstConfig.get("version").longValue());
-        assertEquals(222L, firstConfig.get("priority").longValue());
+        assertEquals(12l, firstConfig.get("version").longValue());
+        assertEquals(222l, firstConfig.get("priority").longValue());
         assertEquals(FilterFactory.class.getName(), firstConfig.get("pluginFactory").textValue());
         assertEquals("fooinstance", firstConfig.get("instanceId").textValue());
         assertEquals(322, firstConfig.get("configuration").get("foo").intValue());
@@ -117,12 +119,12 @@ public class ConfigCrudControllerTest {
         configCrudController.addConfiguration(FilterFactory.class.getName(), "i", validPutData);
         verify(repository, atLeastOnce()).persistConfiguration(lastPersistedConfig.capture());
 
-        assertEquals(1L, lastPersistedConfig.getValue().getVersion());
+        assertEquals(1l, lastPersistedConfig.getValue().getVersion());
 
         configCrudController.addConfiguration(FilterFactory.class.getName(), "i", validPutData);
         verify(repository, atLeastOnce()).persistConfiguration(lastPersistedConfig.capture());
 
-        assertEquals(2L, lastPersistedConfig.getValue().getVersion());
+        assertEquals(2l, lastPersistedConfig.getValue().getVersion());
     }
 
 }
