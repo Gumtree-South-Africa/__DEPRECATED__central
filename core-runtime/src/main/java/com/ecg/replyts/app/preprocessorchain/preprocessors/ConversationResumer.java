@@ -8,14 +8,12 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEven
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.util.Map;
 import java.util.Optional;
-
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 
 public abstract class ConversationResumer {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationResumer.class);
@@ -34,17 +32,13 @@ public abstract class ConversationResumer {
         Optional<Conversation> existingConversation = repository.findExistingConversationFor(key);
 
         if (existingConversation.isPresent()) {
-            MDC.put(CONVERSATION_ID, existingConversation.get().getId());
-            ConversationStartInfo info = new ConversationStartInfo(context);
-            MDC.put(MAIL_BUYER, info.buyer().getAddress());
-            MDC.put(MAIL_SELLER, info.seller().getAddress());
             context.setConversation((MutableConversation) existingConversation.get());
             context.setMessageDirection(direction);
-
             addNewCustomValuesToConversation(context);
 
-            LOG.debug("Attaching message to existing conversation '{}': buyerId, sellerId and adId match ({}).", existingConversation.get().getId(), direction);
+            MDCConstants.setContextFields(context);
 
+            LOG.debug("Attaching message to existing conversation '{}': buyerId, sellerId and adId match ({}).", existingConversation.get().getId(), direction);
             return true;
         }
 
@@ -59,7 +53,7 @@ public abstract class ConversationResumer {
         for (Map.Entry<String, String> customHeadersInNewMail : context.getMail().getCustomHeaders().entrySet()) {
             if (!existingCustomValues.containsKey(customHeadersInNewMail.getKey())) {
                 context.addCommand(new AddCustomValueCommand(context.getConversation().getId(), customHeadersInNewMail.getKey(), customHeadersInNewMail.getValue()));
-                LOG.debug("starter mail had a new custom value - adding this to the conversation: {}={}", customHeadersInNewMail.getKey(), customHeadersInNewMail.getValue());
+                LOG.trace("starter mail had a new custom value - adding this to the conversation: {}={}", customHeadersInNewMail.getKey(), customHeadersInNewMail.getValue());
             }
         }
     }

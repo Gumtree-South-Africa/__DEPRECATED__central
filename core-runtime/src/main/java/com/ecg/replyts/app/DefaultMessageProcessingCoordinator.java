@@ -27,7 +27,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_ORIGINAL_FROM;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_ORIGINAL_TO;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.MESSAGE_ID;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -83,7 +85,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), guids.nextGuid());
             setMDC(context);
-            LOG.trace("Received Message {}", context.getMessageId());
+            LOG.debug("Received Message");
 
             processingFlow.inputForPreProcessor(context);
 
@@ -103,8 +105,8 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
     private void setMDC(MessageProcessingContext context) {
         MDC.put(MESSAGE_ID, context.getMessageId());
-        MDC.put(MAIL_FROM, context.getOriginalFrom().getAddress());
-        MDC.put(MAIL_TO, context.getOriginalTo().getAddress());
+        MDC.put(MAIL_ORIGINAL_FROM, context.getOriginalFrom().getAddress());
+        MDC.put(MAIL_ORIGINAL_TO, context.getOriginalTo().getAddress());
     }
 
     private java.util.Optional<Mail> parseMail(byte[] incomingMailContents) {
@@ -127,7 +129,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     }
 
     private void handleSuccess(MessageProcessingContext context, byte[] messageBytes) {
-        LOG.trace("Message {} (conversation: {}) successfully sent.", context.getMessageId(), context.getConversation().getId());
+        LOG.debug("Message successfully sent.");
 
         byte[] outgoing = Mails.writeToBuffer(context.getOutgoingMail());
 

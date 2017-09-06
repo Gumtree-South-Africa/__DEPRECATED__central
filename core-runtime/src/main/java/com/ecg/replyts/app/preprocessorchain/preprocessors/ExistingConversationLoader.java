@@ -3,22 +3,17 @@ package com.ecg.replyts.app.preprocessorchain.preprocessors;
 import com.codahale.metrics.Counter;
 import com.ecg.replyts.core.api.model.CloakedReceiverContext;
 import com.ecg.replyts.core.api.model.MailCloakingService;
-import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 
 @Component
 class ExistingConversationLoader {
@@ -41,13 +36,11 @@ class ExistingConversationLoader {
         }
         ConversationRole receiverRole = receiver.get().getRole();
         MutableConversation conversation = receiver.get().getConversation();
-        MDC.put(CONVERSATION_ID, conversation.getId());
-        ConversationStartInfo info = new ConversationStartInfo(context);
-        MDC.put(MAIL_BUYER, info.buyer().getAddress());
-        MDC.put(MAIL_SELLER, info.seller().getAddress());
         context.setConversation(conversation);
         context.setMessageDirection(MessageDirection.getWithToRole(receiverRole));
-        MDC.put(CONVERSATION_ID, conversation.getId());
-        LOG.debug("Receiver {} belongs to Conversation {}. Receiver is {}", context.getOriginalTo(), receiver.get().getConversation().getId(), receiverRole);
+
+        MDCConstants.setContextFields(context);
+
+        LOG.trace("Receiver {} belongs to Conversation {}. Receiver is {}", context.getOriginalTo(), receiver.get().getConversation().getId(), receiverRole);
     }
 }

@@ -4,6 +4,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddCustomValueCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -53,8 +54,11 @@ public class ConversationResumerTest {
     public void setUp() {
         when(context.getMail()).thenReturn(mail);
         when(context.getConversation()).thenReturn(conv);
+        when(context.getSender()).thenReturn(new MailAddress("buyer@host.com"));
+        when(context.getRecipient()).thenReturn(new MailAddress("seller@host.com"));
+        when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
-        when(conv.getCustomValues()).thenReturn(Collections.<String, String>emptyMap());
+        when(conv.getCustomValues()).thenReturn(Collections.emptyMap());
         when(conv.getId()).thenReturn("convID");
 
         resumer = new IdBasedConversationResumer();
@@ -75,8 +79,9 @@ public class ConversationResumerTest {
 
         assertThat(resumer.resumeExistingConversation(repo, context)).isTrue();
         assertThat(MDC.get(CONVERSATION_ID)).isEqualTo("convID");
-        assertThat(MDC.get(MAIL_BUYER)).isEqualTo("buyer@host.com");
-        assertThat(MDC.get(MAIL_SELLER)).isEqualTo("seller@host.com");
+        assertThat(MDC.get(MAIL_FROM)).isEqualTo("buyer@host.com");
+        assertThat(MDC.get(MAIL_TO)).isEqualTo("seller@host.com");
+        assertThat(MDC.get(MAIL_DIRECTION)).isEqualTo("BUYER_TO_SELLER");
 
         verify(context).setConversation(conv);
         verify(context).setMessageDirection(MessageDirection.BUYER_TO_SELLER);

@@ -63,7 +63,7 @@ public class ConversationFinder implements PreProcessor {
         }
         boolean isReply = to.isFromDomain(platformDomains);
         if (isReply) {
-            LOG.debug("Load existing Conversation for {}", to.getAddress());
+            LOG.trace("Load existing Conversation for {}", to.getAddress());
             existingConversationLoader.loadExistingConversation(context);
             if (context.isTerminated()) {
                 final String messageId = context.hasConversation() ? context.getMessage().getId() : "unknown";
@@ -75,7 +75,7 @@ public class ConversationFinder implements PreProcessor {
         } else {
             boolean wasResumed = conversationResumer.resumeExistingConversation(conversationRepository, context);
             if (!wasResumed) {
-                LOG.debug("Create new Conversation");
+                LOG.trace("Create new Conversation");
                 newConversationCreator.setupNewConversation(context);
             }
         }

@@ -10,6 +10,7 @@ import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.ecg.replyts.core.runtime.service.NewConversationService;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
+import static com.ecg.messagebox.model.ParticipantRole.SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
@@ -184,15 +186,14 @@ public class CassandraPostBoxService implements PostBoxService {
 
             Map<ParticipantRole, Participant> participantMap = emptyConversationRequest.getParticipants();
 
-            Optional<Participant> buyer = getParticipant(participantMap, ParticipantRole.BUYER);
-            Optional<Participant> seller = getParticipant(participantMap, ParticipantRole.SELLER);
+            Optional<Participant> buyer = getParticipant(participantMap, BUYER);
+            Optional<Participant> seller = getParticipant(participantMap, SELLER);
 
             if(buyer.isPresent() && seller.isPresent()) {
-
                 String newConversationId = newConversationService.nextGuid();
-                MDC.put(CONVERSATION_ID, newConversationId);
-                MDC.put(MAIL_BUYER, buyer.get().getEmail());
-                MDC.put(MAIL_SELLER, seller.get().getEmail());
+                Optional<MessageDirection> messageDirection = getMessageDirection(buyer.get(), seller.get(), emptyConversationRequest.getSenderId());
+                setMDCContext(newConversationId, buyer.get(), seller.get(), messageDirection);
+
                 postBoxRepository.createEmptyConversationProjection(emptyConversationRequest, newConversationId, buyer.get().getUserId());
                 postBoxRepository.createEmptyConversationProjection(emptyConversationRequest, newConversationId, seller.get().getUserId());
 
@@ -216,7 +217,7 @@ public class CassandraPostBoxService implements PostBoxService {
     private List<Participant> getParticipants(Conversation rtsConversation) {
         return new ArrayList<Participant>(2) {{
             add(new Participant(getBuyerUserId(rtsConversation), customValue(rtsConversation, "buyer-name"), rtsConversation.getBuyerId(), BUYER));
-            add(new Participant(getSellerUserId(rtsConversation), customValue(rtsConversation, "seller-name"), rtsConversation.getSellerId(), ParticipantRole.SELLER));
+            add(new Participant(getSellerUserId(rtsConversation), customValue(rtsConversation, "seller-name"), rtsConversation.getSellerId(), SELLER));
         }};
     }
 
@@ -242,5 +243,31 @@ public class CassandraPostBoxService implements PostBoxService {
 
     private Optional<Participant> getParticipant(Map<ParticipantRole, Participant> participantsMap, ParticipantRole participantRole) {
         return participantsMap.containsKey(participantRole) ? Optional.of(participantsMap.get(participantRole)) : Optional.empty();
+    }
+
+    private Optional<MessageDirection> getMessageDirection(Participant buyer, Participant seller, String senderId) {
+        if (Objects.equals(buyer.getEmail(), senderId)) {
+            return Optional.of(BUYER_TO_SELLER);
+        } else if (Objects.equals(seller.getEmail(), senderId)) {
+            return Optional.of(MessageDirection.SELLER_TO_BUYER);
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private static void setMDCContext(String conversationId, Participant buyer, Participant seller, Optional<MessageDirection> messageDirection) {
+        MDC.put(CONVERSATION_ID, conversationId);
+
+        if (messageDirection.isPresent()) {
+            MDC.put(MAIL_DIRECTION, messageDirection.get().name());
+
+            if (messageDirection.get() == BUYER_TO_SELLER) {
+                MDC.put(MAIL_FROM, buyer.getEmail());
+                MDC.put(MAIL_TO, seller.getEmail());
+            } else {
+                MDC.put(MAIL_FROM, seller.getEmail());
+                MDC.put(MAIL_TO, buyer.getEmail());
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -88,6 +89,29 @@ public class MessageProcessingContext {
      */
     public MailAddress getOriginalTo() {
         return new MailAddress(mail.getDeliveredTo());
+    }
+
+    /**
+     * @return real sender of the current email processing, a value is not available sooner than the conversation is created or fetched.
+     */
+    public MailAddress getSender() {
+        return getMailMember(MessageDirection::getFromRole);
+    }
+
+    /**
+     * @return real sender of the current email processing, a value is not available sooner than the conversation is created or fetched.
+     */
+    public MailAddress getRecipient() {
+        return getMailMember(MessageDirection::getToRole);
+    }
+
+    private MailAddress getMailMember(Function<MessageDirection, ConversationRole> roleExtractor) {
+        if (conversation != null && messageDirection != null) {
+            ConversationRole fromRole = roleExtractor.apply(messageDirection);
+            return new MailAddress(conversation.getUserId(fromRole));
+        }
+
+        throw new IllegalStateException("Cannot retrieve information about real email's members when conversation or message_direction are not known.");
     }
 
     /**

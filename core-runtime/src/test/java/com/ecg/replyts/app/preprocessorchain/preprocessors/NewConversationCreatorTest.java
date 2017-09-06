@@ -73,7 +73,8 @@ public class NewConversationCreatorTest {
         assertThat(context.getConversation().getBuyerSecret()).isEqualTo("secretofbuyer");
         assertThat(context.getConversation().getSellerSecret()).isEqualTo("secretofseller");
         assertThat(MDC.get(CONVERSATION_ID)).isEqualTo("foobar@foobar");
-        assertThat(MDC.get(MAIL_BUYER)).isEqualTo("from@host.com");
-        assertThat(MDC.get(MAIL_SELLER)).isEqualTo("to@host.com");
+        assertThat(MDC.get(MAIL_FROM)).isEqualTo("from@host.com");
+        assertThat(MDC.get(MAIL_TO)).isEqualTo("to@host.com");
+        assertThat(MDC.get(MAIL_DIRECTION)).isEqualTo("BUYER_TO_SELLER");
     }
 }

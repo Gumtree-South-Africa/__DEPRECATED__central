@@ -26,8 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.APPLICATION;
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.REVISION;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 

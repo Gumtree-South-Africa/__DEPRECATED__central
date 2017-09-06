@@ -2,6 +2,7 @@ package com.ecg.replyts.app.preprocessorchain.preprocessors;
 
 import com.ecg.replyts.core.api.model.CloakedReceiverContext;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
@@ -52,12 +53,16 @@ public class ExistingConversationLoaderTest {
         context = spy(new MessageProcessingContext(mail, "1", processingTimeGuard));
     }
 
-    @Test()
+    @Test
     public void loadsConversation() {
-
         when(mailCloakingService.resolveUser(any(MailAddress.class))).thenReturn(Optional.of(cloakedReceiverContext));
         when(cloakedReceiverContext.getConversation()).thenReturn(conversation);
         when(cloakedReceiverContext.getRole()).thenReturn(ConversationRole.Buyer);
+
+        doReturn(conversation).when(context).getConversation();
+        doReturn(new MailAddress("from@host.com")).when(context).getSender();
+        doReturn(new MailAddress("to@host.com")).when(context).getRecipient();
+        doReturn(MessageDirection.BUYER_TO_SELLER).when(context).getMessageDirection();
 
         existingConversationLoader.loadExistingConversation(context);
 
