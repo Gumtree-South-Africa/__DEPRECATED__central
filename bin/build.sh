@@ -16,7 +16,7 @@ function fatal() {
 
 readonly ARGS="$@"
 readonly DIR=$(dirname $0)
-readonly CASSANDRA_IMAGE_NAME="docker-registry.ecg.so/comaas/cassandra_data:0.0.6"
+CASSANDRA_IMAGE_NAME="docker-registry.ecg.so/comaas/cassandra_data:0.0.6"
 
 REVISION="$(git rev-parse --short HEAD)"
 # Override REVISION in case of an in-progress Gerrit review
