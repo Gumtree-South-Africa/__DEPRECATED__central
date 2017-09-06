@@ -16,6 +16,7 @@ function fatal() {
 
 readonly ARGS="$@"
 export DIR=$(dirname $0)
+readonly CASSANDRA_IMAGE_NAME="docker-registry.ecg.so/comaas/cassandra_data:0.0.6"
 
 REVISION="$(git rev-parse --short HEAD)"
 # Override REVISION in case of an in-progress Gerrit review
@@ -210,7 +211,7 @@ function main() {
             log "Hint: (cd docker && make up)"
             exit 1
         fi
-        docker run --net comaasdocker_default --rm --volume ${PWD}/distribution/conf/${TENANT}/import_into_consul/docker.properties:/docker.properties -w / docker-registry.ecg.so/comaas/properties-to-consul:0.0.4 -consul http://comaasdocker_consul_1:8500 -file /docker.properties
+        docker run --net comaasdocker_default --rm --volume ${PWD}/distribution/conf/${TENANT}/import_into_consul/docker.properties:/docker.properties -w / ${CASSANDRA_IMAGE_NAME} -consul http://comaasdocker_consul_1:8500 -file /docker.properties
     fi
 
     export COMAAS_HTTP_PORT=18081
