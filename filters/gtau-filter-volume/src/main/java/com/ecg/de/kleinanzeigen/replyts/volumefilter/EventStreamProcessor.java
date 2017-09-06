@@ -23,25 +23,19 @@ public class EventStreamProcessor {
         EPServiceProviderManager.getProvider(PROVIDER_NAME, config).destroy();
         epServiceProvider = EPServiceProviderManager.getProvider(PROVIDER_NAME, config);
 
-
         for (Quota quota : queues) {
 
             String windowName = windowName(quota);
 
-
-            //private static final String CREATE_WIN = "create window ${windowName}.win:time(${windowLength}) as select `${entityField}` from `${eventType}`";
             String createWindow = "create window " + windowName + ".win:time(" + quota.getDurationMinutes() + " min) as select `mailAddress` from `MailReceivedEvent`";
             LOG.debug(createWindow);
             epServiceProvider.getEPAdministrator().createEPL(createWindow);
 
             String insertIntoWindow = "insert into " + windowName + " select `mailAddress` from `MailReceivedEvent`";
-            LOG.debug(insertIntoWindow);
+            LOG.trace(insertIntoWindow);
             epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
-
         }
-
     }
-
 
     private String windowName(Quota q) {
         return ("quota" + q.getPerTimeValue() + q.getPerTimeUnit() + q.getScore()).toLowerCase();

@@ -71,11 +71,11 @@ import static java.lang.String.format;
         String windowName = windowName(instanceId);
         String createWindow = format("create window %s.win:time(%d sec) as select `%s` from `%s`",
                 windowName, filterConfig.getSeconds(), VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
-        LOG.info(createWindow);
+        LOG.debug(createWindow);
         EPStatement createWindowStatement = epServiceProvider.getEPAdministrator().createEPL(createWindow);
         String insertIntoWindow = format("insert into %s select `%s` from `%s`", windowName,
                 VELOCITY_FIELD_VALUE, MAIL_RECEIVED_EVENT);
-        LOG.info(insertIntoWindow);
+        LOG.trace(insertIntoWindow);
         EPStatement insertIntoWindowStatement = epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
         return new EsperWindowLifecycle(createWindowStatement, insertIntoWindowStatement);
     }

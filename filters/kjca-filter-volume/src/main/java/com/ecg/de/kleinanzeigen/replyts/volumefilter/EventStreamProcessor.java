@@ -20,23 +20,18 @@ public class EventStreamProcessor {
         config.addEventType("MailReceivedEvent", MailReceivedEvent.class);
         epServiceProvider = EPServiceProviderManager.getProvider(this.name, config);
 
-
         for (Quota quota : queues) {
 
             String windowName = windowName(quota);
 
-
-            //private static final String CREATE_WIN = "create window ${windowName}.win:time(${windowLength}) as select `${entityField}` from `${eventType}`";
             String createWindow = "create window " + windowName + ".win:time(" + quota.getDurationSeconds() + " sec) as select `mailAddress` from `MailReceivedEvent`";
             LOG.debug(createWindow);
             epServiceProvider.getEPAdministrator().createEPL(createWindow);
 
             String insertIntoWindow = "insert into " + windowName + " select `mailAddress` from `MailReceivedEvent`";
-            LOG.debug(insertIntoWindow);
+            LOG.trace(insertIntoWindow);
             epServiceProvider.getEPAdministrator().createEPL(insertIntoWindow);
-
         }
-
     }
 
     // This should really be replaced with a proper unload() method, but this
