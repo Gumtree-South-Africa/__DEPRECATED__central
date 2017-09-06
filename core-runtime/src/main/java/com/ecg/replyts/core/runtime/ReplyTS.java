@@ -12,6 +12,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -93,6 +94,10 @@ public class ReplyTS {
 
     public static void main(String[] args) throws Exception {
         SysOutOverSLF4J.sendSystemOutAndErrToSLF4J();
+
+        // Reset and redirect java.util.Logging to SLF4J
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
 
         setLoggerContextProperties();
 
