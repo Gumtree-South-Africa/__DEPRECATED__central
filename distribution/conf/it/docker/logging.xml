@@ -3,5 +3,4 @@
     <logger name="com.ecg.messagecenter.cronjobs" level="DEBUG" />
     <logger name="com.ecg.replyts.core.runtime.indexer" level="DEBUG" />
     <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
-    <logger name="com.ecg.au.gumtree.messagelogging" level="DEBUG"/>
 </included>
