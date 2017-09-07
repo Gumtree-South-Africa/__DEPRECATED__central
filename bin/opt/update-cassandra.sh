@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Quick and dirty way to run arbitrary Cassandra commands on a bunch of tenant C* keyspaces
 

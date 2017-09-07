@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Tests the hybrid migrator by clearing out both data stores and starting up COMaaS with two different configurations
 # 
