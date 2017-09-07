@@ -32,7 +32,7 @@ public class SharedBrain {
     }
 
     void markSeen(String mailAddress) {
-        LOG.debug(append("notification_value", mailAddress), "volume-notification-out");
+        LOG.trace(append("notification_value", mailAddress), "volume-notification-out");
         processor.mailReceivedFrom(mailAddress);
         communicationBus.publish(mailAddress);
     }
