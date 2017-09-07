@@ -20,10 +20,12 @@ import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 
 @Component("mailDataProvider")
@@ -69,6 +71,7 @@ public class DropfolderMessageProcessor implements MessageProcessor {
     private String abandonedFileNameMatchPattern;
 
     private final BlockingQueue<File> messageFilesQueue = new LinkedBlockingQueue<>();
+    private final ReentrantLock messageFilesQueueRefillLock = new ReentrantLock();
 
     @PostConstruct
     public void initialize() {
@@ -115,6 +118,7 @@ public class DropfolderMessageProcessor implements MessageProcessor {
             if (nextMessage.isPresent()) {
                 try {
                     ACTIVE_DROPFOLDER_PROCESSORS_COUNTER.inc();
+                    LOG.debug("About to submit {} for processing", nextMessage.get());
                     process(nextMessage.get());
                 } finally {
                     ACTIVE_DROPFOLDER_PROCESSORS_COUNTER.dec();
@@ -130,9 +134,21 @@ public class DropfolderMessageProcessor implements MessageProcessor {
         File nextFile = messageFilesQueue.poll();
         if (nextFile != null) {
             return Optional.of(nextFile);
+        } else {
+            tryRefillQueue();
+            return Optional.ofNullable(messageFilesQueue.poll());
         }
+    }
 
-        synchronized (messageFilesQueue) {
+    /**
+     * Makes an to refill a queue of files to process. Since an object of the class is shared among multiple processing
+     * threads, only one thread at a time is allowed to refill the queue.
+     */
+    private void tryRefillQueue() {
+        if (!messageFilesQueueRefillLock.tryLock()) {
+            return;
+        }
+        try {
             if (messageFilesQueue.isEmpty()) {
                 File[] incoming = mailDataDirectory.listFiles(INCOMING_FILE_FILTER);
                 checkNotNull(incoming, "listFiles with incoming filter call produced a null result");
@@ -140,10 +156,11 @@ public class DropfolderMessageProcessor implements MessageProcessor {
                 File[] failed = failedDirectory.listFiles(failedFileFilter);
                 checkNotNull(failed, "listFiles with failed filter call produced a null result");
                 messageFilesQueue.addAll(Arrays.asList(failed));
+                LOG.debug("New queue size: {}", messageFilesQueue.size());
             }
+        } finally {
+            messageFilesQueueRefillLock.unlock();
         }
-        
-        return Optional.ofNullable(messageFilesQueue.poll());
     }
 
     private void process(File originalFilename) {
