@@ -77,10 +77,10 @@ public class RiakConversationRepository implements MutableConversationRepository
         try {
             ConversationEvents conversationEvents = conversationBucket.byId(conversationId);
             if (conversationEvents == null) {
-                LOGGER.debug("Found no conversationEvents for Conversation with id {} in Riak", conversationId);
+                LOGGER.trace("Found no conversationEvents for Conversation with id {} in Riak", conversationId);
                 return null;
             }
-            LOGGER.debug("Found {} events for Conversation with id {} in Riak", conversationEvents.getEvents().size(), conversationId);
+            LOGGER.trace("Found {} events for Conversation with id {} in Riak", conversationEvents.getEvents().size(), conversationId);
             return new DefaultMutableConversation(replay(conversationEvents.getEvents()));
         } finally {
             context.stop();
@@ -106,7 +106,7 @@ public class RiakConversationRepository implements MutableConversationRepository
                 LOGGER.debug("Found conversation with id {} by secret in Riak", replayedEvent.getConversationId());
                 return DefaultMutableConversation.create(replayedEvent);
             } else {
-                LOGGER.debug("Found conversation with id {} by secret in Riak", foundConversation.getId());
+                LOGGER.trace("Found conversation with id {} by secret in Riak", foundConversation.getId());
                 return foundConversation;
             }
 
@@ -152,7 +152,7 @@ public class RiakConversationRepository implements MutableConversationRepository
             setupConversationIfNewlyCreated(toBeCommittedEvents);
             conversationBucket.write(conversationId, toBeCommittedEvents);
         } finally {
-            LOGGER.debug("Saving conversation {}, with {} events to Riak", conversationId, toBeCommittedEvents.size());
+            LOGGER.trace("Saving conversation {}, with {} events to Riak", conversationId, toBeCommittedEvents.size());
             context.stop();
         }
     }
@@ -197,7 +197,7 @@ public class RiakConversationRepository implements MutableConversationRepository
 
     @Override
     public void deleteConversation(Conversation c) {
-        LOGGER.debug("Deleting conversation {} with {} events from Riak", c.getId(), c.getMessages().size());
+        LOGGER.trace("Deleting conversation {} with {} events from Riak", c.getId(), c.getMessages().size());
         if (c.getState() != ConversationState.DEAD_ON_ARRIVAL) {
             conversationSecretBucket.delete(c.getBuyerSecret());
             conversationSecretBucket.delete(c.getSellerSecret());
