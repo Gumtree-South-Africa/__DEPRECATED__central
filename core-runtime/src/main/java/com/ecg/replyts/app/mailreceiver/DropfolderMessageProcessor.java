@@ -33,6 +33,7 @@ public class DropfolderMessageProcessor implements MessageProcessor {
 
     private static final Counter FAILED_COUNTER = TimingReports.newCounter("processing_failed");
     private static final Counter ABANDONED_RETRY_COUNTER = TimingReports.newCounter("processing_failed_abandoned");
+    private static final Counter ACTIVE_DROPFOLDER_PROCESSORS_COUNTER = TimingReports.newCounter("active_dropfolder_processors");
 
     static final String FAILED_DIRECTORY_NAME = "failed";
     static final String FAILED_PREFIX = "f_";
@@ -112,7 +113,12 @@ public class DropfolderMessageProcessor implements MessageProcessor {
         if (shouldProcessMessagesNow()) {
             Optional<File> nextMessage = nextMessage();
             if (nextMessage.isPresent()) {
-                process(nextMessage.get());
+                try {
+                    ACTIVE_DROPFOLDER_PROCESSORS_COUNTER.inc();
+                    process(nextMessage.get());
+                } finally {
+                    ACTIVE_DROPFOLDER_PROCESSORS_COUNTER.dec();
+                }
                 return;
             }
         }
