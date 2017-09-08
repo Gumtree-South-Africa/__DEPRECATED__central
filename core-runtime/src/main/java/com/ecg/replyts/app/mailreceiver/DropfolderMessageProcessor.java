@@ -156,7 +156,10 @@ public class DropfolderMessageProcessor implements MessageProcessor {
                 File[] failed = failedDirectory.listFiles(failedFileFilter);
                 checkNotNull(failed, "listFiles with failed filter call produced a null result");
                 messageFilesQueue.addAll(Arrays.asList(failed));
-                LOG.debug("New queue size: {}", messageFilesQueue.size());
+                int newSize = messageFilesQueue.size();
+                if (newSize > 0) {
+                    LOG.debug("New queue size: {}", newSize);
+                }
             }
         } finally {
             messageFilesQueueRefillLock.unlock();
