@@ -13,6 +13,8 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
+
 /**
  * Send records to Kafka async in fire-forget style.
  * <p>
@@ -47,14 +49,17 @@ public class AsyncProducer<K, V> {
 
 
     public void send(ProducerRecord<K, V> record) {
-        executor.submit(() -> {
 
-            try {
-                producer.send(record);
-            } catch (RuntimeException e) {
-                exceptionCollector.recogniseException(e);
-            }
-        });
+        executor.submit(setTaskFields(() -> safeSend(record), "AsyncProducer-send"));
+    }
+
+    private void safeSend(ProducerRecord<K, V> record) {
+
+        try {
+            producer.send(record);
+        } catch (RuntimeException e) {
+            exceptionCollector.recogniseException(e);
+        }
     }
 
     public void close() {

@@ -16,18 +16,26 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import uk.org.lidalia.sysoutslf4j.context.SysOutOverSLF4J;
 
 import javax.annotation.PostConstruct;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.APPLICATION;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.REVISION;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
@@ -93,6 +101,8 @@ public class ReplyTS {
     }
 
     public static void main(String[] args) throws Exception {
+        Thread.currentThread().setName("main");
+
         SysOutOverSLF4J.sendSystemOutAndErrToSLF4J();
 
         // Reset and redirect java.util.Logging to SLF4J

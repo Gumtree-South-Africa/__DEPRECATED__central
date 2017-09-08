@@ -3,15 +3,26 @@ package com.ecg.replyts.core.runtime.configadmin;
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+
+import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
+
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static org.apache.commons.lang3.time.DurationFormatUtils.formatDurationWords;
 
 /**
  * Regularly checks for modifications of plugin configurations and informs the responsible {@link ConfigurationAdmin}
@@ -20,7 +31,7 @@ import java.util.stream.Collectors;
 public class Refresher {
     private static final Logger LOG = LoggerFactory.getLogger(Refresher.class);
 
-    private static final long RATE = TimeUnit.MINUTES.toMillis(1);
+    private static final Duration REFRESH_RATE = Duration.ofMinutes(1);
     private final String threadName;
 
     @Autowired
@@ -31,34 +42,37 @@ public class Refresher {
 
     private ConfigurationAdmin<Object> admin;
 
-    private final Timer refreshChecker;
+    private final ScheduledExecutorService refreshScheduler;
 
     public Refresher(ConfigurationAdmin<Object> admin) {
         this.admin = admin;
-        threadName = "configuration-checker-" + admin.getAdminName();
-        this.refreshChecker = new Timer(threadName, true);
+        this.threadName = "configuration-checker-" + admin.getAdminName();
+        this.refreshScheduler = newSingleThreadScheduledExecutor(
+                new ThreadFactoryBuilder().setDaemon(true).setNameFormat(threadName).build());
     }
 
     @PostConstruct
     public void initialize() {
-        LOG.info("Refreshing configurations now and periodically refreshing with daemon thread {} every {} ms", threadName, RATE);
+        LOG.info("Refreshing configurations now and periodically refreshing with daemon thread {} every {}", threadName,
+                formatDurationWords(REFRESH_RATE.toMillis(), true, true));
 
         updateConfigurations();
 
-        refreshChecker.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    updateConfigurations();
-                } catch (RuntimeException e) {
-                    LOG.error("Updating Plugin Configurations from Database failed", e);
-                }
-        } }, RATE, RATE);
+        refreshScheduler.scheduleWithFixedDelay(setTaskFields(this::refreshConfiguration, threadName),
+                REFRESH_RATE.toNanos(), REFRESH_RATE.toNanos(), NANOSECONDS);
+    }
+
+    private void refreshConfiguration() {
+        try {
+            updateConfigurations();
+        } catch (RuntimeException e) {
+            LOG.error("Updating Plugin Configurations from Database failed", e);
+        }
     }
 
     @PreDestroy
     public void destroy() {
-        refreshChecker.cancel();
+        refreshScheduler.shutdown();
     }
 
     public void updateConfigurations() {

@@ -162,6 +162,17 @@
         </profile>
 
         <profile>
+            <id>benchmarks</id>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+            <modules>
+                <module>core-runtime</module>
+                <module>core-benchmarks</module>
+            </modules>
+        </profile>
+
+        <profile>
             <id>distribution</id>
 
             <modules>

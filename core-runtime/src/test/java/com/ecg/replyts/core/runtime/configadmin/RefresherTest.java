@@ -8,7 +8,6 @@ import com.ecg.replyts.core.api.util.JsonObjects;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
@@ -36,9 +35,9 @@ public class RefresherTest {
     @Autowired
     private Refresher r;
 
-    private List<PluginConfiguration> configsFromRepo = new ArrayList<PluginConfiguration>();
+    private List<PluginConfiguration> configsFromRepo = new ArrayList<>();
 
-    private List<PluginInstanceReference<Object>> runningPlugins = new ArrayList<PluginInstanceReference<Object>>();
+    private List<PluginInstanceReference<Object>> runningPlugins = new ArrayList<>();
 
     @Before
     public void setup() {
@@ -60,7 +59,7 @@ public class RefresherTest {
     @Test
     public void updatesExistingConfigurationWhenNewer() throws Exception {
         PluginConfiguration pi = pi(String.class, "instance1", 1l);
-        runningPlugins.add(new PluginInstanceReference<Object>(pi, new Object()));
+        runningPlugins.add(new PluginInstanceReference<>(pi, new Object()));
         PluginConfiguration pi2 = pi(String.class, "instance1", 4l);
         configsFromRepo.add(pi2);
 
@@ -74,7 +73,7 @@ public class RefresherTest {
     @Test
     public void doesNotUpdateExistingConfigurationWhenSameVersion() throws Exception {
         PluginConfiguration pi = pi(String.class, "instance1", 1l);
-        runningPlugins.add(new PluginInstanceReference<Object>(pi, new Object()));
+        runningPlugins.add(new PluginInstanceReference<>(pi, new Object()));
         PluginConfiguration pi2 = pi(String.class, "instance1", 1l);
         configsFromRepo.add(pi2);
         configsFromRepo.add(pi);
@@ -88,7 +87,7 @@ public class RefresherTest {
     @Test
     public void addsSecondConfiguration() {
         PluginConfiguration pi = pi(String.class, "instance1", 1l);
-        runningPlugins.add(new PluginInstanceReference<Object>(pi, new Object()));
+        runningPlugins.add(new PluginInstanceReference<>(pi, new Object()));
         PluginConfiguration pi2 = pi(String.class, "instance2", 4l);
         configsFromRepo.add(pi2);
         configsFromRepo.add(pi);
@@ -102,7 +101,7 @@ public class RefresherTest {
     @Test
     public void deletesOldConfiguration() {
         PluginConfiguration pi = pi(String.class, "instance1", 1l);
-        runningPlugins.add(new PluginInstanceReference<Object>(pi, new Object()));
+        runningPlugins.add(new PluginInstanceReference<>(pi, new Object()));
 
         r.updateConfigurations();
 

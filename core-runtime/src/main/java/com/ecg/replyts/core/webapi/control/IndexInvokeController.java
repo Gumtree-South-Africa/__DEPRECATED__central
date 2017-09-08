@@ -18,18 +18,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -66,12 +64,7 @@ class IndexInvokeController {
         }
 
         LOG.info("Invoke Full Index via Web interface for user '{}' with reason '{}'", user, reason);
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                indexer.fullIndex();
-            }
-        });
+        executorService.execute(setTaskFields(indexer::fullIndex, "IndexInvokeController-fullIndex"));
 
         return String.format("Full reindex started for user '%s' with reason '%s'.", user, reason);
     }
@@ -82,9 +75,7 @@ class IndexInvokeController {
         LOG.debug("Conversations: {}", conversationList);
         final List<String> conversations = CONVERSATION_SPLITTER.splitToList(conversationList);
         LOG.info("Invoke index conversation via Web interface for conversations: " + conversations);
-        executorService.execute(() -> {
-            chunkIndexer.indexChunk(conversations);
-        });
+        executorService.execute(setTaskFields(() -> chunkIndexer.indexChunk(conversations), "IndexInvokeController-indexChunk"));
         return "Index conversations by ID started.";
     }
 
@@ -93,12 +84,7 @@ class IndexInvokeController {
     @ResponseBody
     public String invokeDeltaIndex() {
         LOG.info("Invoke Delta Index via Web interface");
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                indexer.deltaIndex();
-            }
-        });
+        executorService.execute(setTaskFields(indexer::deltaIndex, "IndexInvokeController-deltaIndex"));
 
         return "delta index started.";
     }
@@ -108,12 +94,7 @@ class IndexInvokeController {
     public String invokeDeltaIndex(String since) {
         final DateTime sinceDate = DateTime.parse(since);
         LOG.info("Invoke Partial Full Index - since {}", sinceDate);
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                indexer.indexSince(sinceDate);
-            }
-        });
+        executorService.execute(setTaskFields(() -> indexer.indexSince(sinceDate), "IndexInvokeController-indexSince"));
         return "Rebuilding index since " + sinceDate;
     }
 
@@ -144,7 +125,6 @@ class IndexInvokeController {
         }
 
         response.attr("runs", indexRuns);
-
 
         return response.toJson();
     }

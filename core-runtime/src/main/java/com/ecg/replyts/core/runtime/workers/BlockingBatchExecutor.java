@@ -11,6 +11,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
 import static com.ecg.replyts.core.runtime.workers.BlockingBatchExecutor.ErrorHandlingPolicy.SKIP_ERRORS;
 import static java.lang.String.format;
 
@@ -55,11 +56,9 @@ public class BlockingBatchExecutor<T> {
      * converts the given input into runnables that will be executed in a pool using the specified conversation function. blocks until all input has been processed.
      */
     public void executeAll(Iterable<T> input, Function<T, Runnable> transformerFunction, ErrorHandlingPolicy errorHandlingPolicy) {
-
-
         FailFastCapablePoolExecutor executorService = new FailFastCapablePoolExecutor(threadCount, taskName, errorHandlingPolicy);
         for (T data : input) {
-            executorService.execute(transformerFunction.apply(data));
+            executorService.execute(setTaskFields(transformerFunction.apply(data), taskName));
         }
 
         shutdownAndAwaitTermination(executorService);
@@ -68,7 +67,6 @@ public class BlockingBatchExecutor<T> {
             throw new BatchFailedException("Bulk Execution failed due to exception, please see logs");
         }
     }
-
 
     void shutdownAndAwaitTermination(ExecutorService pool) {
         pool.shutdown();
@@ -130,6 +128,4 @@ public class BlockingBatchExecutor<T> {
             super(s);
         }
     }
-
-
 }

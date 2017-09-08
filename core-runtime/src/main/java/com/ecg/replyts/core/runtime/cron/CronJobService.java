@@ -22,10 +22,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
 
 /**
  * Service capable of executing cron jobs. This service uses quartz internally to ensure cron jobs are executed uniquely
@@ -105,7 +108,7 @@ public class CronJobService implements CheckProvider {
     }
 
     private Map<Class<? extends CronJobExecutor>, CronJobExecutor> sortExecutors(List<CronJobExecutor> executors) {
-        Map<Class<? extends CronJobExecutor>, CronJobExecutor> instances = new HashMap<Class<? extends CronJobExecutor>, CronJobExecutor>();
+        Map<Class<? extends CronJobExecutor>, CronJobExecutor> instances = new HashMap<>();
         for (CronJobExecutor c : executors) {
             if (instances.containsKey(c.getClass())) {
                 throw new IllegalStateException("Found Multiple Jobs of same type for Cron Job " + c);
@@ -181,6 +184,7 @@ public class CronJobService implements CheckProvider {
             return;
         }
         try {
+            setTaskFields(jobType);
             LOG.trace("Invoking Cron Job {}", jobType);
             monitoringSupport.start(type);
             Stopwatch timing = Stopwatch.createStarted();

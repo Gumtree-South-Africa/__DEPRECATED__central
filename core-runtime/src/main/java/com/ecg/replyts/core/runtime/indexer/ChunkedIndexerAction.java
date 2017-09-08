@@ -6,7 +6,6 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.DateSliceIterator;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.workers.BlockingBatchExecutor;
-import com.google.common.base.Function;
 import com.google.common.collect.Range;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -14,9 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static com.ecg.replyts.core.runtime.TimingReports.*;
 
 class ChunkedIndexerAction implements IndexerAction {
 
@@ -44,18 +43,14 @@ class ChunkedIndexerAction implements IndexerAction {
         this.chunkSizeMinutes = chunkSizeMinutes;
     }
 
+    @Override
     public void doIndexBetween(DateTime dateFrom, DateTime dateTo, IndexingMode indexingMode, IndexingJournal journal) {
         DateSliceIterator dateSlices = new DateSliceIterator(Range.closed(dateFrom, dateTo), chunkSizeMinutes, MINUTES, indexingMode.indexingDirection());
         journal.startRunning(dateSlices.chunkCount());
 
         BlockingBatchExecutor<Range<DateTime>> executor = new BlockingBatchExecutor<>("indexing-" + indexingMode.name(), threadCount, MAX_PROCESSING_TIME_DAYS, DAYS);
 
-        executor.executeAll(dateSlices, new Function<Range<DateTime>, Runnable>() {
-            @Override
-            public Runnable apply(Range<DateTime> slice) {
-                return new IndexChunkRunnable(slice, journal);
-            }
-        }, indexingMode.errorHandlingPolicy());
+        executor.executeAll(dateSlices, slice -> new IndexChunkRunnable(slice, journal), indexingMode.errorHandlingPolicy());
         LOG.debug("Full indexing complete, indexed {} conversations", submittedConvCounter.getCount());
     }
 

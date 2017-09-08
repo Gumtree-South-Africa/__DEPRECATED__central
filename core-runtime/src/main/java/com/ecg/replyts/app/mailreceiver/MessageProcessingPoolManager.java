@@ -1,6 +1,11 @@
 package com.ecg.replyts.app.mailreceiver;
 
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +17,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
 import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -53,14 +60,14 @@ public class MessageProcessingPoolManager {
     }
 
     private Runnable createWorker() {
-        return () -> {
+        return setTaskFields(() -> {
             try {
                 messageProcessor.processNext();
             } catch (InterruptedException e) {
                 LOG.warn("The worker thread has been interrupted");
                 Thread.currentThread().interrupt();
             }
-        };
+        }, "ReplyTS-worker-thread");
     }
 
     private void submitWorker(Runnable worker) {

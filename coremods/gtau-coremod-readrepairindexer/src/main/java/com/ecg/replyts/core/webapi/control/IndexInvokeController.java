@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +18,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
 
 @Controller
 @Primary
@@ -35,12 +36,7 @@ class IndexInvokeController {
     @ResponseBody
     public String invokeFullIndex() {
         LOG.info("Invoke Full Index via Web interface");
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                indexer.fullIndex();
-            }
-        });
+        executorService.execute(setTaskFields(indexer::fullIndex, "IndexInvokeController-fullIndex"));
         return "full index started.";
     }
 
@@ -48,12 +44,7 @@ class IndexInvokeController {
     @ResponseBody
     public String invokeDeltaIndex() {
         LOG.info("Invoke Delta Index via Web interface");
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                indexer.deltaIndex();
-            }
-        });
+        executorService.execute(setTaskFields(indexer::deltaIndex, "IndexInvokeController-deltaIndex"));
 
         return "delta index started.";
     }
@@ -63,12 +54,7 @@ class IndexInvokeController {
     public String invokeDeltaIndex(String since) {
         final DateTime sinceDate = DateTime.parse(since);
         LOG.info("Invoke Partial Full Index - since {}", sinceDate);
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                indexer.indexSince(sinceDate);
-            }
-        });
+        executorService.execute(setTaskFields(() -> indexer.indexSince(sinceDate), "IndexInvokeController-indexSince"));
         return "Rebuilding index since " + sinceDate;
     }
 
@@ -99,7 +85,6 @@ class IndexInvokeController {
         }
 
         response.attr("runs", indexRuns);
-
 
         return response.toJson();
     }

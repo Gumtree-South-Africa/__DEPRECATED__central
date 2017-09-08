@@ -7,14 +7,18 @@ import com.ecg.replyts.core.runtime.cluster.ClusterMode;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
@@ -196,7 +200,6 @@ public class DropfolderMessageProcessor implements MessageProcessor {
             if (tempFilename.exists() && !tempFilename.delete()) {
                 LOG.error("Failed to delete mail {} from dropfolder after successful processing", tempFilename.getName());
             }
-            MDC.clear();
         }
     }
 
