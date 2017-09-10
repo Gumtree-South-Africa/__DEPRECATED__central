@@ -7,7 +7,6 @@ import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.core.api.util.JsonObjects.Builder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -94,19 +93,7 @@ public class ConfigCrudController implements HandlerExceptionResolver {
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ObjectNode listConfigurations() {
-        ArrayNode arrayNode = JsonObjects.newJsonArray();
-        // TODO: Order by priority
-        for (PluginConfiguration pluginConfiguration : configRepository.getConfigurations()) {
-            Builder config = JsonObjects.builder()
-                    .attr("pluginFactory", pluginConfiguration.getId().getPluginFactory().getName())
-                    .attr("instanceId", pluginConfiguration.getId().getInstanceId())
-                    .attr("priority", pluginConfiguration.getPriority())
-                    .attr("state", pluginConfiguration.getState().name())
-                    .attr("version", pluginConfiguration.getVersion())
-                    .attr("configuration", pluginConfiguration.getConfiguration());
-            arrayNode.add(config.build());
-        }
-        return JsonObjects.builder().attr("configs", arrayNode).build();
+        return configRepository.getConfigurationsAsJson();
     }
 
     @ResponseBody
@@ -115,6 +102,8 @@ public class ConfigCrudController implements HandlerExceptionResolver {
         if (instanceId == null || instanceId.isEmpty()) {
             throw new RuntimeException("InstanceId is required");
         }
+
+        configRepository.backupConfigurations();
 
         PluginConfiguration config = extract(pluginFactory, instanceId, body, body.get("configuration"));
 
@@ -135,8 +124,8 @@ public class ConfigCrudController implements HandlerExceptionResolver {
     @RequestMapping(value = "/", method = RequestMethod.PUT, consumes = "*/*")
     public ObjectNode replaceConfigurations(@RequestBody ArrayNode body) throws Exception {
         List<PluginConfiguration> newConfigurations = verifyConfigurations(body);
-
         List<PluginConfiguration> currentConfigurations = configRepository.getConfigurations();
+        configRepository.backupConfigurations();
 
         try {
             currentConfigurations.forEach(c -> configRepository.deleteConfiguration(c.getId()));
@@ -150,6 +139,17 @@ public class ConfigCrudController implements HandlerExceptionResolver {
         configUpdateNotifier.confirmConfigurationUpdate();
 
         return JsonObjects.builder().attr("count", body.size()).success().build();
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/{pluginFactory}/{instanceId}", method = RequestMethod.DELETE, consumes = "*/*")
+    public ObjectNode deleteConfiguration(@PathVariable String pluginFactory, @PathVariable String instanceId) throws Exception {
+        configRepository.backupConfigurations();
+        ConfigurationId cid = toId(pluginFactory, instanceId);
+        configRepository.deleteConfiguration(cid);
+        configUpdateNotifier.confirmConfigurationUpdate();
+        return JsonObjects.builder().success().build();
+
     }
 
     private List<PluginConfiguration> verifyConfigurations(ArrayNode body) throws Exception {
@@ -187,16 +187,6 @@ public class ConfigCrudController implements HandlerExceptionResolver {
         if (field instanceof TextNode && !StringUtils.hasText(field.textValue())) {
             throw new IllegalArgumentException(format("Array element's contents contains field %s but it contains an empty value", fieldName));
         }
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "/{pluginFactory}/{instanceId}", method = RequestMethod.DELETE, consumes = "*/*")
-    public ObjectNode deleteConfiguration(@PathVariable String pluginFactory, @PathVariable String instanceId) throws Exception {
-        ConfigurationId cid = toId(pluginFactory, instanceId);
-        configRepository.deleteConfiguration(cid);
-        configUpdateNotifier.confirmConfigurationUpdate();
-        return JsonObjects.builder().success().build();
-
     }
 
     private PluginConfiguration extract(String pluginFactory, String instanceId, JsonNode body, JsonNode configuration) throws IllegalArgumentException, ClassNotFoundException {

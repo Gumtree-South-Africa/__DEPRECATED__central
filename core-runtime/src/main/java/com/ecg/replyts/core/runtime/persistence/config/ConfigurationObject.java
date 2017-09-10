@@ -7,18 +7,16 @@ class ConfigurationObject {
 
     private final PluginConfiguration pluginConfiguration;
 
-
     ConfigurationObject(long timestamp, PluginConfiguration pluginConfiguration) {
         this.pluginConfiguration = pluginConfiguration;
         this.timestamp = timestamp;
     }
 
-
     public long getTimestamp() {
         return timestamp;
     }
 
-    public PluginConfiguration getPluginConfiguration() {
+    PluginConfiguration getPluginConfiguration() {
         return pluginConfiguration;
     }
 }

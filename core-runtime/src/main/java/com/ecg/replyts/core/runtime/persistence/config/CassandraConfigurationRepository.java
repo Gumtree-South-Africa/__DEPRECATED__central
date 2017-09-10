@@ -70,6 +70,11 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
         persistConfigurations("Could not delete configuration identified by " + configurationId, mergedConfigurations);
     }
 
+    @Override
+    public void backupConfigurations() {
+        LOG.info("Not implemented yet");
+    }
+
     private Configurations fetchConfigurations() {
         try (Timer.Context ignored = fetchTimer.time()) {
             Statement bound = Statements.SELECT.bind(this, CONFIGURATIONS_KEY);

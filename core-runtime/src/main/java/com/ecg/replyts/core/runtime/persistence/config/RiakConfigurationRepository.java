@@ -13,8 +13,15 @@ import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.runtime.persistence.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -23,6 +30,9 @@ public class RiakConfigurationRepository implements ConfigurationRepository {
     private static final Logger LOG = LoggerFactory.getLogger(RiakConfigurationRepository.class);
 
     private static final String DEFAULT_CONFIG_BUCKET_NAME = "config";
+
+    @Value("${logDir:.}")
+    private String logDir;
 
     private final ConfigurationConverter converter;
 
@@ -50,14 +60,12 @@ public class RiakConfigurationRepository implements ConfigurationRepository {
 
     @Override
     public List<PluginConfiguration> getConfigurations() {
-        List<PluginConfiguration> plugins = new ArrayList<PluginConfiguration>();
-
+        List<PluginConfiguration> plugins = new ArrayList<>();
 
         List<ConfigurationObject> configurationObjects = fetchConfigurations().getConfigurationObjects();
         for (ConfigurationObject co : configurationObjects) {
             plugins.add(co.getPluginConfiguration());
         }
-
 
         return plugins;
     }
@@ -79,12 +87,25 @@ public class RiakConfigurationRepository implements ConfigurationRepository {
     @Override
     public void persistConfiguration(PluginConfiguration configuration) {
         ConfigurationObject obj = new ConfigurationObject(System.currentTimeMillis(), configuration);
+
         Configurations mergedConfigurations = fetchConfigurations().addOrUpdate(obj);
         try {
             configurationBucket.store(mergedConfigurations);
         } catch (RiakException e) {
             String configId = configuration.getId().toString();
             throw new PersistenceException("Could not store configuration identified by " + configId, e);
+        }
+    }
+
+    @Override
+    public void backupConfigurations() {
+        final String currentTime = new SimpleDateFormat("yyyyMMdd-HH.mm.ss.SSS").format(new Date());
+        final File configLocation = new File(logDir, "configuration_" + currentTime + ".json");
+        LOG.info("Saving previous configurations as {}", configLocation);
+        try (BufferedWriter out = new BufferedWriter(new FileWriter(configLocation))) {
+            out.write(String.valueOf(getConfigurationsAsJson().get("configs")));
+        } catch (IOException e) {
+            LOG.error("Could not save old configuration to file", e);
         }
     }
 

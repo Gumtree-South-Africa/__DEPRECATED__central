@@ -31,14 +31,14 @@ class Configurations {
 
     /**
      * @param existingConfigurations list of configurations
-     * @param compressed If the configuration was stored in a compressed way.
+     * @param compressed             If the configuration was stored in a compressed way.
      */
     Configurations(List<ConfigurationObject> existingConfigurations, boolean compressed) {
         this.compressed = compressed;
         configurationObjects = ImmutableList.copyOf(existingConfigurations);
     }
 
-    public List<ConfigurationObject> getConfigurationObjects() {
+    List<ConfigurationObject> getConfigurationObjects() {
         return configurationObjects;
     }
 
@@ -55,7 +55,7 @@ class Configurations {
         return new Configurations(bdr.build(), compressed);
     }
 
-    public Configurations addOrUpdate(ConfigurationObject toUpdate) {
+    Configurations addOrUpdate(ConfigurationObject toUpdate) {
         ImmutableList.Builder<ConfigurationObject> bdr = ImmutableList.builder();
 
         ConfigurationId updatedConfigurationsId = toUpdate.getPluginConfiguration().getId();
@@ -81,7 +81,7 @@ class Configurations {
         return new Configurations(bdr.build(), compressed);
     }
 
-    public boolean isCompressed() {
+    boolean isCompressed() {
         return compressed;
     }
 
@@ -93,7 +93,7 @@ class Configurations {
         return maxTs;
     }
 
-    public Configurations setCompressed(boolean compressed) {
+    Configurations setCompressed(boolean compressed) {
         return new Configurations(configurationObjects, compressed);
     }
 }

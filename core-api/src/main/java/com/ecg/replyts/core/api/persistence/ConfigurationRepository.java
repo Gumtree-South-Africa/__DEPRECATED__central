@@ -2,6 +2,9 @@ package com.ecg.replyts.core.api.persistence;
 
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
+import com.ecg.replyts.core.api.util.JsonObjects;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.List;
 
@@ -25,7 +28,31 @@ public interface ConfigurationRepository {
     void persistConfiguration(PluginConfiguration configuration);
 
     /**
+     * make a backup of all current configurations
+     */
+    void backupConfigurations();
+
+    /**
      * deletes the configuration identified by this {@link ConfigurationId}.
      */
     void deleteConfiguration(ConfigurationId configurationId);
+
+    /**
+     * configurations as a json object
+     */
+    default ObjectNode getConfigurationsAsJson() {
+        ArrayNode arrayNode = JsonObjects.newJsonArray();
+        // TODO: Order by priority
+        for (PluginConfiguration pluginConfiguration : getConfigurations()) {
+            JsonObjects.Builder config = JsonObjects.builder()
+                    .attr("pluginFactory", pluginConfiguration.getId().getPluginFactory().getName())
+                    .attr("instanceId", pluginConfiguration.getId().getInstanceId())
+                    .attr("priority", pluginConfiguration.getPriority())
+                    .attr("state", pluginConfiguration.getState().name())
+                    .attr("version", pluginConfiguration.getVersion())
+                    .attr("configuration", pluginConfiguration.getConfiguration());
+            arrayNode.add(config.build());
+        }
+        return JsonObjects.builder().attr("configs", arrayNode).build();
+    }
 }

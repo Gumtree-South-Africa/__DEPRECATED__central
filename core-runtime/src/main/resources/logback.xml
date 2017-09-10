@@ -12,6 +12,6 @@
         <appender-ref ref="STDERR"/>
     </root>
 
-   <include file="${confDir}/logging.xml"/>
+    <include file="${confDir}/logging.xml"/>
 
 </configuration>

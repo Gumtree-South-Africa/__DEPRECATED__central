@@ -58,12 +58,12 @@ public class RiakPersistenceConfiguration {
 
     @Bean
     public ConversationRepository conversationRepository() {
-        return new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins);
+        return  new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins) ;
     }
 
     @Bean
     public ConfigurationRepository configurationRepository() throws RiakRetryFailedException {
-        return new RiakConfigurationRepository(riakClient, bucketNamePrefix + configBucketNamePrefix);
+        return  new RiakConfigurationRepository(riakClient, bucketNamePrefix + configBucketNamePrefix) ;
     }
 
     @Bean
