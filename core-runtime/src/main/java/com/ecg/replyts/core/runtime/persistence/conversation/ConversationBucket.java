@@ -26,26 +26,26 @@ import static com.ecg.replyts.core.runtime.persistence.FetchIndexHelper.fetchRes
 import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.timestampInMinutes;
 
 class ConversationBucket {
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationBucket.class);
+
     private static final Timer DELETE_CONVERSATION_TIMER = TimingReports.newTimer("cleanupConversation");
 
     private static final ConversationEvents DEFAULT_EMPTY_CONVERSATION_EVENT = new ConversationEvents(null);
 
-    public static final String SECONDARY_INDEX_CREATED_AT = "createdAt";
-    public static final String SECONDARY_INDEX_MODIFIED_AT = "modifiedAt";
+    static final String SECONDARY_INDEX_CREATED_AT = "createdAt";
+    static final String SECONDARY_INDEX_MODIFIED_AT = "modifiedAt";
 
     private final Bucket bucket;
     private final RiakConversationEventConflictResolver resolver;
     private final ConversationEventsConverter converter;
 
-    private static final Logger LOG = LoggerFactory.getLogger(ConversationBucket.class);
-
     ConversationBucket(IRiakClient riakClient, String bucketName, boolean allowSiblings, boolean lastWriteWins) {
         try {
             this.bucket = riakClient
-              .updateBucket(riakClient.fetchBucket(bucketName).execute())
-              .allowSiblings(allowSiblings)
-              .lastWriteWins(lastWriteWins)
-              .execute();
+                    .updateBucket(riakClient.fetchBucket(bucketName).execute())
+                    .allowSiblings(allowSiblings)
+                    .lastWriteWins(lastWriteWins)
+                    .execute();
 
             converter = new ConversationEventsConverter(bucketName, new ConversationJsonSerializer());
             resolver = new RiakConversationEventConflictResolver();
@@ -57,11 +57,11 @@ class ConversationBucket {
     public ConversationEvents byId(String conversationId) {
         try {
             return bucket.
-                    fetch(conversationId, ConversationEvents.class).
-                    withConverter(converter).
-                    withResolver(resolver).
-                    notFoundOK(true).
-                    execute();
+                    fetch(conversationId, ConversationEvents.class)
+                    .withConverter(converter)
+                    .withResolver(resolver)
+                    .notFoundOK(true)
+                    .execute();
         } catch (RiakRetryFailedException e) {
             throw new RuntimeException("could not load conversation by id #" + conversationId, e);
         }
@@ -69,9 +69,7 @@ class ConversationBucket {
 
     public void write(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
         try {
-
-            Mutation<ConversationEvents> mutator =
-                    new RiakConversationEventMutator(toBeCommittedEvents);
+            Mutation<ConversationEvents> mutator = new RiakConversationEventMutator(toBeCommittedEvents);
 
             bucket.store(conversationId, DEFAULT_EMPTY_CONVERSATION_EVENT)
                     .withConverter(converter)
@@ -86,7 +84,7 @@ class ConversationBucket {
         }
     }
 
-    public List<String> modifiedBetween(DateTime start, DateTime end) {
+    List<String> modifiedBetween(DateTime start, DateTime end) {
         long startMin = timestampInMinutes(start);
         long endMin = timestampInMinutes(end);
         LOG.debug("Fetching ConversationBucket#modifiedBetween {} - {}", startMin, endMin);
@@ -98,20 +96,20 @@ class ConversationBucket {
         }
     }
 
-    public Stream<String> modifiedBetweenStream(DateTime start, DateTime end) {
+    Stream<String> modifiedBetweenStream(DateTime start, DateTime end) {
         try {
             long startMin = timestampInMinutes(start);
             long endMin = timestampInMinutes(end);
             LOG.debug("Fetching ConversationBucket#modifiedBetween {} - {}", startMin, endMin);
 
-            Spliterator<IndexEntry> idxSplitterator = bucket.fetchIndex(
+            Spliterator<IndexEntry> indexEntrySpliterator = bucket.fetchIndex(
                     IntIndex.named(ConversationBucket.SECONDARY_INDEX_MODIFIED_AT))
                     .from(startMin)
                     .to(endMin)
                     .executeStreaming()
                     .spliterator();
 
-            return StreamSupport.stream(idxSplitterator, false).map(idx -> idx.getObjectKey());
+            return StreamSupport.stream(indexEntrySpliterator, false).map(IndexEntry::getObjectKey);
 
         } catch (RiakException e) {
             String errMess = bucket.getName() + ": modified between '" + start + "' and '" + end + "' search failed";
@@ -120,8 +118,7 @@ class ConversationBucket {
         }
     }
 
-
-    public List<String> createdBetween(DateTime start, DateTime end) {
+    List<String> createdBetween(DateTime start, DateTime end) {
         try {
             return bucket.fetchIndex(
                     IntIndex.named(SECONDARY_INDEX_CREATED_AT)).from(timestampInMinutes(start)).to(timestampInMinutes(end)
@@ -131,7 +128,7 @@ class ConversationBucket {
         }
     }
 
-    public Set<String> modifiedBefore(DateTime before, int maxRows) {
+    Set<String> modifiedBefore(DateTime before, int maxRows) {
         try {
             List<IndexEntry> indexEntries = fetchResult(bucket.fetchIndex(IntIndex.named(SECONDARY_INDEX_MODIFIED_AT)), before, maxRows);
             return indexEntries.stream()
@@ -142,12 +139,8 @@ class ConversationBucket {
         }
     }
 
-    public long getConversationCount(DateTime start, DateTime end) {
-        return modifiedBetween(start, end).stream().count();
-    }
-
     public void delete(String id) {
-        try (Timer.Context ignored = DELETE_CONVERSATION_TIMER.time()){
+        try (Timer.Context ignored = DELETE_CONVERSATION_TIMER.time()) {
             bucket.delete(id).w(1).r(1).rw(1).dw(0).execute();
         } catch (RiakException e) {
             throw new RuntimeException("could not delete conversation #" + id, e);

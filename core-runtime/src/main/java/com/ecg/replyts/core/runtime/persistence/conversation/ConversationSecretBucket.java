@@ -12,8 +12,6 @@ import com.ecg.replyts.core.api.model.conversation.command.NewConversationComman
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.ValueSizeConstraint;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.basho.riak.client.builders.RiakObjectBuilder.newBuilder;
 import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.timestampInMinutes;
@@ -23,7 +21,6 @@ import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.times
  * clean up data (one might want to use map/reduce to fix that.
  */
 class ConversationSecretBucket {
-
     private static final Timer DELETE_CONVERSATION_SECRET = TimingReports.newTimer("cleanupSecret");
 
     private static final String CONV_CREATED_INDEX = "conv_created";
@@ -33,8 +30,6 @@ class ConversationSecretBucket {
     private final ConversationSecretPayloadEditor editor = new ConversationSecretPayloadEditor();
 
     private static final ValueSizeConstraint MAXIMUM_SIZE_CONSTRAINT = ValueSizeConstraint.maxMb(1);
-
-    private static final Logger LOG = LoggerFactory.getLogger(ConversationSecretBucket.class);
 
     ConversationSecretBucket(IRiakClient riakClient, String bucketName) {
         this.riakClient = riakClient;

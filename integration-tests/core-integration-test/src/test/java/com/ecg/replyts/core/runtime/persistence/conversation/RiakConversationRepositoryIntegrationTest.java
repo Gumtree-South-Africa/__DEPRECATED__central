@@ -8,15 +8,16 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 @RunWith(SpringRunner.class)
 public class RiakConversationRepositoryIntegrationTest extends ConversationRepositoryIntegrationTestBase<RiakConversationRepository> {
     @Override
     protected RiakConversationRepository createConversationRepository() {
         IRiakClient riakClient = new EmbeddedRiakClient();
-        return new RiakConversationRepository(riakClient, true, false);
+        return new RiakConversationRepository(riakClient, "", true, false);
     }
 
     @Test

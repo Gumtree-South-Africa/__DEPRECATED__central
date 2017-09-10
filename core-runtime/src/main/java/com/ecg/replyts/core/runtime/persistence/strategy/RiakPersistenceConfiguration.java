@@ -44,15 +44,8 @@ public class RiakPersistenceConfiguration {
     private String bucketNamePrefix = "";
 
     // Temporary property allowing just the config bucket name to be prefixed - used by GTUK to run against one Riak but two 'config' buckets
-
     @Value("${persistence.riak.config.bucket.name.prefix:}")
     private String configBucketNamePrefix = "";
-
-    @Value("#{'${persistence.riak.config.bucket.name.prefix:}' != ''}")
-    private Boolean useConfigBucketNamePrefix;
-
-    @Value("#{'${persistence.riak.bucket.name.prefix:}' != ''}")
-    private Boolean useBucketNamePrefix;
 
     @Value("${persistence.riak.bucket.allowsiblings:true}")
     private boolean allowSiblings;
@@ -65,12 +58,12 @@ public class RiakPersistenceConfiguration {
 
     @Bean
     public ConversationRepository conversationRepository() {
-        return useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins) : new RiakConversationRepository(riakClient, allowSiblings, lastWriteWins);
+        return new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins);
     }
 
     @Bean
     public ConfigurationRepository configurationRepository() throws RiakRetryFailedException {
-        return useBucketNamePrefix || useConfigBucketNamePrefix ? new RiakConfigurationRepository(riakClient, bucketNamePrefix + configBucketNamePrefix) : new RiakConfigurationRepository(riakClient);
+        return new RiakConfigurationRepository(riakClient, bucketNamePrefix + configBucketNamePrefix);
     }
 
     @Bean
@@ -94,7 +87,7 @@ public class RiakPersistenceConfiguration {
     }
 
     @Configuration
-    @Profile({ ReplyTS.PRODUCTIVE_PROFILE, ReplyTS.MIGRATION_PROFILE })
+    @Profile({ReplyTS.PRODUCTIVE_PROFILE, ReplyTS.MIGRATION_PROFILE})
     @ConditionalOnExpression("'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')")
     public static class RiakClientConfiguration {
         @Value("${persistence.riak.idleConnectionTimeoutMs:60000}")
@@ -118,7 +111,7 @@ public class RiakPersistenceConfiguration {
         private IRiakClient riakClient;
 
         @Bean
-        public IRiakClient createPrimaryRiakClusterClient () throws RiakException {
+        public IRiakClient createPrimaryRiakClusterClient() throws RiakException {
             LOG.info("Riak Hosts in primary datacenter: {}", hostConfig.getHostList());
 
             // The server should only connect to the Riak notes in the same (primary) datacenter.

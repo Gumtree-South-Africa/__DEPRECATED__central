@@ -1,7 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.basho.riak.client.IRiakClient;
-
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
@@ -22,19 +21,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.replay;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RiakConversationRepository implements MutableConversationRepository {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(RiakConversationRepository.class);
 
-    static final String DEFAULT_BUCKET_NAME = "conversation";
-    static final String DEFAULT_SECRET_BUCKET_NAME = "conversation_secrets";
-    static final String DEFAULT_INDEX_BUCKET_NAME = "conversation_index";
+    private static final String DEFAULT_BUCKET_NAME = "conversation";
+    private static final String DEFAULT_SECRET_BUCKET_NAME = "conversation_secrets";
+    private static final String DEFAULT_INDEX_BUCKET_NAME = "conversation_index";
 
-    private final ConversationBucket conversationBucket;
-    private final ConversationSecretBucket conversationSecretBucket;
-    private final ConversationIndexBucket conversationIndexBucket;
-
+    ConversationBucket conversationBucket;
+    ConversationSecretBucket conversationSecretBucket;
+    ConversationIndexBucket conversationIndexBucket;
 
     private final Timer getByIdTimer = TimingReports.newTimer("conversationRepo-getById");
     private final Timer getBySecretTimer = TimingReports.newTimer("conversationRepo-getBySecret");
@@ -44,37 +42,21 @@ public class RiakConversationRepository implements MutableConversationRepository
     private final Timer modifiedBeforeTimer = TimingReports.newTimer("conversationRepo-modifiedBefore");
     private final Timer createdBetweenTimer = TimingReports.newTimer("conversationRepo-createdBetween");
 
-
-    public RiakConversationRepository(IRiakClient riakClient, boolean allowSiblings, boolean lastWriteWins) {
-        this(riakClient, DEFAULT_BUCKET_NAME, DEFAULT_SECRET_BUCKET_NAME, DEFAULT_INDEX_BUCKET_NAME, allowSiblings, lastWriteWins);
-    }
-
     public RiakConversationRepository(IRiakClient riakClient, String bucketNamePrefix, boolean allowSiblings, boolean lastWriteWins) {
-        this(riakClient, bucketNamePrefix + DEFAULT_BUCKET_NAME, bucketNamePrefix + DEFAULT_SECRET_BUCKET_NAME, bucketNamePrefix + DEFAULT_INDEX_BUCKET_NAME, allowSiblings, lastWriteWins);
+        checkNotNull(bucketNamePrefix, "Please provide a bucketNamePrefix (can be an empty string)");
+        this.conversationSecretBucket = new ConversationSecretBucket(riakClient, bucketNamePrefix + DEFAULT_SECRET_BUCKET_NAME);
+        this.conversationBucket = new ConversationBucket(riakClient, bucketNamePrefix + DEFAULT_BUCKET_NAME, allowSiblings, lastWriteWins);
+        this.conversationIndexBucket = new ConversationIndexBucket(riakClient, bucketNamePrefix + DEFAULT_INDEX_BUCKET_NAME);
     }
 
-    public RiakConversationRepository(IRiakClient riakClient, String bucketName, String secretBucketName, String indexBucketName, boolean allowSiblings, boolean lastWriteWins) {
-        this(new ConversationSecretBucket(riakClient, secretBucketName),
-          new ConversationBucket(riakClient, bucketName, allowSiblings, lastWriteWins),
-          new ConversationIndexBucket(riakClient, indexBucketName));
-    }
-
-    RiakConversationRepository(ConversationSecretBucket conversationSecretBucket, ConversationBucket conversationBucket, ConversationIndexBucket conversationIndexBucket) {
-        this.conversationSecretBucket = conversationSecretBucket;
-        this.conversationBucket = conversationBucket;
-        this.conversationIndexBucket = conversationIndexBucket;
-    }
-
-    public List<ConversationEvent> getConversationEvents(String conversationId) {
+    List<ConversationEvent> getConversationEvents(String conversationId) {
         ConversationEvents conversationEvents = conversationBucket.byId(conversationId);
-
         return conversationEvents != null ? conversationEvents.getEvents() : null;
     }
 
     @Override
     public MutableConversation getById(String conversationId) {
-        final Timer.Context context = getByIdTimer.time();
-        try {
+        try (Timer.Context ignored = getByIdTimer.time()) {
             ConversationEvents conversationEvents = conversationBucket.byId(conversationId);
             if (conversationEvents == null) {
                 LOGGER.trace("Found no conversationEvents for Conversation with id {} in Riak", conversationId);
@@ -82,15 +64,12 @@ public class RiakConversationRepository implements MutableConversationRepository
             }
             LOGGER.trace("Found {} events for Conversation with id {} in Riak", conversationEvents.getEvents().size(), conversationId);
             return new DefaultMutableConversation(replay(conversationEvents.getEvents()));
-        } finally {
-            context.stop();
         }
     }
 
     @Override
     public MutableConversation getBySecret(String secret) {
-        final Timer.Context context = getBySecretTimer.time();
-        try {
+        try (Timer.Context ignored = getBySecretTimer.time()) {
             NewConversationCommand replayedEvent = getConversationIdForSecretReadRepairAware(secret);
             if (replayedEvent == null) {
                 return null;
@@ -99,7 +78,7 @@ public class RiakConversationRepository implements MutableConversationRepository
 
             if (foundConversation == null) {
                 // see https://github.scm.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two-datacenter-operations
-                LOGGER.warn("could not load conversation {}, even tough there is a conversation secret referring to it: {}. " +
+                LOGGER.warn("could not load conversation {}, even though there is a conversation secret referring to it: {}. " +
                                 "Recreating empty conversation (this is normal behaviour if you use two datacenters and have a " +
                                 "connection loss between them. if this is not the case right now, this might be an indicator for something going wrong)",
                         replayedEvent.getConversationId(), secret);
@@ -109,9 +88,6 @@ public class RiakConversationRepository implements MutableConversationRepository
                 LOGGER.trace("Found conversation with id {} by secret in Riak", foundConversation.getId());
                 return foundConversation;
             }
-
-        } finally {
-            context.stop();
         }
     }
 
@@ -133,7 +109,6 @@ public class RiakConversationRepository implements MutableConversationRepository
         }
     }
 
-
     @Override
     public boolean isSecretAvailable(String secret) {
         final Timer.Context context = isSecretAvailableTimer.time();
@@ -146,14 +121,12 @@ public class RiakConversationRepository implements MutableConversationRepository
 
     @Override
     public void commit(String conversationId, List<ConversationEvent> toBeCommittedEvents) {
-        final Timer.Context context = commitTimer.time();
-        try {
+        try (Timer.Context ignore = commitTimer.time()) {
             // default empty conversation event will be copied and populated in the mutator.
             setupConversationIfNewlyCreated(toBeCommittedEvents);
             conversationBucket.write(conversationId, toBeCommittedEvents);
         } finally {
             LOGGER.trace("Saving conversation {}, with {} events to Riak", conversationId, toBeCommittedEvents.size());
-            context.stop();
         }
     }
 
@@ -178,7 +151,7 @@ public class RiakConversationRepository implements MutableConversationRepository
 
     @Override
     public Stream<String> streamConversationsModifiedBetween(DateTime start, DateTime end) {
-       return conversationBucket.modifiedBetweenStream(start, end);
+        return conversationBucket.modifiedBetweenStream(start, end);
     }
 
     @Override
@@ -212,9 +185,4 @@ public class RiakConversationRepository implements MutableConversationRepository
     public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
         return conversationIndexBucket.findConversationId(key).map(this::getById);
     }
-
-    public long getConversationCount(DateTime start, DateTime end) {
-        return  conversationBucket.getConversationCount(start, end);
-    }
-
 }

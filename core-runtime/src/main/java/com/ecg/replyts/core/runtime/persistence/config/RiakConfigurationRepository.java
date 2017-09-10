@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class RiakConfigurationRepository implements ConfigurationRepository {
     private static final Logger LOG = LoggerFactory.getLogger(RiakConfigurationRepository.class);
 
@@ -26,13 +28,9 @@ public class RiakConfigurationRepository implements ConfigurationRepository {
 
     private DomainBucket<Configurations> configurationBucket;
 
-    public RiakConfigurationRepository(IRiakClient riakClient) throws RiakRetryFailedException {
-    	converter = new ConfigurationConverter(DEFAULT_CONFIG_BUCKET_NAME);
-        setupBucket(DEFAULT_CONFIG_BUCKET_NAME, riakClient);
-    }
-    
     public RiakConfigurationRepository(IRiakClient riakClient, String bucketNamePrefix) throws RiakRetryFailedException {
-    	converter = new ConfigurationConverter(bucketNamePrefix + DEFAULT_CONFIG_BUCKET_NAME);
+        checkNotNull(bucketNamePrefix, "Please provide a bucketNamePrefix (can be an empty string)");
+        converter = new ConfigurationConverter(bucketNamePrefix + DEFAULT_CONFIG_BUCKET_NAME);
         setupBucket(bucketNamePrefix + DEFAULT_CONFIG_BUCKET_NAME, riakClient);
     }
 
@@ -80,10 +78,7 @@ public class RiakConfigurationRepository implements ConfigurationRepository {
 
     @Override
     public void persistConfiguration(PluginConfiguration configuration) {
-
         ConfigurationObject obj = new ConfigurationObject(System.currentTimeMillis(), configuration);
-
-
         Configurations mergedConfigurations = fetchConfigurations().addOrUpdate(obj);
         try {
             configurationBucket.store(mergedConfigurations);

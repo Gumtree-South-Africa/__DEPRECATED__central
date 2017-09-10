@@ -10,11 +10,7 @@ import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.RiakIndexerClockRepository;
-import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
-import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
-import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
-import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.core.runtime.persistence.*;
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.config.RiakConfigurationRepository;
@@ -22,8 +18,10 @@ import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversati
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.HybridConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;
-
-import com.ecg.replyts.core.runtime.persistence.mail.*;
+import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.DiffingRiakMailRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.HybridHeldMailRepository;
+import com.ecg.replyts.core.runtime.persistence.mail.RiakHeldMailRepository;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,7 +34,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
 @Configuration
-@Import({ CassandraPersistenceConfiguration.CassandraClientConfiguration.class, RiakPersistenceConfiguration.RiakClientConfiguration.class })
+@Import({CassandraPersistenceConfiguration.CassandraClientConfiguration.class, RiakPersistenceConfiguration.RiakClientConfiguration.class})
 @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid")
 public class HybridPersistenceConfiguration {
     // Cassandra
@@ -55,8 +53,9 @@ public class HybridPersistenceConfiguration {
     @Value("${persistence.riak.bucket.name.prefix:}")
     private String bucketNamePrefix = "";
 
-    @Value("#{'${persistence.riak.bucket.name.prefix:}' != ''}")
-    private Boolean useBucketNamePrefix;
+    // Temporary property allowing just the config bucket name to be prefixed - used by GTUK to run against one Riak but two 'config' buckets
+    @Value("${persistence.riak.config.bucket.name.prefix:}")
+    private String configBucketNamePrefix = "";
 
     @Value("${persistence.riak.bucket.allowsiblings:true}")
     private boolean allowSiblings;
@@ -93,7 +92,7 @@ public class HybridPersistenceConfiguration {
         cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer);
         cassandraConversationRepository.setObjectMapperConfigurer(objectMapperConfigurer);
 
-        RiakConversationRepository riakRepository = useBucketNamePrefix ? new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins) : new RiakConversationRepository(riakClient, allowSiblings, lastWriteWins);
+        RiakConversationRepository riakRepository = new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins);
 
         return new HybridConversationRepository(cassandraConversationRepository, riakRepository, migrationState, deepMigrationEnabled);
     }
@@ -105,7 +104,7 @@ public class HybridPersistenceConfiguration {
 
     @Bean
     public ConfigurationRepository configurationRepository() throws RiakRetryFailedException {
-        return new RiakConfigurationRepository(riakClient, bucketNamePrefix);
+        return new RiakConfigurationRepository(riakClient, bucketNamePrefix + configBucketNamePrefix);
     }
 
     @Bean

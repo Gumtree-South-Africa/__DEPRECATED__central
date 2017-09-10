@@ -1,10 +1,14 @@
 package com.ecg.replyts.core.runtime.persistence.conversation;
 
+import com.basho.riak.client.IRiakClient;
+import com.basho.riak.client.RiakRetryFailedException;
+import com.basho.riak.client.bucket.Bucket;
+import com.basho.riak.client.bucket.FetchBucket;
+import com.basho.riak.client.bucket.WriteBucket;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.joda.time.DateTime;
@@ -15,21 +19,24 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RiakConversationRepositoryTest {
-    private RiakConversationRepository repo;
+    private TestRiakConversationRepository riakConversationRepository;
+
+    @Mock
+    private FetchBucket fetchBucket;
+
+    @Mock
+    private WriteBucket writeBucket;
+
+    @Mock
+    private Bucket bucket;
 
     @Mock
     private ConversationBucket conversationBucket;
@@ -38,89 +45,113 @@ public class RiakConversationRepositoryTest {
     private ConversationIndexBucket conversationIndexBucket;
 
     @Mock
-    private ConversationSecretBucket secretRepo;
+    private ConversationSecretBucket conversationSecretBucket;
 
     @Mock
-    private Conversation convToDelete;
+    private IRiakClient riakClient;
+
+    @Mock
+    private Conversation conversationToDelete;
 
     @Spy
     private ConversationCreatedEvent createdEvent = new ConversationCreatedEvent("convid", "adid", "buyerid", "sellerid", "buyersecret", "sellersecret", DateTime.now(), ConversationState.ACTIVE, Maps.<String, String>newHashMap());
 
     @Before
-    public void setUp() {
-        repo = new RiakConversationRepository(secretRepo, conversationBucket, conversationIndexBucket);
-        when(conversationBucket.byId("convid")).thenReturn(
-                new ConversationEvents(Lists.<ConversationEvent>newArrayList(createdEvent)));
-        when(convToDelete.getId()).thenReturn("delme");
-        when(convToDelete.getBuyerSecret()).thenReturn("buyersecret");
-        when(convToDelete.getSellerSecret()).thenReturn("sellersecret");
-        when(convToDelete.getBuyerId()).thenReturn("someBuyer@somewhere.com");
-        when(convToDelete.getSellerId()).thenReturn("someSeller@somewhere.com");
-        when(convToDelete.getAdId()).thenReturn("adId");
+    public void setUp() throws Exception {
+        setUpRiak();
+
+        riakConversationRepository = new TestRiakConversationRepository(conversationBucket, conversationIndexBucket, conversationSecretBucket);
+
+        when(conversationBucket.byId("convid")).thenReturn(new ConversationEvents(Lists.newArrayList(createdEvent)));
+        when(conversationToDelete.getId()).thenReturn("delme");
+        when(conversationToDelete.getBuyerSecret()).thenReturn("buyersecret");
+        when(conversationToDelete.getSellerSecret()).thenReturn("sellersecret");
+        when(conversationToDelete.getBuyerId()).thenReturn("someBuyer@somewhere.com");
+        when(conversationToDelete.getSellerId()).thenReturn("someSeller@somewhere.com");
+        when(conversationToDelete.getAdId()).thenReturn("adId");
+    }
+
+    private void setUpRiak() throws RiakRetryFailedException {
+        when(riakClient.fetchBucket(anyString())).thenReturn(fetchBucket);
+        when(fetchBucket.withRetrier(any())).thenReturn(fetchBucket);
+        when(fetchBucket.execute()).thenReturn(bucket);
+        when(riakClient.updateBucket(any())).thenReturn(writeBucket);
+        when(writeBucket.allowSiblings(anyBoolean())).thenReturn(writeBucket);
+        when(writeBucket.lastWriteWins(anyBoolean())).thenReturn(writeBucket);
+        when(writeBucket.execute()).thenReturn(bucket);
     }
 
     @Test
     public void getConversationByIdBuildsNewConversation() {
-        assertEquals("convid", repo.getById("convid").getId());
+        assertEquals("convid", riakConversationRepository.getById("convid").getId());
     }
 
     @Test
     public void getConversationByIdReturnsNullWhenConversationNotFound() {
-        assertNull(repo.getById("nonexistamt"));
+        assertNull(riakConversationRepository.getById("nonexistamt"));
     }
 
     @Test
     public void getConversationEvents() {
         when(conversationBucket.byId("foo")).thenReturn(null);
-        assertNull(repo.getConversationEvents("foo"));
+        assertNull(riakConversationRepository.getConversationEvents("foo"));
     }
 
     @Test
     public void getConversationEventsNotEmpty() {
-        ConversationEvents events = new ConversationEvents(Arrays.asList(createdEvent));
+        ConversationEvents events = new ConversationEvents(Collections.singletonList(createdEvent));
         when(conversationBucket.byId("foo")).thenReturn(events);
-        assertEquals(events.getEvents(), repo.getConversationEvents("foo"));
+        assertEquals(events.getEvents(), riakConversationRepository.getConversationEvents("foo"));
     }
 
     @Test
     public void findsConversationBySecret() {
         NewConversationCommand cmd = mock(NewConversationCommand.class);
         when(cmd.getConversationId()).thenReturn("convid");
-        when(secretRepo.findConversationId("secretid")).thenReturn(cmd);
-        assertEquals("convid", repo.getBySecret("secretid").getId());
+        when(conversationSecretBucket.findConversationId("secretid")).thenReturn(cmd);
+        assertEquals("convid", riakConversationRepository.getBySecret("secretid").getId());
     }
 
     @Test
     public void createsSecretsForNewConversations() {
-        repo.commit("convid", Lists.<ConversationEvent>newArrayList(createdEvent));
-        verify(secretRepo).persist(createdEvent);
-        verify(conversationBucket).write("convid", Lists.<ConversationEvent>newArrayList(createdEvent));
+        riakConversationRepository.commit("convid", Lists.newArrayList(createdEvent));
+        verify(conversationSecretBucket).persist(createdEvent);
+        verify(conversationBucket).write("convid", Lists.newArrayList(createdEvent));
     }
 
     @Test
     public void doesNotCreateSecretsForDoaConversations() {
         when(createdEvent.getState()).thenReturn(ConversationState.DEAD_ON_ARRIVAL);
-        repo.commit("convid", Lists.<ConversationEvent>newArrayList(createdEvent));
-        verifyZeroInteractions(secretRepo);
-        verify(conversationBucket).write("convid", Lists.<ConversationEvent>newArrayList(createdEvent));
+        riakConversationRepository.commit("convid", Lists.newArrayList(createdEvent));
+        verifyZeroInteractions(conversationSecretBucket);
+        verify(conversationBucket).write("convid", Lists.newArrayList(createdEvent));
     }
 
     @Test
     public void deletesConversationWithSecrets() {
-        repo.deleteConversation(convToDelete);
-        verify(secretRepo).delete("buyersecret");
-        verify(secretRepo).delete("sellersecret");
+        riakConversationRepository.deleteConversation(conversationToDelete);
+        verify(conversationSecretBucket).delete("buyersecret");
+        verify(conversationSecretBucket).delete("sellersecret");
         verify(conversationBucket).delete("delme");
     }
 
     @Test
     public void doesNotDeleteConversationWhenDeleteSecretsFails() {
-        doThrow(new RuntimeException()).when(secretRepo).delete(anyString());
+        doThrow(new RuntimeException()).when(conversationSecretBucket).delete(anyString());
         try {
-            repo.deleteConversation(convToDelete);
+            riakConversationRepository.deleteConversation(conversationToDelete);
         } catch (RuntimeException e) {
             // expected behaviour
         }
         verifyZeroInteractions(conversationBucket);
+    }
+
+    private class TestRiakConversationRepository extends RiakConversationRepository {
+        TestRiakConversationRepository(ConversationBucket conversationBucket, ConversationIndexBucket indexBucket, ConversationSecretBucket secretBucket) {
+            super(riakClient, "", true, true);
+            this.conversationBucket = conversationBucket;
+            this.conversationSecretBucket = secretBucket;
+            this.conversationIndexBucket = indexBucket;
+        }
     }
 }
