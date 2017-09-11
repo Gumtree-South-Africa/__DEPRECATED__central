@@ -1,20 +1,18 @@
 package com.ecg.messagecenter.pushmessage;
 
+import com.ecg.replyts.core.runtime.util.HttpClientFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-
-import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
 
 /**
  * User: maldana
@@ -24,17 +22,17 @@ import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClien
  * @author maldana@ebay.de
  */
 public class KmobilePushService extends PushService {
-
-    private static final Logger LOG = LoggerFactory.getLogger(KmobilePushService.class);
-
-    private final HttpClient httpClient;
+    private final CloseableHttpClient httpClient;
     private final HttpHost kmobilepushHost;
 
     public KmobilePushService(String kmobilepushHost, Integer kmobilepushPort) {
-
-
-        this.httpClient = buildHttpClient(4000, 4000, 8000, 40, 40);
+        this.httpClient = HttpClientFactory.createCloseableHttpClient(4000, 4000, 8000, 40, 40);
         this.kmobilepushHost = new HttpHost(kmobilepushHost, kmobilepushPort);
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        HttpClientFactory.closeWithLogging(httpClient);
     }
 
     public Result sendPushMessage(final PushMessagePayload payload) {

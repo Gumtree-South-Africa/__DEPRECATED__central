@@ -1,6 +1,7 @@
 package com.ecg.messagecenter.pushmessage;
 
 import com.ecg.messagecenter.util.AdUtil;
+import com.ecg.replyts.core.runtime.util.HttpClientFactory;
 import com.google.common.io.CharStreams;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -13,17 +14,18 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 
 /**
  * @author maldana@ebay-kleinanzeigen.de
@@ -32,7 +34,7 @@ public class AdInfoLookup {
 
     private static final Logger LOG = LoggerFactory.getLogger(AdInfoLookup.class);
 
-    private final DefaultHttpClient httpClient;
+    private final CloseableHttpClient httpClient;
     private final HttpHost kmobilepushHost;
     private final String basePath;
     private final String username;
@@ -43,10 +45,7 @@ public class AdInfoLookup {
                     Integer connectionTimeout, Integer connectionManagerTimeout,
                     Integer socketTimeout, Integer maxConnectionsPerHost,
                     Integer maxTotalConnections, String username, String password) {
-        // very low timeouts to not hurt backend
-        //this.httpClient = buildHttpClient(1000, 1000, 2000, 40, 40);
-        this.httpClient =
-                        HttpClientBuilder.buildHttpClient(connectionTimeout, connectionManagerTimeout, socketTimeout,
+        this.httpClient = HttpClientFactory.createCloseableHttpClient(connectionTimeout, connectionManagerTimeout, socketTimeout,
                                 maxConnectionsPerHost, maxTotalConnections);
         this.kmobilepushHost = new HttpHost(kapiHost, kapiPort);
         this.basePath = basePath;
@@ -55,6 +54,10 @@ public class AdInfoLookup {
         this.password = password;
     }
 
+    @PreDestroy
+    public void preDestroy() {
+        HttpClientFactory.closeWithLogging(httpClient);
+    }
 
     public Optional<AdInfo> lookupAdIInfo(String adId) {
         try {
@@ -62,11 +65,10 @@ public class AdInfoLookup {
             AuthCache authCache = new BasicAuthCache();
             DigestScheme scheme = new DigestScheme();
             authCache.put(kmobilepushHost, scheme);
-            httpClient.getCredentialsProvider()
-                            .setCredentials(new AuthScope(kmobilepushHost.getHostName(),
-                                            kmobilepushHost.getPort()),
-                                            new UsernamePasswordCredentials(username, password));
-            BasicHttpContext localcontext = new BasicHttpContext();
+            HttpClientContext localcontext = HttpClientContext.create();
+            localcontext.getCredentialsProvider().setCredentials(new AuthScope(kmobilepushHost.getHostName(),
+                            kmobilepushHost.getPort()),
+                    new UsernamePasswordCredentials(username, password));
             localcontext.setAttribute("http.auth.auth-cache", authCache);
 
             LOG.debug("Calling api host(uri):" + kmobilepushHost.toURI() + " request: " + request);

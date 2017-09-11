@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.pushmessage;
 
+import com.ecg.replyts.core.runtime.util.HttpClientFactory;
 import com.google.common.io.CharStreams;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -7,31 +8,34 @@ import net.sf.json.JSONSerializer;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
-
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-
-import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
+import java.util.Optional;
 
 public class AdInfoLookup {
     private static final Logger LOG = LoggerFactory.getLogger(AdInfoLookup.class);
 
-    private final HttpClient httpClient;
+    private final CloseableHttpClient httpClient;
     private final HttpHost kmobilepushHost;
 
-    public AdInfoLookup(String kapiHost, Integer kapiPort, Integer connectionTimeout, Integer connectionManagerTimeout, Integer socketTimeout, Integer maxConnectionsPerHost, Integer maxTotalConnections) {
-        // very low timeouts to not hurt backend
-        //this.httpClient = buildHttpClient(1000, 1000, 2000, 40, 40);
-        this.httpClient = buildHttpClient(connectionTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
+    public AdInfoLookup(String kapiHost, Integer kapiPort, Integer connectionTimeout, Integer connectionManagerTimeout,
+                        Integer socketTimeout, Integer maxConnectionsPerHost, Integer maxTotalConnections) {
+        this.httpClient = HttpClientFactory.createCloseableHttpClient(connectionTimeout, connectionManagerTimeout,
+                socketTimeout, maxConnectionsPerHost, maxTotalConnections);
         this.kmobilepushHost = new HttpHost(kapiHost, kapiPort);
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        HttpClientFactory.closeWithLogging(httpClient);
     }
 
     public Optional<AdInfo> lookupAdIInfo(Long adId) {
@@ -45,9 +49,7 @@ public class AdInfoLookup {
     }
 
     private HttpRequest buildRequest(Long adId) throws UnsupportedEncodingException {
-        HttpGet get = new HttpGet("/api/ads/" + adId + ".json?_in=title,pictures");
-
-        return get;
+        return new HttpGet("/api/ads/" + adId + ".json?_in=title,pictures");
     }
 
     static class AdInfoResponseHandler implements ResponseHandler<Optional<AdInfo>> {

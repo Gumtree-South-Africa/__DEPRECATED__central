@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.pushmessage;
 
+import com.ecg.replyts.core.runtime.util.HttpClientFactory;
 import com.google.common.io.CharStreams;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -7,21 +8,20 @@ import net.sf.json.JSONSerializer;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
-
-import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
 
 /**
  * @author maldana@ebay-kleinanzeigen.de
@@ -31,7 +31,7 @@ public class AdImageLookup {
 
     private static final Logger LOG = LoggerFactory.getLogger(AdImageLookup.class);
 
-    private final HttpClient httpClient;
+    private final CloseableHttpClient httpClient;
     private final HttpHost kapiHost;
     private final String basicAuthValue;
 
@@ -46,8 +46,14 @@ public class AdImageLookup {
                          @Value("${replyts2-messagecenter-plugin.adimagelookup.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
                          @Value("${replyts2-messagecenter-plugin.adimagelookup.maxTotalConnections:40}") int maxTotalConnections) {
         this.kapiHost = new HttpHost(kapiHost, kapiPort);
-        this.httpClient = buildHttpClient(connectTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
+        this.httpClient = HttpClientFactory.createCloseableHttpClient(connectTimeout, connectionManagerTimeout,
+                socketTimeout, maxConnectionsPerHost, maxTotalConnections);
         this.basicAuthValue = Base64.getEncoder().encodeToString((apiUser + ":" + apiPassword).getBytes());
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        HttpClientFactory.closeWithLogging(httpClient);
     }
 
     public String lookupAdImageUrl(Long adId) {

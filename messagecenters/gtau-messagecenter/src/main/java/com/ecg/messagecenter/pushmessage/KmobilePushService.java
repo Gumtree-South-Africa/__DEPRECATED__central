@@ -1,29 +1,25 @@
 package com.ecg.messagecenter.pushmessage;
 
+import com.ecg.replyts.core.runtime.util.HttpClientFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-
-import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
 
 @Component
 public class KmobilePushService extends PushService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KmobilePushService.class);
-
-    private final HttpClient httpClient;
+    private final CloseableHttpClient httpClient;
     private final HttpHost pushHttpHost;
 
     public KmobilePushService(@Value("${push-mobile.host:}") String pushHost,
@@ -34,7 +30,12 @@ public class KmobilePushService extends PushService {
                               @Value("${replyts2-messagecenter-plugin.pushmobile.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
                               @Value("${replyts2-messagecenter-plugin.pushmobile.maxTotalConnections:40}") int maxTotalConnections) {
         this.pushHttpHost = new HttpHost(pushHost, pushPort);
-        this.httpClient = buildHttpClient(connectTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
+        this.httpClient = HttpClientFactory.createCloseableHttpClient(connectTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        HttpClientFactory.closeWithLogging(httpClient);
     }
 
     public Result sendPushMessage(final PushMessagePayload payload) {

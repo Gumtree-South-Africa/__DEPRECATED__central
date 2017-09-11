@@ -1,22 +1,20 @@
 package com.ecg.messagecenter.pushmessage;
 
+import com.ecg.replyts.core.runtime.util.HttpClientFactory;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Optional;
-
-import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClient;
 
 /**
  * User: maldana
@@ -28,9 +26,7 @@ import static com.ecg.messagecenter.pushmessage.HttpClientBuilder.buildHttpClien
 @Component
 public class PushService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PushService.class);
-
-    private final HttpClient httpClient;
+    private final CloseableHttpClient httpClient;
     private final String pushMobileUrl;
 
     private static final String ENDPOINT_MESSAGES = "/messages";
@@ -41,8 +37,14 @@ public class PushService {
                        @Value("${replyts2-messagecenter-plugin.pushmobile.timeout.connectionManager.millis:2000}") int connectionManagerTimeout,
                        @Value("${replyts2-messagecenter-plugin.pushmobile.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
                        @Value("${replyts2-messagecenter-plugin.pushmobile.maxTotalConnections:40}") int maxTotalConnections) {
-        this.httpClient = buildHttpClient(connectTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, maxTotalConnections);
+        this.httpClient = HttpClientFactory.createCloseableHttpClient(connectTimeout, connectionManagerTimeout,
+                socketTimeout, maxConnectionsPerHost, maxTotalConnections);
         this.pushMobileUrl = pushMobileUrl;
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        HttpClientFactory.closeWithLogging(httpClient);
     }
 
     public Result sendPushMessage(final PushMessagePayload payload) {

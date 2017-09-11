@@ -1,6 +1,7 @@
 package com.ebay.columbus.replyts2.blockeduser.zapi;
 
 import com.ebay.columbus.replyts2.blockeduser.UserStateService;
+import com.ecg.replyts.core.runtime.util.HttpClientFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.CharStreams;
@@ -8,7 +9,6 @@ import com.google.common.net.MediaType;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -22,11 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -39,30 +37,11 @@ public class ZapiUserStateService implements UserStateService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZapiUserStateService.class);
 
-    private final HttpClient httpClient;
+    private final CloseableHttpClient httpClient;
 
     private String baseUrl;
     public static final String STATE = "status";
     public static final String BLACKLISTED_VALUE = "5";
-    private static final List<HttpClient> CREATED_CLIENTS =
-            Collections.synchronizedList(new ArrayList<>());
-
-    static {
-        // cleanup all connection pools on vm shutdown
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                for (HttpClient client : CREATED_CLIENTS) {
-                    // try/catch - prevent loop break
-                    try {
-                        client.getConnectionManager().shutdown();
-                    } catch (RuntimeException e) {
-                        LOG.error("error on http client connection manager shutdown", e);
-                    }
-                }
-            }
-        });
-    }
 
     @Autowired
     public ZapiUserStateService(@Value("${zapi.hostname}") String baseUrl,
@@ -100,6 +79,11 @@ public class ZapiUserStateService implements UserStateService {
         clientBuilder.setConnectionManager(
                 createConnectionManager(maxConnectionsPerHost, maxTotalConnections));
         return clientBuilder.build();
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        HttpClientFactory.closeWithLogging(httpClient);
     }
 
     private static RequestConfig createRequestConfig(int connectionTimeout,
