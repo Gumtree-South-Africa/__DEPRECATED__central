@@ -1,1 +1,0 @@
-KJCA prod properties go here

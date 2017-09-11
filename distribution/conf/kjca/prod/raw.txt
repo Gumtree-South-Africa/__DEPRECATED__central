@@ -1,0 +1,38 @@
+|| Service name || Endpoint                             || IP address  || Ports        ||
+| Riak          | rtsriak001.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.195 | 8087,8098,8099 |
+|               | rtsriak002.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.196 | 8087,8098,8099 |
+|               | rtsriak003.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.197 | 8087,8098,8099 |
+|               | rtsriak004.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.198 | 8087,8098,8099 |
+|               | rtsriak005.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.199 | 8087,8098,8099 |
+|               | rtsriak006.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.200 | 8087,8098,8099 |
+|               | rtsriak007.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.201 | 8087,8098,8099 |
+|               | rtsriak008.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.202 | 8087,8098,8099 |
+|               | rtsriak009.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.203 | 8087,8098,8099 |
+|               | rtsriak010.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.204 | 8087,8098,8099 |
+|               | rtsriak011.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.205 | 8087,8098,8099 |
+|               | rtsriak012.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.206 | 8087,8098,8099 |
+|               | rtsriak013.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.207 | 8087,8098,8099 |
+|               | rtsriak014.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.208 | 8087,8098,8099 |
+|               | rtsriak015.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.209 | 8087,8098,8099 |
+|               | rtsriak016.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.210 | 8087,8098,8099 |
+|               | rtsriak017.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.211 | 8087,8098,8099 |
+|               | rtsriak018.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.212 | 8087,8098,8099 |
+|               | rtsriak019.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.213 | 8087,8098,8099 |
+|               | rtsriak020.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.214 | 8087,8098,8099 |
+|               | rtsriak021.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.215 | 8087,8098,8099 |
+|               | rtsriak022.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.216 | 8087,8098,8099 |
+|               | rtsriak023.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.217 | 8087,8098,8099 |
+|               | rtsriak024.ix5.kijiji.prod1.ca.ecg.so | 10.32.42.218 | 8087,8098,8099 |
+| Elastic       | es.vip.kijiji.prod1.ca.ecg.so         | 10.32.42.61  | 9200,9300      |
+|               | es.vip.kijiji.prod2.ca.ecg.so         | 10.34.42.61  | 9200,9300      |
+| ActiveMQ      | amq.vip.kijiji.prod1.ca.ecg.so        | 10.32.43.61  | 61616          |
+|               | amq.vip.kijiji.prod2.ca.ecg.so        | 10.34.43.61  | 61616          |
+| CAPI          | api.vip.kijiji.prod1.ca.ecg.so        | 10.32.42.124 | 80,443         |
+|               | api.vip.kijiji.prod2.ca.ecg.so        | 10.34.42.124 | 80,443         |
+| Consul        | * (any host has Consul)               | *            | 8600           |
+| Tnsapi        | tnsapi.vip.kijiji.prod1.ca.ecg.so     | 10.32.42.125 | 80,443         |
+|               | tnsapi.vip.kijiji.prod2.ca.ecg.so     | 10.34.42.125 | 80,443         |
+
+
+DUS1 (ready)              - 10.39.136.0/22
+AMS1 (under construction) - 10.41.212.0/22

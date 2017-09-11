@@ -1,0 +1,13 @@
+<included>
+    <logger name="ca.kijiji" level="DEBUG"/>
+    <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
+    <logger name="com.ecg.comaas" level="DEBUG"/>
+    <logger name="com.ecg.replyts" level="DEBUG"/>
+    <logger name="com.ecg.de" level="DEBUG"/>
+    <logger name="com.ecg.messagecenter" level="DEBUG"/>
+    <logger name="org.springframework.cloud" level="INFO"/>
+    <logger name="com.ecg.replyts.core.runtime.cluster.monitor.RiakClusterHealthCheck" level="WARN"/>
+    <logger name="com.ecg.replyts.core.runtime.cluster.monitor.RiakClientHealthWrapper" level="WARN"/>
+    <logger name="TerminatedMessageLogger" level="OFF"/>
+    <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
+</included>
