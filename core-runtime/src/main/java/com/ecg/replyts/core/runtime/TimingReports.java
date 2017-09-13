@@ -72,7 +72,7 @@ public final class TimingReports {
         if (!PLUGIN_TIMERS.containsKey(plugin)) {
             synchronized (PLUGIN_TIMERS) {
                 if (!PLUGIN_TIMERS.containsKey(plugin)) { // NOSONAR
-                    String titleKey = "plugin." + plugin.getPluginFactory().getSimpleName() + "." + plugin.getInstanceId();
+                    String titleKey = "plugin." + plugin.findFactoryClass().getSimpleName() + "." + plugin.getInstanceId();
                     titleKey = titleKey.replaceAll("[^a-zA-Z0-9-]", "-");
                     PLUGIN_TIMERS.put(plugin, newTimer(titleKey));
                 }

@@ -39,7 +39,7 @@ public class CassandraConfigurationRepositoryIntegrationTest {
     public void shouldInsertAndReadConfiguration() {
         ConfigurationId id = new ConfigurationId(DummyFactory.class, "id1");
         PluginConfiguration configuration = new PluginConfiguration(id, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
-        configurationRepository.persistConfiguration(configuration);
+        configurationRepository.persistConfiguration(configuration, "127.0.0.1");
 
         List<PluginConfiguration> configurations = configurationRepository.getConfigurations();
 
@@ -56,11 +56,11 @@ public class CassandraConfigurationRepositoryIntegrationTest {
     public void shouldUpdateConfiguration() {
         ConfigurationId id = new ConfigurationId(DummyFactory.class, "id1");
         PluginConfiguration configuration = new PluginConfiguration(id, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
-        configurationRepository.persistConfiguration(configuration);
+        configurationRepository.persistConfiguration(configuration, "127.0.0.1");
 
         ConfigurationId sameId = new ConfigurationId(DummyFactory.class, "id1");
         PluginConfiguration configuration2 = new PluginConfiguration(sameId, 2, PluginState.DISABLED, 2, new TextNode("other_json"));
-        configurationRepository.persistConfiguration(configuration2);
+        configurationRepository.persistConfiguration(configuration2, "127.0.0.1");
 
         List<PluginConfiguration> configurations = configurationRepository.getConfigurations();
 
@@ -78,12 +78,12 @@ public class CassandraConfigurationRepositoryIntegrationTest {
     public void shouldDeleteConfiguration() {
         ConfigurationId id = new ConfigurationId(DummyFactory.class, "id1");
         PluginConfiguration configuration = new PluginConfiguration(id, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
-        configurationRepository.persistConfiguration(configuration);
+        configurationRepository.persistConfiguration(configuration, "127.0.0.1");
 
         List<PluginConfiguration> configurations = configurationRepository.getConfigurations();
 
         assertEquals(configurations.size(), 1);
-        configurationRepository.deleteConfiguration(new ConfigurationId(DummyFactory.class, "id1"));
+        configurationRepository.deleteConfiguration(DummyFactory.class.getName(), "id1", "127.0.0.1");
         configurations = configurationRepository.getConfigurations();
 
         assertEquals(configurations.size(), 0);

@@ -78,7 +78,7 @@ class FilterListProcessor {
             ConfigurationId configurationId = pc.getConfiguration().getId();
             converted.add(
                     new ImmutableProcessingFeedback(
-                            configurationId.getPluginFactory().getName(),
+                            configurationId.getPluginFactory(),
                             configurationId.getInstanceId(),
                             p.getUiHint(),
                             p.getDescription(),

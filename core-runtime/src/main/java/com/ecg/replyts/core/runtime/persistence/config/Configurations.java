@@ -8,8 +8,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 
 class Configurations {
-
-    static final Configurations EMPTY_CONFIG_SET = new Configurations(Lists.<ConfigurationObject>newArrayList(), false);
+    static final Configurations EMPTY_CONFIG_SET = new Configurations(Lists.newArrayList(), false);
 
     @RiakKey
     private String key = ConfigurationConverter.KEY; // NOSONAR

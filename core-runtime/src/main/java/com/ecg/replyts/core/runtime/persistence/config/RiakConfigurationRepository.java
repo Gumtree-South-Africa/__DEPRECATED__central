@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 public class RiakConfigurationRepository implements ConfigurationRepository {
     private static final Logger LOG = LoggerFactory.getLogger(RiakConfigurationRepository.class);
@@ -85,10 +86,12 @@ public class RiakConfigurationRepository implements ConfigurationRepository {
     }
 
     @Override
-    public void persistConfiguration(PluginConfiguration configuration) {
+    public void persistConfiguration(PluginConfiguration configuration, String remoteAddress) {
         ConfigurationObject obj = new ConfigurationObject(System.currentTimeMillis(), configuration);
+        final Configurations currentConfigurations = fetchConfigurations();
+        backupConfigurations(currentConfigurations, remoteAddress);
 
-        Configurations mergedConfigurations = fetchConfigurations().addOrUpdate(obj);
+        Configurations mergedConfigurations = currentConfigurations.addOrUpdate(obj);
         try {
             configurationBucket.store(mergedConfigurations);
         } catch (RiakException e) {
@@ -97,37 +100,40 @@ public class RiakConfigurationRepository implements ConfigurationRepository {
         }
     }
 
-    @Override
-    public void backupConfigurations() {
+    private void backupConfigurations(Configurations currentConfigurations, String remoteAddress) {
         final String currentTime = new SimpleDateFormat("yyyyMMdd-HH.mm.ss.SSS").format(new Date());
-        final File configLocation = new File(logDir, "configuration_" + currentTime + ".json");
+        final File configLocation = new File(logDir, format("configuration_%s_%s.json", remoteAddress, currentTime));
         LOG.info("Saving previous configurations as {}", configLocation);
         try (BufferedWriter out = new BufferedWriter(new FileWriter(configLocation))) {
-            out.write(String.valueOf(getConfigurationsAsJson().get("configs")));
+            out.write(String.valueOf(currentConfigurations));
         } catch (IOException e) {
             LOG.error("Could not save old configuration to file", e);
         }
     }
 
     @Override
-    public void deleteConfiguration(ConfigurationId configurationId) {
+    public void deleteConfiguration(String pluginFactory, String instanceId, String remoteAddress) {
         try {
-            configurationBucket.store(fetchConfigurations().delete(configurationId));
+            final Configurations currentConfigurations = fetchConfigurations();
+            backupConfigurations(currentConfigurations, remoteAddress);
+
+            configurationBucket.store(currentConfigurations.delete(new ConfigurationId(pluginFactory, instanceId)));
         } catch (RiakException e) {
-            throw new PersistenceException("Could not store configuration identified by " + configurationId.toString(), e);
+            throw new PersistenceException("Could not store configuration identified by " + pluginFactory + ", " + instanceId, e);
         }
     }
 
     @Override
-    public void replaceConfigurations(List<PluginConfiguration> pluginConfigurations) {
+    public void replaceConfigurations(List<PluginConfiguration> pluginConfigurations, String remoteAddress) {
         List<PluginConfiguration> currentConfigurations = getConfigurations();
 
         try {
-            currentConfigurations.forEach(c -> deleteConfiguration(c.getId()));
-            pluginConfigurations.forEach(this::persistConfiguration);
+            currentConfigurations.forEach(c ->
+                    deleteConfiguration(c.getId().getInstanceId(), c.getId().getPluginFactory(), remoteAddress));
+            pluginConfigurations.forEach(configuration -> persistConfiguration(configuration, remoteAddress));
         } catch (Exception e) {
             LOG.error("Could not save new configurations, attempting to re-save the old ones", e);
-            currentConfigurations.forEach(this::persistConfiguration);
+            currentConfigurations.forEach(configuration -> persistConfiguration(configuration, remoteAddress));
             throw e;
         }
     }

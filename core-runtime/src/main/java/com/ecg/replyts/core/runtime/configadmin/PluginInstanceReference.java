@@ -33,7 +33,7 @@ public class PluginInstanceReference<T> {
             ConfigurationId secondId = o2.config.getId();
 
             if (!firstId.getPluginFactory().equals(secondId.getPluginFactory())) {
-                return firstId.getPluginFactory().getName().compareTo(secondId.getPluginFactory().getName());
+                return firstId.getPluginFactory().compareTo(secondId.getPluginFactory());
             }
             return firstId.getInstanceId().compareTo(secondId.getInstanceId());
 

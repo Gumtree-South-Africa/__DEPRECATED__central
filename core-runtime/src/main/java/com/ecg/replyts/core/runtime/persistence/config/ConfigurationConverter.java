@@ -28,8 +28,6 @@ class ConfigurationConverter implements Converter<Configurations> {
 
     private final String configBucketName;
 
-    private final ConfigurationJsonSerializer serializer = new ConfigurationJsonSerializer();
-
     ConfigurationConverter(String configBucketName) {
         this(ValueSizeConstraint.maxMb(30), configBucketName);
     }
@@ -41,7 +39,7 @@ class ConfigurationConverter implements Converter<Configurations> {
 
     @Override
     public IRiakObject fromDomain(Configurations domainObject, VClock vclock) {
-        String json = serializer.fromDomain(domainObject);
+        String json = ConfigurationJsonSerializer.fromDomain(domainObject);
         JsonObjects.parse(json);
 
         int configurationSizeBytes = json.getBytes().length;
@@ -64,7 +62,7 @@ class ConfigurationConverter implements Converter<Configurations> {
         if (riakObject != null) {
             String configValueString = CONTENT_FILTER.readStringFromRiakObject(riakObject);
             boolean compressed = CONTENT_FILTER.isCompressed(riakObject);
-            return serializer.toDomain(configValueString).setCompressed(compressed);
+            return ConfigurationJsonSerializer.toDomain(configValueString).setCompressed(compressed);
 
         } else {
             LOG.warn("Could not find key {} in configuration bucket: no filter configurations found.", KEY);

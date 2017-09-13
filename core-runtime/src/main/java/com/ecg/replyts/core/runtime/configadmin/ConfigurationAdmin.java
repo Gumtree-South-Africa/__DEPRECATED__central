@@ -77,7 +77,7 @@ public class ConfigurationAdmin<T> {
      */
     boolean handlesConfiguration(ConfigurationId configId) {
         for (BasePluginFactory<?> s : factories) {
-            if (s.getClass().equals(configId.getPluginFactory())) {
+            if (s.getClass().equals(configId.findFactoryClass())) {
                 return true;
             }
         }
@@ -104,7 +104,7 @@ public class ConfigurationAdmin<T> {
     T createPluginInstance(PluginConfiguration configuration) {
         ConfigurationId id = configuration.getId();
         for (BasePluginFactory<?> s : factories) {
-            if (s.getClass().equals(id.getPluginFactory())) {
+            if (s.getClass().equals(id.findFactoryClass())) {
                 return (T) s.createPlugin(id.getInstanceId(), configuration.getConfiguration());
             }
         }

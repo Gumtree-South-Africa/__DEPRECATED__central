@@ -58,22 +58,17 @@ public class ConfigurationRepositoryTest {
         }
 
         @Override
-        public void persistConfiguration(PluginConfiguration configuration) {
+        public void persistConfiguration(PluginConfiguration configuration, String remoteAddr) {
             throw new NotImplementedException("No");
         }
 
         @Override
-        public void deleteConfiguration(ConfigurationId configurationId) {
+        public void deleteConfiguration(String pluginFactory, String instanceId, String remoteAddress) {
             throw new NotImplementedException("No");
         }
 
         @Override
-        public void replaceConfigurations(List<PluginConfiguration> pluginConfigurations) {
-            throw new NotImplementedException("No");
-        }
-
-        @Override
-        public void backupConfigurations() {
+        public void replaceConfigurations(List<PluginConfiguration> pluginConfigurations, String remoteAddr) {
             throw new NotImplementedException("No");
         }
     }

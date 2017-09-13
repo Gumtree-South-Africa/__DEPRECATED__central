@@ -111,7 +111,7 @@ public class ConfigurationConverterTest {
         assertThat(configurationObject.getTimestamp()).isEqualTo(120);
 
         PluginConfiguration config = configurationObject.getPluginConfiguration();
-        assertThat(config.getId().getPluginFactory()).isEqualTo(FilterChainTest.ExampleFilterFactory.class);
+        assertThat(config.getId().findFactoryClass()).isEqualTo(FilterChainTest.ExampleFilterFactory.class);
         assertThat(config.getPriority()).isEqualTo(10);
         assertThat(config.getVersion()).isEqualTo(123);
         assertThat(config.getId().getInstanceId()).isEqualTo("Sample");

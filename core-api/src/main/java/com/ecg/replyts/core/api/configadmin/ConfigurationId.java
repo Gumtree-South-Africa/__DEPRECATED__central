@@ -1,6 +1,12 @@
 package com.ecg.replyts.core.api.configadmin;
 
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
+import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
+
+import javax.annotation.Nonnull;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Uniquely identifies a plugin instance from a particular service factory.
@@ -8,46 +14,47 @@ import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
  * @author mhuttar
  */
 public class ConfigurationId {
-    private final Class<? extends BasePluginFactory<?>> pluginFactory;
+    private final String pluginFactory;
     private final String instanceId;
 
-    public ConfigurationId(Class<? extends BasePluginFactory<?>> pluginFactory, String instanceId) {
-        if (pluginFactory == null || instanceId == null) {
-            throw new IllegalArgumentException();
-        }
-        this.pluginFactory = pluginFactory;
-        this.instanceId = instanceId;
+    public ConfigurationId(@Nonnull Class<? extends BasePluginFactory<?>> pluginFactory, @Nonnull String instanceId) {
+        this(pluginFactory.getName(), instanceId);
+    }
+
+    public ConfigurationId(@Nonnull String pluginFactory, @Nonnull String instanceId) {
+        this.pluginFactory = checkNotNull(pluginFactory, "pluginFactory");
+        this.instanceId = checkNotNull(instanceId, "instanceId");
     }
 
     public String getInstanceId() {
         return instanceId;
     }
 
-    public Class<? extends BasePluginFactory<?>> getPluginFactory() {
+    public String getPluginFactory() {
         return pluginFactory;
     }
 
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + instanceId.hashCode();
-        result = prime * result + pluginFactory.hashCode();
-        return result;
+    @SuppressWarnings("unchecked") // the cast is supposed to be safe (statically) due to the constructor signature
+    public Class<? extends BasePluginFactory<?>> findFactoryClass() {
+        try {
+            return (Class<? extends BasePluginFactory<?>>) Class.forName(pluginFactory);
+        } catch (ClassNotFoundException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ConfigurationId other = (ConfigurationId) obj;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ConfigurationId that = (ConfigurationId) o;
+        return Objects.equal(pluginFactory, that.pluginFactory) &&
+                Objects.equal(instanceId, that.instanceId);
+    }
 
-        return pluginFactory.equals(other.pluginFactory) && instanceId.equals(other.instanceId);
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(pluginFactory, instanceId);
     }
 
     @Override

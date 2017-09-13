@@ -4,7 +4,6 @@ import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.ConfigurationUpdateNotifier;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
-import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -98,20 +97,19 @@ public class ConfigCrudController implements HandlerExceptionResolver {
 
     @ResponseBody
     @RequestMapping(value = "/{pluginFactory}/{instanceId}", method = RequestMethod.PUT, consumes = "*/*")
-    public ObjectNode addConfiguration(@PathVariable String pluginFactory, @PathVariable String instanceId, @RequestBody JsonNode body) throws Exception {
+    public ObjectNode addConfiguration(HttpServletRequest request, @PathVariable String pluginFactory,
+                                       @PathVariable String instanceId, @RequestBody JsonNode body) throws Exception {
         if (instanceId == null || instanceId.isEmpty()) {
             throw new RuntimeException("InstanceId is required");
         }
 
-        configRepository.backupConfigurations();
-
         PluginConfiguration config = extract(pluginFactory, instanceId, body, body.get("configuration"));
 
         if (!configUpdateNotifier.validateConfiguration(config)) {
-            throw new RuntimeException("PluginFactory " + pluginFactory + " not found");
+            throw new RuntimeException("Plugin validation has failed: " + pluginFactory);
         }
         LOG.info("Saving Config update {}", config.getId());
-        configRepository.persistConfiguration(config);
+        configRepository.persistConfiguration(config, request.getRemoteAddr());
         configUpdateNotifier.confirmConfigurationUpdate();
 
         return JsonObjects.builder()
@@ -122,11 +120,9 @@ public class ConfigCrudController implements HandlerExceptionResolver {
 
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.PUT, consumes = "*/*")
-    public ObjectNode replaceConfigurations(@RequestBody ArrayNode body) throws Exception {
+    public ObjectNode replaceConfigurations(HttpServletRequest request, @RequestBody ArrayNode body) throws Exception {
         List<PluginConfiguration> newConfigurations = verifyConfigurations(body);
-        configRepository.backupConfigurations();
-
-        configRepository.replaceConfigurations(newConfigurations);
+        configRepository.replaceConfigurations(newConfigurations, request.getRemoteAddr());
 
         configUpdateNotifier.confirmConfigurationUpdate();
 
@@ -135,10 +131,8 @@ public class ConfigCrudController implements HandlerExceptionResolver {
 
     @ResponseBody
     @RequestMapping(value = "/{pluginFactory}/{instanceId}", method = RequestMethod.DELETE, consumes = "*/*")
-    public ObjectNode deleteConfiguration(@PathVariable String pluginFactory, @PathVariable String instanceId) throws Exception {
-        configRepository.backupConfigurations();
-        ConfigurationId cid = toId(pluginFactory, instanceId);
-        configRepository.deleteConfiguration(cid);
+    public ObjectNode deleteConfiguration(HttpServletRequest request, @PathVariable String pluginFactory, @PathVariable String instanceId) throws Exception {
+        configRepository.deleteConfiguration(pluginFactory, instanceId, request.getRemoteAddr());
         configUpdateNotifier.confirmConfigurationUpdate();
         return JsonObjects.builder().success().build();
 
@@ -189,18 +183,12 @@ public class ConfigCrudController implements HandlerExceptionResolver {
         Long priority = Long.valueOf(getContent(body, "priority", "0"));
         PluginState state = PluginState.valueOf(getContent(body, "state", PluginState.ENABLED.name()));
 
-        return new PluginConfiguration(toId(pluginFactory, instanceId), priority, state, 1L, configuration);
+        return new PluginConfiguration(new ConfigurationId(pluginFactory, instanceId), priority, state, 1L, configuration);
     }
 
     private static String getContent(JsonNode body, String fieldname, String alternative) {
         JsonNode fn = body.get(fieldname);
         return fn == null ? alternative : fn.asText();
-    }
-
-    private ConfigurationId toId(String pluginFactory, String instanceId) throws ClassNotFoundException {
-        @SuppressWarnings("unchecked")
-        Class<? extends BasePluginFactory<?>> pluginFactoryClass = (Class<? extends BasePluginFactory<?>>) Class.forName(pluginFactory);
-        return new ConfigurationId(pluginFactoryClass, instanceId);
     }
 
     @Override

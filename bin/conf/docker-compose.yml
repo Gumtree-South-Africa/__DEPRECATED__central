@@ -1,7 +1,7 @@
 version: '3'
 services:
   cassandra:
-    image: docker-registry.ecg.so/comaas/cassandra_data:0.0.6
+    image: docker-registry.ecg.so/comaas/cassandra_data:0.0.8
     container_name: "cassandra_test_${TENANT}_${CREATION_SECONDS}"
     ports:
     - "9042:9042"

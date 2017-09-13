@@ -11,11 +11,8 @@ import java.util.List;
 /**
  * Persists all sorts of dynamically updateable configurations. This repository is constantly polled by the
  * Configuration Admin to see if new filter configurations are available.
- *
- * @author mhuttar
  */
 public interface ConfigurationRepository {
-
     /**
      * @return a list of all configurations for all services known/available. the order of this list is not specified.
      */
@@ -25,19 +22,14 @@ public interface ConfigurationRepository {
      * creates/updates a configuration. Whether to create or to update a configuration depends on the Configuration's
      * {@link ConfigurationId}
      */
-    void persistConfiguration(PluginConfiguration configuration);
-
-    /**
-     * make a backup of all current configurations
-     */
-    void backupConfigurations();
+    void persistConfiguration(PluginConfiguration configuration, String remoteAddress);
 
     /**
      * deletes the configuration identified by this {@link ConfigurationId}.
      */
-    void deleteConfiguration(ConfigurationId configurationId);
+    void deleteConfiguration(String pluginFactory, String instanceId, String remoteAddress);
 
-    void replaceConfigurations(List<PluginConfiguration> pluginConfigurations);
+    void replaceConfigurations(List<PluginConfiguration> pluginConfigurations, String remoteAddress);
 
     /**
      * configurations as a json object
@@ -47,7 +39,7 @@ public interface ConfigurationRepository {
         // TODO: Order by priority
         for (PluginConfiguration pluginConfiguration : getConfigurations()) {
             JsonObjects.Builder config = JsonObjects.builder()
-                    .attr("pluginFactory", pluginConfiguration.getId().getPluginFactory().getName())
+                    .attr("pluginFactory", pluginConfiguration.getId().getPluginFactory())
                     .attr("instanceId", pluginConfiguration.getId().getInstanceId())
                     .attr("priority", pluginConfiguration.getPriority())
                     .attr("state", pluginConfiguration.getState().name())

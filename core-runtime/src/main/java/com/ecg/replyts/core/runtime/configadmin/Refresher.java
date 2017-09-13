@@ -98,7 +98,7 @@ public class Refresher {
 
         for (ConfigurationId toDelete : configsToBeRemoved) {
             for (ConfigurationRefreshEventListener listener : refreshEventListeners) {
-                if (listener.isApplicable(toDelete.getPluginFactory())) {
+                if (listener.isApplicable(toDelete.findFactoryClass())) {
                     try {
                         listener.unregister(toDelete.getInstanceId());
                     } catch (Exception ex) {
