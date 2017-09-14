@@ -103,7 +103,7 @@ public class HybridPersistenceConfiguration {
     }
 
     @Bean
-    public ConfigurationRepository configurationRepository(Session cassandraSession) throws RiakRetryFailedException {
+    public ConfigurationRepository configurationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession) {
         return new CassandraConfigurationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 
