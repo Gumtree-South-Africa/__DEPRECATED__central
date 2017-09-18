@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -130,15 +131,23 @@ public class BulkIndexer {
 
     }
 
+    public void flush()  {
+        bulkProcessor.flush();
+    }
+
     /**
      *
-     * @param time
-     * @param timeUnit
      * @return Returns: true if all bulk requests completed and false if the waiting time elapsed before all the bulk requests completed
-     * @throws InterruptedException
      */
-    public boolean awaitClose(long time, TimeUnit timeUnit) throws InterruptedException {
-        return bulkProcessor.awaitClose(time, timeUnit);
+    @PreDestroy
+    public boolean awaitClose()  {
+       try {
+           return bulkProcessor.awaitClose(4, TimeUnit.SECONDS);
+       } catch(InterruptedException ie) {
+           LOG.warn("The ES Bulk process has been interrupted");
+           Thread.currentThread().interrupt();
+           return false;
+       }
     }
 
 }

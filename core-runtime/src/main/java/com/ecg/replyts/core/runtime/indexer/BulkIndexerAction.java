@@ -60,16 +60,12 @@ public class BulkIndexerAction implements IndexerAction {
         Stream<String> conversations = conversationRepository.streamConversationsModifiedBetween(dateFrom, dateTo);
         indexConversations(conversations);
 
-        boolean indexingCompleted = false;
         try {
-            indexingCompleted = indexerBulkHandler.awaitCompletion(1, TimeUnit.HOURS);
-        } catch (InterruptedException ine) {
-            Thread.currentThread().interrupt();
-            LOGGER.warn("Indexing did not complete due to interruption or timeout");
-        } catch (Exception e) {
+            indexerBulkHandler.flush();
+        }  catch (Exception e) {
             LOGGER.error("Indexing failed with exception", e);
         }
-        LOGGER.info("Indexing completed {}. Total {} conversations, {} fetched documents, {} tasks completed", indexingCompleted, submittedConvCounter.get(), BulkIndexer.getFetchedDocumentCount(), taskCounter.get());
+        LOGGER.info("Indexing completed. Total {} conversations, {} fetched documents, {} tasks completed", submittedConvCounter.get(), BulkIndexer.getFetchedDocumentCount(), taskCounter.get());
         indexerBulkHandler.resetCounters();
         submittedConvCounter.set(0);
         completedBatches.set(0);
