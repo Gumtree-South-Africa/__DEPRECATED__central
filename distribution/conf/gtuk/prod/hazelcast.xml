@@ -1,6 +1,7 @@
-<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config http://www.hazelcast.com/schema/config/hazelcast-config-2.3.xsd"
-           xmlns="http://www.hazelcast.com/schema/config"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<hazelcast
+        xsi:schemaLocation="http://www.hazelcast.com/schema/config http://www.hazelcast.com/schema/config/hazelcast-config-2.3.xsd"
+        xmlns="http://www.hazelcast.com/schema/config"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <group>
         <name>replyts_gtuk</name>
@@ -18,7 +19,7 @@
         <join>
             <multicast enabled="false"></multicast>
             <tcp-ip enabled="true">
-                <members>uk-core001,uk-core002,uk-core003</members>
+                <members>uk-core001,uk-core002,uk-core003,uk-core004,uk-core005,uk-core006</members>
             </tcp-ip>
         </join>
     </network>
