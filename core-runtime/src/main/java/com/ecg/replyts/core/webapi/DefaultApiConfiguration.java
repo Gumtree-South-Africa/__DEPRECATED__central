@@ -28,7 +28,6 @@ public class DefaultApiConfiguration {
     public boolean defaultContextsInitialized() {
         webserver.context(new SpringContextProvider("/screeningv2", new String[] { "classpath:screening-mvc-context.xml" }, context));
         webserver.context(new SpringContextProvider("/configv2", new String[] { "classpath:config-mvc-context.xml" }, context));
-
         return true;
     }
 }

@@ -27,5 +27,6 @@
     <context:annotation-config />
 
     <bean class="com.ecg.replyts.core.webapi.control.HomePageController" />
-    <bean class="com.ecg.replyts.core.webapi.control.HealthController" />
+    <bean class="com.ecg.replyts.core.webapi.control.health.HealthConfiguration" />
+    <bean class="com.ecg.replyts.core.webapi.control.health.HealthController" />
 </beans>

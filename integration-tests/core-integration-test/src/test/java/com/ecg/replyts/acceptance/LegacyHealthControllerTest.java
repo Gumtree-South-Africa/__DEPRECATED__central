@@ -1,6 +1,6 @@
 package com.ecg.replyts.acceptance;
 
-import com.ecg.replyts.core.webapi.control.HealthController;
+import com.ecg.replyts.core.webapi.control.health.HealthController;
 import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.jayway.restassured.RestAssured;
 import org.junit.Test;
@@ -38,12 +38,12 @@ import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringRunner.class)
 @ContextHierarchy({
-        @ContextConfiguration(classes = HealthControllerTest.TestConfiguration.class),
-        @ContextConfiguration(classes = HealthControllerTest.DiscoveryConfiguration.class),
+        @ContextConfiguration(classes = LegacyHealthControllerTest.TestConfiguration.class),
+        @ContextConfiguration(classes = LegacyHealthControllerTest.DiscoveryConfiguration.class),
         @ContextConfiguration(locations = "classpath:server-context.xml")
 })
 @ActiveProfiles(EMBEDDED_PROFILE)
-public class HealthControllerTest {
+public class LegacyHealthControllerTest {
     @Value("#{environment.COMAAS_HTTP_PORT}")
     private Integer httpPort;
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"         xmlns:p="http://www.springframework.org/schema/p" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="userDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close"
+    <bean id="gtauBlockUserDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close"
           p:jdbcUrl="${replyts2-belenblockeduserfilter-plugin.dataSource.url}"
           p:username="${replyts2-belenblockeduserfilter-plugin.username:belen}"
           p:password="${replyts2-belenblockeduserfilter-plugin.password:}"
@@ -30,7 +30,7 @@
     </bean>
 
     <bean id="replyts2-blockeduserfilter-plugin-datasource" class="com.ecg.de.kleinanzeigen.replyts.belen.blockeduser.BlockedUserFilterFactory">
-        <constructor-arg index="0" ref="userDataSource"/>
+        <constructor-arg index="0" ref="gtauBlockUserDataSource"/>
     </bean>
 
 

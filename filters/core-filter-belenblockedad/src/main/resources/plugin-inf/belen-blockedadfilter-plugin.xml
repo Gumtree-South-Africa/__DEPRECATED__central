@@ -2,7 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:p="http://www.springframework.org/schema/p" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="adDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
+    <bean id="coreBlockAdDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
           p:driverClass="com.mysql.jdbc.Driver"
           p:jdbcUrl="${replyts2-belenblockedadfilter-plugin.dataSource.url}"
           p:user="${replyts2-belenblockedadfilter-plugin.username:belen}"
@@ -21,7 +21,7 @@
 
 
     <bean id="replyts2-blockedadfilter-plugin-datasource" class="com.ecg.de.kleinanzeigen.replyts.belen.blockeduser.BlockedAdFilterFactory">
-        <constructor-arg index="0" ref="adDataSource"/>
+        <constructor-arg index="0" ref="coreBlockAdDataSource"/>
     </bean>
 
 
