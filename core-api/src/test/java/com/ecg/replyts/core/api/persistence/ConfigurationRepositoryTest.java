@@ -68,6 +68,11 @@ public class ConfigurationRepositoryTest {
         }
 
         @Override
+        public void replaceConfigurations(List<PluginConfiguration> pluginConfigurations) {
+            throw new NotImplementedException("No");
+        }
+
+        @Override
         public void backupConfigurations() {
             throw new NotImplementedException("No");
         }

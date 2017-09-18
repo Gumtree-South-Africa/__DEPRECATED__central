@@ -124,17 +124,9 @@ public class ConfigCrudController implements HandlerExceptionResolver {
     @RequestMapping(value = "/", method = RequestMethod.PUT, consumes = "*/*")
     public ObjectNode replaceConfigurations(@RequestBody ArrayNode body) throws Exception {
         List<PluginConfiguration> newConfigurations = verifyConfigurations(body);
-        List<PluginConfiguration> currentConfigurations = configRepository.getConfigurations();
         configRepository.backupConfigurations();
 
-        try {
-            currentConfigurations.forEach(c -> configRepository.deleteConfiguration(c.getId()));
-            newConfigurations.forEach(pluginConfiguration -> configRepository.persistConfiguration(pluginConfiguration));
-        } catch (Exception e) {
-            LOG.error("Could not save new configurations, attempting to re-save the old ones", e);
-            currentConfigurations.forEach(pluginConfiguration -> configRepository.persistConfiguration(pluginConfiguration));
-            throw e;
-        }
+        configRepository.replaceConfigurations(newConfigurations);
 
         configUpdateNotifier.confirmConfigurationUpdate();
 

@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.PersistenceException;
 import com.ecg.replyts.core.runtime.persistence.ValueSizeConstraint;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,8 +72,15 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
     }
 
     @Override
+    public void replaceConfigurations(List<PluginConfiguration> pluginConfigurations) {
+        long currentTimeMillis = System.currentTimeMillis();
+        List<ConfigurationObject> configurationObjects = Lists.transform(pluginConfigurations, c -> new ConfigurationObject(currentTimeMillis, c));
+        Configurations configurations = new Configurations(configurationObjects);
+        persistConfigurations("Could not store configurations", configurations);
+    }
+
+    @Override
     public void backupConfigurations() {
-        LOG.info("Not implemented yet");
     }
 
     private Configurations fetchConfigurations() {

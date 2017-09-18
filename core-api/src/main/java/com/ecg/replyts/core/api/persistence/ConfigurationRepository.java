@@ -37,6 +37,8 @@ public interface ConfigurationRepository {
      */
     void deleteConfiguration(ConfigurationId configurationId);
 
+    void replaceConfigurations(List<PluginConfiguration> pluginConfigurations);
+
     /**
      * configurations as a json object
      */

@@ -117,4 +117,18 @@ public class RiakConfigurationRepository implements ConfigurationRepository {
             throw new PersistenceException("Could not store configuration identified by " + configurationId.toString(), e);
         }
     }
+
+    @Override
+    public void replaceConfigurations(List<PluginConfiguration> pluginConfigurations) {
+        List<PluginConfiguration> currentConfigurations = getConfigurations();
+
+        try {
+            currentConfigurations.forEach(c -> deleteConfiguration(c.getId()));
+            pluginConfigurations.forEach(this::persistConfiguration);
+        } catch (Exception e) {
+            LOG.error("Could not save new configurations, attempting to re-save the old ones", e);
+            currentConfigurations.forEach(this::persistConfiguration);
+            throw e;
+        }
+    }
 }
