@@ -110,10 +110,10 @@ public class CassandraPersistenceConfiguration {
          */
         private static final int HIGHEST_TRACKABLE_LATENCY_MILLIS = 15000;
 
-        @Value("${persistence.cassandra.consistency.read:#{null}}")
+        @Value("${persistence.cassandra.consistency.read:LOCAL_QUORUM}")
         private ConsistencyLevel cassandraReadConsistency;
 
-        @Value("${persistence.cassandra.consistency.write:#{null}}")
+        @Value("${persistence.cassandra.consistency.write:LOCAL_QUORUM}")
         private ConsistencyLevel cassandraWriteConsistency;
 
         @Value("${persistence.cassandra.core.dc:#{systemEnvironment['region']}}")
