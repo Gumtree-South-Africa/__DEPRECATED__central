@@ -31,8 +31,12 @@ public class MDCConstants {
     }
 
     public static void setTaskFields(String taskName) {
+        setTaskFields(taskName, XidFactory.nextXid());
+    }
+
+    public static void setTaskFields(String taskName, String correlationId) {
         MDC.clear();
-        MDC.put(CORRELATION_ID, XidFactory.nextXid());
+        MDC.put(CORRELATION_ID, correlationId);
         MDC.put(TASK_NAME, taskName);
     }
 
