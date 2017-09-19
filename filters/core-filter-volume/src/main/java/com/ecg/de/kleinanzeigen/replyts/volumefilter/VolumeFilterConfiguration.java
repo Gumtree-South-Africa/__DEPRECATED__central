@@ -14,12 +14,17 @@ import org.springframework.context.annotation.Import;
 public class VolumeFilterConfiguration {
 
     @Bean
-    public FilterFactory volumeFilterFactory(HazelcastInstance hazelcast, EventStreamProcessor eventStreamProcessor) {
-        return new VolumeFilterFactory(hazelcast, eventStreamProcessor);
+    public FilterFactory volumeFilterFactory(SharedBrain sharedBrain, EventStreamProcessor eventStreamProcessor) {
+        return new VolumeFilterFactory(sharedBrain, eventStreamProcessor);
     }
 
     @Bean
     public EventStreamProcessor eventStreamProcessor() {
         return new EventStreamProcessor();
+    }
+
+    @Bean
+    public SharedBrain sharedBrain(HazelcastInstance hazelcast, EventStreamProcessor processor) {
+        return new SharedBrain(hazelcast, processor);
     }
 }
