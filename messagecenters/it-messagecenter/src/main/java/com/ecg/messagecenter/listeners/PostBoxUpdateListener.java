@@ -45,7 +45,8 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                     @Value("${push-mobile.host:}") String pushHost,
                     @Value("${push-mobile.port:80}") Integer pushPort,
                     @Value("${api.image.lookup.enabled:false}") Boolean apiEnabled,
-                    @Value("${api.host:api.gumtree.com.au}") String apiHost,
+                    @Value("${api.ip:127.0.0.1}") String apiIp,
+                    @Value("${api.virtualHost:localhost}") String apiVirtualHost,
                     @Value("${api.port:-1}") Integer apiPort,
                     @Value("${api.basepath:api}") String apiBasePath,
                     @Value("${api.adIdPrefix:}") String adIdPrefix,
@@ -58,7 +59,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                     @Value("${api.maxConnectionsPerHost:40}") Integer maxTotalConnections,
                     @Value("${message-box.disabledDomains:}") String[] disabledDomainsString) {
         this.postBoxInitializer = postBoxInitializer;
-        this.adInfoLookup = new AdInfoLookup(apiHost, apiPort, apiBasePath, adIdPrefix,
+        this.adInfoLookup = new AdInfoLookup(apiVirtualHost, apiIp, apiPort, apiBasePath, adIdPrefix,
                         connectionTimeout, connectionManagerTimeout, socketTimeout,
                         maxConnectionsPerHost, maxTotalConnections, username, password);
         if (pushEnabled && !Strings.isNullOrEmpty(pushHost)) {

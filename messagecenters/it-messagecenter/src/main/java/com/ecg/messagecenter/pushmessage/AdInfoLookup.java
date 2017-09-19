@@ -18,6 +18,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,14 +41,16 @@ public class AdInfoLookup {
     private final String username;
     private final String password;
     private String adIdPrefix;
+    private String kapiVirtualHost;
 
-    public AdInfoLookup(String kapiHost, Integer kapiPort, String basePath, String adIdPrefix,
+    public AdInfoLookup(String kapiVirtualHost, String kapiIp, Integer kapiPort, String basePath, String adIdPrefix,
                     Integer connectionTimeout, Integer connectionManagerTimeout,
                     Integer socketTimeout, Integer maxConnectionsPerHost,
                     Integer maxTotalConnections, String username, String password) {
+        this.kapiVirtualHost = kapiVirtualHost;
         this.httpClient = HttpClientFactory.createCloseableHttpClient(connectionTimeout, connectionManagerTimeout, socketTimeout,
                                 maxConnectionsPerHost, maxTotalConnections);
-        this.kmobilepushHost = new HttpHost(kapiHost, kapiPort);
+        this.kmobilepushHost = new HttpHost(kapiIp, kapiPort);
         this.basePath = basePath;
         this.adIdPrefix = adIdPrefix;
         this.username = username;
@@ -62,6 +65,7 @@ public class AdInfoLookup {
     public Optional<AdInfo> lookupAdIInfo(String adId) {
         try {
             HttpRequest request = buildRequest(getAdIdFrom(adId));
+            request.setHeader(HTTP.TARGET_HOST, kapiVirtualHost);
             AuthCache authCache = new BasicAuthCache();
             DigestScheme scheme = new DigestScheme();
             authCache.put(kmobilepushHost, scheme);
