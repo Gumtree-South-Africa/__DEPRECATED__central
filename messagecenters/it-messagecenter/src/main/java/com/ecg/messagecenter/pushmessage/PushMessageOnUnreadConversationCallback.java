@@ -82,9 +82,9 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
                 COUNTER_PUSH_NO_DEVICE.inc();
             } else if (PushService.Result.Status.ERROR == sendPushResult.getStatus()) {
                 COUNTER_PUSH_FAILED.inc();
-                LOG.error("Error sending push for conversation '{}' and message '{}'",
+                LOG.error("Error sending push for conversation '{}' and message '{}'. Error: {}",
                                 conversation.getId(), message.getId(),
-                                sendPushResult.getException().get());
+                                sendPushResult.getException().orElse(new Exception("No exception was generated.")));
             } else {
                 LOG.error("Unknown status returned from push service status: '{}'",
                                 sendPushResult.getStatus().toString());

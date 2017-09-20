@@ -43,6 +43,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
                     @Value("${push-mobile.enabled:true}") boolean pushEnabled,
                     @Value("${push-mobile.host:}") String pushHost,
+                    @Value("${push-mobile.protocol:https}") String pushProtocol,
                     @Value("${push-mobile.port:80}") Integer pushPort,
                     @Value("${api.image.lookup.enabled:false}") Boolean apiEnabled,
                     @Value("${api.ip:127.0.0.1}") String apiIp,
@@ -64,7 +65,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                         maxConnectionsPerHost, maxTotalConnections, username, password);
         if (pushEnabled && !Strings.isNullOrEmpty(pushHost)) {
             disabledDomains = Arrays.asList(disabledDomainsString);
-            this.pushService = new KmobilePushService(pushHost, pushPort);
+            this.pushService = new KmobilePushService(pushHost, pushPort, pushProtocol);
         } else {
             disabledDomains = Collections.emptySet();
             this.pushService = null;

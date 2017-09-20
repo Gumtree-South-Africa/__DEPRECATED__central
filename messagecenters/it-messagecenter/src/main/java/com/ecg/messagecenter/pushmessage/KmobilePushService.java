@@ -25,9 +25,9 @@ public class KmobilePushService extends PushService {
     private final CloseableHttpClient httpClient;
     private final HttpHost kmobilepushHost;
 
-    public KmobilePushService(String kmobilepushHost, Integer kmobilepushPort) {
+    public KmobilePushService(String kmobilepushHost, Integer kmobilepushPort, String protocol) {
         this.httpClient = HttpClientFactory.createCloseableHttpClient(4000, 4000, 8000, 40, 40);
-        this.kmobilepushHost = new HttpHost(kmobilepushHost, kmobilepushPort);
+        this.kmobilepushHost = new HttpHost(kmobilepushHost, kmobilepushPort, protocol);
     }
 
     @PreDestroy
