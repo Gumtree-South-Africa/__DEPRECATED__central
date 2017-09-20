@@ -25,6 +25,10 @@ public class EmptyConversationRequest {
     @NotEmpty
     private String adTitle;
 
+    @NotNull
+    @NotEmpty
+    private String emailSubject;
+
     @Valid
     @Size(min = 2, max = 2)
     @NotNull
@@ -53,6 +57,14 @@ public class EmptyConversationRequest {
 
     public void setAdTitle(String adTitle) {
         this.adTitle = adTitle;
+    }
+
+    public String getEmailSubject() {
+        return emailSubject;
+    }
+
+    public void setEmailSubject(String emailSubject) {
+        this.emailSubject = emailSubject;
     }
 
     public String getSenderId() {

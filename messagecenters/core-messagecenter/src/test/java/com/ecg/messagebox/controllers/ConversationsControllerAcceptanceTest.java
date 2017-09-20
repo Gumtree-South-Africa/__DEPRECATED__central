@@ -133,7 +133,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
                 .body("body.messages.size()", equalTo(0))
                 .body("body.latestMessage.text", equalTo(AD_TITLE))
                 .body("body.latestMessage.senderUserId", equalTo(BUYER_ID_1))
-                .body("body.emailSubject", equalTo(AD_TITLE))
+                .body("body.emailSubject", equalTo(EMAIL_SUBJECT))
                 .body("body.id", equalTo(newConversationId));
 
         /**
@@ -150,7 +150,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
                 .body("body.messages.size()", equalTo(0))
                 .body("body.latestMessage.text", equalTo(AD_TITLE))
                 .body("body.latestMessage.senderUserId", equalTo(BUYER_ID_1))
-                .body("body.emailSubject", equalTo(AD_TITLE))
+                .body("body.emailSubject", equalTo(EMAIL_SUBJECT))
                 .body("body.id", equalTo(newConversationId));
 
         /**
@@ -195,7 +195,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
                 .body("body.messages[0].id", equalTo(firstMessageId))
                 .body("body.latestMessage.text", equalTo(SELECTED_CANNED_ENQUIRY))
                 .body("body.latestMessage.senderUserId", equalTo(BUYER_ID_1))
-                .body("body.emailSubject", equalTo(AD_TITLE))
+                .body("body.emailSubject", equalTo(EMAIL_SUBJECT))
                 .body("body.id", equalTo(newConversationId));
 
         /**
@@ -214,7 +214,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
                 .body("body.messages[0].id", equalTo(firstMessageId))
                 .body("body.latestMessage.text", equalTo(SELECTED_CANNED_ENQUIRY))
                 .body("body.latestMessage.senderUserId", equalTo(BUYER_ID_1))
-                .body("body.emailSubject", equalTo(AD_TITLE))
+                .body("body.emailSubject", equalTo(EMAIL_SUBJECT))
                 .body("body.id", equalTo(newConversationId)).extract();
 
         /**
@@ -262,7 +262,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
                 .body("body.messages[1].id", equalTo(replyMessageId))
                 .body("body.latestMessage.text", equalTo(REPLY_TO_ENQUIRY))
                 .body("body.latestMessage.senderUserId", equalTo(SELLER_ID_1))
-                .body("body.emailSubject", equalTo(AD_TITLE))
+                .body("body.emailSubject", equalTo(EMAIL_SUBJECT))
                 .body("body.id", equalTo(newConversationId));
 
         /**
@@ -283,7 +283,7 @@ public class ConversationsControllerAcceptanceTest extends ReplyTsIntegrationTes
                 .body("body.messages[1].id", equalTo(replyMessageId))
                 .body("body.latestMessage.text", equalTo(REPLY_TO_ENQUIRY))
                 .body("body.latestMessage.senderUserId", equalTo(SELLER_ID_1))
-                .body("body.emailSubject", equalTo(AD_TITLE))
+                .body("body.emailSubject", equalTo(EMAIL_SUBJECT))
                 .body("body.id", equalTo(newConversationId));
     }
 

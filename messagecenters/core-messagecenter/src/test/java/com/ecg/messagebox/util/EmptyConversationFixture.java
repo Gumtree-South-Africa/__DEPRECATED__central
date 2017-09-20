@@ -18,6 +18,8 @@ public final class EmptyConversationFixture {
     public static final String BUYER_EMAIL_1 = "buyer@martkplaats.nl";
     public static final String SELLER_EMAIL_1 = "seller@martkplaats.nl";
     public static final String AD_TITLE = "Test AD";
+    public static final String EMAIL_SUBJECT = "Test subject";
+
 
 
     public static EmptyConversationRequest validEmptyConversation() {
@@ -30,6 +32,7 @@ public final class EmptyConversationFixture {
         emptyConversationRequest.setSenderId(BUYER_ID_1);
         emptyConversationRequest.setAdId(ADVERT_ID);
         emptyConversationRequest.setAdTitle(AD_TITLE);
+        emptyConversationRequest.setEmailSubject(EMAIL_SUBJECT);
 
         Map<String, String> customValues = new HashMap<>();
         customValues.put("from-userid", BUYER_ID_1);

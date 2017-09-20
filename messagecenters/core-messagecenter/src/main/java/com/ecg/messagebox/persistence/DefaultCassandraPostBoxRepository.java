@@ -383,7 +383,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                     emptyConversation.getAdId(),
                     new ArrayList(emptyConversation.getParticipants().values()),
                     emptyConversation.getMessage(),
-                    new ConversationMetadata(DateTime.now(), emptyConversation.getAdTitle(), emptyConversation.getAdTitle()),
+                    new ConversationMetadata(DateTime.now(), emptyConversation.getEmailSubject(), emptyConversation.getAdTitle()),
                     false,
                     false
             );
