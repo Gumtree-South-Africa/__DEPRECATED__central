@@ -1,7 +1,8 @@
 package com.ecg.replyts.core.runtime;
 
+import ch.qos.logback.classic.LoggerContext;
 import com.google.common.collect.ImmutableMap;
-import org.slf4j.MDC;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -25,7 +26,8 @@ public class ParentConfiguration {
 
     @PostConstruct
     public void postConstruct() {
-        MDC.put(TENANT, environment.getProperty("replyts.tenant", "unknown"));
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        loggerContext.putProperty(TENANT, environment.getProperty("replyts.tenant", "unknown"));
 
         String comaasHttpPort = System.getenv("COMAAS_HTTP_PORT");
         if (comaasHttpPort != null) {

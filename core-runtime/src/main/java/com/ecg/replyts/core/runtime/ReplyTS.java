@@ -131,7 +131,7 @@ public class ReplyTS {
     }
 
     private static void setLoggerContextProperties() {
-        LoggerContext loggerContext = (LoggerContext)LoggerFactory.getILoggerFactory();
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
         loggerContext.putProperty(APPLICATION, ReplyTS.class.getPackage().getImplementationTitle());
         loggerContext.putProperty(REVISION, ReplyTS.class.getPackage().getImplementationVersion());
     }
