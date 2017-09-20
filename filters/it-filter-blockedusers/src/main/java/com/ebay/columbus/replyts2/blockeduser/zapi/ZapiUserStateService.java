@@ -39,18 +39,24 @@ public class ZapiUserStateService implements UserStateService {
 
     private final CloseableHttpClient httpClient;
 
-    private String baseUrl;
+    private String host;
+    private String protocol;
+    private Integer port;
     public static final String STATE = "status";
     public static final String BLACKLISTED_VALUE = "5";
 
     @Autowired
-    public ZapiUserStateService(@Value("${zapi.hostname}") String baseUrl,
+    public ZapiUserStateService(@Value("${zapi.hostname}") String host,
+                                @Value("${zapi.protocol}") String protocol,
+                                @Value("${zapi.port}") Integer port,
                                 @Value("${api.connectionTimeout:1500}") Integer connectionTimeout,
                                 @Value("${api.connectionManagerTimeout:1500}") Integer connectionManagerTimeout,
                                 @Value("${api.socketTimeout:2500}") Integer socketTimeout,
                                 @Value("${api.maxConnectionsPerHost:40}") Integer maxConnectionsPerHost,
                                 @Value("${api.maxConnectionsPerHost:40}") Integer maxTotalConnections) {
-        this.baseUrl = baseUrl;
+        this.host = host;
+        this.protocol = protocol;
+        this.port = port;
         this.httpClient =
                 buildHttpClient(connectionTimeout, connectionManagerTimeout, socketTimeout,
                         maxConnectionsPerHost, maxTotalConnections);
@@ -58,7 +64,7 @@ public class ZapiUserStateService implements UserStateService {
 
     @Override
     public boolean isBlocked(String userEmail) throws Exception {
-        return httpClient.execute(new HttpHost(baseUrl), createRequestMethod(userEmail),
+        return httpClient.execute(new HttpHost(host, port, protocol), createRequestMethod(userEmail),
                 new UserStateResponseHandler(), new BasicHttpContext());
     }
 
@@ -78,6 +84,7 @@ public class ZapiUserStateService implements UserStateService {
                         socketTimeout));
         clientBuilder.setConnectionManager(
                 createConnectionManager(maxConnectionsPerHost, maxTotalConnections));
+
         return clientBuilder.build();
     }
 
