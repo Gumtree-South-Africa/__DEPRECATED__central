@@ -39,7 +39,7 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
     void register(List<Window> windows) {
         for (Window window : windows) {
             if (epWindows.containsKey(window)) {
-                LOG.warn("EP Window '{}' already exists, not creating again", window.getWindowName());
+                LOG.warn("window already exists '{}'", window.getWindowName());
                 return;
             }
 
@@ -86,7 +86,9 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-        windows.forEach(window -> {
+        windows.stream()
+                .peek(window -> LOG.debug("delete window '{}'", window.getWindowName()))
+                .forEach(window -> {
                     EsperWindowLifecycle lifecycle = epWindows.remove(window);
                     if (lifecycle != null) {
                         lifecycle.destroy();

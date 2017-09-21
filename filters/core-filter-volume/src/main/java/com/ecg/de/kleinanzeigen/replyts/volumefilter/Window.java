@@ -31,7 +31,7 @@ public class Window {
 
     private static String name(String instanceId, Quota q) {
         String sanitisedFilterName = VOLUME_PATTERN.matcher(instanceId).replaceAll("_");
-        String volumeName = String.format("%s_%s_quota%d%s%d", VOLUME_NAME_PREFIX, sanitisedFilterName, q.getPerTimeValue(), q.getPerTimeUnit(), q.getScore());
+        String volumeName = String.format("%s_%s_%d%s", VOLUME_NAME_PREFIX, sanitisedFilterName, q.getPerTimeValue(), q.getPerTimeUnit());
         return volumeName.toLowerCase();
     }
 
@@ -44,12 +44,11 @@ public class Window {
             return false;
         }
         Window window = (Window) o;
-        return Objects.equals(instanceId, window.instanceId) &&
-                Objects.equals(quota, window.quota);
+        return Objects.equals(windowName, window.windowName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(instanceId, quota);
+        return Objects.hash(windowName);
     }
 }

@@ -96,6 +96,24 @@ public class EventStreamProcessorTest {
     }
 
     @Test
+    public void testRegisterIgnoreDifferentScore() {
+        EventStreamProcessor esp = new EventStreamProcessor();
+        esp.initialize();
+
+        Quota quota1 = new Quota(10, 10, TimeUnit.MINUTES, 10);
+        Window window1 = new Window("instanceId", quota1);
+
+        Quota quota2 = new Quota(10, 10, TimeUnit.MINUTES, 99999);
+        Window window2 = new Window("instanceId", quota2);
+
+        esp.register(Collections.singletonList(window1));
+        esp.register(Collections.singletonList(window2));
+
+        assertEquals(1, esp.getWindowsStatements().size());
+        assertTrue(esp.getWindowsStatements().containsKey(window1));
+    }
+
+    @Test
     public void testUnregister() {
         Quota quota1 = new Quota(10, 10, TimeUnit.MINUTES, 10);
         Quota quota2 = new Quota(10, 10, TimeUnit.MINUTES, 20);
