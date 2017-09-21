@@ -32,7 +32,7 @@ MVN_ARGS="-Drevision=$REVISION -U"
 # a local trust store; on builder we rely on e.g. mobile-ca-certificates being installed
 
 if [ ! -f /usr/bin/apt-get ] ; then
-    MVN_ARGS="-Djavax.net.ssl.trustStore=comaas.jks -Djavax.net.ssl.keyStoreType=JKS -Djavax.net.ssl.trustStorePassword=comaas $MVN_ARGS"
+    MVN_ARGS="-Djavax.net.ssl.trustStore=${PWD}/comaas.jks -Djavax.net.ssl.keyStoreType=JKS -Djavax.net.ssl.trustStorePassword=comaas $MVN_ARGS"
 
     if [ ! -f comaas.jks ] ; then
         keytool -genkey -alias comaas -keyalg RSA -keystore comaas.jks -keysize 2048 \
