@@ -51,10 +51,10 @@ public class EventStreamProcessorTest {
     }
 
     @Test
-    public void testRegister() {
+    public void testRegisterDifferentQuotas() {
         Quota quota1 = new Quota(10, 10, TimeUnit.MINUTES, 10);
-        Quota quota2 = new Quota(10, 10, TimeUnit.MINUTES, 20);
-        Quota quota3 = new Quota(20, 20, TimeUnit.MINUTES, 30);
+        Quota quota2 = new Quota(10, 10, TimeUnit.SECONDS, 20);
+        Quota quota3 = new Quota(20, 20, TimeUnit.HOURS, 30);
 
         String instanceId = "volumefilter";
 
@@ -116,8 +116,8 @@ public class EventStreamProcessorTest {
     @Test
     public void testUnregister() {
         Quota quota1 = new Quota(10, 10, TimeUnit.MINUTES, 10);
-        Quota quota2 = new Quota(10, 10, TimeUnit.MINUTES, 20);
-        Quota quota3 = new Quota(20, 20, TimeUnit.MINUTES, 30);
+        Quota quota2 = new Quota(10, 10, TimeUnit.SECONDS, 20);
+        Quota quota3 = new Quota(20, 20, TimeUnit.HOURS, 30);
 
         String instanceId = "volumefilter-1";
 
