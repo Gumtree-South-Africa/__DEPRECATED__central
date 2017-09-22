@@ -17,6 +17,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
@@ -41,16 +42,24 @@ public class AdInfoLookup {
     private final String username;
     private final String password;
     private String adIdPrefix;
-    private String kapiVirtualHost;
+    private String capiVirtualHost;
 
-    public AdInfoLookup(String kapiVirtualHost, String kapiIp, Integer kapiPort, String basePath, String adIdPrefix,
-                    Integer connectionTimeout, Integer connectionManagerTimeout,
-                    Integer socketTimeout, Integer maxConnectionsPerHost,
-                    Integer maxTotalConnections, String username, String password) {
-        this.kapiVirtualHost = kapiVirtualHost;
-        this.httpClient = HttpClientFactory.createCloseableHttpClient(connectionTimeout, connectionManagerTimeout, socketTimeout,
-                                maxConnectionsPerHost, maxTotalConnections);
-        this.kmobilepushHost = new HttpHost(kapiIp, kapiPort);
+    public AdInfoLookup(String capiVirtualHost, String capiIp, Integer capiPort,
+                        String capiProxyHost, Integer capiProxyPort,
+                        String basePath, String adIdPrefix,
+                        Integer connectionTimeout, Integer connectionManagerTimeout,
+                        Integer socketTimeout, Integer maxConnectionsPerHost,
+                        Integer maxTotalConnections, String username, String password) {
+        this.capiVirtualHost = capiVirtualHost;
+        this.httpClient = HttpClientFactory.createCloseableHttpClientWithProxy(
+                connectionTimeout,
+                connectionManagerTimeout,
+                socketTimeout,
+                maxConnectionsPerHost,
+                maxTotalConnections,
+                capiProxyHost,
+                capiProxyPort);
+        this.kmobilepushHost = new HttpHost(capiIp, capiPort);
         this.basePath = basePath;
         this.adIdPrefix = adIdPrefix;
         this.username = username;
@@ -65,19 +74,21 @@ public class AdInfoLookup {
     public Optional<AdInfo> lookupAdIInfo(String adId) {
         try {
             HttpRequest request = buildRequest(getAdIdFrom(adId));
-            request.setHeader(HTTP.TARGET_HOST, kapiVirtualHost);
+            request.setHeader(HTTP.TARGET_HOST, capiVirtualHost);
             AuthCache authCache = new BasicAuthCache();
             DigestScheme scheme = new DigestScheme();
             authCache.put(kmobilepushHost, scheme);
-            HttpClientContext localcontext = HttpClientContext.create();
-            localcontext.getCredentialsProvider().setCredentials(new AuthScope(kmobilepushHost.getHostName(),
-                            kmobilepushHost.getPort()),
+
+            HttpClientContext clientContext = HttpClientContext.create();
+            BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(
+                    new AuthScope(kmobilepushHost.getHostName(), kmobilepushHost.getPort()),
                     new UsernamePasswordCredentials(username, password));
-            localcontext.setAttribute("http.auth.auth-cache", authCache);
+            clientContext.setCredentialsProvider(credentialsProvider);
+            clientContext.setAttribute("http.auth.auth-cache", authCache);
 
             LOG.debug("Calling api host(uri):" + kmobilepushHost.toURI() + " request: " + request);
-            return httpClient.execute(kmobilepushHost, request, new AdInfoResponseHandler(),
-                            localcontext);
+            return httpClient.execute(kmobilepushHost, request, new AdInfoResponseHandler(), clientContext);
         } catch (Exception e) {
             LOG.error("Error fetching image-url for ad #" + adId + " " + e.getMessage(), e);
             return Optional.empty();

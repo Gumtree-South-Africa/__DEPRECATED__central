@@ -45,10 +45,11 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                     @Value("${push-mobile.host:}") String pushHost,
                     @Value("${push-mobile.protocol:https}") String pushProtocol,
                     @Value("${push-mobile.port:80}") Integer pushPort,
-                    @Value("${api.image.lookup.enabled:false}") Boolean apiEnabled,
                     @Value("${api.ip:127.0.0.1}") String apiIp,
                     @Value("${api.virtualHost:localhost}") String apiVirtualHost,
                     @Value("${api.port:-1}") Integer apiPort,
+                    @Value("${api.proxyHost:}") String proxyHost,
+                    @Value("${api.proxyPort:}") Integer proxyPort,
                     @Value("${api.basepath:api}") String apiBasePath,
                     @Value("${api.adIdPrefix:}") String adIdPrefix,
                     @Value("${api.username:}") String username,
@@ -60,8 +61,10 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                     @Value("${api.maxConnectionsPerHost:40}") Integer maxTotalConnections,
                     @Value("${message-box.disabledDomains:}") String[] disabledDomainsString) {
         this.postBoxInitializer = postBoxInitializer;
-        this.adInfoLookup = new AdInfoLookup(apiVirtualHost, apiIp, apiPort, apiBasePath, adIdPrefix,
-                        connectionTimeout, connectionManagerTimeout, socketTimeout,
+
+
+        this.adInfoLookup = new AdInfoLookup(apiVirtualHost, apiIp, apiPort, proxyHost, proxyPort, apiBasePath,
+                        adIdPrefix, connectionTimeout, connectionManagerTimeout, socketTimeout,
                         maxConnectionsPerHost, maxTotalConnections, username, password);
         if (pushEnabled && !Strings.isNullOrEmpty(pushHost)) {
             disabledDomains = Arrays.asList(disabledDomainsString);
