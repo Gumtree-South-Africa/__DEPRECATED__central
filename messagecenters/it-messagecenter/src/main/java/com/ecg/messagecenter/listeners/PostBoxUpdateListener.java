@@ -45,9 +45,9 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                     @Value("${push-mobile.host:}") String pushHost,
                     @Value("${push-mobile.protocol:https}") String pushProtocol,
                     @Value("${push-mobile.port:80}") Integer pushPort,
-                    @Value("${api.ip:127.0.0.1}") String apiIp,
-                    @Value("${api.virtualHost:localhost}") String apiVirtualHost,
-                    @Value("${api.port:-1}") Integer apiPort,
+                    @Value("${api.host:localhost}") String apiHost,
+                    @Value("${api.port:443}") Integer apiPort,
+                    @Value("${api.protocol:https}") String apiProtocol,
                     @Value("${api.proxyHost:}") String proxyHost,
                     @Value("${api.proxyPort:}") Integer proxyPort,
                     @Value("${api.basepath:api}") String apiBasePath,
@@ -63,7 +63,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         this.postBoxInitializer = postBoxInitializer;
 
 
-        this.adInfoLookup = new AdInfoLookup(apiVirtualHost, apiIp, apiPort, proxyHost, proxyPort, apiBasePath,
+        this.adInfoLookup = new AdInfoLookup(apiHost, apiPort, apiProtocol, proxyHost, proxyPort, apiBasePath,
                         adIdPrefix, connectionTimeout, connectionManagerTimeout, socketTimeout,
                         maxConnectionsPerHost, maxTotalConnections, username, password);
         if (pushEnabled && !Strings.isNullOrEmpty(pushHost)) {

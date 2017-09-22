@@ -11,15 +11,11 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.AuthCache;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.auth.DigestScheme;
-import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,20 +33,18 @@ public class AdInfoLookup {
     private static final Logger LOG = LoggerFactory.getLogger(AdInfoLookup.class);
 
     private final CloseableHttpClient httpClient;
-    private final HttpHost kmobilepushHost;
+    private final HttpHost capiHost;
     private final String basePath;
     private final String username;
     private final String password;
     private String adIdPrefix;
-    private String capiVirtualHost;
 
-    public AdInfoLookup(String capiVirtualHost, String capiIp, Integer capiPort,
+    public AdInfoLookup(String capiHost, Integer capiPort, String capiProtocol,
                         String capiProxyHost, Integer capiProxyPort,
                         String basePath, String adIdPrefix,
                         Integer connectionTimeout, Integer connectionManagerTimeout,
                         Integer socketTimeout, Integer maxConnectionsPerHost,
                         Integer maxTotalConnections, String username, String password) {
-        this.capiVirtualHost = capiVirtualHost;
         this.httpClient = HttpClientFactory.createCloseableHttpClientWithProxy(
                 connectionTimeout,
                 connectionManagerTimeout,
@@ -59,7 +53,7 @@ public class AdInfoLookup {
                 maxTotalConnections,
                 capiProxyHost,
                 capiProxyPort);
-        this.kmobilepushHost = new HttpHost(capiIp, capiPort);
+        this.capiHost = HttpHost.create(capiProtocol + "://" + capiHost + ":" + capiPort);
         this.basePath = basePath;
         this.adIdPrefix = adIdPrefix;
         this.username = username;
@@ -74,27 +68,22 @@ public class AdInfoLookup {
     public Optional<AdInfo> lookupAdIInfo(String adId) {
         try {
             HttpRequest request = buildRequest(getAdIdFrom(adId));
-            request.setHeader(HTTP.TARGET_HOST, capiVirtualHost);
-            AuthCache authCache = new BasicAuthCache();
-            DigestScheme scheme = new DigestScheme();
-            authCache.put(kmobilepushHost, scheme);
-
             HttpClientContext clientContext = HttpClientContext.create();
+
+            LOG.debug("Setting user [{}] for basic auth on [{}]", username, capiHost.toURI());
             BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(
-                    new AuthScope(kmobilepushHost.getHostName(), kmobilepushHost.getPort()),
+                    new AuthScope(capiHost.getHostName(), capiHost.getPort()),
                     new UsernamePasswordCredentials(username, password));
             clientContext.setCredentialsProvider(credentialsProvider);
-            clientContext.setAttribute("http.auth.auth-cache", authCache);
 
-            LOG.debug("Calling api host(uri):" + kmobilepushHost.toURI() + " request: " + request);
-            return httpClient.execute(kmobilepushHost, request, new AdInfoResponseHandler(), clientContext);
+            LOG.trace("Calling Capi service [{}] - Request: [{}]", capiHost.toURI(), request);
+            return httpClient.execute(capiHost, request, new AdInfoResponseHandler(), clientContext);
         } catch (Exception e) {
-            LOG.error("Error fetching image-url for ad #" + adId + " " + e.getMessage(), e);
+            LOG.error("Error fetching image-url for ad #{}: {}", adId, e.getMessage(), e);
             return Optional.empty();
         }
     }
-
 
     private HttpRequest buildRequest(Long adId) throws UnsupportedEncodingException {
         return new HttpGet("/" + basePath + "/ads/" + adId + ".json?_in=title,pictures");
@@ -107,7 +96,7 @@ public class AdInfoLookup {
     static class AdInfoResponseHandler implements ResponseHandler<Optional<AdInfo>> {
         @Override public Optional<AdInfo> handleResponse(HttpResponse response) throws IOException {
             int code = response.getStatusLine().getStatusCode();
-            LOG.debug("Response code from api: " + code);
+            LOG.debug("Response code from api: {}", code);
             switch (code) {
                 case 200:
                     return lookupInfoFromResponse(response);
@@ -123,7 +112,7 @@ public class AdInfoLookup {
             AdInfo adInfo = new AdInfo();
             String jsonAsString = CharStreams.toString(
                             new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-            LOG.debug("AdInfo lookup json: " + jsonAsString);
+            LOG.debug("AdInfo lookup json: {}", jsonAsString);
             JSONObject json = (JSONObject) JSONSerializer.toJSON(jsonAsString);
 
             JSONObject titleLevel = json.getJSONObject(
