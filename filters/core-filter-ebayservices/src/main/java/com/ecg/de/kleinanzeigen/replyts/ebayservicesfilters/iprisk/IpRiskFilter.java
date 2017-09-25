@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import de.mobile.ebay.service.IpRatingService;
 import de.mobile.ebay.service.ServiceException;
@@ -42,6 +43,7 @@ class IpRiskFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         Optional<String> ipAddr = ipAddressExtractor.retrieveIpAddress(messageProcessingContext);
         LOG.trace("Determinating IP Risk for {}", ipAddr.orElse("NO IP FOUND"));
         if(ipAddr.isPresent()) {
@@ -60,7 +62,7 @@ class IpRiskFilter implements Filter {
                     }
                 }
             } catch (ServiceException e) {
-                LOG.warn("Error while accessing ebay services, details: " + e.getMessage());
+                LOG.warn("Error while accessing ebay services ({}): {}", stopwatch, e.getMessage(), e);
             }
         }
         return Collections.emptyList();

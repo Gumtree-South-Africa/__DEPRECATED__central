@@ -1,6 +1,7 @@
 package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.ip2country;
 
 import com.ebay.marketplace.personalization.v1.services.LocationType;
+import com.google.common.base.Stopwatch;
 import de.mobile.ebay.service.ServiceException;
 import de.mobile.ebay.service.TrackingGeoLocationService;
 import de.mobile.ebay.service.lbs.Config;
@@ -32,12 +33,13 @@ class Ip2CountryResolver {
 
     public Optional<String> resolve(String ipAddress) {
 
+        Stopwatch stopwatch = Stopwatch.createStarted();
         try {
             LocationType location = geoLocationService.getLocation(ipAddress);
             if(location != null && location.getCountry() != null)
                 return Optional.of(location.getCountry());
         } catch (ServiceException e) {
-            LOG.warn("Error while accessing ebay geo location service, see also: " + e.getMessage());
+            LOG.warn("Error while accessing ebay geo location service ({}): {}", stopwatch, e.getMessage(), e);
         }
 
         return Optional.empty();
