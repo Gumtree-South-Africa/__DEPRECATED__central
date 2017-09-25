@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -43,6 +44,10 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
  * Created by jaludden on 20/11/15.
  */
 @Controller public class SendMessageController {
+
+    private static String TEXT_HTML_CONTENT_TYPE = "Content-Type: text/html; charset = \"UTF-8\"";
+    private static String MULTIPART_ALT = "multipart/alternative; boundary=\"%s\"";
+
     private final Template template;
     private final String adIdPrefix;
     private MessageProcessingCoordinator coordinator;
@@ -115,7 +120,7 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
         Address to = getToAddress(role, conversation, lookupResult.get());
         String title = getTitle(conversation);
         payload.cleanupMessage();
-        payload.setMessage(createTemplatedMessage(payload, from.getName(), conversation, role));
+        payload.setMessage(createTemplatedMessage(payload, from.getName(), conversation, role, "Re: " + title));
         sendMessage(payload.getAdId(), payload.getMessage(), from, to, "", "Re: " + title);
 
         return createResponse(email,
@@ -153,13 +158,14 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
     }
 
     private String createTemplatedMessage(ConversationContentPayload payload, String from,
-                    Conversation conversation, ConversationRole role) {
+                    Conversation conversation, ConversationRole role, String subject) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("from", from);
         variables.put("message", payload.getMessage());
         variables.put("ad_id", payload.getAdId());
         variables.put("type", payload.getType());
         variables.put("greating", payload.getGreating());
+        variables.put("subject", subject);
         variables.put("toSeller", role == ConversationRole.Buyer);
 
         return template.createPostReplyMessage(variables);
@@ -268,14 +274,24 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
             return new ByteArrayInputStream(getMailMessage().getBytes("UTF-8"));
         }
 
+        private String getBoundaryLine(String boundary) {
+            return String.format("\n\n--%s\n", boundary);
+        }
+
+        private String getMultipartType(String boundary) {
+            return String.format(MULTIPART_ALT, boundary);
+        }
+
         public String getMailMessage() {
             Map<String, String> headers = new LinkedHashMap<>();
+
+            String newBoundary = Long.toHexString(ThreadLocalRandom.current().nextLong());
 
             headers.put("TO", getTo());
             headers.put("FROM", getFrom());
             headers.put("DATE", getDate());
             headers.put("SUBJECT", getSubject());
-            headers.put("Content-type", "text/html; charset=UTF-8");
+            headers.put("Content-type", getMultipartType(newBoundary));
 
             headers.put("X-ORIGINAL-TO", getOriginalTo());
             headers.put("DELIVERED-TO", getDeliveredTo());
@@ -284,12 +300,16 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
             headers.put("X-CUST-BUYER-NAME", from.getName());
             headers.put("X-CUST-SELLER-NAME", to.getName());
 
-            String headerString = "";
+            StringBuilder headerString = new StringBuilder();
             for (Map.Entry<String, String> h : headers.entrySet()) {
-                headerString += h.getKey() + ": " + h.getValue() + "\n";
+                headerString.append(h.getKey()).append(": ").append(h.getValue()).append("\n");
             }
 
-            return headerString + "\n" + getMessage() + "\n";
+            return headerString.toString()
+                    + getBoundaryLine(newBoundary)
+                    + TEXT_HTML_CONTENT_TYPE + "\n\n"
+                    + getMessage()
+                    + getBoundaryLine(newBoundary);
         }
 
         private String getBuyerName() {
