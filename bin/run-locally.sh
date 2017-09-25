@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This script starts Comaas with the "bare" profile, then checks the health to see if all beans are wired correctly.
+
 set -o nounset
 set -o errexit
 
@@ -8,12 +10,8 @@ readonly DIR=$(dirname $0)
 readonly COMAAS_PID="$PWD/comaas.pid"
 readonly COMAAS_OUT="$PWD/comaas.out"
 
-readonly CASSANDRA_DIR="$PWD/../cassandra_tmp"
-readonly CASSANDRA_PID="$PWD/cassandra.pid"
-readonly CASSANDRA_HOME=$CASSANDRA_DIR
 readonly ATTEMPTS=60
 readonly HEALTH_CHECK_DELAY=3
-readonly HOST='localhost'
 
 function log() {
     echo "[$(date)]: $*"
@@ -25,12 +23,10 @@ function fatal() {
 }
 
 function parseCmd() {
-  # check amount of args
-  [[ $# == 0 ]] && usage
-  TENANT=$1
+    # check number of args
+    [[ $# == 0 ]] && usage
+    TENANT=$1
 }
-
-source "${DIR}/_cassandra_docker.sh"
 
 function findOpenPort() {
     for i in $(seq 1 ${ATTEMPTS}); do
@@ -55,114 +51,96 @@ function findOpenPort() {
 
 function startComaas() {
     log "Starting Comaas"
-    cd distribution/target
-    tar xfz distribution-${TENANT}-bare.tar.gz
-    cd distribution
-    sed -i'.bak' "s/:9042$/:${CASSANDRA_CONTAINER_PORT}/" conf/replyts.properties
-
     log "Writing comaas output to ${COMAAS_OUT}"
     COMAAS_HTTP_PORT=$(findOpenPort)
     log "Starting comaas on port $COMAAS_HTTP_PORT"
+
+    (cd distribution/target
+    tar xfz distribution-${TENANT}-bare.tar.gz
+    cd distribution
+
     COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} bin/comaas > ${COMAAS_OUT} 2>&1 &
     echo $! > ${COMAAS_PID}
 
-    log "Comaas pid: $(cat ${COMAAS_PID})"
+    log "Comaas pid: $(cat ${COMAAS_PID})")
 }
 
 function stopComaas() {
     if [[ -f ${COMAAS_PID} ]]; then
-        log "Stopping comaas"
         PID=$(cat ${COMAAS_PID})
+        log "Stopping comaas with PID $PID"
         kill -0 ${PID} 2>&1 >/dev/null || { log "Comaas already stopped"; return; }
-
         kill -9 ${PID}
         log "Comaas stopped"
     fi
 }
 
-trap "stopAll" EXIT
+trap "stopAll" EXIT TERM
 function stopAll() {
-    stopCassandra
+    stopEnv
     stopComaas
 }
 
 function main() {
-   log "Starting comaas for tenant $TENANT"
-   local start=$(date +"%s")
+    source "${DIR}/docker-qa-env.sh"
 
-   if [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "mde" ]] ; then
-       startCassandra
-       log "Waiting for Cassandra to become available"
+    log "Starting environment"
+    startEnv
 
-       sleep 5 # give the cassandra container some time to settle
+    log "Packaging Comaas (-T ${TENANT} -P bare)"
+    bin/build.sh -T ${TENANT} -P bare
 
-       for i in $(seq 1 ${ATTEMPTS}); do
-         health=$(docker inspect --format "{{json .State.Health.Status }}" ${CASSANDRA_CONTAINER_NAME})
-         if [[ ${health} == "\"healthy\"" ]]; then
-            log "Cassandra is up"
-            break
-         fi
-         sleep 1
-       done
-       if [[ ${i} -ge ${ATTEMPTS} ]]; then
-          fatal "Cassandra took too long to start up. Failing."
-       fi
-   fi
+    log "Starting comaas for tenant ${TENANT}"
 
-   startComaas
-   sleep 10
+    local start=$(date +"%s")
 
-   for i in $(seq 1 $ATTEMPTS) ; do
+    startComaas
+
+    for i in $(seq 1 ${ATTEMPTS}) ; do
        sleep "$HEALTH_CHECK_DELAY"
-       log "Waiting for comaas to start. Listening on port $COMAAS_HTTP_PORT for $(($HEALTH_CHECK_DELAY * $i))s"
+       log "Waiting for comaas to start. Listening on port $COMAAS_HTTP_PORT for ${HEALTH_CHECK_DELAY}s"
        set +o errexit
-       HEALTH=$(curl -s http://${HOST}:${COMAAS_HTTP_PORT}/health)
+       HEALTH=$(curl -s http://localhost:${COMAAS_HTTP_PORT}/health)
        set -o errexit
 
        if [ ! -z "$HEALTH" ]; then
-           echo "${HOST}'s health is $HEALTH"
-	   break
+           echo "Comaas's health is $HEALTH"
+       break
        fi
 
-       if [ $i -eq $ATTEMPTS ]; then
-          echo "Unable to get health from http://${HOST}:${COMAAS_HTTP_PORT}/health, exiting"
+       if [ $i -eq ${ATTEMPTS} ]; then
+          echo "Unable to get health from http://localhost:${COMAAS_HTTP_PORT}/health, exiting"
           exit 1
        fi
-   done
+    done
 
-   ACTUAL_TENANT=$(echo ${HEALTH} | jq -r ".tenant")
-   if [ "$ACTUAL_TENANT" = "$TENANT" ] ; then
-       echo "Host ${HOST} is running the correct tenant: $ACTUAL_TENANT"
-   else
-       echo "Host ${HOST} is NOT running the correct version: $ACTUAL_TENANT (should be running $TENANT)"
+    ACTUAL_TENANT=$(echo ${HEALTH} | jq -r ".tenant")
+    if [ "$ACTUAL_TENANT" = "$TENANT" ] ; then
+       echo "Host localhost is running the correct tenant: $ACTUAL_TENANT"
+    else
+       echo "Host localhost is NOT running the correct tenant: $ACTUAL_TENANT (should be running $TENANT)"
        exit 1
-   fi
+    fi
 
-   stopComaas
+    stopAll
 
-   if [[ "$TENANT" == "mp" ]] ; then
-       stopCassandra
-   fi
-
-   local end=$(date +"%s")
-   local diff=$(($end-$start))
-   local time=$(printf "Total time: %d min %d sec" $(($diff / 60)) $(($diff % 60)))
-   log ${time}
+    local end=$(date +"%s")
+    local diff=$(($end-$start))
+    local time=$(printf "Total time: %d min %d sec" $(($diff / 60)) $(($diff % 60)))
+    log ${time}
 }
 
 function usage() {
-cat << EOF
-Usage:
-    Run Comaas for TENANT where TENANT one of ebayk,mp,mde,kjca,gtau,bt
-    Make sure to create a 'bare' package first (e.g. ./bin/build.sh -T mp -P bare)
+    cat << EOF
+    Usage:
+    Run Comaas for TENANT
 
-Example:
+    Example:
     $0 mp
 
 EOF
-exit 0;
+    exit 0;
 }
 
 parseCmd ${ARGS}
 main
-

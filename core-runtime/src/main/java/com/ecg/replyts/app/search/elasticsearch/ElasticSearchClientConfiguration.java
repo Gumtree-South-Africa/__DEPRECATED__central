@@ -39,6 +39,9 @@ public class ElasticSearchClientConfiguration {
                     .put("cluster.name", clusterName).build();
             esClient = new TransportClient(settings);
             for (String endpoint : Splitter.on(',').trimResults().omitEmptyStrings().split(endpoints)) {
+                if (!endpoint.contains(":")) {
+                    throw new IllegalArgumentException("Please supply the search.es.endpoints property as a comma-separated list of host:port values");
+                }
                 Iterator<String> host = Splitter.on(':').trimResults().split(endpoint).iterator();
                 InetSocketTransportAddress transportAddress = new InetSocketTransportAddress(host.next(), Integer.valueOf(host.next()));
                 LOG.info("Known ES endpoint: {}", endpoint);

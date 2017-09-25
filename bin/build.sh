@@ -211,7 +211,7 @@ function main() {
     if [[ ! -z "$EXECUTE" && "$PACKAGE" == "docker" ]]; then
         log "Selected local docker profile, importing tenant's properties..."
         set +o errexit
-        status=$(curl -sIo /dev/null -w "%{http_code}" localhost:8500/v1/status/leader)
+        status=$(curl -sIo /dev/null -w "%{http_code}" localhost:8599/v1/status/leader)
         set -o errexit
         if [[ "$status" != "200" ]]; then
             log "Consul does not seem to be up. Cannot import properties. Exiting."
