@@ -5,9 +5,9 @@ import ch.qos.logback.classic.LoggerContext;
 import com.ecg.replyts.core.runtime.MetricsService;
 import com.ecg.replyts.core.webapi.util.ServerStartupLifecycleListener;
 import org.eclipse.jetty.jmx.MBeanContainer;
-import org.eclipse.jetty.server.ConnectorStatistics;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnectionStatistics;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
@@ -19,6 +19,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
+
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -145,7 +146,7 @@ public class EmbeddedWebserver {
     private Handler instrument(Handler handler) {
         if (instrument) {
             HostReportingServletHandler instrumentedHandler = new HostReportingServletHandler(MetricsService.getInstance().getRegistry());
-            LOG.debug("Instrumenting handler: ", handler);
+            LOG.debug("Instrumenting handler: {}", handler);
             instrumentedHandler.setHandler(handler);
             return instrumentedHandler;
         }
@@ -166,7 +167,7 @@ public class EmbeddedWebserver {
         server.addEventListener(mbContainer);
         server.addBean(mbContainer);
 
-        ConnectorStatistics.addToAllConnectors(server);
+        ServerConnectionStatistics.addToAllConnectors(server);
     }
 
     private Handler createAccessLoggingHandler() {

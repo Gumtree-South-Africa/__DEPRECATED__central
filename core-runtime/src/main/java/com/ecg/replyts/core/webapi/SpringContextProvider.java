@@ -1,16 +1,20 @@
 package com.ecg.replyts.core.webapi;
 
+import com.ecg.replyts.core.webapi.control.CorrelationIdFilter;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AbstractRefreshableWebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
+
+import javax.servlet.DispatcherType;
+
+import java.util.EnumSet;
 
 public class SpringContextProvider implements ContextProvider {
     private String path;
@@ -67,6 +71,7 @@ public class SpringContextProvider implements ContextProvider {
         ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS | ServletContextHandler.NO_SECURITY);
 
         contextHandler.setContextPath(path);
+        contextHandler.addFilter(CorrelationIdFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
         contextHandler.addServlet(new ServletHolder(dispatcherServlet), "/*");
         contextHandler.addEventListener(new ContextLoaderListener(context));
 

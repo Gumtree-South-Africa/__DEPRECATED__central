@@ -6,8 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
-import javax.annotation.PostConstruct;
-
 /**
  * User: maldana
  * Date: 24.10.13

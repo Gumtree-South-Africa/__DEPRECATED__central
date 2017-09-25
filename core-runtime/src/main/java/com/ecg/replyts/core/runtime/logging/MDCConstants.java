@@ -4,6 +4,8 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.cluster.XidFactory;
 import org.slf4j.MDC;
 
+import java.util.Optional;
+
 public class MDCConstants {
 
     private MDCConstants() {
@@ -37,8 +39,11 @@ public class MDCConstants {
     }
 
     public static Runnable setTaskFields(Runnable runnable, String taskName) {
+        Optional<String> correlationId = Optional.ofNullable(MDC.get(CORRELATION_ID));
         return () -> {
-            setTaskFields(taskName);
+            MDC.clear();
+            MDC.put(CORRELATION_ID, correlationId.orElseGet(XidFactory::nextXid));
+            MDC.put(TASK_NAME, taskName);
             runnable.run();
         };
     }

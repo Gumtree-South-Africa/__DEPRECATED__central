@@ -16,7 +16,7 @@
                 <elapsedTime><fieldName>elapsedTime</fieldName></elapsedTime>
                 <pattern>
                     <pattern>
-                        {"user-agent": "%i{User-Agent}", "host": "%i{Host}", "x-forwarded-for": "%i{X-Forwarded-For}"}
+                        {"user-agent": "%i{User-Agent}", "host": "%i{Host}", "x-forwarded-for": "%i{X-Forwarded-For}", "correlation_id": "%responseHeader{X-Correlation-ID}"}
                     </pattern>
                 </pattern>
                 <context />
