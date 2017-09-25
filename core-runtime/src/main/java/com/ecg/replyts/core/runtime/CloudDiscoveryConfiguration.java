@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @EnableDiscoveryClient
 @EnableAutoConfiguration(exclude = {FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class, HazelcastAutoConfiguration.class})
 @Import(ConsulConfigBootstrapConfiguration.class)
-@ConditionalOnExpression("#{'${service.discovery.enabled:false}' == 'true'}")
+@ConditionalOnExpression("#{'${service.discovery.enabled:true}' == 'true'}")
 public class CloudDiscoveryConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CloudDiscoveryConfiguration.class);
 
