@@ -5,6 +5,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
+import com.ecg.messagecenter.persistence.UnreadCountCachePopulater;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
@@ -57,19 +58,31 @@ class ConversationThreadController {
     private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
     private static final Counter API_POSTBOX_EMPTY_CONVERSATION = TimingReports.newCounter("webapi-postbox-empty-conversation");
 
-    @Autowired
     private DefaultRiakSimplePostBoxRepository postBoxRepository;
-    @Autowired
     private ConversationRepository conversationRepository;
-    @Autowired
     private RiakConversationBlockRepository conversationBlockRepository;
-    @Autowired
     private MailCloakingService mailCloakingService;
-    @Autowired
     private TextAnonymizer textAnonymizer;
+    private UnreadCountCachePopulater unreadCountCachePopulater;
 
-    @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;
+
+    @Autowired
+    public ConversationThreadController(final DefaultRiakSimplePostBoxRepository postBoxRepository,
+                                        final ConversationRepository conversationRepository,
+                                        final RiakConversationBlockRepository conversationBlockRepository,
+                                        final MailCloakingService mailCloakingService,
+                                        final TextAnonymizer textAnonymizer,
+                                        final UnreadCountCachePopulater unreadCountCachePopulater,
+                                        @Value("${replyts.maxConversationAgeDays:180}") final int maxAgeDays) {
+        this.postBoxRepository = postBoxRepository;
+        this.conversationRepository = conversationRepository;
+        this.conversationBlockRepository = conversationBlockRepository;
+        this.mailCloakingService = mailCloakingService;
+        this.textAnonymizer = textAnonymizer;
+        this.unreadCountCachePopulater = unreadCountCachePopulater;
+        this.maxAgeDays = maxAgeDays;
+    }
 
     @InitBinder
     public void initBinderInternal(WebDataBinder binder) {
@@ -104,6 +117,7 @@ class ConversationThreadController {
                 int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
                 postBox.decrementNewReplies(unreadMessages);
                 postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
+                unreadCountCachePopulater.populateCache(email);
             }
 
             ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
@@ -224,6 +238,8 @@ class ConversationThreadController {
                 postBox.removeConversation(conversationId);
                 postBoxRepository.deleteConversations(postBox, Collections.singletonList(conversationId));
             }
+
+            unreadCountCachePopulater.populateCache(email);
 
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

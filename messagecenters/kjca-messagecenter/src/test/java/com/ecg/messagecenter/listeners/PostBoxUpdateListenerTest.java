@@ -4,6 +4,7 @@ import ca.kijiji.replyts.TextAnonymizer;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
+import com.ecg.messagecenter.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.pushmessage.PushService;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
@@ -81,13 +82,13 @@ public class PostBoxUpdateListenerTest {
                 eq(conversation.getSellerId()),
                 eq(conversation),
                 eq(true),
-                any(),
+                any(PushMessageOnUnreadConversationCallback.class),
                 eq(unreadCountCacher));
         verify(postBoxInitializer).moveConversationToPostBox(
                 eq(conversation.getBuyerId()),
                 eq(conversation),
                 eq(false),
-                any(),
+                any(PushMessageOnUnreadConversationCallback.class),
                 eq(unreadCountCacher));
     }
 
