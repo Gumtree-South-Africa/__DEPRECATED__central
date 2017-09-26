@@ -46,7 +46,7 @@ class VolumeFilter implements Filter {
             long mailsInWindow = processor.count(senderMail, window);
             Quota quota = window.getQuota();
 
-            LOG.debug("Num of mails in {} {}: {}", quota.getPerTimeValue(), quota.getPerTimeUnit(), mailsInWindow);
+            LOG.trace("Num of mails in {} {}: {}", quota.getPerTimeValue(), quota.getPerTimeUnit(), mailsInWindow);
 
             if (mailsInWindow > quota.getAllowance()) {
                 return Collections.singletonList(new FilterFeedback(

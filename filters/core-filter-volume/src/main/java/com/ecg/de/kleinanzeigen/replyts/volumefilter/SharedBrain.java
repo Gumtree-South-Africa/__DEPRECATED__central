@@ -45,14 +45,14 @@ public class SharedBrain {
         MDC.put(CORRELATION_ID, correlationId);
         MDC.put(MAIL_FROM, mailAddress);
 
-        LOG.debug(TASK_VOLUME_NOTIFICATION_IN);
+        LOG.trace(TASK_VOLUME_NOTIFICATION_IN);
 
         processor.mailReceivedFrom(mailAddress);
         MDC.clear();
     }
 
     void markSeen(String mailAddress) {
-        LOG.debug(TASK_VOLUME_NOTIFICATION_OUT);
+        LOG.trace(TASK_VOLUME_NOTIFICATION_OUT);
         processor.mailReceivedFrom(mailAddress);
         communicationBus.publish(new MailReceivedNotification(mailAddress, MDC.get(CORRELATION_ID)));
     }
