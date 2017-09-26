@@ -5,7 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.indexer.MessageDocumentId;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
-class IndexData {
+public class IndexData {
 
     private final Conversation conversation;
     private final Message message;

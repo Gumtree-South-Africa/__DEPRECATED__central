@@ -17,6 +17,7 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -41,6 +42,7 @@ public class MailAttachmentMigrator {
     private DiffingRiakMailRepository mailRepository;
 
     @Autowired
+    @Qualifier("attachmentSink")
     private AttachmentRepository attachmentRepository;
 
     @Autowired

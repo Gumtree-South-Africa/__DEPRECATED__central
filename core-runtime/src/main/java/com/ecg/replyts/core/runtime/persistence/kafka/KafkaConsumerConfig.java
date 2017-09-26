@@ -1,5 +1,8 @@
-package com.ecg.replyts.core.runtime.persistence.attachment;
+package com.ecg.replyts.core.runtime.persistence.kafka;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,22 +14,23 @@ import java.util.Properties;
 
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 
-public class AttachmentKafkaConsumerConfig<K, V> {
+// This is used for testing only
+@VisibleForTesting
+public class KafkaConsumerConfig<K, V> {
 
     @Value("${kafka.core.servers:localhost:9092}")
     private String servers;
 
-    @Value("${kafka.attachment.topic:attachments}")
-    private String topic;
-
-    @Value("${kafka.attachment.client_group_id:tenant-attachment-consumer}")
+    @Value("${kafka.attachment.client_group_id:consumer}")
     private String group_id;
 
-    @Value("${kafka.attachment.key.deserializer:org.apache.kafka.common.serialization.StringDeserializer}")
+    @Value("${kafka.core.key.deserializer:org.apache.kafka.common.serialization.StringDeserializer}")
     private String key_deserializer;
 
-    @Value("${kafka.attachment.client_group_id:org.apache.kafka.common.serialization.ByteArrayDeserializer}")
+    @Value("${kafka.core.value.deserializer:org.apache.kafka.common.serialization.ByteArrayDeserializer}")
     private String value_deserializer;
+
+    private String topic;
 
     private Consumer<K, V> consumer;
 
@@ -41,6 +45,7 @@ public class AttachmentKafkaConsumerConfig<K, V> {
 
     @PostConstruct
     private void createKafkaConsumer() {
+        Preconditions.checkState(StringUtils.isNotBlank(topic), "Topic must be defined!");
         consumer = new KafkaConsumer<>(getConfigProperties());
         consumer.subscribe(Collections.singletonList(topic));
     }
@@ -51,6 +56,11 @@ public class AttachmentKafkaConsumerConfig<K, V> {
 
     public String getTopic() {
         return topic;
+    }
+
+    public KafkaConsumerConfig setTopic(String topic) {
+        this.topic = topic;
+        return this;
     }
 
     @PreDestroy

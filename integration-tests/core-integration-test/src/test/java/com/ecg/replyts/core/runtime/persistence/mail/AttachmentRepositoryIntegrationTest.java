@@ -6,12 +6,14 @@ import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.mailparser.StructuredMail;
 import com.ecg.replyts.core.runtime.persistence.attachment.SwiftAttachmentRepository;
 import com.google.common.io.CharStreams;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.openstack4j.api.storage.ObjectStorageObjectService;
+import org.openstack4j.model.common.Payload;
+import org.openstack4j.model.common.payloads.InputStreamPayload;
 import org.openstack4j.model.storage.object.SwiftObject;
+import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,21 +26,23 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+
+@Ignore
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = AttachmentRepositoryIntegrationTest.TestContext.class)
 @TestPropertySource(properties = {
+        "swift.bucket.number = 13",
         "swift.tenant=comaas-qa",
         "replyts.swift.container=test-container",
         "swift.username=comaas-qa-swift",
         "swift.password=Z6J$6QfV@HU1%aGv",
 })
-@Ignore
+/** MUST BE SET as env variable swift_authentication_url=https://keystone.ams1.cloud.ecg.so/v2.0 */
 public class AttachmentRepositoryIntegrationTest {
 
     @Autowired
@@ -48,30 +52,36 @@ public class AttachmentRepositoryIntegrationTest {
     private String attName = "Screen Shot 2013-08-23 at 10.09.19.png";
     private int size = 71741;
     private String mimeType = "image/png";
-    byte[] rawmail = readMail();
+
+    @Test
+    public void writeAttachment() {
+        ObjectStorageObjectService so = attachmentRepository.getObjectStorage();
+        String containterName = attachmentRepository.getContainer(messageid);
+        TypedContent<byte[]> attachment = parse().getAttachment(attName);
+        Payload data = new InputStreamPayload(new ByteArrayInputStream(attachment.getContent()));
+        ObjectPutOptions options = ObjectPutOptions.create().contentType(mimeType);
+        String md5 = so.put(containterName + "/" + messageid, attName, data, options);
+        assertEquals("8f1b39be1666c6d66ec20ba754e46dea", md5);
+    }
 
     @Test
     public void getAttachment() {
         SwiftObject so = attachmentRepository.fetch(messageid, attName).get();
         assertEquals(mimeType, so.getMimeType());
         assertEquals(size, so.getSizeInBytes());
-    }
-
-    private String getMd5Sum(byte[] data) {
-        MessageDigest md5 = DigestUtils.getMd5Digest();
-        return Hex.encodeHexString(md5.digest());
+        
     }
 
     @Test
     public void listAttachmentNames() {
-        assertNotNull(attachmentRepository.getNames(messageid).get().get(messageid+"/"+attName));
+        assertNotNull(attachmentRepository.getNames(messageid).get().get(messageid + "/" + attName));
     }
 
     // Make sure there is an attachment in the email
     @Test
     public void extractsAttachmentNames() throws IOException, ParsingException {
         Mail mail = parse();
-        Files.write( Paths.get(System.getProperty("java.io.tmpdir"),"att.jpeg"), mail.getAttachment(attName).getContent());
+        Files.write(Paths.get(System.getProperty("java.io.tmpdir"), "att.jpeg"), mail.getAttachment(attName).getContent());
         assertEquals(asList(attName), mail.getAttachmentNames());
     }
 
@@ -87,14 +97,6 @@ public class AttachmentRepositoryIntegrationTest {
     private Mail parse() {
         try {
             return parse(CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream("/mails/mail-with-attachment.eml"))));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private byte[] readMail() {
-        try {
-            return CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream("/mails/mail-with-attachment.eml"))).getBytes();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

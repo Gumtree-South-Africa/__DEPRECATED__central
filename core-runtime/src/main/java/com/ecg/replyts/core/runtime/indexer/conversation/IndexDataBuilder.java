@@ -35,7 +35,7 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
  * <li>attachment filenames</li>
  * </ul>
  */
-class IndexDataBuilder {
+public class IndexDataBuilder {
 
     private MailCloakingService mailCloakingService;
 

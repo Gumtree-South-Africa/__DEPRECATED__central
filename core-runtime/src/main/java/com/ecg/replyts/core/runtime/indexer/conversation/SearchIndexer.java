@@ -46,6 +46,10 @@ public class SearchIndexer {
         this.indexDataBuilder = indexDataBuilder;
     }
 
+    public IndexDataBuilder getIndexDataBuilder() {
+        return indexDataBuilder;
+    }
+
     public void updateSearchSync(List<Conversation> conversations) {
         if (!esEnabled) {
             return;

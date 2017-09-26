@@ -4,6 +4,7 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.runtime.TimingReports;
 
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.escape.Escaper;
@@ -149,8 +150,10 @@ public class SwiftAttachmentRepository {
         }
     }
 
-    // ObjectStorageObjectService is not thread safe, we need to have one per thread
-    private ObjectStorageObjectService getObjectStorage() {
+    /* ObjectStorageObjectService is not thread safe, we need to have one per thread
+      ONLY USE this method directly FOR TESTING! */
+    @VisibleForTesting
+    public ObjectStorageObjectService getObjectStorage() {
         checkState(swiftClient != null, "Not connected to Swift");
         Access access = swiftClient.getAccess();
         OSClient.OSClientV2 clientV2 = OSFactory.clientFromAccess(access);

@@ -16,6 +16,7 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -44,6 +45,7 @@ public class MailAttachmentVerifier {
     private DiffingRiakMailRepository mailRepository;
 
     @Autowired
+    @Qualifier("attachmentSink")
     private AttachmentRepository attachmentRepository;
 
     private final int idBatchSize;
