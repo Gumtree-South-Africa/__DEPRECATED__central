@@ -321,7 +321,7 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>mp-resultinspector-threshold</artifactId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>

@@ -207,7 +207,7 @@
                 <module>eventpublishers/mp-eventpublisher-kafka</module>
                 <module>eventpublishers/mp-eventpublisher-rabbitmq</module>
 
-                <module>resultinspectors/mp-resultinspector-threshold</module>
+                <module>resultinspectors/core-resultinspector-threshold</module>
 
                 <module>integration-tests/mp-integration-test</module>
             </modules>
