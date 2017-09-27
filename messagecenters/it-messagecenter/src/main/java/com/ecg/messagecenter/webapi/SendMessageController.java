@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -44,10 +43,6 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
  * Created by jaludden on 20/11/15.
  */
 @Controller public class SendMessageController {
-
-    private static String TEXT_HTML_CONTENT_TYPE = "Content-Type: text/html; charset = \"UTF-8\"";
-    private static String MULTIPART_ALT = "multipart/alternative; boundary=\"%s\"";
-
     private final Template template;
     private final String adIdPrefix;
     private MessageProcessingCoordinator coordinator;
@@ -60,7 +55,7 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
                                             Template template,
                                             SimplePostBoxRepository postBoxRepository,
                                             MailCloakingService mailCloakingService,
-                    @Value("${api.adIdPrefix:}") String adIdPrefix) {
+                                            @Value("${api.adIdPrefix:}") String adIdPrefix) {
         this.coordinator = coordinator;
         this.conversationRepository = conversationRepository;
         this.template = template;
@@ -71,8 +66,8 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
 
     @RequestMapping(value = MessageCenterStartConversationCommand.MAPPING, method = RequestMethod.POST, produces = APPLICATION_JSON_VALUE)
     @ResponseBody public ResponseObject<?> createConversation(@PathVariable("email") String email,
-                    @RequestBody StartConversationContentPayload payload,
-                    HttpServletResponse response) throws IOException {
+                                                              @RequestBody StartConversationContentPayload payload,
+                                                              HttpServletResponse response) throws IOException {
         Address from = new Address(payload.getBuyerName(), email);
         Address to = new Address(payload.getSellerName(), payload.getSellerEmail());
         payload.cleanupMessage();
@@ -81,10 +76,10 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
         DateTime startTime = DateTime.now();
 
         sendMessage(payload.getAdId(), payload.getMessage(), from, to, from.getName(),
-                        payload.getSubject());
+                payload.getSubject());
 
         return createResponse(email, getConversation(payload.getAdId(), from.getEmail(), startTime,
-                        payload.getSellerEmail()), response);
+                payload.getSellerEmail()), response);
     }
 
     private String createTemplatedMessage(StartConversationContentPayload payload, String from) {
@@ -104,9 +99,9 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
 
     @RequestMapping(value = MessageCenterSendMessageCommand.MAPPING, method = RequestMethod.POST, produces = APPLICATION_JSON_VALUE)
     @ResponseBody public ResponseObject<?> replyConversation(@PathVariable("email") String email,
-                    @PathVariable("conversationId") String conversationId,
-                    @RequestBody ConversationContentPayload payload, HttpServletResponse response)
-                    throws IOException {
+                                                             @PathVariable("conversationId") String conversationId,
+                                                             @RequestBody ConversationContentPayload payload, HttpServletResponse response)
+            throws IOException {
         PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
         Optional<ConversationThread> lookupResult = postBox.lookupConversation(conversationId);
         if (!lookupResult.isPresent()) {
@@ -120,20 +115,20 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
         Address to = getToAddress(role, conversation, lookupResult.get());
         String title = getTitle(conversation);
         payload.cleanupMessage();
-        payload.setMessage(createTemplatedMessage(payload, from.getName(), conversation, role, "Re: " + title));
+        payload.setMessage(createTemplatedMessage(payload, from.getName(), conversation, role));
         sendMessage(payload.getAdId(), payload.getMessage(), from, to, "", "Re: " + title);
 
         return createResponse(email,
-                        Optional.ofNullable(conversationRepository.getById(conversationId)),
-                        response);
+                Optional.ofNullable(conversationRepository.getById(conversationId)),
+                response);
     }
 
     private ResponseObject<?> createResponse(@PathVariable("email") String email,
-                    Optional<Conversation> conversationAfterUpdate, HttpServletResponse response) {
+                                             Optional<Conversation> conversationAfterUpdate, HttpServletResponse response) {
         Optional<PostBoxSingleConversationThreadResponse> r;
         if (conversationAfterUpdate.isPresent()) {
             r = PostBoxSingleConversationThreadResponse
-                            .create(0, email, conversationAfterUpdate.get(), true);
+                    .create(0, email, conversationAfterUpdate.get(), true);
         } else {
             r = Optional.empty();
         }
@@ -158,26 +153,25 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
     }
 
     private String createTemplatedMessage(ConversationContentPayload payload, String from,
-                    Conversation conversation, ConversationRole role, String subject) {
+                                          Conversation conversation, ConversationRole role) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("from", from);
         variables.put("message", payload.getMessage());
         variables.put("ad_id", payload.getAdId());
         variables.put("type", payload.getType());
         variables.put("greating", payload.getGreating());
-        variables.put("subject", subject);
         variables.put("toSeller", role == ConversationRole.Buyer);
 
         return template.createPostReplyMessage(variables);
     }
 
     private Address getToAddress(ConversationRole role, Conversation conversation,
-                    ConversationThread thread) {
+                                 ConversationThread thread) {
         String email = mailCloakingService
-                        .createdCloakedMailAddress(getOtherRole(role), conversation).getAddress();
+                .createdCloakedMailAddress(getOtherRole(role), conversation).getAddress();
         String name = (role == ConversationRole.Seller) ?
-                        thread.getBuyerName().orElse(null) :
-                        thread.getSellerName().orElse(null);
+                thread.getBuyerName().orElse(null) :
+                thread.getSellerName().orElse(null);
         return new Address(name, email);
     }
 
@@ -186,10 +180,10 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
     }
 
     private void sendMessage(@RequestParam("adid") Long adId,
-                    @RequestParam("message") String message, Address from, Address to,
-                    String buyerName, String subject) throws IOException {
+                             @RequestParam("message") String message, Address from, Address to,
+                             String buyerName, String subject) throws IOException {
         ConversationMessage conversationMessage =
-                        new ConversationMessage(adId, from, to, message, buyerName, subject);
+                new ConversationMessage(adId, from, to, message, buyerName, subject);
         coordinator.accept(conversationMessage.asInputStream());
     }
 
@@ -223,7 +217,7 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
     }
 
     private Optional<Conversation> getConversation(long adId, String email, DateTime startTime,
-                    String sellerEmail) {
+                                                   String sellerEmail) {
         PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
         return postBox.getConversationThreads().stream().filter(modifiedAfter(startTime))
@@ -261,7 +255,7 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
         private String subject;
 
         public ConversationMessage(long adId, Address from, Address to, String message,
-                        String buyerName, String subject) {
+                                   String buyerName, String subject) {
             this.adId = adId;
             this.from = from;
             this.to = to;
@@ -274,24 +268,14 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
             return new ByteArrayInputStream(getMailMessage().getBytes("UTF-8"));
         }
 
-        private String getBoundaryLine(String boundary) {
-            return String.format("\n\n--%s\n", boundary);
-        }
-
-        private String getMultipartType(String boundary) {
-            return String.format(MULTIPART_ALT, boundary);
-        }
-
         public String getMailMessage() {
             Map<String, String> headers = new LinkedHashMap<>();
-
-            String newBoundary = Long.toHexString(ThreadLocalRandom.current().nextLong());
 
             headers.put("TO", getTo());
             headers.put("FROM", getFrom());
             headers.put("DATE", getDate());
             headers.put("SUBJECT", getSubject());
-            headers.put("Content-type", getMultipartType(newBoundary));
+            headers.put("Content-type", "text/html; charset=UTF-8");
 
             headers.put("X-ORIGINAL-TO", getOriginalTo());
             headers.put("DELIVERED-TO", getDeliveredTo());
@@ -300,16 +284,12 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
             headers.put("X-CUST-BUYER-NAME", from.getName());
             headers.put("X-CUST-SELLER-NAME", to.getName());
 
-            StringBuilder headerString = new StringBuilder();
+            String headerString = "";
             for (Map.Entry<String, String> h : headers.entrySet()) {
-                headerString.append(h.getKey()).append(": ").append(h.getValue()).append("\n");
+                headerString += h.getKey() + ": " + h.getValue() + "\n";
             }
 
-            return headerString.toString()
-                    + getBoundaryLine(newBoundary)
-                    + TEXT_HTML_CONTENT_TYPE + "\n\n"
-                    + getMessage()
-                    + getBoundaryLine(newBoundary);
+            return headerString + "\n" + getMessage() + "\n";
         }
 
         private String getBuyerName() {
