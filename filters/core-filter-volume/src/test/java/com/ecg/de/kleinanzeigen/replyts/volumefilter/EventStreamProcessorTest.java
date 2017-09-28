@@ -51,6 +51,29 @@ public class EventStreamProcessorTest {
     }
 
     @Test
+    public void testAllWindowRegistered() {
+        String instanceId = "volumefilter";
+
+        Quota quota1 = new Quota(10, 10, TimeUnit.MINUTES, 10);
+        Quota quota2 = new Quota(10, 10, TimeUnit.SECONDS, 20);
+        Quota quota3 = new Quota(20, 20, TimeUnit.HOURS, 30);
+
+        List<Window> wins = Stream.of(quota1, quota2, quota1, quota3)
+                .map(quota -> new Window(instanceId, quota))
+                .collect(Collectors.toList());
+
+        EventStreamProcessor esp = new EventStreamProcessor();
+        esp.initialize();
+        esp.register(wins);
+
+        Map<Window, EventStreamProcessor.EsperWindowLifecycle> windows = esp.getWindowsStatements();
+        assertEquals(3, windows.size());
+        assertTrue(windows.containsKey(new Window(instanceId, quota1)));
+        assertTrue(windows.containsKey(new Window(instanceId, quota2)));
+        assertTrue(windows.containsKey(new Window(instanceId, quota3)));
+    }
+
+    @Test
     public void testRegisterDifferentQuotas() {
         Quota quota1 = new Quota(10, 10, TimeUnit.MINUTES, 10);
         Quota quota2 = new Quota(10, 10, TimeUnit.SECONDS, 20);

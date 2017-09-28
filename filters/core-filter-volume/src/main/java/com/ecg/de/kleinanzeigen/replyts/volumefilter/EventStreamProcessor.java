@@ -36,14 +36,11 @@ public class EventStreamProcessor implements ConfigurationRefreshEventListener {
         this.epServiceProvider.initialize();
     }
 
-    void register(List<Window> windows) {
+    void register(Collection<Window> windows) {
         for (Window window : windows) {
-            if (epWindows.containsKey(window)) {
-                LOG.warn("window already exists '{}'", window.getWindowName());
-                return;
+            if (!epWindows.containsKey(window)) {
+                epWindows.computeIfAbsent(window, this::createWindowLifeCycle);
             }
-
-            epWindows.computeIfAbsent(window, this::createWindowLifeCycle);
         }
     }
 

@@ -9,6 +9,7 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +21,10 @@ class VolumeFilter implements Filter {
     private static final String ESPER_ALREADY_NOTIFIED = "ESPER_ALREADY_NOTIFIED";
 
     private final SharedBrain sharedBrain;
-    private final List<Window> windows;
+    private final Collection<Window> windows;
     private final EventStreamProcessor processor;
 
-    VolumeFilter(SharedBrain sharedBrain, EventStreamProcessor processor, List<Window> windows) {
+    VolumeFilter(SharedBrain sharedBrain, EventStreamProcessor processor, Collection<Window> windows) {
         this.sharedBrain = sharedBrain;
         this.processor = processor;
         this.windows = windows;

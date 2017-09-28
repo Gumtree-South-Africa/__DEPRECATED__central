@@ -8,7 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class VolumeFilterFactory implements FilterFactory {
 
@@ -27,11 +31,19 @@ public class VolumeFilterFactory implements FilterFactory {
     public Filter createPlugin(String instanceId, JsonNode jsonConfiguration) {
         ConfigurationParser configuration = new ConfigurationParser(jsonConfiguration);
 
-        List<Window> windows = Lists.transform(configuration.get(), q -> new Window(instanceId, q));
+        Set<Window> uniqueWindows = new HashSet<>();
+        for (Quota quota : configuration.get()) {
+            Window window = new Window(instanceId, quota);
+            if (uniqueWindows.contains(window)) {
+                LOG.warn("window already exists '{}'", window.getWindowName());
+            } else {
+                uniqueWindows.add(window);
+            }
+        }
 
-        LOG.info("Registering VolumeFilter with windows {}", windows);
-        eventStreamProcessor.register(windows);
+        LOG.info("Registering VolumeFilter with windows {}", uniqueWindows);
+        eventStreamProcessor.register(uniqueWindows);
 
-        return new VolumeFilter(sharedBrain, eventStreamProcessor, windows);
+        return new VolumeFilter(sharedBrain, eventStreamProcessor, uniqueWindows);
     }
 }
