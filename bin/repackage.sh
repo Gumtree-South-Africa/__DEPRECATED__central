@@ -110,7 +110,8 @@ function repackage() {
 
 parseArgs $@
 
-if [[ "$TENANT" == "mde" ]] || [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "ebayk" ]] || [[ "$TENANT" == "gtau" ]]; then
+source bin/_legacy_tenants.sh
+if ! isTenantLegacy ${TENANT}; then
     echo "Repackaging not supported for $TENANT, because it's already live in the cloud"
     exit
 fi

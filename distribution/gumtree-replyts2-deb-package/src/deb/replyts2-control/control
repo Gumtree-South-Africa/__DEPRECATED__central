@@ -1,8 +1,0 @@
-Package: gumtree-replyts2
-Version: %VERSION%
-Section: misc
-Priority: optional
-Architecture: all
-Description: Replyts2 COMaaS version
-Maintainer: COMaaS team
-Depends: geoip-data (>=1.0.0), openjdk-8-jre-headless

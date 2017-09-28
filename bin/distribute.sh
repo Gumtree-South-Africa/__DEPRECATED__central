@@ -18,7 +18,8 @@ readonly TIMESTAMP=$3
 readonly BUILD_DIR="builds"
 
 # Filter out the tenants that are live in the cloud
-if [[ "$TENANT" == "mde" ]] || [[ "$TENANT" == "mp" ]] || [[ "$TENANT" == "ebayk" ]] || [[ "$TENANT" == "gtau" ]]; then
+source bin/_legacy_tenants.sh
+if ! isTenantLegacy ${TENANT}; then
     echo "Distribution not supported for $TENANT, because it's already live in the cloud"
     exit
 fi
