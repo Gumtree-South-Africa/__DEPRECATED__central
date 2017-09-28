@@ -1,6 +1,10 @@
 package com.ecg.replyts.core.webapi.control.health;
 
+import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Stopwatch;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implementation checks his specific way an external service and create a response in {@link ObjectNode}.
@@ -29,9 +33,15 @@ public interface HealthCommand {
      * @return executed command with time duration in millis.
      */
     default ObjectNode measuredExecution() {
-        long start = System.currentTimeMillis();
-        ObjectNode result = execute();
-        long end = System.currentTimeMillis() - start;
-        return result.put("duration", end);
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        ObjectNode result;
+        try {
+            result = execute();
+        } catch (Exception ex) {
+            result = JsonObjects.newJsonObject()
+                    .put("error", ex.getMessage());
+        }
+        stopwatch.stop();
+        return result.put("duration", stopwatch.elapsed(TimeUnit.MILLISECONDS));
     }
 }

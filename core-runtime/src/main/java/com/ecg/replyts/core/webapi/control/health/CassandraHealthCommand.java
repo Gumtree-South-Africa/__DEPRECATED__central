@@ -136,8 +136,8 @@ public class CassandraHealthCommand extends AbstractHealthCommand {
         }
 
         private static Peer mapper(Row row) {
-            return new Peer(row.getString("peer"), row.getString("data_center"), row.getString("host_id"),
-                    row.getString("rack"), row.getString("release_version"), row.getString("schema_version"));
+            return new Peer(row.getInet("peer").getHostAddress(), row.getString("data_center"), row.getUUID("host_id").toString(),
+                    row.getString("rack"), row.getString("release_version"), row.getUUID("schema_version").toString());
         }
 
         private static ObjectNode mapToNode(Peer peer) {

@@ -2,6 +2,7 @@ package com.ecg.replyts.core.webapi.control.health;
 
 import com.datastax.driver.core.*;
 import com.google.common.reflect.TypeToken;
+import org.mockito.Mockito;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -163,7 +164,7 @@ public class StubRow implements Row {
 
     @Override
     public UUID getUUID(String name) {
-        throw new UnsupportedOperationException(UNSUPPORTED_METHOD);
+        return UUID.fromString(data.get(name));
     }
 
     @Override
@@ -173,7 +174,9 @@ public class StubRow implements Row {
 
     @Override
     public InetAddress getInet(String name) {
-        throw new UnsupportedOperationException(UNSUPPORTED_METHOD);
+        InetAddress result = Mockito.mock(InetAddress.class);
+        Mockito.doReturn(data.get(name)).when(result).getHostAddress();
+        return result;
     }
 
     @Override
