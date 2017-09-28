@@ -29,7 +29,7 @@ public class UniqueConversationSecret {
                 return hash;
             }
         }
-        throw new IllegalStateException("AnonymizedMailGenerator could not generate a valid secret mail address within " + MAX_RETRIES + " retries");
+        throw new IllegalStateException("UniqueConversationSecret could not generate a valid secret mail address within " + MAX_RETRIES + " retries");
     }
 
 }
