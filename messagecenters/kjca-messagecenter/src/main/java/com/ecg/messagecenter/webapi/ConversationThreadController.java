@@ -4,12 +4,13 @@ import ca.kijiji.replyts.TextAnonymizer;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
+import com.ecg.messagebox.controllers.TopLevelExceptionHandler;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.UnreadCountCachePopulater;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.DefaultRiakSimplePostBoxRepository;
+import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.webapi.requests.MessageCenterBlockCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
@@ -33,19 +34,25 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.joda.time.DateTime.now;
-import static org.joda.time.DateTimeZone.UTC;
+import static org.joda.time.DateTime.*;
+import static org.joda.time.DateTimeZone.*;
 
 @Controller
 class ConversationThreadController {
@@ -90,8 +97,8 @@ class ConversationThreadController {
     }
 
     @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response, Writer writer) throws IOException {
-        new TopLevelExceptionHandler(ex, response, writer).handle();
+    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
+        TopLevelExceptionHandler.handle(ex, response);
     }
 
     @RequestMapping(value = MessageCenterGetPostBoxConversationCommand.MAPPING,

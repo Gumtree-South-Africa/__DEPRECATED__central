@@ -2,12 +2,14 @@ package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
+import com.ecg.messagebox.controllers.TopLevelExceptionHandler;
 import com.ecg.messagecenter.persistence.ConversationThread;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetAdConversationRecipientsCommand;
 import com.ecg.messagecenter.webapi.responses.AdConversationRecipientListResponse;
 import com.ecg.messagecenter.webapi.responses.BuyerContactResponse;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
@@ -20,17 +22,22 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
 
 /**
  * Used to allow system to get contact details of people who've contacted a seller about an ad.
@@ -64,9 +71,8 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
     }
 
     @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response, Writer writer)
-                    throws IOException {
-        new TopLevelExceptionHandler(ex, response, writer).handle();
+    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
+        TopLevelExceptionHandler.handle(ex, response);
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.webapi;
+package com.ecg.messagebox.controllers;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -6,14 +6,13 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TopLevelExceptionHandlerTest {

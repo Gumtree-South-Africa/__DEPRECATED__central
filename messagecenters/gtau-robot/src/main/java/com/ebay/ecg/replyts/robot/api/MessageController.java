@@ -18,11 +18,17 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
-import java.io.Writer;
 import java.util.List;
 
 @Controller
@@ -48,8 +54,8 @@ class MessageController {
     }
 
     @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response, Writer writer) throws IOException {
-        new TopLevelExceptionHandler(ex, response, writer).handle();
+    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
+        TopLevelExceptionHandler.handle(ex, response);
     }
 
     @RequestMapping(value = PostMessageToConversationCommand.MAPPING,

@@ -2,9 +2,9 @@ package com.ecg.messagebox.controllers;
 
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.controllers.responses.ResponseDataResponse;
-import com.ecg.messagebox.service.ResponseDataService;
-import com.ecg.messagebox.model.ResponseData;
 import com.ecg.messagebox.model.AggregatedResponseData;
+import com.ecg.messagebox.model.ResponseData;
+import com.ecg.messagebox.service.ResponseDataService;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
-import java.io.Writer;
 import java.util.List;
 import java.util.Optional;
 
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @Controller
 public class ResponseDataController {
@@ -41,8 +41,8 @@ public class ResponseDataController {
     }
 
     @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response, Writer writer) throws IOException {
-        new TopLevelExceptionHandler(ex, response, writer).handle();
+    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
+        TopLevelExceptionHandler.handle(ex, response);
     }
 
     @RequestMapping(value = MAPPING, method = GET)

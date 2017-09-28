@@ -1,11 +1,15 @@
 package com.ecg.messagecenter.webapi.responses;
 
 import com.ecg.messagecenter.persistence.ConversationThread;
-import com.ecg.messagecenter.util.MessagesDiffer;
-import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.messagecenter.util.ConversationBoundnessFinder;
 import com.ecg.messagecenter.util.MessageCenterUtils;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.messagecenter.util.MessagesDiffer;
+import com.ecg.messagecenter.util.MessagesResponseFactory;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -88,7 +92,7 @@ public class PostBoxListItemResponse {
 
     private void logConversationThread(ConversationThread conversationThread) {
         try {
-            LOG.debug("ConvesationThread: " + new ObjectMapper()
+            LOG.debug("ConversationThread: " + new ObjectMapper()
                             .writeValueAsString(conversationThread));
             if (conversationThread.getBuyerId().isPresent())
                 LOG.debug("getBuyerId: " + conversationThread.getBuyerId().get());
