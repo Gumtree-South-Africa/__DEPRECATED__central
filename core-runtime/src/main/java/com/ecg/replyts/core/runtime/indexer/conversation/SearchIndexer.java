@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.*;
 
 /**
  * Indexes Conversations/Messages searches.
@@ -83,7 +83,7 @@ public class SearchIndexer {
                 ActionListener<BulkResponse> listener = new ActionListener<BulkResponse>() {
                     @Override
                     public void onResponse(BulkResponse bulkItemResponses) {
-                        LOG.debug("Indexing complete ");
+                        LOG.trace("Indexing complete");
                     }
 
                     @Override

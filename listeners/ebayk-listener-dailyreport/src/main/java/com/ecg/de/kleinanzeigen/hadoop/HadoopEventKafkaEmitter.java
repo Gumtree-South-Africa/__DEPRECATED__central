@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+
 import java.util.UUID;
 
 /**
@@ -26,7 +27,7 @@ public class HadoopEventKafkaEmitter implements HadoopEventEmitter {
             String topicName = entry.getLogUseCase().getTopicName();
             ProducerRecord<UUID, String> record = new ProducerRecord<>(topicName, UUID.randomUUID(), entry.getLogEntry());
             producer.send(record);
-            LOG.debug("Send hadoop log-entry for topic {} to Kafka", topicName);
+            LOG.trace("Send hadoop log-entry for topic {} to Kafka", topicName);
         } catch (RuntimeException e) {
             LOG.error("Error on emitting to Kafka: hadoop log-entry {}", entry.getLogEntry(), e);
         }

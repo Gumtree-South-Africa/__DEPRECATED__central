@@ -28,8 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 import static java.lang.String.format;
 
 @Component("mailDataProvider")
@@ -122,7 +121,7 @@ public class DropfolderMessageProcessor implements MessageProcessor {
             if (nextMessage.isPresent()) {
                 try {
                     ACTIVE_DROPFOLDER_PROCESSORS_COUNTER.inc();
-                    LOG.debug("About to submit {} for processing", nextMessage.get());
+                    LOG.trace("About to submit {} for processing", nextMessage.get());
                     process(nextMessage.get());
                 } finally {
                     ACTIVE_DROPFOLDER_PROCESSORS_COUNTER.dec();
@@ -162,7 +161,7 @@ public class DropfolderMessageProcessor implements MessageProcessor {
                 messageFilesQueue.addAll(Arrays.asList(failed));
                 int newSize = messageFilesQueue.size();
                 if (newSize > 0) {
-                    LOG.debug("New queue size: {}", newSize);
+                    LOG.trace("New queue size: {}", newSize);
                 }
             }
         } finally {
