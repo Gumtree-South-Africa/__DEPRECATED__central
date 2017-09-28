@@ -25,7 +25,13 @@ function checkEnv() {
     fi
 }
 
+function cleanEnv() {
+    # Remove any "comaasz" containers left over by a previous run
+    docker ps -a | grep comaasz | awk '{print $1}' | xargs --no-run-if-empty docker rm -fv
+}
+
 function startEnv() {
+    cleanEnv
     checkEnv
     rm -rf ${COMPOSE_DIR}
     git clone --single-branch --depth 1 git@github.corp.ebay.com:ecg-comaas/ecg-comaas-docker.git ${COMPOSE_DIR}
