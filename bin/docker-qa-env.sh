@@ -16,11 +16,13 @@ readonly COMPOSE_DIR="$(mktemp -d)"
 # Check if there is any process on the Cassandra port, and fail if there is
 function checkEnv() {
     set +o errexit
-    nc -w1 localhost 9042 > /dev/null
+    nc -w1 localhost 8599 > /dev/null
     local s=$?
     set -o errexit
     if [ ${s} -eq 0 ]; then
-        echo "There is already a running process on port 9042, cannot continue."
+        echo "There is already a running process on port 8599, cannot continue."
+        echo "Check the output of 'docker ps':"
+        docker ps
         exit 1
     fi
 }
