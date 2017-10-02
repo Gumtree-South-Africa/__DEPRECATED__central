@@ -5,7 +5,6 @@ import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.common.geoip.GeoIpService;
 import com.gumtree.filters.comaas.Filter;
@@ -19,8 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.longDescription;
-import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.resultFilterResultMap;
+import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
 
 @Component
 public class GumtreeGeoIpLookupFilter implements com.ecg.replyts.core.api.pluginconfiguration.filter.Filter {
@@ -34,7 +32,7 @@ public class GumtreeGeoIpLookupFilter implements com.ecg.replyts.core.api.plugin
     private GeoIpService geoIpService;
 
     @Override
-    public List<FilterFeedback> filter(MessageProcessingContext messageContext) throws ProcessingTimeExceededException {
+    public List<FilterFeedback> filter(MessageProcessingContext messageContext) {
         try (Timer.Context ignore = TIMER.time()) {
             if (!messageContext.getMessage().getMessageDirection().equals(MessageDirection.BUYER_TO_SELLER)) {
                 return Collections.emptyList();

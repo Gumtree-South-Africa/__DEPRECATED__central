@@ -7,8 +7,6 @@ import org.junit.Rule;
 import java.util.Properties;
 import java.util.function.Supplier;
 
-import static com.ecg.replyts.core.runtime.identifier.UserIdentifierType.BY_USER_ID;
-
 public class ReplyTsIntegrationTestRuleHelper {
 
     @Rule

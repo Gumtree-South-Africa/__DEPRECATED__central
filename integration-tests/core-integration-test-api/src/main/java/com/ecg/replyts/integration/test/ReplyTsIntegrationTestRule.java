@@ -20,10 +20,15 @@ import org.slf4j.LoggerFactory;
 import org.subethamail.wiser.WiserMessage;
 
 import javax.mail.internet.MimeMessage;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -54,6 +59,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *  </pre>
  */
 public class ReplyTsIntegrationTestRule implements TestRule {
+    private static final int DEFAULT_DELIVERY_TIMEOUT_SECONDS = 20;
     public static final boolean ES_ENABLED = true;
     private static final Logger LOG = LoggerFactory.getLogger(ReplyTsIntegrationTestRule.class);
 
@@ -74,11 +80,11 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     private boolean cassandraEnabled = true;
 
     public ReplyTsIntegrationTestRule() {
-        this(null, null, 20, false, new Class[0], "cassandra_schema.cql");
+        this(null, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(boolean esEnabled) {
-        this(null, null, 20, esEnabled, new Class[0], "cassandra_schema.cql");
+        this(null, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, esEnabled, new Class[0], "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, boolean esEnabled) {
@@ -86,15 +92,15 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     }
 
     public ReplyTsIntegrationTestRule(Properties testProperties) {
-        this(testProperties, null, 20, false, new Class[0], "cassandra_schema.cql");
+        this(testProperties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(String replyTsConfigurationDir, String... cqlFilePaths) {
-        this(null, replyTsConfigurationDir, 20, false, new Class[0], cqlFilePaths);
+        this(null, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], cqlFilePaths);
     }
 
     public ReplyTsIntegrationTestRule(Properties testProperties, String replyTsConfigurationDir, String... cqlFilePaths) {
-        this(testProperties, replyTsConfigurationDir, 20, false, new Class[0], cqlFilePaths);
+        this(testProperties, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], cqlFilePaths);
     }
 
     public ReplyTsIntegrationTestRule(Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, boolean esEnabled, String... cqlFilePaths) {
@@ -102,7 +108,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     }
 
     public ReplyTsIntegrationTestRule(Properties properties, Class<?>... configuration) {
-        this(properties, null, 20, false, configuration, "cassandra_schema.cql");
+        this(properties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, configuration, "cassandra_schema.cql");
     }
 
     /**

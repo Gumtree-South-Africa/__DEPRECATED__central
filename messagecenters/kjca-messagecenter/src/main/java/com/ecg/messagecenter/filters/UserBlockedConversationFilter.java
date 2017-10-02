@@ -6,7 +6,6 @@ import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -24,7 +23,7 @@ public class UserBlockedConversationFilter implements Filter {
     }
 
     @Override
-    public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
+    public List<FilterFeedback> filter(MessageProcessingContext context) {
         ConversationBlock conversationBlock = conversationBlockRepository.byId(context.getConversation().getId());
 
         List<FilterFeedback> feedbacks = Lists.newArrayList();

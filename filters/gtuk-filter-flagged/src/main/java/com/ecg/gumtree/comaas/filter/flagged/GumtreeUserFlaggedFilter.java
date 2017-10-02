@@ -5,7 +5,6 @@ import com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.UserFlaggedFilterConfig;
@@ -30,7 +29,7 @@ public class GumtreeUserFlaggedFilter implements com.ecg.replyts.core.api.plugin
     private String buyerFlaggedHeader;
 
     @Override
-    public List<FilterFeedback> filter(MessageProcessingContext messageContext) throws ProcessingTimeExceededException {
+    public List<FilterFeedback> filter(MessageProcessingContext messageContext) {
         try (Timer.Context ignore = TIMER.time()) {
             List<FilterFeedback> reasons = new ArrayList<>();
 

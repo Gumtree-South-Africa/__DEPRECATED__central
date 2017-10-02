@@ -8,7 +8,6 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.KnownGoodFilterConfig;
@@ -38,7 +37,7 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
     private KnownGoodFilterConfig filterConfig;
 
     @Override
-    public List<FilterFeedback> filter(MessageProcessingContext messageContext) throws ProcessingTimeExceededException {
+    public List<FilterFeedback> filter(MessageProcessingContext messageContext) {
         try (Timer.Context ignore = processTimer.time()) {
             if (hasExemptedCategory(filterConfig, messageContext)) {
                 return Collections.emptyList();

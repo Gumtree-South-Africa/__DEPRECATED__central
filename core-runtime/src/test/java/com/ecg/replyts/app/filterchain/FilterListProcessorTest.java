@@ -2,7 +2,11 @@ package com.ecg.replyts.app.filterchain;
 
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
+import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
@@ -22,11 +26,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = FilterListProcessorTest.TestContext.class)
@@ -42,8 +46,7 @@ public class FilterListProcessorTest {
     @MockBean
     private PluginConfiguration filterConfig;
 
-    @MockBean
-    private ConfigurationId configId;
+    private ConfigurationId configId = new ConfigurationId("pluginFactory", "instance");
 
     @MockBean
     private FilterListMetrics metrics;
@@ -82,6 +85,17 @@ public class FilterListProcessorTest {
         filterReferences.add(reference2);
         when(config.getRunningServices()).thenReturn(filterReferences);
         when(context.getProcessingTimeGuard()).thenReturn(processingTimeGuard);
+        when(context.getConversation()).thenReturn(mock(Conversation.class));
+    }
+
+    @Test
+    public void processAllFilters()
+    {
+        when(filter1.filter(context)).thenReturn(Arrays.asList(new FilterFeedback("", "", 1, FilterResultState.OK)));
+
+        List<ProcessingFeedback> result = processor.processAllFilters(context);
+
+        assertThat(result).hasSize(1);
     }
 
     @Test(expected = ProcessingTimeExceededException.class)
@@ -89,6 +103,8 @@ public class FilterListProcessorTest {
         doThrow(ProcessingTimeExceededException.class).when(processingTimeGuard).check();
 
         processor.processAllFilters(context);
+
+        shouldHaveThrown(ProcessingTimeExceededException.class);
     }
 
     @Configuration

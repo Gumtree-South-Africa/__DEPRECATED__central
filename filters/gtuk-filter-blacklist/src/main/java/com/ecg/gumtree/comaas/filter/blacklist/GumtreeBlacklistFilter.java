@@ -9,7 +9,6 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.BlacklistFilterConfig;
@@ -39,7 +38,7 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
     private GumshieldApi gumshieldApi;
 
     @Override
-    public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
+    public List<FilterFeedback> filter(MessageProcessingContext context) {
         try (Timer.Context ignore = TIMER.time()) {
             if (hasExemptedCategory(filterConfig, context)) {
                 return Collections.emptyList();

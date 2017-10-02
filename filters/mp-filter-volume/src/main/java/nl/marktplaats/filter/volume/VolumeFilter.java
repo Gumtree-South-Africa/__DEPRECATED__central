@@ -7,10 +7,8 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import nl.marktplaats.filter.volume.VolumeFilterConfiguration.VolumeRule;
 import nl.marktplaats.filter.volume.persistence.VolumeFilterEventRepository;
-import org.joda.time.DateTime;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +31,8 @@ public class VolumeFilter implements Filter {
         this.volumeFilterEventRepository = volumeFilterEventRepository;
     }
 
-    public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
+    @Override
+    public List<FilterFeedback> filter(MessageProcessingContext context) {
         Conversation conv = context.getConversation();
         Mail mail = context.getMail();
         Message message = context.getMessage();

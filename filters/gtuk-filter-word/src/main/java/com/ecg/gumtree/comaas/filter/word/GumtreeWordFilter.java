@@ -3,7 +3,6 @@ package com.ecg.gumtree.comaas.filter.word;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.Rule;
 import com.gumtree.filters.comaas.config.WordFilterConfig;
@@ -29,7 +28,7 @@ public class GumtreeWordFilter implements com.ecg.replyts.core.api.pluginconfigu
     }
 
     @Override
-    public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
+    public List<FilterFeedback> filter(MessageProcessingContext context) {
         if (hasExemptedCategory(filterConfig, context)) {
             return Collections.emptyList();
         }

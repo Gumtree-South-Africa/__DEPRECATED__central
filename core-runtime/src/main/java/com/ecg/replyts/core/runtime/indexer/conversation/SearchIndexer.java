@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static java.util.concurrent.TimeUnit.*;
+import static java.util.stream.Collectors.*;
 
 /**
  * Indexes Conversations/Messages searches.
@@ -92,12 +93,9 @@ public class SearchIndexer {
 
                     @Override
                     public void onFailure(Throwable e) {
-                        StringBuilder s = new StringBuilder("Failed Indexing conversations: '");
-                        for (Conversation conversation : conversations) {
-                            s.append(conversation.getId()).append(", ");
-                        }
-                        s.append("'");
-                        LOG.error(s.toString(), e);
+                        String msg = conversations.stream().map(Conversation::getId)
+                                .collect(joining("Failed Indexing conversations: '", "'", ", "));
+                        LOG.error(msg, e);
                     }
                 };
                 execute.addListener(listener);

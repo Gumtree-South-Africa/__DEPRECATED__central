@@ -7,7 +7,6 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.api.search.RtsSearchResponse;
 import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
@@ -23,8 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.longDescription;
-import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.resultFilterResultMap;
+import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
 
 @Component
 public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfiguration.filter.Filter {
@@ -43,7 +41,7 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
     private SharedBrain sharedBrain;
 
     @Override
-    public List<FilterFeedback> filter(MessageProcessingContext messageContext) throws ProcessingTimeExceededException {
+    public List<FilterFeedback> filter(MessageProcessingContext messageContext) {
         try (Timer.Context ignore = TIMER.time()) {
             logMailReceivedEvent(messageContext);
 

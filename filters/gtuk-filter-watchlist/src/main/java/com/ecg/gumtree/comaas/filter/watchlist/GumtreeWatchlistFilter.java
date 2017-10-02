@@ -5,7 +5,6 @@ import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.WatchlistFilterConfig;
@@ -34,7 +33,7 @@ public class GumtreeWatchlistFilter implements com.ecg.replyts.core.api.pluginco
     private static final String SHORT_DESCRIPTION = "Sender on watchlist";
 
     @Override
-    public List<FilterFeedback> filter(MessageProcessingContext messageContext) throws ProcessingTimeExceededException {
+    public List<FilterFeedback> filter(MessageProcessingContext messageContext) {
         try (Timer.Context ignored = TIMER.time()) {
             if (hasExemptedCategory(watchListFilterConfig, messageContext)) {
                 return Collections.emptyList();

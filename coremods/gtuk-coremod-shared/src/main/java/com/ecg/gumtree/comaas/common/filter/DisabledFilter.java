@@ -3,7 +3,6 @@ package com.ecg.gumtree.comaas.common.filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +17,7 @@ public class DisabledFilter implements Filter {
     }
 
     @Override
-    public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
+    public List<FilterFeedback> filter(MessageProcessingContext context) {
         return Collections.emptyList();
     }
 }

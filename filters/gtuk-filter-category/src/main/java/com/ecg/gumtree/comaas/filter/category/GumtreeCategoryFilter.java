@@ -4,7 +4,6 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeExceededException;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.api.category.CategoryModel;
 import com.gumtree.api.category.domain.Category;
@@ -31,7 +30,7 @@ public class GumtreeCategoryFilter implements Filter {
     private CategoryModel categoryModel;
 
     @Override
-    public List<FilterFeedback> filter(MessageProcessingContext context) throws ProcessingTimeExceededException {
+    public List<FilterFeedback> filter(MessageProcessingContext context) {
         CategoryPreProcessor.addCategoriesToConversation(categoryModel, context);
 
         try (Timer.Context ignore = timer.time()) {

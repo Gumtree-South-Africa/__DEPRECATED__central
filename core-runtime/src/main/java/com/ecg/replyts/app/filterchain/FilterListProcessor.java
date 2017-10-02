@@ -22,8 +22,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.String.format;
-
 @Component
 class FilterListProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(FilterListProcessor.class);
@@ -35,7 +33,8 @@ class FilterListProcessor {
     @Autowired
     private FilterListMetrics metrics;
 
-    List<ProcessingFeedback> processAllFilters(MessageProcessingContext context) throws ProcessingTimeExceededException {
+    List<ProcessingFeedback> processAllFilters(MessageProcessingContext context)
+            throws ProcessingTimeExceededException {
         List<ProcessingFeedback> allFeedback = new ArrayList<>();
         ProcessingTimeGuard timeGuard = context.getProcessingTimeGuard();
 
@@ -53,40 +52,48 @@ class FilterListProcessor {
             Filter filter = filterReference.getCreatedService();
             ConfigurationId filterId = filterReference.getConfiguration().getId();
             try (Timer.Context ignore = metrics.newOrExistingTimerFor(filterId)) {
-                List<FilterFeedback> filterFeedback = filter.filter(context);
-                if (filterFeedback != null) {
+                List<FilterFeedback> filterFeedbackList = filter.filter(context);
+                if (filterFeedbackList != null) {
 
-                    // if this filter returns an ACCEPT_AND_TERMINATE, we can consider finished the processing
-                    // of all the filters, and just return all the preceding feedbacks
-                    if (filterFeedback.stream().anyMatch(feedback -> feedback.getResultState() == FilterResultState.ACCEPT_AND_TERMINATE)) {
+                    if (hasAcceptAndTerminate(filterFeedbackList)) {
                         return allFeedback;
                     }
 
-                    allFeedback.addAll(adaptToPluginState(filterReference, filterFeedback));
+                    ConfigurationId configurationId = filterReference.getConfiguration().getId();
+                    boolean evaluation = filterReference.getState() == PluginState.EVALUATION;
+                    for (FilterFeedback filterFeedback : filterFeedbackList) {
+                        ProcessingFeedback processingFeedback = adaptToPluginState(
+                            configurationId,
+                            evaluation,
+                            filterFeedback);
+                        allFeedback.add(processingFeedback);
+                    }
                 }
-            } catch (RuntimeException e) {
-                String errorMessage = format("Filter %s failed on Message '%s' (ConvId: '%s')", filterReference, context.getMessageId(), context.getConversation().getId());
-                LOG.error(errorMessage, e);
+            } catch (RuntimeException exception) {
+                LOG.error(
+                    "Filter {} failed on Message '{}' (ConvId: '{}')",
+                    filterReference,
+                    context.getMessageId(),
+                    context.getConversation().getId(),
+                    exception);
             }
         }
         return allFeedback;
     }
 
-    private List<ProcessingFeedback> adaptToPluginState(PluginInstanceReference<Filter> pc, List<FilterFeedback> filterFeedback) {
-        List<ProcessingFeedback> converted = new ArrayList<>();
-        for (FilterFeedback p : filterFeedback) {
-            ConfigurationId configurationId = pc.getConfiguration().getId();
-            converted.add(
-                    new ImmutableProcessingFeedback(
-                            configurationId.getPluginFactory(),
-                            configurationId.getInstanceId(),
-                            p.getUiHint(),
-                            p.getDescription(),
-                            p.getScore(),
-                            p.getResultState(),
-                            pc.getState() == PluginState.EVALUATION)
-            );
+    private boolean hasAcceptAndTerminate(List<FilterFeedback> filterFeedbackList) {
+        for (FilterFeedback filterFeedback : filterFeedbackList) {
+            if (filterFeedback.getResultState() == FilterResultState.ACCEPT_AND_TERMINATE) {
+                return true;
+            }
         }
-        return converted;
+        return false;
+    }
+
+    private ProcessingFeedback adaptToPluginState(ConfigurationId configurationId, boolean evaluation,
+            FilterFeedback filterFeedback) {
+        return new ImmutableProcessingFeedback(configurationId.getPluginFactory(), configurationId.getInstanceId(),
+                filterFeedback.getUiHint(), filterFeedback.getDescription(), filterFeedback.getScore(),
+                filterFeedback.getResultState(), evaluation);
     }
 }
