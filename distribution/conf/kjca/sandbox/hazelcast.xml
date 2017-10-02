@@ -11,16 +11,15 @@
         <!-- See http://docs.hazelcast.org/docs/3.4/manual/html/configurationproperties.html -->
         <!-- Default is 60s, which may cause operations to back up really quickly and start being rejected -->
         <property name="hazelcast.operation.call.timeout.millis">2000</property>
-
         <property name="hazelcast.graceful.shutdown.max.wait">10</property>
 
     </properties>
     <network>
-        <port auto-increment="false">13102</port>
+        <port auto-increment="false">5888</port>
         <join>
             <multicast enabled="false"/>
             <tcp-ip enabled="true">
-                <members>ca-core001,ca-core002,ca-core003</members>
+                <members>ca-core001,ca-core002,ca-core003,rts001.dus1.kijiji.qa10.ca.ecg.so,rts002.dus1.kijiji.qa10.ca.ecg.so</members>
             </tcp-ip>
         </join>
     </network>

@@ -5,4 +5,6 @@
     <logger name="ca.kijiji" level="DEBUG"/>
     <logger name="com.ecg.replyts.core.runtime.cluster.monitor.RiakClusterHealthCheck" level="WARN" />
     <logger name="com.ecg.replyts.core.runtime.cluster.monitor.RiakClientHealthWrapper" level="WARN" />
+    <logger name="TerminatedMessageLogger" level="OFF"/>
+    <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
 </included>
