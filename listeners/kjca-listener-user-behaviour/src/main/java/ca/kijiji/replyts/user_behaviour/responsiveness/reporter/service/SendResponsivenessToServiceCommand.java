@@ -16,16 +16,12 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Executes the request to user behaviour service with circuit breaker semantics.
  */
-@Component
 public class SendResponsivenessToServiceCommand extends HystrixCommand {
 
     private static final Logger LOG = LoggerFactory.getLogger(SendResponsivenessToServiceCommand.class);
@@ -39,13 +35,7 @@ public class SendResponsivenessToServiceCommand extends HystrixCommand {
 
     private ResponsivenessRecord responsivenessRecord;
 
-    @Autowired
-    public SendResponsivenessToServiceCommand(
-            EndpointDiscoveryService endpointDiscoveryService,
-            CloseableHttpClient httpClient,
-            @Qualifier("userBehaviourHystrixConfig") Setter userBehaviourHystrixConfig
-    ) {
-
+    public SendResponsivenessToServiceCommand(EndpointDiscoveryService endpointDiscoveryService, CloseableHttpClient httpClient, Setter userBehaviourHystrixConfig) {
         super(userBehaviourHystrixConfig);
 
         this.endpointDiscoveryService = endpointDiscoveryService;

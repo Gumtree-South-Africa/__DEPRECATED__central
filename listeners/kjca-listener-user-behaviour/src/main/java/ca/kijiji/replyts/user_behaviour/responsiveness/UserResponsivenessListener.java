@@ -1,6 +1,7 @@
 package ca.kijiji.replyts.user_behaviour.responsiveness;
 
 import ca.kijiji.replyts.user_behaviour.responsiveness.model.ResponsivenessRecord;
+import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service.EndpointDiscoveryService;
 import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service.SendResponsivenessToServiceCommand;
 import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.sink.ResponsivenessSink;
 import com.codahale.metrics.Counter;
@@ -9,9 +10,12 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
+import com.netflix.hystrix.HystrixCommand;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +31,9 @@ public class UserResponsivenessListener implements MessageProcessedListener {
 
     private final ResponsivenessCalculator responsivenessCalculator;
     private final ResponsivenessSink sink;
-    private final SendResponsivenessToServiceCommand sendResponsivenessCommand;
+    private final EndpointDiscoveryService endpointDiscoveryService;
+    private final CloseableHttpClient httpClient;
+    private final HystrixCommand.Setter userBehaviourHystrixConfig;
     private final Counter noRecordCounter;
     private final Timer calculationTimer;
 
@@ -35,11 +41,15 @@ public class UserResponsivenessListener implements MessageProcessedListener {
     public UserResponsivenessListener(
             ResponsivenessCalculator responsivenessCalculator,
             ResponsivenessSink sink,
-            SendResponsivenessToServiceCommand sendResponsivenessCommand
+            EndpointDiscoveryService endpointDiscoveryService,
+            CloseableHttpClient httpClient,
+            @Qualifier("userBehaviourHystrixConfig") HystrixCommand.Setter userBehaviourHystrixConfig
     ) {
         this.responsivenessCalculator = responsivenessCalculator;
         this.sink = sink;
-        this.sendResponsivenessCommand = sendResponsivenessCommand;
+        this.endpointDiscoveryService = endpointDiscoveryService;
+        this.httpClient = httpClient;
+        this.userBehaviourHystrixConfig = userBehaviourHystrixConfig;
         this.noRecordCounter = TimingReports.newCounter("user-behaviour.responsiveness.noRecord");
         this.calculationTimer = TimingReports.newTimer("user-behaviour.responsiveness.calculation");
     }
@@ -53,6 +63,7 @@ public class UserResponsivenessListener implements MessageProcessedListener {
         }
 
         try {
+            SendResponsivenessToServiceCommand sendResponsivenessCommand = createHystrixCommand();
             sendResponsivenessCommand.setResponsivenessRecord(record);
             sendResponsivenessCommand.execute();
         } catch (Exception e) {
@@ -60,6 +71,11 @@ public class UserResponsivenessListener implements MessageProcessedListener {
         }
 
         sink.storeRecord(Thread.currentThread().getName(), record);
+    }
+
+    // used for testing
+    SendResponsivenessToServiceCommand createHystrixCommand() {
+        return new SendResponsivenessToServiceCommand(endpointDiscoveryService, httpClient, userBehaviourHystrixConfig);
     }
 
     private ResponsivenessRecord createRecord(Conversation conversation, Message message) {

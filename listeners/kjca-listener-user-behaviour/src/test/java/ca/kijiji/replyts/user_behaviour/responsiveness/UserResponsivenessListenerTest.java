@@ -1,10 +1,15 @@
 package ca.kijiji.replyts.user_behaviour.responsiveness;
 
 import ca.kijiji.replyts.user_behaviour.responsiveness.model.ResponsivenessRecord;
+import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service.EndpointDiscoveryService;
+import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service.HystrixCommandConfigurationProvider;
 import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service.SendResponsivenessToServiceCommand;
 import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.sink.ResponsivenessSink;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.runtime.retry.RetryException;
+import com.netflix.hystrix.HystrixCommand;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +32,13 @@ public class UserResponsivenessListenerTest {
     private ResponsivenessSink sinkMock;
 
     @Mock
-    private SendResponsivenessToServiceCommand sendCommandMock;
+    private SendResponsivenessToServiceCommand sendResponsivenessCommandMock;
+
+    @Mock
+    private EndpointDiscoveryService endpointDiscoveryService;
+
+    @Mock
+    private CloseableHttpClient httpClient;
 
     @Mock
     private Conversation conversationMock;
@@ -35,40 +46,42 @@ public class UserResponsivenessListenerTest {
     @Mock
     private Message messageMock;
 
+    private HystrixCommand.Setter userBehaviourHystrixConfig = HystrixCommandConfigurationProvider.provideUserBehaviourConfig(true);
+
     @Before
     public void setUp() {
-        objectUnderTest = new UserResponsivenessListener(calculatorMock, sinkMock, sendCommandMock);
+        objectUnderTest = spy(new UserResponsivenessListener(calculatorMock, sinkMock, endpointDiscoveryService, httpClient, userBehaviourHystrixConfig));
+        when(objectUnderTest.createHystrixCommand()).thenReturn(sendResponsivenessCommandMock);
     }
 
     @Test
-    public void whenNoRecord_shouldNotSendAnyData() {
+    public void whenNoRecord_shouldNotSendAnyData() throws RetryException {
         when(calculatorMock.calculateResponsiveness(conversationMock, messageMock)).thenReturn(null);
 
         objectUnderTest.messageProcessed(conversationMock, messageMock);
 
-        verify(sendCommandMock, never()).execute();
+        verify(sendResponsivenessCommandMock, never()).execute();
         verify(sinkMock, never()).storeRecord(anyString(), any(ResponsivenessRecord.class));
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    public void whenSendCommandFailed_shouldStillSendToSink() {
+    public void whenSendCommandFailed_shouldStillSendToSink() throws RetryException {
         when(calculatorMock.calculateResponsiveness(conversationMock, messageMock)).thenReturn(getDefaultRecord());
-        when(sendCommandMock.execute()).thenThrow(Exception.class);
+        when(sendResponsivenessCommandMock.execute()).thenThrow(Exception.class);
 
         objectUnderTest.messageProcessed(conversationMock, messageMock);
 
-        verify(sendCommandMock).execute();
         verify(sinkMock).storeRecord(anyString(), any(ResponsivenessRecord.class));
     }
 
     @Test
-    public void whenRecordExists_shouldSendToHttpAndSink() {
+    public void whenRecordExists_shouldSendToHttpAndSink() throws RetryException {
         when(calculatorMock.calculateResponsiveness(conversationMock, messageMock)).thenReturn(getDefaultRecord());
 
         objectUnderTest.messageProcessed(conversationMock, messageMock);
 
-        verify(sendCommandMock).execute();
+        verify(sendResponsivenessCommandMock).execute();
         verify(sinkMock).storeRecord(anyString(), any(ResponsivenessRecord.class));
     }
 
