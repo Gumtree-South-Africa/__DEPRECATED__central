@@ -28,8 +28,8 @@ function checkEnv() {
 }
 
 function cleanEnv() {
-    # Remove any "comaasz" containers left over by a previous run
-    docker ps -a | grep comaasz | awk '{print $1}' | xargs --no-run-if-empty docker rm -fv
+    # Remove any "^comaas*" containers left over by a previous run
+    docker ps --all --quiet --filter name=^/comaas | xargs --no-run-if-empty docker rm --force --volumes
 }
 
 function startEnv() {
