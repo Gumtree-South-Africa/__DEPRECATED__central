@@ -15,9 +15,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -58,7 +65,12 @@ public class PostBoxOverviewController {
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page) {
 
         try (Timer.Context ignored = API_POSTBOX_BY_EMAIL.time()) {
-            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+            PostBox postBox;
+            if (size != 0) {
+                postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+            } else {
+                postBox = postBoxRepository.byIdWithoutConversationThreads(PostBoxId.fromEmail(email));
+            }
             API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox);
         }

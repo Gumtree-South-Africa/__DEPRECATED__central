@@ -9,9 +9,9 @@ import com.basho.riak.client.cap.ConflictResolver;
 import com.basho.riak.client.cap.DefaultRetrier;
 import com.basho.riak.client.cap.Quora;
 import com.basho.riak.client.convert.Converter;
+import com.basho.riak.client.query.indexes.IntIndex;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
-import com.basho.riak.client.query.indexes.IntIndex;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
@@ -21,7 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -80,6 +83,11 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
         } catch (RiakRetryFailedException e) {
             throw new RuntimeException("could not load post-box by id #" + id.asString(), e);
         }
+    }
+
+    @Override
+    public PostBox byIdWithoutConversationThreads(PostBoxId id) {
+        return byId(id);
     }
 
     @Override

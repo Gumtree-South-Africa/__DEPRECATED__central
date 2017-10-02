@@ -1,7 +1,13 @@
 package com.ecg.messagecenter.persistence.simple;
 
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
@@ -18,16 +24,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
+import static com.ecg.replyts.core.runtime.util.StreamUtils.*;
 
 public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository, CassandraRepository {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraSimplePostBoxRepository.class);
@@ -42,6 +58,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     private final ConsistencyLevel writeConsistency;
 
     private final Timer byIdTimer = TimingReports.newTimer("cassandra.postBoxRepo-byId");
+    private final Timer unreadCountsByIdTimer = TimingReports.newTimer("cassandra.postBoxRepo-unreadCountsById");
     private final Timer writeTimer = TimingReports.newTimer("cassandra.postBoxRepo-write");
     private final Timer writeThreadTimer = TimingReports.newTimer("cassandra.postBoxRepo-writeThread");
     private final Timer streamConversationThreadModificationsByHourTimer = TimingReports.newTimer("cassandra.postboxRepo-streamConversationModificationsByHour");
@@ -113,6 +130,15 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             LOG.trace("Found {} threads ({} unread) for PostBox with email {} in Cassandra", conversationThreads.size(), newRepliesCount, id.asString());
 
             return new PostBox(id.asString(), Optional.of(newRepliesCount.get()), conversationThreads, maxAgeDays);
+        }
+    }
+
+    @Override
+    public PostBox byIdWithoutConversationThreads(PostBoxId id) {
+        try (Timer.Context ignored = unreadCountsByIdTimer.time()) {
+            Map<String, Integer> unreadCounts = gatherUnreadCounts(id);
+            long unreadCount = unreadCounts.values().stream().mapToLong(Integer::longValue).sum();
+            return new PostBox(id.asString(), Optional.of(unreadCount), new ArrayList<>(), maxAgeDays);
         }
     }
 

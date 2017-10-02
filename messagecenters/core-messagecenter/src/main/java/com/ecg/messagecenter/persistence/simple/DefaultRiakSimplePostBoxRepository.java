@@ -22,10 +22,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Spliterator;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepository  {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRiakSimplePostBoxRepository.class);
@@ -89,6 +93,11 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
         } catch (RiakRetryFailedException e) {
             throw new RuntimeException("could not load post-box by id #" + id.asString(), e);
         }
+    }
+
+    @Override
+    public PostBox byIdWithoutConversationThreads(PostBoxId id) {
+        return byId(id);
     }
 
     @Override

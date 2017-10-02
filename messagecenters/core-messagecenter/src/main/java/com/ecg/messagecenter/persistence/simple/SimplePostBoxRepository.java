@@ -3,8 +3,9 @@ package com.ecg.messagecenter.persistence.simple;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import org.joda.time.DateTime;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository for the 'simple' variety of the PostBox store. The 'simple' variety is a hybrid of the 1st generation
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 public interface SimplePostBoxRepository {
 
     PostBox byId(PostBoxId id);
+
+    PostBox byIdWithoutConversationThreads(PostBoxId id);
 
     void write(PostBox postBox);
 
