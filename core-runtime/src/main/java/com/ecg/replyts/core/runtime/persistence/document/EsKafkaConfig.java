@@ -29,8 +29,7 @@ public class EsKafkaConfig {
         return new KafkaProducerConfig<>();
     }
 
-    @Bean
-    @Qualifier("esSink")
+    @Bean(name = "esSink")
     public KafkaSinkService kafkaSinkService(KafkaProducerConfig<String, byte[]> defaultProducerConfig) {
 
         Timer save = TimingReports.newTimer("kafka.esSaveTimer");

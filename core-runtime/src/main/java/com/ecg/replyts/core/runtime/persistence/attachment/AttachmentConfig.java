@@ -36,8 +36,7 @@ public class AttachmentConfig {
         return new KafkaProducerConfig<>();
     }
 
-    @Bean
-    @Qualifier("attachmentSink")
+    @Bean(name = "attachmentSink")
     public KafkaSinkService kafkaSinkService(KafkaProducerConfig<String, byte[]> defaultProducerConfig) {
 
         KafkaProducerConfig<String, byte[]> attachmentProducerConfig = defaultProducerConfig
