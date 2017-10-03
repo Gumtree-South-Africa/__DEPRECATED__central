@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -134,7 +133,7 @@ public final class JsonObjects {
     }
 
 
-    public static JsonNode newJsonArray(Collection<String> values) {
+    public static JsonNode newJsonArray(List<String> values) {
         ArrayNode array = newJsonArray();
 
         for (String key : ImmutableList.copyOf(values)) {
