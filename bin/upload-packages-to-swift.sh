@@ -19,7 +19,7 @@ function swift() {
         -e OS_AUTH_URL=https://keystone.dus1.cloud.ecg.so/v2.0 \
         -e OS_TENANT_NAME="comaas-qa" \
         -e OS_USERNAME="comaas-control-swift" \
-        -e OS_PASSWORD="1307zENI8tN56r22U4X@" \
+        -e OS_PASSWORD="Q95Ndg{gs7)pKbP)" \
         -e OS_PROJECT_NAME="comaas-control-prod" \
         -e OS_REGION_NAME="dus1" \
         registry.ecg.so/mp-so/python-swiftclient:latest \
