@@ -51,16 +51,16 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     @Autowired
     private CleanupDateCalculator cleanupDateCalculator;
 
-    @Value("${replyts.maxConversationAgeDays:120}")
+    @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;
 
-    @Value("${replyts.cleanup.conversation.streaming.queue.size:100000}")
+    @Value("${replyts.cleanup.conversation.streaming.queue.size:100}")
     private int workQueueSize;
 
     @Value("${replyts.cleanup.conversation.streaming.threadcount:4}")
     private int threadCount;
 
-    @Value("${replyts.cleanup.conversation.streaming.batch.size:3000}")
+    @Value("${replyts.cleanup.conversation.streaming.batch.size:2000}")
     private int batchSize;
 
     @Value("${replyts.cleanup.conversation.schedule.expression:0 0 0 * * ? *}")
@@ -68,7 +68,7 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
     private ThreadPoolExecutor threadPoolExecutor;
 
-    @Value("${replyts.cleanup.conversation.rate.limit:30000}")
+    @Value("${replyts.cleanup.conversation.rate.limit:1000}")
     private int conversationCleanupRateLimit;
 
     private RateLimiter rateLimiter;
