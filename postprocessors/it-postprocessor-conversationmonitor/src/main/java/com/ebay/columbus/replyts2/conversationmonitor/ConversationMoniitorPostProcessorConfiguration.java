@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan("com.ebay.columbus.replyts2.conversationmonitor")
 public class ConversationMoniitorPostProcessorConfiguration {
 
-    @Value("${replyts.conversation.monitor.replaced.chars}")
+    @Value("${replyts.conversation.monitor.replaced.chars:}")
     private String replacedChars;
 
     @Bean
