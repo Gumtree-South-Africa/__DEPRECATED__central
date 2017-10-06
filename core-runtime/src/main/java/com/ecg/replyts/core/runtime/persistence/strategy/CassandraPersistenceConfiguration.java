@@ -56,9 +56,12 @@ public class CassandraPersistenceConfiguration {
     @Autowired
     private ConversationResumer resumer;
 
+    @Value("${persistence.cassandra.conversations.fetch.size:100}")
+    private int conversationEventsFetchLimit;
+
     @Bean
     public ConversationRepository conversationRepository(Session cassandraSessionForCore) {
-        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer);
+        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, conversationEventsFetchLimit);
     }
 
     @Bean

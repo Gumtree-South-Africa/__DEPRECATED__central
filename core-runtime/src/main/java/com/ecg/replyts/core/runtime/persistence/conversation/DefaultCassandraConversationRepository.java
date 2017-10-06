@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.replay;
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Cassandra backed conversation repository.
@@ -68,13 +69,18 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     private ObjectMapper objectMapper;
 
     private ConversationResumer resumer;
+    private final int conversationEventsFetchLimit;
 
-    public DefaultCassandraConversationRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency, ConversationResumer resumer) {
+    public DefaultCassandraConversationRepository(Session session, ConsistencyLevel readConsistency,
+                                                  ConsistencyLevel writeConsistency, ConversationResumer resumer,
+                                                  int conversationEventsFetchLimit) {
+        checkArgument(conversationEventsFetchLimit > 0, "conversationEventsFetchLimit must be a strictly positive number");
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
         this.preparedStatements = StatementsBase.prepare(Statements.class, session);
         this.resumer = resumer;
+        this.conversationEventsFetchLimit = conversationEventsFetchLimit;
     }
 
     @Override
@@ -90,7 +96,8 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     }
 
     List<ConversationEvent> getConversationEvents(String conversationId) {
-        Statement statement = Statements.SELECT_FROM_CONVERSATION_EVENTS.bind(this, conversationId);
+        Statement statement = Statements.SELECT_FROM_CONVERSATION_EVENTS.bind(this, conversationId)
+                .setFetchSize(conversationEventsFetchLimit);
         ResultSet resultset = session.execute(statement);
         return toStream(resultset)
                 .map(this::rowToConversationEvent)

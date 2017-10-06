@@ -339,7 +339,7 @@ public class PostBoxOverviewControllerTest {
             ConversationResumer resumer = new IdBasedConversationResumer();
             ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierServiceFactory().createUserIdentifierService());
 
-            return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer);
+            return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, 100);
         }
     }
 }
