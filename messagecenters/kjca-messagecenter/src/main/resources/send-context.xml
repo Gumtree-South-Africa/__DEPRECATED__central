@@ -5,10 +5,6 @@
 
     <bean id="metricRegistry" class="com.codahale.metrics.MetricRegistry"/>
 
-    <bean id="serviceDiscoveryConfig" class="com.ecg.messagecenter.pushmessage.send.discovery.ServiceDiscoveryConfig">
-        <constructor-arg ref="metricRegistry"/>
-    </bean>
-
     <bean id="sendClient" class="com.ecg.messagecenter.pushmessage.send.client.SendClient"/>
 
     <bean id="sendPushService" class="com.ecg.messagecenter.pushmessage.send.SendPushService"/>

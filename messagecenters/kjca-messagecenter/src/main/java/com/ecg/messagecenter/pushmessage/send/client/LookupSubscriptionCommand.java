@@ -1,10 +1,10 @@
 package com.ecg.messagecenter.pushmessage.send.client;
 
-import ca.kijiji.discovery.ServiceEndpoint;
 import com.ecg.messagecenter.pushmessage.send.model.Subscription;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
@@ -23,12 +23,8 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String SUBSCRIPTIONS_BASE_URL = "/subscriptions";
 
-    private LookupSubscriptionCommand() {
-        this(null, null, null, null, null, null, null, null, null, null, null);
-    }
-
     private LookupSubscriptionCommand(HttpClient httpClient,
-                                      List<ServiceEndpoint> serviceEndpoints,
+                                      HttpHost httpHost,
                                       Long id,
                                       Long userId,
                                       String deviceToken,
@@ -38,7 +34,7 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
                                       Locale locale,
                                       Long offset,
                                       Long limit) {
-        super(httpClient, serviceEndpoints);
+        super(httpClient, httpHost);
 
         try {
             URIBuilder subscriptionLookupUriBuilder = new URIBuilder(SUBSCRIPTIONS_BASE_URL);
@@ -51,7 +47,7 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
 
     public static class Builder {
         private HttpClient httpClient = null;
-        private List<ServiceEndpoint> serviceEndpoints = null;
+        private HttpHost httpHost = null;
         private Long id = null;
         private Long userId = null;
         private String deviceToken = null;
@@ -62,9 +58,9 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
         private Long offset = null;
         private Long limit = null;
 
-        public Builder(HttpClient httpClient, List<ServiceEndpoint> serviceEndpoints) {
+        public Builder(HttpClient httpClient, HttpHost httpHost) {
             this.httpClient = httpClient;
-            this.serviceEndpoints = serviceEndpoints;
+            this.httpHost = httpHost;
         }
 
         public Builder setId(Long id) {
@@ -113,7 +109,7 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
         }
 
         public LookupSubscriptionCommand build() {
-            return new LookupSubscriptionCommand(httpClient, serviceEndpoints, id, userId, deviceToken, deliveryService, type, enabled, locale, offset, limit);
+            return new LookupSubscriptionCommand(httpClient, httpHost, id, userId, deviceToken, deliveryService, type, enabled, locale, offset, limit);
         }
     }
 

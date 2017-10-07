@@ -1,26 +1,19 @@
 package com.ecg.messagecenter.pushmessage.send.client;
 
-import ca.kijiji.discovery.DiscoveryFailedException;
-import ca.kijiji.discovery.ServiceEndpoint;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.pushmessage.send.discovery.ServiceDiscoveryConfig;
-import com.ecg.messagecenter.pushmessage.send.discovery.ServiceEndpointProvider;
-import com.ecg.messagecenter.pushmessage.send.discovery.ServiceName;
 import com.ecg.messagecenter.pushmessage.send.model.SendMessage;
 import com.ecg.messagecenter.pushmessage.send.model.Subscription;
 import com.ecg.replyts.core.runtime.TimingReports;
+import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.Nonnull;
-import java.net.UnknownHostException;
 import java.util.List;
 
 import static com.ecg.messagecenter.pushmessage.send.client.CloseableHttpClientBuilder.aCloseableHttpClient;
@@ -29,36 +22,32 @@ import static com.ecg.messagecenter.pushmessage.send.client.CloseableHttpClientB
  * Service layer to manage subscription requests with SEND
  */
 public class SendClient {
-    private static final Logger LOG = LoggerFactory.getLogger(SendClient.class);
-    private static final int MAX_DISCOVERY_TRIES = 3;
     private static final String ACTION_SEND_MESSAGE = "send.client.send-message";
     private static final String ACTION_HAS_SUBSCRIPTION = "send.client.check-subscription";
 
     //TODO will need to hook this in once we have some real traffic.
     private final int hystrixTimeout;
     private final HttpClient httpClient;
-    private final ServiceDiscoveryConfig serviceDiscoveryConfig;
+    private final HttpHost httpHost;
 
-    private final Counter discoveryFailuresCounter;
     private final Timer sendMessageTimer;
     private final Timer checkSubscriptionTimer;
 
-    private ServiceEndpointProvider serviceEndpointProvider;
-
     @Autowired
-    public SendClient(ServiceDiscoveryConfig serviceDiscoveryConfig,
-                      @Value("${send.client.max.retries:0}") final Integer maxRetries,
-                      @Value("${send.client.max.connections:16}") final Integer maxConnections,
-                      @Value("${send.client.timeout.hystrix.ms:1000}") final Integer hystrixTimeout,
-                      @Value("${send.client.timeout.socket.millis:1000}") final Integer socketTimeout,
-                      @Value("${send.client.timeout.connect.millis:1000}") final Integer connectTimeout,
-                      @Value("${send.client.timeout.connectionRequest.millis:1000}") final Integer connectionRequestTimeout) {
+    public SendClient(
+            @Value("${send.client.max.retries:0}") final Integer maxRetries,
+            @Value("${send.client.max.connections:16}") final Integer maxConnections,
+            @Value("${send.client.timeout.hystrix.ms:1000}") final Integer hystrixTimeout,
+            @Value("${send.client.timeout.socket.millis:1000}") final Integer socketTimeout,
+            @Value("${send.client.timeout.connect.millis:1000}") final Integer connectTimeout,
+            @Value("${send.client.timeout.connectionRequest.millis:1000}") final Integer connectionRequestTimeout,
+            @Value("${send.client.http.endpoint:send-api.qa.kjdev.ca}") final String httpEndpoint,
+            @Value("${send.client.http.port:80}") final Integer httpPort
+    ) {
         this.hystrixTimeout = hystrixTimeout;
-        this.serviceDiscoveryConfig = serviceDiscoveryConfig;
         this.httpClient = createPooledHttpClient(maxRetries, TimingReports.newCounter("send.client.general.retries"), maxConnections, socketTimeout, connectTimeout, connectionRequestTimeout);
-        this.serviceEndpointProvider = setupDiscovery();
+        this.httpHost = new HttpHost(httpEndpoint, httpPort);
 
-        discoveryFailuresCounter = TimingReports.newCounter("send.client.discovery.failures");
         sendMessageTimer = TimingReports.newTimer(ACTION_SEND_MESSAGE);
         checkSubscriptionTimer = TimingReports.newTimer(ACTION_HAS_SUBSCRIPTION);
     }
@@ -83,44 +72,9 @@ public class SendClient {
                 .build();
     }
 
-    private ServiceEndpointProvider setupDiscovery() {
-        try {
-            return serviceDiscoveryConfig.serviceEndpointProvider();
-        } catch (UnknownHostException e) {
-            LOG.warn("Unable to get service catalog. SEND client will continue to fail until this is resolved.", e);
-            return null;
-        }
-    }
-
-    private List<ServiceEndpoint> sendEndpoints() {
-        final ServiceEndpointProvider provider = getEndpointProvider();
-        DiscoveryFailedException exception = null;
-        for (int i = MAX_DISCOVERY_TRIES; i != 0; --i) {
-            try {
-                return provider.getServiceEndpoints(ServiceName.SEND_API);
-            } catch (DiscoveryFailedException e) {
-                exception = e;
-                discoveryFailuresCounter.inc();
-                LOG.warn("Unable to get service catalog. Conversation Service will continue to fail until this is resolved. Retrying " + (i - 1) + " more time(s).", e);
-            }
-        }
-        throw new SendException(SendException.Cause.DISCOVERY, "Discovery of Conversation Service failed", exception);
-    }
-
-    private ServiceEndpointProvider getEndpointProvider() {
-        if (serviceEndpointProvider == null) {
-            serviceEndpointProvider = setupDiscovery();
-            if (serviceEndpointProvider == null) {
-                throw new SendException(SendException.Cause.DISCOVERY, "Could not find service discovery provider", null);
-            }
-        }
-
-        return serviceEndpointProvider;
-    }
-
     public SendMessage sendMessage(@Nonnull SendMessage messageRequest) {
         try (Timer.Context ignored = sendMessageTimer.time()) {
-            SendMessageCommand command = new SendMessageCommand(httpClient, sendEndpoints(), messageRequest);
+            SendMessageCommand command = new SendMessageCommand(httpClient, httpHost, messageRequest);
             final SendMessage response = command.execute();
             if (response != null) {
                 return response;
@@ -139,7 +93,7 @@ public class SendClient {
     public boolean hasSubscription(SendMessage messageRequest) {
         LookupSubscriptionCommand command = null;
         try (Timer.Context ignored = checkSubscriptionTimer.time()) {
-            command = new LookupSubscriptionCommand.Builder(httpClient, sendEndpoints())
+            command = new LookupSubscriptionCommand.Builder(httpClient, httpHost)
                     .setUserId(messageRequest.getUserId())
                     .setType(NotificationType.CHATMESSAGE)
                     .setEnabled(true)

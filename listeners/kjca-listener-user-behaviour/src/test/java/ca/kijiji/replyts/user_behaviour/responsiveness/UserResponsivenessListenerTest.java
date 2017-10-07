@@ -1,7 +1,6 @@
 package ca.kijiji.replyts.user_behaviour.responsiveness;
 
 import ca.kijiji.replyts.user_behaviour.responsiveness.model.ResponsivenessRecord;
-import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service.EndpointDiscoveryService;
 import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service.HystrixCommandConfigurationProvider;
 import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service.SendResponsivenessToServiceCommand;
 import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.sink.ResponsivenessSink;
@@ -23,6 +22,9 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class UserResponsivenessListenerTest {
 
+    private static final String DEFAULT_HOST = "localhost";
+    private static final Integer DEFAULT_PORT = 80;
+
     private UserResponsivenessListener objectUnderTest;
 
     @Mock
@@ -33,9 +35,6 @@ public class UserResponsivenessListenerTest {
 
     @Mock
     private SendResponsivenessToServiceCommand sendResponsivenessCommandMock;
-
-    @Mock
-    private EndpointDiscoveryService endpointDiscoveryService;
 
     @Mock
     private CloseableHttpClient httpClient;
@@ -50,7 +49,7 @@ public class UserResponsivenessListenerTest {
 
     @Before
     public void setUp() {
-        objectUnderTest = spy(new UserResponsivenessListener(calculatorMock, sinkMock, endpointDiscoveryService, httpClient, userBehaviourHystrixConfig));
+        objectUnderTest = spy(new UserResponsivenessListener(calculatorMock, sinkMock, httpClient, userBehaviourHystrixConfig, DEFAULT_HOST, DEFAULT_PORT));
         when(objectUnderTest.createHystrixCommand()).thenReturn(sendResponsivenessCommandMock);
     }
 

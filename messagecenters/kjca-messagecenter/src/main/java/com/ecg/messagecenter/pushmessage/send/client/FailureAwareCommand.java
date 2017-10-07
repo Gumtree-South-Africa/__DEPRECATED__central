@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.pushmessage.send.client;
 
-import ca.kijiji.discovery.ServiceEndpoint;
 import ca.kijiji.tracing.TraceLogFilter;
 import ca.kijiji.tracing.TraceThreadLocal;
 import com.google.common.io.Closeables;
@@ -19,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 /**
  * Hystrix-based container for SEND commands
@@ -27,18 +25,17 @@ import java.util.List;
 abstract class FailureAwareCommand<T> extends HystrixCommand<T> {
     private static final Logger LOG = LoggerFactory.getLogger(FailureAwareCommand.class);
     private final HttpClient httpClient;
-    private final List<ServiceEndpoint> serviceEndpoints;
+    private final HttpHost httpHost;
     private final String traceNumber;
     protected HttpRequestBase request;
     private SendException failure;
 
-    public FailureAwareCommand(final HttpClient httpClient,
-                               final List<ServiceEndpoint> serviceEndpoints) {
+    public FailureAwareCommand(final HttpClient httpClient, HttpHost httpHost) {
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("SEND"))
                 .andThreadPoolKey(HystrixThreadPoolKey.Factory.asKey("SEND")));
 
         this.httpClient = httpClient;
-        this.serviceEndpoints = serviceEndpoints;
+        this.httpHost = httpHost;
         this.traceNumber = TraceThreadLocal.get();
     }
 
@@ -72,7 +69,7 @@ abstract class FailureAwareCommand<T> extends HystrixCommand<T> {
 
             final StringBuilder message = new StringBuilder("HTTP " + statusCode + " " + statusLine.getReasonPhrase());
             if (responseContent.available() != 0) {
-                message.append("\n\n" + IOUtils.toString(responseContent));
+                message.append("\n\n").append(IOUtils.toString(responseContent, "UTF-8"));
             }
             throw new SendException(SendException.Cause.HTTP, message.toString(), null);
         } catch (Exception e) {
@@ -86,19 +83,14 @@ abstract class FailureAwareCommand<T> extends HystrixCommand<T> {
     }
 
     private HttpResponse getHttpResponse() throws IOException {
-        for (ServiceEndpoint endpoint : serviceEndpoints) {
-            try {
-                final HttpHost host = new HttpHost(endpoint.address(), endpoint.port());
-                final HttpResponse response = httpClient.execute(host, this.request);
-
-                if (response.getStatusLine().getStatusCode() < 500) {
-                    return response;
-                }
-
-                HttpClientUtils.closeQuietly(response);
-            } catch (IOException e) {
-                LOG.warn("Unable to process {} due to IOException. This is retryable.", request.getMethod(), e);
+        try {
+            final HttpResponse response = httpClient.execute(this.httpHost, this.request);
+            if (response.getStatusLine().getStatusCode() < 500) {
+                return response;
             }
+            HttpClientUtils.closeQuietly(response);
+        } catch (IOException e) {
+            LOG.warn("Unable to process {} due to IOException. This is retryable.", request.getMethod(), e);
         }
         throw new SendException(SendException.Cause.HTTP, "No endpoints were able to successfully handle this " + request.getMethod(), null);
     }

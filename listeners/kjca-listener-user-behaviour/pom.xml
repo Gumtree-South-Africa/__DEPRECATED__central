@@ -32,11 +32,6 @@
         </dependency>
 
         <dependency>
-            <groupId>ca.kijiji</groupId>
-            <artifactId>service-discovery</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.netflix.hystrix</groupId>
             <artifactId>hystrix-core</artifactId>
             <exclusions>

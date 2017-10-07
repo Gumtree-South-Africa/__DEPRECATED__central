@@ -1,8 +1,8 @@
 package com.ecg.messagecenter.pushmessage.send.client;
 
-import ca.kijiji.discovery.ServiceEndpoint;
 import com.ecg.messagecenter.pushmessage.send.model.SendMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -10,7 +10,6 @@ import org.apache.http.entity.StringEntity;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 public class SendMessageCommand extends FailureAwareCommand<SendMessage> {
 
@@ -18,10 +17,8 @@ public class SendMessageCommand extends FailureAwareCommand<SendMessage> {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
 
-    public SendMessageCommand(HttpClient httpClient,
-                              List<ServiceEndpoint> serviceEndpoints,
-                              SendMessage messageRequest) {
-        super(httpClient, serviceEndpoints);
+    public SendMessageCommand(HttpClient httpClient, HttpHost httpHost, SendMessage messageRequest) {
+        super(httpClient, httpHost);
 
         this.request = new HttpPost(SEND_MESSAGE_BASE_URL);
         try {

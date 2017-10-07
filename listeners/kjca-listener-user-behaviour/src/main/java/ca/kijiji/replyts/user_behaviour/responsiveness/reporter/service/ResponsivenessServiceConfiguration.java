@@ -1,7 +1,5 @@
 package ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service;
 
-import ca.kijiji.discovery.LookupRequest;
-import ca.kijiji.discovery.Protocol;
 import ca.kijiji.discovery.ServiceDirectory;
 import ca.kijiji.discovery.consul.DnsConsulCatalog;
 import ca.kijiji.replyts.user_behaviour.responsiveness.hystrix.metrics.RTSHystrixCodaHaleMetricsPublisher;
@@ -82,10 +80,5 @@ public class ResponsivenessServiceConfiguration {
                 new RTSHystrixCodaHaleMetricsPublisher(MetricsService.getInstance().getRegistry())
         );
         return HystrixCommandConfigurationProvider.provideUserBehaviourConfig(false);
-    }
-
-    @Bean
-    private static LookupRequest httpUserBehaviourLookup() {
-        return new LookupRequest("user-behaviour-service", new Protocol("http"));
     }
 }
