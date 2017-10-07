@@ -12,7 +12,13 @@ readonly DOCKER_PROJECT_NAME="comaasZtestZ${TENANT}Z${CREATION_SECONDS}"
 readonly DOCKER_COMPOSE="docker-compose -f ${DOCKER_COMPOSE_FILE} --project-name ${DOCKER_PROJECT_NAME}"
 
 function cleanEnv() {
-    docker ps --format {{.Names}} | grep comaas | xargs --no-run-if-empty docker rm --force --volumes
+    # Mac (Darwin) does not have '--no-run-if-empty' option for xargs and work fine with empty lists
+    if [ "$(uname -s)" == "Darwin" ]
+    then
+       docker ps --format {{.Names}} | grep comaas | xargs docker rm --force --volumes
+    else
+       docker ps --format {{.Names}} | grep comaas | xargs --no-run-if-empty docker rm --force --volumes
+    fi
 }
 
 function startEnv() {
