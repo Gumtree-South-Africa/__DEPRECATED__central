@@ -163,9 +163,7 @@ import static org.joda.time.DateTime.*;
                         item.getBuyerName(),
                         item.getSellerName(),
                         item.getBuyerId(),
-                        item.getMessageDirection(),
-                        item.getRobot(),
-                        item.getOfferId());
+                        item.getMessageDirection());
 
                 threadsToUpdate.add(updatedConversation);
                 needsUpdate = true;

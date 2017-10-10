@@ -1,44 +1,32 @@
 package com.ecg.messagecenter.persistence;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.joda.time.DateTime;
 
 import java.util.Optional;
 
 public class ConversationThread extends AbstractConversationThread {
-    //introduced later therefore Option to be compatible with persistent data
-    private Optional<String> robot;
-    private Optional<String> offerId;
 
+    @JsonCreator
     public ConversationThread(
-                    String adId,
-                    String conversationId,
-                    DateTime createdAt,
-                    DateTime modifiedAt,
-                    DateTime receivedAt,
-                    boolean containsUnreadMessages,
-                    Optional<String> previewLastMessage,
-                    Optional<String> buyerName,
-                    Optional<String> sellerName,
-                    Optional<String> buyerId,
-                    Optional<String> messageDirection,
-                    Optional<String> robot,
-                    Optional<String> offerId) {
+            @JsonProperty("adId") String adId,
+            @JsonProperty("conversationId") String conversationId,
+            @JsonProperty("createdAt") DateTime createdAt,
+            @JsonProperty("modifiedAt") DateTime modifiedAt,
+            @JsonProperty("receivedAt") DateTime receivedAt,
+            @JsonProperty("containsUnreadMessages") boolean containsUnreadMessages,
+            @JsonProperty("previewLastMessage") Optional<String> previewLastMessage,
+            @JsonProperty("buyerName") Optional<String> buyerName,
+            @JsonProperty("sellerName") Optional<String> sellerName,
+            @JsonProperty("buyerId") Optional<String> buyerId,
+            @JsonProperty("messageDirection") Optional<String> messageDirection)
+    {
         super(adId, conversationId, createdAt, modifiedAt, receivedAt, containsUnreadMessages, previewLastMessage, buyerName, sellerName, buyerId, messageDirection);
-
-        this.robot = robot;
-        this.offerId = offerId;
-    }
+}
 
     @Override
     public ConversationThread newReadConversation() {
-        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), receivedAt, false, previewLastMessage, buyerName, sellerName, buyerId, messageDirection, robot, offerId);
-    }
-
-    public Optional<String> getRobot() {
-        return robot;
-    }
-
-    public Optional<String> getOfferId() {
-        return offerId;
+        return new ConversationThread(adId, conversationId, createdAt, DateTime.now(), receivedAt, false, previewLastMessage, buyerName, sellerName, buyerId, messageDirection);
     }
 }

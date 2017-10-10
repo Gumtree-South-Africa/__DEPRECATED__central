@@ -83,7 +83,6 @@ public class PostBoxListItemResponse {
         this.lastMessage = new MessageResponse(MessageCenterUtils
                         .toFormattedTimeISO8601ExplicitTimezoneOffset(
                                         conversationThread.getReceivedAt()),
-                        conversationThread.getOfferId(), conversationThread.getRobot(),
                         ConversationBoundnessFinder.boundnessForRole(this.role,
                                         conversationThread.getMessageDirection().get()),
                         conversationThread.getPreviewLastMessage().get(), Optional.empty(),
@@ -219,11 +218,4 @@ public class PostBoxListItemResponse {
         return attachments == null ? Collections.<String>emptyList() : attachments;
     }
 
-    public String getRobot() {
-        return lastMessage.getRobot();
-    }
-
-    public String getOfferId() {
-        return lastMessage.getOfferId();
-    }
 }

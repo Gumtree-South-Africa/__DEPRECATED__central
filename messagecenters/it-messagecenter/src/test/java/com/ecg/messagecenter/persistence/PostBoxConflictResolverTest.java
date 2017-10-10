@@ -78,7 +78,6 @@ public class PostBoxConflictResolverTest {
         return new ConversationThread("123", convId, CREATED_AT, modifiedAt, receivedDate, false,
                         Optional.empty(), Optional.empty(),
                         Optional.empty(), Optional.empty(),
-                        Optional.empty(), Optional.empty(),
                         Optional.empty());
 
     }

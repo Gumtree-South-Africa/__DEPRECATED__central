@@ -30,13 +30,10 @@ public class MessageResponse {
     private final String textShortTrimmed;
     private final Optional<String> phoneNumber;
     private final List<Attachment> attachments;
-    private final Optional<String> offerId;
-    private final Optional<String> robot;
     private final String senderEmail;
     private final String messageId;
 
-    public MessageResponse(String receivedDate, Optional<String> offerId, Optional<String> robot,
-                    MailTypeRts boundness, String textShort, Optional<String> phoneNumber,
+    public MessageResponse(String receivedDate, MailTypeRts boundness, String textShort, Optional<String> phoneNumber,
                     List<Attachment> attachments, String senderEmail, String messageId) {
         this.receivedDate = receivedDate;
         this.boundness = boundness;
@@ -44,8 +41,6 @@ public class MessageResponse {
         this.phoneNumber = phoneNumber;
         this.attachments = attachments;
         this.senderEmail = senderEmail;
-        this.offerId = offerId;
-        this.robot = robot;
         this.textShortTrimmed = REMOVE_DOUBLE_WHITESPACES.matcher(textShort).replaceAll(" ");
         this.messageId = messageId;
     }
@@ -68,14 +63,6 @@ public class MessageResponse {
 
     public List<Attachment> getAttachments() {
         return attachments;
-    }
-
-    public String getOfferId() {
-        return offerId.isPresent() ? offerId.get() : null;
-    }
-
-    public String getRobot() {
-        return robot.isPresent() ? robot.get() : null;
     }
 
     public String getMessageId() {

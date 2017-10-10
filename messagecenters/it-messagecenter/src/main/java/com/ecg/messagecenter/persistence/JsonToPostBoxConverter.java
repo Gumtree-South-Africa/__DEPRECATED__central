@@ -32,9 +32,7 @@ public class JsonToPostBoxConverter implements AbstractJsonToPostBoxConverter<Co
             lookupStringValue(threadNode, "buyerName"),
             lookupStringValue(threadNode, "sellerName"),
             lookupStringValue(threadNode, "buyerId"),
-            lookupStringValue(threadNode, "messageDirection"),
-            lookupStringValue(threadNode, "robot"),
-            lookupStringValue(threadNode, "offerId")))
+            lookupStringValue(threadNode, "messageDirection")))
           .collect(Collectors.toList());
 
         return new PostBox<>(key, lookupLongValue(json, "newRepliesCounter"), threads, maxAgeDays);

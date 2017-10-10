@@ -127,10 +127,6 @@ public class MessagesResponseFactory {
         transformedMessages.add(new MessageResponse(MessageCenterUtils
                                         .toFormattedTimeISO8601ExplicitTimezoneOffset(
                                                         firstMessage.getReceivedAt()),
-                                        Optional.ofNullable(firstMessage.getHeaders()
-                                                .get(Header.OfferId.getValue())),
-                                        Optional.ofNullable(firstMessage.getHeaders()
-                                                .get(Header.Robot.getValue())),
                                         ConversationBoundnessFinder.boundnessForRole(role,
                                                         firstMessage.getMessageDirection()),
                                         textShort, Optional.ofNullable(phoneNumber),
@@ -164,10 +160,6 @@ public class MessagesResponseFactory {
             transformedMessages.add(new MessageResponse(MessageCenterUtils
                                             .toFormattedTimeISO8601ExplicitTimezoneOffset(
                                                             messageRts.get(i).getReceivedAt()),
-                                            Optional.ofNullable(messageRts.get(i).getHeaders()
-                                                    .get(Header.OfferId.getValue())),
-                                            Optional.ofNullable(messageRts.get(i).getHeaders()
-                                                            .get(Header.Robot.getValue())),
                                             ConversationBoundnessFinder.boundnessForRole(role,
                                                             messageRts.get(i)
                                                                             .getMessageDirection()),

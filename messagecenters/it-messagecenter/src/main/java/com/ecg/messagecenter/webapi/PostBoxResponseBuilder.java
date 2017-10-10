@@ -92,8 +92,7 @@ public class PostBoxResponseBuilder {
                                         .cleanupText(lastMessage.getPlainTextBody()), 250)),
                                 conversationThread.getBuyerName(),
                                 conversationThread.getSellerName(), conversationThread.getBuyerId(),
-                                conversationThread.getMessageDirection(), Optional.empty(),
-                                Optional.empty()));
+                                conversationThread.getMessageDirection()));
             }
         }
 
