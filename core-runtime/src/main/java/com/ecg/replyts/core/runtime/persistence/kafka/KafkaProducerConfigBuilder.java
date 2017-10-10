@@ -137,9 +137,8 @@ public class KafkaProducerConfigBuilder<K, V> {
             return this;
         }
 
-
         public KafkaProducerConfig withMaxInFlightPerConnection(int maxInFlightPerConnectionVal) {
-            maxInFlightPerConnection =  maxInFlightPerConnectionVal;
+            maxInFlightPerConnection = maxInFlightPerConnectionVal;
             return this;
         }
 
@@ -160,8 +159,6 @@ public class KafkaProducerConfigBuilder<K, V> {
             producer = new KafkaProducer(configProperties);
             return this;
         }
-
-
 
         public String getKeySerializer() {
             return keySerializer;
@@ -198,8 +195,6 @@ public class KafkaProducerConfigBuilder<K, V> {
         public String getServers() {
             return servers;
         }
-
     }
-
 
 }
