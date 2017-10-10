@@ -8,7 +8,6 @@ set -o errexit
 readonly ARGS="$@"
 readonly DIR=$(dirname $0)
 readonly COMAAS_PID="$PWD/comaas.pid"
-readonly COMAAS_OUT="$PWD/comaas.out"
 
 readonly ATTEMPTS=60
 readonly HEALTH_CHECK_DELAY=3
@@ -51,7 +50,6 @@ function findOpenPort() {
 
 function startComaas() {
     log "Starting Comaas"
-    log "Writing comaas output to ${COMAAS_OUT}"
     COMAAS_HTTP_PORT=$(findOpenPort)
     log "Starting comaas on port $COMAAS_HTTP_PORT"
 
@@ -59,7 +57,7 @@ function startComaas() {
     tar xfz distribution-${TENANT}-bare.tar.gz
     cd distribution
 
-    COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} bin/comaas > ${COMAAS_OUT} 2>&1 &
+    COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} bin/comaas 2>&1 &
     echo $! > ${COMAAS_PID}
 
     log "Comaas pid: $(cat ${COMAAS_PID})")
