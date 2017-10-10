@@ -3,9 +3,8 @@ package com.ecg.replyts.core.runtime.persistence.attachment;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.persistence.kafka.KafkaProducerConfig;
+import com.ecg.replyts.core.runtime.persistence.kafka.KafkaProducerConfigBuilder;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaSinkService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -31,25 +30,26 @@ public class AttachmentConfig {
     @Value("${kafka.attachment.request.timeout.ms:10000}")
     private int storeTimeoutMs;
 
+
     @Bean
-    KafkaProducerConfig<String, byte[]> defaultProducerConfig() {
-        return new KafkaProducerConfig<>();
+    public KafkaProducerConfigBuilder<String, byte[]> kafkaProducerConfigBuilder() {
+        return new KafkaProducerConfigBuilder<>();
     }
 
     @Bean(name = "attachmentSink")
-    public KafkaSinkService kafkaSinkService(KafkaProducerConfig<String, byte[]> defaultProducerConfig) {
+    public KafkaSinkService kafkaSinkService(KafkaProducerConfigBuilder kafkaProducerConfigBuilder) {
 
-        KafkaProducerConfig<String, byte[]> attachmentProducerConfig = defaultProducerConfig
+        KafkaProducerConfigBuilder.KafkaProducerConfig attachmentProducerConfig = kafkaProducerConfigBuilder.getProducerConfig()
                 .withTopic(topic)
                 .withStoreTimeoutMs(storeTimeoutMs)
                 .withBatchSize(batchSize)
                 .withCompressionType(compressionType)
                 .withMaxRequestSize(maxRequestSize);
-        attachmentProducerConfig.init();
 
         Timer save = TimingReports.newTimer("attachment.kafka-save-timer");
         Counter attachment_counter = TimingReports.newCounter("attachment.kafka-attachment-counter");
-        return new KafkaSinkService(save, attachment_counter, attachmentProducerConfig);
+
+        return new KafkaSinkService(save, attachment_counter, attachmentProducerConfig.build());
     }
 
     @Bean

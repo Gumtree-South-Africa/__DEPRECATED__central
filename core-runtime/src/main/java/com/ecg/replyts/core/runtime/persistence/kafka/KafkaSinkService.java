@@ -17,9 +17,9 @@ public class KafkaSinkService {
 
     private Timer saveTimer;
     private Counter messageCounter;
-    private KafkaProducerConfig<String, byte[]> producerConfig;
+    private KafkaProducerConfigBuilder.KafkaProducerConfig producerConfig;
 
-    public KafkaSinkService(Timer saveTimer, Counter messageCounter, KafkaProducerConfig<String, byte[]> producerConfig) {
+    public KafkaSinkService(Timer saveTimer, Counter messageCounter, KafkaProducerConfigBuilder.KafkaProducerConfig producerConfig) {
         this.saveTimer = saveTimer;
         this.messageCounter = messageCounter;
         this.producerConfig = producerConfig;

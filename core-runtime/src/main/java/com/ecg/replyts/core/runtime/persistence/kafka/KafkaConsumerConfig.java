@@ -6,6 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -16,6 +18,8 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 
 // This is used for testing only
 @VisibleForTesting
+@Component
+@Scope("prototype")
 public class KafkaConsumerConfig<K, V> {
 
     @Value("${kafka.core.servers:localhost:9092}")
