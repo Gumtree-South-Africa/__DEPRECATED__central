@@ -11,9 +11,9 @@ Install [Docker](https://docs.docker.com/engine/installation/mac/) to be able to
 One time setup:
 `docker login docker-registry.ecg.so`
 
-Start all Comaas supporting services by running:
+Start all Comaas supporting services by checking out https://github.corp.ebay.com/ecg-comaas/ecg-comaas-docker:
 ```
-cd docker
+cd ecg-comaas-docker
 make up
 # make import # if you want to manually import all docker.properties for all tenants, not needed when using the build.sh script
 ```
@@ -63,7 +63,7 @@ To run COMaaS for a specific tenant from your IDE, use the following Run configu
 * Runner / VM arguments:
   ```
   -Drevision=123
-  -DconfDir=distribution/conf/<name of tenant, e.g. mp>/local
+  -DconfDir=distribution/conf/<name of tenant, e.g. mp>/docker
   -DlogDir=/tmp
   -Dmail.mime.parameters.strict=false
   -Dmail.mime.address.strict=false
