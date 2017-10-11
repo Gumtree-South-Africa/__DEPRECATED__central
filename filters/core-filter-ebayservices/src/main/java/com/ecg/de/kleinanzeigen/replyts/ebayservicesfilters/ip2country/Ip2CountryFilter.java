@@ -33,7 +33,7 @@ class Ip2CountryFilter implements Filter {
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         Optional<String> ipStr = extractor.retrieveIpAddress(messageProcessingContext);
         if (!ipStr.isPresent()) {
-            LOG.debug("Message does not have an IP address header");
+            LOG.trace("Message does not have an IP address header");
             return emptyList();
         }
 

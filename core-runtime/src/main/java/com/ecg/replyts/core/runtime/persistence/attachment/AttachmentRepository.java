@@ -56,7 +56,7 @@ public class AttachmentRepository {
 
         MAIL_COUNTER.inc();
         if (attNames.isEmpty()) {
-            LOG.info("Message id {} has no attachments ", messageId);
+            LOG.trace("Message id {} has no attachments ", messageId);
             return null;
         }
 
@@ -74,7 +74,7 @@ public class AttachmentRepository {
         try (Timer.Context time = STORE_MAIL.time()) {
 
             long totalSize = 0;
-            LOG.debug("Storing attachments {}", mail.getAttachmentNames());
+            LOG.trace("Storing attachments {}", mail.getAttachmentNames());
             for (String aname : mail.getAttachmentNames()) {
 
                 TypedContent<byte[]> attachment = mail.getAttachment(aname);

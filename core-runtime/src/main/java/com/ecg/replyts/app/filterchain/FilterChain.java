@@ -43,7 +43,7 @@ public class FilterChain {
     private HeldMailRepository heldMailRepository;
 
     public void filter(MessageProcessingContext context) {
-        LOG.debug("Filtering message {}", context.getMessageId());
+        LOG.trace("Filtering message {}", context.getMessageId());
 
         try {
             List<ProcessingFeedback> allFeedback = filterListProcessor.processAllFilters(context);

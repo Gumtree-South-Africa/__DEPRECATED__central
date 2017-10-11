@@ -38,7 +38,7 @@ public class AutomatedMailRemover implements PreProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(AutomatedMailRemover.class);
 
     // NOTE: "auto_reply" is NOT ignored
-    private static final Set<String> IGNORABLE_PRECEDENCES = new HashSet<String>(Arrays.asList(
+    private static final Set<String> IGNORABLE_PRECEDENCES = new HashSet<>(Arrays.asList(
             "bulk", "junk", "list"));
     private static final String X_MAIL_AUTOREPLY = "X-Mail-Autoreply";
     private static final String X_AUTOREPLY = "X-Autoreply";
@@ -54,10 +54,9 @@ public class AutomatedMailRemover implements PreProcessor {
 
     @Override
     public void preProcess(MessageProcessingContext context) {
-        LOG.debug("Checking if message {} is automated reply", context.getMessageId());
+        LOG.trace("Checking if message {} is automated reply", context.getMessageId());
 
         Mail mail = context.getMail();
-
 
         boolean isAcceptableMail = checkReturnPath(mail, context) && // NOSONAR
                 checkFromMailerDaemon(mail, context) &&

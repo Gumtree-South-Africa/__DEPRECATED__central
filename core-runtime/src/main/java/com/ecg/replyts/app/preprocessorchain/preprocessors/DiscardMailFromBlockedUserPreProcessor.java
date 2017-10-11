@@ -25,7 +25,7 @@ public class DiscardMailFromBlockedUserPreProcessor implements PreProcessor {
 
     @Override
     public void preProcess(MessageProcessingContext context) {
-        LOG.debug("Checking if users in conversation {} are blocked", context.getConversation().getId());
+        LOG.trace("Checking if users in conversation {} are blocked", context.getConversation().getId());
 
         Conversation conversation = context.getConversation();
         String buyerId = conversation.getBuyerId();

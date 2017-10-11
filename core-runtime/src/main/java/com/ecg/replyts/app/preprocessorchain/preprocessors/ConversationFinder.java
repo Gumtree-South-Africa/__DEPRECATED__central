@@ -46,7 +46,7 @@ public class ConversationFinder implements PreProcessor {
 
     @Override
     public void preProcess(MessageProcessingContext context) {
-        LOG.debug("Finding conversation on message {}", context.getMessageId());
+        LOG.trace("Finding conversation on message {}", context.getMessageId());
 
         if (Strings.isNullOrEmpty(context.getMail().getDeliveredTo())) {
             throw new IllegalArgumentException("Could not read 'DeliveredTo' recipient from Mail.");

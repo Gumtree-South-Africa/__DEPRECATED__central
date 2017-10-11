@@ -19,14 +19,13 @@ public class DiscardMailOnClosedStatePreProcessor implements PreProcessor {
 
     @Override
     public void preProcess(MessageProcessingContext context) {
-        LOG.debug("Checking if conversation {} is closed", context.getConversation().getId());
+        LOG.trace("Checking if conversation {} is closed", context.getConversation().getId());
 
         if (context.getConversation().getState() == ConversationState.CLOSED) {
             context.terminateProcessing(MessageState.DISCARDED,this, "Conversation is closed");
             LOG.debug("Conversation {} is closed reply: {}", context.getConversation().getId(), context.getTermination().getReason());
         }
     }
-
 
     @Override
     public int getOrder() {

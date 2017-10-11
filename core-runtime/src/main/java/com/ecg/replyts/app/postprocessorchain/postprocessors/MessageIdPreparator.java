@@ -9,9 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static com.ecg.replyts.core.api.model.mail.Mail.IN_REPLY_TO_HEADER;
-import static com.ecg.replyts.core.api.model.mail.Mail.MESSAGE_ID_HEADER;
-import static com.ecg.replyts.core.api.model.mail.Mail.REFERENCES_HEADER;
+import static com.ecg.replyts.core.api.model.mail.Mail.*;
 import static java.lang.String.format;
 
 @Component("messageIdPreparator")
@@ -29,7 +27,7 @@ public class MessageIdPreparator implements PostProcessor {
     @Override
     public void postProcess(MessageProcessingContext context) {
         MutableMail outgoingMail = context.getOutgoingMail();
-        LOG.debug("Setting Message-ID/References/In-Reply-To headers for message {}", context.getMessageId());
+        LOG.trace("Setting Message-ID/References/In-Reply-To headers for message {}", context.getMessageId());
         try {
             outgoingMail.removeHeader(MESSAGE_ID_HEADER);
             outgoingMail.removeHeader(REFERENCES_HEADER);
