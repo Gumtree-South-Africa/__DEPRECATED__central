@@ -103,8 +103,6 @@ public class CassandraPostBoxServiceTest {
     private PostBox postBox;
     @Mock
     private NewConversationService newConversationService;
-    @Mock
-    private ConversationUpdateEventProcessor updateEventProcessor;
 
     @Autowired
     private MessagesResponseFactory messagesResponseFactory;
@@ -115,8 +113,8 @@ public class CassandraPostBoxServiceTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         DateTimeUtils.setCurrentMillisFixed(now().getMillis());
-        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService, blockUserRepo,
-                responseDataService, messagesResponseFactory, newConversationService, updateEventProcessor);
+        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService,
+                responseDataService, newConversationService);
         when(userIdentifierService.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierService.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(blockUserRepo.areUsersBlocked(any(), any())).thenReturn(false);
@@ -133,7 +131,7 @@ public class CassandraPostBoxServiceTest {
         Message rtsMsg1 = newMessage("1", SELLER_TO_BUYER, MessageState.SENT, DEFAULT_SUBJECT);
         Message rtsMsg2 = newMessage("2", SELLER_TO_BUYER, MessageState.SENT, "Another subject");
         Conversation conversation = newConversationWithMessages(CONVERSATION_ID_1, singletonList(rtsMsg1)).build();
-        service.processNewMessage(USER_ID_1, conversation, rtsMsg2, true);
+        service.processNewMessage(USER_ID_1, conversation, rtsMsg2, true, "");
 
         ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
         ArgumentCaptor<com.ecg.messagebox.model.Message> messageArgCaptor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
@@ -153,7 +151,6 @@ public class CassandraPostBoxServiceTest {
         Assert.assertEquals(messageIdDate.year(), currentTime.year());
 
         verify(responseDataService).calculateResponseData(USER_ID_1, conversation, rtsMsg2);
-        verify(updateEventProcessor).publishConversationUpdate(conversation, rtsMsg2, "text 123");
     }
 
     @Test
@@ -176,7 +173,7 @@ public class CassandraPostBoxServiceTest {
 
         ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
 
-        service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true);
+        service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true, "text 123");
 
         verify(conversationsRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), eq(true));
 
@@ -231,7 +228,7 @@ public class CassandraPostBoxServiceTest {
                 newMessage,
                 new ConversationMetadata(now(), "subject", "title"));
 
-        service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true);
+        service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true, "text 123");
 
         verify(conversationsRepo).createConversation(USER_ID_1, conversation, newMessage, true);
     }

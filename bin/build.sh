@@ -97,7 +97,7 @@ function parseCmd() {
                ;;
             P) log "Build and Package profile $OPTARG"; PACKAGE="$OPTARG"
                ;;
-            E) log "Build and Execute Comaas for specific tenant. Please start ecg-comaas-vagrant manually"; EXECUTE=true
+            E) log "Build and Execute Comaas for specific tenant. Please start ecg-comaas-docker manually"; EXECUTE=true
                ;;
             D) log "Wait for debugger before running Maven" ; WAIT_FOR_DEBUGGER=1;
                ;;

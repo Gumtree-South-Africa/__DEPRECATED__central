@@ -1,10 +1,13 @@
 package com.ecg.messagebox.listeners;
 
+import com.ecg.messagebox.events.ConversationUpdateEventProcessor;
 import com.ecg.messagebox.service.PostBoxService;
+import com.ecg.messagebox.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
+import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,6 +38,15 @@ public class PostBoxUpdateListenerTest {
     @Mock
     private UserIdentifierService userIdentifierServiceMock;
 
+    @Mock
+    BlockUserRepository blockUserRepository;
+
+    @Mock
+    MessagesResponseFactory messagesResponseFactory;
+
+    @Mock
+    ConversationUpdateEventProcessor conversationUpdateEventProcessor;
+
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -48,7 +60,8 @@ public class PostBoxUpdateListenerTest {
 
     @Before
     public void setup() {
-        listener = new PostBoxUpdateListener(delegatorMock, userIdentifierServiceMock);
+        listener = new PostBoxUpdateListener(delegatorMock, userIdentifierServiceMock, conversationUpdateEventProcessor,
+                blockUserRepository, messagesResponseFactory);
 
         convBuilder = ImmutableConversation.Builder
                 .aConversation()
@@ -72,13 +85,30 @@ public class PostBoxUpdateListenerTest {
     public void validConvAndMsgFromBuyer_processed() {
         Conversation conversation = convBuilder.build();
         Message message = msgBuilder.build();
+        when(messagesResponseFactory.getCleanedMessage(conversation, message)).thenReturn("clean message");
 
         listener.messageProcessed(conversation, message);
 
+        verify(blockUserRepository).areUsersBlocked(BUYER_USER_ID, SELLER_USER_ID);
+        verify(conversationUpdateEventProcessor).publishConversationUpdate(conversation, message, "clean message");
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Buyer);
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Seller);
-        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false);
-        verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, true);
+        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false, "clean message");
+        verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, true, "clean message");
+    }
+
+    @Test
+    public void doNothingIfUserIsBlocked_notProcessed() {
+        Conversation conversation = convBuilder.build();
+        Message message = msgBuilder.build();
+        when(blockUserRepository.areUsersBlocked(BUYER_USER_ID, SELLER_USER_ID)).thenReturn(true);
+
+        listener.messageProcessed(conversation, message);
+
+
+        verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Buyer);
+        verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Seller);
+        verifyNoMoreInteractions(userIdentifierServiceMock, delegatorMock);
     }
 
     @Test
@@ -90,8 +120,8 @@ public class PostBoxUpdateListenerTest {
 
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Buyer);
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Seller);
-        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, true);
-        verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, false);
+        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, true, null);
+        verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, false, null);
     }
 
     @Test
@@ -121,8 +151,8 @@ public class PostBoxUpdateListenerTest {
 
         listener.messageProcessed(conversation, message);
 
-        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false);
-        verify(delegatorMock, never()).processNewMessage(SELLER_USER_ID, conversation, message, true);
+        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false, null);
+        verify(delegatorMock, never()).processNewMessage(SELLER_USER_ID, conversation, message, true, null);
     }
 
     @Test
@@ -168,8 +198,8 @@ public class PostBoxUpdateListenerTest {
 
         listener.messageProcessed(conversation, message);
 
-        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false);
-        verify(delegatorMock, never()).processNewMessage(SELLER_USER_ID, conversation, message, true);
+        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false, null);
+        verify(delegatorMock, never()).processNewMessage(SELLER_USER_ID, conversation, message, true, null);
     }
 
     @Test
@@ -179,7 +209,7 @@ public class PostBoxUpdateListenerTest {
 
         doThrow(new RuntimeException("~expected exception~"))
                 .when(delegatorMock)
-                .processNewMessage(BUYER_USER_ID, conversation, message, false);
+                .processNewMessage(BUYER_USER_ID, conversation, message, false, null);
 
         thrown.expect(RuntimeException.class);
         thrown.expectMessage("Error updating user projections for conversation cid, conversation state ACTIVE and message mid: ~expected exception~");

@@ -49,14 +49,14 @@ public class ConversationUpdateEventProcessorTest {
 
     @Test
     public void disabledByDefault() {
-        ConversationUpdateEventProcessor processor = new ConversationUpdateEventProcessor(() -> converter, () -> publisher, false);
+        ConversationUpdateEventProcessor processor = new ConversationUpdateEventProcessor(converter, publisher, false);
         processor.publishConversationUpdate(conv, msg, "test 123");
         verifyNoMoreInteractions(publisher);
     }
 
     @Test
     public void publishMessage() throws ClassNotFoundException {
-        ConversationUpdateEventProcessor processor = new ConversationUpdateEventProcessor(() -> converter, () -> publisher, true);
+        ConversationUpdateEventProcessor processor = new ConversationUpdateEventProcessor(converter, publisher, true);
 
         when(converter.toEvents(any(), any())).thenReturn(Lists.newArrayList(new EventPublisher.Event(null, null)));
 

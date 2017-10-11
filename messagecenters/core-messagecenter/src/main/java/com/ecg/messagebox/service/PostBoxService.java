@@ -14,7 +14,8 @@ public interface PostBoxService {
     void processNewMessage(String userId,
                            com.ecg.replyts.core.api.model.conversation.Conversation conversation,
                            com.ecg.replyts.core.api.model.conversation.Message message,
-                           boolean isNewReply);
+                           boolean isNewReply,
+                           String cleanMsgText);
 
     Optional<ConversationThread> getConversation(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit);
 

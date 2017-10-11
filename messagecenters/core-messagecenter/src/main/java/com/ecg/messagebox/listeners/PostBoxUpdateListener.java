@@ -2,7 +2,9 @@ package com.ecg.messagebox.listeners;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
+import com.ecg.messagebox.events.ConversationUpdateEventProcessor;
 import com.ecg.messagebox.service.PostBoxService;
+import com.ecg.messagebox.util.MessagesResponseFactory;
 import com.ecg.messagecenter.listeners.UserNotificationRules;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
@@ -10,6 +12,7 @@ import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
+import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,7 @@ import static com.ecg.replyts.core.api.model.conversation.MessageState.IGNORED;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.SENT;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
+import static java.lang.String.format;
 
 /* This listener is order-dependent, it should start before MdePushNotificationListener */
 @Component
@@ -41,13 +45,22 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final PostBoxService postBoxService;
     private final UserIdentifierService userIdentifierService;
     private final UserNotificationRules userNotificationRules;
+    private final ConversationUpdateEventProcessor conversationUpdateEventProcessor;
+    private final BlockUserRepository blockUserRepository;
+    private final MessagesResponseFactory messagesResponseFactory;
 
     @Autowired
     public PostBoxUpdateListener(PostBoxService postBoxService,
-                                 UserIdentifierService userIdentifierService) {
+                                 UserIdentifierService userIdentifierService,
+                                 ConversationUpdateEventProcessor conversationUpdateEventProcessor,
+                                 BlockUserRepository blockUserRepository,
+                                 MessagesResponseFactory messagesResponseFactory) {
         this.postBoxService = postBoxService;
         this.userIdentifierService = userIdentifierService;
         this.userNotificationRules = new UserNotificationRules();
+        this.conversationUpdateEventProcessor = conversationUpdateEventProcessor;
+        this.blockUserRepository = blockUserRepository;
+        this.messagesResponseFactory = messagesResponseFactory;
     }
 
     @Override
@@ -68,29 +81,42 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         }
 
         try (Timer.Context ignored = processingTimer.time()) {
-            String buyerUserId = buyerUserIdOpt.get();
-            String sellerUserId = sellerUserIdOpt.get();
-            String msgSenderUserId = msg.getMessageDirection() == BUYER_TO_SELLER ? buyerUserId : sellerUserId;
+            final String buyerUserId = buyerUserIdOpt.get();
+            final String sellerUserId = sellerUserIdOpt.get();
+            final String msgSenderUserId = msg.getMessageDirection() == BUYER_TO_SELLER ? buyerUserId : sellerUserId;
+            final String msgReceiverUserId = msg.getMessageDirection() == BUYER_TO_SELLER ? sellerUserId : buyerUserId;
 
-            // update buyer and seller projections
-            updateUserProjection(conv, msg, msgSenderUserId, buyerUserId,
-                    userNotificationRules.buyerShouldBeNotified(msg));
-            updateUserProjection(conv, msg, msgSenderUserId, sellerUserId,
-                    userNotificationRules.sellerShouldBeNotified(msg));
+            if (!isDirectionBlocked(msgSenderUserId, msgReceiverUserId)) {
+                final String cleanMsg = messagesResponseFactory.getCleanedMessage(conv, msg);
+
+                // update buyer and seller projections
+                updateUserProjection(conv, msg, msgSenderUserId, buyerUserId,
+                        userNotificationRules.buyerShouldBeNotified(msg), cleanMsg);
+                updateUserProjection(conv, msg, msgSenderUserId, sellerUserId,
+                        userNotificationRules.sellerShouldBeNotified(msg), cleanMsg);
+
+                conversationUpdateEventProcessor.publishConversationUpdate(conv, msg, cleanMsg);
+            } else {
+                LOGGER.debug(format("Direction from the %s to %s is blocked for the message %s", msgSenderUserId, msgReceiverUserId, msg.getId()));
+            }
 
             processingSuccessCounter.inc();
         } catch (Exception e) {
             processingFailedCounter.inc();
-            throw new RuntimeException(String.format("Error updating user projections for conversation %s, conversation state %s and message %s: %s",
+            throw new RuntimeException(format("Error updating user projections for conversation %s, conversation state %s and message %s: %s",
                     conv.getId(), conv.getState(), msg.getId(), e.getMessage()), e);
         }
     }
 
     private void updateUserProjection(Conversation conv, Message msg, String msgSenderUserId, String projectionOwnerUserId,
-                                      boolean isNewReply) {
+                                      boolean isNewReply, String cleanMsg) {
         boolean isOwnMessage = msgSenderUserId.equals(projectionOwnerUserId);
         if (msg.getState() != IGNORED && ((msg.getState() == SENT && conv.getState() != ConversationState.CLOSED) || isOwnMessage)) {
-            postBoxService.processNewMessage(projectionOwnerUserId, conv, msg, isNewReply);
+            postBoxService.processNewMessage(projectionOwnerUserId, conv, msg, isNewReply, cleanMsg);
         }
+    }
+
+    private boolean isDirectionBlocked(String from, String to) {
+        return blockUserRepository.areUsersBlocked(from, to);
     }
 }

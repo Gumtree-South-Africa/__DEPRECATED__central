@@ -1,8 +1,8 @@
 # Comaas central
 
 ## Dev setup
-Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki#set-up-code-review) to clone this repository.
-Also clone the [vagrant machine](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant) and start it (see [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant#get-started)).
+* Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki#set-up-code-review) to clone this repository.
+* Setup Docker
 
 ### Docker
 
@@ -15,7 +15,6 @@ Start all Comaas supporting services by checking out https://github.corp.ebay.co
 ```
 cd ecg-comaas-docker
 make up
-# make import # if you want to manually import all docker.properties for all tenants, not needed when using the build.sh script
 ```
 Remove all containers using `cd docker; make down`
 
@@ -25,30 +24,16 @@ Note that you will have to install Docker on your local machines, the automated 
 
 Wrong jks file: `sun.security.validator.ValidatorException: PKIX path building failed` -> Remove `comaas.jks` from the root directory and restart `build.sh` script.
 
-### Native Cassandra
+### Run COMaaS for a specific tenant from your IDE
 
-If you want to be able to run Cassandra natively, download Cassandra from http://archive.apache.org/dist/cassandra/2.1.15/ to your machine and put it in /opt/cassandra. Alternatively, use `brew install homebrew/versions/cassandra21`.
-This is no longer strictly needed.
+Before running from IDE you have to import properties into consul manually to do that execute:  
 
-If you are using python >= 2.7.12 you need cassandra 2.1.16+ (http://archive.apache.org/dist/cassandra/2.1.16/apache-cassandra-2.1.16-bin.tar.gz) download it and put it in /opt/cassandra.
-
-If you are using older python you can use brew `brew install homebrew/versions/cassandra21`.
-
-#### Setup
-
-1. Run `cassandra` to start the service. Start the VM.
-2. Run `bin/setup-cassandra.sh; bin/setup-cassandra.sh localhost` to run initial db migrations on both instances. Integration tests use the local one, while runtime uses the VM.
-
-If you get an error like `Connection error: ('Unable to connect to any servers', {'localhost': TypeError('ref() does not take keyword arguments',)})` try to upgrade cassandra to 2.1.16 (if released), or downgrade python to <2.7.12. For example, using homebrew: `brew switch python 2.7.9`.
-
-To build comaas from IDE add -Drevision=(ANYTHING) to maven configuration. For the rest of
-this doc we'll assume you picked "123".
-![IntelliJ Maven Config](/docs/comaas_maven_config.jpg)
-
-Check the profile you want to build against in IntelliJ's Maven Projects view
-![IntelliJ Profile Selection](/docs/intellij-profile-selection.png)
-
-To run COMaaS for a specific tenant from your IDE, use the following Run configuration:
+```
+cd ecg-comaas-docker
+export ECG_COMAAS_CENTRAL=/Users/<USER_NAME>/dev/comaas/ecg-comaas-central
+make import
+```
+replace `/Users/<USER_NAME>/dev/comaas/ecg-comaas-central` with you path to `ecg-comaas-central` repository.
 
 * Type: Maven
 * Name: COMaaS for: [name of tenant, mp|mde|ebayk]
@@ -81,7 +66,46 @@ To run COMaaS for a specific tenant from your IDE, use the following Run configu
 
 This will call exec:java through the 'verify' phase in the distribution module. 'maven.exec.skip' is normally true, which prevents exec:java from being called prior to the normal 'deploy' phase.
 
-### Running replyTS on comaas-vagrant
+### Testing that your setup works
+
+1. Place a raw email in the `/tmp/mailreceiver` on your local machine. Example email:
+```
+From:acharton@ebay-kleinanzeigen.de
+Delivered-To: receiver@host.com
+X-ADID:12345
+X-CUST-FROM-USERID: 20000368
+X-CUST-TO-USERID: 20000553
+Subject:This is a subject
+ 
+THIS is a test.
+```
+2. Go to mailhog `http://localhost:8090` and check that your email was sent.
+
+### Native Cassandra
+
+If you want to be able to run Cassandra natively, download Cassandra from http://archive.apache.org/dist/cassandra/2.1.15/ to your machine and put it in /opt/cassandra. Alternatively, use `brew install homebrew/versions/cassandra21`.
+This is no longer strictly needed.
+
+If you are using python >= 2.7.12 you need cassandra 2.1.16+ (http://archive.apache.org/dist/cassandra/2.1.16/apache-cassandra-2.1.16-bin.tar.gz) download it and put it in /opt/cassandra.
+
+If you are using older python you can use brew `brew install homebrew/versions/cassandra21`.
+
+1. Run `cassandra` to start the service. Start the VM.
+2. Run `bin/setup-cassandra.sh; bin/setup-cassandra.sh localhost` to run initial db migrations on both instances. Integration tests use the local one, while runtime uses the VM.
+
+If you get an error like `Connection error: ('Unable to connect to any servers', {'localhost': TypeError('ref() does not take keyword arguments',)})` try to upgrade cassandra to 2.1.16 (if released), or downgrade python to <2.7.12. For example, using homebrew: `brew switch python 2.7.9`.
+
+To build comaas from IDE add -Drevision=(ANYTHING) to maven configuration. For the rest of
+this doc we'll assume you picked "123".
+![IntelliJ Maven Config](/docs/comaas_maven_config.jpg)
+
+Check the profile you want to build against in IntelliJ's Maven Projects view
+![IntelliJ Profile Selection](/docs/intellij-profile-selection.png)
+
+#### Using Vagrant instead of docker (deprecated)
+Clone the [vagrant machine](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant) and start it (see [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-vagrant#get-started)).
+
+#### Running replyTS on comaas-vagrant (deprecated)
 * If you see elasticsearch/cassadra/kafka error messages first try ```vagrant provision```, that should make sure that all services are up and running.
  If that does not help check if these services are running in Vagrant machine
   ```
@@ -92,12 +116,12 @@ This will call exec:java through the 'verify' phase in the distribution module. 
   ```
  and manually start them if necessary
 
-### ebayk tenant on comaas-vagrant
+#### ebayk tenant on comaas-vagrant
 *  Set search.es.clustername=replytscluster in distribution/conf/ebayk/replyts.properties
 *  After starting ReplyTS launch jconsole and invoke ReplayTS.ClusterModeControl.Operations.switchToFailoverMode so email processing works.
 For more information on this see https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two%20Datacenter%20Operations
 
-### mde tenant on comaas-vagrant
+#### mde tenant on comaas-vagrant
 *  Set search.es.clustername=replytscluster in distribution/conf/mde/replyts.properties
 *  After starting ReplyTS launch jconsole and invoke ReplayTS.ClusterModeControl.Operations.switchToFailoverMode so email processing works.
 For more information on this see https://github.corp.ebay.com/ReplyTS/replyts2-core/wiki/Two%20Datacenter%20Operations
