@@ -85,6 +85,8 @@ public class UserTrackingHandlerTest {
         public void createsTrackingEventFromMessageProcessingContext() throws Exception {
             headers.put("X-Cust-BUYER_CUSTOMER_ID", "9");
             headers.put("X-Cust-BUYER_DEVICE_ID", "7");
+            headers.put("X-Cust-AD_VERSION", "2");
+            headers.put("X-Cust-SELLER_CUSTOMER_ID", "3");
             headers.put("X-Cust-PUBLISHER", "publisher");
             headers.put("X-Track-Useragent", "Useragent");
             headers.put("X-Track-Ip", "Ip");
@@ -98,19 +100,19 @@ public class UserTrackingHandlerTest {
             headers.put("X-Track-Akamaibot", "foobot");
             headers.put("X-Track-Appname", "apname");
             headers.put("X-Track-Version", "version");
-            
-            
+
+
             when(mail.getPlaintextParts()).thenReturn(Arrays.asList("Text part 1", "Text part 2"));
             EmailContactEvent expected = EmailContactEvent.builder()
                     .message(EmailMessage.builder()
-                        .ad(AdRef.of(1L, null))
-                        .ip("Ip")
-                        .plainText("Text part 1\n-------------------------------------------------\nText part 2")
-                        .receiverMailAddress("original-to@mail.de")
-                        .senderMailAddress("from@mail.de")
-                        .replyToMailAddress("from@mail.de")
-                        .subject("subject")
-                        .build()
+                            .ad(AdRef.of(1L, 2L, 3L))
+                            .ip("Ip")
+                            .plainText("Text part 1\n-------------------------------------------------\nText part 2")
+                            .receiverMailAddress("original-to@mail.de")
+                            .senderMailAddress("from@mail.de")
+                            .replyToMailAddress("from@mail.de")
+                            .subject("subject")
+                            .build()
                     )
                     .ci(ClientInfo.builder()
                             .withName("apname")
