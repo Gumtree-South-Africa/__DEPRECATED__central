@@ -31,12 +31,18 @@ from_json () {
     echo ${v}
 }
 
+if [ -z "${1}" ]; then
+    tenants="uk mo mp ca au ek it"
+else
+    tenants="${@}"
+fi
+
 for env in prod sandbox; do
     print_row ${env} active ams1 ams1 dus1 dus1
     print_row tenant dc version mode version mode
     echo "---------------------------------------------------------------"
 
-    for tenant in uk mo mp ca au ek it; do
+    for tenant in ${tenants}; do
         active_dc=$(get_region ${tenant} ${env})
         if [ -z ${active_dc} ]; then
             active_dc="-"
