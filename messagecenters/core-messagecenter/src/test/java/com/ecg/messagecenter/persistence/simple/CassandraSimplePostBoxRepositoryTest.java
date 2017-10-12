@@ -6,7 +6,6 @@ import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.Counter;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
-import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,7 +31,6 @@ import static org.junit.Assert.*;
 @ContextConfiguration(classes = { CassandraSimplePostBoxRepositoryTest.TestContext.class })
 @TestPropertySource(properties = {
   "persistence.strategy = cassandra",
-  "replyts.maxConversationAgeDays = 25"
 })
 public class CassandraSimplePostBoxRepositoryTest {
 
@@ -41,7 +39,7 @@ public class CassandraSimplePostBoxRepositoryTest {
 
     @Test
     public void persistsPostbox() {
-        PostBox box = new PostBox<>("foo@bar.com", Optional.empty(), Collections.emptyList(), 25);
+        PostBox box = new PostBox<>("foo@bar.com", Optional.empty(), Collections.emptyList());
 
         postBoxRepository.write(box);
 
@@ -52,7 +50,7 @@ public class CassandraSimplePostBoxRepositoryTest {
     public void persistsPostboxWithUnreadMessages() {
         String email = "unread-single-thread@bar.com";
         PostBoxId postBoxId = PostBoxId.fromEmail(email);
-        PostBox box = new PostBox<>(email, Optional.empty(), Collections.emptyList(), 25);
+        PostBox box = new PostBox<>(email, Optional.empty(), Collections.emptyList());
 
         AbstractConversationThread convThread = createConversationThread(now(), "unread-single");
 
@@ -97,7 +95,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         PostBoxId postBoxId = PostBoxId.fromEmail(email);
         createMultiThreadPostBox(email, "delete");
 
-        postBoxRepository.deleteConversations(new PostBox<>(email, Optional.empty(), Collections.emptyList(), 25), Collections.singletonList("delete-2"));
+        postBoxRepository.deleteConversations(new PostBox<>(email, Optional.empty(), Collections.emptyList()), Collections.singletonList("delete-2"));
         PostBox postBox = postBoxRepository.byId(postBoxId);
 
         assertEquals("PostBox should contain only two threads", 2, postBox.getConversationThreads().size());
@@ -113,7 +111,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         createMultiThreadPostBox(email, "read-single");
 
         AbstractConversationThread readConversation = postBoxRepository.threadById(postBoxId, "read-single-2").get();
-        postBoxRepository.markConversationAsRead(new PostBox<>(email, Optional.empty(), Collections.singletonList(readConversation), 25), readConversation);
+        postBoxRepository.markConversationAsRead(new PostBox<>(email, Optional.empty(), Collections.singletonList(readConversation)), readConversation);
         PostBox postBox = postBoxRepository.byId(postBoxId);
 
         assertEquals("PostBox should contain three threads", 3, postBox.getConversationThreads().size());
@@ -134,7 +132,7 @@ public class CassandraSimplePostBoxRepositoryTest {
 
         AbstractConversationThread readConversation2 = postBoxRepository.threadById(postBoxId, "read-multi-2").get();
         AbstractConversationThread readConversation3 = postBoxRepository.threadById(postBoxId, "read-multi-3").get();
-        postBoxRepository.markConversationsAsRead(new PostBox<>(email, Optional.empty(), Arrays.asList(readConversation2, readConversation3), 25), Arrays.asList(readConversation2, readConversation3));
+        postBoxRepository.markConversationsAsRead(new PostBox<>(email, Optional.empty(), Arrays.asList(readConversation2, readConversation3)), Arrays.asList(readConversation2, readConversation3));
         PostBox postBox = postBoxRepository.byId(postBoxId);
 
         assertEquals("PostBox should contain three threads", 3, postBox.getConversationThreads().size());
@@ -154,7 +152,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         AbstractConversationThread convThread2 = createConversationThread(now(), threadName + "-2");
         AbstractConversationThread convThread3 = createConversationThread(now(), threadName + "-3");
 
-        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(convThread1, convThread2, convThread3), 25);
+        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(convThread1, convThread2, convThread3));
         postBoxRepository.write(box);
 
         postBoxRepository.upsertThread(postBoxId, convThread1, true);
@@ -174,7 +172,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         AbstractConversationThread convThread = createConversationThread(now.minusMinutes(1), "123");
         AbstractConversationThread updatedConvThread = createConversationThread(now, "123");
 
-        PostBox box = new PostBox<>(email, Optional.empty(), Collections.singletonList(convThread), 25);
+        PostBox box = new PostBox<>(email, Optional.empty(), Collections.singletonList(convThread));
         postBoxRepository.write(box);
 
         postBoxRepository.upsertThread(postBoxId, updatedConvThread, true);
@@ -200,7 +198,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         AbstractConversationThread thread3 = createConversationThread(now(), "mark-conversation-3");
 
         List<AbstractConversationThread> conversations = Arrays.asList(thread1, thread2, thread3);
-        PostBox box = new PostBox<>(email, Optional.empty(), conversations, 25);
+        PostBox box = new PostBox<>(email, Optional.empty(), conversations);
         postBoxRepository.write(box);
 
         int unreadCount = postBoxRepository.unreadCountInConversations(postBoxId, conversations);
@@ -221,7 +219,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         AbstractConversationThread thread3 = createConversationThread(now(), "mark-conversation-3");
 
         List<AbstractConversationThread> conversations = Arrays.asList(thread1, thread2, thread3);
-        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2), 25);
+        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2));
         postBoxRepository.write(box);
 
         int unreadCount = postBoxRepository.unreadCountInConversations(postBoxId, conversations);
@@ -239,7 +237,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         postBoxRepository.upsertThread(postBoxId, thread1, true);
         AbstractConversationThread thread2 = createConversationThread(now.minusMinutes(1), "mark-conversation-2");
 
-        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2), 25);
+        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2));
         postBoxRepository.write(box);
 
         PostBox postBox = postBoxRepository.byId(postBoxId);
@@ -264,7 +262,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         AbstractConversationThread thread1 = createConversationThread(oldModified.minusMinutes(10), "mark-conversation-modify-1");
         AbstractConversationThread thread2 = createConversationThread(oldModified.minusMinutes(10), "mark-conversation-modify-2");
 
-        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2), 25);
+        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2));
         postBoxRepository.write(box);
 
         postBoxRepository.markConversationsAsRead(box, box.getConversationThreads());
@@ -285,7 +283,7 @@ public class CassandraSimplePostBoxRepositoryTest {
         AbstractConversationThread thread1 = createConversationThread(oldModified.minusMinutes(10), "mark-conversation-modify-1");
         AbstractConversationThread thread2 = createConversationThread(oldModified.minusMinutes(10), "mark-conversation-modify-2");
 
-        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2), 25);
+        PostBox box = new PostBox<>(email, Optional.empty(), Arrays.asList(thread1, thread2));
         postBoxRepository.write(box);
 
         postBoxRepository.markConversationAsRead(box, thread2);
@@ -313,7 +311,7 @@ public class CassandraSimplePostBoxRepositoryTest {
 
         List<AbstractConversationThread> conversations = Arrays.asList(thread1, thread2, thread3, thread4, thread5);
 
-        PostBox box = new PostBox<>(email, new Counter(3), conversations, 25);
+        PostBox box = new PostBox<>(email, new Counter(3), conversations);
         postBoxRepository.write(box);
 
         PostBox<AbstractConversationThread> postBox = postBoxRepository.byId(postBoxId);
@@ -329,7 +327,7 @@ public class CassandraSimplePostBoxRepositoryTest {
 
     @Test
     public void cleansUpPostbox() {
-        PostBox box = new PostBox<>("foo@bar.com", Optional.empty(), Collections.singletonList(createConversationThread(now(), "123")), 25);
+        PostBox box = new PostBox<>("foo@bar.com", Optional.empty(), Collections.singletonList(createConversationThread(now(), "123")));
 
         postBoxRepository.write(box);
 
@@ -340,7 +338,7 @@ public class CassandraSimplePostBoxRepositoryTest {
 
     @Test
     public void keepsPostboxEntriesThatAreTooNew() {
-        PostBox box = new PostBox<>("foo@bar.com", Optional.empty(), Collections.singletonList(createConversationThread(now(), "123")), 25);
+        PostBox box = new PostBox<>("foo@bar.com", Optional.empty(), Collections.singletonList(createConversationThread(now(), "123")));
 
         postBoxRepository.write(box);
 
@@ -356,7 +354,7 @@ public class CassandraSimplePostBoxRepositoryTest {
 
         ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(PostBoxId.fromEmail(email), convThread);
 
-        PostBox box = new PostBox<>(email, Optional.empty(), Collections.singletonList(convThread), 25);
+        PostBox box = new PostBox<>(email, Optional.empty(), Collections.singletonList(convThread));
         assertEquals("PostBox's conversationThread is updated", box, postBoxRepository.byId(PostBoxId.fromEmail(email)));
     }
 
@@ -375,45 +373,13 @@ public class CassandraSimplePostBoxRepositoryTest {
     }
 
     @Test
-    public void filterExpiredConversations() throws Exception {
-        PostBoxId postBoxId = PostBoxId.fromEmail("expired@bar.com");
-
-        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(postBoxId, createConversationThread(now(), "123"));
-        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(postBoxId, createConversationThread(DateTime.now().minusYears(10), "321"));
-
-        List<AbstractConversationThread> conversationThreads = postBoxRepository.byId(postBoxId).getConversationThreads();
-        assertEquals("Postbox should return only 1 conversation", 1, conversationThreads.size());
-        assertEquals("Postbox should contain 123 conversation", "123", conversationThreads.get(0).getConversationId());
-    }
-
-    @Test
-    public void filterExpiredConversationsUnreadCounter() throws Exception {
-        PostBoxId postBoxId = PostBoxId.fromEmail("expiredCounter@bar.com");
-
-        AbstractConversationThread thread = createConversationThread(now(), "123");
-        AbstractConversationThread oldThread = createConversationThread(DateTime.now().minusYears(10), "321");
-
-        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(postBoxId, thread);
-        postBoxRepository.upsertThread(postBoxId, thread, true);
-        postBoxRepository.upsertThread(postBoxId, thread, true);
-
-        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(postBoxId, oldThread);
-        postBoxRepository.upsertThread(postBoxId, oldThread, true);
-        postBoxRepository.upsertThread(postBoxId, oldThread, true);
-        postBoxRepository.upsertThread(postBoxId, oldThread, true);
-
-        PostBox postBox = postBoxRepository.byId(postBoxId);
-        assertEquals("Postbox should contain only 2 conversations", 2, postBox.getNewRepliesCounter().getValue());
-    }
-
-    @Test
     public void upsertsThread() throws Exception {
         String email = "foo@bar.com";
         DateTime now = now();
         AbstractConversationThread convThread = createConversationThread(now.minusMinutes(1), "123");
         AbstractConversationThread updatedConvThread = createConversationThread(now, "123");
 
-        PostBox box = new PostBox<>(email, Optional.empty(), Collections.singletonList(convThread), 25);
+        PostBox box = new PostBox<>(email, Optional.empty(), Collections.singletonList(convThread));
         postBoxRepository.write(box);
 
         postBoxRepository.upsertThread(PostBoxId.fromEmail(email), updatedConvThread, true);

@@ -14,8 +14,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-import static java.lang.String.format;
-
 /**
  * User: maldana
  * Date: 23.10.13
@@ -29,14 +27,9 @@ class PostBoxConflictResolver implements ConflictResolver<PostBox> {
 
     private static final Counter POSTBOX_MERGE_COUNTER = TimingReports.newCounter("riak-postbox-merges");
     private static final Histogram POSTBOX_SIBLING_COUNT_HISTOGRAM = TimingReports.newHistogram("riak-postbox-sibling-counts");
-    private int maxAgeDays;
 
-    public PostBoxConflictResolver(int maxAgeDays) {
-        this.maxAgeDays = maxAgeDays;
-    }
-
-
-    @Override public PostBox<ConversationThread> resolve(Collection<PostBox> postBoxesToResolve) {
+    @Override
+    public PostBox<ConversationThread> resolve(Collection<PostBox> postBoxesToResolve) {
         if (postBoxesToResolve.isEmpty()) {
             return null;
         }
@@ -61,8 +54,7 @@ class PostBoxConflictResolver implements ConflictResolver<PostBox> {
             updateLatestThreadVersions(latest, postBox);
         }
 
-
-        return new PostBox<>(postBoxesToResolve.iterator().next().getEmail(), getHighestCounter(postBoxesToResolve), ImmutableList.copyOf(latest.values()), maxAgeDays);
+        return new PostBox<>(postBoxesToResolve.iterator().next().getEmail(), getHighestCounter(postBoxesToResolve), ImmutableList.copyOf(latest.values()));
 
     }
 
@@ -95,6 +87,4 @@ class PostBoxConflictResolver implements ConflictResolver<PostBox> {
             latestThreadVersions.put(conversationId, thread);
         }
     }
-
-
 }

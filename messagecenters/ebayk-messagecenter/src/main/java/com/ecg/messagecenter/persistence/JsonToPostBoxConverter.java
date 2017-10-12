@@ -17,7 +17,7 @@ import java.util.Optional;
 @ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid') }")
 public class JsonToPostBoxConverter implements AbstractJsonToPostBoxConverter<ConversationThread> {
     @Override
-    public PostBox<ConversationThread> toPostBox(String key, String jsonString, int maxAgeDays) {
+    public PostBox<ConversationThread> toPostBox(String key, String jsonString) {
 
         JsonNode json = JsonObjects.parse(jsonString);
         ArrayNode arrayNode = (ArrayNode) json.get("threads");
@@ -40,7 +40,7 @@ public class JsonToPostBoxConverter implements AbstractJsonToPostBoxConverter<Co
             );
         }
 
-        return new PostBox<>(key, lookupLongValue(json, "newRepliesCounter"), threadList, maxAgeDays);
+        return new PostBox<>(key, lookupLongValue(json, "newRepliesCounter"), threadList);
     }
 
     private Optional<String> lookupStringValue(JsonNode threadNode, String key) {

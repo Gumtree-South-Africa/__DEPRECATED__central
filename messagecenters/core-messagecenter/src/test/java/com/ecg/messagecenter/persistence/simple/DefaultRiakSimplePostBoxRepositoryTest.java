@@ -32,8 +32,7 @@ import static org.junit.Assert.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { DefaultRiakSimplePostBoxRepositoryTest.TestContext.class })
 @TestPropertySource(properties = {
-  "persistence.strategy = riak",
-  "replyts.maxConversationAgeDays = 25"
+  "persistence.strategy = riak"
 })
 public class DefaultRiakSimplePostBoxRepositoryTest {
     private static final DateTime CREATED_AT = now();
@@ -51,7 +50,7 @@ public class DefaultRiakSimplePostBoxRepositoryTest {
 
     @Test
     public void persistsPostbox() throws RiakRetryFailedException {
-        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Collections.<AbstractConversationThread>emptyList(), 25);
+        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Collections.<AbstractConversationThread>emptyList());
         postBoxRepository.write(box);
 
         IRiakObject postbox = riakClient.fetchBucket("postbox").execute().fetch("foo@bar.com").execute();
@@ -63,7 +62,7 @@ public class DefaultRiakSimplePostBoxRepositoryTest {
 
     @Test
     public void cleansUpPostbox() throws RiakRetryFailedException {
-        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Collections.<AbstractConversationThread>emptyList(), 25);
+        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Collections.<AbstractConversationThread>emptyList());
         postBoxRepository.write(box);
 
         postBoxRepository.cleanup(now());
@@ -75,7 +74,7 @@ public class DefaultRiakSimplePostBoxRepositoryTest {
 
     @Test
     public void keepsPostboxEntriesThatAreTooNew() throws RiakRetryFailedException {
-        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Collections.<AbstractConversationThread>emptyList(), 25);
+        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Collections.<AbstractConversationThread>emptyList());
         postBoxRepository.write(box);
 
         postBoxRepository.cleanup(now().minusSeconds(1));
@@ -89,16 +88,16 @@ public class DefaultRiakSimplePostBoxRepositoryTest {
     public void upsertThreadUnreadCount() {
         AbstractConversationThread thread = createConvThread(DateTime.now(), "a:1", true);
 
-        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Lists.newArrayList(thread), 25);
+        PostBox box = new PostBox("foo@bar.com", Optional.empty(), Lists.newArrayList(thread));
 
         postBoxRepository.write(box);
 
         assertEquals(1L, (long) postBoxRepository.upsertThread(PostBoxId.fromEmail("foo@bar.com"), thread, true));
-        assertEquals(1L, (long) postBoxRepository.byId(PostBoxId.fromEmail("foo@bar.com")).getUnreadConversations().size());
+        assertEquals(1L, postBoxRepository.byId(PostBoxId.fromEmail("foo@bar.com")).getUnreadConversations().size());
 
         // newRepliesCounter doesn't get persisted
 
-        assertEquals(0L, (long) postBoxRepository.byId(PostBoxId.fromEmail("foo@bar.com")).getNewRepliesCounter().getValue());
+        assertEquals(0L, postBoxRepository.byId(PostBoxId.fromEmail("foo@bar.com")).getNewRepliesCounter().getValue());
     }
 
     private static AbstractConversationThread createConvThread(DateTime modifiedAt, String convId, boolean containsUnreadMessages) {
@@ -119,7 +118,7 @@ public class DefaultRiakSimplePostBoxRepositoryTest {
         public AbstractJsonToPostBoxConverter jsonToPostBoxConverter() {
             return new AbstractJsonToPostBoxConverter() {
                 @Override
-                public PostBox toPostBox(String key, String jsonString, int maxAgeDays) {
+                public PostBox toPostBox(String key, String jsonString) {
                     List<AbstractConversationThread> threads = new ArrayList<>();
 
                     if (StringUtils.hasText(jsonString)) {
@@ -130,7 +129,7 @@ public class DefaultRiakSimplePostBoxRepositoryTest {
                         }
                     }
 
-                    return new PostBox("foo@bar.com", Optional.empty(), threads, maxAgeDays);
+                    return new PostBox("foo@bar.com", Optional.empty(), threads);
                 }
             };
         }

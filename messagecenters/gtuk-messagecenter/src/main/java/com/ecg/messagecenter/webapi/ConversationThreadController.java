@@ -31,28 +31,17 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 public class ConversationThreadController {
@@ -69,9 +58,6 @@ public class ConversationThreadController {
     private final DomainObjectConverter converter;
     private final GumshieldApi gumshieldApi;
     private final ConversationEventListeners conversationEventListeners;
-
-    @Value("${replyts.maxConversationAgeDays:180}")
-    private int maxConversationAgeDays;
 
     @Autowired
     public ConversationThreadController(
@@ -311,7 +297,7 @@ public class ConversationThreadController {
 
         //optimization to not cause too many write actions (potential for conflicts)
         if (needsUpdate) {
-            PostBox postBoxToUpdate = new PostBox(email, postBox.getNewRepliesCounter(), threadsToUpdate, maxConversationAgeDays);
+            PostBox postBoxToUpdate = new PostBox(email, postBox.getNewRepliesCounter(), threadsToUpdate);
             postBoxRepository.markConversationAsRead(postBoxToUpdate, updatedConversation);
             numUnreadCounter = postBoxToUpdate.getUnreadConversationsCapped().size();
         } else {

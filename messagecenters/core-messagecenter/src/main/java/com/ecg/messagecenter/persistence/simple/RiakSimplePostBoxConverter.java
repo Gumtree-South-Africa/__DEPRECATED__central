@@ -25,9 +25,6 @@ public class RiakSimplePostBoxConverter implements Converter<PostBox> {
     @Value("${persistence.simple.bucket.name.prefix:}" + DefaultRiakSimplePostBoxRepository.POST_BOX)
     private String bucketName;
 
-    @Value("${replyts.maxConversationAgeDays:180}")
-    private int maxAgeDays;
-
     @Override
     public IRiakObject fromDomain(PostBox postBox, VClock vClock) throws ConversionException {
         String json = toJson.toJson(postBox);
@@ -46,7 +43,7 @@ public class RiakSimplePostBoxConverter implements Converter<PostBox> {
 
     @Override
     public PostBox toDomain(IRiakObject riakObject) throws ConversionException {
-        PostBox postBox = toPostBox.toPostBox(riakObject.getKey(), RiakGzipAwareContentFilter.unpackIfGzipped(riakObject), maxAgeDays);
+        PostBox postBox = toPostBox.toPostBox(riakObject.getKey(), RiakGzipAwareContentFilter.unpackIfGzipped(riakObject));
 
         POSTBOX_NUM_THREADS_SIZE_HISTOGRAM.update(postBox.getConversationThreads().size());
         POSTBOX_NUM_UNREAD.update(postBox.getUnreadConversations().size());

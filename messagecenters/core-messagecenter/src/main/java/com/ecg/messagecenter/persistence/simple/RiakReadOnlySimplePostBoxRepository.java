@@ -50,9 +50,6 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
     @Value("${persistence.simple.bucket.name.prefix:}" + POST_BOX)
     private String bucketName;
 
-    @Value("${replyts.maxConversationAgeDays:180}")
-    private int maxAgeDays;
-
     protected Bucket postBoxBucket;
 
     @PostConstruct
@@ -77,7 +74,7 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
                     .execute();
 
             if (postBox == null) {
-                postBox = new PostBox(id.asString(), Optional.of(0L), Lists.newArrayList(), maxAgeDays);
+                postBox = new PostBox(id.asString(), Optional.of(0L), Lists.newArrayList());
             }
             return postBox;
         } catch (RiakRetryFailedException e) {

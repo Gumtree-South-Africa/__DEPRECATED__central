@@ -56,9 +56,6 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
     @Value("${persistence.simple.bucket.name.prefix:}" + POST_BOX)
     private String bucketName;
 
-    @Value("${replyts.maxConversationAgeDays:180}")
-    private int maxAgeDays;
-
     protected Bucket postBoxBucket;
 
     @PostConstruct
@@ -84,7 +81,7 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
 
             if (postBox == null) {
                 LOG.debug("Found no Postbox in Riak, returning an empty one for id {}", id.asString());
-                postBox = new PostBox(id.asString(), Optional.of(0L), Lists.newArrayList(), maxAgeDays);
+                postBox = new PostBox(id.asString(), Optional.of(0L), Lists.newArrayList());
             }
 
             LOG.debug("Found {} threads ({} unread) for PostBox with id {} in Riak", postBox.getConversationThreads().size(),
@@ -182,7 +179,7 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
 
         // Write the PostBox to the repository
 
-        PostBox postBoxToWrite = new PostBox(id.asString(), Optional.of(postBox.getNewRepliesCounter().getValue()), finalThreads, maxAgeDays);
+        PostBox postBoxToWrite = new PostBox(id.asString(), Optional.of(postBox.getNewRepliesCounter().getValue()), finalThreads);
 
         write(postBoxToWrite);
 

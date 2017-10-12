@@ -1,7 +1,6 @@
 package com.ecg.messagecenter.webapi;
 
 import ca.kijiji.replyts.TextAnonymizer;
-import com.ecg.messagecenter.listeners.UnreadCountCacher;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.UnreadCountCachePopulater;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
@@ -45,10 +44,10 @@ public class ConversationThreadControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        controller = new ConversationThreadController(postBoxRepository, conversationRepository, conversationBlockRepository, mailCloakingService, textAnonymizer, unreadCountCachePopulater, 180);
+        controller = new ConversationThreadController(postBoxRepository, conversationRepository, conversationBlockRepository, mailCloakingService, textAnonymizer, unreadCountCachePopulater);
 
         List<ConversationThread> conversationThreads = ImmutableList.of(new ConversationThread("ad", "conversationId", DateTime.now(), DateTime.now(), DateTime.now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of("user@example.com"), Optional.empty()));
-        PostBox postBox = new PostBox<>("user@example.com", conversationThreads, 100);
+        PostBox postBox = new PostBox<>("user@example.com", Optional.empty(), conversationThreads);
         Mockito.when(postBoxRepository.byId(PostBoxId.fromEmail("user@example.com"))).thenReturn(postBox);
     }
 

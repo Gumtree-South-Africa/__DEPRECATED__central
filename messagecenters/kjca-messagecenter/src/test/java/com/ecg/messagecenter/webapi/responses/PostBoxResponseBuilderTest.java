@@ -34,8 +34,7 @@ public class PostBoxResponseBuilderTest {
                         new ConversationThread("2", "b", now(), now().minusHours(10), now().minusHours(4), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(USER_EMAIL), Optional.of("BUYER_TO_SELLER")),
                         new ConversationThread("3", "c", now(), now().minusHours(10), now().minusHours(4), false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(USER_EMAIL), Optional.of("BUYER_TO_SELLER")),
                         new ConversationThread("4", "d", now(), now().minusHours(10), now().minusHours(4), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(USER_EMAIL), Optional.of("BUYER_TO_SELLER"))
-                ),
-                180
+                )
         );
     }
 

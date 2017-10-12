@@ -138,7 +138,7 @@ public class SimplePostBoxInitializerTest {
                         .build()))
                 .build();
 
-        PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(), 180);
+        PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList());
 
         when(postBoxRepository.byId(SELLER_POSTBOX_ID)).thenReturn(postbox);
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
@@ -210,7 +210,7 @@ public class SimplePostBoxInitializerTest {
                 Optional.of(MessageDirection.BUYER_TO_SELLER.name())
         );
 
-        PostBox postbox = new PostBox(BUYER_EMAIL, new Counter(), Lists.newArrayList(existingThread), 180);
+        PostBox postbox = new PostBox(BUYER_EMAIL, new Counter(), Lists.newArrayList(existingThread));
         when(postBoxRepository.byId(PostBoxId.fromEmail(BUYER_EMAIL))).thenReturn(postbox);
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 
@@ -247,7 +247,7 @@ public class SimplePostBoxInitializerTest {
                 Optional.of(MessageDirection.BUYER_TO_SELLER.name())
         );
 
-        PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(existingThread), 180);
+        PostBox postbox = new PostBox(SELLER_EMAIL, new Counter(), Lists.newArrayList(existingThread));
         when(postBoxRepository.byId(SELLER_POSTBOX_ID)).thenReturn(postbox);
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn(MSG_TEXT);
 

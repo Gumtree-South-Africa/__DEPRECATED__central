@@ -47,8 +47,7 @@ import static org.joda.time.DateTime.now;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {PostBoxOverviewControllerTest.TestContext.class})
 @TestPropertySource(properties = {
-        "persistence.strategy = cassandra",
-        "replyts.maxConversationAgeDays = 25"
+        "persistence.strategy = cassandra"
 })
 public class PostBoxOverviewControllerTest {
 
@@ -91,7 +90,7 @@ public class PostBoxOverviewControllerTest {
                 .mapToObj(this::createConversation)
                 .collect(Collectors.toList());
 
-        postBox = new PostBox<>(BUYER_EMAIL, conversations, 25);
+        postBox = new PostBox<>(BUYER_EMAIL, Optional.empty(), conversations);
         postBoxRepository.write(postBox);
         postBoxRepository.upsertThread(postBox.getId(), conversations.get(1), true);
         postBoxRepository.upsertThread(postBox.getId(), conversations.get(1), true);
@@ -250,7 +249,7 @@ public class PostBoxOverviewControllerTest {
         List<AbstractConversationThread> conversationToSave =
                 Collections.singletonList(createConversation(DETAILED_CONVERSATION, MessageDirection.SELLER_TO_BUYER));
 
-        PostBox<AbstractConversationThread> postBox = new PostBox<>(SELLER_EMAIL, conversationToSave, 25);
+        PostBox<AbstractConversationThread> postBox = new PostBox<>(SELLER_EMAIL, Optional.empty(), conversationToSave);
         postBoxRepository.write(postBox);
 
         PostBoxListItemResponse conversation = getDetailedConversation(SELLER_EMAIL);
@@ -263,7 +262,7 @@ public class PostBoxOverviewControllerTest {
         List<AbstractConversationThread> conversationToSave =
                 Collections.singletonList(createConversation(DETAILED_CONVERSATION, MessageDirection.BUYER_TO_SELLER));
 
-        PostBox<AbstractConversationThread> postBox = new PostBox<>(SELLER_EMAIL, conversationToSave, 25);
+        PostBox<AbstractConversationThread> postBox = new PostBox<>(SELLER_EMAIL, Optional.empty(), conversationToSave);
         postBoxRepository.write(postBox);
 
         PostBoxListItemResponse conversation = getDetailedConversation(SELLER_EMAIL);

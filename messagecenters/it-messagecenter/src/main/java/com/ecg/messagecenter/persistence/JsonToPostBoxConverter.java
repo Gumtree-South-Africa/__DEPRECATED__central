@@ -16,7 +16,7 @@ import java.util.stream.StreamSupport;
 
 @Component
 public class JsonToPostBoxConverter implements AbstractJsonToPostBoxConverter<ConversationThread> {
-    public PostBox<ConversationThread> toPostBox(String key, String jsonString, int maxAgeDays) {
+    public PostBox<ConversationThread> toPostBox(String key, String jsonString) {
         JsonNode json = JsonObjects.parse(jsonString);
         Iterator<JsonNode> iterator = json.get("threads").iterator();
 
@@ -35,7 +35,7 @@ public class JsonToPostBoxConverter implements AbstractJsonToPostBoxConverter<Co
             lookupStringValue(threadNode, "messageDirection")))
           .collect(Collectors.toList());
 
-        return new PostBox<>(key, lookupLongValue(json, "newRepliesCounter"), threads, maxAgeDays);
+        return new PostBox<>(key, lookupLongValue(json, "newRepliesCounter"), threads);
     }
 
     private Optional<String> lookupStringValue(JsonNode threadNode, String key) {

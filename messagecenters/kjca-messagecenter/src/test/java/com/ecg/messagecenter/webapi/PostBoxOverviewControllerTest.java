@@ -29,8 +29,6 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PostBoxOverviewControllerTest {
-    public static final int MAX_CONVERSATION_AGE_DAYS = 180;
-
     private PostBoxOverviewController controller;
 
     @Mock
@@ -41,30 +39,6 @@ public class PostBoxOverviewControllerTest {
     @Before
     public void setUp() throws Exception {
         controller = new PostBoxOverviewController(postBoxRepository, conversationBlockRepository);
-    }
-
-    @Test
-    public void postboxOnlyHasOldConversations_noneReturned() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setMethod("GET");
-
-        String email = "seller@example.com";
-
-        DateTime tooLongAgo = new DateTime(UTC).minusDays(MAX_CONVERSATION_AGE_DAYS + 1);
-        DateTime now = DateTime.now(UTC);
-        ConversationThread oldConversationThread = new ConversationThread(
-                "oldAdId", "oldConversationId", tooLongAgo, now, now, false,
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.of("buyer@example.com"),
-                Optional.of(MessageDirection.BUYER_TO_SELLER.name()));
-
-        PostBox postbox = new PostBox(email, new Counter(), Lists.newArrayList(oldConversationThread), 180);
-        when(postBoxRepository.byId(PostBoxId.fromEmail(email))).thenReturn(postbox);
-
-        ResponseObject<PostBoxResponse> response = controller.getPostBoxByEmail(email, false, 100, 0, null, request);
-        assertThat(response.getBody().getConversations().size(), equalTo(0));
     }
 
     @Test
@@ -82,7 +56,7 @@ public class PostBoxOverviewControllerTest {
         ConversationThread sellerThread = new ConversationThread(
                 "adId1", "userIsBuyer", created, now, now, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(email), Optional.of(MessageDirection.SELLER_TO_BUYER.name()));
 
-        PostBox postbox = new PostBox(email, new Counter(), Lists.newArrayList(buyerThread, sellerThread), 180);
+        PostBox postbox = new PostBox(email, new Counter(), Lists.newArrayList(buyerThread, sellerThread));
         when(postBoxRepository.byId(PostBoxId.fromEmail(email))).thenReturn(postbox);
 
         //not having role filter, return everything

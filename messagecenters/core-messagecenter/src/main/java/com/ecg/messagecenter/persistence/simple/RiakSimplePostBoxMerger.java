@@ -3,16 +3,12 @@ package com.ecg.messagecenter.persistence.simple;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
 
 import static java.util.Arrays.asList;
 
 public class RiakSimplePostBoxMerger {
-    @Value("${replyts.maxConversationAgeDays:180}")
-    private int maxAgeDays;
-
     public PostBox mergePrimarySecondary(PostBox<AbstractConversationThread> primary, PostBox secondary) {
         List<PostBox> postBoxesToMerge = asList(primary, secondary);
         Map<String, AbstractConversationThread> latest = mergeAbstractConversationThreads(postBoxesToMerge);
@@ -20,8 +16,7 @@ public class RiakSimplePostBoxMerger {
         return new PostBox(
           primary.getEmail(),
           primary.getNewRepliesCounter(), // the primary is more up to date, therefore take its counter
-          ImmutableList.copyOf(latest.values()),
-          maxAgeDays);
+          ImmutableList.copyOf(latest.values()));
     }
 
     public PostBox merge(Collection<PostBox> postBoxesToResolve) {
@@ -30,8 +25,7 @@ public class RiakSimplePostBoxMerger {
         return new PostBox(
           postBoxesToResolve.iterator().next().getEmail(),
           getHighestCounter(postBoxesToResolve), // we'd rather show too many notifications than too few
-          ImmutableList.copyOf(latest.values()),
-          maxAgeDays);
+          ImmutableList.copyOf(latest.values()));
     }
 
     private Map<String, AbstractConversationThread> mergeAbstractConversationThreads(List<PostBox> postBoxesToMerge) {

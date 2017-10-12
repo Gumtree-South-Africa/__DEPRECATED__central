@@ -36,15 +36,13 @@ public class RiakSimplePostBoxMergerTest {
         PostBox postBox1 = new PostBox(
           "foo@bar.de",
           Optional.of(1L),
-          Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")),
-          180);
+          Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")));
 
         DateTime threeHoursAgo = now().minusHours(5);
         PostBox postBox2 = new PostBox(
           "foo@bar.de",
           Optional.of(1L),
-          Lists.newArrayList(createConvThread(threeHoursAgo, "b:2")),
-          180);
+          Lists.newArrayList(createConvThread(threeHoursAgo, "b:2")));
 
         PostBox resolvedPostBox = merger.merge(Lists.newArrayList(postBox1, postBox2));
 
@@ -54,8 +52,7 @@ public class RiakSimplePostBoxMergerTest {
           Lists.newArrayList(
             createConvThread(twoHoursAgo, "a:1"),
             createConvThread(threeHoursAgo, "b:2")
-          ),
-          180);
+          ));
 
         assertEquals(expected, resolvedPostBox);
     }
@@ -68,22 +65,19 @@ public class RiakSimplePostBoxMergerTest {
         PostBox postBox1 = new PostBox(
           "foo@bar.de",
           Optional.of(1L),
-          Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")),
-          180);
+          Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")));
 
         PostBox postBox2 = new PostBox(
           "foo@bar.de",
           Optional.of(1L),
-          Lists.newArrayList(createConvThread(threeHoursAgo, "a:1")),
-          180);
+          Lists.newArrayList(createConvThread(threeHoursAgo, "a:1")));
 
         PostBox resolvedPostBox = merger.merge(Lists.newArrayList(postBox1, postBox2));
 
         PostBox expected = new PostBox(
           "foo@bar.de",
           Optional.of(1L),
-          Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")),
-          180);
+          Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")));
 
         assertEquals(expected, resolvedPostBox);
     }
@@ -96,21 +90,18 @@ public class RiakSimplePostBoxMergerTest {
         PostBox postBox1 = new PostBox(
           "foo@bar.de",
           Optional.of(3L),
-          Lists.newArrayList(createConvThread(threeHoursAgo, "a:1")),
-          180);
+          Lists.newArrayList(createConvThread(threeHoursAgo, "a:1")));
         PostBox postBox2 = new PostBox(
           "foo@bar.de",
           Optional.of(2L),
-          Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")),
-          180);
+          Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")));
 
         PostBox resolvedPostBox = merger.merge(Lists.newArrayList(postBox1, postBox2));
 
         PostBox expected = new PostBox(
           "foo@bar.de",
           Optional.of(3L),
-          Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")),
-          180);
+          Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")));
 
         assertEquals(expected, resolvedPostBox);
     }

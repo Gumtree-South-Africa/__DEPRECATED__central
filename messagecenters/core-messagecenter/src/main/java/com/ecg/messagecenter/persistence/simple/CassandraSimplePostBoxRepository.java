@@ -1,13 +1,7 @@
 package com.ecg.messagecenter.persistence.simple;
 
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.BatchStatement;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.*;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
@@ -26,24 +20,13 @@ import org.springframework.beans.factory.annotation.Value;
 import javax.annotation.PostConstruct;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static com.ecg.replyts.core.runtime.util.StreamUtils.*;
+import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 
 public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository, CassandraRepository {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraSimplePostBoxRepository.class);
@@ -72,9 +55,6 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     private Map<StatementsBase, PreparedStatement> preparedStatements;
 
     private ObjectMapper objectMapper;
-
-    @Value("${replyts.maxConversationAgeDays:180}")
-    private int maxAgeDays;
 
     @Value("${replyts.cleanup.conversation.streaming.queue.size:100000}")
     private int workQueueSize;
@@ -112,24 +92,26 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             Map<String, Integer> unreadCounts = gatherUnreadCounts(id);
             List<AbstractConversationThread> conversationThreads = new ArrayList<>();
 
-            AtomicLong newRepliesCount = new AtomicLong();
+            long newRepliesCount = 0;
 
-            processThreads(id, row -> {
+            ResultSet resultSet = session.execute(Statements.SELECT_POSTBOX.bind(this, id.asString()));
+
+            for (Row row : resultSet) {
                 String conversationId = row.getString("conversation_id");
                 String jsonValue = row.getString("json_value");
 
                 int unreadCount = unreadCounts.getOrDefault(conversationId, 0);
 
-                toConversationThread(id, conversationId, jsonValue, unreadCount)
-                        .filter(this::validConversation)
-                        .ifPresent(conversation -> {
-                            conversationThreads.add(conversation);
-                            newRepliesCount.addAndGet(unreadCount);
-                        });
-            });
+                Optional<AbstractConversationThread> conversationThread = toConversationThread(id, conversationId, jsonValue, unreadCount);
+
+                if (conversationThread.isPresent()) {
+                    conversationThreads.add(conversationThread.get());
+                    newRepliesCount += unreadCount;
+                }
+            };
             LOG.trace("Found {} threads ({} unread) for PostBox with email {} in Cassandra", conversationThreads.size(), newRepliesCount, id.asString());
 
-            return new PostBox(id.asString(), Optional.of(newRepliesCount.get()), conversationThreads, maxAgeDays);
+            return new PostBox(id.asString(), Optional.of(newRepliesCount), conversationThreads);
         }
     }
 
@@ -138,18 +120,8 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         try (Timer.Context ignored = unreadCountsByIdTimer.time()) {
             Map<String, Integer> unreadCounts = gatherUnreadCounts(id);
             long unreadCount = unreadCounts.values().stream().mapToLong(Integer::longValue).sum();
-            return new PostBox(id.asString(), Optional.of(unreadCount), new ArrayList<>(), maxAgeDays);
+            return new PostBox(id.asString(), Optional.of(unreadCount), new ArrayList<>());
         }
-    }
-
-    private boolean validConversation(AbstractConversationThread conversation) {
-        DateTime conversationRetentionTime = DateTime.now().minusDays(maxAgeDays);
-        return conversation.getCreatedAt().isAfter(conversationRetentionTime);
-    }
-
-    private void processThreads(PostBoxId id, Consumer<Row> action) {
-        session.execute(Statements.SELECT_POSTBOX.bind(this, id.asString()))
-                .forEach(action);
     }
 
     private Map<String, Integer> gatherUnreadCounts(PostBoxId id) {

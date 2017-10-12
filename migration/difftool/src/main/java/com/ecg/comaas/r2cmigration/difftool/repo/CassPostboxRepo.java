@@ -3,7 +3,7 @@ package com.ecg.comaas.r2cmigration.difftool.repo;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
-import com.ecg.messagecenter.persistence.simple.*;
+import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.util.StreamUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,8 +20,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.ecg.replyts.core.runtime.TimingReports.*;
-
+import static com.ecg.replyts.core.runtime.TimingReports.newGauge;
+import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 
 @Repository
@@ -39,9 +39,6 @@ public class CassPostboxRepo {
     private final Timer byIdTimer = newTimer("cassandra.postBoxRepo-byId");
     private AtomicLong streamGauge = new AtomicLong();
     private ObjectMapper objectMapper;
-
-    @Value("${replyts.maxConversationAgeDays:180}")
-    private int maxAgeDays;
 
     @Value("${replyts.cleanup.conversation.streaming.queue.size:100000}")
     private int workQueueSize;
@@ -99,7 +96,7 @@ public class CassPostboxRepo {
 
                 ctOptional.map(conversationThreads::add);
             });
-            return new PostBox(email, Optional.of(newRepliesCount.get()), conversationThreads, maxAgeDays);
+            return new PostBox(email, Optional.of(newRepliesCount.get()), conversationThreads);
         }
     }
 

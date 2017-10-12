@@ -50,9 +50,9 @@ public class HybridSimplePostBoxRepositoryTest {
         PostBoxId id = PostBoxId.fromEmail(email);
         AbstractConversationThread c1 = createConversationThread(DateTime.now().minusHours(1), "c1");
         AbstractConversationThread c2 = createConversationThread(DateTime.now().minusMinutes(10), "c2");
-        PostBox riakPostbox = new PostBox(email, Optional.of(0L), newArrayList(c1, c2), 10);
+        PostBox riakPostbox = new PostBox(email, Optional.of(0L), newArrayList(c1, c2));
 
-        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), Collections.emptyList(), 10));
+        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), Collections.emptyList()));
         when(riakRepository.byId(id)).thenReturn(riakPostbox);
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(true);
 
@@ -74,8 +74,8 @@ public class HybridSimplePostBoxRepositoryTest {
         List cassConvThreads = newArrayList(c1, c2);
         List riakConvThreads = newArrayList(c2, c3);
 
-        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), cassConvThreads, 10));
-        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
+        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), cassConvThreads));
+        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(true);
 
         normalRepository.byId(id);
@@ -92,8 +92,8 @@ public class HybridSimplePostBoxRepositoryTest {
         AbstractConversationThread c1 = createConversationThread(DateTime.now().minusHours(1), "c1");
         List riakConvThreads = newArrayList(c1);
 
-        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), Collections.emptyList(), 10));
-        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
+        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), Collections.emptyList()));
+        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(false);
 
         normalRepository.byId(id);
@@ -114,8 +114,8 @@ public class HybridSimplePostBoxRepositoryTest {
         List cassConvThreads = newArrayList(c1, c2);
         List riakConvThreads = newArrayList(c1, c2Updated, c3);
 
-        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), cassConvThreads, 10));
-        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
+        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), cassConvThreads));
+        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(true);
 
         deepMigrationRepository.byId(id);
@@ -136,9 +136,9 @@ public class HybridSimplePostBoxRepositoryTest {
         List cassConvThreads = newArrayList(c1, c2);
         List riakConvThreads = newArrayList(c1);
 
-        PostBox postBox = new PostBox(email, Optional.of(0L), cassConvThreads, 10);
+        PostBox postBox = new PostBox(email, Optional.of(0L), cassConvThreads);
         when(cassandraRepository.byId(id)).thenReturn(postBox);
-        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
+        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(true);
 
         deepMigrationRepository.byId(id);
@@ -162,8 +162,8 @@ public class HybridSimplePostBoxRepositoryTest {
         List cassConvThreads = newArrayList(c1, c2);
         List riakConvThreads = newArrayList(c1);
 
-        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), cassConvThreads, 10));
-        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
+        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), cassConvThreads));
+        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(true);
 
         deepMigrationRepository.byId(id);
@@ -180,8 +180,8 @@ public class HybridSimplePostBoxRepositoryTest {
         AbstractConversationThread c1 = createConversationThread(DateTime.now().minusHours(1), "c1");
         List riakConvThreads = newArrayList(c1);
 
-        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), Collections.emptyList(), 10));
-        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads, 10));
+        when(cassandraRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), Collections.emptyList()));
+        when(riakRepository.byId(id)).thenReturn(new PostBox(email, Optional.of(0L), riakConvThreads));
         when(migrationState.tryClaim(PostBox.class, email)).thenReturn(false);
 
         deepMigrationRepository.byId(id);

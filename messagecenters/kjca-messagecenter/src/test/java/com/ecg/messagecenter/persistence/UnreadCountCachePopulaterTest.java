@@ -18,10 +18,7 @@ import static java.util.Optional.empty;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class UnreadCountCachePopulaterTest {
     private static final String UNREAD_COUNT_CACHE_QUEUE = "unreadCountCacheQueue";
@@ -49,7 +46,7 @@ public class UnreadCountCachePopulaterTest {
         conversations.add(new ConversationThread("c", "d", now, now, now, true, empty(), empty(), empty(), Optional.of(USER_EMAIL), empty()));
         conversations.add(new ConversationThread("e", "f", now, now, now, true, empty(), empty(), empty(), Optional.of(OTHER_USER_EMAIL), empty()));
 
-        when(postBoxRepository.byId(PostBoxId.fromEmail(USER_EMAIL))).thenReturn(new PostBox<>(USER_EMAIL, conversations, 30));
+        when(postBoxRepository.byId(PostBoxId.fromEmail(USER_EMAIL))).thenReturn(new PostBox<>(USER_EMAIL, Optional.empty(), conversations));
 
         cachePopulater.populateCache(USER_EMAIL);
 
@@ -65,7 +62,7 @@ public class UnreadCountCachePopulaterTest {
         conversations.add(new ConversationThread("e", "f", now, now, now, true, empty(), empty(), empty(), Optional.of(OTHER_USER_EMAIL), empty()));
         conversations.add(new ConversationThread("g", "h", now, now, now, false, empty(), empty(), empty(), Optional.of(USER_EMAIL), empty()));
 
-        when(postBoxRepository.byId(PostBoxId.fromEmail(USER_EMAIL))).thenReturn(new PostBox<>(USER_EMAIL, conversations, 30));
+        when(postBoxRepository.byId(PostBoxId.fromEmail(USER_EMAIL))).thenReturn(new PostBox<>(USER_EMAIL, Optional.empty(), conversations));
 
         cachePopulater.populateCache(USER_EMAIL);
 
@@ -81,7 +78,7 @@ public class UnreadCountCachePopulaterTest {
         conversations.add(new ConversationThread("e", "f", now, now, now, true, empty(), empty(), empty(), Optional.of(OTHER_USER_EMAIL), empty()));
         conversations.add(new ConversationThread("g", "h", now, now, now, false, empty(), empty(), empty(), Optional.of(USER_EMAIL), empty()));
 
-        when(postBoxRepository.byId(PostBoxId.fromEmail(USER_EMAIL))).thenReturn(new PostBox<>(USER_EMAIL, conversations, 30));
+        when(postBoxRepository.byId(PostBoxId.fromEmail(USER_EMAIL))).thenReturn(new PostBox<>(USER_EMAIL, Optional.empty(), conversations));
         doThrow(new MessageConversionException("Couldn't make an ActiveMQ Message")).when(this.jmsTemplate).convertAndSend(eq(UNREAD_COUNT_CACHE_QUEUE), anyString());
 
         cachePopulater.populateCache(USER_EMAIL);

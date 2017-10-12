@@ -20,41 +20,38 @@ import static org.joda.time.DateTime.now;
  */
 public class PostBoxConflictResolverTest {
 
-
     private static final DateTime CREATED_AT = now();
     private PostBoxConflictResolver resolver;
-    private int maxAgeDays = 180;
 
     @Before public void setUp() {
-        resolver = new PostBoxConflictResolver(maxAgeDays);
+        resolver = new PostBoxConflictResolver();
     }
 
     @Test public void disjunctPostBoxes() {
         DateTime twoHoursAgo = now().minusHours(2);
 
-        PostBox<ConversationThread> postBox1 = new PostBox<>("foo@bar.de", Optional.of(1L), Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")), maxAgeDays);
+        PostBox<ConversationThread> postBox1 = new PostBox<>("foo@bar.de", Optional.of(1L), Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")));
         DateTime threeHoursAgo = now().minusHours(5);
-        PostBox<ConversationThread> postBox2 = new PostBox<>("foo@bar.de", Optional.of(1L), Lists.newArrayList(createConvThread(threeHoursAgo, "b:2")), maxAgeDays);
+        PostBox<ConversationThread> postBox2 = new PostBox<>("foo@bar.de", Optional.of(1L), Lists.newArrayList(createConvThread(threeHoursAgo, "b:2")));
 
         PostBox<ConversationThread> resolvedPostBox = resolver.resolve(Lists.newArrayList(postBox1, postBox2));
 
         PostBox<ConversationThread> expected = new PostBox<>("foo@bar.de", Optional.of(1L), Lists.newArrayList(createConvThread(twoHoursAgo, "a:1"),
-                createConvThread(threeHoursAgo, "b:2")), maxAgeDays);
+                createConvThread(threeHoursAgo, "b:2")));
         assertEquals(expected, resolvedPostBox);
     }
-
 
     @Test public void usesLatestThreadVersionWhenInFirstThread() {
         DateTime twoHoursAgo = now().minusHours(2);
         DateTime threeHoursAgo = now().minusHours(5);
 
 
-        PostBox<ConversationThread> postBox1 = new PostBox<>("foo@bar.de", Optional.of(1L), Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")), maxAgeDays);
-        PostBox<ConversationThread> postBox2 = new PostBox<>("foo@bar.de", Optional.of(1L), Lists.newArrayList(createConvThread(threeHoursAgo, "a:1")), maxAgeDays);
+        PostBox<ConversationThread> postBox1 = new PostBox<>("foo@bar.de", Optional.of(1L), Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")));
+        PostBox<ConversationThread> postBox2 = new PostBox<>("foo@bar.de", Optional.of(1L), Lists.newArrayList(createConvThread(threeHoursAgo, "a:1")));
 
         PostBox<ConversationThread> resolvedPostBox = resolver.resolve(Lists.newArrayList(postBox1, postBox2));
 
-        PostBox<ConversationThread> expected = new PostBox<>("foo@bar.de", Optional.of(1L), Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")), maxAgeDays);
+        PostBox<ConversationThread> expected = new PostBox<>("foo@bar.de", Optional.of(1L), Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")));
         assertEquals(expected, resolvedPostBox);
     }
 
@@ -63,12 +60,12 @@ public class PostBoxConflictResolverTest {
         DateTime threeHoursAgo = now().minusHours(5);
 
 
-        PostBox<ConversationThread> postBox1 = new PostBox<>("foo@bar.de", Optional.of(3L), Lists.newArrayList(createConvThread(threeHoursAgo, "a:1")), maxAgeDays);
-        PostBox<ConversationThread> postBox2 = new PostBox<>("foo@bar.de", Optional.of(2L), Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")), maxAgeDays);
+        PostBox<ConversationThread> postBox1 = new PostBox<>("foo@bar.de", Optional.of(3L), Lists.newArrayList(createConvThread(threeHoursAgo, "a:1")));
+        PostBox<ConversationThread> postBox2 = new PostBox<>("foo@bar.de", Optional.of(2L), Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")));
 
         PostBox<ConversationThread> resolvedPostBox = resolver.resolve(Lists.newArrayList(postBox1, postBox2));
 
-        PostBox<ConversationThread> expected = new PostBox<>("foo@bar.de", Optional.of(3L), Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")), maxAgeDays);
+        PostBox<ConversationThread> expected = new PostBox<>("foo@bar.de", Optional.of(3L), Lists.newArrayList(createConvThread(twoHoursAgo, "a:1")));
 
         assertEquals(expected, resolvedPostBox);
     }
