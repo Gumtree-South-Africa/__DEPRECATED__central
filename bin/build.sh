@@ -47,8 +47,8 @@ if [ ! -f /usr/bin/apt-get ] ; then
         done
         rm -rf root-certs-pem.zip root-certs-pem
 
- 		# Install AMS1 & DUS1 CA
-     	openssl s_client -connect keystone.ams1.cloud.ecg.so:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM |
+        # Install AMS1 & DUS1 CA
+        openssl s_client -connect keystone.ams1.cloud.ecg.so:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM |
           keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias ams1 -noprompt
 
         openssl s_client -connect keystone.dus1.cloud.ecg.so:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM |
@@ -182,7 +182,7 @@ function main() {
         MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P core,core-tests,!distribution "
         MVN_TASKS="clean package"
     else
-        log "Building all tenant modules (skipping distribution)"
+        log "Building all tenant modules (skipping distribution and core-benchmarks)"
 
         # Extract all tenant profile IDs from the POM, as build profile selection is limited (MNG-3328 etc.)
         TENANT=`
@@ -190,7 +190,7 @@ function main() {
           grep -v 'default\|distribution\|deploy' | \
           tr $'\n' ','`
 
-        MVN_ARGS="$MVN_ARGS -P${PROFILES}${TENANT}!distribution"
+        MVN_ARGS="$MVN_ARGS -P${PROFILES}${TENANT}!distribution,!core-benchmarks"
     fi
 
     MVN_CMD=
