@@ -2,7 +2,6 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.IdBasedConversationResumer;
 import com.ecg.replyts.core.api.model.conversation.*;
@@ -14,7 +13,6 @@ import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Test;
@@ -24,9 +22,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.is;
 import static org.joda.time.DateTime.now;
 import static org.junit.Assert.*;
 
@@ -168,57 +163,6 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
         getConversationRepository().deleteConversationModificationIdxs(conversationId1);
 
         assertNull(getConversationRepository().getLastModifiedDate(conversationId1));
-    }
-
-    @Test
-    public void shouldDeleteConversationEventIdx() {
-        DateTime firstMsgReceivedAtDateTime = now();
-        given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
-
-        List<ConversationEventIdx> conversationEventIdsByHour = getConversationRepository().streamConversationEventIdxsByHour(firstMsgReceivedAtDateTime)
-                .collect(Collectors.toList());
-
-        getConversationRepository().deleteConversationEventIdx(conversationEventIdsByHour.get(0));
-
-        assertTrue(getConversationRepository().streamConversationEventIdxsByHour(firstMsgReceivedAtDateTime).collect(Collectors.toList()).isEmpty());
-    }
-
-    @Test
-    public void shouldStreamConversationEventIdxsByHour() {
-        UUID eventId1 = UUIDs.timeBased();
-        UUID eventId2 = UUIDs.timeBased();
-
-        // create conversation
-        DateTime firstMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 11, 43);
-        ConversationEventIdx firstConversationEventIdx = new ConversationEventIdx(firstMsgReceivedAtDateTime.hourOfDay().roundFloorCopy(), conversationId1, eventId1);
-        conversationRepository.insertConversationEventIdx(firstConversationEventIdx);
-
-        // update conversation
-        DateTime secondMsgReceivedAtDateTime = new DateTime(2012, 2, 10, 9, 22, 5);
-        ConversationEventIdx secondConversationEventIdx = new ConversationEventIdx(secondMsgReceivedAtDateTime.hourOfDay().roundFloorCopy(), conversationId1, eventId2);
-        conversationRepository.insertConversationEventIdx(secondConversationEventIdx);
-
-        List<ConversationEventIdx> conversationModificationIdxs = getConversationRepository().streamConversationEventIdxsByHour(firstMsgReceivedAtDateTime)
-                .collect(Collectors.toList());
-        assertEquals(2, conversationModificationIdxs.size());
-        assertTrue(conversationModificationIdxs.contains(firstConversationEventIdx));
-        assertTrue(conversationModificationIdxs.contains(secondConversationEventIdx));
-    }
-
-    @Test
-    public void findEventsCreatedBetween() throws Exception {
-        givenABunchOfCommands();
-
-        Stream<ImmutablePair<Conversation, ConversationEvent>> eventStream = conversationRepository.findEventsCreatedBetween(new DateTime().minus(1000), new DateTime().plus(1000));
-        assertThat(eventStream.count(), is(6L));
-    }
-
-    @Test
-    public void doesntFindEventsCreatedBetween() throws Exception {
-        givenABunchOfCommands();
-
-        Stream<ImmutablePair<Conversation, ConversationEvent>> eventStream = conversationRepository.findEventsCreatedBetween(new DateTime().minus(2000), new DateTime().minus(1000));
-        assertThat(eventStream.count(), is(0L));
     }
 
     @Test

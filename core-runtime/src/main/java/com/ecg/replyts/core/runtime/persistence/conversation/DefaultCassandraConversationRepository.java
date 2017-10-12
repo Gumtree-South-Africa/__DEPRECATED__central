@@ -62,7 +62,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     private final Timer modifiedBeforeTimer = TimingReports.newTimer("cassandra.conversationRepo-modifiedBefore");
     private final Timer findByIndexKeyTimer = TimingReports.newTimer("cassandra.conversationRepo-findByIndexKey");
     private final Timer deleteTimer = TimingReports.newTimer("cassandra.conversationRepo-delete");
-    private final Timer deleteConversationEventIdxTimer = TimingReports.newTimer("cassandra.conversationRepo-deleteConversationEventIdx");
     private final Timer deleteConversationModificationIdxsTimer = TimingReports.newTimer("cassandra.conversationRepo-deleteConversationModificationIdxs");
     private final Histogram committedBatchSizeHistogram = TimingReports.newHistogram("cassandra.conversationRepo-commit-batch-size");
 
@@ -160,6 +159,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         }
     }
 
+    // https://jira.corp.ebay.com/browse/COMAAS-645 TODO only need data and conversationId here
     public Stream<ConversationEventIdx> streamConversationEventIdxsByHour(DateTime date) {
         try (Timer.Context ignored = streamConversationEventIdxsByHourTimer.time()) {
             DateTime creationDateRoundedByHour = date.hourOfDay().roundFloorCopy();
@@ -192,15 +192,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         try (Timer.Context ignored = deleteConversationModificationIdxsTimer.time()) {
             Statement deleteConversationModificationIdxStatement = Statements.DELETE_CONVERSATION_MODIFICATION_IDXS.bind(this, conversationId);
             session.execute(deleteConversationModificationIdxStatement);
-        }
-    }
-
-    @Override
-    public void deleteConversationEventIdx(ConversationEventIdx conversationEventIdx) {
-        try (Timer.Context ignored = deleteConversationEventIdxTimer.time()) {
-            Statement deleteConversationEventByDateStatement = Statements.DELETE_CONVERSATION_EVENT_BY_DATE.bind(this, conversationEventIdx.getCreationDateRoundedByHour().toDate(),
-                    conversationEventIdx.getConversationId(), conversationEventIdx.getEventId());
-            session.execute(deleteConversationEventByDateStatement);
         }
     }
 
@@ -268,14 +259,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
             session.execute(batch);
         }
     }
-
-    @Override
-    public void insertConversationEventIdx(ConversationEventIdx conversationEventIdx) {
-        Statement insertConversationEventIdxStatement = Statements.INSERT_CONVERSATION_EVENTS_BY_DATE.bind(this, conversationEventIdx.getCreationDateRoundedByHour().toDate(),
-                conversationEventIdx.getConversationId(), conversationEventIdx.getEventId());
-        session.execute(insertConversationEventIdxStatement);
-    }
-
+    
     private List<Long> getConversationModificationDates(String conversationId) {
         try (Timer.Context ignored = getConversationModificationDates.time()) {
             Statement bound = Statements.SELECT_CONVERSATION_MODIFICATION_IDXS.bind(this, conversationId);
@@ -436,7 +420,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         static Statements DELETE_CONVERSATION_SECRET = new Statements("DELETE FROM core_conversation_secret WHERE secret=?", true);
         static Statements DELETE_CONVERSATION_MODIFICATION_IDXS = new Statements("DELETE FROM core_conversation_modification_desc_idx WHERE conversation_id=?", true);
         static Statements DELETE_CONVERSATION_EVENTS_BY_DATE = new Statements("DELETE FROM core_conversation_events_by_date WHERE creatdate = ? AND conversation_id = ?", true);
-        static Statements DELETE_CONVERSATION_EVENT_BY_DATE = new Statements("DELETE FROM core_conversation_events_by_date WHERE creatdate = ? AND conversation_id = ? AND event_id = ?", true);
         static Statements DELETE_RESUME_IDX = new Statements("DELETE FROM core_conversation_resume_idx WHERE compound_key=?", true);
 
         static Statements SELECT_EVENTS_WHERE_CREATE_BETWEEN = new Statements("SELECT * FROM core_conversation_events WHERE event_id > minTimeuuid(?) AND event_id < maxTimeuuid(?) ALLOW FILTERING", false);

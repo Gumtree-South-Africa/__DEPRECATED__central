@@ -24,9 +24,12 @@ import static com.ecg.replyts.core.runtime.persistence.FetchIndexHelper.logInter
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnExpression("#{'${replyts2.cronjob.cleanupConversation.enabled:true}' == 'true' || '${replyts2.cronjob.cleanupConversation.enabled:true}' == '${region}'}")
-public class CleanupConversationCronJob implements CronJobExecutor {
-    private static final Logger LOG = LoggerFactory.getLogger(CleanupConversationCronJob.class);
+@ConditionalOnExpression("#{" +
+       " ('${replyts2.cronjob.cleanupConversation.enabled:true}' == 'true' || '${replyts2.cronjob.cleanupConversation.enabled:true}' == '${region}') "
+        + " && ( '${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid') ) " +
+        " }")
+public class RiakCleanupConversationCronJob implements CronJobExecutor {
+    private static final Logger LOG = LoggerFactory.getLogger(RiakCleanupConversationCronJob.class);
 
     @Autowired
     private MutableConversationRepository conversationRepository;

@@ -1,7 +1,6 @@
-package com.ecg.replyts.app.cronjobs.cleanup.conversation;
+package com.ecg.replyts.app.cronjobs.cleanup;
 
 import com.ecg.replyts.app.ConversationEventListeners;
-import com.ecg.replyts.app.cronjobs.cleanup.CleanupDateCalculator;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
@@ -74,7 +73,6 @@ public class CassandraCleanupConversationCronJobTest {
         cronJob.execute();
 
         verify(conversationRepository).getById(CONVERSATION_ID1);
-        verify(conversationRepository, never()).deleteConversationEventIdx(conversationEventIdx);
         verify(conversationRepository, never()).deleteConversationModificationIdxs(CONVERSATION_ID1);
         verify(cronJobClockRepository).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
@@ -97,7 +95,6 @@ public class CassandraCleanupConversationCronJobTest {
 
         verify(conversationRepository, never()).getById(CONVERSATION_ID1);
         verify(conversationRepository, never()).deleteConversationModificationIdxs(CONVERSATION_ID1);
-        verify(conversationRepository).deleteConversationEventIdx(conversationEventIdx);
         verify(cronJobClockRepository).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
 
@@ -122,7 +119,6 @@ public class CassandraCleanupConversationCronJobTest {
         cronJob.execute();
 
         verify(conversationRepository).getById(CONVERSATION_ID1);
-        verify(conversationRepository, never()).deleteConversationEventIdx(conversationEventIdx);
         verify(conversationRepository, never()).deleteConversationModificationIdxs(CONVERSATION_ID1);
         verify(cronJobClockRepository).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
@@ -141,14 +137,11 @@ public class CassandraCleanupConversationCronJobTest {
         // last modified date is the same as the date to be processed, so conversation should be removed
         DateTime lastModifiedDate = dateToBeProcessed;
         when(conversationRepository.getLastModifiedDate(CONVERSATION_ID1)).thenReturn(lastModifiedDate.getMillis());
-
-        MutableConversation conversation = mock(MutableConversation.class);
         when(conversationRepository.getById(CONVERSATION_ID1)).thenReturn(null);
 
         cronJob.execute();
 
         verify(conversationRepository).getById(CONVERSATION_ID1);
-        verify(conversationRepository).deleteConversationEventIdx(conversationEventIdx);
         verify(conversationRepository).deleteConversationModificationIdxs(CONVERSATION_ID1);
         verify(cronJobClockRepository).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }
@@ -162,7 +155,6 @@ public class CassandraCleanupConversationCronJobTest {
 
         verify(conversationRepository, never()).streamConversationEventIdxsByHour(any(DateTime.class));
         verify(conversationRepository, never()).getById(CONVERSATION_ID1);
-        verify(conversationRepository, never()).deleteConversationEventIdx(any(ConversationEventIdx.class));
         verify(conversationRepository, never()).deleteConversationModificationIdxs(CONVERSATION_ID1);
         verify(cronJobClockRepository, never()).set(eq(JOB_NAME), any(DateTime.class), any(DateTime.class));
     }

@@ -20,12 +20,6 @@ public interface CassandraConversationRepository extends MutableConversationRepo
     void deleteConversationModificationIdxs(String conversationId);
 
     /**
-     * Deletes conversation event index.
-     * @param conversationEventIdx contains the creation date rounded by hour, conversation id and event id
-     */
-    void deleteConversationEventIdx(ConversationEventIdx conversationEventIdx);
-
-    /**
      * Gets the last modified date for a conversation.
      * @param conversationId the conversation id
      * @return the last modified date timestamp or null if nothing is found
@@ -51,9 +45,4 @@ public interface CassandraConversationRepository extends MutableConversationRepo
      */
     Stream<ConversationEventIdx> streamConversationEventIdxsByHour(DateTime date);
 
-    /**
-     * Inserts conversation event index.
-     * @param conversationEventIdx contains the creation date rounded by our, conversation id and event id
-     */
-    void insertConversationEventIdx(ConversationEventIdx conversationEventIdx);
 }

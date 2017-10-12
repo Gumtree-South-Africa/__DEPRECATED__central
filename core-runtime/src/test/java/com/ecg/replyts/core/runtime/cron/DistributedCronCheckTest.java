@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.cron;
 
-import com.ecg.replyts.app.cronjobs.CleanupConversationCronJob;
+import com.ecg.replyts.app.cronjobs.RiakCleanupConversationCronJob;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -17,7 +17,7 @@ public class DistributedCronCheckTest {
     @Before
     public void setUp() throws Exception {
         hazelcast = Hazelcast.newHazelcastInstance();
-        distributedCronCheck = new DistributedCronCheck(CleanupConversationCronJob.class, hazelcast);
+        distributedCronCheck = new DistributedCronCheck(RiakCleanupConversationCronJob.class, hazelcast);
     }
 
     @After

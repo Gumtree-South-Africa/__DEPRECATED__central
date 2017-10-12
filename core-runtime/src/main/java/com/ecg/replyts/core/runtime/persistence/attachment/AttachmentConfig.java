@@ -30,14 +30,25 @@ public class AttachmentConfig {
     @Value("${kafka.attachment.request.timeout.ms:10000}")
     private int storeTimeoutMs;
 
+    @Value("${kafka.swift-cleanup.topic:messageids}")
+    private String swiftCleanupTopic;
 
+    @Value("${kafka.swift-cleanup.batch.size:100000}")
+    private int swiftCleanupBatchSize;
+
+    @Value("${kafka.swift-cleanup.compressionType:none}")
+    private String swiftCleanupCompressionType;
+
+    @Value("${kafka.swift-cleanup.request.timeout.ms:4000}")
+    private int swiftCleanupStoreTimeoutMs;
+    
     @Bean
     public KafkaProducerConfigBuilder<String, byte[]> kafkaProducerConfigBuilder() {
         return new KafkaProducerConfigBuilder<>();
     }
 
     @Bean(name = "attachmentSink")
-    public KafkaSinkService kafkaSinkService(KafkaProducerConfigBuilder kafkaProducerConfigBuilder) {
+    public KafkaSinkService attachmentsKafkaSinkService(KafkaProducerConfigBuilder kafkaProducerConfigBuilder) {
 
         KafkaProducerConfigBuilder.KafkaProducerConfig attachmentProducerConfig = kafkaProducerConfigBuilder.getProducerConfig()
                 .withTopic(topic)
@@ -50,6 +61,21 @@ public class AttachmentConfig {
         Counter attachment_counter = TimingReports.newCounter("attachment.kafka-attachment-counter");
 
         return new KafkaSinkService(save, attachment_counter, attachmentProducerConfig.build());
+    }
+
+    @Bean(name = "messageidSink")
+    public KafkaSinkService msgidKafkaSinkService(KafkaProducerConfigBuilder kafkaProducerConfigBuilder) {
+
+        KafkaProducerConfigBuilder.KafkaProducerConfig cleanupProducerConfig = kafkaProducerConfigBuilder.getProducerConfig()
+                .withTopic(swiftCleanupTopic)
+                .withBatchSize(swiftCleanupBatchSize)
+                .withCompressionType(swiftCleanupCompressionType)
+                .withStoreTimeoutMs(swiftCleanupStoreTimeoutMs);
+
+        Timer save = TimingReports.newTimer("kafka.msgSaveTimer");
+        Counter attachment_counter = TimingReports.newCounter("kafka.msgCounter");
+
+        return new KafkaSinkService(save, attachment_counter, cleanupProducerConfig.build());
     }
 
     @Bean
