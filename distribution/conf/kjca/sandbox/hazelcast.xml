@@ -19,7 +19,7 @@
         <join>
             <multicast enabled="false"/>
             <tcp-ip enabled="true">
-                <members>ca-core001,ca-core002,ca-core003,rts001.qa10.kjdev.ca,rts002.qa10.kjdev.ca</members>
+                <members>ca-core001.comaas-lp.ams1.cloud,ca-core002.comaas-lp.ams1.cloud,ca-core003.comaas-lp.ams1.cloud,rts001.qa10.kjdev.ca,rts002.qa10.kjdev.ca</members>
             </tcp-ip>
         </join>
     </network>
