@@ -31,22 +31,37 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
         <property name="proxyUrl" ref="ebayservices.proxy" />
     </bean>
 
-
     <bean id="esconfig-ipaddr" class="de.mobile.ebay.service.impl.ServiceConfigBean">
         <property name="endpointUrl" value="${replyts2-ebayservicesfilters-plugin.ip.endpointUrl:https://svcs.ebay.com/ws/spf}" />
         <property name="appName" value="" />
         <property name="proxyUrl" ref="ebayservices.proxy" />
     </bean>
 
-    <bean id="esconfig-user" class="de.mobile.ebay.service.impl.ServiceConfigBean">
-        <property name="endpointUrl" value="${replyts2-ebayservicesfilters-plugin.user.endpointUrl:https://svcs.ebay.com/ws/spf}" />
-        <property name="appName" value="" />
-        <property name="proxyUrl" ref="ebayservices.proxy" />
+    <bean id="ebayUserProfileService" class="de.mobile.ebay.service.userprofile.UserProfileServiceImpl">
+        <constructor-arg>
+            <bean factory-bean="ebayServicesRestClientFactoryBuilder" factory-method="build" />
+        </constructor-arg>
+        <constructor-arg>
+            <bean class="com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.config.UserStateServiceConfig">
+                <constructor-arg index="0" value="${replyts2-ebayservicesfilters-plugin.user.endpointUrl}"/>
+                <constructor-arg index="1" value="${replyts2-ebayservicesfilters-plugin.user.oauthUrl}"/>
+                <constructor-arg index="2" value="${replyts2-ebayservicesfilters-plugin.oauthtoken.clientId}"/>
+                <constructor-arg index="3" value="${replyts2-ebayservicesfilters-plugin.oauthtoken.clientSecret}"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="ebayServicesRestClientFactoryBuilder"
+          class="de.mobile.ebay.service.restclient.RestClientFactoryBuilder">
+        <property name="maxTotalConnections" value="100"/>
+        <property name="socketTimeout" value="3000"/>
+        <property name="connectionTimeout" value="3000"/>
+        <property name="proxyUrl" ref="ebayservices.proxy"/>
     </bean>
 
     <bean id="ebayOAuthTokenProvider" class="de.mobile.ebay.service.oauthtoken.OAuthTokenProviderImpl">
         <constructor-arg>
-            <bean factory-bean="ebayOAuthTokenRestClientFactoryBuilder" factory-method="build"/>
+            <bean factory-bean="ebayServicesRestClientFactoryBuilder" factory-method="build"/>
         </constructor-arg>
         <constructor-arg>
             <bean class="de.mobile.ebay.service.oauthtoken.OAuthProviderConfigBean">
@@ -55,18 +70,6 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
                 <property name="clientSecret" value="${replyts2-ebayservicesfilters-plugin.oauthtoken.clientSecret}"/>
             </bean>
         </constructor-arg>
-    </bean>
-
-    <bean id="ebayUserServiceTokenProvider" class="de.mobile.ebay.service.impl.UserServiceStaticTokenProvider">
-        <constructor-arg name="token" value="${replyts2-ebayservicesfilters-plugin.user.iafToken}"/>
-    </bean>
-
-    <bean id="ebayOAuthTokenRestClientFactoryBuilder"
-          class="de.mobile.ebay.service.restclient.RestClientFactoryBuilder">
-        <property name="maxTotalConnections" value="100"/>
-        <property name="socketTimeout" value="3000"/>
-        <property name="connectionTimeout" value="3000"/>
-        <property name="proxyUrl" ref="ebayservices.proxy"/>
     </bean>
 
     <context:component-scan base-package="com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters"></context:component-scan>

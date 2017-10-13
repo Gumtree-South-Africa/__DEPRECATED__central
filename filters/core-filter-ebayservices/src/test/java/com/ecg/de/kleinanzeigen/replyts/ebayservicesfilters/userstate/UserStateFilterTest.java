@@ -1,13 +1,13 @@
 package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.userstate;
 
-import com.ebay.marketplace.user.v1.services.MemberBadgeDataType;
-import com.ebay.marketplace.user.v1.services.UserEnum;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableMap;
 import de.mobile.ebay.service.ServiceException;
-import de.mobile.ebay.service.UserService;
+import de.mobile.ebay.service.UserProfileService;
+import de.mobile.ebay.service.userprofile.domain.AccountStatus;
+import de.mobile.ebay.service.userprofile.domain.User;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,25 +31,23 @@ import static org.mockito.Mockito.when;
 public class UserStateFilterTest {
 
     @Mock
-    private UserService userService;
+    private UserProfileService userProfileService;
     @Mock
-    private MemberBadgeDataType badgeData;
+    private User userFromService;
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private MessageProcessingContext mpc;
-
     private UserStateFilter userStateFilter;
 
     @Before
     public void setUp() throws Exception {
+        when(userProfileService.getUser(anyString())).thenReturn(userFromService);
         when(mpc.getMail().getFrom()).thenReturn("sender@test.de");
-        when(userService.getMemberBadgeData(anyString())).thenReturn(badgeData);
-
-        userStateFilter = new UserStateFilter(ImmutableMap.of("UNKNOWN", 0, "CONFIRMED", -50, "SUSPENDED", 100), userService);
+        userStateFilter = new UserStateFilter(ImmutableMap.of("UNKNOWN", 0, "CONFIRMED", -50, "SUSPENDED", 100), userProfileService);
     }
 
     @Test
     public void rateBadUser() throws Exception {
-        when(badgeData.getUserState()).thenReturn(UserEnum.SUSPENDED);
+        when(userFromService.getUserAccountStatus()).thenReturn(AccountStatus.SUSPENDED);
 
         List<FilterFeedback> feedbacks = userStateFilter.filter(mpc);
 
@@ -63,7 +61,9 @@ public class UserStateFilterTest {
 
     @Test
     public void ignoreUnknown() throws Exception {
-        when(badgeData.getUserState()).thenReturn(UserEnum.UNKNOWN);
+        when(userFromService.getUserAccountStatus()).thenReturn(AccountStatus.UNCONFIRMED);
+
+        UserStateFilter userStateFilter = new UserStateFilter(ImmutableMap.of("UNKNOWN", 0, "CONFIRMED", -50, "SUSPENDED", 100), userProfileService);
 
         List<FilterFeedback> feedbacks = userStateFilter.filter(mpc);
 
@@ -72,7 +72,9 @@ public class UserStateFilterTest {
 
     @Test
     public void ignoreEmptyUserState() throws Exception {
-        when(badgeData.getUserState()).thenReturn(null);
+        when(userProfileService.getUser(anyString())).thenReturn(null);
+
+        UserStateFilter userStateFilter = new UserStateFilter(ImmutableMap.of("UNKNOWN", 0, "CONFIRMED", -50, "SUSPENDED", 100), userProfileService);
 
         List<FilterFeedback> feedbacks = userStateFilter.filter(mpc);
 
@@ -81,7 +83,9 @@ public class UserStateFilterTest {
 
     @Test
     public void ignoreEbayServiceExceptions() throws Exception {
-        when(userService.getMemberBadgeData(anyString())).thenThrow(new ServiceException("Test"));
+        when(userProfileService.getUser(anyString())).thenThrow(new ServiceException("Test"));
+
+        UserStateFilter userStateFilter = new UserStateFilter(ImmutableMap.of("UNKNOWN", 0, "CONFIRMED", -50, "SUSPENDED", 100), userProfileService);
 
         List<FilterFeedback> feedbacks = userStateFilter.filter(mpc);
 

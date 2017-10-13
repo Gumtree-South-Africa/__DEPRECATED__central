@@ -1,6 +1,5 @@
 package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.userstate;
 
-import com.ebay.marketplace.user.v1.services.MemberBadgeDataType;
 import com.ebay.marketplace.user.v1.services.UserEnum;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
@@ -8,7 +7,9 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
 import de.mobile.ebay.service.ServiceException;
-import de.mobile.ebay.service.UserService;
+import de.mobile.ebay.service.UserProfileService;
+import de.mobile.ebay.service.userprofile.domain.AccountStatus;
+import de.mobile.ebay.service.userprofile.domain.User;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
@@ -24,21 +25,21 @@ class UserStateFilter implements Filter {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(UserStateFilter.class);
 
     private final Map<String, Integer> config;
-    private final UserService userService;
+    private final UserProfileService userProfileService;
 
-    public UserStateFilter(Map<String, Integer> config, UserService userService) {
+    UserStateFilter(Map<String, Integer> config, UserProfileService userProfileService) {
         this.config = config;
-        this.userService = userService;
+        this.userProfileService = userProfileService;
     }
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         String sender = messageProcessingContext.getMail().getFrom();
         try {
-            MemberBadgeDataType badgeData = userService.getMemberBadgeData(sender);
+            User userFromService = userProfileService.getUser(sender);
 
-            if (badgeData != null) {
-                UserEnum userState = badgeData.getUserState();
+            if (userFromService != null) {
+                UserEnum userState = getUserEnum(userFromService.getUserAccountStatus());
                 // User state may be null, when JAXB encounters an unknown value for the field
                 // e.g. UNCONFIRMED, which is not included in the library, yet
                 // That is why we have to check it here.
@@ -67,5 +68,16 @@ class UserStateFilter implements Filter {
             }
         }
         return Collections.emptyList();
+    }
+
+    private UserEnum getUserEnum(AccountStatus userAccountStatus) {
+        switch (userAccountStatus) {
+            case CONFIRMED:
+                return UserEnum.CONFIRMED;
+            case SUSPENDED:
+                return UserEnum.SUSPENDED;
+            default:
+                return UserEnum.UNKNOWN;
+        }
     }
 }
