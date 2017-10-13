@@ -10,11 +10,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static ca.kijiji.replyts.MailHeader.CATEGORY_PATH;
 import static ca.kijiji.replyts.MailHeader.USER_TYPE;
@@ -37,7 +33,7 @@ public abstract class ActivableFilter implements Filter {
         String userType = headers.get(USER_TYPE.getHeaderName());
 
         if (skipFor(categories) || !runFor(categories, userType)) {
-            LOG.debug("Skip filter {} for categories {} and userType {}", this.getClass().getSimpleName(), categories, userType);
+            LOG.trace("Skip filter {} for categories {} and userType {}", this.getClass().getSimpleName(), categories, userType);
             return Collections.emptyList();
         }
 

@@ -32,14 +32,14 @@ public class TextAnonymizer {
     private String maskBuyerAddress(Conversation conversation, String content) {
         MailAddress mailAddress = cloakingDevice.createdCloakedMailAddress(ConversationRole.Buyer, conversation);
         content = StringUtils.replace(content, conversation.getBuyerId(), mailAddress.getAddress());
-        LOG.debug("Replaced buyer's real email with anonymous");
+        LOG.trace("Replaced buyer's real email with anonymous");
         return content;
     }
 
     private String maskSellerAddress(Conversation conversation, String content) {
         MailAddress mailAddress = cloakingDevice.createdCloakedMailAddress(ConversationRole.Seller, conversation);
         content = StringUtils.replace(content, conversation.getSellerId(), mailAddress.getAddress());
-        LOG.debug("Replaced seller's real email with anonymous");
+        LOG.trace("Replaced seller's real email with anonymous");
         return content;
     }
 }
