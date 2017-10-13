@@ -1,16 +1,14 @@
 package ca.kijiji.replyts;
 
-import com.netflix.hystrix.HystrixCommand;
-import com.netflix.hystrix.HystrixCommandGroupKey;
-import com.netflix.hystrix.HystrixCommandProperties;
-import com.netflix.hystrix.HystrixThreadPoolKey;
-import com.netflix.hystrix.HystrixThreadPoolProperties;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
+import com.netflix.hystrix.*;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.net.URI;
 
@@ -28,15 +26,11 @@ class IncrementReplyCountCommand extends HystrixCommand<Void>{
     private static final HystrixThreadPoolKey POOL_KEY = HystrixThreadPoolKey.Factory.asKey("IncrementReplyCountPool");
 
     private final CloseableHttpClient httpClient;
-    private URI path;
-    private String authHeader;
+    private final URI path;
+    private final String authHeader;
+    private final String correlationId;
 
-
-    IncrementReplyCountCommand(
-            CloseableHttpClient httpClient,
-            URI path,
-            String authHeader
-    ) {
+    IncrementReplyCountCommand(CloseableHttpClient httpClient, URI path, String authHeader) {
         super(Setter
                 .withGroupKey(GROUP_KEY)
                 .andThreadPoolKey(POOL_KEY)
@@ -46,10 +40,12 @@ class IncrementReplyCountCommand extends HystrixCommand<Void>{
         this.httpClient = httpClient;
         this.path = path;
         this.authHeader = authHeader;
+        this.correlationId = MDC.get(MDCConstants.CORRELATION_ID);
     }
 
     @Override
     protected Void run() throws Exception {
+        setMDCFields();
         HttpPost request = new HttpPost(path);
         request.addHeader(HttpHeaders.AUTHORIZATION, authHeader);
         try(CloseableHttpResponse response = httpClient.execute(request)){
@@ -62,5 +58,11 @@ class IncrementReplyCountCommand extends HystrixCommand<Void>{
             LOG.warn("Got exception from [{}]", path, e);
         }
         return null;
+    }
+
+    private void setMDCFields() {
+        MDC.clear();
+        MDC.put(MDCConstants.CORRELATION_ID, correlationId);
+        MDC.put(MDCConstants.TASK_NAME, this.getClass().getSimpleName());
     }
 }

@@ -2,6 +2,7 @@ package com.ecg.messagecenter.pushmessage.send.client;
 
 import ca.kijiji.tracing.TraceLogFilter;
 import ca.kijiji.tracing.TraceThreadLocal;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.google.common.io.Closeables;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
@@ -15,6 +16,7 @@ import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +31,7 @@ abstract class FailureAwareCommand<T> extends HystrixCommand<T> {
     private final String traceNumber;
     protected HttpRequestBase request;
     private SendException failure;
+    private String correlationId;
 
     public FailureAwareCommand(final HttpClient httpClient, HttpHost httpHost) {
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("SEND"))
@@ -37,10 +40,13 @@ abstract class FailureAwareCommand<T> extends HystrixCommand<T> {
         this.httpClient = httpClient;
         this.httpHost = httpHost;
         this.traceNumber = TraceThreadLocal.get();
+        this.correlationId = MDC.get(MDCConstants.CORRELATION_ID);
     }
 
     @Override
     protected T run() throws Exception {
+        setMDCFields();
+
         HttpResponse response = null;
 
         request.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
@@ -80,6 +86,12 @@ abstract class FailureAwareCommand<T> extends HystrixCommand<T> {
             HttpClientUtils.closeQuietly(response);
             Closeables.closeQuietly(responseContent);
         }
+    }
+
+    private void setMDCFields() {
+        MDC.clear();
+        MDC.put(MDCConstants.CORRELATION_ID, correlationId);
+        MDC.put(MDCConstants.TASK_NAME, this.getClass().getSimpleName());
     }
 
     private HttpResponse getHttpResponse() throws IOException {

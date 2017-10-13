@@ -18,7 +18,7 @@ public class ResponsivenessKafkaSink implements ResponsivenessSink {
 
     private static final Logger LOG = LoggerFactory.getLogger(ResponsivenessKafkaSink.class);
 
-    @Value("${user-behaviour.responsiveness.queue.topic:userresponsiveness}")
+    @Value("${user-behaviour.responsiveness.queue.topic:userresponsiveness_ca}")
     private String queueTopic;
 
     private final ResponsivenessKafkaProducer responsivenessKafkaProducer;

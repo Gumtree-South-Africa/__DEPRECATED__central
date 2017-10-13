@@ -6,6 +6,7 @@ import ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service.exceptio
 import ca.kijiji.tracing.TraceLogFilter;
 import com.codahale.metrics.Counter;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.netflix.hystrix.HystrixCommand;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
@@ -18,6 +19,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /**
  * Executes the request to user behaviour service with circuit breaker semantics.
@@ -32,12 +34,14 @@ public class SendResponsivenessToServiceCommand extends HystrixCommand {
     private final HttpHost httpHost;
     private final Counter requestFailedCounter;
     private final Counter requestErrorCounter;
+    private final String correlationId;
 
     private ResponsivenessRecord responsivenessRecord;
 
     public SendResponsivenessToServiceCommand(CloseableHttpClient httpClient, Setter userBehaviourHystrixConfig, HttpHost httpHost) {
         super(userBehaviourHystrixConfig);
 
+        this.correlationId = MDC.get(MDCConstants.CORRELATION_ID);
         this.httpClient = httpClient;
         this.httpHost = httpHost;
         this.requestFailedCounter = TimingReports.newCounter("user-behaviour.responsiveness.request.failed");
@@ -50,8 +54,15 @@ public class SendResponsivenessToServiceCommand extends HystrixCommand {
 
     @Override
     protected Void run() throws Exception {
+        setMDCFields();
         doPost(prepareRequest());
         return null;
+    }
+
+    private void setMDCFields() {
+        MDC.clear();
+        MDC.put(MDCConstants.CORRELATION_ID, correlationId);
+        MDC.put(MDCConstants.TASK_NAME, SendResponsivenessToServiceCommand.class.getSimpleName());
     }
 
     private HttpPost prepareRequest() {
@@ -74,13 +85,13 @@ public class SendResponsivenessToServiceCommand extends HystrixCommand {
             StatusLine statusLine = response.getStatusLine();
             if (statusLine.getStatusCode() != HttpStatus.SC_NO_CONTENT) {
                 requestFailedCounter.inc();
-                LOG.warn("Received a non-204 response from {}: Status Line: {}.", httpHost.getHostName(), statusLine.toString());
+                LOG.warn("Received a non-204 response from {}: {}.", httpHost.getHostName(), toString());
                 throw new IncorrectHttpStatusCodeException("Expected to obtain HTTP 204 from " + httpHost.getHostName()
                         + ", instead got " + statusLine.getStatusCode());
             }
         } catch (Exception e) {
             requestErrorCounter.inc();
-            LOG.error("Exception while calling {}", httpHost.getHostName());
+            LOG.error("Exception while calling {}", httpHost.getHostName(), e);
             throw new HttpRequestFailedException("Exception while calling " + httpHost.getHostName(), e);
         }
     }

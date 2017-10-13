@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
 import java.util.Collections;
 import java.util.Properties;
 
@@ -22,7 +23,7 @@ public class TestResponsivenessKafkaConsumer {
     @Value("${queue.kafka.endpoint:localhost:9092}")
     private String servers;
 
-    @Value("${user-behaviour.responsiveness.queue.topic:userresponsiveness}")
+    @Value("${user-behaviour.responsiveness.queue.topic:userresponsiveness_ca}")
     private String topic;
 
     private KafkaConsumer<String, ResponsivenessRecord> consumer;
