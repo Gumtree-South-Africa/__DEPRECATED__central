@@ -1,24 +1,28 @@
-#Organisation
+# Configurations
 
-Folders tenant/propertyset
- 
-#noenv 
-Empty folder used by the build system to indicate that properties managed/provided externally 
+We keep per-tenant, per-environment configurations in this folder. The structure is `distribution/conf/<tenant>/<environment>`.
+
+## noenv
+
+Empty folder used by the build system to indicate that properties managed/provided externally .
   
-#comaasqa
-A set of properties to run comaas in comaasqa cloud.
- 
-#local
+## local
+
 This is a set of properties to run comaas against locally run comaas-vagrant instance.   
 
-#bare
-This is a collection of properties to run Comaas locally (from comaas-qa cloud machine)
-with only Riak/Cassandra repo configured. 
-This is NOT intended as fully functional configuration and some services are expected to fail. 
-This is just to test that the Bean initialization works and Comaas is able to start.
+## docker
 
-#prod | qa 
-Prod/QA properties for given tenant
+This is a collection of properties to run with Docker.
 
-#other 
-Alternative sets of properties specific to each tenant
+## prod | sandbox
+
+Producation and sandbox properties for given tenant.
+
+## other (e.g. itqa)
+
+Alternative sets of properties specific to each tenant.
+
+# Migrations
+
+For migrations a separate `distribution/conf/<tenant>/migration` folder can be created. The first tenant to completely migrate was Mobile.de. See https://gerrit.ecg.so/#/c/55152/ for all the migration-related properties.
+

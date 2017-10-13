@@ -1,8 +1,0 @@
-<included>
-    <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
-    <logger name="com.ecg.replyts" level="DEBUG"/>
-    <logger name="com.ecg.de" level="DEBUG"/>
-    <logger name="com.ebay.ecg.sanitychecks" level="INFO"/>
-    <logger name="ca.kijiji" level="DEBUG"/>
-    <logger name="org.springframework.cloud" level="DEBUG"/>
-</included>
