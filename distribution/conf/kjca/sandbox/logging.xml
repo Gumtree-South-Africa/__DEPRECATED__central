@@ -1,6 +1,7 @@
 <included>
     <logger name="com.ecg.comaas" level="DEBUG"/>
     <logger name="com.ecg.replyts" level="DEBUG"/>
+    <logger name="com.ecg.messagecenter" level="DEBUG"/>
     <logger name="com.ecg.de" level="DEBUG"/>
     <logger name="ca.kijiji" level="DEBUG"/>
     <logger name="com.ecg.replyts.core.runtime.cluster.monitor.RiakClusterHealthCheck" level="WARN" />

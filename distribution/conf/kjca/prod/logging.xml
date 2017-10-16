@@ -3,6 +3,7 @@
     <logger name="com.ecg.de.ebayk.messagecenter" level="DEBUG"/>
     <logger name="com.ecg.comaas" level="DEBUG"/>
     <logger name="com.ecg.replyts" level="DEBUG"/>
+    <logger name="com.ecg.messagecenter" level="DEBUG"/>
     <logger name="com.ecg.de" level="DEBUG"/>
     <logger name="com.ecg.messagecenter" level="DEBUG"/>
     <logger name="org.springframework.cloud" level="INFO"/>
