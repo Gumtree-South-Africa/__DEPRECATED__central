@@ -96,6 +96,7 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
         this.threadPoolExecutor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
 
         this.rateLimiter = RateLimiter.create(conversationCleanupRateLimit);
+        LOG.info("messageidSink is enabled {}", msgidKafkaSink != null);
     }
 
     @Override
@@ -163,7 +164,7 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
         try {
             for (Message msg : conversation.getMessages()) {
 
-                for(String name : msg.getAttachmentFilenames()) {
+                for (String name : msg.getAttachmentFilenames()) {
                     String key = attachmentRepository.getCompositeKey(msg.getId(), name);
                     msgidKafkaSink.store(key, EMPTY);
                 }

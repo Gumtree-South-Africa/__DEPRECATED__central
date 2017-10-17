@@ -27,7 +27,7 @@ public class KafkaSinkService {
 
     public Future<RecordMetadata> storeAsync(String messagekey, byte[] content) {
         ProducerRecord<String, byte[]> rec = new ProducerRecord<>(producerConfig.getTopic(), messagekey, content);
-        LOG.debug("Persisting key {} under topic {}", rec.key(), rec.topic());
+        LOG.debug("Persisting key {} under topic {} content length {}", rec.key(), rec.topic(), content.length);
         return producerConfig.getProducer().send(rec, (metadata, exception) -> {
             if (exception == null) {
                 messageCounter.inc();

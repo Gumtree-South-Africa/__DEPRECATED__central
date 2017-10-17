@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
 
 @Configuration
@@ -43,6 +44,7 @@ public class AttachmentConfig {
     private int swiftCleanupStoreTimeoutMs;
     
     @Bean
+    @Scope(value = "prototype")
     public KafkaProducerConfigBuilder<String, byte[]> kafkaProducerConfigBuilder() {
         return new KafkaProducerConfigBuilder<>();
     }
@@ -73,9 +75,9 @@ public class AttachmentConfig {
                 .withStoreTimeoutMs(swiftCleanupStoreTimeoutMs);
 
         Timer save = TimingReports.newTimer("kafka.msgSaveTimer");
-        Counter attachment_counter = TimingReports.newCounter("kafka.msgCounter");
+        Counter counter = TimingReports.newCounter("kafka.msgCounter");
 
-        return new KafkaSinkService(save, attachment_counter, cleanupProducerConfig.build());
+        return new KafkaSinkService(save, counter, cleanupProducerConfig.build());
     }
 
     @Bean

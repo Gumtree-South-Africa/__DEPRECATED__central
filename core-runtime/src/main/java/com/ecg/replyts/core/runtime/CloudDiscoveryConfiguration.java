@@ -45,6 +45,7 @@ public class CloudDiscoveryConfiguration {
             "persistence.cassandra.core.endpoint", "cassandra",
             "persistence.cassandra.mb.endpoint", "cassandra",
             "queue.kafka.endpoint", "kafkacore",
+            "kafka.core.servers", "kafkacore",
             "search.es.endpoints", "elasticsearch"
     );
 
