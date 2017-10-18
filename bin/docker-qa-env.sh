@@ -9,7 +9,7 @@ else
 fi
 
 readonly CREATION_SECONDS="$(date +'%s')"
-readonly PROJECT_NAME="comaasZtestZ${TENANT}Z${CREATION_SECONDS}"
+readonly PROJECT_NAME="comaasQtestQ${TENANT}Q${CREATION_SECONDS}"
 readonly COMPOSE_DIR="$(mktemp -d)"
 # Note that dashes and underscores are not allowed in the project name... which is why there is this Z separator
 
