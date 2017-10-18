@@ -7,7 +7,6 @@ import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.cleanup.TextCleaner;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.google.common.collect.ImmutableMap;
@@ -81,7 +80,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
         return str.substring(0, pos);
     }
 
-    static boolean isNullOrEmpty(String input) {
+    private static boolean isNullOrEmpty(String input) {
         return input == null || input.isEmpty();
     }
 
@@ -96,12 +95,12 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
         sendPushMessage(email, unreadCount);
     }
 
-    void sendPushMessage(String email, Long unreadCount) {
+    private void sendPushMessage(String email, Long unreadCount) {
         PushService pushService = null;
         try {
             TraceThreadLocal.set(UUID.randomUUID().toString());
-            Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.lookupAdInfo(Long.parseLong(conversation.getAdId()));
-            Optional<UserInfoLookup.UserInfo> userInfo = userInfoLookup.lookupUserInfo(email);
+            Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.lookupInfo("adId", conversation.getAdId());
+            Optional<UserInfoLookup.UserInfo> userInfo = userInfoLookup.lookupInfo("email", email);
 
             Optional<PushMessagePayload> payload = createPayloadBasedOnNotificationRules(conversation, message, email, unreadCount, adInfo, userInfo);
 

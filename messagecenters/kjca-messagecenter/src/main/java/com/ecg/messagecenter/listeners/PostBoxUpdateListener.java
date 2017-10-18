@@ -5,7 +5,8 @@ import ca.kijiji.replyts.TextAnonymizer;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.capi.AdInfoLookup;
-import com.ecg.messagecenter.capi.Configuration;
+import com.ecg.messagecenter.capi.CommonApiConfig;
+import com.ecg.messagecenter.capi.HttpClientConfig;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.pushmessage.ActiveMQPushServiceImpl;
@@ -46,16 +47,17 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     @Autowired
     public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
                                  @Value("${push-mobile.enabled:true}") boolean pushEnabled,
+                                 @Value("${capi.scheme:http}") String capiScheme,
                                  @Value("${capi.host:www.dev.kjdev.ca}") String capiHost,
-                                 @Value("${capi.port:8081}") Integer capiPort,
+                                 @Value("${capi.port:8081}") int capiPort,
                                  @Value("${capi.username:box}") String capiUsername,
                                  @Value("${capi.password:box}") String capiPassword,
-                                 @Value("${capi.connectionTimeout:1500}") Integer connectionTimeout,
-                                 @Value("${capi.connectionManagerTimeout:1500}") Integer connectionManagerTimeout,
-                                 @Value("${capi.socketTimeout:2500}") Integer socketTimeout,
-                                 @Value("${capi.maxConnectionsPerHost:40}") Integer maxConnectionsPerHost,
-                                 @Value("${capi.retryCount:1}") Integer retryCount,
-                                 @Value("${send.push.percentage:0}") Integer pushServicePercentage,
+                                 @Value("${capi.connectionTimeout:1500}") int connectionTimeout,
+                                 @Value("${capi.connectionManagerTimeout:1500}") int connectionManagerTimeout,
+                                 @Value("${capi.socketTimeout:2500}") int socketTimeout,
+                                 @Value("${capi.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
+                                 @Value("${capi.retryCount:1}") int retryCount,
+                                 @Value("${send.push.percentage:0}") int pushServicePercentage,
                                  @Qualifier("messageCentreJmsTemplate") JmsTemplate jmsTemplate,
                                  @Qualifier("sendPushService") PushService sendPushService,
                                  TextAnonymizer textAnonymizer,
@@ -64,9 +66,10 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         this.textAnonymizer = textAnonymizer;
         this.unreadCountCacher = unreadCountCacher;
 
-        final Configuration configuration = new Configuration(capiHost, capiPort, capiUsername, capiPassword, connectionTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, retryCount);
-        this.adInfoLookup = new AdInfoLookup(configuration);
-        this.userInfoLookup = new UserInfoLookup(configuration);
+        final HttpClientConfig httpClientConfig = new HttpClientConfig(connectionTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, retryCount);
+        final CommonApiConfig commonApiConfig = new CommonApiConfig(capiHost, capiPort, capiScheme, capiUsername, capiPassword);
+        this.adInfoLookup = new AdInfoLookup(httpClientConfig, commonApiConfig);
+        this.userInfoLookup = new UserInfoLookup(httpClientConfig, commonApiConfig);
 
         this.pushServicePercentage = pushServicePercentage;
 

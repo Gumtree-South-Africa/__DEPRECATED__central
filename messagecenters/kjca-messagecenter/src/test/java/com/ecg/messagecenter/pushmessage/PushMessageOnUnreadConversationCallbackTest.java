@@ -72,10 +72,10 @@ public class PushMessageOnUnreadConversationCallbackTest {
         AdInfoLookup.AdInfo adInfo = new AdInfoLookup.AdInfo();
         adInfo.setImageUrl("http://image_url");
         adInfo.setTitle("Ad Title");
-        when(adInfoLookup.lookupAdInfo(anyLong())).thenReturn(Optional.ofNullable(adInfo));
+        when(adInfoLookup.lookupInfo(anyString(), anyString())).thenReturn(Optional.ofNullable(adInfo));
 
         userInfoLookup = mock(UserInfoLookup.class);
-        when(userInfoLookup.lookupUserInfo(anyString())).thenReturn(Optional.of(new UserInfoLookup.UserInfo("123")));
+        when(userInfoLookup.lookupInfo(anyString(), anyString())).thenReturn(Optional.of(new UserInfoLookup.UserInfo("123")));
 
         listener = new PushMessageOnUnreadConversationCallback(0, amqPushService, sendPushService, textAnonymizer, adInfoLookup, userInfoLookup, conversation, message);
     }

@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.capi;
 
-import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.pushmessage.exception.APIException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -11,14 +10,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Optional;
 
-import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
-import static org.apache.http.HttpStatus.SC_NOT_FOUND;
-import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.HttpStatus.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class AdInfoLookupTest {
 
@@ -28,17 +23,22 @@ public class AdInfoLookupTest {
     private static final String AD_NOT_FOUND_RESPONSE = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><api-base-error xmlns=\"http://www.ebayclassifiedsgroup.com/schema/types/v1\" http-status-code=\"404\"><api-errors><api-error><message>Ad #987654321 does not exist</message></api-error></api-errors><api-debug-errors/><api-field-errors/></api-base-error>";
 
     private HttpResponse httpResponse;
+    private AdInfoLookup adInfoLookup;
 
     @Before
     public void setUp() throws Exception {
         httpResponse = mock(HttpResponse.class, RETURNS_DEEP_STUBS);
+        adInfoLookup = new AdInfoLookup(
+                new HttpClientConfig(1500, 1500, 2500, 40,1),
+                new CommonApiConfig("localhost", 80, "http", "username", "password")
+        );
     }
 
     @Test
     public void adWithImages() throws Exception {
         httpReturnsStatusAndPayload(SC_OK, AD_WITH_IMAGES);
 
-        Optional<AdInfoLookup.AdInfo> adInfo = new AdInfoLookup.AdInfoResponseHandler().handleResponse(httpResponse);
+        Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.getResponseHandler().handleResponse(httpResponse);
 
         assertEquals("http://i.ebayimg.com/00/s/MTYwMFgxMjAw/z/mu8AAOSwBLlVQbzW/$_75.JPG", adInfo.get().getImageUrl());
         assertEquals("Magic mouse", adInfo.get().getTitle());
@@ -48,7 +48,7 @@ public class AdInfoLookupTest {
     public void adWithOneImage() throws Exception {
         httpReturnsStatusAndPayload(SC_OK, AD_WITH_ONE_IMAGE);
 
-        Optional<AdInfoLookup.AdInfo> adInfo = new AdInfoLookup.AdInfoResponseHandler().handleResponse(httpResponse);
+        Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.getResponseHandler().handleResponse(httpResponse);
 
         assertEquals("http://i.ebayimg.com/00/s/MTYwMFgxMjAw/z/ZPEAAOSwcwhVQbsj/$_75.JPG", adInfo.get().getImageUrl());
         assertEquals("Sexy laptop", adInfo.get().getTitle());
@@ -58,7 +58,7 @@ public class AdInfoLookupTest {
     public void adWithoutImages() throws Exception {
         httpReturnsStatusAndPayload(SC_OK, AD_WITHOUT_IMAGES);
 
-        Optional<AdInfoLookup.AdInfo> adInfo = new AdInfoLookup.AdInfoResponseHandler().handleResponse(httpResponse);
+        Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.getResponseHandler().handleResponse(httpResponse);
 
         assertEquals("", adInfo.get().getImageUrl());
         assertEquals("2,40 Meter hoher Katzen Kratzbaum", adInfo.get().getTitle()); // Germans, y u so angry?
@@ -68,7 +68,7 @@ public class AdInfoLookupTest {
     public void cannotFindAd_returnEmptyOptional_noExceptionThrown() throws Exception {
         httpReturnsStatusAndPayload(SC_NOT_FOUND, AD_NOT_FOUND_RESPONSE);
 
-        Optional<AdInfoLookup.AdInfo> adInfo = new AdInfoLookup.AdInfoResponseHandler().handleResponse(httpResponse);
+        Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.getResponseHandler().handleResponse(httpResponse);
 
         assertFalse(adInfo.isPresent());
     }
@@ -79,7 +79,7 @@ public class AdInfoLookupTest {
         when(httpResponse.getStatusLine().getStatusCode()).thenReturn(SC_INTERNAL_SERVER_ERROR);
         when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
 
-        new AdInfoLookup.AdInfoResponseHandler().handleResponse(httpResponse);
+        adInfoLookup.getResponseHandler().handleResponse(httpResponse);
     }
 
     private void httpReturnsStatusAndPayload(int statusCode, String adWithImages) throws IOException {

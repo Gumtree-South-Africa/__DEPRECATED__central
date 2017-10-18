@@ -47,7 +47,7 @@ public class PostBoxUpdateListenerTest {
 
     @Before
     public void setUp() throws Exception {
-        listener = new PostBoxUpdateListener(postBoxInitializer, false, "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, 0, null, sendPushService, textAnonymizer, unreadCountCacher);
+        listener = new PostBoxUpdateListener(postBoxInitializer, false, "http", "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, 0, null, sendPushService, textAnonymizer, unreadCountCacher);
 
         convoBuilder = ImmutableConversation.Builder
                 .aConversation()
