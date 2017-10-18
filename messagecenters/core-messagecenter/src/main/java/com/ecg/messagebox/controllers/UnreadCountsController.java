@@ -2,8 +2,8 @@ package com.ecg.messagebox.controllers;
 
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.controllers.responses.converters.UnreadCountsResponseConverter;
-import com.ecg.messagebox.model.UserUnreadCounts;
 import com.ecg.messagebox.service.PostBoxService;
+import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

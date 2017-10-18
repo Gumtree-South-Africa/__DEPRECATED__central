@@ -1,7 +1,7 @@
 package com.ecg.messagebox.controllers.responses.converters;
 
 import com.ecg.messagebox.controllers.responses.UnreadCountsResponse;
-import com.ecg.messagebox.model.UserUnreadCounts;
+import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import org.springframework.stereotype.Component;
 
 @Component

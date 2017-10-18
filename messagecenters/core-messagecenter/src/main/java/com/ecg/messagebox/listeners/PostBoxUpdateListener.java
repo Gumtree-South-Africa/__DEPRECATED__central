@@ -86,7 +86,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             final String msgSenderUserId = msg.getMessageDirection() == BUYER_TO_SELLER ? buyerUserId : sellerUserId;
             final String msgReceiverUserId = msg.getMessageDirection() == BUYER_TO_SELLER ? sellerUserId : buyerUserId;
 
-            if (!isDirectionBlocked(msgSenderUserId, msgReceiverUserId)) {
+            if (!isDirectionBlocked(msgSenderUserId, msgReceiverUserId) && msg.getState() != IGNORED ) {
                 final String cleanMsg = messagesResponseFactory.getCleanedMessage(conv, msg);
 
                 // update buyer and seller projections
@@ -95,7 +95,8 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                 updateUserProjection(conv, msg, msgSenderUserId, sellerUserId,
                         userNotificationRules.sellerShouldBeNotified(msg), cleanMsg);
 
-                messageAddedEventProcessor.publishMessageAddedEvent(conv, msg, cleanMsg);
+                messageAddedEventProcessor.publishMessageAddedEvent(conv, msg, cleanMsg,
+                        postBoxService.getUnreadCounts(msgReceiverUserId));
             } else {
                 LOGGER.debug(format("Direction from the %s to %s is blocked for the message %s", msgSenderUserId, msgReceiverUserId, msg.getId()));
             }
@@ -111,7 +112,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private void updateUserProjection(Conversation conv, Message msg, String msgSenderUserId, String projectionOwnerUserId,
                                       boolean isNewReply, String cleanMsg) {
         boolean isOwnMessage = msgSenderUserId.equals(projectionOwnerUserId);
-        if (msg.getState() != IGNORED && ((msg.getState() == SENT && conv.getState() != ConversationState.CLOSED) || isOwnMessage)) {
+        if ((msg.getState() == SENT && conv.getState() != ConversationState.CLOSED) || isOwnMessage) {
             postBoxService.processNewMessage(projectionOwnerUserId, conv, msg, isNewReply, cleanMsg);
         }
     }

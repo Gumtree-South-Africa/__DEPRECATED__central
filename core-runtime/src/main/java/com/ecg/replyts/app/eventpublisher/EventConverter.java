@@ -1,11 +1,12 @@
 package com.ecg.replyts.app.eventpublisher;
 
+import com.ecg.replyts.app.eventpublisher.EventPublisher.Event;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ExtendedConversationEvent;
-import com.ecg.replyts.app.eventpublisher.EventPublisher.Event;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.util.ArrayList;
@@ -32,6 +33,11 @@ public class EventConverter {
     }
 
     public List<Event> toEvents(Conversation conversation, List<ConversationEvent> conversationEvents) {
+        return toEvents(conversation, conversationEvents, null, false);
+    }
+
+    public List<Event> toEvents(Conversation conversation, List<ConversationEvent> conversationEvents,
+                                UserUnreadCounts unreadCounts, boolean newConnection) {
         String sellerAnonymousEmail = mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conversation).getAddress();
         String buyerAnonymousEmail = mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation).getAddress();
 
@@ -40,7 +46,8 @@ public class EventConverter {
                 .map(conversationEvent -> {
                     String partitionKey = conversation.getId();
                     ExtendedConversationEvent extendedConversationEvent =
-                            new ExtendedConversationEvent(conversation, conversationEvent, sellerAnonymousEmail, buyerAnonymousEmail);
+                            new ExtendedConversationEvent(conversation, conversationEvent,
+                                    sellerAnonymousEmail, buyerAnonymousEmail, unreadCounts, newConnection);
                     byte[] data = serializer.serialize(extendedConversationEvent);
                     return new Event(partitionKey, data);
                 })

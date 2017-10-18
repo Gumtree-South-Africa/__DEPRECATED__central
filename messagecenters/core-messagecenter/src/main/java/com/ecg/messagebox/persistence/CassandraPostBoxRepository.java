@@ -2,6 +2,7 @@ package com.ecg.messagebox.persistence;
 
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.model.*;
+import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 
 import java.util.List;
 import java.util.Map;

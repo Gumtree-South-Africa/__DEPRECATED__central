@@ -2,6 +2,7 @@ package com.ecg.replyts.core.api.model.conversation.event;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -51,7 +52,15 @@ public class ExtendedConversationEvent {
 
     public ExtendedConversationEvent(Conversation conversation, ConversationEvent event, String sellerAnonymousEmail, String buyerAnonymousEmail) {
         this.event = event;
-        this.conversation = new PublishedMessageConversation(conversation, sellerAnonymousEmail, buyerAnonymousEmail);
+        this.conversation = new PublishedMessageConversation(conversation, sellerAnonymousEmail,
+                buyerAnonymousEmail, null, false);
+    }
+
+    public ExtendedConversationEvent(Conversation conversation, ConversationEvent event, String sellerAnonymousEmail,
+                                     String buyerAnonymousEmail, UserUnreadCounts unreadCounts, boolean createdConnection) {
+        this.event = event;
+        this.conversation = new PublishedMessageConversation(conversation, sellerAnonymousEmail,
+                buyerAnonymousEmail, unreadCounts, createdConnection);
     }
 
     public static class PublishedMessageConversation {
@@ -69,6 +78,8 @@ public class ExtendedConversationEvent {
         public final boolean closedBySeller;
         public final int messageCount;
         public final Map<String, String> customValues;
+        public final boolean createdConnection;
+        public final UserUnreadCounts unreadCounts;
 
         @JsonCreator
         public PublishedMessageConversation(
@@ -85,7 +96,9 @@ public class ExtendedConversationEvent {
                 @JsonProperty("closedByBuyer,") boolean closedByBuyer,
                 @JsonProperty("closedBySeller,") boolean closedBySeller,
                 @JsonProperty("messageCount,") int messageCount,
-                @JsonProperty("customValues") Map<String, String> customValues
+                @JsonProperty("customValues") Map<String, String> customValues,
+                @JsonProperty("unreadCounts") UserUnreadCounts unreadCounts,
+                @JsonProperty("createdConnection") boolean createdConnection
         ) {
             this.sellerAnonymousEmail = sellerAnonymousEmail;
             this.buyerAnonymousEmail = buyerAnonymousEmail;
@@ -101,11 +114,16 @@ public class ExtendedConversationEvent {
             this.closedBySeller = closedBySeller;
             this.messageCount = messageCount;
             this.customValues = customValues;
+            this.unreadCounts = unreadCounts;
+            this.createdConnection = createdConnection;
         }
 
-        private PublishedMessageConversation(Conversation wrapped, String sellerAnonymousEmail, String buyerAnonymousEmail) {
+        private PublishedMessageConversation(Conversation wrapped, String sellerAnonymousEmail, String buyerAnonymousEmail,
+                                             UserUnreadCounts unreadCounts, boolean createdConnection) {
             this.sellerAnonymousEmail = sellerAnonymousEmail;
             this.buyerAnonymousEmail = buyerAnonymousEmail;
+            this.createdConnection = createdConnection;
+            this.unreadCounts = unreadCounts;
             conversationId = wrapped.getId();
             adId = wrapped.getAdId();
             buyerId = wrapped.getBuyerId();

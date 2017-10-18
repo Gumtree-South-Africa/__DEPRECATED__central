@@ -1,4 +1,7 @@
-package com.ecg.messagebox.model;
+package com.ecg.replyts.core.api.model.conversation;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Objects;
 
@@ -10,8 +13,16 @@ public class UserUnreadCounts {
     private String userId;
     private int numUnreadConversations;
     private int numUnreadMessages;
+    /**
+     * Marks the version of this data format.
+     */
+    @JsonProperty(required = false)
+    private int formatVer = 1;
 
-    public UserUnreadCounts(String userId, int numUnreadConversations, int numUnreadMessages) {
+    @JsonCreator
+    public UserUnreadCounts(@JsonProperty("userId") String userId,
+                            @JsonProperty("numUnreadConversations") int numUnreadConversations,
+                            @JsonProperty("numUnreadMessages") int numUnreadMessages) {
         this.userId = userId;
         this.numUnreadConversations = numUnreadConversations;
         this.numUnreadMessages = numUnreadMessages;

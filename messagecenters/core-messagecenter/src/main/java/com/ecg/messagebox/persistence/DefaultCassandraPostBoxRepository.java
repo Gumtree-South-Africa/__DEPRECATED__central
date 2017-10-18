@@ -10,6 +10,7 @@ import com.ecg.messagebox.persistence.model.ConversationIndex;
 import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
 import com.ecg.messagebox.persistence.model.UnreadCounts;
 import com.ecg.messagebox.util.StreamUtils;
+import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;

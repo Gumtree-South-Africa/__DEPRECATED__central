@@ -19,6 +19,8 @@
     "formatVer": 1
   },
   "conversation": {
+    "unreadCounts":{"userId":"1","numUnreadConversations":12,"numUnreadMessages":22,"formatVer":1},
+    "createdConnection":true,
     "sellerAnonymousEmail": "ss983e9s0f7ds.seller.anon@platform.com",
     "buyerAnonymousEmail": "x6cvm8dp9y3k9.buyer.anon@platform.com",
     "conversationId": "conv-5801",

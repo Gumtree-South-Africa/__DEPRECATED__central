@@ -3,8 +3,8 @@ package com.ecg.messagebox.service;
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
-import com.ecg.messagebox.model.UserUnreadCounts;
 import com.ecg.messagebox.model.Visibility;
+import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 
 import java.util.List;
 import java.util.Optional;

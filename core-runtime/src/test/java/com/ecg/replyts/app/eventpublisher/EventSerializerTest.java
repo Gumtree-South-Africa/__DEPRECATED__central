@@ -2,6 +2,7 @@ package com.ecg.replyts.app.eventpublisher;
 
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
@@ -90,7 +91,9 @@ public class EventSerializerTest {
 
         ExtendedConversationEvent addMessageExtendedEvent = new ExtendedConversationEvent(
                 conversation, addMessageEvent,
-                "ss983e9s0f7ds.seller.anon@platform.com", "x6cvm8dp9y3k9.buyer.anon@platform.com");
+                "ss983e9s0f7ds.seller.anon@platform.com",
+                "x6cvm8dp9y3k9.buyer.anon@platform.com",
+                new UserUnreadCounts("1", 12, 22), true);
 
         byte[] newConversationSerialized = serializer.serialize(addMessageExtendedEvent);
 

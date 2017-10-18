@@ -90,7 +90,7 @@ public class PostBoxUpdateListenerTest {
         listener.messageProcessed(conversation, message);
 
         verify(blockUserRepository).areUsersBlocked(BUYER_USER_ID, SELLER_USER_ID);
-        verify(messageAddedEventProcessor).publishMessageAddedEvent(conversation, message, "clean message");
+        verify(messageAddedEventProcessor).publishMessageAddedEvent(conversation, message, "clean message", null);
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Buyer);
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Seller);
         verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false, "clean message");

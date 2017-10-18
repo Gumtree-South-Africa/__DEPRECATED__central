@@ -18,6 +18,8 @@
     "formatVer": 1
   },
   "conversation": {
+    "unreadCounts":null,
+    "createdConnection":false,
     "sellerAnonymousEmail": "ss983e9s0f7ds.seller.anon@platform.com",
     "buyerAnonymousEmail": "x6cvm8dp9y3k9.buyer.anon@platform.com",
     "conversationId": "conv-5801",

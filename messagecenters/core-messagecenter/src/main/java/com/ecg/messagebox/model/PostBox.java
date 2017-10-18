@@ -1,5 +1,6 @@
 package com.ecg.messagebox.model;
 
+import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.google.common.base.MoreObjects;
 
 import java.util.List;
