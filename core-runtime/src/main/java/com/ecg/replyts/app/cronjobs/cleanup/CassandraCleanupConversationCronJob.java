@@ -12,6 +12,8 @@ import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaSinkService;
+import com.ecg.replyts.core.runtime.workers.InstrumentedCallerRunsPolicy;
+import com.ecg.replyts.core.runtime.workers.InstrumentedExecutorService;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.RateLimiter;
 import org.joda.time.DateTime;
@@ -76,7 +78,7 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     @Value("${replyts.cleanup.conversation.schedule.expression:0 0 0 * * ? *}")
     private String cronJobExpression;
 
-    private ThreadPoolExecutor threadPoolExecutor;
+    private ExecutorService threadPoolExecutor;
 
     @Value("${replyts.cleanup.conversation.rate.limit:1000}")
     private int conversationCleanupRateLimit;
@@ -91,9 +93,9 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     @PostConstruct
     public void createThreadPoolExecutor() {
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(workQueueSize);
-        RejectedExecutionHandler rejectionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
-
-        this.threadPoolExecutor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
+        RejectedExecutionHandler rejectionHandler = new InstrumentedCallerRunsPolicy("cleanup", CassandraCleanupConversationCronJob.class.getSimpleName());
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
+        this.threadPoolExecutor = new InstrumentedExecutorService(executor, "cleanup", CassandraCleanupConversationCronJob.class.getSimpleName());
 
         this.rateLimiter = RateLimiter.create(conversationCleanupRateLimit);
         LOG.info("messageidSink is enabled {}", msgidKafkaSink != null);
@@ -116,7 +118,7 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
         Iterators.partition(conversationEventIdxs.iterator(), batchSize).forEachRemaining(idxs -> {
             cleanUpTasks.add(threadPoolExecutor.submit(() -> {
 
-                Set<String> convIds = idxs.stream().collect(Collectors.toConcurrentMap(id -> id.getConversationId(), id -> true)).keySet();
+                Set<String> convIds = idxs.stream().collect(Collectors.toConcurrentMap(id -> id.getConversationId(), id -> true, (k,v) -> true)).keySet();
                 LOG.info("Cleanup: Deleting data related to {} de-duplicated conversation events out of {} events ", convIds.size(), idxs.size());
 
                 convIds.forEach(conversationId -> {
