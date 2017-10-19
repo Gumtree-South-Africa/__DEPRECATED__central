@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Adjustment of run-locally.sh script for new Jenkins (extracting environment start/stop to pipeline)
-# This script starts Comaas with the "bare" profile, then checks the health to see if all beans are wired correctly.
+# This script starts Comaas with the "docker" profile, then checks the health to see if all beans are wired correctly.
 
 set -o nounset
 set -o errexit
@@ -26,6 +26,9 @@ function parseCmd() {
     # check number of args
     [[ $# == 0 ]] && usage
     TENANT=$1
+    DOCKER_PROJECT=${2:-comaasdocker}
+    DOCKER_NETWORK="${DOCKER_PROJECT}_default"
+    DOCKER_CONSUL="${DOCKER_PROJECT}_consul_1"
 }
 
 function findOpenPort() {
@@ -55,7 +58,7 @@ function startComaas() {
     log "Starting comaas on port $COMAAS_HTTP_PORT"
 
     (cd distribution/target
-    tar xfz distribution-${TENANT}-bare.tar.gz
+    tar xfz distribution-${TENANT}-docker.tar.gz
     cd distribution
 
     COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} bin/comaas 2>&1 &
@@ -80,8 +83,11 @@ function stopAll() {
 }
 
 function main() {
-    log "Packaging Comaas (-T ${TENANT} -P bare)"
-    bin/build.sh -T ${TENANT} -P bare
+    log "Packaging Comaas (-T ${TENANT} -P docker)"
+    bin/build.sh -T ${TENANT} -P docker
+
+    log "Importing properties into Consul"
+    docker run --net ${DOCKER_NETWORK} --rm --volume ${PWD}/distribution/conf/${TENANT}/import_into_consul/docker.properties:/docker.properties -w / docker-registry.ecg.so/comaas/properties-to-consul:0.0.4 -consul http://${DOCKER_CONSUL}:8500 -file /docker.properties
 
     log "Starting comaas for tenant ${TENANT}"
 
@@ -126,10 +132,11 @@ function main() {
 function usage() {
     cat << EOF
     Usage:
-    Run Comaas for TENANT
+    Run Comaas for TENANT optionally supplying docker network (default - 'comaasdocker_default')
 
-    Example:
+    Examples:
     $0 mp
+    $0 mp yourname_default
 
 EOF
     exit 0;
