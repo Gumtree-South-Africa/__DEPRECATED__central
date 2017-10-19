@@ -207,7 +207,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
             Predicate<ConversationEvent> isConversatonCreatedEvent = ConversationCreatedEvent.class::isInstance;
             Optional<ConversationEvent> event = events.stream().filter(isConversatonCreatedEvent).findFirst();
             if (!event.isPresent()) {
-                throw new RuntimeException(String.format(" Did not find ConversationCreatedEvent among the list of %d events", events.size()));
+                throw new InvalidConversationException(events);
             }
             createdEvent =  (ConversationCreatedEvent) event.get();
             // Potentially removes all duplicates of ConversationCreated event - must be a good thing

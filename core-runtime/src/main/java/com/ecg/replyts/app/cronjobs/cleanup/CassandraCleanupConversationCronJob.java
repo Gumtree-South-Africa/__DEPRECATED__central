@@ -7,6 +7,8 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationDeletedCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
+import com.ecg.replyts.core.runtime.model.conversation.InvalidConversationException;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
@@ -118,6 +120,8 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
         Iterators.partition(conversationEventIdxs.iterator(), batchSize).forEachRemaining(idxs -> {
             cleanUpTasks.add(threadPoolExecutor.submit(() -> {
 
+                MDCConstants.setTaskFields(CassandraCleanupConversationCronJob.class.getSimpleName());
+
                 Set<String> convIds = idxs.stream().collect(Collectors.toConcurrentMap(id -> id.getConversationId(), id -> true, (k,v) -> true)).keySet();
                 LOG.info("Cleanup: Deleting data related to {} de-duplicated conversation events out of {} events ", convIds.size(), idxs.size());
 
@@ -133,9 +137,14 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
                     DateTime roundedLastModifiedDate = lastModifiedDate != null ? new DateTime((lastModifiedDate)).hourOfDay().roundFloorCopy().toDateTime() : null;
 
                     if (lastModifiedDate != null && (roundedLastModifiedDate.isBefore(cleanupDate) || roundedLastModifiedDate.equals(cleanupDate))) {
-                        MutableConversation conversation = conversationRepository.getById(conversationId);
-                        persistMessageId(conversation);
-                        deleteConversationWithIdxs(conversation, conversationId);
+                        try {
+                            MutableConversation conversation = conversationRepository.getById(conversationId);
+                            persistMessageId(conversation);
+                        } catch (InvalidConversationException ie) {
+                                LOG.warn("Cannot load conversation {} - due to lack of ConversationCreatedEvent, please remove manually." +
+                                                " Existing events are {}", conversationId, ie.getEvents());
+                            deleteConversationWithIdxs(null, conversationId);
+                        }
                     }
                 });
             }));
