@@ -140,6 +140,7 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
                         try {
                             MutableConversation conversation = conversationRepository.getById(conversationId);
                             persistMessageId(conversation);
+                            deleteConversationWithIdxs(conversation, conversationId);
                         } catch (InvalidConversationException ie) {
                                 LOG.warn("Cannot load conversation {} - due to lack of ConversationCreatedEvent, please remove manually." +
                                                 " Existing events are {}", conversationId, ie.getEvents());
