@@ -44,7 +44,7 @@ public class UserResponsivenessListener implements MessageProcessedListener {
             ResponsivenessSink sink,
             CloseableHttpClient httpClient,
             @Qualifier("userBehaviourHystrixConfig") HystrixCommand.Setter userBehaviourHystrixConfig,
-            @Value("${user-behaviour.responsiveness.http.endpoint:user-behaviour-service.qa.kjdev.ca}") String httpEndpoint,
+            @Value("${user-behaviour.responsiveness.http.endpoint:user-behaviour-service.clworker.qa10.kjdev.ca}") String httpEndpoint,
             @Value("${user-behaviour.responsiveness.http.port:80}") Integer httpPort
     ) {
         this.responsivenessCalculator = responsivenessCalculator;
