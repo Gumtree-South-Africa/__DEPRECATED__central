@@ -113,7 +113,6 @@ class ConversationThreadController {
                 int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
                 postBox.decrementNewReplies(unreadMessages);
                 postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
-                unreadCountCachePopulater.populateCache(email);
             }
 
             ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
@@ -126,12 +125,15 @@ class ConversationThreadController {
             if (newCounterMode) {
                 if (needToMarkAsRead) {
                     markConversationAsRead(email, conversationId, postBox);
+                    unreadCountCachePopulater.populateCache(postBox);
+
                 }
                 return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, blockedByBuyer, blockedBySeller, response);
             } else {
                 long numUnread;
                 if (needToMarkAsRead) {
                     numUnread = markConversationAsRead(email, conversationId, postBox);
+                    unreadCountCachePopulater.populateCache(postBox);
                 } else {
                     numUnread = postBox.getUnreadConversationsCapped().size();
                 }
@@ -235,7 +237,7 @@ class ConversationThreadController {
                 postBoxRepository.deleteConversations(postBox, Collections.singletonList(conversationId));
             }
 
-            unreadCountCachePopulater.populateCache(email);
+            unreadCountCachePopulater.populateCache(postBox);
 
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

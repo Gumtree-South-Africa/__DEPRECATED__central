@@ -45,9 +45,12 @@ public class UnreadCountCachePopulater {
     }
 
     public void populateCache(String email) {
-        try (Timer.Context unused = TIMER.time()) {
-            final PostBox<AbstractConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        final PostBox<AbstractConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        populateCache(postBox);
+    }
 
+    public void populateCache(PostBox<AbstractConversationThread> postBox) {
+        try (Timer.Context unused = TIMER.time()) {
             int total = 0;
             int asPoster = 0;
             int asReplier = 0;
@@ -57,7 +60,7 @@ public class UnreadCountCachePopulater {
                     continue;
                 }
 
-                if (email.equals(thread.getBuyerId().orElse(""))) {
+                if (postBox.getEmail().equals(thread.getBuyerId().orElse(""))) {
                     asReplier++;
                 } else {
                     asPoster++;
@@ -65,7 +68,7 @@ public class UnreadCountCachePopulater {
                 total++;
             }
 
-            final UnreadConversationCount unreadConversationCount = new UnreadConversationCount(email, total, asPoster, asReplier);
+            final UnreadConversationCount unreadConversationCount = new UnreadConversationCount(postBox.getEmail(), total, asPoster, asReplier);
 
             this.jmsTemplate.convertAndSend(this.unreadCountCacheQueueName, OBJECT_WRITER.writeValueAsString(unreadConversationCount));
         } catch (JmsException | JsonProcessingException e) {

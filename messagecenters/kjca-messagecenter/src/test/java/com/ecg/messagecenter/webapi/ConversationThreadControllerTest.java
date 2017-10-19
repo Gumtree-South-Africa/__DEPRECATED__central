@@ -1,6 +1,7 @@
 package com.ecg.messagecenter.webapi;
 
 import ca.kijiji.replyts.TextAnonymizer;
+import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.UnreadCountCachePopulater;
 import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
@@ -22,48 +23,41 @@ import java.util.List;
 import java.util.Optional;
 
 public class ConversationThreadControllerTest {
-    @Mock
+    private static final String EMAIL = "user@example.com";
+    private static final String CONVERSATION_ID = "conversationId";
+
     private DefaultRiakSimplePostBoxRepository postBoxRepository = Mockito.mock(DefaultRiakSimplePostBoxRepository.class);
-
-    @Mock
     private ConversationRepository conversationRepository = Mockito.mock(ConversationRepository.class);
-
-    @Mock
     private RiakConversationBlockRepository conversationBlockRepository = Mockito.mock(RiakConversationBlockRepository.class);
-
-    @Mock
     private MailCloakingService mailCloakingService = Mockito.mock(MailCloakingService.class);
-
-    @Mock
     private TextAnonymizer textAnonymizer = Mockito.mock(TextAnonymizer.class);
-
-    @Mock
     private UnreadCountCachePopulater unreadCountCachePopulater = Mockito.mock(UnreadCountCachePopulater.class);
 
     private ConversationThreadController controller;
+    private PostBox<AbstractConversationThread> postBox;
 
     @Before
     public void setUp() throws Exception {
         controller = new ConversationThreadController(postBoxRepository, conversationRepository, conversationBlockRepository, mailCloakingService, textAnonymizer, unreadCountCachePopulater);
 
-        List<ConversationThread> conversationThreads = ImmutableList.of(new ConversationThread("ad", "conversationId", DateTime.now(), DateTime.now(), DateTime.now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of("user@example.com"), Optional.empty()));
-        PostBox postBox = new PostBox<>("user@example.com", Optional.empty(), conversationThreads);
-        Mockito.when(postBoxRepository.byId(PostBoxId.fromEmail("user@example.com"))).thenReturn(postBox);
+        List<AbstractConversationThread> conversationThreads = ImmutableList.of(new ConversationThread("ad", CONVERSATION_ID, DateTime.now(), DateTime.now(), DateTime.now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(EMAIL), Optional.empty()));
+        postBox = new PostBox<>(EMAIL, Optional.empty(), conversationThreads);
+        Mockito.when(postBoxRepository.byId(PostBoxId.fromEmail(EMAIL))).thenReturn(postBox);
     }
 
     @Test
     public void markConversationRead_triggersUnreadCountCacher() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setMethod("PUT");
-        controller.getPostBoxConversationByEmailAndConversationId("user@example.com", "conversationId", false, request, new MockHttpServletResponse());
+        controller.getPostBoxConversationByEmailAndConversationId(EMAIL, CONVERSATION_ID, false, request, new MockHttpServletResponse());
 
-        Mockito.verify(unreadCountCachePopulater).populateCache("user@example.com");
+        Mockito.verify(unreadCountCachePopulater).populateCache(postBox);
     }
 
     @Test
     public void deleteSingleConversation_triggersUnreadCountCacher() throws Exception {
-        controller.deleteSingleConversation("user@example.com", "conversationId", new MockHttpServletResponse());
+        controller.deleteSingleConversation(EMAIL, CONVERSATION_ID, new MockHttpServletResponse());
 
-        Mockito.verify(unreadCountCachePopulater).populateCache("user@example.com");
+        Mockito.verify(unreadCountCachePopulater).populateCache(postBox);
     }
 }

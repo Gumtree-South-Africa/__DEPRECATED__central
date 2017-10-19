@@ -54,6 +54,21 @@ public class UnreadCountCachePopulaterTest {
     }
 
     @Test
+    public void simplePath_calledWithPostbox() throws Exception {
+        final List<AbstractConversationThread> conversations = new ArrayList<>(3);
+        final DateTime now = DateTime.now();
+        conversations.add(new ConversationThread("a", "b", now, now, now, true, empty(), empty(), empty(), Optional.of(USER_EMAIL), empty()));
+        conversations.add(new ConversationThread("c", "d", now, now, now, true, empty(), empty(), empty(), Optional.of(USER_EMAIL), empty()));
+        conversations.add(new ConversationThread("e", "f", now, now, now, true, empty(), empty(), empty(), Optional.of(OTHER_USER_EMAIL), empty()));
+
+        PostBox<AbstractConversationThread> postBox = new PostBox<>(USER_EMAIL, Optional.empty(), conversations);
+
+        cachePopulater.populateCache(postBox);
+
+        verify(this.jmsTemplate).convertAndSend(UNREAD_COUNT_CACHE_QUEUE, "{\"email\":\"user@example.com\",\"total\":3,\"asPoster\":1,\"asReplier\":2}");
+    }
+
+    @Test
     public void skipsReadConversations() throws Exception {
         final List<AbstractConversationThread> conversations = new ArrayList<>(3);
         final DateTime now = DateTime.now();
