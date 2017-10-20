@@ -1,7 +1,9 @@
 package com.ecg.gumtree.comaas.filter.volume.monitoring;
 
 import com.ecg.gumtree.comaas.filter.volume.EventStreamProcessor;
+import com.ecg.replyts.core.webapi.RuntimeExceptionHandler;
 import com.ecg.replyts.core.webapi.util.JsonNodeMessageConverter;
+import com.ecg.replyts.core.webapi.util.MappingJackson2HttpMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -14,11 +16,17 @@ public class VolumeFilterMonitoringWebConfiguration extends WebMvcConfigurationS
 
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        converters.add(new MappingJackson2HttpMessageConverter());
         converters.add(new JsonNodeMessageConverter());
     }
 
     @Bean
     public VolumeFilterMonitoringController volumeFilterMonitoring(EventStreamProcessor eventStreamProcessor) {
         return new VolumeFilterMonitoringController(eventStreamProcessor);
+    }
+
+    @Bean
+    public RuntimeExceptionHandler runtimeExceptionHandler() {
+        return new RuntimeExceptionHandler();
     }
 }

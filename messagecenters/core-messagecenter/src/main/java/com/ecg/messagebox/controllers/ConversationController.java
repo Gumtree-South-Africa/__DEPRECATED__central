@@ -14,16 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import java.io.IOException;
 import java.util.Optional;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
@@ -49,11 +43,6 @@ public class ConversationController {
                                   ConversationResponseConverter responseConverter) {
         this.postBoxService = postBoxService;
         this.responseConverter = responseConverter;
-    }
-
-    @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
-        TopLevelExceptionHandler.handle(ex, response);
     }
 
     @RequestMapping(value = CONVERSATION_RESOURCE, produces = APPLICATION_JSON_UTF8_VALUE, method = GET)

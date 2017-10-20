@@ -1,7 +1,9 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter.monitoring;
 
 import com.ecg.de.kleinanzeigen.replyts.volumefilter.EventStreamProcessor;
+import com.ecg.replyts.core.webapi.RuntimeExceptionHandler;
 import com.ecg.replyts.core.webapi.util.JsonNodeMessageConverter;
+import com.ecg.replyts.core.webapi.util.MappingJackson2HttpMessageConverter;
 import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,11 +21,17 @@ public class VolumeFilterMonitoringWebConfiguration extends WebMvcConfigurationS
 
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        converters.add(new MappingJackson2HttpMessageConverter());
         converters.add(new JsonNodeMessageConverter());
     }
 
     @Bean
     public VolumeFilterMonitoringController volumeFilterMonitoring(HazelcastInstance hazelcastInstance, EventStreamProcessor eventStreamProcessor) {
         return new VolumeFilterMonitoringController(hazelcastInstance, eventStreamProcessor, httpPort);
+    }
+
+    @Bean
+    public RuntimeExceptionHandler runtimeExceptionHandler() {
+        return new RuntimeExceptionHandler();
     }
 }

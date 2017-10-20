@@ -32,7 +32,7 @@ public class CloseConversationTest {
                 .when()
                 .request()
                 .body("{'issuerEmail':'seller123@host.com','state': 'CLOSED'}")
-                .header("Content-Type", "application/json")
+                .contentType("application/json;charset=utf-8")
                 .put("http://localhost:" + rule.getHttpPort() + "/screeningv2/conversation/" + result.getConversation().getId());
 
 

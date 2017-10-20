@@ -7,17 +7,12 @@ import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
-
-import static com.ecg.replyts.core.runtime.TimingReports.*;
-import static org.springframework.web.bind.annotation.RequestMethod.*;
+import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @Controller
 public class UnreadCountsController {
@@ -34,11 +29,6 @@ public class UnreadCountsController {
                                   UnreadCountsResponseConverter responseConverter) {
         this.postBoxService = postBoxService;
         this.responseConverter = responseConverter;
-    }
-
-    @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
-        TopLevelExceptionHandler.handle(ex, response);
     }
 
     @RequestMapping(value = UNREAD_COUNTS_RESOURCE, method = GET)

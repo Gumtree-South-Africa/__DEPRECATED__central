@@ -2,7 +2,6 @@ package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.ecg.messagebox.controllers.TopLevelExceptionHandler;
 import com.ecg.messagecenter.diff.WebApiDiffService;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -19,9 +18,6 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @RestController
 public class PostBoxOverviewController {
@@ -53,11 +49,6 @@ public class PostBoxOverviewController {
     @InitBinder
     public void initBinderInternal(WebDataBinder binder) {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
-    }
-
-    @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
-        TopLevelExceptionHandler.handle(ex, response);
     }
 
     @GetMapping(value = MessageCenterGetPostBoxCommand.MAPPING, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

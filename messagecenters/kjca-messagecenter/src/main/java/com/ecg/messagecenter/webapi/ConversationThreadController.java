@@ -4,7 +4,6 @@ import ca.kijiji.replyts.TextAnonymizer;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.ecg.messagebox.controllers.TopLevelExceptionHandler;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.UnreadCountCachePopulater;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
@@ -38,7 +37,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -83,11 +81,6 @@ class ConversationThreadController {
     @InitBinder
     public void initBinderInternal(WebDataBinder binder) {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
-    }
-
-    @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
-        TopLevelExceptionHandler.handle(ex, response);
     }
 
     @RequestMapping(value = MessageCenterGetPostBoxConversationCommand.MAPPING,

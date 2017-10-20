@@ -14,6 +14,7 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.StatementsBase;
@@ -24,6 +25,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -85,6 +87,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     @Override
     public MutableConversation getById(String conversationId) {
         try (Timer.Context ignored = getByIdTimer.time()) {
+            MDC.put(MDCConstants.CONVERSATION_ID, conversationId);
             List<ConversationEvent> events = getConversationEvents(conversationId);
             LOG.trace("Found {} events for Conversation with id {} in Cassandra", events.size(), conversationId);
             if (events.isEmpty()) {
@@ -160,6 +163,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     }
 
     // https://jira.corp.ebay.com/browse/COMAAS-645 TODO only need data and conversationId here
+    @Override
     public Stream<ConversationEventIdx> streamConversationEventIdxsByHour(DateTime date) {
         try (Timer.Context ignored = streamConversationEventIdxsByHourTimer.time()) {
             DateTime creationDateRoundedByHour = date.hourOfDay().roundFloorCopy();
@@ -259,7 +263,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
             session.execute(batch);
         }
     }
-    
+
     private List<Long> getConversationModificationDates(String conversationId) {
         try (Timer.Context ignored = getConversationModificationDates.time()) {
             Statement bound = Statements.SELECT_CONVERSATION_MODIFICATION_IDXS.bind(this, conversationId);

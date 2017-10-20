@@ -75,9 +75,8 @@ public class EmbeddedWebserver {
                 .withQueueSize(maxThreadQueueSize)
                 .withName(EmbeddedWebserver.class.getSimpleName());
 
-        HttpServerFactory factory = new HttpServerFactory(httpPortNumber, httpTimeoutMs, builder, httpMaxAcceptRequestQueueSize,
-                httpBlockingTimeoutMs, threadStopTimeoutMs, solinger);
-        server = factory.createServer();
+        server = new HttpServerFactory(httpPortNumber, httpTimeoutMs, builder, httpMaxAcceptRequestQueueSize,
+                httpBlockingTimeoutMs, threadStopTimeoutMs, solinger).createServer();
 
         LOG.info("Configuring Webserver for Port {}", httpPort);
     }

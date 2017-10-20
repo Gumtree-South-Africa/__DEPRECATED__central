@@ -1,7 +1,8 @@
-package com.ecg.replyts.core.webapi.control;
+package com.ecg.replyts.core.webapi;
 
 import com.ecg.replyts.core.runtime.cluster.XidFactory;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
+import com.ecg.replyts.core.webapi.CorrelationIdFilter;
 import org.junit.Test;
 import org.slf4j.MDC;
 import org.springframework.mock.web.MockFilterChain;
@@ -18,7 +19,7 @@ import javax.servlet.ServletResponse;
 
 import java.io.IOException;
 
-import static com.ecg.replyts.core.webapi.control.CorrelationIdFilter.*;
+import static com.ecg.replyts.core.webapi.CorrelationIdFilter.*;
 import static org.assertj.core.api.Assertions.*;
 
 public class CorrelationIdFilterTest {

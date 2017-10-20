@@ -2,7 +2,6 @@ package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.ecg.messagebox.controllers.TopLevelExceptionHandler;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.DefaultRiakSimplePostBoxRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
@@ -22,17 +21,8 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -69,11 +59,6 @@ class AdConversationRecipientsController {
     @InitBinder
     public void initBinderInternal(WebDataBinder binder) {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
-    }
-
-    @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
-        TopLevelExceptionHandler.handle(ex, response);
     }
 
     /**

@@ -14,6 +14,8 @@
         <constructor-arg value="true" />
     </bean>
 
+    <bean class="com.ecg.replyts.core.webapi.RuntimeExceptionHandler" />
+
     <mvc:annotation-driven>
         <mvc:message-converters>
             <bean id="jacksonMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">

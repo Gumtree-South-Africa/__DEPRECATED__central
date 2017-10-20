@@ -13,8 +13,7 @@
         <property name="alwaysUseFullPath" value="true"/>
     </bean>
 
-    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerExceptionResolver"
-          id="handlerExceptionResolver"/>
+    <bean class="com.ecg.replyts.core.webapi.RuntimeExceptionHandler" />
 
     <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
         <property name="messageConverters">

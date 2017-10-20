@@ -11,34 +11,21 @@ import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.apache.james.mime4j.MimeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import javax.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
 
 @Controller
 class MessageController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageController.class);
-
     private static final Timer API_ROBOT_POST_TO_CONVERSATION_BY_ID = TimingReports.newTimer("api-robot-post-to-conversation-by-id");
     private static final Timer API_ROBOT_POST_TO_CONVERSATIONS_BY_AD_ID = TimingReports.newTimer("api-robot-post-to-conversations-by-ad-id");
     private static final Timer API_ROBOT_CONVERSATIONS_BY_AD_ID = TimingReports.newTimer("api-robot-conversations-by-ad-id");
-
 
     private final RobotService robotService;
 
@@ -51,11 +38,6 @@ class MessageController {
     @InitBinder
     public void initBinderInternal(WebDataBinder binder) {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
-    }
-
-    @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
-        TopLevelExceptionHandler.handle(ex, response);
     }
 
     @RequestMapping(value = PostMessageToConversationCommand.MAPPING,

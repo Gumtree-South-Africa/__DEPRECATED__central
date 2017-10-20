@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.webapi;
 
-import com.ecg.messagebox.controllers.TopLevelExceptionHandler;
 import com.ecg.messagecenter.webapi.requests.MessageCenterDeleteConversationCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterReportConversationCommand;
@@ -16,9 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ConversationThreadController {
@@ -33,11 +29,6 @@ public class ConversationThreadController {
     @InitBinder
     public void initBinderInternal(WebDataBinder binder) {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
-    }
-
-    @ExceptionHandler
-    public void handleException(Throwable ex, HttpServletResponse response) throws IOException {
-        TopLevelExceptionHandler.handle(ex, response);
     }
 
     /*

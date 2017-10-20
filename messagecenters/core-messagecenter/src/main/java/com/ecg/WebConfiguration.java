@@ -1,6 +1,7 @@
 package com.ecg;
 
 import com.ecg.messagecenter.webapi.HttpRequestAccessInterceptor;
+import com.ecg.replyts.core.webapi.RuntimeExceptionHandler;
 import com.ecg.replyts.core.webapi.util.JsonNodeMessageConverter;
 import com.ecg.replyts.core.webapi.util.MappingJackson2HttpMessageConverter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @Configuration
 public class WebConfiguration extends WebMvcConfigurationSupport {
+    @Override
     @Bean
     public RequestMappingHandlerMapping requestMappingHandlerMapping() {
         RequestMappingHandlerMapping mapping = super.requestMappingHandlerMapping();
@@ -37,6 +39,11 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
     @Override
     public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
         exceptionResolvers.add(new ExceptionHandlerExceptionResolver());
+    }
+
+    @Bean
+    public RuntimeExceptionHandler runtimeExceptionHandler() {
+        return new RuntimeExceptionHandler();
     }
 
     @Override

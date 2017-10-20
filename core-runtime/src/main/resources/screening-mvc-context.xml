@@ -2,26 +2,25 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
     <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
         <property name="alwaysUseFullPath" value="true"/>
     </bean>
 
-    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerExceptionResolver"
-          id="handlerExceptionResolver"/>
+    <bean class="com.ecg.replyts.core.webapi.RuntimeExceptionHandler" />
 
-    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
-        <property name="messageConverters">
-            <util:list>
-                <bean class="com.ecg.replyts.core.webapi.util.MappingJackson2HttpMessageConverter"/>
-                <bean class="com.ecg.replyts.core.webapi.util.JsonNodeMessageConverter"/>
-            </util:list>
-        </property>
-    </bean>
+    <mvc:annotation-driven>
+        <mvc:message-converters>
+            <bean class="com.ecg.replyts.core.webapi.util.MappingJackson2HttpMessageConverter"/>
+            <bean class="com.ecg.replyts.core.webapi.util.JsonNodeMessageConverter"/>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
 
     <context:component-scan base-package="com.ecg.replyts.core.webapi.screeningv2"/>
 </beans>

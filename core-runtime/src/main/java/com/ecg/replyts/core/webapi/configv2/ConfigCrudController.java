@@ -16,11 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,7 +74,7 @@ import static java.lang.String.format;
  * @author mhuttar
  */
 @Controller
-public class ConfigCrudController implements HandlerExceptionResolver {
+public class ConfigCrudController {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigCrudController.class);
 
     private ConfigurationRepository configRepository;
@@ -189,21 +187,5 @@ public class ConfigCrudController implements HandlerExceptionResolver {
     private static String getContent(JsonNode body, String fieldname, String alternative) {
         JsonNode fn = body.get(fieldname);
         return fn == null ? alternative : fn.asText();
-    }
-
-    @Override
-    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-        LOG.error("Config Webservice encountered Exception", ex);
-        JsonNode n = JsonObjects.builder().failure(ex).build();
-        try {
-            String resp = JsonObjects.getObjectMapper().writeValueAsString(n);
-            response.setStatus(500);
-            response.addHeader("Content-Type", "application/json;charset=utf-8");
-            response.getOutputStream().write(resp.getBytes());
-            response.getOutputStream().close();
-        } catch (Exception e) {
-            LOG.error("Error handling error ;) ", e);
-        }
-        return null;
     }
 }

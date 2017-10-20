@@ -31,14 +31,13 @@ public class StartupExperience {
     }
 
     public boolean running(int apiHttpPort) {
-        LOG.info("   __________  __  ___            _____");
-        LOG.info("  / ____/ __ \\/  |/  /___ _____ _/ ___/");
-        LOG.info(" / /   / / / / /|_/ / __ `/ __ `/\\__ \\");
-        LOG.info("/ /___/ /_/ / /  / / /_/ / /_/ /___/ /");
-        LOG.info("\\____/\\____/_/  /_/\\__,_/\\__,_//____/");
-        LOG.info("");
+        LOG.info("   __________  __  ___            _____\n"
+               + "  / ____/ __ \\/  |/  /___ _____ _/ ___/\\n"
+               + " / /   / / / / /|_/ / __ `/ __ `/\\__ \\\\n"
+               + "/ /___/ /_/ / /  / / /_/ / /_/ /___/ /\\n"
+               + "\\____/\\____/_/  /_/\\__,_/\\__,_//____/\\n");
 
-        LOG.info("COMaaS startup complete in {}ms.", System.currentTimeMillis() - begin);
+        LOG.info("COMaaS startup complete in {} ms.", System.currentTimeMillis() - begin);
         LOG.info("Started COMaaS for tenant {} on port {}", tenant, apiHttpPort);
         LOG.info("Documentation can be found here: https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki");
 
