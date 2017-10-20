@@ -37,20 +37,19 @@ function createCloudPackage() {
 
 function package() {
     # Create the artifact with the prod properties. This will be used as a base package to create packages from for other Comaas environments.
-    ./bin/build.sh -T ${TENANT} -P prod
-
-    ARTIFACT_NAME="comaas-${TENANT}_prod-${TIMESTAMP}-${GIT_HASH}"
-    cp distribution/target/distribution-${TENANT}-prod.tar.gz "${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
-    echo "Created ${DESTINATION}/${ARTIFACT_NAME}.tar.gz"
+    # Note that we are unpacking the prod package and repackaging it below, this is because it gets packaged by maven with
+    # basedir distribution/, where the deploy.py script expects comaas-${TENANT}_${ENV}-${TIMESTAMP}-${GIT_HASH}
+    bin/build.sh -T ${TENANT} -P prod
+    tar xf distribution/target/distribution-${TENANT}-prod.tar.gz -C distribution/target
 
     # Create a zip with all the tenant's configuration to be imported into Consul
     ARTIFACT_NAME="comaas-${TENANT}-configuration-${TIMESTAMP}-${GIT_HASH}.tar.gz"
     tar zcf ${DESTINATION}/${ARTIFACT_NAME} -C distribution/conf/${TENANT} ./import_into_consul
     echo "Created ${DESTINATION}/${ARTIFACT_NAME}"
 
-    # Now create a package with cloud sandbox properties that will be deployed using deploy.py
-    tar xf distribution/target/distribution-${TENANT}-prod.tar.gz -C distribution/target
+    # Now create a package with cloud sandbox and prod properties that will be deployed using deploy.py
     createCloudPackage sandbox
+    createCloudPackage prod
 
     # This is needed to save disk space on the builder nodes
     rm -rf distribution/target/distribution
