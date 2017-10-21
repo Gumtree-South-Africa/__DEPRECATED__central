@@ -159,7 +159,7 @@ function main() {
 
         if ! [[ -z $EXECUTE ]] ; then
             if [[ -z $PACKAGE ]]; then
-                    PACKAGE="local"
+                    PACKAGE="docker"
             fi
             MVN_ARGS="${MVN_ARGS} -DconfDir=distribution/conf/${TENANT}/${PACKAGE} -DlogDir=/tmp
             -Dmail.mime.parameters.strict=false -Dmail.mime.address.strict=false
