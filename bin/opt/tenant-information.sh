@@ -31,7 +31,7 @@ from_json () {
     echo ${v}
 }
 
-if [ -z "${1}" ]; then
+if [ $# == 0 ]; then
     tenants="uk mo mp ca au ek it"
 else
     tenants="${@}"
