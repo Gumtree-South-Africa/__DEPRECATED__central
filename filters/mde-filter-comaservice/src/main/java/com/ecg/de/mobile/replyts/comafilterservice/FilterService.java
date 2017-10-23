@@ -18,6 +18,7 @@ public class FilterService implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(FilterService.class);
 
     public static final String CUSTOM_HEADER_PREFIX = "X-Cust-";
+    public static final String CUSTOM_HEADER_FROM_USERID = CUSTOM_HEADER_PREFIX + "From-Userid";
     static final String CUSTOM_HEADER_MESSAGE_TYPE = CUSTOM_HEADER_PREFIX + "Message_Type";
     static final String CUSTOM_HEADER_BUYER_TYPE = CUSTOM_HEADER_PREFIX + "Buyer_Type";
     static final String MESSAGE_TYPE_CONVERSATION = "CONVERSATION_MESSAGE";

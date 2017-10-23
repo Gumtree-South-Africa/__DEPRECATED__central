@@ -4,36 +4,41 @@ import com.ecg.de.mobile.replyts.comafilterservice.FilterService;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 
 import java.util.Date;
-import java.util.Optional;
+
+import static com.ecg.de.mobile.replyts.comafilterservice.FilterService.CUSTOM_HEADER_FROM_USERID;
+import static java.util.Optional.ofNullable;
 
 public class ContactMessageAssembler {
-    
+
     public ContactMessage getContactMessage(MessageProcessingContext context) {
-        
+
         ContactMessage message = new ContactMessage();
 
         message.setConversationId(context.getConversation().getId());
 
+        ofNullable(context.getMessage().getHeaders().get(CUSTOM_HEADER_FROM_USERID))
+                .ifPresent(message::setFromUserId);
+
         message.setBuyerMailAddress(context.getConversation()
                 .getUserIdFor(context.getMessageDirection().getFromRole()));
 
-        Date messageCreatedTime = Optional.ofNullable(context.getMail().getSentDate()).orElse(new Date());
+        Date messageCreatedTime = ofNullable(context.getMail().getSentDate()).orElse(new Date());
         message.setMessageCreatedTime(messageCreatedTime);
 
-        if(context.getMail().getPlaintextParts().size() > 0) {
+        if (context.getMail().getPlaintextParts().size() > 0) {
             message.setMessage(context.getMail().getPlaintextParts().get(0));
         }
 
         String sellerType = getSellerType(context);
-        if(sellerType != null) {
+        if (sellerType != null) {
             message.setSellerType(sellerType);
         }
-        
+
         String siteId = getSiteId(context);
-        if(siteId != null) {
+        if (siteId != null) {
             message.setSiteId(siteId);
         }
-        
+
         try {
             PhoneNumber phoneNumber = getPhoneNumber(context);
             if (phoneNumber != null) {
@@ -44,7 +49,7 @@ public class ContactMessageAssembler {
         }
 
         String ipAddressV4V6 = getIpAddressV4V6(context);
-        if(ipAddressV4V6 != null) {
+        if (ipAddressV4V6 != null) {
             message.setIpAddressV4V6(ipAddressV4V6);
         }
 
@@ -59,13 +64,13 @@ public class ContactMessageAssembler {
         return context.getMessage().getHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Seller_Type");
     }
 
-    private PhoneNumber getPhoneNumber(MessageProcessingContext context){
+    private PhoneNumber getPhoneNumber(MessageProcessingContext context) {
         String countryCode = context.getMessage().getHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Phone_Number_Country_Code");
         String displayNumber = context.getMessage().getHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Phone_Number_Display_Number");
-        if(countryCode == null || displayNumber == null) {
+        if (countryCode == null || displayNumber == null) {
             return null;
         }
-        return new PhoneNumber(Integer.valueOf(countryCode),displayNumber);
+        return new PhoneNumber(Integer.valueOf(countryCode), displayNumber);
 
     }
 

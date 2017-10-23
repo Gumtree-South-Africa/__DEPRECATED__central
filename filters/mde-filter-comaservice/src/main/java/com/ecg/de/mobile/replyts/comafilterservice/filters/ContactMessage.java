@@ -6,6 +6,8 @@ public class ContactMessage {
 
     private String conversationId;
 
+    private String fromUserId;
+
     private String buyerMailAddress;
 
     private PhoneNumber buyerPhoneNumber;
@@ -35,8 +37,6 @@ public class ContactMessage {
     public void setBuyerMailAddress(String buyerMailAddress) {
         this.buyerMailAddress = buyerMailAddress;
     }
-
- 
 
     public PhoneNumber getBuyerPhoneNumber() {
 		return buyerPhoneNumber;
@@ -86,9 +86,18 @@ public class ContactMessage {
         this.messageCreatedTime = messageCreatedTime;
     }
 
-	@Override
+    public String getFromUserId() {
+        return fromUserId;
+    }
+
+    public void setFromUserId(String fromUserId) {
+        this.fromUserId = fromUserId;
+    }
+
+    @Override
 	public String toString() {
 		return "ContactMessage [conversationId=" + conversationId
+                + ", fromUserId=" + fromUserId
                 + ", buyerMailAddress=" + buyerMailAddress
 				+ ", buyerPhoneNumber=" + buyerPhoneNumber + ", message="
 				+ message + ", siteId=" + siteId + ", sellerType=" + sellerType
