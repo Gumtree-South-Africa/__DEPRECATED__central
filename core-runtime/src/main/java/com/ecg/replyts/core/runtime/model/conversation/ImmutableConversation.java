@@ -320,22 +320,27 @@ public class ImmutableConversation implements Conversation { // NOSONAR
 
     private ImmutableConversation updateInternal(MessageModeratedEvent event) {
         Message message = getMessageById(event.getMessageId());
-        checkArgument(!message.getState().isFinalEndstate(), "State Traversal from State " + message.getState() + " is not allowed. it's an endstate. Message ID: " + message.getId());
         ModerationResultState humanResultState = event.getHumanResultState();
-        checkArgument(humanResultState.isAcceptableOutcome(), "Moderation State " + humanResultState + " is not acceptable for moderation Message ID: " + message.getId());
 
-        MessageState newMessageState = humanResultState.allowsSending() ? MessageState.SENT : MessageState.BLOCKED;
+        if (message.getState().isFinalEndstate()) {
+            // In case of duplication of MessageModeratedEvents just log a duplication and use the first one which has been already applied.
+            LOG.debug("State Traversal from State " + message.getState() + " is not allowed. It's an endstate. Message ID: " + message.getId() + ", Required State: " + humanResultState);
+            return this;
+        } else {
+            checkArgument(humanResultState.isAcceptableOutcome(), "Moderation State " + humanResultState + " is not acceptable for moderation Message ID: " + message.getId());
+            MessageState newMessageState = humanResultState.allowsSending() ? MessageState.SENT : MessageState.BLOCKED;
 
-        return aConversation(this)
-                .updateOrAddMessage(
-                        ImmutableMessage.Builder.aMessage(message).
-                                withLastModifiedAt(event.getDecidedAt()).
-                                withHumanResultState(event.getHumanResultState()).
-                                withLastModifiedAt(event.getConversationModifiedAt()).
-                                withState(newMessageState).
-                                withTextParts(message.getTextParts()).
-                                withLastEditor(Optional.ofNullable(event.getEditor()))
-                ).withLastModifiedAt(event.getConversationModifiedAt()).build();
+            return aConversation(this)
+                    .updateOrAddMessage(
+                            ImmutableMessage.Builder.aMessage(message).
+                                    withLastModifiedAt(event.getDecidedAt()).
+                                    withHumanResultState(event.getHumanResultState()).
+                                    withLastModifiedAt(event.getConversationModifiedAt()).
+                                    withState(newMessageState).
+                                    withTextParts(message.getTextParts()).
+                                    withLastEditor(Optional.ofNullable(event.getEditor()))
+                    ).withLastModifiedAt(event.getConversationModifiedAt()).build();
+        }
     }
 
     private ImmutableConversation updateInternal(ConversationClosedEvent event) {
