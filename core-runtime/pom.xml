@@ -225,6 +225,14 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.bitsofinfo</groupId>
+            <artifactId>hazelcast-consul-discovery-spi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>retrofit</artifactId>
+        </dependency>
 
         <!-- encoding problems -->
 

@@ -70,6 +70,10 @@ public class HealthControllerTest {
         public void properties() {
             Properties properties = new Properties();
 
+            properties.put("replyts.tenant", "doesntmatter");
+            properties.put("hazelcast.password", "123");
+            properties.put("hazelcast.port.increment", "true");
+
             properties.put("confDir", "classpath:/integrationtest-conf");
             properties.put("replyts.control.context", "integration-test-control-context.xml");
 
