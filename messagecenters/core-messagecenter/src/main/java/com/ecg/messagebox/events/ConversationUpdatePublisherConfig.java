@@ -18,7 +18,7 @@ public class ConversationUpdatePublisherConfig {
 
     @Value("${replyts.kafka.broker.list:localhost:9092}")
     private String kafkaBrokers;
-    @Value("${replyts.convupdate.kafka.topic:conversation_updates}")
+    @Value("${replyts.convupdate.kafka.topic:conversation-updates}")
     private String topic;
 
     private Producer<String, byte[]> producer;
