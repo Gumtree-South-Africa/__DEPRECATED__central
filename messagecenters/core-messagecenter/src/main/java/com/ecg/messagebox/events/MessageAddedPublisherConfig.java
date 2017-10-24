@@ -13,12 +13,12 @@ import javax.annotation.PreDestroy;
 import java.util.Properties;
 
 @Configuration
-@ConditionalOnProperty(value = "replyts.convupdate.publisher.enabled", havingValue = "true")
-public class ConversationUpdatePublisherConfig {
+@ConditionalOnProperty(value = "replyts.message-added-events.publisher.enabled", havingValue = "true")
+public class MessageAddedPublisherConfig {
 
     @Value("${replyts.kafka.broker.list:localhost:9092}")
     private String kafkaBrokers;
-    @Value("${replyts.convupdate.kafka.topic:conversation-updates}")
+    @Value("${replyts.message-added-events.kafka.topic:message-added-events}")
     private String topic;
 
     private Producer<String, byte[]> producer;
@@ -37,8 +37,8 @@ public class ConversationUpdatePublisherConfig {
     }
 
     @Bean
-    public ConversationUpdateKafkaPublisher convUpdateKafkaPublisher() {
-        return new ConversationUpdateKafkaPublisher(producer, topic);
+    public MessageAddedKafkaPublisher messageAddedEventPublisher() {
+        return new MessageAddedKafkaPublisher(producer, topic);
     }
 
     @PreDestroy

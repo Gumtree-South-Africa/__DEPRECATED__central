@@ -2,7 +2,6 @@ package com.ecg.messagebox.service;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
-import com.ecg.messagebox.events.ConversationUpdateEventProcessor;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.util.EmptyConversationFixture;

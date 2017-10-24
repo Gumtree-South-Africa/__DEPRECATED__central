@@ -10,7 +10,6 @@ import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.ecg.replyts.core.runtime.model.conversation.ProcessingFeedbackBuilder;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class ConversationUpdateEventProcessorTest {
+public class MessageAddedEventProcessorTest {
 
     @Mock
     private MailCloakingService mailCloak;
@@ -40,7 +39,7 @@ public class ConversationUpdateEventProcessorTest {
     @Mock
     private Message msg;
     @Mock
-    private ConversationUpdateKafkaPublisher publisher;
+    private MessageAddedKafkaPublisher publisher;
     @Mock
     private EventConverter converter;
     @Captor
@@ -49,14 +48,14 @@ public class ConversationUpdateEventProcessorTest {
 
     @Test
     public void disabledByDefault() {
-        ConversationUpdateEventProcessor processor = new ConversationUpdateEventProcessor(converter, publisher, false);
-        processor.publishConversationUpdate(conv, msg, "test 123");
+        MessageAddedEventProcessor processor = new MessageAddedEventProcessor(converter, publisher, false);
+        processor.publishMessageAddedEvent(conv, msg, "test 123");
         verifyNoMoreInteractions(publisher);
     }
 
     @Test
     public void publishMessage() throws ClassNotFoundException {
-        ConversationUpdateEventProcessor processor = new ConversationUpdateEventProcessor(converter, publisher, true);
+        MessageAddedEventProcessor processor = new MessageAddedEventProcessor(converter, publisher, true);
 
         when(converter.toEvents(any(), any())).thenReturn(Lists.newArrayList(new EventPublisher.Event(null, null)));
 
@@ -76,7 +75,7 @@ public class ConversationUpdateEventProcessorTest {
                 .withId("id");
 
 
-        processor.publishConversationUpdate(
+        processor.publishMessageAddedEvent(
                 ImmutableConversation.Builder.aConversation()
                         .withCreatedAt(new DateTime())
                         .withLastModifiedAt(new DateTime())

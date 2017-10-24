@@ -2,7 +2,7 @@ package com.ecg.messagebox.listeners;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.ecg.messagebox.events.ConversationUpdateEventProcessor;
+import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagebox.util.MessagesResponseFactory;
 import com.ecg.messagecenter.listeners.UserNotificationRules;
@@ -45,20 +45,20 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final PostBoxService postBoxService;
     private final UserIdentifierService userIdentifierService;
     private final UserNotificationRules userNotificationRules;
-    private final ConversationUpdateEventProcessor conversationUpdateEventProcessor;
+    private final MessageAddedEventProcessor messageAddedEventProcessor;
     private final BlockUserRepository blockUserRepository;
     private final MessagesResponseFactory messagesResponseFactory;
 
     @Autowired
     public PostBoxUpdateListener(PostBoxService postBoxService,
                                  UserIdentifierService userIdentifierService,
-                                 ConversationUpdateEventProcessor conversationUpdateEventProcessor,
+                                 MessageAddedEventProcessor messageAddedEventProcessor,
                                  BlockUserRepository blockUserRepository,
                                  MessagesResponseFactory messagesResponseFactory) {
         this.postBoxService = postBoxService;
         this.userIdentifierService = userIdentifierService;
         this.userNotificationRules = new UserNotificationRules();
-        this.conversationUpdateEventProcessor = conversationUpdateEventProcessor;
+        this.messageAddedEventProcessor = messageAddedEventProcessor;
         this.blockUserRepository = blockUserRepository;
         this.messagesResponseFactory = messagesResponseFactory;
     }
@@ -95,7 +95,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                 updateUserProjection(conv, msg, msgSenderUserId, sellerUserId,
                         userNotificationRules.sellerShouldBeNotified(msg), cleanMsg);
 
-                conversationUpdateEventProcessor.publishConversationUpdate(conv, msg, cleanMsg);
+                messageAddedEventProcessor.publishMessageAddedEvent(conv, msg, cleanMsg);
             } else {
                 LOGGER.debug(format("Direction from the %s to %s is blocked for the message %s", msgSenderUserId, msgReceiverUserId, msg.getId()));
             }

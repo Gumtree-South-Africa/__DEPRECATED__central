@@ -1,6 +1,6 @@
 package com.ecg.messagebox.listeners;
 
-import com.ecg.messagebox.events.ConversationUpdateEventProcessor;
+import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagebox.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.*;
@@ -45,7 +45,7 @@ public class PostBoxUpdateListenerTest {
     MessagesResponseFactory messagesResponseFactory;
 
     @Mock
-    ConversationUpdateEventProcessor conversationUpdateEventProcessor;
+    MessageAddedEventProcessor messageAddedEventProcessor;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -60,7 +60,7 @@ public class PostBoxUpdateListenerTest {
 
     @Before
     public void setup() {
-        listener = new PostBoxUpdateListener(delegatorMock, userIdentifierServiceMock, conversationUpdateEventProcessor,
+        listener = new PostBoxUpdateListener(delegatorMock, userIdentifierServiceMock, messageAddedEventProcessor,
                 blockUserRepository, messagesResponseFactory);
 
         convBuilder = ImmutableConversation.Builder
@@ -90,7 +90,7 @@ public class PostBoxUpdateListenerTest {
         listener.messageProcessed(conversation, message);
 
         verify(blockUserRepository).areUsersBlocked(BUYER_USER_ID, SELLER_USER_ID);
-        verify(conversationUpdateEventProcessor).publishConversationUpdate(conversation, message, "clean message");
+        verify(messageAddedEventProcessor).publishMessageAddedEvent(conversation, message, "clean message");
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Buyer);
         verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Seller);
         verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false, "clean message");

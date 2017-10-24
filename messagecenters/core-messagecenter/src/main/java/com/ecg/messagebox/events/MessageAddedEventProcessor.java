@@ -20,27 +20,27 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.singletonList;
 
 @Component
-public class ConversationUpdateEventProcessor {
+public class MessageAddedEventProcessor {
 
-    @Value("${replyts.convupdate.publisher.enabled:false}")
+    @Value("${replyts.message-added-events.publisher.enabled:false}")
     private boolean enabled;
-    private ConversationUpdateKafkaPublisher publisher;
+    private MessageAddedKafkaPublisher publisher;
     private EventConverter eventConverter;
     private static final String USER_MESSAGE_HEADER = "X-User-Message";
 
     @Autowired
-    public ConversationUpdateEventProcessor(MailCloakingService mailCloaking) {
+    public MessageAddedEventProcessor(MailCloakingService mailCloaking) {
         this.eventConverter = new EventConverter(mailCloaking);
     }
 
-    public ConversationUpdateEventProcessor(EventConverter eventConverter,
-                                            ConversationUpdateKafkaPublisher publisher, boolean enabled) {
+    public MessageAddedEventProcessor(EventConverter eventConverter,
+                                      MessageAddedKafkaPublisher publisher, boolean enabled) {
         this.enabled = enabled;
         this.eventConverter = eventConverter;
         this.publisher = publisher;
     }
 
-    public void publishConversationUpdate(Conversation conv, Message msg, String msgText) {
+    public void publishMessageAddedEvent(Conversation conv, Message msg, String msgText) {
         if (enabled) {
             publisher.publishNewMessage(constructEvent(conv, msg, msgText));
         }
@@ -67,7 +67,7 @@ public class ConversationUpdateEventProcessor {
     }
 
     @Autowired(required = false)
-    public void setPublisher(@Qualifier("convUpdateKafkaPublisher") ConversationUpdateKafkaPublisher publisher) {
+    public void setPublisher(@Qualifier("messageAddedEventPublisher") MessageAddedKafkaPublisher publisher) {
         this.publisher = publisher;
     }
 }
