@@ -1,7 +1,5 @@
 package ca.kijiji.replyts.user_behaviour.responsiveness.reporter.service;
 
-import ca.kijiji.discovery.ServiceDirectory;
-import ca.kijiji.discovery.consul.DnsConsulCatalog;
 import ca.kijiji.replyts.user_behaviour.responsiveness.UserResponsivenessListener;
 import ca.kijiji.replyts.user_behaviour.responsiveness.hystrix.metrics.RTSHystrixCodaHaleMetricsPublisher;
 import com.ecg.replyts.core.runtime.MetricsService;
@@ -17,8 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.net.UnknownHostException;
 
 @Configuration
 @ConditionalOnBean(UserResponsivenessListener.class)
@@ -38,12 +34,6 @@ public class ResponsivenessServiceConfiguration {
 
     @Value("${user-behaviour.httpclient.retryCount:1}")
     private int retryCount;
-
-    @Value("${consul.host:vm.dev.kjdev.ca}")
-    private String host;
-
-    @Value("${consul.port:8600}")
-    private int port;
 
     @Bean
     public CloseableHttpClient userBehaviourHttpClient() {
@@ -65,15 +55,6 @@ public class ResponsivenessServiceConfiguration {
                 .setDefaultRequestConfig(config)
                 .setRetryHandler(retryHandler)
                 .build();
-    }
-
-    @Bean
-    public ServiceDirectory serviceDirectory() {
-        try {
-            return DnsConsulCatalog.usingUdp(this.host, this.port);
-        } catch (final UnknownHostException ex) {
-            throw new Error("Unable to create a service catalog.", ex);
-        }
     }
 
     @Bean

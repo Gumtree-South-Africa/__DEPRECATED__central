@@ -1,10 +1,8 @@
 package ca.kijiji.replyts;
 
-
 import ca.kijiji.rsc.RemoteServiceException;
 import com.codahale.metrics.Counter;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.HttpGet;
@@ -20,28 +18,30 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import static ca.kijiji.replyts.CloseableHttpClientBuilder.aCloseableHttpClient;
-
 
 @Component
 public class TnsApiClient {
     private static final Logger LOG = LoggerFactory.getLogger(TnsApiClient.class);
 
-    private final String baseUrl;
-    private final String replierEndpoint;
+    private final String schema;
+    private final String hostname;
+    private final int port;
+    private final String relativePath;
     private final String authHeader;
     private final CloseableHttpClient httpClient;
-    private final List<URI> endpoints;
 
     @Autowired
     public TnsApiClient(
-            @Value("${tnsapi.client.baseUrl:http://localhost:8080}") final String baseUrl,
-            @Value("${tnsapi.client.endpoint:/tns/api/replier}") final String replierEndpoint,
+            @Value("${tnsapi.client.schema:http}") final String schema,
+            @Value("${tnsapi.client.baseUrl:localhost}") final String baseUrl,
+            @Value("${tnsapi.client.port:8080}") final int port,
+            @Value("${tnsapi.client.relativeUrl:/tns/api/replier}") final String replierEndpoint,
             @Value("${tnsapi.client.username:replyts}") final String username,
             @Value("${tnsapi.client.password:replyts}") final String password,
             @Value("${tnsapi.client.max.retries:1}") final Integer maxRetries,
@@ -49,9 +49,10 @@ public class TnsApiClient {
             @Value("${tnsapi.client.timeout.connect.millis:50}") final Integer connectTimeout,
             @Value("${tnsapi.client.timeout.connectionRequest.millis:300}") final Integer connectionRequestTimeout) {
 
-        this.baseUrl = baseUrl;
-        this.replierEndpoint = replierEndpoint;
-        this.endpoints = ImmutableList.of(URI.create(baseUrl + replierEndpoint));
+        this.schema = schema;
+        this.hostname = baseUrl;
+        this.port = port;
+        this.relativePath = replierEndpoint;
 
         String auth = username + ":" + password;
         byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("ISO-8859-1")));
@@ -61,13 +62,13 @@ public class TnsApiClient {
         DefaultHttpRequestRetryHandler retryHandler = new ZealousHttpRequestRetryHandler(maxRetries, retryCounter);
 
         this.httpClient = aCloseableHttpClient()
-            .withHttpRequestRetryHandler(retryHandler)
-            .withSocketTimeout(socketTimeout)
-            .withConnectionTimeout(connectTimeout)
-            .withConnectionManagerTimeout(connectionRequestTimeout)
-            .withConnectionKeepAliveStrategy(new NetScalerDefaultConnKeepAliveStrategy())
-            .withConnectionManager(new PoolingHttpClientConnectionManager())
-            .build();
+                .withHttpRequestRetryHandler(retryHandler)
+                .withSocketTimeout(socketTimeout)
+                .withConnectionTimeout(connectTimeout)
+                .withConnectionManagerTimeout(connectionRequestTimeout)
+                .withConnectionKeepAliveStrategy(new NetScalerDefaultConnKeepAliveStrategy())
+                .withConnectionManager(new PoolingHttpClientConnectionManager())
+                .build();
     }
 
     /**
@@ -78,11 +79,11 @@ public class TnsApiClient {
      */
     @Nonnull
     public Map<String, Boolean> getJsonAsMap(final String path) {
-        final HttpGet get = new HttpGet(this.baseUrl + "/api" + path);
+        final HttpGet get = new HttpGet(createUri("/api" + path));
         get.addHeader(HttpHeaders.AUTHORIZATION, this.authHeader);
 
         try {
-            return new TnsFilterCheckCommand(this.httpClient, this.endpoints).withHttpRequest(get).execute();
+            return new TnsFilterCheckCommand(this.httpClient, createUri(relativePath)).withHttpRequest(get).execute();
         } catch (RemoteServiceException e) {
             LOG.warn("Encountered {} ({}) while looking up {} for map!", e.getCause().getClass().getSimpleName(), e.getCause().getMessage(), path);
             return Collections.emptyMap();
@@ -91,7 +92,7 @@ public class TnsApiClient {
 
     /**
      * Bumps up the reply counter for the given ad
-     *
+     * <p>
      * This should only be called after the reply has successfully been sent to the poster, to ensure that the visible reply statistics reflect the number of
      * replies the poster is aware of.
      *
@@ -99,7 +100,22 @@ public class TnsApiClient {
      * @throws Exception
      */
     public void incrementReplyCount(final String adId) throws Exception {
-        final URI uri = new URIBuilder(this.baseUrl).setPath(this.replierEndpoint + "/ad/" + adId + "/increment-reply-count").build();
+        final URI uri = createUri(relativePath + "/ad/" + adId + "/increment-reply-count");
         new IncrementReplyCountCommand(this.httpClient, uri, this.authHeader).execute();
+    }
+
+    private URI createUri(String path) {
+        try {
+            return new URIBuilder()
+                    .setScheme(schema)
+                    .setHost(hostname)
+                    .setPort(port)
+                    .setPath(path)
+                    .build()
+                    .normalize();
+        } catch (URISyntaxException e) {
+            LOG.error("TnsAPI URI invalid: schema {}, host {}, port {}, relativePath {}", schema, hostname, port, path, e);
+            return null;
+        }
     }
 }

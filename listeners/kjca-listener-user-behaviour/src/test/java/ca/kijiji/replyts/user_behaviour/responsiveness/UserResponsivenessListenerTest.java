@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class UserResponsivenessListenerTest {
 
+    private static final String DEFAULT_SCHEMA = "http";
     private static final String DEFAULT_HOST = "localhost";
     private static final Integer DEFAULT_PORT = 80;
 
@@ -49,7 +50,8 @@ public class UserResponsivenessListenerTest {
 
     @Before
     public void setUp() {
-        objectUnderTest = spy(new UserResponsivenessListener(calculatorMock, sinkMock, httpClient, userBehaviourHystrixConfig, DEFAULT_HOST, DEFAULT_PORT));
+        objectUnderTest = spy(new UserResponsivenessListener(calculatorMock, sinkMock, httpClient, userBehaviourHystrixConfig,
+                DEFAULT_SCHEMA, DEFAULT_HOST, DEFAULT_PORT));
         when(objectUnderTest.createHystrixCommand()).thenReturn(sendResponsivenessCommandMock);
     }
 

@@ -19,15 +19,12 @@ import org.junit.runner.RunWith;
 
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(JMockit.class)
 public class NewReplierFilterTest {
     private static final String FROM_EMAIL = "from@kijiji.ca";
-    private static final String GRID_API_END_POINT = "http://localhost/api";
     private static final int SCORE = 100;
 
     @ClassRule
@@ -55,7 +52,7 @@ public class NewReplierFilterTest {
             result = FROM_EMAIL;
         }};
 
-        final TnsApiClient tnsApiClient = new TnsApiClient("http://localhost:" + wireMockRule1.port(), "/api", "replyts", "replyts", 1, 400, 50, 300);
+        final TnsApiClient tnsApiClient = new TnsApiClient("http", "localhost", wireMockRule1.port(), "/api", "replyts", "replyts", 1, 400, 50, 300);
         newReplierFilter = new NewReplierFilter(100, new ca.kijiji.replyts.Activation(jsonNode), tnsApiClient);
     }
 

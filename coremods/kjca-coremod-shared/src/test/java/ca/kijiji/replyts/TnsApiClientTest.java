@@ -32,7 +32,7 @@ public class TnsApiClientTest {
 
     @Before
     public void setup() {
-        tnsApiClient = new TnsApiClient("http://localhost:" + wireMockRule1.port(), "/tns/api/replier", "replyts", "replyts", 1, 400, 50, 300);
+        tnsApiClient = new TnsApiClient("http", "localhost", wireMockRule1.port(), "/tns/api/replier", "replyts", "replyts", 1, 400, 50, 300);
         postRequest = post(urlEqualTo("/tns/api/replier/ad/" + adId + "/increment-reply-count"));
         statusOkResponse = aResponse()
                 .withStatus(200)
@@ -46,18 +46,18 @@ public class TnsApiClientTest {
     }
 
     @Test
-    public void incrementReplyCount_noException() throws Exception{
+    public void incrementReplyCount_noException() throws Exception {
         stubFor(postRequest.willReturn(statusOkResponse));
         tnsApiClient.incrementReplyCount(adId);
     }
 
     @Test
-    public void incrementReplyCount_retryOnce_firstCallTimedOut() throws Exception{
+    public void incrementReplyCount_retryOnce_firstCallTimedOut() throws Exception {
         stubFor(postRequest
-            .inScenario("retry")
-            .whenScenarioStateIs(Scenario.STARTED)
-            .willSetStateTo("first try")
-            .willReturn(delayedResponse));
+                .inScenario("retry")
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willSetStateTo("first try")
+                .willReturn(delayedResponse));
         stubFor(postRequest
                 .inScenario("retry")
                 .whenScenarioStateIs("first try")
