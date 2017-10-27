@@ -408,6 +408,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     @Override
     public String createEmptyConversationProjection(EmptyConversationRequest emptyConversation, String newConversationId, String userId) {
 
+        String imageUrl = emptyConversation.getCustomValues().get("imageUrl");
         try (Timer.Context ignored = createEmptyConversationTimer.time()) {
 
             createConversation(
@@ -416,7 +417,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                     emptyConversation.getAdId(),
                     new ArrayList(emptyConversation.getParticipants().values()),
                     emptyConversation.getMessage(),
-                    new ConversationMetadata(DateTime.now(), emptyConversation.getEmailSubject(), emptyConversation.getAdTitle()),
+                    new ConversationMetadata(DateTime.now(), emptyConversation.getEmailSubject(), emptyConversation.getAdTitle(), imageUrl),
                     false,
                     false
             );

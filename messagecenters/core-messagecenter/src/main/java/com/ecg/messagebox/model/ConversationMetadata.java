@@ -14,15 +14,17 @@ public class ConversationMetadata {
     private String emailSubject;
     private Optional<DateTime> creationDate = Optional.empty();
     private Optional<String> title = Optional.empty();
+    private String imageUrl;
 
     @JsonCreator
     public ConversationMetadata(@JsonProperty("creationDate") DateTime creationDate,
                                 @JsonProperty("emailSubject") String emailSubject,
-                                @JsonProperty("title") String title
-                                ) {
+                                @JsonProperty("title") String title,
+                                @JsonProperty("imageUrl") String imageUrl) {
         this.creationDate = Optional.ofNullable(creationDate);
         this.emailSubject = emailSubject;
         this.title = Optional.ofNullable(title);
+        this.imageUrl = imageUrl;
     }
 
     public String getEmailSubject() {
@@ -37,6 +39,10 @@ public class ConversationMetadata {
         return title;
     }
 
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -44,13 +50,12 @@ public class ConversationMetadata {
         ConversationMetadata that = (ConversationMetadata) o;
         return Objects.equals(emailSubject, that.emailSubject)
                 && Objects.equals(creationDate.map(BaseDateTime::getMillis), that.creationDate.map(BaseDateTime::getMillis))
-                && Objects.equals(title, that.title)
-        ;
+                && Objects.equals(title, that.title) && Objects.equals(imageUrl, that.imageUrl) ;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(emailSubject, creationDate, title);
+        return Objects.hash(emailSubject, creationDate, title, imageUrl);
     }
 
     @Override
@@ -59,6 +64,7 @@ public class ConversationMetadata {
                 .add("emailSubject", emailSubject)
                 .add("creationDate", creationDate)
                 .add("title", title)
+                .add("imageUrl", imageUrl)
                 .toString();
     }
 }

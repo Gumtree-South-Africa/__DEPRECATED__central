@@ -63,7 +63,7 @@ public class ConversationsResponseConverterTest {
                 RECEIVE,
                 emptyList(),
                 new Message(UUIDs.timeBased(), MessageType.BID, new MessageMetadata(USER_ID_1, "text")),
-                new ConversationMetadata(now(), "email subject", "title"));
+                new ConversationMetadata(now(), "email subject", "title", "some-image-url"));
 
         // conversation 2
         ConversationThread c2 = new ConversationThread(
@@ -74,7 +74,7 @@ public class ConversationsResponseConverterTest {
                 MUTE,
                 emptyList(),
                 new Message(UUIDs.timeBased(), MessageType.CHAT, new MessageMetadata(USER_ID_2, "text")),
-                new ConversationMetadata(now(), "email subject", "title"));
+                new ConversationMetadata(now(), "email subject", "title", null));
 
         // user's conversations
         PostBox postBox = new PostBox(USER_ID_1, Arrays.asList(c1, c2),

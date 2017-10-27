@@ -61,6 +61,7 @@ public class ConversationResponseConverter {
                 creationDateStr,
                 conversation.getMetadata().getEmailSubject(),
                 conversation.getMetadata().getTitle().orElse(null),
+                conversation.getMetadata().getImageUrl(),
                 conversation.getNumUnreadMessages(conversation.getUserId()),
                 messageResponsesOpt);
     }

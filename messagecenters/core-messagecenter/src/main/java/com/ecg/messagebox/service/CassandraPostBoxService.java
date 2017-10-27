@@ -95,7 +95,8 @@ public class CassandraPostBoxService implements PostBoxService {
                         new ConversationMetadata(
                                 now(),
                                 rtsConversation.getMessages().get(0).getHeaders().get("Subject"),
-                                rtsMessage.getHeaders().get("X-Conversation-Title")
+                                rtsMessage.getHeaders().get("X-Conversation-Title"),
+                                rtsMessage.getHeaders().get("X-Conversation-Image-Url")
                         )
                 );
 

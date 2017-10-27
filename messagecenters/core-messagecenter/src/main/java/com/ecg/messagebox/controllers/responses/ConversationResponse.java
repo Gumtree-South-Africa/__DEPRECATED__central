@@ -19,6 +19,8 @@ public class ConversationResponse {
     private final String emailSubject;
     private final int unreadMessagesCount;
     private final Optional<List<MessageResponse>> messages;
+
+    private final String imageUrl;
     private final String title;
 
     public ConversationResponse(String id,
@@ -30,6 +32,7 @@ public class ConversationResponse {
                                 String creationDate,
                                 String emailSubject,
                                 String title,
+                                String imageUrl,
                                 int unreadMessagesCount,
                                 Optional<List<MessageResponse>> messages) {
         this.id = id;
@@ -43,6 +46,7 @@ public class ConversationResponse {
         this.title = title;
         this.unreadMessagesCount = unreadMessagesCount;
         this.messages = messages;
+        this.imageUrl = imageUrl;
     }
 
     public String getId() {
@@ -89,6 +93,10 @@ public class ConversationResponse {
         return messages.isPresent() ? messages.get() : null;
     }
 
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -103,6 +111,7 @@ public class ConversationResponse {
                 && Objects.equals(creationDate, that.creationDate)
                 && Objects.equals(emailSubject, that.emailSubject)
                 && Objects.equals(title, that.title)
+                && Objects.equals(imageUrl, that.imageUrl)
                 && unreadMessagesCount == that.unreadMessagesCount
                 && Objects.equals(messages, that.messages);
     }
@@ -110,6 +119,6 @@ public class ConversationResponse {
     @Override
     public int hashCode() {
         return Objects.hash(id, adId, visibility, messageNotification, participants,
-                latestMessage, creationDate, emailSubject, title, unreadMessagesCount, messages);
+                latestMessage, creationDate, emailSubject, title, imageUrl, unreadMessagesCount, messages);
     }
 }

@@ -94,19 +94,19 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getConversations() throws Exception {
-        ConversationThread c1 = insertConversationWithMessages(UID1, UID2, CID, ADID, 2);
+        ConversationThread c1 = insertConversationWithMessages(UID1, UID2, CID, ADID, 2, null);
 
-        insertConversationWithMessages(UID1, "u3", "c2", "a2", 3);
+        insertConversationWithMessages(UID1, "u3", "c2", "a2", 3, null);
         conversationsRepo.changeConversationVisibilities(UID1,
                 ImmutableMap.<String, String>builder().put("c2", "a2").build(),
                 Visibility.ARCHIVED);
 
-        ConversationThread c3 = insertConversationWithMessages(UID1, "u4", "c3", "a3", 15);
+        ConversationThread c3 = insertConversationWithMessages(UID1, "u4", "c3", "a3", 15, null);
 
-        ConversationThread c4 = insertConversationWithMessages(UID1, "u5", "c4", "a4", 5);
+        ConversationThread c4 = insertConversationWithMessages(UID1, "u5", "c4", "a4", 5, null);
         conversationsRepo.resetConversationUnreadCount(UID1, "u5","c4", "a4");
 
-        insertConversationWithMessages(UID2, "u6", "c5", "a5", 2);
+        insertConversationWithMessages(UID2, "u6", "c5", "a5", 2, null);
 
         PostBox actualPostBoxUser = conversationsRepo.getPostBox(UID1, Visibility.ACTIVE, 0, 50);
 
@@ -121,8 +121,24 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     }
 
     @Test
+    public void getConversationsWithImageUrls() throws Exception {
+        ConversationThread convWithImage = insertConversationWithMessages(UID1, UID2, CID, ADID, 2, "image.url");
+        ConversationThread convWithoutImage = insertConversationWithMessages(UID1, UID2, "c2", ADID, 2, null);
+
+        Optional<ConversationThread> actualWithImage = conversationsRepo.getConversationWithMessages(UID1, CID, of(timeBased().toString()), MSGS_LIMIT);
+
+        assertEquals(true, actualWithImage.isPresent());
+        assertEquals(convWithImage, actualWithImage.get());
+        assertEquals("image.url", actualWithImage.get().getMetadata().getImageUrl());
+
+        Optional<ConversationThread> actual = conversationsRepo.getConversationWithMessages(UID1, "c2", of(timeBased().toString()), MSGS_LIMIT);
+        assertEquals(convWithoutImage, actual.get());
+        assertEquals(null, actual.get().getMetadata().getImageUrl());
+    }
+
+    @Test
     public void getConversationMessageNotification() throws Exception {
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 4);
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 4, null);
 
         assertEquals(MessageNotification.RECEIVE, conversationsRepo.getConversationMessageNotification(UID1, CID).get());
         assertEquals(MessageNotification.RECEIVE, conversationsRepo.getConversationMessageNotification(UID2, CID).get());
@@ -130,7 +146,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getConversationWithMessages_allMessages() throws Exception {
-        ConversationThread newConversation = insertConversationWithMessages(UID1, UID2, CID, ADID, 50);
+        ConversationThread newConversation = insertConversationWithMessages(UID1, UID2, CID, ADID, 50, null);
 
         Optional<ConversationThread> actual = conversationsRepo.getConversationWithMessages(UID1, CID, of(timeBased().toString()), MSGS_LIMIT);
 
@@ -140,7 +156,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getConversationWithMessages_someMessages() throws Exception {
-        ConversationThread newConversation = insertConversationWithMessages(UID1, UID2, CID, ADID, 50);
+        ConversationThread newConversation = insertConversationWithMessages(UID1, UID2, CID, ADID, 50, null);
 
         ConversationThread expected = new ConversationThread(newConversation)
                 .addMessages(newConversation.getMessages().subList(30, 40));
@@ -154,7 +170,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getConversationWithMessagesAndSystemMessage_someMessages() throws Exception {
-        ConversationThread newConversation = insertConversationWithMessages(UID1, UID2, CID, ADID, 50);
+        ConversationThread newConversation = insertConversationWithMessages(UID1, UID2, CID, ADID, 50, null);
 
         List<Message> messages = newConversation.getMessages().subList(41, 50);
 
@@ -172,7 +188,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     @Test
     public void getConversationWithMessages_noMessages() throws Exception {
         UUID oldUuid = UUIDs.startOf(DateTime.now().minusSeconds(1).getMillis());
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 50);
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 50, null);
 
         assertEquals(true,
                 conversationsRepo.getConversationWithMessages(UID1, CID, of(oldUuid.toString()), 10).get().getMessages().isEmpty());
@@ -182,7 +198,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getConversationMessages_someMessages() throws Exception {
-        ConversationThread newConversation = insertConversationWithMessages(UID1, UID2, CID, ADID, 50);
+        ConversationThread newConversation = insertConversationWithMessages(UID1, UID2, CID, ADID, 50, null);
 
         List<Message> expected = newConversation.getMessages().subList(30, 40);
 
@@ -195,7 +211,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     @Test
     public void getConversationMessages_noMessages() throws Exception {
         UUID oldUuid = UUIDs.startOf(DateTime.now().minusSeconds(1).getMillis());
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 50);
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 50, null);
 
         assertEquals(true,
                 conversationsRepo.getConversationMessages(UID1, CID, of(oldUuid.toString()), 10).isEmpty());
@@ -203,21 +219,21 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getPaginatedConversationIds() throws Exception {
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 2);
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 2, null);
 
-        insertConversationWithMessages(UID1, "u3", "c2", "a2", 3);
+        insertConversationWithMessages(UID1, "u3", "c2", "a2", 3, null);
 
         conversationsRepo.changeConversationVisibilities(UID1,
                 ImmutableMap.<String, String>builder().put("c2", "a2").build(),
                 Visibility.ARCHIVED);
 
-        insertConversationWithMessages(UID1, "u4", "c3", "a3", 15);
+        insertConversationWithMessages(UID1, "u4", "c3", "a3", 15, null);
 
-        insertConversationWithMessages(UID1, "u5", "c4", "a4", 5);
+        insertConversationWithMessages(UID1, "u5", "c4", "a4", 5, null);
 
         conversationsRepo.resetConversationUnreadCount(UID1, "u5", "c4", "a4");
 
-        insertConversationWithMessages(UID2, "u6", "c5", "a5", 2);
+        insertConversationWithMessages(UID2, "u6", "c5", "a5", 2, null);
 
         PaginatedConversationIds actualPaginatedConversationIds = conversationsRepo.getPaginatedConversationIds(UID1, Visibility.ACTIVE, 0, 50);
 
@@ -228,9 +244,9 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getUserUnreadCounts() throws Exception {
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 4);
-        insertConversationWithMessages(UID1, "u3", "c2", "a2", 10);
-        insertConversationWithMessages(UID1, "u4", "c3", "a3", 5);
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 4, null);
+        insertConversationWithMessages(UID1, "u3", "c2", "a2", 10, null);
+        insertConversationWithMessages(UID1, "u4", "c3", "a3", 5, null);
         conversationsRepo.addMessage(UID1, CID, ADID, new Message(timeBased(), "message-5", UID2, CHAT), false);
 
         assertEquals(3, conversationsRepo.getUserUnreadCounts(UID1).getNumUnreadConversations());
@@ -239,7 +255,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getConversationUnreadCount() throws Exception {
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 1);
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 1, null);
         assertEquals(1, conversationsRepo.getConversationUnreadCount(UID1, CID));
 
         conversationsRepo.addMessage(UID1, CID, ADID, new Message(timeBased(), "message-2", UID2, CHAT), true);
@@ -252,7 +268,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void resetConversationUnreadCount() throws Exception {
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 20);
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 20, null);
         assertEquals(20, conversationsRepo.getConversationUnreadCount(UID1, CID));
         assertEquals(20, conversationsRepo.getConversationOtherParticipantUnreadCount(UID2, CID));
 
@@ -264,7 +280,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void changeConversationVisibility() throws Exception {
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 1);
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 1, null);
         ConversationThread newConversation = conversationsRepo.getConversationWithMessages(UID1, CID, NO_MSG_ID_CURSOR, MSGS_LIMIT).get();
         assertEquals(Visibility.ACTIVE, newConversation.getVisibility());
         assertEquals(1, newConversation.getNumUnreadMessages(UID1));
@@ -280,9 +296,9 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void deleteConversation() throws Exception {
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 4);
-        insertConversationWithMessages(UID2, "u3", "c2", "a2", 10);
-        insertConversationWithMessages(UID1, "u3", "c4", "a4", 4);
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 4, null);
+        insertConversationWithMessages(UID2, "u3", "c2", "a2", 10, null);
+        insertConversationWithMessages(UID1, "u3", "c4", "a4", 4, null);
 
         conversationsRepo.deleteConversation(UID1, CID, ADID);
 
@@ -296,10 +312,10 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getConversationAdIdsMap() throws Exception {
-        insertConversationWithMessages(UID1, UID2, CID, ADID, 4);
-        insertConversationWithMessages(UID2, "u3", "c2", "a2", 10);
-        insertConversationWithMessages(UID1, "u4", "c3", "a3", 5);
-        insertConversationWithMessages(UID1, "u3", "c4", "a4", 4);
+        insertConversationWithMessages(UID1, UID2, CID, ADID, 4, null);
+        insertConversationWithMessages(UID2, "u3", "c2", "a2", 10, null);
+        insertConversationWithMessages(UID1, "u4", "c3", "a3", 5, null);
+        insertConversationWithMessages(UID1, "u3", "c4", "a4", 4, null);
 
         Map<String, String> conversationAdIdsMap = conversationsRepo.getConversationAdIdsMap(UID1, Arrays.asList(CID, "c4"));
 
@@ -310,7 +326,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
 
     @Test
     public void getLastConversationModification() throws Exception {
-        ConversationThread c1 = insertConversationWithMessages(UID1, UID2, CID, ADID, 5);
+        ConversationThread c1 = insertConversationWithMessages(UID1, UID2, CID, ADID, 5, null);
 
         ConversationModification lastConversationModification = conversationsRepo.getLastConversationModification(UID1, CID);
 
@@ -344,7 +360,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
          * When a new message is added to an empty conversation
          * Then a message is added to conversation
          */
-        insertConversationWithMessages(UID1, UID2, resultConversationId, ADID, 1);
+        insertConversationWithMessages(UID1, UID2, resultConversationId, ADID, 1, null);
 
         conversationThread = conversationsRepo.getConversationWithMessages(UID1, resultConversationId, of(timeBased().toString()), MSGS_LIMIT);
 
@@ -354,15 +370,15 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     }
 
     private ConversationThread insertConversationWithMessages(String userId1, String userId2,
-                                                              String convId, String adId, int numMessages
+                                                              String convId, String adId, int numMessages, String imageUrl
     ) throws Exception {
         HashMap<DateTime, Integer> datesWithCounts = new HashMap<>();
         datesWithCounts.put(DateTime.now(), numMessages);
-        return insertConversationWithMessagesByDate(userId1, userId2, convId, adId, datesWithCounts);
+        return insertConversationWithMessagesByDate(userId1, userId2, convId, adId, datesWithCounts, imageUrl);
     }
 
     private static ConversationThread insertConversationWithMessagesByDate(String userId1, String userId2, String convId,
-                                                                           String adId, Map<DateTime, Integer> datesWithCounts)
+                                                                           String adId, Map<DateTime, Integer> datesWithCounts, String imageUrl)
             throws Exception {
         List<Message> messages = new ArrayList<>();
 
@@ -386,7 +402,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
                         new Participant(userId1, "user name 1", "u1@test.nl", BUYER),
                         new Participant(userId2, "user name 2", "u2@test.nl", SELLER)
                 ),
-                messages.get(messages.size() - 1), new ConversationMetadata(now(), "email subject", "conversation title"));
+                messages.get(messages.size() - 1), new ConversationMetadata(now(), "email subject", "conversation title" , imageUrl));
         conversation.addNumUnreadMessages(userId1, messages.size());
         conversation.addNumUnreadMessages(userId2, 0);
         conversation.addMessages(messages);

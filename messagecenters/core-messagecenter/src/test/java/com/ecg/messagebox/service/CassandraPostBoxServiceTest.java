@@ -197,6 +197,32 @@ public class CassandraPostBoxServiceTest {
         Assert.assertEquals(conversation.getParticipants(), participants);
     }
 
+
+    @Test
+    public void processNewMessageWithMetadataImageUrlHeader() {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("X-Message-Type", "asq");
+        headers.put("X-Message-Metadata", "metadata");
+        headers.put("X-Conversation-Title", "conversation title");
+        headers.put("X-Conversation-Image-Url", "conversation.image.url");
+        headers.put("Subject", "subject");
+
+        Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
+
+        ArgumentCaptor<com.ecg.messagebox.model.Message> messageArgCaptor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
+
+        Conversation rtsConversation = newConversation(CONVERSATION_ID_1).withMessages(singletonList(rtsMsg)).build();
+
+        ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
+
+        service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true, "text 123");
+
+        verify(conversationsRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), eq(true));
+
+        ConversationThread conversation = conversationThreadArgCaptor.getValue();
+        Assert.assertEquals(conversation.getMetadata().getImageUrl(), "conversation.image.url");
+    }
+
     @Test
     public void processNewMessageWithIdHeader() {
         when(conversationsRepo.getConversationMessageNotification(USER_ID_1, CONVERSATION_ID_1)).thenReturn(empty());
@@ -225,7 +251,7 @@ public class CassandraPostBoxServiceTest {
                 MessageNotification.RECEIVE,
                 participants,
                 newMessage,
-                new ConversationMetadata(now(), "subject", "title"));
+                new ConversationMetadata(now(), "subject", "title", null));
 
         service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true, "text 123");
 
@@ -341,7 +367,6 @@ public class CassandraPostBoxServiceTest {
     }
 
     @Test
-
     public void createSystemMessage() {
         service.createSystemMessage(USER_ID_1, CONVERSATION_ID_1, AD_ID_1, "text", "custom data");
 
@@ -409,7 +434,7 @@ public class CassandraPostBoxServiceTest {
                 Arrays.asList(new Participant(USER_ID_1, "user1", "user1@email.test", ParticipantRole.BUYER),
                         new Participant(USER_ID_2, "user2", "user2@email.test", ParticipantRole.SELLER)),
                 new com.ecg.messagebox.model.Message(UUIDs.timeBased(), MessageType.CHAT, new MessageMetadata("text", "senderUserId")),
-                new ConversationMetadata(DateTime.now(), "subject", "title")
+                new ConversationMetadata(DateTime.now(), "subject", "title", null)
         );
     }
 
