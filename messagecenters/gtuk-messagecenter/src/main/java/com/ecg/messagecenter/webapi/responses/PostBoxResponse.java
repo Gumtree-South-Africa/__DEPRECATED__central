@@ -17,18 +17,22 @@ public class PostBoxResponse {
         return this;
     }
 
-    public PostBoxResponse initNumUnread(Integer num, DateTime lastModified) {
+    public PostBoxResponse initNumUnread(Integer num) {
         this.numUnread = num;
-        this.lastModified = lastModified;
-
         return this;
     }
 
-    public void meta(int numFound, int currentPage, int pageSize) {
+    public PostBoxResponse initLastModified(DateTime lastModified) {
+        this.lastModified = lastModified;
+        return this;
+    }
+
+    public PostBoxResponse meta(int numFound, int currentPage, int pageSize) {
         meta = new Meta();
         meta.numFound = numFound;
         meta.pageSize = pageSize;
         meta.pageNum = currentPage;
+        return this;
     }
 
     public List<PostBoxListItemResponse> getConversations() {

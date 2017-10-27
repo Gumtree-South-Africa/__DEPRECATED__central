@@ -22,8 +22,8 @@ import org.springframework.stereotype.Component;
 import static com.ecg.replyts.core.api.model.conversation.ConversationState.DEAD_ON_ARRIVAL;
 
 @Component
-public class PostBoxUpdateListener implements MessageProcessedListener {
-    private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
+public class UkPostBoxUpdateListener implements MessageProcessedListener {
+    private static final Logger LOG = LoggerFactory.getLogger(UkPostBoxUpdateListener.class);
 
     private static final SimplePostBoxInitializer.PostBoxWriteCallback NO_OP = (email1, unreadCount, markedAsUnread) -> {
     };
@@ -40,13 +40,13 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final AdInfoLookup adInfoLookup;
 
     @Autowired
-    public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
-                                 @Value("${push-mobile.enabled:false}") boolean pushEnabled,
-                                 @Value("${push-mobile.host:example.com}") String pushHost,
-                                 @Value("${push-mobile.port:80}") Integer pushPort,
-                                 @Value("${api.image.lookup.enabled:false}") Boolean apiEnabled,
-                                 @Value("${api.host:example.com}") String apiHost,
-                                 @Value("${api.port:80}") Integer apiPort) {
+    public UkPostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
+                                   @Value("${push-mobile.enabled:false}") boolean pushEnabled,
+                                   @Value("${push-mobile.host:example.com}") String pushHost,
+                                   @Value("${push-mobile.port:80}") Integer pushPort,
+                                   @Value("${api.image.lookup.enabled:false}") Boolean apiEnabled,
+                                   @Value("${api.host:example.com}") String apiHost,
+                                   @Value("${api.port:80}") Integer apiPort) {
         this.postBoxInitializer = postBoxInitializer;
         this.adInfoLookup = new AdInfoLookup(apiHost, apiPort);
         if (pushEnabled) {

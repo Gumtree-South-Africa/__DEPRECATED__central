@@ -7,7 +7,6 @@ import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
-import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 
 import java.util.List;
@@ -23,20 +22,22 @@ public class PostBoxResponseBuilder {
         this.conversationRepository = conversationRepository;
     }
 
-    ResponseObject<PostBoxResponse> buildPostBoxResponse(String email, int size, int page, PostBox postBox, boolean newCounterMode) {
+    public PostBoxResponse buildPostBoxResponse(String email, int size, int page, PostBox postBox, boolean newCounterMode) {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         if (newCounterMode) {
-            postBoxResponse.initNumUnread((int) postBox.getNewRepliesCounter().getValue(), postBox.getLastModification());
+            postBoxResponse
+                    .initNumUnread((int) postBox.getNewRepliesCounter().getValue())
+                    .initLastModified(postBox.getLastModification());
         } else {
-            postBoxResponse.initNumUnread(postBox.getUnreadConversationsCapped().size(), postBox.getLastModification());
+            postBoxResponse
+                    .initNumUnread(postBox.getUnreadConversationsCapped().size())
+                    .initLastModified(postBox.getLastModification());
         }
 
         initConversationsPayload(email, postBox.getConversationThreadsCapTo(page, size), postBoxResponse);
-
         postBoxResponse.meta(postBoxResponse.getConversations().size(), page, size);
-
-        return ResponseObject.of(postBoxResponse);
+        return postBoxResponse;
     }
 
     private void initConversationsPayload(String email, List<ConversationThread> conversationThreads, PostBoxResponse postBoxResponse) {
