@@ -32,18 +32,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.util.*;
 
-@Controller
+@RestController
+@RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ConversationThreadController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversationThreadController.class);
 
@@ -85,17 +85,15 @@ public class ConversationThreadController {
         TopLevelExceptionHandler.handle(ex, response);
     }
 
-    @RequestMapping(value = MessageCenterReportConversationCommand.MAPPING, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.POST)
-    @ResponseBody
-    ResponseObject<?> reportConversationByEmailAndConversationId(
+    @PostMapping(MessageCenterReportConversationCommand.MAPPING)
+    ResponseEntity<ResponseObject<?>> reportConversation(
             @PathVariable("email") String email,
-            @PathVariable("conversationId") String conversationId,
-            HttpServletResponse response) {
+            @PathVariable("conversationId") String conversationId) {
 
         MutableConversation conversation = conversationRepository.getById(conversationId);
         ConversationRole buyerOrSeller = emailBelongsToBuyerOrSeller(conversation, email);
         if (buyerOrSeller == null) {
-            return entityNotFound(response);
+            return entityNotFound();
         }
 
         DateTime now = DateTime.now();
@@ -105,7 +103,8 @@ public class ConversationThreadController {
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
         searchIndexer.updateSearchSync(Collections.singletonList(conversation));
 
-        markConversationAsRead(email, conversationId);
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        markConversationAsRead(conversationId, postBox);
 
         ConversationRts conversationRts = converter.convertConversation(conversation);
 
@@ -116,7 +115,7 @@ public class ConversationThreadController {
         flaggedConversation.setReportedDate(DateTime.parse(getFlaggedTime(conversationRts, email)));
         flaggedConversation.setReportedForEmail(getOtherEmail(conversationRts, email));
         gumshieldApi.conversationApi().flagConversation(flaggedConversation);
-        return new ResponseObject();
+        return ResponseEntity.ok(new ResponseObject<>());
     }
 
     private String getOtherEmail(ConversationRts conversation, String email) {
@@ -132,17 +131,15 @@ public class ConversationThreadController {
                 : conversationHeaders.get("flagged-seller-at");
     }
 
-    @RequestMapping(value = MessageCenterDeleteConversationCommand.MAPPING, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.DELETE)
-    @ResponseBody
-    ResponseObject<?> deleteConversationByEmailAndConversationId(
+    @DeleteMapping(MessageCenterDeleteConversationCommand.MAPPING)
+    ResponseEntity<ResponseObject<?>> deleteConversation(
             @PathVariable("email") String email,
-            @PathVariable("conversationId") String conversationId,
-            HttpServletResponse response) {
+            @PathVariable("conversationId") String conversationId) {
 
         MutableConversation conversation = conversationRepository.getById(conversationId);
         ConversationRole buyerOrSeller = emailBelongsToBuyerOrSeller(conversation, email);
         if (buyerOrSeller == null) {
-            return entityNotFound(response);
+            return entityNotFound();
         }
 
         DateTime now = DateTime.now();
@@ -152,17 +149,16 @@ public class ConversationThreadController {
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
         searchIndexer.updateSearchSync(Collections.singletonList(conversation));
 
-        markConversationAsRead(email, conversationId);
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        markConversationAsRead(conversationId, postBox);
 
         ConversationRts conversationRts = converter.convertConversation(conversation);
-        return ResponseObject.of(conversationRts);
+        return ResponseEntity.ok(ResponseObject.of(conversationRts));
     }
 
 
     private void markConversation(MutableConversation conversation, ConversationCustomValue customValue) {
-        conversation.applyCommand(
-                new AddCustomValueCommand(conversation.getId(), customValue.keyName(), customValue.value())
-        );
+        conversation.applyCommand(new AddCustomValueCommand(conversation.getId(), customValue.keyName(), customValue.value()));
     }
 
     private ConversationRole emailBelongsToBuyerOrSeller(Conversation conversation, String email) {
@@ -176,143 +172,89 @@ public class ConversationThreadController {
         return null;
     }
 
-    @RequestMapping(value = MessageCenterGetPostBoxConversationCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
-    @ResponseBody
-    ResponseObject<?> getPostBoxConversationByEmailAndConversationId(
+    /*
+     * newCounterMode is never used, default is always used = true
+     */
+    @GetMapping(MessageCenterGetPostBoxConversationCommand.MAPPING)
+    ResponseEntity<ResponseObject<?>> getConversation(
             @PathVariable("email") String email,
-            @PathVariable("conversationId") String conversationId,
-            @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
-            HttpServletRequest request,
-            HttpServletResponse response) {
+            @PathVariable("conversationId") String conversationId) {
 
-        Timer.Context timerContext = API_POSTBOX_CONVERSATION_BY_ID.time();
-
-        try {
+        try (Timer.Context ignore = API_POSTBOX_CONVERSATION_BY_ID.time()) {
             PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
             Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
             if (!conversationThreadRequested.isPresent()) {
-                return entityNotFound(response);
+                return entityNotFound();
             }
 
-            boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
-            if (needToMarkAsRead) {
+            return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId);
+        }
+    }
+
+    /*
+     * newCounterMode is never used, default is always used = true
+     */
+    @PutMapping(MessageCenterGetPostBoxConversationCommand.MAPPING)
+    ResponseEntity<ResponseObject<?>> readConversation(
+            @PathVariable("email") String email,
+            @PathVariable("conversationId") String conversationId) {
+
+        try (Timer.Context ignore = API_POSTBOX_CONVERSATION_BY_ID.time()) {
+            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+
+            Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
+            if (!conversationThreadRequested.isPresent()) {
+                return entityNotFound();
+            }
+
+            if (conversationThreadRequested.get().isContainsUnreadMessages()) {
                 int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
                 postBox.decrementNewReplies(unreadMessages);
                 postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
             }
 
-            if (newCounterMode) {
-                if (needToMarkAsRead) {
-                    markConversationAsRead(email, conversationId, postBox);
-                }
-                return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response);
-            } else {
-                long numUnread;
-                if (needToMarkAsRead) {
-                    numUnread = markConversationAsRead(email, conversationId, postBox);
-                } else {
-                    numUnread = postBox.getUnreadConversationsCapped().size();
-                }
-                return lookupConversation(numUnread, email, conversationId, response);
-            }
-
-        } finally {
-            timerContext.stop();
+            return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId);
         }
     }
 
-    private ResponseObject<?> lookupConversation(long numUnread, String email, String conversationId, HttpServletResponse response) {
-
-        Timer.Context riakTimerContext = API_POSTBOX_CONVERSATION_BY_ID_RIAK.time();
-        Conversation conversation = null;
-        try {
+    private ResponseEntity<ResponseObject<?>> lookupConversation(long numUnread, String email, String conversationId) {
+        Conversation conversation;
+        try (Timer.Context ignored = API_POSTBOX_CONVERSATION_BY_ID_RIAK.time()) {
             conversation = conversationRepository.getById(conversationId);
-        } finally {
-            riakTimerContext.stop();
         }
 
         // can only happen if both buckets diverge
         if (conversation == null) {
-            LOGGER.warn("Inconsistency: Conversation id #{} exists in 'postbox' bucket but not inside 'conversations' bucket",
-                    conversationId);
-            return entityNotFound(response);
+            LOGGER.warn("Inconsistency: Conversation id #{} exists in 'postbox' bucket but not inside 'conversations' bucket", conversationId);
+            return entityNotFound();
         }
 
-        Timer.Context msgProcTimerContext = API_POSTBOX_CONVERSATION_BY_ID_MSG_PROCESSING.time();
         Optional<PostBoxSingleConversationThreadResponse> created;
-        try {
+        try (Timer.Context ignored = API_POSTBOX_CONVERSATION_BY_ID_MSG_PROCESSING.time()) {
             created = PostBoxSingleConversationThreadResponse.create(numUnread, email, conversation);
-        } finally {
-            msgProcTimerContext.stop();
         }
 
         if (created.isPresent()) {
             API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
-            return ResponseObject.of(created.get());
+            return ResponseEntity.ok(ResponseObject.of(created.get()));
         } else {
-            LOGGER.info(
-                    "Conversation id #{} is empty but was accessed from list-view, should normally not be reachable by UI",
-                    conversationId);
-            return entityNotFound(response);
+            LOGGER.info("Conversation id #{} is empty but was accessed from list-view, should normally not be reachable by UI", conversationId);
+            return entityNotFound();
         }
 
     }
 
-    private long markConversationAsRead(String email, String conversationId) {
-        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-        return markConversationAsRead(email, conversationId, postBox);
-    }
-
-    private long markConversationAsRead(String email, String conversationId, PostBox<ConversationThread> postBox) {
-        List<ConversationThread> threadsToUpdate = new ArrayList<>();
-
-        boolean needsUpdate = false;
-        ConversationThread updatedConversation = null;
+    private void markConversationAsRead(String conversationId, PostBox<ConversationThread> postBox) {
         for (ConversationThread item : postBox.getConversationThreads()) {
             if (item.getConversationId().equals(conversationId) && item.isContainsUnreadMessages()) {
-                updatedConversation = new ConversationThread(
-                        item.getAdId(),
-                        item.getConversationId(),
-                        item.getCreatedAt(),
-                        DateTime.now(),
-                        item.getReceivedAt(),
-                        false, // mark as read
-                        item.getPreviewLastMessage(),
-                        item.getBuyerName(),
-                        item.getSellerName(),
-                        item.getBuyerId(),
-                        item.getSellerId(),
-                        item.getMessageDirection());
-
-                threadsToUpdate.add(updatedConversation);
-                needsUpdate = true;
-            } else {
-                threadsToUpdate.add(item);
+                postBoxRepository.markConversationAsRead(postBox, item);
+                break;
             }
         }
-
-        long numUnreadCounter;
-
-        //optimization to not cause too many write actions (potential for conflicts)
-        if (needsUpdate) {
-            PostBox postBoxToUpdate = new PostBox(email, postBox.getNewRepliesCounter(), threadsToUpdate);
-            postBoxRepository.markConversationAsRead(postBoxToUpdate, updatedConversation);
-            numUnreadCounter = postBoxToUpdate.getUnreadConversationsCapped().size();
-        } else {
-            numUnreadCounter = postBox.getUnreadConversationsCapped().size();
-        }
-
-        return numUnreadCounter;
     }
 
-    private ResponseObject<?> entityNotFound(HttpServletResponse response) {
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        return ResponseObject.of(RequestState.ENTITY_NOT_FOUND);
-    }
-
-    private boolean markAsRead(HttpServletRequest request) {
-        return request.getMethod().equals(RequestMethod.PUT.name());
+    private ResponseEntity<ResponseObject<?>> entityNotFound() {
+        return new ResponseEntity<>(ResponseObject.of(RequestState.ENTITY_NOT_FOUND), HttpStatus.NOT_FOUND);
     }
 }
