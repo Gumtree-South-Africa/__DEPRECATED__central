@@ -2,216 +2,160 @@ package ca.kijiji.replyts.emailblockedfilter;
 
 import ca.kijiji.replyts.TnsApiClient;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
+import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder;
+import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
-import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
-import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import mockit.Deencapsulation;
-import mockit.Expectations;
-import mockit.FullVerifications;
-import mockit.Injectable;
-import mockit.Mocked;
-import mockit.Tested;
-import mockit.integration.junit4.JMockit;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
 
-import static ca.kijiji.replyts.emailblockedfilter.EmailBlockedFilter.IS_BLOCKED_KEY;
-import static com.ecg.replyts.core.api.model.conversation.FilterResultState.DROPPED;
-import static com.ecg.replyts.core.api.model.conversation.FilterResultState.OK;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.contains;
+import static org.mockito.Mockito.when;
 
-@RunWith(JMockit.class)
+@RunWith(MockitoJUnitRunner.class)
 public class EmailBlockedFilterTest {
 
     private static final String BUYER_EMAIL = "buyer@kijiji.ca";
+    private static final String BUYER_SECRET = "b.secret@rts.kijiji.ca";
     private static final String SELLER_EMAIL = "seller@kijiji.ca";
+    private static final String SELLER_SECRET = "s.secret@rts.kijiji.ca";
     private static final int SCORE = 100;
 
-    @Tested
-    private EmailBlockedFilter emailBlockedFilter;
+    private EmailBlockedFilter objectUnderTest;
 
-    @Injectable
-    private TnsApiClient tnsApiClient;
+    private MessageProcessingContext messageContext;
 
-    @Mocked
-    private Mail mail;
+    @Mock
+    private TnsApiClient tnsApiClientMock;
 
-    private MessageProcessingContext mpc;
-    private ImmutableConversation.Builder conversationBuilder;
-    private ImmutableMessage.Builder messageBuilder;
+    @Mock
+    private Mail mailMock;
 
     @Before
-    public void setUp() throws Exception {
-        emailBlockedFilter = new EmailBlockedFilter(SCORE, tnsApiClient);
+    public void setUp() {
+        objectUnderTest = new EmailBlockedFilter(SCORE, tnsApiClientMock);
+    }
 
-        messageBuilder = ImmutableMessage.Builder
-                .aMessage()
+    @Test
+    public void whenNoContext_shouldReturnEmptyFeedback() {
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(null);
+
+        assertThat(actualFeedback).isEmpty();
+    }
+
+    @Test
+    public void whenMessageDirectionUnknown_shouldReturnEmptyFeedback() {
+        packMessageContext(aMessage(), aConversation(), MessageDirection.UNKNOWN);
+
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContext);
+
+        assertThat(actualFeedback).isEmpty();
+    }
+
+    @Test
+    public void whenNoBuyerEmail_shouldReturnEmptyFeedback() {
+        packMessageContext(aMessage(), aConversation("", SELLER_EMAIL));
+
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContext);
+
+        assertThat(actualFeedback).isEmpty();
+    }
+
+    @Test
+    public void whenNoSellerEmail_shouldReturnEmptyFeedback() {
+        packMessageContext(aMessage(), aConversation(BUYER_EMAIL, ""));
+
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContext);
+
+        assertThat(actualFeedback).isEmpty();
+    }
+
+    @Test
+    public void whenTnsApiReturnsFalseForBuyer_shouldReturnFeedbackOnlyForSeller() {
+        when(tnsApiClientMock.getJsonAsMap(contains(BUYER_EMAIL))).thenReturn(Collections.singletonMap(EmailBlockedFilter.IS_BLOCKED_KEY, Boolean.FALSE));
+        when(tnsApiClientMock.getJsonAsMap(contains(SELLER_EMAIL))).thenReturn(Collections.singletonMap(EmailBlockedFilter.IS_BLOCKED_KEY, Boolean.TRUE));
+        packMessageContext(aMessage(), aConversation(BUYER_EMAIL, SELLER_EMAIL));
+
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContext);
+
+        assertThat(actualFeedback).containsExactly(
+                new FilterFeedback("seller email is blocked", "Seller email is blocked", SCORE, FilterResultState.DROPPED)
+        );
+    }
+
+    @Test
+    public void whenTnsApiReturnsFalseForSeller_shouldReturnFeedbackOnlyForBuyer() {
+        when(tnsApiClientMock.getJsonAsMap(contains(BUYER_EMAIL))).thenReturn(Collections.singletonMap(EmailBlockedFilter.IS_BLOCKED_KEY, Boolean.TRUE));
+        when(tnsApiClientMock.getJsonAsMap(contains(SELLER_EMAIL))).thenReturn(Collections.singletonMap(EmailBlockedFilter.IS_BLOCKED_KEY, Boolean.FALSE));
+        packMessageContext(aMessage(), aConversation(BUYER_EMAIL, SELLER_EMAIL));
+
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContext);
+
+        assertThat(actualFeedback).containsExactly(
+                new FilterFeedback("buyer email is blocked", "Buyer email is blocked", SCORE, FilterResultState.DROPPED)
+        );
+    }
+
+    @Test
+    public void whenBothTnsApiResultsTrue_shouldReturnProperFeedback() {
+        when(tnsApiClientMock.getJsonAsMap(anyString())).thenReturn(Collections.singletonMap(EmailBlockedFilter.IS_BLOCKED_KEY, Boolean.TRUE));
+        packMessageContext(aMessage(), aConversation(BUYER_EMAIL, SELLER_EMAIL));
+
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContext);
+
+        assertThat(actualFeedback).containsExactly(
+                new FilterFeedback("buyer email is blocked", "Buyer email is blocked", SCORE, FilterResultState.DROPPED),
+                new FilterFeedback("seller email is blocked", "Seller email is blocked", SCORE, FilterResultState.DROPPED)
+        );
+    }
+
+    private static AddMessageCommand aMessage() {
+        return AddMessageCommandBuilder
+                .anAddMessageCommand("cid", "mid")
                 .withMessageDirection(MessageDirection.BUYER_TO_SELLER)
-                .withState(MessageState.UNDECIDED)
                 .withReceivedAt(DateTime.now())
-                .withLastModifiedAt(DateTime.now())
-                .withFilterResultState(OK)
-                .withHumanResultState(ModerationResultState.UNCHECKED)
                 .withHeaders(ImmutableMap.of())
                 .withTextParts(Collections.singletonList(""))
-                .withProcessingFeedback(ImmutableList.of());
+                .build();
+    }
 
-        conversationBuilder = ImmutableConversation.Builder
-                .aConversation()
-                .withId("cid")
+    private static DefaultMutableConversation aConversation() {
+        return aConversation(BUYER_EMAIL, SELLER_EMAIL);
+    }
+
+    private static DefaultMutableConversation aConversation(String buyerEmail, String sellerEmail) {
+        NewConversationCommandBuilder conversationBuilder = NewConversationCommandBuilder
+                .aNewConversationCommand("cid")
                 .withState(ConversationState.ACTIVE)
-                .withBuyer(BUYER_EMAIL, "b.secret@rts.kijiji.ca")
-                .withSeller(SELLER_EMAIL, "s.secret@rts.kijiji.ca")
-                .withMessages(
-                        ImmutableList.of(messageBuilder.build()));
-
-        mpc = new MessageProcessingContext(mail, "msgId", new ProcessingTimeGuard(0));
+                .withBuyer(buyerEmail, BUYER_SECRET)
+                .withSeller(sellerEmail, SELLER_SECRET);
+        return DefaultMutableConversation.create(conversationBuilder.build());
     }
 
-    @Test
-    public void buyer_emailBlocked() throws Exception {
-        mpc.setConversation(Deencapsulation.newInstance(DefaultMutableConversation.class, conversationBuilder.build()));
-        mpc.setMessageDirection(MessageDirection.BUYER_TO_SELLER);
-
-        new Expectations() {{
-            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", BUYER_EMAIL));
-            result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
-            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", SELLER_EMAIL));
-            result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.FALSE);
-        }};
-
-        List<FilterFeedback> feedbacks = emailBlockedFilter.filter(mpc);
-        assertThat(feedbacks.size(), is(1));
-        FilterFeedback feedback = feedbacks.get(0);
-        assertThat(feedback.getUiHint(), is("buyer email is blocked"));
-        assertThat(feedback.getDescription(), is("Buyer email is blocked"));
-        assertThat(feedback.getResultState(), is(DROPPED));
-        assertThat(feedback.getScore(), is(SCORE));
+    private void packMessageContext(AddMessageCommand addMessageCommand, DefaultMutableConversation conversation) {
+        packMessageContext(addMessageCommand, conversation, MessageDirection.BUYER_TO_SELLER);
     }
 
-    @Test
-    public void nothingBlocked() throws Exception {
-        mpc.setConversation(Deencapsulation.newInstance(DefaultMutableConversation.class, conversationBuilder.build()));
-        mpc.setMessageDirection(MessageDirection.BUYER_TO_SELLER);
-
-        new Expectations() {{
-            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", BUYER_EMAIL));
-            result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.FALSE);
-            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", SELLER_EMAIL));
-            result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.FALSE);
-        }};
-
-        List<FilterFeedback> feedbacks = emailBlockedFilter.filter(mpc);
-        assertThat(feedbacks.size(), is(0));
-    }
-
-    @Test
-    public void bothBlocked() throws Exception {
-        mpc.setConversation(Deencapsulation.newInstance(DefaultMutableConversation.class, conversationBuilder.build()));
-        mpc.setMessageDirection(MessageDirection.BUYER_TO_SELLER);
-
-        new Expectations() {{
-            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", BUYER_EMAIL));
-            result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
-            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", SELLER_EMAIL));
-            result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
-        }};
-
-        List<FilterFeedback> feedbacks = emailBlockedFilter.filter(mpc);
-        assertThat(feedbacks.size(), is(2));
-        FilterFeedback feedback = feedbacks.get(0);
-        assertThat(feedback.getUiHint(), is("buyer email is blocked"));
-        assertThat(feedback.getDescription(), is("Buyer email is blocked"));
-        assertThat(feedback.getResultState(), is(DROPPED));
-        assertThat(feedback.getScore(), is(SCORE));
-        feedback = feedbacks.get(1);
-        assertThat(feedback.getUiHint(), is("seller email is blocked"));
-        assertThat(feedback.getDescription(), is("Seller email is blocked"));
-        assertThat(feedback.getResultState(), is(DROPPED));
-        assertThat(feedback.getScore(), is(SCORE));
-    }
-
-    @Test
-    public void seller_emailBlocked() throws Exception {
-        conversationBuilder = conversationBuilder.withMessages(
-                ImmutableList.of(
-                        messageBuilder.build(),
-                        messageBuilder
-                                .withMessageDirection(MessageDirection.SELLER_TO_BUYER)
-                                .build()
-                )
-        );
-        mpc.setConversation(Deencapsulation.newInstance(DefaultMutableConversation.class, conversationBuilder.build()));
-        mpc.setMessageDirection(MessageDirection.SELLER_TO_BUYER);
-
-        new Expectations() {{
-            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", BUYER_EMAIL));
-            result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.FALSE);
-            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", SELLER_EMAIL));
-            result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
-        }};
-
-        List<FilterFeedback> feedbacks = emailBlockedFilter.filter(mpc);
-        assertThat(feedbacks.size(), is(1));
-        FilterFeedback feedback = feedbacks.get(0);
-        assertThat(feedback.getUiHint(), is("seller email is blocked"));
-        assertThat(feedback.getDescription(), is("Seller email is blocked"));
-        assertThat(feedback.getResultState(), is(DROPPED));
-        assertThat(feedback.getScore(), is(SCORE));
-    }
-
-    @Test
-    public void emailToSeller_sellerAddressBlocked() throws Exception {
-        conversationBuilder = conversationBuilder.withMessages(
-                ImmutableList.of(
-                        messageBuilder.build(),
-                        messageBuilder
-                                .withMessageDirection(MessageDirection.BUYER_TO_SELLER)
-                                .build()
-                )
-        );
-        mpc.setConversation(Deencapsulation.newInstance(DefaultMutableConversation.class, conversationBuilder.build()));
-        mpc.setMessageDirection(MessageDirection.SELLER_TO_BUYER);
-
-        new Expectations() {{
-            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", BUYER_EMAIL));
-            result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.FALSE);
-            tnsApiClient.getJsonAsMap(String.format("/replier/email/%s/is-blocked", SELLER_EMAIL));
-            result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
-        }};
-
-        List<FilterFeedback> feedbacks = emailBlockedFilter.filter(mpc);
-        assertThat(feedbacks.size(), is(1));
-        FilterFeedback feedback = feedbacks.get(0);
-        assertThat(feedback.getUiHint(), is("seller email is blocked"));
-        assertThat(feedback.getDescription(), is("Seller email is blocked"));
-        assertThat(feedback.getResultState(), is(DROPPED));
-        assertThat(feedback.getScore(), is(SCORE));
-    }
-
-    @Test
-    public void unknownDirection_emailNotBlocked() throws Exception {
-        mpc.setConversation(Deencapsulation.newInstance(DefaultMutableConversation.class, conversationBuilder.build()));
-        mpc.setMessageDirection(MessageDirection.UNKNOWN);
-
-        List<FilterFeedback> feedbacks = emailBlockedFilter.filter(mpc);
-        assertThat(feedbacks.size(), is(0));
-
-        new FullVerifications(tnsApiClient) {};
+    private void packMessageContext(AddMessageCommand addMessageCommand, DefaultMutableConversation conversation, MessageDirection messageDirection) {
+        conversation.applyCommand(addMessageCommand);
+        messageContext = new MessageProcessingContext(mailMock, "msgId", new ProcessingTimeGuard(0));
+        messageContext.setConversation(conversation);
+        messageContext.setMessageDirection(messageDirection);
     }
 }

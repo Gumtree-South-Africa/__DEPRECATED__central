@@ -3,14 +3,13 @@ package ca.kijiji.replyts;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Function;
-import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ca.kijiji.replyts.MailHeader.CATEGORY_PATH;
 import static ca.kijiji.replyts.MailHeader.USER_TYPE;
@@ -45,14 +44,12 @@ public abstract class ActivableFilter implements Filter {
         if (categoryPath == null) {
             return new HashSet<>();
         }
-        return FluentIterable
-                .from(Splitter.on(",").omitEmptyStrings().trimResults().splitToList(categoryPath))
-                .transform(new Function<String, Integer>() {
-                    @Override
-                    public Integer apply(String s) {
-                        return s == null ? null : Integer.valueOf(s);
-                    }
-                }).toSet();
+
+        return Stream.of(categoryPath.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Integer::valueOf)
+                .collect(Collectors.toSet());
     }
 
     private boolean skipFor(Set<Integer> categories) {

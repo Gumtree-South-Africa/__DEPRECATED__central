@@ -8,34 +8,31 @@ import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
-import mockit.Tested;
-import mockit.integration.junit4.JMockit;
-import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
+import java.util.Map;
 
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
-@RunWith(JMockit.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ActivableFilterTest {
 
-    @Tested
-    ActivableFilter activableFilter;
+    private ActivableFilter objectUnderTest;
 
-    @Mocked
-    private MessageProcessingContext context;
+    @Mock
+    private MessageProcessingContext messageContextMock;
 
-    @Mocked
-    Message message;
+    @Mock
+    private Message messageMock;
 
     @Before
-    public void setup() {
-
+    public void setUp() {
         JsonNode jsonNode = JsonObjects.parse("" +
                 "{" +
                 "    state: \"ENABLED\", " +
@@ -45,105 +42,63 @@ public class ActivableFilterTest {
                 "      userType: [\"DEALER\"]" +
                 "    }" +
                 "}");
-
-        activableFilter = new ActivableFilter(new Activation(jsonNode)) {
-            @Override
-            protected List<FilterFeedback> doFilter(MessageProcessingContext context) {
-                return Lists.newArrayList(new FilterFeedback("", "", 1, FilterResultState.OK));
-            }
-        };
-
-        new NonStrictExpectations() {{
-            context.getMessage();
-            result = message;
-        }};
+        objectUnderTest = createFilter(jsonNode);
+        when(messageContextMock.getMessage()).thenReturn(messageMock);
     }
 
     @Test
     public void whenCategoryAndUserTypeAreCovered_thenFilterIsInvoked() {
-        new NonStrictExpectations() {{
-            message.getHeaders();
-            result = ImmutableMap.of(
-                    MailHeader.USER_TYPE.getHeaderName(), "DEALER",
-                    MailHeader.CATEGORY_PATH.getHeaderName(), "10, 11"
-            );
-        }};
+        when(messageMock.getHeaders()).thenReturn(createHeaders("DEALER", "10, 11"));
 
-        assertThatFilterIsInvoked(activableFilter.filter(context));
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
+
+        assertThat(actualFeedback).hasSize(1);
     }
 
     @Test
     public void whenCategoryAndUserTypeAreNotCovered_thenFilterIsSkipped() {
-        new NonStrictExpectations() {{
-            message.getHeaders();
-            result = ImmutableMap.of(
-                    MailHeader.USER_TYPE.getHeaderName(), "FSBO",
-                    MailHeader.CATEGORY_PATH.getHeaderName(), "112, 135"
-            );
-        }};
+        when(messageMock.getHeaders()).thenReturn(createHeaders("DEALER", "112, 135"));
 
-        assertThatFilterIsSkipped(activableFilter.filter(context));
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
+
+        assertThat(actualFeedback).isEmpty();
     }
 
     @Test
     public void whenCategoryIsNotCovered_thenFilterIsSkipped() {
-        new NonStrictExpectations() {{
-            message.getHeaders();
-            result = ImmutableMap.of(
-                    MailHeader.USER_TYPE.getHeaderName(), "DEALER",
-                    MailHeader.CATEGORY_PATH.getHeaderName(), "112, 135"
-            );
-        }};
+        when(messageMock.getHeaders()).thenReturn(createHeaders("FSBO", "112, 135"));
 
-        assertThatFilterIsSkipped(activableFilter.filter(context));
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
+
+        assertThat(actualFeedback).isEmpty();
     }
 
     @Test
     public void whenUserTypeIsNotCovered_thenFilterIsSkipped() {
-        new NonStrictExpectations() {{
-            message.getHeaders();
-            result = ImmutableMap.of(
-                    MailHeader.USER_TYPE.getHeaderName(), "FSBO",
-                    MailHeader.CATEGORY_PATH.getHeaderName(), "10, 11"
-            );
-        }};
+        when(messageMock.getHeaders()).thenReturn(createHeaders("FSBO", "10, 11"));
 
-        assertThatFilterIsSkipped(activableFilter.filter(context));
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
+
+        assertThat(actualFeedback).isEmpty();
     }
 
     @Test
     public void whenCategoryIsExcepted_thenFilterIsSkipped() {
-        new NonStrictExpectations() {{
-            message.getHeaders();
-            result = ImmutableMap.of(
-                    MailHeader.USER_TYPE.getHeaderName(), "DEALER",
-                    MailHeader.CATEGORY_PATH.getHeaderName(), "10, 14"
-            );
-        }};
+        when(messageMock.getHeaders()).thenReturn(createHeaders("DEALER", "10, 14"));
 
-        assertThatFilterIsSkipped(activableFilter.filter(context));
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
+
+        assertThat(actualFeedback).isEmpty();
     }
 
     @Test
     public void whenRunForNotConfigured_thenFilterIsInvoked() {
-        JsonNode jsonNode = JsonObjects.parse("{ state: \"ENABLED\"}");
+        objectUnderTest = createFilter(JsonObjects.parse("{ state: \"ENABLED\"}"));
+        when(messageMock.getHeaders()).thenReturn(createHeaders("DEALER", "10, 14"));
 
-        ActivableFilter activableFilter = new ActivableFilter(new Activation(jsonNode)) {
-            @Override
-            protected List<FilterFeedback> doFilter(MessageProcessingContext context) {
-                return Lists.newArrayList(new FilterFeedback("", "", 1, FilterResultState.OK));
-            }
-        };
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
-        new NonStrictExpectations() {{
-            message.getHeaders();
-            result = ImmutableMap.of(
-                    MailHeader.USER_TYPE.getHeaderName(), "DEALER",
-                    MailHeader.CATEGORY_PATH.getHeaderName(), "10, 14"
-            );
-        }};
-
-        assertThatFilterIsInvoked(activableFilter.filter(context));
+        assertThat(actualFeedback).hasSize(1);
     }
 
     @Test
@@ -155,23 +110,12 @@ public class ActivableFilterTest {
                 "      userType: [\"DEALER\"]" +
                 "    }" +
                 "}");
+        objectUnderTest = createFilter(jsonNode);
+        when(messageMock.getHeaders()).thenReturn(createHeaders("DEALER", "15, 30"));
 
-        ActivableFilter activableFilter = new ActivableFilter(new Activation(jsonNode)) {
-            @Override
-            protected List<FilterFeedback> doFilter(MessageProcessingContext context) {
-                return Lists.newArrayList(new FilterFeedback("", "", 1, FilterResultState.OK));
-            }
-        };
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
-        new NonStrictExpectations() {{
-            message.getHeaders();
-            result = ImmutableMap.of(
-                    MailHeader.USER_TYPE.getHeaderName(), "DEALER",
-                    MailHeader.CATEGORY_PATH.getHeaderName(), "15, 30"
-            );
-        }};
-
-        assertThatFilterIsInvoked(activableFilter.filter(context));
+        assertThat(actualFeedback).hasSize(1);
     }
 
     @Test
@@ -183,30 +127,27 @@ public class ActivableFilterTest {
                 "      userType: [\"DEALER\"]" +
                 "    }" +
                 "}");
+        objectUnderTest = createFilter(jsonNode);
+        when(messageMock.getHeaders()).thenReturn(createHeaders("FSBO", "15, 30"));
 
-        ActivableFilter activableFilter = new ActivableFilter(new Activation(jsonNode)) {
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
+
+        assertThat(actualFeedback).isEmpty();
+    }
+
+    private static ActivableFilter createFilter(JsonNode jsonNode) {
+        return new ActivableFilter(new Activation(jsonNode)) {
             @Override
             protected List<FilterFeedback> doFilter(MessageProcessingContext context) {
                 return Lists.newArrayList(new FilterFeedback("", "", 1, FilterResultState.OK));
             }
         };
-
-        new NonStrictExpectations() {{
-            message.getHeaders();
-            result = ImmutableMap.of(
-                    MailHeader.USER_TYPE.getHeaderName(), "FSBO",
-                    MailHeader.CATEGORY_PATH.getHeaderName(), "15, 30"
-            );
-        }};
-
-        assertThatFilterIsSkipped(activableFilter.filter(context));
     }
 
-    private void assertThatFilterIsInvoked(List<FilterFeedback> feedbacks) {
-        assertThat(feedbacks.size(), CoreMatchers.equalTo(1));
-    }
-
-    private void assertThatFilterIsSkipped(List<FilterFeedback> feedbacks) {
-        assertThat(feedbacks.size(), CoreMatchers.equalTo(0));
+    private static Map<String, String> createHeaders(String userType, String categoryPath) {
+        return ImmutableMap.of(
+                MailHeader.USER_TYPE.getHeaderName(), userType,
+                MailHeader.CATEGORY_PATH.getHeaderName(), categoryPath
+        );
     }
 }

@@ -1,105 +1,95 @@
 package ca.kijiji.replyts.ipblockedfilter;
 
 import ca.kijiji.replyts.TnsApiClient;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.collect.ImmutableMap;
-import mockit.Expectations;
-import mockit.FullVerifications;
-import mockit.Injectable;
-import mockit.Mocked;
-import mockit.Tested;
-import mockit.integration.junit4.JMockit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
 import java.util.List;
 
 import static ca.kijiji.replyts.BoxHeaders.SENDER_IP_ADDRESS;
 import static ca.kijiji.replyts.ipblockedfilter.IpBlockedFilter.IS_BLOCKED_KEY;
-import static com.ecg.replyts.core.api.model.conversation.FilterResultState.DROPPED;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
-@RunWith(JMockit.class)
+@RunWith(MockitoJUnitRunner.class)
 public class IpBlockedFilterTest {
 
     private static final int SCORE = 100;
+    private static final String IP_ADDRESS = "1.2.3.4";
 
-    @Tested
-    private IpBlockedFilter ipBlockedFilter;
+    private IpBlockedFilter objectUnderTest;
 
-    @Injectable
-    private TnsApiClient tnsApiClient;
+    @Mock
+    private TnsApiClient tnsApiClientMock;
 
-    @Mocked
-    private MessageProcessingContext mpc;
+    @Mock
+    private MessageProcessingContext messageContextMock;
 
-    @Mocked
-    private Mail mail;
+    @Mock
+    private Mail mailMock;
 
     @Before
-    public void setUp() throws Exception {
-        ipBlockedFilter = new IpBlockedFilter(SCORE, tnsApiClient);
+    public void setUp() {
+        objectUnderTest = new IpBlockedFilter(SCORE, tnsApiClientMock);
+        when(messageContextMock.getMail()).thenReturn(mailMock);
     }
 
     @Test
-    public void ipPresent_ipBlocked() throws Exception {
-        final String ipAddress = "1.2.3.4";
+    public void whenCountryIpIsNull_shouldReturnEmptyFeedback() {
+        when(mailMock.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName())).thenReturn(null);
 
-        new Expectations() {{
-            mpc.getMail();
-            result = mail;
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
-            mail.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
-            result = ipAddress;
-
-            tnsApiClient.getJsonAsMap("/replier/ip/1.2.3.4/is-blocked");
-            result = ImmutableMap.of(IS_BLOCKED_KEY, Boolean.TRUE);
-        }};
-
-        List<FilterFeedback> feedbacks = ipBlockedFilter.filter(mpc);
-        assertThat(feedbacks.size(), is(1));
-        FilterFeedback feedback = feedbacks.get(0);
-        assertThat(feedback.getUiHint(), is("IP is blocked"));
-        assertThat(feedback.getDescription(), is("Replier IP is blocked"));
-        assertThat(feedback.getResultState(), is(DROPPED));
-        assertThat(feedback.getScore(), is(SCORE));
+        assertThat(actualFeedback).isEmpty();
     }
 
     @Test
-    public void ipBlank_ipNotBlocked_gridNotContacted() throws Exception {
-        final String ipAddress = "";
+    public void whenCountryIpIsEmpty_shouldReturnEmptyFeedback() {
+        when(mailMock.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName())).thenReturn("");
 
-        new Expectations() {{
-            mpc.getMail();
-            result = mail;
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
-            mail.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
-            result = ipAddress;
-        }};
-
-        List<FilterFeedback> feedbacks = ipBlockedFilter.filter(mpc);
-        assertThat(feedbacks.size(), is(0));
-        new FullVerifications(tnsApiClient) {};
+        assertThat(actualFeedback).isEmpty();
     }
 
     @Test
-    public void noIp_ipNotBlocked_gridNotContacted() throws Exception {
-        final String ipAddress = "";
+    public void whenNoResultFromTnsApi_shouldReturnEmptyFeedback() {
+        when(mailMock.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName())).thenReturn(IP_ADDRESS);
+        when(tnsApiClientMock.getJsonAsMap(anyString())).thenReturn(Collections.emptyMap());
 
-        new Expectations() {{
-            mpc.getMail();
-            result = mail;
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
-            mail.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
-            result = ipAddress;
-        }};
+        assertThat(actualFeedback).isEmpty();
+    }
 
-        List<FilterFeedback> feedbacks = ipBlockedFilter.filter(mpc);
-        assertThat(feedbacks.size(), is(0));
-        new FullVerifications(tnsApiClient) {};
+    @Test
+    public void whenTnsApiReturnsFalse_shouldReturnEmptyFeedback() {
+        when(mailMock.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName())).thenReturn(IP_ADDRESS);
+        when(tnsApiClientMock.getJsonAsMap(anyString())).thenReturn(Collections.singletonMap(IS_BLOCKED_KEY, Boolean.FALSE));
+
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
+
+        assertThat(actualFeedback).isEmpty();
+    }
+
+    @Test
+    public void whenTnsApiReturnsTrue_shouldReturnFeedback() {
+        when(mailMock.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName())).thenReturn(IP_ADDRESS);
+        when(tnsApiClientMock.getJsonAsMap(anyString())).thenReturn(Collections.singletonMap(IS_BLOCKED_KEY, Boolean.TRUE));
+
+        List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
+
+        assertThat(actualFeedback).containsExactly(
+                new FilterFeedback("IP is blocked", "Replier IP is blocked", SCORE, FilterResultState.DROPPED)
+        );
     }
 }

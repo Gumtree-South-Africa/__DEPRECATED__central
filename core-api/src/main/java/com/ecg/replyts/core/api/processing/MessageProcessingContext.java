@@ -5,6 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.command.ConversationCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
+import com.google.common.base.MoreObjects;
 
 import java.util.*;
 import java.util.function.Function;
@@ -221,5 +222,13 @@ public class MessageProcessingContext {
 
     public Map<String, Object> getFilterContext() {
         return filterContext;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("messageId", messageId)
+                .add("conversationId", conversation.getId())
+                .toString();
     }
 }

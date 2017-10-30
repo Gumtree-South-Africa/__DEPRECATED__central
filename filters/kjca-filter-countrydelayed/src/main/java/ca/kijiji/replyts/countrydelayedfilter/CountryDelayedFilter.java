@@ -6,9 +6,9 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -31,35 +31,26 @@ public class CountryDelayedFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
-        ImmutableList.Builder<FilterFeedback> feedbacks = ImmutableList.builder();
         String ipAddress = context.getMail().getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
 
         if (StringUtils.isBlank(ipAddress)) {
             LOG.debug("IP Address is empty -- not scoring");
-            return feedbacks.build();
+        } else if (StringUtils.isNotBlank(ipAddress) && checkIfCountryDelayedInLeGrid(ipAddress)) {
+            return ImmutableList.of(new FilterFeedback("country is delayed", "IP country is delayed", countryDelayedScore, FilterResultState.HELD));
         }
 
-        boolean countryIsDelayed = false;
-        try {
-            countryIsDelayed = checkIfCountryDelayedInLeGrid(ipAddress);
-        } catch (Exception e) {
-            LOG.warn("Exception caught when calling grid. Assuming country not delayed.", e);
-        }
-
-
-        if (countryIsDelayed) {
-            feedbacks.add(new FilterFeedback("country is delayed", "IP country is delayed",
-                    countryDelayedScore, FilterResultState.HELD));
-        }
-
-        return feedbacks.build();
+        return ImmutableList.of();
     }
 
     private boolean checkIfCountryDelayedInLeGrid(String ipAddress) {
         Map<String, Boolean> result = this.tnsApiClient.getJsonAsMap("/replier/ip-address/" + ipAddress + "/is-country-delayed");
-        boolean isDelayed = result.get(IS_COUNTRY_DELAYED_KEY);
-        LOG.trace("Is {} country delayed? {}", ipAddress, isDelayed);
-        return isDelayed;
+        if (result.get(IS_COUNTRY_DELAYED_KEY) == null) {
+            LOG.warn("No proper result from TnsApi for IP address {}, assuming country is not delayed", ipAddress);
+            return false;
+        } else {
+            boolean isDelayed = result.get(IS_COUNTRY_DELAYED_KEY);
+            LOG.debug("Is {} country delayed? {}", ipAddress, isDelayed);
+            return isDelayed;
+        }
     }
-
 }

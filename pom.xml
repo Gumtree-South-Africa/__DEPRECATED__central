@@ -493,7 +493,6 @@
         <mime4j-version>0.7.2</mime4j-version>
         <mockito-version>1.10.19</mockito-version>
         <powermock-version>1.6.6</powermock-version>
-        <jmockit-version>1.12</jmockit-version>
         <quartz-version>2.2.1</quartz-version>
         <restassured-version>2.6.0</restassured-version>
         <awaitility-version>1.7.0</awaitility-version>
@@ -1944,12 +1943,6 @@
                         <groupId>hamcrest-core</groupId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.jmockit</groupId>
-                <artifactId>jmockit</artifactId>
-                <version>${jmockit-version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>

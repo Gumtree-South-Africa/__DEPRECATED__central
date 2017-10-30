@@ -6,7 +6,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,34 +31,26 @@ public class CountryBlockedFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
-        ImmutableList.Builder<FilterFeedback> feedbacks = ImmutableList.builder();
         String ipAddress = context.getMail().getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
 
         if (StringUtils.isBlank(ipAddress)) {
             LOG.debug("IP Address is empty -- not scoring");
-            return feedbacks.build();
+        } else if (StringUtils.isNotBlank(ipAddress) && checkIfCountryBlockedInLeGrid(ipAddress)) {
+            return ImmutableList.of(new FilterFeedback("country is blocked", "IP country is blocked", countryBlockedScore, FilterResultState.DROPPED));
         }
 
-        boolean countryIsBlocked = false;
-        try {
-            countryIsBlocked = checkIfCountryBlockedInLeGrid(ipAddress);
-        } catch (Exception e) {
-            LOG.warn("Exception caught when calling grid. Assuming country not blocked.", e);
-        }
-
-        if (countryIsBlocked) {
-            feedbacks.add(new FilterFeedback("country is blocked", "IP country is blocked",
-                    countryBlockedScore, FilterResultState.DROPPED));
-        }
-
-        return feedbacks.build();
+        return ImmutableList.of();
     }
 
     private boolean checkIfCountryBlockedInLeGrid(String ipAddress) {
         Map<String, Boolean> result = this.tnsApiClient.getJsonAsMap("/replier/ip-address/" + ipAddress + "/is-country-blocked");
-        boolean isBlocked = result.get(IS_COUNTRY_BLOCKED_KEY);
-        LOG.trace("Is {} country blocked? {}", ipAddress, isBlocked);
-        return isBlocked;
+        if (result.get(IS_COUNTRY_BLOCKED_KEY) == null) {
+            LOG.warn("No proper result from TnsApi for IP address {}, assuming country is not blocked", ipAddress);
+            return false;
+        } else {
+            boolean isBlocked = result.get(IS_COUNTRY_BLOCKED_KEY);
+            LOG.debug("Is {} country blocked? {}", ipAddress, isBlocked);
+            return isBlocked;
+        }
     }
-
 }

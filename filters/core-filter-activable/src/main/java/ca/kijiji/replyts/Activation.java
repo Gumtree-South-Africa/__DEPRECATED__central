@@ -1,10 +1,10 @@
 package ca.kijiji.replyts;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Function;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 
 public class Activation {
 
@@ -18,19 +18,8 @@ public class Activation {
     private final Set<String> runForUserTypes;
 
     public Activation(JsonNode configuration) {
-        Function<JsonNode, Integer> jsonNodeToInteger = new Function<JsonNode, Integer>() {
-            @Override
-            public Integer apply(JsonNode jsonNode) {
-                return jsonNode == null ? -1 : jsonNode.asInt();
-            }
-        };
-
-        Function<JsonNode, String> jsonNodeToString = new Function<JsonNode, String>() {
-            @Override
-            public String apply(JsonNode jsonNode) {
-                return jsonNode == null ? "" : jsonNode.asText();
-            }
-        };
+        Function<JsonNode, Integer> jsonNodeToInteger = jsonNode -> jsonNode == null ? -1 : jsonNode.asInt();
+        Function<JsonNode, String> jsonNodeToString = jsonNode -> jsonNode == null ? "" : jsonNode.asText();
 
         JsonNode runFor = configuration.get(RUN_FOR_KEY);
 

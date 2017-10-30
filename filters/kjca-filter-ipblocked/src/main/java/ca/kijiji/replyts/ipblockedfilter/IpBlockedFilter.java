@@ -6,7 +6,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,35 +31,26 @@ public class IpBlockedFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
-        ImmutableList.Builder<FilterFeedback> feedbacks = ImmutableList.builder();
         String ipAddress = context.getMail().getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
 
         if (StringUtils.isBlank(ipAddress)) {
             LOG.debug("IP Address is empty -- not scoring");
-            return feedbacks.build();
+        } else if (StringUtils.isNotBlank(ipAddress) && checkIfIpBlockedInLeGrid(ipAddress)) {
+            return ImmutableList.of(new FilterFeedback("IP is blocked", "Replier IP is blocked", ipBlockedScore, FilterResultState.DROPPED));
         }
 
-        boolean ipIsBlocked = false;
-        try {
-            ipIsBlocked = checkIfIpBlockedInLeGrid(ipAddress);
-        } catch (Exception e) {
-            LOG.warn("Exception caught when calling grid. Assuming IP not blocked.", e);
-        }
-
-
-        if (ipIsBlocked) {
-            feedbacks.add(new FilterFeedback("IP is blocked", "Replier IP is blocked",
-                    ipBlockedScore, FilterResultState.DROPPED));
-        }
-
-        return feedbacks.build();
+        return ImmutableList.of();
     }
 
     private boolean checkIfIpBlockedInLeGrid(String ipAddress) {
         Map<String, Boolean> result = this.tnsApiClient.getJsonAsMap("/replier/ip/" + ipAddress + "/is-blocked");
-        boolean isBlocked = result.get(IS_BLOCKED_KEY);
-        LOG.trace("Is IP {} blocked? {}", ipAddress, isBlocked);
-        return isBlocked;
+        if (result.get(IS_BLOCKED_KEY) == null) {
+            LOG.warn("No proper result from TnsApi for IP address {}, assuming IP is not blocked", ipAddress);
+            return false;
+        } else {
+            boolean isBlocked = result.get(IS_BLOCKED_KEY);
+            LOG.debug("Is IP {} blocked? {}", ipAddress, isBlocked);
+            return isBlocked;
+        }
     }
-
 }

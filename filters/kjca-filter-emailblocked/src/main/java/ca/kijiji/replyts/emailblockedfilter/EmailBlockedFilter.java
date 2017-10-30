@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,46 +31,43 @@ public class EmailBlockedFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
-        ImmutableList.Builder<FilterFeedback> feedbacks = ImmutableList.builder();
+        if (context == null) {
+            LOG.error("No context provided");
+            return ImmutableList.of();
+        }
+
         Conversation conversation = context.getConversation();
         MessageDirection messageDirection = context.getMessageDirection();
 
         if (messageDirection != MessageDirection.BUYER_TO_SELLER && messageDirection != MessageDirection.SELLER_TO_BUYER) {
             LOG.warn("Unknown message direction [{}] for conversation [{}]", messageDirection, conversation.getId());
-            return feedbacks.build();
+            return ImmutableList.of();
         }
 
-        boolean buyerEmailBlocked = false;
-        boolean sellerEmailBlocked = false;
-        try {
-            buyerEmailBlocked = checkIfEmailBlockedInLeGrid(conversation.getBuyerId());
-        } catch (Exception e) {
-            LOG.warn("Exception caught when calling grid to check buyer email block. Assuming email not blocked.", e);
-        }
-        try {
-            sellerEmailBlocked = checkIfEmailBlockedInLeGrid(conversation.getSellerId());
-        } catch (Exception e) {
-            LOG.warn("Exception caught when calling grid to check seller email block. Assuming email not blocked.", e);
-        }
+        ImmutableList.Builder<FilterFeedback> feedback = ImmutableList.builder();
+        filter(context, conversation.getBuyerId(), "buyer", feedback);
+        filter(context, conversation.getSellerId(), "seller", feedback);
+        return feedback.build();
+    }
 
-
-        if (buyerEmailBlocked) {
-            feedbacks.add(new FilterFeedback("buyer email is blocked", "Buyer email is blocked",
+    private void filter(MessageProcessingContext context, String email, String owner, ImmutableList.Builder<FilterFeedback> feedback) {
+        if (StringUtils.isBlank(email)) {
+            LOG.warn("No {} e-mail provided for context {}", owner, context.toString());
+        } else if (StringUtils.isNotBlank(email) && checkIfEmailBlockedInLeGrid(email)) {
+            feedback.add(new FilterFeedback(owner + " email is blocked", StringUtils.capitalize(owner) + " email is blocked",
                     emailBlockedScore, FilterResultState.DROPPED));
         }
-        if (sellerEmailBlocked) {
-            feedbacks.add(new FilterFeedback("seller email is blocked", "Seller email is blocked",
-                    emailBlockedScore, FilterResultState.DROPPED));
-        }
-
-        return feedbacks.build();
     }
 
     private boolean checkIfEmailBlockedInLeGrid(String from) {
         Map<String, Boolean> result = tnsApiClient.getJsonAsMap("/replier/email/" + from + "/is-blocked");
-        boolean isBlocked = result.get(IS_BLOCKED_KEY);
-        LOG.trace("Is email {} blocked? {}", from, isBlocked);
-        return isBlocked;
+        if (result.get(IS_BLOCKED_KEY) == null) {
+            LOG.warn("No proper result from TnsApi for e-mail {}, assuming e-mail is not blocked", from);
+            return false;
+        } else {
+            boolean isBlocked = result.get(IS_BLOCKED_KEY);
+            LOG.debug("Is email {} blocked? {}", from, isBlocked);
+            return isBlocked;
+        }
     }
-
 }
