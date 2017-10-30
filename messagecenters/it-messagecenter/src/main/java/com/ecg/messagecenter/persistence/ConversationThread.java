@@ -1,13 +1,14 @@
 package com.ecg.messagecenter.persistence;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.joda.time.DateTime;
 
 import java.util.Optional;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ConversationThread extends AbstractConversationThread {
-
     @JsonCreator
     public ConversationThread(
             @JsonProperty("adId") String adId,
@@ -20,10 +21,9 @@ public class ConversationThread extends AbstractConversationThread {
             @JsonProperty("buyerName") Optional<String> buyerName,
             @JsonProperty("sellerName") Optional<String> sellerName,
             @JsonProperty("buyerId") Optional<String> buyerId,
-            @JsonProperty("messageDirection") Optional<String> messageDirection)
-    {
+            @JsonProperty("messageDirection") Optional<String> messageDirection) {
         super(adId, conversationId, createdAt, modifiedAt, receivedAt, containsUnreadMessages, previewLastMessage, buyerName, sellerName, buyerId, messageDirection);
-}
+    }
 
     @Override
     public ConversationThread newReadConversation() {
