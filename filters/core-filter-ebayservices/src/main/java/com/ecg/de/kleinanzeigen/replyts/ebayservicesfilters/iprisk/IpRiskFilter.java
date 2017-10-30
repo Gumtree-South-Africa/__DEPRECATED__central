@@ -45,7 +45,7 @@ class IpRiskFilter implements Filter {
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         Optional<String> ipAddr = ipAddressExtractor.retrieveIpAddress(messageProcessingContext);
-        LOG.trace("Determinating IP Risk for {}", ipAddr.orElse("NO IP FOUND"));
+        LOG.debug("Determinating IP Risk for {}", ipAddr.orElse("NO IP FOUND"));
         if(ipAddr.isPresent()) {
             try {
                 IPRatingInfo ipRating = ipRatingService.getIpRating(ipAddr.get());
