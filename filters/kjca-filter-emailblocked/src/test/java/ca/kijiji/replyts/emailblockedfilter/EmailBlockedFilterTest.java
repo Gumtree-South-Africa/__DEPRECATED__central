@@ -5,7 +5,6 @@ import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
-import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -29,7 +28,6 @@ import org.junit.runner.RunWith;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static ca.kijiji.replyts.emailblockedfilter.EmailBlockedFilter.IS_BLOCKED_KEY;
 import static com.ecg.replyts.core.api.model.conversation.FilterResultState.DROPPED;
@@ -69,10 +67,9 @@ public class EmailBlockedFilterTest {
                 .withLastModifiedAt(DateTime.now())
                 .withFilterResultState(OK)
                 .withHumanResultState(ModerationResultState.UNCHECKED)
-                .withHeaders(ImmutableMap.<String, String>of())
+                .withHeaders(ImmutableMap.of())
                 .withTextParts(Collections.singletonList(""))
-                .withProcessingFeedback(ImmutableList.<ProcessingFeedback>of())
-                .withLastEditor(Optional.empty());
+                .withProcessingFeedback(ImmutableList.of());
 
         conversationBuilder = ImmutableConversation.Builder
                 .aConversation()

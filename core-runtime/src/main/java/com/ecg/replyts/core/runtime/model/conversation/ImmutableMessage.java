@@ -1,13 +1,25 @@
 package com.ecg.replyts.core.runtime.model.conversation;
 
 import com.ecg.replyts.app.textcleanup.ExtractedText;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
 import org.joda.time.DateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 public class ImmutableMessage implements Message {
 
@@ -26,7 +38,7 @@ public class ImmutableMessage implements Message {
     private final List<String> textParts;
     private final List<ProcessingFeedback> processingFeedback;
 
-    private final Optional<String> lastEditor;
+    private final String lastEditor;
     private final int version;
 
     private UUID eventTimeUUID;
@@ -40,7 +52,6 @@ public class ImmutableMessage implements Message {
         Preconditions.checkNotNull(bdr.humanResultState);
         Preconditions.checkNotNull(bdr.headers);
         Preconditions.checkNotNull(bdr.processingFeedback);
-        Preconditions.checkNotNull(bdr.lastEditor);
 
         this.version = bdr.version;
         this.id = bdr.id;
@@ -52,7 +63,7 @@ public class ImmutableMessage implements Message {
         this.inResponseToMessageId = bdr.inResponseToMessageId;
         this.filterResultState = bdr.filterResultState;
         this.humanResultState = bdr.humanResultState;
-        this.headers = ImmutableMap.copyOf(bdr.headers);
+        this.headers = ImmutableSortedMap.copyOf(bdr.headers, String.CASE_INSENSITIVE_ORDER);
         this.processingFeedback = ImmutableList.copyOf(bdr.processingFeedback);
         this.lastEditor = bdr.lastEditor;
         this.attachments = bdr.attachments != null ? ImmutableList.copyOf(bdr.attachments) : Collections.emptyList();
@@ -139,7 +150,7 @@ public class ImmutableMessage implements Message {
 
     @Override
     public Optional<String> getLastEditor() {
-        return lastEditor;
+        return Optional.ofNullable(lastEditor);
     }
 
     @Override
@@ -187,12 +198,12 @@ public class ImmutableMessage implements Message {
         private ModerationResultState humanResultState = ModerationResultState.UNCHECKED;
         private Map<String, String> headers = new HashMap<>();
         private List<ProcessingFeedback> processingFeedback = new ArrayList<>();
-        private Optional<String> lastEditor = Optional.empty();
+        private String lastEditor;
         private UUID eventTimeUUID;
         private String senderMessageIdHeader;
         private String inResponseToMessageId;
-        public List<String> attachments;
-        public List<String> textParts;
+        private List<String> attachments;
+        private List<String> textParts;
 
         private Builder() {
         }
@@ -211,7 +222,7 @@ public class ImmutableMessage implements Message {
                     withFilterResultState(message.getFilterResultState()).
                     withHumanResultState(message.getHumanResultState()).
                     withHeaders(message.getHeaders()).
-                    withLastEditor(message.getLastEditor()).
+                    withLastEditor(message.getLastEditor().orElse(null)).
                     withInResponseToMessageId(message.getInResponseToMessageId()).
                     withSenderMessageIdHeader(message.getSenderMessageIdHeader()).
                     withAttachments(message.getAttachmentFilenames()).
@@ -227,8 +238,7 @@ public class ImmutableMessage implements Message {
             return this;
         }
 
-        public Builder withLastEditor(Optional<String> lastEditor) {
-            Preconditions.checkNotNull(lastEditor);
+        public Builder withLastEditor(String lastEditor) {
             this.lastEditor = lastEditor;
             return this;
         }

@@ -28,11 +28,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -79,7 +80,6 @@ public class MessageAddedEventProcessorTest {
                 .withProcessingFeedback(ProcessingFeedbackBuilder.aProcessingFeedback()
                         .withFilterName("filter1")
                         .withFilterInstance("filter1"))
-                .withLastEditor(Optional.empty())
                 .withTextParts(Lists.newArrayList())
                 .withId("id");
 
@@ -170,7 +170,6 @@ public class MessageAddedEventProcessorTest {
                 .withHumanResultState(ModerationResultState.GOOD)
                 .withHeaders(new HashMap<>())
                 .withProcessingFeedback(new ArrayList<>())
-                .withLastEditor(Optional.empty())
                 .withMessageDirection(direction).build();
     }
 }

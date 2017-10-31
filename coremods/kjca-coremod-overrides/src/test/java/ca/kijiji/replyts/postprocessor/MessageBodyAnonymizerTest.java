@@ -5,7 +5,6 @@ import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
-import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -26,7 +25,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
-import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.FilterResultState.OK;
 import static org.hamcrest.CoreMatchers.is;
@@ -72,10 +70,9 @@ public class MessageBodyAnonymizerTest {
                 .withLastModifiedAt(DateTime.now())
                 .withFilterResultState(OK)
                 .withHumanResultState(ModerationResultState.UNCHECKED)
-                .withHeaders(ImmutableMap.<String, String>of())
+                .withHeaders(ImmutableMap.of())
                 .withTextParts(ImmutableList.of(""))
-                .withProcessingFeedback(ImmutableList.<ProcessingFeedback>of())
-                .withLastEditor(Optional.empty());
+                .withProcessingFeedback(ImmutableList.of());
 
         conversationBuilder = ImmutableConversation.Builder
                 .aConversation()

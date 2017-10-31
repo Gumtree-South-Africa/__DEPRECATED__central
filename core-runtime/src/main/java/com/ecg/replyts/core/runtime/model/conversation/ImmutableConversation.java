@@ -1,8 +1,29 @@
 package com.ecg.replyts.core.runtime.model.conversation;
 
-import com.ecg.replyts.core.api.model.conversation.*;
-import com.ecg.replyts.core.api.model.conversation.command.*;
-import com.ecg.replyts.core.api.model.conversation.event.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.model.conversation.command.AddCustomValueCommand;
+import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
+import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedCommand;
+import com.ecg.replyts.core.api.model.conversation.command.ConversationCommand;
+import com.ecg.replyts.core.api.model.conversation.command.ConversationDeletedCommand;
+import com.ecg.replyts.core.api.model.conversation.command.MessageFilteredCommand;
+import com.ecg.replyts.core.api.model.conversation.command.MessageModeratedCommand;
+import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedCommand;
+import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationClosedEvent;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationDeletedEvent;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
+import com.ecg.replyts.core.api.model.conversation.event.CustomValueAddedEvent;
+import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
+import com.ecg.replyts.core.api.model.conversation.event.MessageFilteredEvent;
+import com.ecg.replyts.core.api.model.conversation.event.MessageModeratedEvent;
+import com.ecg.replyts.core.api.model.conversation.event.MessageTerminatedEvent;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -10,7 +31,12 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -338,7 +364,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
                                     withLastModifiedAt(event.getConversationModifiedAt()).
                                     withState(newMessageState).
                                     withTextParts(message.getTextParts()).
-                                    withLastEditor(Optional.ofNullable(event.getEditor()))
+                                    withLastEditor(event.getEditor())
                     ).withLastModifiedAt(event.getConversationModifiedAt()).build();
         }
     }
@@ -544,7 +570,7 @@ public class ImmutableConversation implements Conversation { // NOSONAR
         private ConversationState state;
         private Map<String, String> customValues = new HashMap<>();
         private List<Message> messages = new ArrayList<>();
-        public boolean isDeleted;
+        private boolean isDeleted;
 
         private Builder() {
         }

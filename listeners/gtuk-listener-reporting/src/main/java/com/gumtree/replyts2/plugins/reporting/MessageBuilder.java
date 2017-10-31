@@ -9,7 +9,10 @@ import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import org.joda.time.DateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 public class MessageBuilder {
 
@@ -83,9 +86,8 @@ public class MessageBuilder {
                 .withHumanResultState(moderationResultState)
                 .withFilterResultState(filterResultState)
                 .withProcessingFeedback(processingFeedbacks)
-                .addHeaders(new HashMap<String, String>())
-                .withTextParts(Arrays.asList(""))
-                .withLastEditor(Optional.empty())
+                .addHeaders(new HashMap<>())
+                .withTextParts(Collections.singletonList(""))
                 .withLastModifiedAt(lastModifiedAt)
                 .build();
     }

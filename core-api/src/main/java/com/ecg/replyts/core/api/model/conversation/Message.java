@@ -66,7 +66,7 @@ public interface Message {
     FilterResultState getFilterResultState();
 
     /**
-     * @return status, decided by humans (defaults to {@link MessageResultState#UNCHECKED})
+     * @return status, decided by humans (defaults to {@link ModerationResultState#UNCHECKED})
      */
     ModerationResultState getHumanResultState();
 

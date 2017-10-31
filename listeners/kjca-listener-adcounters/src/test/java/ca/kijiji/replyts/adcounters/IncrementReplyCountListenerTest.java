@@ -1,7 +1,12 @@
 package ca.kijiji.replyts.adcounters;
 
 import ca.kijiji.replyts.TnsApiClient;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
@@ -15,11 +20,12 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
-import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewConversationCommand;
 import static com.ecg.replyts.core.api.model.mail.Mail.ADID_HEADER;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class IncrementReplyCountListenerTest {
@@ -82,7 +88,6 @@ public class IncrementReplyCountListenerTest {
                 .withProcessingFeedback(ProcessingFeedbackBuilder.aProcessingFeedback()
                         .withFilterName("filterName")
                         .withFilterInstance("filterInstantce"))
-                .withLastEditor(Optional.empty())
                 .build();
     }
 }

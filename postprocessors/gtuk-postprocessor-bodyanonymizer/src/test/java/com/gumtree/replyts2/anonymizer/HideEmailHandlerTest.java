@@ -1,6 +1,11 @@
 package com.gumtree.replyts2.anonymizer;
 
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
@@ -22,15 +27,17 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.FilterResultState.OK;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by reweber on 07/10/15
@@ -77,10 +84,9 @@ public class HideEmailHandlerTest {
                 .withLastModifiedAt(DateTime.now())
                 .withFilterResultState(OK)
                 .withHumanResultState(ModerationResultState.UNCHECKED)
-                .withHeaders(ImmutableMap.<String, String>of())
-                .withTextParts(Arrays.asList(""))
-                .withProcessingFeedback(ImmutableList.<ProcessingFeedback>of())
-                .withLastEditor(Optional.empty());
+                .withHeaders(ImmutableMap.of())
+                .withTextParts(Collections.singletonList(""))
+                .withProcessingFeedback(ImmutableList.of());
 
         conversationBuilder = ImmutableConversation.Builder
                 .aConversation()

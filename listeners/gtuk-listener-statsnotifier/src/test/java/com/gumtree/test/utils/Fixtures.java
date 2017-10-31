@@ -1,7 +1,13 @@
 package com.gumtree.test.utils;
 
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.google.common.collect.ImmutableList;
@@ -9,7 +15,6 @@ import org.joda.time.DateTime;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public final class Fixtures {
     private Fixtures() {
@@ -24,7 +29,6 @@ public final class Fixtures {
                 withHumanResultState(ModerationResultState.GOOD).
                 withHumanResultState(ModerationResultState.GOOD).
                 withHeader("Content-Type", "application/x-www-form-urlencoded").
-                withLastEditor(Optional.empty()).
                 withProcessingFeedback(ImmutableList.of(processingFeedback)).
                 withTextParts(Arrays.asList("hello message")).
                 withState(MessageState.SENT).
