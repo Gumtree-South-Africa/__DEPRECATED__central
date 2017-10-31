@@ -4,7 +4,7 @@
 # This is used in other scripts to make sure there are no legacy packages built or uploaded.
 
 function isTenantLegacy () {
-    readonly LEGACY_TENANTS=(bt dk kjca)
+    readonly LEGACY_TENANTS=(bt dk)
     local match="$1"
     for tenant in "${LEGACY_TENANTS[@]}"; do
     echo $tenant
