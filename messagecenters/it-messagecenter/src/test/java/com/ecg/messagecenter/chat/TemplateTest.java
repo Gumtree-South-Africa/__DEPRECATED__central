@@ -28,11 +28,11 @@ public class TemplateTest {
         String template = new Template("http://kijiji.it", "https://static.annuncicdn.it/it/images/")
                 .createPostReplyMessage(variables);
 
-        assertTrue(template.contains("quote like &#39;") || template.contains("quote like &apos;"));
+        assertTrue(template.contains("quote like &#39;"));
         assertTrue(template.contains("the € currency"));
         assertTrue(template.contains("backtick like ` ."));
-        assertTrue(template.contains("vowel like é") || template.contains("vowel like &eacute;"));
-        assertTrue(template.contains("ampersand like &#38;, ") || template.contains("ampersand like &amp; "));
+        assertTrue(template.contains("vowel like é"));
+        assertTrue(template.contains("ampersand like &amp; "));
         assertTrue(template.contains("greater than like &gt;, "));
     }
 }
