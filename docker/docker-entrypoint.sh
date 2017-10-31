@@ -8,9 +8,9 @@ REPO=${BASE_DIR}/lib
 CONF_DIR=${BASE_DIR}/conf
 
 export COMAAS_HTTP_PORT=${NOMAD_PORT_http}
-export COMAAS_HC_PORT=${NOMAD_PORT_hazelcast}
+export COMAAS_HAZELCAST_PORT=${NOMAD_PORT_hazelcast}
 
-if [ -z ${COMAAS_HTTP_PORT} ] || [ -z ${COMAAS_HC_PORT} ]; then
+if [ -z ${COMAAS_HTTP_PORT} ] || [ -z ${COMAAS_HAZELCAST_PORT} ]; then
     echo "Error starting up Comaas, please provide a port for both HTTP and Hazelcast"
     exit 1
 fi

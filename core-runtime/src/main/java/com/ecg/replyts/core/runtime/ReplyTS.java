@@ -1,8 +1,6 @@
 package com.ecg.replyts.core.runtime;
 
 import ch.qos.logback.classic.LoggerContext;
-import com.ecg.replyts.core.api.processing.MessageFixer;
-import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import com.hazelcast.config.Config;
@@ -14,22 +12,17 @@ import org.bitsofinfo.hazelcast.discovery.consul.DoNothingRegistrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.org.lidalia.sysoutslf4j.context.SysOutOverSLF4J;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.APPLICATION;
@@ -37,8 +30,8 @@ import static com.ecg.replyts.core.runtime.logging.MDCConstants.REVISION;
 import static java.lang.String.format;
 
 @Configuration
-@ComponentScan(value = { "com.ecg", "com.ebay" }, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
-@Import({ StartupExperience.class, EmbeddedWebserver.class })
+@ComponentScan(value = {"com.ecg", "com.ebay"}, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
+@Import({StartupExperience.class, EmbeddedWebserver.class})
 public class ReplyTS {
     private static final Logger LOG = LoggerFactory.getLogger(ReplyTS.class);
 
@@ -48,14 +41,14 @@ public class ReplyTS {
 
     @Bean
     public Config hazelcastConfiguration(
-      @Value("${replyts.tenant}") String tenant,
-      @Value("${hazelcast.discovery.enabled:${service.discovery.enabled:true}}") boolean discoveryEnabled,
-      @Value("${service.discovery.hostname:localhost}") String discoveryHostname,
-      @Value("${service.discovery.port:8500}") int discoveryPort,
-      @Value("${hazelcast.password}") String hazelcastPassword,
-      @Value("${hazelcast.port:5701}") int hazelcastPort,
-      @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement,
-      @Value("${hazelcast.members:}") String hazelcastMembers
+            @Value("${replyts.tenant}") String tenant,
+            @Value("${hazelcast.discovery.enabled:${service.discovery.enabled:true}}") boolean discoveryEnabled,
+            @Value("${service.discovery.hostname:localhost}") String discoveryHostname,
+            @Value("${service.discovery.port:8500}") int discoveryPort,
+            @Value("${hazelcast.password}") String hazelcastPassword,
+            @Value("${hazelcast.port:5701}") int hazelcastPort,
+            @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement,
+            @Value("${hazelcast.members:}") String hazelcastMembers
     ) throws IOException {
         Config config = new Config();
 
@@ -63,7 +56,7 @@ public class ReplyTS {
         config.getGroupConfig().setPassword(hazelcastPassword);
 
         config.getProperties().setProperty("hazelcast.jmx", "true");
-        config.getProperties().setProperty("hazelcast.version.check.enabled", "false");
+        config.getProperties().setProperty("hazelcast.phone.home.enabled", "false");
 
         config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
         config.getNetworkConfig().getJoin().getAwsConfig().setEnabled(false);
@@ -78,9 +71,9 @@ public class ReplyTS {
 
             properties.put("consul-host", discoveryHostname);
             properties.put("consul-port", String.valueOf(discoveryPort));
-            properties.put("consul-service-name", "comaas-hazelcast");
+            properties.put("consul-service-name", format("comaas-core-%s", tenant));
             properties.put("consul-healthy-only", "true");
-            properties.put("consul-service-tags", format("hazelcast, %s", tenant));
+            properties.put("consul-service-tags", "hazelcast");
             properties.put("consul-discovery-delay-ms", "10000");
 
             properties.put("consul-registrator", DoNothingRegistrator.class.getName());
@@ -91,7 +84,7 @@ public class ReplyTS {
         } else {
             if (!"".equals(hazelcastMembers)) {
                 config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(true);
-                config.getNetworkConfig().getJoin().getTcpIpConfig().setMembers(Arrays.asList(hazelcastMembers.split(",")).stream().map(String::trim).collect(Collectors.toList()));
+                config.getNetworkConfig().getJoin().getTcpIpConfig().setMembers(Arrays.stream(hazelcastMembers.split(",")).map(String::trim).collect(Collectors.toList()));
             } else {
                 config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
             }

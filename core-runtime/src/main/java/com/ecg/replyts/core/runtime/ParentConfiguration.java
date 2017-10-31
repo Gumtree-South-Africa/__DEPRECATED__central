@@ -40,7 +40,7 @@ public class ParentConfiguration {
             environmentProperties.put("replyts.http.port", comaasHttpPort);
         }
 
-        String comaasHazelcastPort = System.getenv("COMAAS_HC_PORT");
+        String comaasHazelcastPort = System.getenv("COMAAS_HAZELCAST_PORT");
 
         if (comaasHazelcastPort != null) {
             environmentProperties.put("hazelcast.port", comaasHazelcastPort);
