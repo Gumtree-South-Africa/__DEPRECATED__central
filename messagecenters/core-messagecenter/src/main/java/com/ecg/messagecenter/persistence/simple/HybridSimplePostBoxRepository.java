@@ -176,11 +176,11 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
     }
 
     @Override
-    public void cleanup(DateTime time) {
+    public boolean cleanup(DateTime time) {
         // cleanup() for the HybridSimplePostBoxRepository is only called from the RiakSimplePostBoxCleanupCronjob;
         // the CassandraSimplePostBoxCleanupCronJob goes straight to the CassandraSimplePostBoxRepository
 
-        riakRepository.cleanup(time);
+        return riakRepository.cleanup(time);
     }
 
     @Override

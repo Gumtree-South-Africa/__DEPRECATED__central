@@ -56,7 +56,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
     private ObjectMapper objectMapper;
 
-    @Value("${replyts.cleanup.conversation.streaming.queue.size:100000}")
+    @Value("${replyts.cleanup.conversation.streaming.queue.size:500}")
     private int workQueueSize;
 
     @Value("${replyts.cleanup.conversation.streaming.threadcount:4}")
@@ -253,7 +253,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     }
 
     @Override
-    public void cleanup(DateTime time) {
+    public boolean cleanup(DateTime time) {
         DateTime roundedToHour = time.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
 
         LOG.info("Cleanup: Deleting conversations for the date {} and rounded hour {}", time, roundedToHour);
@@ -295,14 +295,17 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
                 task.get();
             } catch (ExecutionException | RuntimeException e) {
                 LOG.error("ConversationThread cleanup task execution failure", e);
+                return false;
             } catch (InterruptedException e) {
                 LOG.warn("The cleanup task has been interrupted");
                 Thread.currentThread().interrupt();
-                return;
+                return false;
             }
         }
 
         LOG.info("Cleanup: Finished deleting conversations");
+
+        return true;
     }
 
     @Override

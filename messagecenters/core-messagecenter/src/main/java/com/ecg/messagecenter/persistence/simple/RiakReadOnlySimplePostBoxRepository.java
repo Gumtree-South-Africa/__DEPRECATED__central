@@ -103,8 +103,9 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
     }
 
     @Override
-    public void cleanup(DateTime time) {
+    public boolean cleanup(DateTime time) {
         LOG.debug("RiakReadOnlySimplePostBoxRepository.cleanup was called");
+        return true;
     }
 
     @Override

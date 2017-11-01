@@ -127,7 +127,7 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
     }
 
     @Override
-    public void cleanup(DateTime time) {
+    public boolean cleanup(DateTime time) {
         try {
             StreamingOperation<IndexEntry> keyStream = postBoxBucket.fetchIndex(IntIndex.named(UPDATED_INDEX))
               .from(0)
@@ -156,6 +156,8 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
         } catch (RiakException e) {
             throw new RuntimeException(e);
         }
+
+        return true;
     }
 
     @Override

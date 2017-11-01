@@ -40,7 +40,7 @@ public class CassPostboxRepo {
     private AtomicLong streamGauge = new AtomicLong();
     private ObjectMapper objectMapper;
 
-    @Value("${replyts.cleanup.conversation.streaming.queue.size:100000}")
+    @Value("${replyts.cleanup.conversation.streaming.queue.size:500}")
     private int workQueueSize;
 
     @Value("${replyts.cleanup.conversation.streaming.threadcount:4}")

@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.joda.time.DateTime.now;
 import static org.junit.Assert.*;
 
@@ -331,7 +332,7 @@ public class CassandraSimplePostBoxRepositoryTest {
 
         postBoxRepository.write(box);
 
-        postBoxRepository.cleanup(now());
+        assertThat(postBoxRepository.cleanup(now())).isTrue();
 
         assertEquals("PostBox contains no conversation threads anymore", 0, postBoxRepository.byId(PostBoxId.fromEmail("foo@bar.com")).getConversationThreads().size());
     }
@@ -342,7 +343,7 @@ public class CassandraSimplePostBoxRepositoryTest {
 
         postBoxRepository.write(box);
 
-        postBoxRepository.cleanup(now().minusHours(1));
+        assertThat(postBoxRepository.cleanup(now().minusHours(1))).isTrue();
 
         assertEquals("PostBox still contains its 1 conversation thread", 1, postBoxRepository.byId(PostBoxId.fromEmail("foo@bar.com")).getConversationThreads().size());
     }

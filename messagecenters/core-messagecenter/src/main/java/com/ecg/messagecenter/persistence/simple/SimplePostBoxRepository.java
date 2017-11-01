@@ -34,7 +34,14 @@ public interface SimplePostBoxRepository {
 
     void markConversationsAsRead(PostBox postBox, List<AbstractConversationThread> conversations);
 
-    void cleanup(DateTime time);
+    /**
+     * Returns <code>true</code> if the cleanup for this time is finished.
+     *
+     * @param time The rounded modification date of the postbox modification index by date.
+     * @return Returns <code>true</code> if the cleanup for this time is finished; returns <code>false</code> when
+     * the cleanup for this time is not finished;
+     */
+    boolean cleanup(DateTime time);
 
     Optional<AbstractConversationThread> threadById(PostBoxId id, String conversationId);
 
