@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.webapi.responses;
 
+import com.ecg.gumtree.replyts2.common.message.MessageCenterUtils;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 import com.google.common.base.Splitter;
@@ -9,12 +10,10 @@ import com.google.common.net.MediaType;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 
 public class MessageResponse {
-    private static final Pattern REMOVE_DOUBLE_WHITESPACES = Pattern.compile("\\s+");
 
     private final String receivedDate;
     private final MailTypeRts boundness;
@@ -42,7 +41,7 @@ public class MessageResponse {
         this.senderEmail = senderEmail;
         this.buyerEmail = buyerEmail;
         this.offerId = offerId;
-        this.textShortTrimmed = REMOVE_DOUBLE_WHITESPACES.matcher(textShort).replaceAll(" ");
+        this.textShortTrimmed = MessageCenterUtils.trimText(textShort);
     }
 
     public String getSenderEmail() {

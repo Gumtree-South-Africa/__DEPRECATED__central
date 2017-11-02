@@ -67,7 +67,7 @@ public class ConversationService {
         this.conversationEventListeners = conversationEventListeners;
     }
 
-    Optional<PostBoxSingleConversationThreadResponse> getConversation(String email, String conversationId) {
+    public Optional<PostBoxSingleConversationThreadResponse> getConversation(String email, String conversationId) {
         try (Timer.Context ignore = API_POSTBOX_CONVERSATION_BY_ID.time()) {
             PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
             Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
@@ -79,7 +79,7 @@ public class ConversationService {
         }
     }
 
-    Optional<PostBoxSingleConversationThreadResponse> readConversation(String email, String conversationId) {
+    public Optional<PostBoxSingleConversationThreadResponse> readConversation(String email, String conversationId) {
         try (Timer.Context ignore = API_POSTBOX_CONVERSATION_BY_ID.time()) {
             PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
             Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
@@ -97,7 +97,7 @@ public class ConversationService {
         }
     }
 
-    Optional<Object> reportConversation(String email, String conversationId) {
+    public Optional<Object> reportConversation(String email, String conversationId) {
         MutableConversation conversation = conversationRepository.getById(conversationId);
         ConversationRole buyerOrSeller = emailBelongsToBuyerOrSeller(conversation, email);
         if (buyerOrSeller == null) {
@@ -126,7 +126,7 @@ public class ConversationService {
         return Optional.of(SUCCESS);
     }
 
-    Optional<ConversationRts> markDeletedConversation(String email, String conversationId) {
+    public Optional<ConversationRts> deleteConversation(String email, String conversationId) {
         MutableConversation conversation = conversationRepository.getById(conversationId);
         ConversationRole buyerOrSeller = emailBelongsToBuyerOrSeller(conversation, email);
         if (buyerOrSeller == null) {

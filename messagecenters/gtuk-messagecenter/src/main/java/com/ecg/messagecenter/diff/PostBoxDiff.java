@@ -6,7 +6,6 @@ import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 class PostBoxDiff {
 
     final PostBox postBox;
-
     final PostBoxResponse postBoxResponse;
 
     private PostBoxDiff(PostBox postBox, PostBoxResponse postBoxResponse) {

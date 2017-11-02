@@ -26,4 +26,15 @@ class ConversationRoleUtil {
             return null;
         }
     }
+
+    static ConversationRole getConversationRole(String userId, String buyerId, String sellerId) {
+        if (userId.equals(buyerId)) {
+            return ConversationRole.Buyer;
+        } else if (userId.equals(sellerId)) {
+            return ConversationRole.Seller;
+        } else {
+            LOG.warn("Current user was not found among the participants.");
+            return null;
+        }
+    }
 }

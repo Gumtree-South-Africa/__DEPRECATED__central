@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.webapi;
 
+import com.ecg.messagecenter.diff.WebApiDiffService;
 import com.ecg.messagecenter.webapi.requests.MessageCenterDeleteConversationCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterReportConversationCommand;
@@ -8,6 +9,7 @@ import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.ConversationRts;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,11 +17,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ConversationThreadController {
 
     private final ConversationService conversationService;
+
+    @Autowired(required = false)
+    @Qualifier("webApiDiffService")
+    private WebApiDiffService webapiDiffService;
 
     @Autowired
     public ConversationThreadController(ConversationService conversationService) {
@@ -39,8 +47,14 @@ public class ConversationThreadController {
             @PathVariable("email") String email,
             @PathVariable("conversationId") String conversationId) {
 
-        return conversationService.getConversation(email, conversationId)
-                .map(ResponseObject::of)
+        Optional<PostBoxSingleConversationThreadResponse> response;
+        if (webapiDiffService != null) {
+            response = webapiDiffService.getConversation(email, conversationId);
+        } else {
+            response = conversationService.getConversation(email, conversationId);
+        }
+
+        return response.map(ResponseObject::of)
                 .map(ResponseEntity::ok)
                 .orElseGet(this::entityNotFound);
     }
@@ -53,8 +67,31 @@ public class ConversationThreadController {
             @PathVariable("email") String email,
             @PathVariable("conversationId") String conversationId) {
 
-        return conversationService.readConversation(email, conversationId)
-                .map(ResponseObject::of)
+        Optional<PostBoxSingleConversationThreadResponse> response;
+        if (webapiDiffService != null) {
+            response = webapiDiffService.readConversation(email, conversationId);
+        } else {
+            response = conversationService.readConversation(email, conversationId);
+        }
+
+        return response.map(ResponseObject::of)
+                .map(ResponseEntity::ok)
+                .orElseGet(this::entityNotFound);
+    }
+
+    @DeleteMapping(MessageCenterDeleteConversationCommand.MAPPING)
+    public ResponseEntity<ResponseObject<ConversationRts>> deleteConversation(
+            @PathVariable("email") String email,
+            @PathVariable("conversationId") String conversationId) {
+
+        Optional<ConversationRts> response;
+        if (webapiDiffService != null) {
+            response = webapiDiffService.deleteConversation(email, conversationId);
+        } else {
+            response = conversationService.deleteConversation(email, conversationId);
+        }
+
+        return response.map(ResponseObject::of)
                 .map(ResponseEntity::ok)
                 .orElseGet(this::entityNotFound);
     }
@@ -66,17 +103,6 @@ public class ConversationThreadController {
 
         return conversationService.reportConversation(email, conversationId)
                 .map(obj -> new ResponseObject())
-                .map(ResponseEntity::ok)
-                .orElseGet(this::entityNotFound);
-    }
-
-    @DeleteMapping(MessageCenterDeleteConversationCommand.MAPPING)
-    public ResponseEntity<ResponseObject<ConversationRts>> deleteConversation(
-            @PathVariable("email") String email,
-            @PathVariable("conversationId") String conversationId) {
-
-        return conversationService.markDeletedConversation(email, conversationId)
-                .map(ResponseObject::of)
                 .map(ResponseEntity::ok)
                 .orElseGet(this::entityNotFound);
     }
