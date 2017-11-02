@@ -10,6 +10,7 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
@@ -25,6 +26,7 @@ import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static java.util.Optional.ofNullable;
 
 @Component
+@ConditionalOnProperty(name = "webapi.diff.uk.enabled", havingValue = "true")
 public class ConversationResponseDiff {
 
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";

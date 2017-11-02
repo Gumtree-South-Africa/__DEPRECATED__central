@@ -12,6 +12,7 @@ import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 import com.ecg.replyts.core.api.webapi.model.MessageRts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
@@ -19,13 +20,13 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static com.ecg.gumtree.replyts2.common.message.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 
 @Component
+@ConditionalOnProperty(name = "webapi.diff.uk.enabled", havingValue = "true")
 public class ConversationDeleteResponseDiff {
 
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
