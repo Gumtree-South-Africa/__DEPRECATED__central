@@ -73,7 +73,7 @@ class ElasticSearchSearchService implements SearchService, MutableSearchService 
             LOG.trace("\n\nResponse:\n\n{}", response);
             return response;
         } catch (Exception exception) {
-            LOG.error("Couldn't perform elastic search", exception);
+            LOG.error("Couldn't perform elastic search. Search query: {}", searchRequestBuilder, exception);
             throw new RuntimeException(exception);
         }
     }
