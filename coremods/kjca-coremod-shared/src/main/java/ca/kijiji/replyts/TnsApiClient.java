@@ -41,7 +41,7 @@ public class TnsApiClient {
             @Value("${tnsapi.client.schema:http}") final String schema,
             @Value("${tnsapi.client.baseUrl:localhost}") final String baseUrl,
             @Value("${tnsapi.client.port:8080}") final int port,
-            @Value("${tnsapi.client.relativeUrl:/tns/api/replier}") final String replierEndpoint,
+            @Value("${tnsapi.client.relativeUrl:/api/replier}") final String replierEndpoint,
             @Value("${tnsapi.client.username:replyts}") final String username,
             @Value("${tnsapi.client.password:replyts}") final String password,
             @Value("${tnsapi.client.max.retries:1}") final Integer maxRetries,
