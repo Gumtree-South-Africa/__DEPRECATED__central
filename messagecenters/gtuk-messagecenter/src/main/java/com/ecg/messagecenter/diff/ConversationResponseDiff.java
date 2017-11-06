@@ -33,13 +33,10 @@ public class ConversationResponseDiff {
     private static final long ONE_MINUTE_IN_MILLIS = 60000;
 
     private final Counter diffCounter = newCounter("diff.conversationResponseDiff.counter");
-    private final DiffReporter reporter;
     private final boolean checkUnreadCounts;
 
     @Autowired
-    public ConversationResponseDiff(DiffReporter reporter,
-                                    @Value("${messagebox.diff.checkUnreadCounts:true}") boolean checkUnreadCounts) {
-        this.reporter = reporter;
+    public ConversationResponseDiff(@Value("${messagebox.diff.checkUnreadCounts:true}") boolean checkUnreadCounts) {
         this.checkUnreadCounts = checkUnreadCounts;
     }
 
@@ -154,7 +151,7 @@ public class ConversationResponseDiff {
 
     private void log(String params, String fieldName, String newValue, String oldValue, boolean useNewLogger) {
         diffCounter.inc();
-        reporter.report(
+        DiffReporter.report(
                 String.format("conversationResponseDiff(%s) - %s - new: '%s' vs old: '%s'", params, fieldName, newValue, oldValue),
                 useNewLogger);
     }

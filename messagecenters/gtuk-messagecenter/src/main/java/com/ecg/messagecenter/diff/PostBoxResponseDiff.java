@@ -36,16 +36,12 @@ public class PostBoxResponseDiff {
     private final Counter convIdsInNewOnlyCounter = newCounter("diff.postBoxResponseDiff.convIdsInNewOnlyCounter");
     private final Counter convIdsInOldOnlyCounter = newCounter("diff.postBoxResponseDiff.convIdsInOldOnlyCounter");
 
-    private final DiffReporter reporter;
-
     private final boolean checkUnreadCounts;
     private final boolean checkTextShortTrimmed;
 
     @Autowired
-    public PostBoxResponseDiff(DiffReporter reporter,
-                               @Value("${messagebox.diff.checkUnreadCounts:true}") boolean checkUnreadCounts,
+    public PostBoxResponseDiff(@Value("${messagebox.diff.checkUnreadCounts:true}") boolean checkUnreadCounts,
                                @Value("${messagebox.diff.checkTextShortTrimmed:true}") boolean checkTextShortTrimmed) {
-        this.reporter = reporter;
         this.checkUnreadCounts = checkUnreadCounts;
         this.checkTextShortTrimmed = checkTextShortTrimmed;
     }
@@ -197,14 +193,13 @@ public class PostBoxResponseDiff {
 
     private void logPbConvDiff(Counter counter, String params, String name, String value, boolean useNewLogger) {
         counter.inc();
-        reporter.report(String.format("postBoxResponseDiff(%s) - %s - %s", params, name, value), useNewLogger);
+        DiffReporter.report(String.format("postBoxResponseDiff(%s) - %s - %s", params, name, value), useNewLogger);
     }
 
     private void logDiffForPbResp(String params, String fieldName, String newValue, String oldValue, boolean useNewLogger) {
         pbRespDiffCounter.inc();
-        reporter.report(
+        DiffReporter.report(
                 String.format("postBoxResponseDiff(%s) - %s - new: '%s' vs old: '%s'", params, fieldName, newValue, oldValue),
-                useNewLogger
-        );
+                useNewLogger);
     }
 }

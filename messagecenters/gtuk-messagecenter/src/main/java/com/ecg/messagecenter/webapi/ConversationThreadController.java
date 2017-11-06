@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.webapi;
 
+import com.ecg.messagecenter.diff.DiffReporter;
 import com.ecg.messagecenter.diff.WebApiDiffService;
 import com.ecg.messagecenter.webapi.requests.MessageCenterDeleteConversationCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
@@ -8,8 +9,11 @@ import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadRes
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.ConversationRts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,15 +27,24 @@ import java.util.Optional;
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ConversationThreadController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationThreadController.class);
+
     private final ConversationService conversationService;
+    private final boolean diffEnabled;
 
     @Autowired(required = false)
     @Qualifier("webApiDiffService")
     private WebApiDiffService webapiDiffService;
 
     @Autowired
-    public ConversationThreadController(ConversationService conversationService) {
+    public ConversationThreadController(ConversationService conversationService,
+                                        @Value("${webapi.diff.uk.enabled:false}") boolean diffEnabled) {
         this.conversationService = conversationService;
+        this.diffEnabled = diffEnabled;
+
+        if (diffEnabled) {
+            LOG.info(DiffReporter.DIFF_MARKER, "PostBoxOverviewController in Diffing mode");
+        }
     }
 
     @InitBinder
@@ -48,7 +61,7 @@ public class ConversationThreadController {
             @PathVariable("conversationId") String conversationId) {
 
         Optional<PostBoxSingleConversationThreadResponse> response;
-        if (webapiDiffService != null) {
+        if (diffEnabled) {
             response = webapiDiffService.getConversation(email, conversationId);
         } else {
             response = conversationService.getConversation(email, conversationId);
@@ -68,7 +81,7 @@ public class ConversationThreadController {
             @PathVariable("conversationId") String conversationId) {
 
         Optional<PostBoxSingleConversationThreadResponse> response;
-        if (webapiDiffService != null) {
+        if (diffEnabled) {
             response = webapiDiffService.readConversation(email, conversationId);
         } else {
             response = conversationService.readConversation(email, conversationId);
@@ -85,7 +98,7 @@ public class ConversationThreadController {
             @PathVariable("conversationId") String conversationId) {
 
         Optional<ConversationRts> response;
-        if (webapiDiffService != null) {
+        if (diffEnabled) {
             response = webapiDiffService.deleteConversation(email, conversationId);
         } else {
             response = conversationService.deleteConversation(email, conversationId);

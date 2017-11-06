@@ -33,14 +33,10 @@ public class ConversationDeleteResponseDiff {
     private static final long ONE_MINUTE_IN_MILLIS = 60000;
 
     private final Counter diffCounter = newCounter("diff.conversationResponseDiff.counter");
-    private final DiffReporter reporter;
     private final int maxChars;
 
     @Autowired
-    public ConversationDeleteResponseDiff(
-            DiffReporter reporter,
-            @Value("${replyts.maxPreviewMessageCharacters:250}") int maxChars) {
-        this.reporter = reporter;
+    public ConversationDeleteResponseDiff(@Value("${replyts.maxPreviewMessageCharacters:250}") int maxChars) {
         this.maxChars = maxChars;
     }
 
@@ -147,7 +143,7 @@ public class ConversationDeleteResponseDiff {
 
     private void log(String params, String fieldName, String newValue, String oldValue, boolean useNewLogger) {
         diffCounter.inc();
-        reporter.report(
+        DiffReporter.report(
                 String.format("conversationResponseDiff(%s) - %s - new: '%s' vs old: '%s'", params, fieldName, newValue, oldValue),
                 useNewLogger);
     }

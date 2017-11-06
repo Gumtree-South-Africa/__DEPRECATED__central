@@ -2,6 +2,7 @@ package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
+import com.ecg.messagecenter.diff.DiffReporter;
 import com.ecg.messagecenter.diff.WebApiDiffService;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -11,6 +12,8 @@ import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class PostBoxOverviewController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PostBoxOverviewController.class);
 
     private static final Timer API_POSTBOX_BY_EMAIL = TimingReports.newTimer("webapi-postbox-by-email");
 
@@ -44,6 +49,10 @@ public class PostBoxOverviewController {
         this.postBoxRepository = postBoxRepository;
         this.responseBuilder = new PostBoxResponseBuilder(conversationRepository);
         this.diffEnabled = diffEnabled;
+
+        if (diffEnabled) {
+            LOG.info(DiffReporter.DIFF_MARKER, "PostBoxOverviewController in Diffing mode");
+        }
     }
 
     @InitBinder
