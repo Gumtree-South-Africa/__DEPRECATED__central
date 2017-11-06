@@ -18,7 +18,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.validation.Valid;
 
@@ -31,7 +30,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Controller
-public class ConversationsController extends ResponseEntityExceptionHandler {
+public class ConversationsController {
 
     private static final String CONVERSATIONS_RESOURCE = "/users/{userId}/conversations";
     private static final String CONVERSATION_IDS_BY_ADID_RESOURCE = "/users/{userId}/ads/{adId}/conversations/ids";
