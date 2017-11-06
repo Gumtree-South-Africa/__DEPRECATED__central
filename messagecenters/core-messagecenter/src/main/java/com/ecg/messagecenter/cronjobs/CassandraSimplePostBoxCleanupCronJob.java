@@ -5,7 +5,6 @@ import com.ecg.replyts.app.cronjobs.cleanup.CleanupDateCalculator;
 import com.ecg.replyts.core.api.cron.CronJobExecutor;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeFieldType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,7 @@ public class CassandraSimplePostBoxCleanupCronJob implements CronJobExecutor {
 
     @Override
     public void execute() throws Exception {
-        DateTime cleanupDate = cleanupDateCalculator.getCleanupDate(maxConversationAgeDays, CLEANUP_CONVERSATION_JOB_NAME, DateTimeFieldType.hourOfDay());
+        DateTime cleanupDate = cleanupDateCalculator.getCleanupDate(maxConversationAgeDays, CLEANUP_CONVERSATION_JOB_NAME);
 
         if (cleanupDate == null) {
             return;

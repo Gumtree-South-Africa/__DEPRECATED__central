@@ -10,6 +10,7 @@ import com.ecg.replyts.core.runtime.persistence.StatementsBase;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterators;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -23,10 +24,10 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
+import static java.util.stream.Collectors.toList;
 
 public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository, CassandraRepository {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraSimplePostBoxRepository.class);
@@ -72,7 +73,8 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(workQueueSize);
         RejectedExecutionHandler rejectionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
 
-        this.threadPoolExecutor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat(CassandraSimplePostBoxRepository.class.getSimpleName() + "-%d").setDaemon(true).build();
+        this.threadPoolExecutor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, threadFactory, rejectionHandler);
     }
 
     @PostConstruct
@@ -254,41 +256,30 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
     @Override
     public boolean cleanup(DateTime time) {
+
         DateTime roundedToHour = time.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
 
         LOG.info("Cleanup: Deleting conversations for the date {} and rounded hour {}", time, roundedToHour);
 
-        Stream<ConversationThreadModificationDate> conversationThreadModificationsToDelete = streamConversationThreadModificationsByHour(roundedToHour.toDate());
-
         List<Future<?>> cleanUpTasks = new ArrayList<>();
 
-        Iterators.partition(conversationThreadModificationsToDelete.iterator(), batchSize).forEachRemaining(idxs -> {
-            cleanUpTasks.add(threadPoolExecutor.submit(() -> {
-                LOG.info("Cleanup: Deleting data related to {} conversation thread modification dates", idxs.size());
+        try (Timer.Context ignored = streamConversationThreadModificationsByHourTimer.time()) {
+            Statement bound = Statements.SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this, roundedToHour.toDate());
+            ResultSet resultSet = session.execute(bound);
+            Iterator<List<Row>> partitions = Iterators.partition(resultSet.iterator(), batchSize);
 
-                idxs.forEach(conversationThreadModificationDate -> {
-                    PostBoxId id = PostBoxId.fromEmail(conversationThreadModificationDate.getPostboxId());
-                    String conversationThreadId = conversationThreadModificationDate.getConversationThreadId();
+            while(partitions.hasNext()) {
+                List<Row> rows = partitions.next();
+                resultSet.fetchMoreResults();
+                List<ConversationThreadModificationDate> idxs = rows.stream()
+                        .map(this::createConversationThreadModificationDate).collect(toList());
 
-                    DateTime preciseTime = new DateTime(conversationThreadModificationDate.getModificationDate());
-                    DateTime lastModified = getLastModifiedDate(id, conversationThreadId);
+                Future<?> future = threadPoolExecutor
+                        .submit(setTaskFields(() -> doCleanup(idxs), CassandraSimplePostBoxRepository.class.getSimpleName() + ".cleanup"));
 
-                    if (lastModified != null && !lastModified.isAfter(preciseTime)) {
-                        try {
-                            deleteEntireConversationThread(id, conversationThreadId);
-                        } catch (RuntimeException ex) {
-                            LOG.error("Cleanup: Could not delete Conversation thread {}/{}", id, conversationThreadId, ex);
-                        }
-                    } else {
-                        try {
-                            deleteOnlyConversationThreadModification(conversationThreadModificationDate);
-                        } catch (RuntimeException ex) {
-                            LOG.error("Cleanup: Could not delete " + conversationThreadModificationDate.toString(), ex);
-                        }
-                    }
-                });
-            }));
-        });
+                cleanUpTasks.add(future);
+            }
+        }
 
         for (Future<?> task : cleanUpTasks) {
             try {
@@ -306,6 +297,38 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         LOG.info("Cleanup: Finished deleting conversations");
 
         return true;
+    }
+
+    private ConversationThreadModificationDate createConversationThreadModificationDate(Row row) {
+        return new ConversationThreadModificationDate(
+                row.getString(FIELD_POSTBOX_ID), row.getString(FIELD_CONVERSATION_ID),
+                row.getDate(FIELD_MODIFICATION_DATE), row.getDate(FIELD_ROUNDED_MODIFICATION_DATE));
+    }
+
+    private void doCleanup(List<ConversationThreadModificationDate> idxs) {
+        LOG.info("Cleanup: Deleting data related to {} conversation thread modification dates", idxs.size());
+
+        for (ConversationThreadModificationDate conversationThreadModificationDate : idxs) {
+            PostBoxId id = PostBoxId.fromEmail(conversationThreadModificationDate.getPostboxId());
+            String conversationThreadId = conversationThreadModificationDate.getConversationThreadId();
+
+            DateTime preciseTime = new DateTime(conversationThreadModificationDate.getModificationDate());
+            DateTime lastModified = getLastModifiedDate(id, conversationThreadId);
+
+            if (lastModified != null && !lastModified.isAfter(preciseTime)) {
+                try {
+                    deleteEntireConversationThread(id, conversationThreadId);
+                } catch (RuntimeException ex) {
+                    LOG.error("Cleanup: Could not delete Conversation thread {}/{}", id, conversationThreadId, ex);
+                }
+            } else {
+                try {
+                    deleteOnlyConversationThreadModification(conversationThreadModificationDate);
+                } catch (RuntimeException ex) {
+                    LOG.error("Cleanup: Could not delete " + conversationThreadModificationDate.toString(), ex);
+                }
+            }
+        }
     }
 
     @Override
@@ -368,18 +391,6 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
                 .map(AbstractConversationThread::getConversationId)
                 .mapToInt(convid -> unreads.getOrDefault(convid, 0))
                 .sum();
-    }
-
-    private Stream<ConversationThreadModificationDate> streamConversationThreadModificationsByHour(Date roundedToHour) {
-        try (Timer.Context ignored = streamConversationThreadModificationsByHourTimer.time()) {
-            Statement bound = Statements.SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this, roundedToHour);
-            ResultSet resultset = session.execute(bound);
-
-            return toStream(resultset).map(row -> new ConversationThreadModificationDate(
-                    row.getString(FIELD_POSTBOX_ID), row.getString(FIELD_CONVERSATION_ID),
-                    row.getDate(FIELD_MODIFICATION_DATE), row.getDate(FIELD_ROUNDED_MODIFICATION_DATE))
-            );
-        }
     }
 
     private void deleteEntireConversationThread(PostBoxId id, String conversationId) {

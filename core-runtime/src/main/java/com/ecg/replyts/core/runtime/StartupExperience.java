@@ -31,11 +31,11 @@ public class StartupExperience {
     }
 
     public boolean running(int apiHttpPort) {
-        LOG.info("   __________  __  ___            _____\n"
-               + "  / ____/ __ \\/  |/  /___ _____ _/ ___/\\n"
-               + " / /   / / / / /|_/ / __ `/ __ `/\\__ \\\\n"
-               + "/ /___/ /_/ / /  / / /_/ / /_/ /___/ /\\n"
-               + "\\____/\\____/_/  /_/\\__,_/\\__,_//____/\\n");
+        LOG.info("   __________  __  ___            _____" + System.lineSeparator()
+               + "  / ____/ __ \\/  |/  /___ _____ _/ ___/" + System.lineSeparator()
+               + " / /   / / / / /|_/ / __ `/ __ `/\\__ \\" + System.lineSeparator()
+               + "/ /___/ /_/ / /  / / /_/ / /_/ /___/ /" + System.lineSeparator()
+               + "\\____/\\____/_/  /_/\\__,_/\\__,_//____/");
 
         LOG.info("COMaaS startup complete in {} ms.", System.currentTimeMillis() - begin);
         LOG.info("Started COMaaS for tenant {} on port {}", tenant, apiHttpPort);
