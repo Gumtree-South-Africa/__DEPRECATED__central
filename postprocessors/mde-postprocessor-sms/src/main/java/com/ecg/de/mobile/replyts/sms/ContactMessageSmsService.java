@@ -115,7 +115,7 @@ public class ContactMessageSmsService {
         sms.append(ResourceBundle.getBundle("MYDATA", sellerLocale).getString("I18N.MYDATA.Sender")).append(": ");
         sms.append(cutBuyerDisplayName(contactMessage.getDisplayName()));
         sms.append(" - ");
-        if (StringUtils.hasText(contactMessage.getBuyerPhoneNumber().getDisplayNumber())) {
+        if (hasBuyerPhoneNumber(contactMessage.getBuyerPhoneNumber())) {
             sms.append(contactMessage.getBuyerPhoneNumber().getDisplayNumber());
         } else {
             sms.append(contactMessage.getBuyerMailAddress());
@@ -140,6 +140,10 @@ public class ContactMessageSmsService {
             strSms = strSms.substring(0, SMS_MAX_LENGTH - 5) + "...";
         }
         return strSms;
+    }
+
+    private boolean hasBuyerPhoneNumber(PhoneNumber phoneNumber) {
+        return phoneNumber != null && StringUtils.hasText(phoneNumber.getDisplayNumber());
     }
 
 
