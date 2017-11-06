@@ -2,12 +2,9 @@ package com.ecg.messagecenter.diff;
 
 import com.codahale.metrics.Counter;
 import com.ecg.messagebox.model.ConversationThread;
-import com.ecg.messagebox.model.Message;
-import com.ecg.messagebox.model.Participant;
 import com.ecg.messagecenter.webapi.responses.MessageResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,13 +12,11 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
-import static com.ecg.gumtree.replyts2.common.message.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static java.util.Optional.ofNullable;
 
@@ -61,7 +56,7 @@ public class ConversationResponseDiff {
             log(params, "id", newValue.getId(), oldValue.getId(), useNewLogger);
         }
 
-        ConversationRole newConvRole = ConversationRoleUtil.getConversationRole(userId, newValue.getParticipants());
+        ConversationRole newConvRole = ConversationDiffUtil.getConversationRole(userId, newValue.getParticipants());
         if (newConvRole != oldValue.getRole()) {
             log(params, "role", newConvRole.name(), oldValue.getRole().name(), useNewLogger);
         }
@@ -93,7 +88,7 @@ public class ConversationResponseDiff {
         }
 
         List<MessageResponse> newMessages = newValue.getMessages().stream()
-                .map(message -> toMessageResponse(message, userId, newValue.getParticipants()))
+                .map(message -> ConversationDiffUtil.toMessageResponse(message, userId, newValue.getParticipants()))
                 .collect(Collectors.toList());
         List<MessageResponse> oldMessages = oldValue.getMessages();
 
@@ -126,27 +121,6 @@ public class ConversationResponseDiff {
                 }
             }
         }
-    }
-
-    public MessageResponse toMessageResponse(Message message, String projectionOwnerUserId, List<Participant> participants) {
-        Participant participant1 = participants.get(0);
-        Participant participant2 = participants.get(1);
-        String senderEmail = participant1.getUserId().equals(message.getSenderUserId()) ?
-                participant1.getEmail() : participant2.getEmail();
-        String buyerEmail = participant1.getUserId().equals(message.getSenderUserId()) ?
-                participant2.getEmail() : participant1.getEmail();
-
-        MailTypeRts boundness = message.getSenderUserId().equals(projectionOwnerUserId) ? MailTypeRts.OUTBOUND : MailTypeRts.INBOUND;
-
-        return new MessageResponse(
-                toFormattedTimeISO8601ExplicitTimezoneOffset(message.getReceivedDate()),
-                null,
-                boundness,
-                message.getText(),
-                Optional.empty(),
-                Collections.emptyList(),
-                senderEmail,
-                buyerEmail);
     }
 
     private void log(String params, String fieldName, String newValue, String oldValue, boolean useNewLogger) {

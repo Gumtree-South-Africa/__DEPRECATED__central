@@ -61,8 +61,8 @@ public class ConversationDeleteResponseDiff {
             log(params, "id", newValue.getId(), oldValue.getId(), useNewLogger);
         }
 
-        ConversationRole newConvRole = ConversationRoleUtil.getConversationRole(userId, newValue.getParticipants());
-        ConversationRole oldConvRole = ConversationRoleUtil.getConversationRole(userId, oldValue.getBuyer(), oldValue.getSeller());
+        ConversationRole newConvRole = ConversationDiffUtil.getConversationRole(userId, newValue.getParticipants());
+        ConversationRole oldConvRole = ConversationDiffUtil.getConversationRole(userId, oldValue.getBuyer(), oldValue.getSeller());
         if (newConvRole != oldConvRole) {
             log(params, "role", newConvRole.name(), oldConvRole.name(), useNewLogger);
         }
@@ -80,7 +80,7 @@ public class ConversationDeleteResponseDiff {
         }
 
         List<MessageResponse> newMessages = newValue.getMessages().stream()
-                .map(message -> toMessageResponse(message, userId, newValue.getParticipants()))
+                .map(message -> ConversationDiffUtil.toMessageResponse(message, userId, newValue.getParticipants()))
                 .collect(Collectors.toList());
         List<MessageRts> oldMessages = oldValue.getMessages();
 
@@ -118,27 +118,6 @@ public class ConversationDeleteResponseDiff {
                 }
             }
         }
-    }
-
-    public MessageResponse toMessageResponse(Message message, String projectionOwnerUserId, List<Participant> participants) {
-        Participant participant1 = participants.get(0);
-        Participant participant2 = participants.get(1);
-        String senderEmail = participant1.getUserId().equals(message.getSenderUserId()) ?
-                participant1.getEmail() : participant2.getEmail();
-        String buyerEmail = participant1.getUserId().equals(message.getSenderUserId()) ?
-                participant2.getEmail() : participant1.getEmail();
-
-        MailTypeRts boundness = message.getSenderUserId().equals(projectionOwnerUserId) ? MailTypeRts.OUTBOUND : MailTypeRts.INBOUND;
-
-        return new MessageResponse(
-                toFormattedTimeISO8601ExplicitTimezoneOffset(message.getReceivedDate()),
-                null,
-                boundness,
-                message.getText(),
-                Optional.empty(),
-                Collections.emptyList(),
-                senderEmail,
-                buyerEmail);
     }
 
     private void log(String params, String fieldName, String newValue, String oldValue, boolean useNewLogger) {

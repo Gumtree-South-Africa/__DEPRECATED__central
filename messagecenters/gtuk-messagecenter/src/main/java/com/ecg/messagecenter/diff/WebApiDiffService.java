@@ -106,10 +106,15 @@ public class WebApiDiffService {
                     .supplyAsync(() -> postBoxService.getConversations(id.asString(), Visibility.ACTIVE, page, size), newExecutor)
                     .exceptionally(handle(newModelFailureCounter, "New GetPostBox Failed - email: " + id));
 
+            com.ecg.messagecenter.persistence.simple.PostBox pb = postBoxRepository.byId(id);
+            responseBuilder.buildPostBoxResponse(id.asString(), size, page, pb, newCounterMode);
+
             CompletableFuture<PostBoxDiff> oldModelFuture = CompletableFuture
                     .supplyAsync(() -> postBoxRepository.byId(id), oldExecutor)
                     .thenApply(postBox -> PostBoxDiff.of(postBox, responseBuilder.buildPostBoxResponse(id.asString(), size, page, postBox, newCounterMode)))
                     .exceptionally(handle(oldModelFailureCounter, "Old GetPostBox Failed - email: " + id));
+
+            diff.postBoxResponseDiff(id.asString(), newModelFuture, oldModelFuture);
 
             CompletableFuture
                     .runAsync(() -> diff.postBoxResponseDiff(id.asString(), newModelFuture, oldModelFuture), diffExecutor)

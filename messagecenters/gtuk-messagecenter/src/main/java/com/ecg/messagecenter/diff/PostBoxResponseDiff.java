@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.ecg.messagecenter.util.MessageCenterUtils.truncateText;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static java.lang.Math.min;
 import static java.util.Optional.ofNullable;
@@ -29,7 +30,7 @@ import static java.util.Optional.ofNullable;
 public class PostBoxResponseDiff {
 
     private static final int MAX_CHARS_TO_COMPARE = 215;
-    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
     private static final long ONE_MINUTE_IN_MILLIS = 60000;
 
     private final Counter pbRespDiffCounter = newCounter("diff.postBoxResponseDiff.counter");
@@ -66,7 +67,7 @@ public class PostBoxResponseDiff {
                 .collect(Collectors.toSet());
 
         Set<String> oldConvIds = allOldConversations.stream()
-                .map(AbstractConversationThread::getAdId)
+                .map(AbstractConversationThread::getConversationId)
                 .collect(Collectors.toSet());
 
         Set<String> convIdsInNewOnly = Sets.difference(newConvIds, oldConvIds);
@@ -134,17 +135,17 @@ public class PostBoxResponseDiff {
                 if (!ofNullable(bsInfo.getSellerName()).orElse("").equals(oldConv.getSellerName().orElse(null))) {
                     logDiffForPbResp(userId, logConvPrefix + ".sellerName", bsInfo.getSellerName(), oldConv.getSellerName().orElse(null), useNewLogger);
                 }
-                if (!bsInfo.getBuyerId().toString().equals(oldConv.getBuyerId().orElse(null))) {
-                    logDiffForPbResp(userId, logConvPrefix + ".userIdBuyer", bsInfo.getBuyerId().toString(), oldConv.getBuyerId().orElse(null), useNewLogger);
+                if (!bsInfo.getBuyerId().equals(oldConv.getBuyerId().orElse(null))) {
+                    logDiffForPbResp(userId, logConvPrefix + ".userIdBuyer", bsInfo.getBuyerId(), oldConv.getBuyerId().orElse(null), useNewLogger);
                 }
-                if (!bsInfo.getSellerId().toString().equals(oldConv.getSellerId().orElse(null))) {
-                    logDiffForPbResp(userId, logConvPrefix + ".userIdSeller", bsInfo.getSellerId().toString(), oldConv.getSellerId().orElse(null), useNewLogger);
+                if (!bsInfo.getSellerId().equals(oldConv.getSellerId().orElse(null))) {
+                    logDiffForPbResp(userId, logConvPrefix + ".userIdSeller", bsInfo.getSellerId(), oldConv.getSellerId().orElse(null), useNewLogger);
                 }
                 if (!newConv.getAdId().equals(oldConv.getAdId())) {
                     logDiffForPbResp(userId, logConvPrefix + ".adId", newConv.getAdId(), oldConv.getAdId(), useNewLogger);
                 }
 
-                ConversationRole newConvRole = ConversationRoleUtil.getConversationRole(userId, newConv.getParticipants());
+                ConversationRole newConvRole = ConversationDiffUtil.getConversationRole(userId, newConv.getParticipants());
                 ConversationRole oldConvRole = ConversationBoundnessFinder.lookupUsersRole(userId, oldConv);
                 if (newConvRole != oldConvRole) {
                     logDiffForPbResp(userId, logConvPrefix + ".role", newConvRole.name(), oldConvRole.name(), useNewLogger);
@@ -163,21 +164,12 @@ public class PostBoxResponseDiff {
                 }
 
                 if (checkTextShortTrimmed) {
-                    String newConvTextShortTrimmed = newConv.getLatestMessage().getText().substring(0, min(MAX_CHARS_TO_COMPARE, newConv.getLatestMessage().getText().length()));
+                    String newTruncated = truncateText(newConv.getLatestMessage().getText(), 250);
+                    String newConvTextShortTrimmed = newTruncated.substring(0, min(MAX_CHARS_TO_COMPARE, newTruncated.length()));
                     String oldConvTextShortTrimmed = oldResponse.getTextShortTrimmed().substring(0, min(MAX_CHARS_TO_COMPARE, oldResponse.getTextShortTrimmed().length()));
-                    logDiffForPbResp(userId, logConvPrefix + ".textShortTrimmed", newConvTextShortTrimmed, oldConvTextShortTrimmed, useNewLogger);
-//                    if (!newConvTextShortTrimmed.equals(oldConvTextShortTrimmed)) {
-//                         caters for data that was written without applying the updated regex patterns
-//                        String cleanedOldMsg = MessagePreProcessor.removeEmailClientReplyFragment(
-//                                oldConv.getBuyerName(),
-//                                oldConv.getSellerName(),
-//                                oldConvTextShortTrimmed,
-//                                getMessageDirection(oldResponse.getRole(), oldResponse.getBoundness())
-//                        );
-//                        if (!newConvTextShortTrimmed.equals(cleanedOldMsg)) {
-//                            logDiffForPbResp(userId, logConvPrefix + ".textShortTrimmed", newConvTextShortTrimmed, cleanedOldMsg, useNewLogger);
-//                        }
-//                    }
+                    if (!newConvTextShortTrimmed.equals(oldConvTextShortTrimmed)) {
+                        logDiffForPbResp(userId, logConvPrefix + ".textShortTrimmed", newConvTextShortTrimmed, oldConvTextShortTrimmed, useNewLogger);
+                    }
                 }
 
                 DateTimeFormatter formatter = DateTimeFormat.forPattern(DATE_FORMAT);

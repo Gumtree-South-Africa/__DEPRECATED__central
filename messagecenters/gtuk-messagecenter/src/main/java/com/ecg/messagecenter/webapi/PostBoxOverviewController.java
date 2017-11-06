@@ -51,7 +51,7 @@ public class PostBoxOverviewController {
         this.diffEnabled = diffEnabled;
 
         if (diffEnabled) {
-            LOG.info(DiffReporter.DIFF_MARKER, "PostBoxOverviewController in Diffing mode");
+            LOG.info(DiffReporter.DIFF_MARKER, this.getClass().getSimpleName() + " in Diffing mode");
         }
     }
 

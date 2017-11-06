@@ -6,19 +6,18 @@ import java.util.List;
 
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
-import static java.lang.Long.parseLong;
 import static java.util.Optional.ofNullable;
 
 class BuyerSellerInfo {
 
-    private Long buyerId;
-    private Long sellerId;
+    private String buyerId;
+    private String sellerId;
     private String buyerName;
     private String sellerName;
     private String buyerEmail;
     private String sellerEmail;
 
-    private BuyerSellerInfo(Long buyerId, Long sellerId,
+    private BuyerSellerInfo(String buyerId, String sellerId,
                             String buyerName, String sellerName,
                             String buyerEmail, String sellerEmail) {
         this.buyerId = buyerId;
@@ -29,11 +28,11 @@ class BuyerSellerInfo {
         this.sellerEmail = sellerEmail;
     }
 
-    Long getBuyerId() {
+    String getBuyerId() {
         return buyerId;
     }
 
-    Long getSellerId() {
+    String getSellerId() {
         return sellerId;
     }
 
@@ -68,8 +67,8 @@ class BuyerSellerInfo {
             switch (participant1.getRole()) {
                 case BUYER:
                     return new BuyerSellerInfo(
-                            parseLong(participant1.getUserId()),
-                            parseLong(participant2.getUserId()),
+                            participant1.getUserId(),
+                            participant2.getUserId(),
                             ofNullable(participant1.getName()).orElse(""),
                             ofNullable(participant2.getName()).orElse(""),
                             participant1.getEmail(),
@@ -77,8 +76,8 @@ class BuyerSellerInfo {
                     );
                 case SELLER:
                     return new BuyerSellerInfo(
-                            parseLong(participant2.getUserId()),
-                            parseLong(participant1.getUserId()),
+                            participant2.getUserId(),
+                            participant1.getUserId(),
                             ofNullable(participant2.getName()).orElse(""),
                             ofNullable(participant1.getName()).orElse(""),
                             participant2.getEmail(),
