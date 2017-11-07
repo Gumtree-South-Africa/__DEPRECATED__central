@@ -639,6 +639,12 @@
                     <artifactId>kjca-listener-adcounters</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-eventpublisher-kafka-mail</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
         </profile>
 
