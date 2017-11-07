@@ -340,6 +340,8 @@
                 <module>messagecenters/kjca-messagecenter</module>
 
                 <module>resultinspectors/core-resultinspector-threshold</module>
+
+                <module>eventpublishers/core-eventpublisher-kafka-mail</module>
             </modules>
         </profile>
 
