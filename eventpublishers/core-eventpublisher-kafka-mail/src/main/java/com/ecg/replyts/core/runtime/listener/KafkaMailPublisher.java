@@ -34,6 +34,7 @@ public class KafkaMailPublisher implements MailPublisher {
                     new StoredMail(incomingMailData, outgoingMailData).compress()));
 
             MESSAGE_SENT_EVENT_PUBLISHED.inc();
+            LOGGER.trace("Message {} sent to Kafka topic {}", messageId, topic);
 
         } catch (FailedToSendMessageException e) {
             LOGGER.error("An error happened while trying to publish a message with id: {} to kafka", messageId, e);
