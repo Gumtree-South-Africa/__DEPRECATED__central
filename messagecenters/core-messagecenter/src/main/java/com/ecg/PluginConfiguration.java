@@ -17,7 +17,7 @@ import javax.annotation.PostConstruct;
 public class PluginConfiguration {
     @Configuration
     @ComponentScan("com.ecg.messagebox")
-    @ConditionalOnExpression("#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde' || '${webapi.diff.uk.enabled}' == 'true'}")
+    @ConditionalOnExpression("#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde' || '${replyts.tenant}' == 'gtuk'}")
     static class MessageBoxConfiguration { }
 
     @Configuration
@@ -35,7 +35,7 @@ public class PluginConfiguration {
     private String tenant;
 
     @PostConstruct
-    public void context() {
+    public void context()  {
         webserver.context(new SpringContextProvider(getPath(tenant), WebConfiguration.class, context));
     }
 
