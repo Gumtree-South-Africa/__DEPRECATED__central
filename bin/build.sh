@@ -34,30 +34,7 @@ MVN_ARGS="-Drevision=$REVISION -U"
 if [ ! -f /usr/bin/apt-get ] ; then
     MVN_ARGS="-Djavax.net.ssl.trustStore=${PWD}/comaas.jks -Djavax.net.ssl.keyStoreType=JKS -Djavax.net.ssl.trustStorePassword=comaas $MVN_ARGS"
 
-    if [ ! -f comaas.jks ] ; then
-        keytool -genkey -alias comaas -keyalg RSA -keystore comaas.jks -keysize 2048 \
-          -dname "CN=com, OU=COMaaS, O=eBay Classifieds, L=Amsterdam, S=Noord-Holland, C=NL" \
-          -storepass 'comaas' -keypass 'comaas'
-
-        # Install eBay SSL CA v2
-        curl -sO "http://pki.corp.ebay.com/root-certs-pem.zip" && unzip root-certs-pem.zip
-
-        for f in root-certs-pem/*.pem; do
-            keytool -importcert -keystore comaas.jks -storepass 'comaas' -file ${f} -alias ${f} -noprompt
-        done
-        rm -rf root-certs-pem.zip root-certs-pem
-
-        # Install AMS1 & DUS1 CA
-        openssl s_client -connect keystone.ams1.cloud.ecg.so:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM |
-          keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias ams1 -noprompt
-
-        openssl s_client -connect keystone.dus1.cloud.ecg.so:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM |
-          keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias dus1 -noprompt
-
-        # Install Gumtree AU nexus CA
-        openssl s_client -showcerts -connect nexus.au.ecg.so:443 </dev/null 2>/dev/null | openssl x509 -outform PEM | \
-          keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias nexusau -noprompt
-    fi
+    curl -s0 -o comaas.jks -z comaas.jks https://swift.dus1.cloud.ecg.so/v1/81776e54d8664296b0fab63916911ca3/public/java/keystore/comaas.jks
 else
     # If we are running on a builder environment then the certificates should have been installed in
     # /etc/ssl/certs/java/cacerts (mobile-ca-certificates doesn't support Oracle JDK)

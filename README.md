@@ -20,10 +20,6 @@ Remove all containers using `cd docker; make down`
 
 Note that you will have to install Docker on your local machines, the automated tests rely on it.
 
-### Possible issues
-
-Wrong jks file: `sun.security.validator.ValidatorException: PKIX path building failed` -> Remove `comaas.jks` from the root directory and restart `build.sh` script.
-
 ### Run COMaaS for a specific tenant from your IDE
 
 Before running from IDE you have to import properties into consul manually to do that execute:  
@@ -151,3 +147,32 @@ They forked the message box plugin from the GTAU one and customized it by adding
 core: https://github.corp.ebay.com/annunci/replyts2-core
 message box plugin: https://github.corp.ebay.com/annunci/replyts2-ebayk-message-center
 
+### Certificate issues
+
+When encountering `sun.security.validator.ValidatorException: PKIX path building failed` while downloading artifactes from maven, one of the certificates might be expired.
+
+To create an updated keystore file, download and unzip `https://ebayinc.sharepoint.com/teams/SelfService/Directory%20Services/SiteAssets/SitePages/Active%20Directory%20Certificates%20Services%20Help%20Site/root-certs-pem.zip`.
+
+Generate a new `comaas.jks` file:
+```
+keytool -genkey -alias comaas -keyalg RSA -keystore comaas.jks -keysize 2048 \
+  -dname "CN=com, OU=COMaaS, O=eBay Classifieds, L=Amsterdam, S=Noord-Holland, C=NL" \
+  -storepass 'comaas' -keypass 'comaas'
+
+for f in root-certs-pem/*.pem; do
+    keytool -importcert -keystore comaas.jks -storepass 'comaas' -file ${f} -alias ${f} -noprompt
+done
+
+# Install AMS1 & DUS1 CA
+openssl s_client -connect keystone.ams1.cloud.ecg.so:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM |
+  keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias ams1 -noprompt
+
+openssl s_client -connect keystone.dus1.cloud.ecg.so:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM |
+  keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias dus1 -noprompt
+
+# Install Gumtree AU nexus CA
+openssl s_client -showcerts -connect nexus.au.ecg.so:443 </dev/null 2>/dev/null | openssl x509 -outform PEM | \
+  keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias nexusau -noprompt
+```
+
+Finally, upload the new `comaas.jks` to Swift. Update the URL in `bin/build.sh` if needed.
