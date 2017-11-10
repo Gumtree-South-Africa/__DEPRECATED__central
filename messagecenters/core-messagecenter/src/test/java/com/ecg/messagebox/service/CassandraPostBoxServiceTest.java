@@ -130,6 +130,10 @@ public class CassandraPostBoxServiceTest {
         Message rtsMsg1 = newMessage("1", SELLER_TO_BUYER, MessageState.SENT, DEFAULT_SUBJECT);
         Message rtsMsg2 = newMessage("2", SELLER_TO_BUYER, MessageState.SENT, "Another subject");
         Conversation conversation = newConversationWithMessages(CONVERSATION_ID_1, singletonList(rtsMsg1)).build();
+
+        when(userIdentifierService.getBuyerUserId(conversation)).thenReturn(Optional.of(USER_ID_1));
+        when(userIdentifierService.getSellerUserId(conversation)).thenReturn(Optional.of(USER_ID_2));
+
         service.processNewMessage(USER_ID_1, conversation, rtsMsg2, true, "");
 
         ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
@@ -171,6 +175,9 @@ public class CassandraPostBoxServiceTest {
                 new Participant(USER_ID_2, SELLER_NAME_VALUE, rtsConversation.getSellerId(), ParticipantRole.SELLER));
 
         ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
+
+        when(userIdentifierService.getBuyerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_1));
+        when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_2));
 
         service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true, "text 123");
 
@@ -215,6 +222,9 @@ public class CassandraPostBoxServiceTest {
 
         ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
 
+        when(userIdentifierService.getBuyerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_1));
+        when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_2));
+
         service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true, "text 123");
 
         verify(conversationsRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), eq(true));
@@ -238,6 +248,9 @@ public class CassandraPostBoxServiceTest {
                 UUID.fromString("f866b110-857b-11e6-9367-5bbf510138cd"), "text 123", USER_ID_2, MessageType.ASQ, null);
 
         Conversation rtsConversation = newConversation(CONVERSATION_ID_1).withMessages(singletonList(rtsMsg)).build();
+
+        when(userIdentifierService.getBuyerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_1));
+        when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_2));
 
         List<Participant> participants = newArrayList(
                 new Participant(USER_ID_1, BUYER_NAME_VALUE, rtsConversation.getBuyerId(), ParticipantRole.BUYER),

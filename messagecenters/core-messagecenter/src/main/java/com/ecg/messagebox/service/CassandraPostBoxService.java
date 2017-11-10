@@ -16,6 +16,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
@@ -224,12 +225,26 @@ public class CassandraPostBoxService implements PostBoxService {
         return rtsMessage.getMessageDirection() == BUYER_TO_SELLER ? getBuyerUserId(rtsConversation) : getSellerUserId(rtsConversation);
     }
 
-    private String getBuyerUserId(Conversation rtsConversation) {
-        return customValue(rtsConversation, userIdentifierService.getBuyerUserIdName());
+    /**
+     * Retrieve {@code Buyer-Id} using specific implementation of {@link UserIdentifierService}.
+     *
+     * @param conversation conversation created from events.
+     * @return {@code buyer-id} retrieved from {@link UserIdentifierService} or {@code null} if identifier service cannot find buyer-id.
+     */
+    @Nullable
+    private String getBuyerUserId(Conversation conversation) {
+        return userIdentifierService.getBuyerUserId(conversation).orElse(null);
     }
 
-    private String getSellerUserId(Conversation rtsConversation) {
-        return customValue(rtsConversation, userIdentifierService.getSellerUserIdName());
+    /**
+     * Retrieve {@code Seller-Id} using specific implementation of {@link UserIdentifierService}.
+     *
+     * @param conversation conversation created from events.
+     * @return {@code seller-id} retrieved from {@link UserIdentifierService} or {@code null} if identifier service cannot find seller-id.
+     */
+    @Nullable
+    private String getSellerUserId(Conversation conversation) {
+        return userIdentifierService.getSellerUserId(conversation).orElse(null);
     }
 
     private String customValue(Conversation rtsConversation, String customValueKey) {
