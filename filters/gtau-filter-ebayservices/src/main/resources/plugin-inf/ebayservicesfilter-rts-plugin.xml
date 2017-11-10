@@ -36,8 +36,8 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
     <bean id="ebayOAuthTokenRestClientFactoryBuilder"
           class="de.mobile.ebay.service.restclient.RestClientFactoryBuilder">
         <property name="maxTotalConnections" value="100"/>
-        <property name="socketTimeout" value="3000"/>
-        <property name="connectionTimeout" value="3000"/>
+        <property name="socketTimeout" value="3"/>
+        <property name="connectionTimeout" value="3"/>
         <property name="proxyUrl" value="${replyts2-ebayservicesfilters-plugin.proxyurl:}"/>
     </bean>
 

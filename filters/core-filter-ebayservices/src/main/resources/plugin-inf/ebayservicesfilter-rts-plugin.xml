@@ -12,8 +12,8 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 
     <bean id="restClientFactoryBuilder" class="de.mobile.ebay.service.restclient.RestClientFactoryBuilder">
         <property name="maxTotalConnections" value="100"/>
-        <property name="socketTimeout" value="3000"/>
-        <property name="connectionTimeout" value="3000"/>
+        <property name="socketTimeout" value="3"/>
+        <property name="connectionTimeout" value="3"/>
         <property name="proxyUrl" ref="ebayservices.proxy"/>
     </bean>
 
@@ -54,8 +54,8 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
     <bean id="ebayServicesRestClientFactoryBuilder"
           class="de.mobile.ebay.service.restclient.RestClientFactoryBuilder">
         <property name="maxTotalConnections" value="100"/>
-        <property name="socketTimeout" value="3000"/>
-        <property name="connectionTimeout" value="3000"/>
+        <property name="socketTimeout" value="3"/>
+        <property name="connectionTimeout" value="3"/>
         <property name="proxyUrl" ref="ebayservices.proxy"/>
     </bean>
 
