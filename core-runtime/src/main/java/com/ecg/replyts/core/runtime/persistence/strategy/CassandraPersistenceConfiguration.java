@@ -1,8 +1,26 @@
 package com.ecg.replyts.core.runtime.persistence.strategy;
 
 import com.codahale.metrics.MetricRegistry;
-import com.datastax.driver.core.*;
-import com.datastax.driver.core.policies.*;
+import com.datastax.driver.core.AtomicMonotonicTimestampGenerator;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.HostDistance;
+import com.datastax.driver.core.LatencyTracker;
+import com.datastax.driver.core.PercentileTracker;
+import com.datastax.driver.core.PlainTextAuthProvider;
+import com.datastax.driver.core.PoolingOptions;
+import com.datastax.driver.core.QueryLogger;
+import com.datastax.driver.core.ServerSideTimestampGenerator;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SocketOptions;
+import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
+import com.datastax.driver.core.policies.DefaultRetryPolicy;
+import com.datastax.driver.core.policies.ExponentialReconnectionPolicy;
+import com.datastax.driver.core.policies.FallthroughRetryPolicy;
+import com.datastax.driver.core.policies.PercentileSpeculativeExecutionPolicy;
+import com.datastax.driver.core.policies.Policies;
+import com.datastax.driver.core.policies.SpeculativeExecutionPolicy;
+import com.datastax.driver.core.policies.TokenAwarePolicy;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
@@ -308,7 +326,7 @@ public class CassandraPersistenceConfiguration {
                 return Policies.defaultSpeculativeExecutionPolicy(); // NOOP speculative policy
             }
 
-            PercentileTracker percentileTracker = ClusterWidePercentileTracker
+            PercentileTracker percentileTracker = IdempotentStatementPercentileTracker
                     .builder(HIGHEST_TRACKABLE_LATENCY_MILLIS) // do not include queries slower than the value into the percentile calculations
                     .build();
             return new PercentileSpeculativeExecutionPolicy(percentileTracker, speculativePolicyPercentile,
