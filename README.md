@@ -1,7 +1,7 @@
 # Comaas central
 
 ## Dev setup
-* Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki#set-up-code-review) to clone this repository.
+* Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/central/wiki#set-up-code-review) to clone this repository.
 * Setup Docker
 
 ### Docker
@@ -149,7 +149,7 @@ message box plugin: https://github.corp.ebay.com/annunci/replyts2-ebayk-message-
 
 ### Certificate issues
 
-When encountering `sun.security.validator.ValidatorException: PKIX path building failed` while downloading artifactes from maven, one of the certificates might be expired.
+When encountering `sun.security.validator.ValidatorException: PKIX path building failed` while downloading artifacts from maven, one of the certificates might be expired.
 
 To create an updated keystore file, download and unzip `https://ebayinc.sharepoint.com/teams/SelfService/Directory%20Services/SiteAssets/SitePages/Active%20Directory%20Certificates%20Services%20Help%20Site/root-certs-pem.zip`.
 

@@ -39,7 +39,7 @@ public class StartupExperience {
 
         LOG.info("COMaaS startup complete in {} ms.", System.currentTimeMillis() - begin);
         LOG.info("Started COMaaS for tenant {} on port {}", tenant, apiHttpPort);
-        LOG.info("Documentation can be found here: https://github.corp.ebay.com/ecg-comaas/ecg-comaas-central/wiki");
+        LOG.info("Documentation can be found here: https://github.corp.ebay.com/ecg-comaas/central/wiki");
 
         try {
             LOG.info("Browse to: http://{}:{}", InetAddress.getLocalHost().getHostAddress(), apiHttpPort);

@@ -171,8 +171,8 @@ def populate_template(tenant, artifact, githash, checksum, environment, jobspec,
 
 
 def download_from_github(githash, path, auth):
-    """ Download file from the ecg-comaas-central repo on github """
-    url_tpl = "https://raw.github.corp.ebay.com/ecg-comaas/ecg-comaas-central/{}/{}"
+    """ Download file from the ecg-comaas/central repo on github """
+    url_tpl = "https://raw.github.corp.ebay.com/ecg-comaas/central/{}/{}"
     url = url_tpl.format(githash, path)
     response = requests.get(url, auth=auth)
     if response.status_code == requests.codes.ok:
