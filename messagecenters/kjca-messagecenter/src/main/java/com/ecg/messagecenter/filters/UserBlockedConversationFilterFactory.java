@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.filters;
 
-import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
+import com.ecg.messagecenter.persistence.block.ConversationBlockRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,10 +11,10 @@ import org.springframework.stereotype.Component;
 public class UserBlockedConversationFilterFactory implements FilterFactory {
     private static final String SCORE_JSON_KEY = "score";
 
-    private final RiakConversationBlockRepository conversationBlockRepository;
+    private final ConversationBlockRepository conversationBlockRepository;
 
     @Autowired
-    public UserBlockedConversationFilterFactory(RiakConversationBlockRepository conversationBlockRepository) {
+    public UserBlockedConversationFilterFactory(ConversationBlockRepository conversationBlockRepository) {
         this.conversationBlockRepository = conversationBlockRepository;
     }
 

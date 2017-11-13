@@ -17,7 +17,7 @@ public class CassandraConversationBlockConfiguration {
     }
 
     @Bean
-    public CassandraConversationBlockRepository conversationBlockRepository(@Qualifier("cassandraSessionForMb") Session cassandraSession, ConsistencyLevel cassandraReadConsistency, ConsistencyLevel cassandraWriteConsistency) {
+    public ConversationBlockRepository conversationBlockRepository(@Qualifier("cassandraSessionForMb") Session cassandraSession, ConsistencyLevel cassandraReadConsistency, ConsistencyLevel cassandraWriteConsistency) {
         return new CassandraConversationBlockRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
     }
 }

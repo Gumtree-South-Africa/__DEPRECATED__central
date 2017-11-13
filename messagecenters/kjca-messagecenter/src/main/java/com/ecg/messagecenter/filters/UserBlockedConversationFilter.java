@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.filters;
 
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
-import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
+import com.ecg.messagecenter.persistence.block.ConversationBlockRepository;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
@@ -15,9 +15,9 @@ public class UserBlockedConversationFilter implements Filter {
     public static final String DESC_SELLER_BLOCKED_BUYER = "Seller blocked buyer";
 
     private final int score;
-    private final RiakConversationBlockRepository conversationBlockRepository;
+    private final ConversationBlockRepository conversationBlockRepository;
 
-    public UserBlockedConversationFilter(RiakConversationBlockRepository conversationBlockRepository, int score) {
+    public UserBlockedConversationFilter(ConversationBlockRepository conversationBlockRepository, int score) {
         this.score = score;
         this.conversationBlockRepository = conversationBlockRepository;
     }

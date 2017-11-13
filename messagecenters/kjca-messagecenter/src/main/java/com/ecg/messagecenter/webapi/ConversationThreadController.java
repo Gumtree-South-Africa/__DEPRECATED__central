@@ -7,10 +7,8 @@ import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.UnreadCountCachePopulater;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
-import com.ecg.messagecenter.persistence.block.RiakConversationBlockRepository;
-import com.ecg.messagecenter.persistence.simple.DefaultRiakSimplePostBoxRepository;
-import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.persistence.block.ConversationBlockRepository;
+import com.ecg.messagecenter.persistence.simple.*;
 import com.ecg.messagecenter.webapi.requests.MessageCenterBlockCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
@@ -36,7 +34,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -56,17 +53,17 @@ class ConversationThreadController {
     private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
     private static final Counter API_POSTBOX_EMPTY_CONVERSATION = TimingReports.newCounter("webapi-postbox-empty-conversation");
 
-    private DefaultRiakSimplePostBoxRepository postBoxRepository;
+    private SimplePostBoxRepository postBoxRepository;
     private ConversationRepository conversationRepository;
-    private RiakConversationBlockRepository conversationBlockRepository;
+    private ConversationBlockRepository conversationBlockRepository;
     private MailCloakingService mailCloakingService;
     private TextAnonymizer textAnonymizer;
     private UnreadCountCachePopulater unreadCountCachePopulater;
 
     @Autowired
-    public ConversationThreadController(final DefaultRiakSimplePostBoxRepository postBoxRepository,
+    public ConversationThreadController(final SimplePostBoxRepository postBoxRepository,
                                         final ConversationRepository conversationRepository,
-                                        final RiakConversationBlockRepository conversationBlockRepository,
+                                        final ConversationBlockRepository conversationBlockRepository,
                                         final MailCloakingService mailCloakingService,
                                         final TextAnonymizer textAnonymizer,
                                         final UnreadCountCachePopulater unreadCountCachePopulater) {

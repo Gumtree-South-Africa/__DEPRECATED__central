@@ -24,7 +24,7 @@ public class RiakConversationBlockConfiguration {
     }
 
     @Bean
-    public RiakConversationBlockRepository conversationBlockRepository() {
+    public ConversationBlockRepository conversationBlockRepository() {
         return new RiakConversationBlockRepository();
     }
 }
