@@ -1,5 +1,6 @@
 package com.ecg.replyts.app.mailreceiver;
 
+import com.google.common.collect.Iterables;
 import org.junit.Test;
 
 import java.util.Map;
@@ -8,8 +9,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.jayway.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -21,9 +21,12 @@ public class MessageProcessingPoolManagerTest {
         Map<String, Integer> threadNames = new ConcurrentHashMap<>();
 
         MessageProcessingPoolManager manager = new MessageProcessingPoolManager(1, 1, () -> {
+            // on each invocation, increment counter for this thread name in the map, to check later how many times
+            // this callback was invoked in this particular thread
             threadNames.compute(Thread.currentThread().getName(), (k, v) -> v == null ? 1 : v + 1);
             latch.countDown();
             if (latch.getCount() == 1) {
+                // only the first invocation always fails with an exception
                 throw new RuntimeException("this one supposed to kill a worker thread so that it's resurrects");
             }
         });
@@ -34,7 +37,7 @@ public class MessageProcessingPoolManagerTest {
 
         // ensure that the thread has been restarted under the same name
         assertThat(threadNames.size(), is(1));
-        assertThat(threadNames.values().iterator().next(), greaterThan(2));
+        assertThat(Iterables.getFirst(threadNames.values(), 0), greaterThanOrEqualTo(2));
         manager.stopProcessing();
     }
 
