@@ -1,0 +1,16 @@
+{
+  "sha": "77a4fceefd9a32c308aab8c1afcec618a5a1203d",
+  "url": "https://github.corp.ebay.com/api/v3/repos/ecg-comaas/central/git/tags/77a4fceefd9a32c308aab8c1afcec618a5a1203d",
+  "tagger": {
+    "name": "GITHUBBOT",
+    "email": "DL-eCG-comaas-dev@ebay.com",
+    "date": "2017-11-13T21:53:35Z"
+  },
+  "object": {
+    "sha": "214ca806536462f7d8f3b82f25e245343911536e",
+    "type": "commit",
+    "url": "https://github.corp.ebay.com/api/v3/repos/ecg-comaas/central/git/commits/214ca806536462f7d8f3b82f25e245343911536e"
+  },
+  "tag": "v0.0.1",
+  "message": "initial version\n"
+}

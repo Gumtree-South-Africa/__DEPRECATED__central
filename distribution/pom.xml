@@ -7,7 +7,7 @@
     <parent>
         <groupId>ecg.comaas</groupId>
         <artifactId>comaas</artifactId>
-        <version>${revision}</version>
+        <version>comaas-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -830,64 +830,17 @@
             </plugin>
 
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>appassembler-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>assemble</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <repositoryLayout>flat</repositoryLayout>
-                    <useWildcardClassPath>true</useWildcardClassPath>
-                    <repositoryName>lib</repositoryName>
-                    <logsDirectory>log</logsDirectory>
-                    <extraJvmArguments>
-                        -DlogDir=${LOG_DIR:-@BASEDIR@/log}
-                        -DconfDir=${CONF_DIR:-@BASEDIR@/conf}
-                        -XX:-HeapDumpOnOutOfMemoryError
-                        -Djava.awt.headless=true
-                        -Dcom.datastax.driver.FORCE_NIO=true
-                        -XX:+PrintGCDetails
-                        -Xloggc:${LOG_DIR:-@BASEDIR@/log}/gc.log
-                        -verbose:gc
-                        -XX:+PrintGCTimeStamps
-                        -XX:+PrintGCDateStamps
-                        -XX:+PrintTenuringDistribution
-                        -XX:+UseGCLogFileRotation
-                        -XX:NumberOfGCLogFiles=7
-                        -XX:GCLogFileSize=128M
-                        -XX:+PrintConcurrentLocks
-                        -XX:+PrintClassHistogram
-                        -XX:+PrintStringTableStatistics
-                    </extraJvmArguments>
-                    <programs>
-                        <program>
-                            <id>${project.parent.artifactId}</id>
-                            <mainClass>${mainClass}</mainClass>
-                            <platforms>
-                                <platform>unix</platform>
-                            </platforms>
-                        </program>
-                    </programs>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>${project.name}-${profile-classifier}-${env-name}</id>
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
                         <configuration>
                             <appendAssemblyId>true</appendAssemblyId>
-                            <finalName>${project.name}</finalName>
+                            <finalName>comaas-${profile-classifier}_${project.version}</finalName>
                             <tarLongFileMode>posix</tarLongFileMode>
                             <descriptors>
                                 <descriptor>assembly/distribution.xml</descriptor>
