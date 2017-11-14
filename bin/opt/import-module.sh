@@ -77,7 +77,7 @@ fi
 
 ARTIPACK="<artifactId>${NAME}<\/artifactId>\\"$'\n''    <packaging>jar<\/packaging>\'$'\n'
 
-sed '/\<parent\>/,/\<\/parent\>/d' ${NAME}/pom.xml | 
+sed '/\<parent\>/,/\<\/parent\>/d' ${NAME}/pom.xml |
   grep -v '<\?xml \|^<project \|xmlns:xsi\|xsi:schema\|<modelVersion\|<name>\|<packaging>' | \
   sed -e "1 s/<artifactId>.*<\/artifactId>/${ARTIPACK}/; t" -e "1,// s//${ARTIPACK}/" | \
   tail -r | sed '2s/^$/sll-empty/' | tail -r | \
@@ -93,8 +93,7 @@ echo -e '    <modelVersion>4.0.0</modelVersion>\n' >> ${NAME}/pom.xml
 echo -e '    <parent>' >> ${NAME}/pom.xml
 echo -e '        <groupId>ecg.comaas</groupId>' >> ${NAME}/pom.xml
 echo -e '        <artifactId>comaas</artifactId>' >> ${NAME}/pom.xml
-echo -e '        <version>${revision}</version>' >> ${NAME}/pom.xml
-echo -e '        <relativePath>../../pom.xml</relativePath>' >> ${NAME}/pom.xml
+echo -e '        <version>comaas-SNAPSHOT</version>' >> ${NAME}/pom.xml
 echo -e '    </parent>\n' >> ${NAME}/pom.xml
 
 cat -s ${NAME}/pom.xml.stripped >> ${NAME}/pom.xml

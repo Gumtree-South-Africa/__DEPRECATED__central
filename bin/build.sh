@@ -17,16 +17,7 @@ function fatal() {
 readonly ARGS="$@"
 export DIR=$(dirname $0)
 
-REVISION="$(git rev-parse --short HEAD)"
-# Override REVISION in case of an in-progress Gerrit review
-if [[ $(git rev-parse --abbrev-ref HEAD) == review* ]]; then
-    REVISION="gerrit-$(git rev-parse --abbrev-ref HEAD | egrep -o '/[^/]+$' | egrep -o '[a-zA-Z0-9_-]+')"
-fi
-log "Building revision $REVISION"
-
-# Import a few certificates if we haven't already
-
-MVN_ARGS="-Drevision=$REVISION -U"
+MVN_ARGS="--update-snapshots"
 
 # If we are running on a non-builder environment (locally for example) then import the certificates into
 # a local trust store; on builder we rely on e.g. mobile-ca-certificates being installed

@@ -43,7 +43,6 @@ replace `/Users/<USER_NAME>/dev/comaas/ecg-comaas-central` with you path to `ecg
 
 * Runner / VM arguments:
   ```
-  -Drevision=123
   -DconfDir=distribution/conf/<name of tenant, e.g. mp>/docker
   -DlogDir=/tmp
   -Dmail.mime.parameters.strict=false
@@ -90,10 +89,6 @@ If you are using older python you can use brew `brew install homebrew/versions/c
 2. Run `bin/setup-cassandra.sh; bin/setup-cassandra.sh localhost` to run initial db migrations on both instances. Integration tests use the local one, while runtime uses the VM.
 
 If you get an error like `Connection error: ('Unable to connect to any servers', {'localhost': TypeError('ref() does not take keyword arguments',)})` try to upgrade cassandra to 2.1.16 (if released), or downgrade python to <2.7.12. For example, using homebrew: `brew switch python 2.7.9`.
-
-To build comaas from IDE add -Drevision=(ANYTHING) to maven configuration. For the rest of
-this doc we'll assume you picked "123".
-![IntelliJ Maven Config](/docs/comaas_maven_config.jpg)
 
 Check the profile you want to build against in IntelliJ's Maven Projects view
 ![IntelliJ Profile Selection](/docs/intellij-profile-selection.png)

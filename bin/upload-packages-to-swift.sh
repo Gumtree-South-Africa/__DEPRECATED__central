@@ -4,14 +4,13 @@ set +x # leave this in, since this file contains a password
 set -o nounset
 set -o errexit
 
-if [ $# -ne 3 ]; then
-    echo "Usage: ${0##*/} <tenant> <git_hash> <timestamp>" 1>&2
+if [ $# -ne 2 ]; then
+    echo "Usage: ${0##*/} <tenant> <YYYY.mm.Jenkins_sequential_build_number>" 1>&2
     exit 1
 fi
 
 TENANT=$1
-GIT_HASH=$2
-TIMESTAMP=$3
+VERSION=$2
 
 function swift() {
     docker run --rm \
@@ -27,61 +26,48 @@ function swift() {
 }
 
 # Remove a previous build of the same git hash
-function delete_folder() {
-    files=$(swift list comaas --prefix ${TENANT}/$1/${GIT_HASH})
-    if [ ! -z "${files}" ]; then
-        echo "Deleting previous build ${TENANT}/$1/${GIT_HASH}"
-        swift delete comaas ${files}
-        echo "Done"
-    fi
-}
+#function delete_folder() {
+#    files=$(swift list comaas --prefix ${TENANT}/$1/${GIT_HASH})
+#    if [ ! -z "${files}" ]; then
+#        echo "Deleting previous build ${TENANT}/$1/${GIT_HASH}"
+#        swift delete comaas ${files}
+#        echo "Done"
+#    fi
+#}
 
 function join_by {
     local IFS="$1"; shift; echo "$*";
 }
 
 # Remove old builds
-function clean_old_builds() {
-    BUILDS_TO_KEEP=${2}
-    master_hashes_to_keep=$(git log -${BUILDS_TO_KEEP} --pretty=format:"%h" origin/master)
-    # also keep builds from other branches
-    branch_hashes_to_keep=$(git log -${BUILDS_TO_KEEP} --branches --pretty=format:"%h" origin/master)
-    joined=$(join_by '|' ${master_hashes_to_keep} ${branch_hashes_to_keep})
-    set +o errexit
-    files=$(swift list comaas --prefix ${TENANT}/$1 | grep --invert-match --extended-regexp "($joined)")
-    set -o errexit
-    if [ ! -z "${files}" ]; then
-        echo "Deleting old builds"
-        swift delete comaas ${files}
-        echo "Done"
-    fi
-}
+#function clean_old_builds() {
+#    BUILDS_TO_KEEP=${2}
+#    master_hashes_to_keep=$(git log -${BUILDS_TO_KEEP} --pretty=format:"%h" origin/master)
+#    # also keep builds from other branches
+#    branch_hashes_to_keep=$(git log -${BUILDS_TO_KEEP} --branches --pretty=format:"%h" origin/master)
+#    joined=$(join_by '|' ${master_hashes_to_keep} ${branch_hashes_to_keep})
+#    set +o errexit
+#    files=$(swift list comaas --prefix ${TENANT}/$1 | grep --invert-match --extended-regexp "($joined)")
+#    set -o errexit
+#    if [ ! -z "${files}" ]; then
+#        echo "Deleting old builds"
+#        swift delete comaas ${files}
+#        echo "Done"
+#    fi
+#}
 
 function upload_it() {
-    echo "Uploading build ${TENANT}/$12/${GIT_HASH}/$1"
-    swift upload --changed --object-name ${TENANT}/$2/${GIT_HASH}/$1 comaas /objects/$1
+    local TARGET="${TENANT}/builds/${VERSION}/$1"
+    echo "Uploading build ${TARGET}"
+    swift upload --changed --object-name ${TARGET} comaas /objects/$1
     echo "Done"
 }
 
 # Rough size calculation: (nr of tenants) * (environments) * (size of artifact) * (desired build history)
-# Currently 6 * 2 * 100 * (50 + 10) ~= 80 gb
-clean_old_builds sandbox 10
-clean_old_builds prod 50
+# Currently 7 * 1 * 130 * 100 ~= 91 gb
+#clean_old_builds prod 100
 
-delete_folder sandbox
-delete_folder prod
-
-# Nomad packages:
-#upload_it comaas-${TENANT}-comaasqa-${GIT_HASH}-nomad.tar.gz qa
-#upload_it comaas-${TENANT}-sandbox-${GIT_HASH}-nomad.tar.gz sandbox
-
-# upload the configuration zip
-ARTIFACT_NAME="comaas-${TENANT}-configuration-${TIMESTAMP}-${GIT_HASH}.tar.gz"
-upload_it ${ARTIFACT_NAME} sandbox
-upload_it ${ARTIFACT_NAME} prod
+#delete_folder prod
 
 # deploy.py package:
-upload_it comaas-${TENANT}_sandbox-${TIMESTAMP}-${GIT_HASH}.tar.gz sandbox
-if [[ -d distribution/conf/${TENANT}/prod ]]; then
-    upload_it comaas-${TENANT}_prod-${TIMESTAMP}-${GIT_HASH}.tar.gz prod
-fi
+upload_it comaas-${TENANT}_prod-${VERSION}.tar.gz
