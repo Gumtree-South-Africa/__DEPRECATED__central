@@ -145,7 +145,7 @@ public class KafkaProducerConfigBuilder<K, V> {
         public KafkaProducerConfig build() {
             Preconditions.checkState(StringUtils.isNotBlank(topic), "Kafka topic must be specified");
             Properties configProperties = new Properties();
-            LOG.info("Connecting to Kafka {} for attachment storage ", servers);
+            LOG.info("Connecting to Kafka {} ", servers);
             configProperties.put(BOOTSTRAP_SERVERS_CONFIG, servers);
             configProperties.put(KEY_SERIALIZER_CLASS_CONFIG, keySerializer);
             configProperties.put(VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer);
