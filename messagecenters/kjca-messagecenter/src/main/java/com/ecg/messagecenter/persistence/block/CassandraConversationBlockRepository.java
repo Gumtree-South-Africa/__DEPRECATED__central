@@ -12,6 +12,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -27,9 +28,15 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
     private static final String FIELD_MODIFICATION_DATE = "modification_date";
     private static final String FIELD_JSON_VALUE = "json_value";
 
-    private final Session session;
-    private final ConsistencyLevel readConsistency;
-    private final ConsistencyLevel writeConsistency;
+    @Autowired
+    @Qualifier("cassandraSessionForMb")
+    private Session cassandraSession;
+
+    @Autowired
+    private ConsistencyLevel cassandraReadConsistency;
+
+    @Autowired
+    private ConsistencyLevel cassandraWriteConsistency;
 
     private final Timer byIdTimer = TimingReports.newTimer("cassandra.blockRepo-byId");
     private final Timer writeTimer = TimingReports.newTimer("cassandra.blockRepo-write");
@@ -41,19 +48,13 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
 
     @PostConstruct
     public void initializePreparedStatements() {
-        this.preparedStatements = StatementsBase.prepare(Statements.class, session);
-    }
-
-    public CassandraConversationBlockRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
-        this.session = session;
-        this.readConsistency = readConsistency;
-        this.writeConsistency = writeConsistency;
+        this.preparedStatements = StatementsBase.prepare(Statements.class, cassandraSession);
     }
 
     @Override
     public ConversationBlock byId(String conversationId) {
         try (Timer.Context ignored = byIdTimer.time()) {
-            ResultSet result = session.execute(Statements.SELECT_CONVERSATION_BLOCK.bind(this, conversationId));
+            ResultSet result = cassandraSession.execute(Statements.SELECT_CONVERSATION_BLOCK.bind(this, conversationId));
 
             Row row = result.one();
 
@@ -76,8 +77,8 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
         try (Timer.Context ignored = writeTimer.time()) {
             String jsonValue = objectMapper.writeValueAsString(conversationBlock);
 
-            session.execute(Statements.UPDATE_CONVERSATION_BLOCK.bind(this, jsonValue, conversationBlock.getConversationId()));
-            session.execute(Statements.INSERT_CONVERSATION_BLOCK_IDX.bind(this, conversationBlock.getConversationId(), modificationDate.toDate()));
+            cassandraSession.execute(Statements.UPDATE_CONVERSATION_BLOCK.bind(this, jsonValue, conversationBlock.getConversationId()));
+            cassandraSession.execute(Statements.INSERT_CONVERSATION_BLOCK_IDX.bind(this, conversationBlock.getConversationId(), modificationDate.toDate()));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Unable to serialize conversation block to JSON", e);
         }
@@ -90,23 +91,23 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
         LOG.info("Cleanup: Deleting conversation blocks before {}", before);
 
         try (Timer.Context ignored = cleanupTimer.time()) {
-            ResultSet result = session.execute(Statements.SELECT_CONVERSATION_BLOCK_BEFORE_DATE.bind(this, beforeDate));
+            ResultSet result = cassandraSession.execute(Statements.SELECT_CONVERSATION_BLOCK_BEFORE_DATE.bind(this, beforeDate));
 
             toStream(result).map(row -> row.getString(FIELD_CONVERSATION_ID)).forEach(conversationId -> {
                 // Compare this modification to the latest modification for this conversation block
 
-                ResultSet latestResult = session.execute(Statements.SELECT_CONVERSATION_BLOCK_LATEST.bind(this, conversationId));
+                ResultSet latestResult = cassandraSession.execute(Statements.SELECT_CONVERSATION_BLOCK_LATEST.bind(this, conversationId));
                 Date latest = toStream(latestResult).map(row -> row.getDate(FIELD_MODIFICATION_DATE)).findFirst().get();
 
                 if (latest != null && latest.after(beforeDate)) {
                     // Only delete this _idx entry
 
-                    session.execute(Statements.DELETE_CONVERSATION_BLOCK_IDX.bind(this, latest, conversationId));
+                    cassandraSession.execute(Statements.DELETE_CONVERSATION_BLOCK_IDX.bind(this, latest, conversationId));
                 } else {
                     // Delete this conversation block and all its _idx entries
 
-                    session.execute(Statements.DELETE_CONVERSATION_BLOCK.bind(this, conversationId));
-                    session.execute(Statements.DELETE_CONVERSATION_BLOCK_IDX_ALL.bind(this, conversationId));
+                    cassandraSession.execute(Statements.DELETE_CONVERSATION_BLOCK.bind(this, conversationId));
+                    cassandraSession.execute(Statements.DELETE_CONVERSATION_BLOCK_IDX_ALL.bind(this, conversationId));
                 }
             });
         }
@@ -121,12 +122,12 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
 
     @Override
     public ConsistencyLevel getReadConsistency() {
-        return readConsistency;
+        return cassandraReadConsistency;
     }
 
     @Override
     public ConsistencyLevel getWriteConsistency() {
-        return writeConsistency;
+        return cassandraWriteConsistency;
     }
 
     @Override

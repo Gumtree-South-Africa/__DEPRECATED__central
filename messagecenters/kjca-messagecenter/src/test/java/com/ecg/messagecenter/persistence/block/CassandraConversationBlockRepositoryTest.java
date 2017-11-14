@@ -2,8 +2,10 @@ package com.ecg.messagecenter.persistence.block;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
+import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
+import com.hazelcast.core.HazelcastInstance;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import java.util.Optional;
 
 import static org.joda.time.DateTime.now;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { CassandraConversationBlockRepositoryTest.TestContext.class })
@@ -76,7 +79,7 @@ public class CassandraConversationBlockRepositoryTest {
 
     @Configuration
     @Import({
-            CassandraConversationBlockConfiguration.class,
+            ConversationBlockConfiguration.class,
             JacksonAwareObjectMapperConfigurer.class
     })
     static class TestContext {
@@ -85,6 +88,16 @@ public class CassandraConversationBlockRepositoryTest {
 
         @Value("${persistence.cassandra.consistency.write:#{null}}")
         private ConsistencyLevel cassandraWriteConsistency;
+
+        @Bean
+        public HybridMigrationClusterState hybridMigrationClusterState() {
+            return mock(HybridMigrationClusterState.class);
+        }
+
+        @Bean
+        public HazelcastInstance hazelcastInstance() {
+            return mock(HazelcastInstance.class);
+        }
 
         @Bean
         public Session cassandraSessionForMb() {
