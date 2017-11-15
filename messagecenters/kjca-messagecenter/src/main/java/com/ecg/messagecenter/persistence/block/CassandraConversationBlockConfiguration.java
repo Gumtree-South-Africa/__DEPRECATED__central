@@ -6,8 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(name = "persistence.strategy", havingValue = "riak")
-public class RiakConversationBlockConfiguration {
+@ConditionalOnProperty(value = "persistence.strategy", havingValue = "cassandra")
+public class CassandraConversationBlockConfiguration {
 
     @Bean
     public ConversationBlockCleanupCronJob cleanupCronJob() {
@@ -15,17 +15,7 @@ public class RiakConversationBlockConfiguration {
     }
 
     @Bean
-    public RiakConversationBlockConflictResolver conversationBlockConflictResolver() {
-        return new RiakConversationBlockConflictResolver();
-    }
-
-    @Bean
-    public RiakConversationBlockConverter conversationBlockConverter() {
-        return new RiakConversationBlockConverter();
-    }
-
-    @Bean
     public ConversationBlockRepository conversationBlockRepository() {
-        return new RiakConversationBlockRepository();
+        return new CassandraConversationBlockRepository();
     }
 }

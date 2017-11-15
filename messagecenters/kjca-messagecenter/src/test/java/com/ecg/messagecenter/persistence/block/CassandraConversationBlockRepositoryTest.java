@@ -2,10 +2,8 @@ package com.ecg.messagecenter.persistence.block;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
-import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
-import com.hazelcast.core.HazelcastInstance;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +21,13 @@ import java.util.Optional;
 
 import static org.joda.time.DateTime.now;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { CassandraConversationBlockRepositoryTest.TestContext.class })
+@ContextConfiguration(classes = {CassandraConversationBlockRepositoryTest.TestContext.class})
 @TestPropertySource(properties = {
-  "persistence.strategy = cassandra",
-  "replyts.maxConversationAgeDays = 25"
+        "persistence.strategy = cassandra",
+        "replyts.maxConversationAgeDays = 25"
 })
 public class CassandraConversationBlockRepositoryTest {
     @Autowired
@@ -56,13 +54,7 @@ public class CassandraConversationBlockRepositoryTest {
 
         conversationBlockRepository.cleanup(now().plusSeconds(1));
 
-        try {
-            conversationBlockRepository.byId("123");
-        } catch (RuntimeException e) {
-            return;
-        }
-
-        throw new RuntimeException("Test failed as repository should have thrown a RuntimeException");
+        assertNull(conversationBlockRepository.byId("123"));
     }
 
     @Test
@@ -79,7 +71,7 @@ public class CassandraConversationBlockRepositoryTest {
 
     @Configuration
     @Import({
-            ConversationBlockConfiguration.class,
+            CassandraConversationBlockConfiguration.class,
             JacksonAwareObjectMapperConfigurer.class
     })
     static class TestContext {
@@ -90,19 +82,9 @@ public class CassandraConversationBlockRepositoryTest {
         private ConsistencyLevel cassandraWriteConsistency;
 
         @Bean
-        public HybridMigrationClusterState hybridMigrationClusterState() {
-            return mock(HybridMigrationClusterState.class);
-        }
-
-        @Bean
-        public HazelcastInstance hazelcastInstance() {
-            return mock(HazelcastInstance.class);
-        }
-
-        @Bean
         public Session cassandraSessionForMb() {
             String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
-            String[] schemas = new String[] { "cassandra_schema.cql", "cassandra_kjca_messagecenter_schema.cql" };
+            String[] schemas = new String[]{"cassandra_schema.cql", "cassandra_kjca_messagecenter_schema.cql"};
 
             return CassandraIntegrationTestProvisioner.getInstance().loadSchema(keyspace, schemas);
         }

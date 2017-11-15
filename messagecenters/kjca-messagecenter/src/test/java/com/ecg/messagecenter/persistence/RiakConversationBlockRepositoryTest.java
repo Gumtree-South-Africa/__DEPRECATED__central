@@ -4,9 +4,7 @@ import com.basho.riak.client.IRiakClient;
 import com.basho.riak.client.IRiakObject;
 import com.basho.riak.client.http.util.Constants;
 import com.ecg.messagecenter.persistence.block.*;
-import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import com.ecg.replyts.integration.riak.EmbeddedRiakClient;
-import com.hazelcast.core.HazelcastInstance;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
@@ -23,13 +21,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { RiakConversationBlockRepositoryTest.TestContext.class })
+@ContextConfiguration(classes = {RiakConversationBlockRepositoryTest.TestContext.class})
 @TestPropertySource(properties = {
-  "persistence.strategy = riak",
-  "replyts.maxConversationAgeDays = 25"
+        "persistence.strategy = riak",
+        "replyts.maxConversationAgeDays = 25"
 })
 public class RiakConversationBlockRepositoryTest {
     public static final String CONV_ID = "convId";
@@ -80,21 +77,11 @@ public class RiakConversationBlockRepositoryTest {
     }
 
     @Configuration
-    @Import({ ConversationBlockConfiguration.class, RiakConversationBlockConfiguration.class, JsonToConversationBlockConverter.class, ConversationBlockToJsonConverter.class})
+    @Import({RiakConversationBlockConfiguration.class, RiakConversationBlockConfiguration.class, JsonToConversationBlockConverter.class, ConversationBlockToJsonConverter.class})
     static class TestContext {
         @Bean
         public IRiakClient riakClient() {
             return new EmbeddedRiakClient();
-        }
-
-        @Bean
-        public HybridMigrationClusterState hybridMigrationClusterState() {
-            return mock(HybridMigrationClusterState.class);
-        }
-
-        @Bean
-        public HazelcastInstance hazelcastInstance() {
-            return mock(HazelcastInstance.class);
         }
 
         @Bean
