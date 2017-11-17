@@ -13,13 +13,27 @@
 
 TARGET_DIR=/tmp/mailreceiver
 mkdir -p ${TARGET_DIR}
+to=seller@example.com
+from=buyer@example.com
+adid=12345
 
 function create_mail {
   cat > $(mktemp ${TARGET_DIR}/pre_mail_XXXXXXXXXX) <<End-of-message
-From:buyer@example.com
-Delivered-To: seller@example.com
-X-ADID:12345
+HELO: <example.com>
+FROM:<$from>
+Delivered-To: <$to>
+Return-Path: $from
 Subject:This is a subject
+X-ADID: $adid
+Date: $now
+Reply-To: $from
+X-Mailer: xMailer
+X-REPLY-CHANNEL: desktop
+X-Cust-from-userid: $from
+X-Cust-to-userid: $to
+X-USER-MESSAGE: May I buy this $adid
+X-Original-To: $to
+To: $to
 
 HELLO
 
@@ -43,7 +57,11 @@ fi
 
 COUNTER=1
 while [ -z ${NR_OF_MESSAGES} ] || [ ${COUNTER} -lt ${NR_OF_MESSAGES} ]; do
-    create_mail $(printf '%(%s)T\n' -1)
+    adid=$(( ( RANDOM % 999999999999999999 )  + 1000000000000000000 ))
+    from="buyer$adid@example.com"
+    to="seller$adid@example.com"
+    now=$(date)
+    create_mail $(printf '(%s)T\n' -1)
 
     if [ $(expr ${COUNTER} % 10) -eq 0 ]; then
         echo -n ${COUNTER}

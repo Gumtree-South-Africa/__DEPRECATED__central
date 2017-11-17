@@ -131,12 +131,12 @@ public class IdempotentStatementPercentileTracker extends PercentileTracker {
                     minRecordedValues, intervalMs);
         }
 
-        public Builder setIntervalMs(long intervalMs) {
+        Builder setIntervalMs(long intervalMs) {
             this.intervalMs = intervalMs;
             return this;
         }
 
-        public Builder setMinRecordedValues(int minRecordedValues) {
+        Builder setMinRecordedValues(int minRecordedValues) {
             this.minRecordedValues = minRecordedValues;
             return this;
         }

@@ -338,9 +338,8 @@ public class CassandraPersistenceConfiguration {
             MetricRegistry comaasRegistry = MetricsService.getInstance().getRegistry();
 
             LatencyTracker latencyTracker = (host, statement, exception, newLatencyNanos) -> {
-                if (exception == null) {
-                    comaasRegistry.histogram(fullPrefix + ".custom.queryLatencyNanos").update(newLatencyNanos);
-                }
+                comaasRegistry.histogram(fullPrefix + ".custom.queryLatencyNanos").update(newLatencyNanos);
+                comaasRegistry.histogram(fullPrefix + ".custom.queryLatencyNanos." + host.getAddress().getHostName()).update(newLatencyNanos);
             };
             cluster.register(latencyTracker);
             cluster.init(); // this is totally safe to do here, check the javadoc
