@@ -19,7 +19,7 @@ public class VolumeFilterIntegrationTest {
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
 
     @Test
-    public void testMultipleRegistrations() {
+    public void multipleRegistrations() {
         rule.deleteConfig(registerVolumeConfig());
         registerVolumeConfig();
 
@@ -39,7 +39,7 @@ public class VolumeFilterIntegrationTest {
 
     @Test
     public void violatesQuota() throws Exception {
-        rule.registerConfig(VolumeFilterFactory.class,  (ObjectNode) JsonObjects.parse("{\n" +
+        rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 1, \"perTimeUnit\": \"HOURS\", \"score\": 100},\n" +
                 "        {\"allowance\": 20, \"perTimeValue\": 1, \"perTimeUnit\": \"DAYS\", \"score\": 200}\n" +
@@ -47,8 +47,8 @@ public class VolumeFilterIntegrationTest {
                 " }"));
 
 
-            String from = "foo"+System.currentTimeMillis()+"@bar.com";
-        for(int i = 0; i<3; i++) {
+        String from = "foo" + System.currentTimeMillis() + "@bar.com";
+        for (int i = 0; i < 3; i++) {
             MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
             assertEquals(MessageState.SENT, response.getMessage().getState());
             rule.waitUntilIndexedInEs(response);
@@ -60,15 +60,15 @@ public class VolumeFilterIntegrationTest {
 
     @Test
     public void skipsQuotaViolation() throws InterruptedException {
-        rule.registerConfig(VolumeFilterFactory.class,  (ObjectNode) JsonObjects.parse("{\n" +
+        rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 1, \"perTimeUnit\": \"MINUTES\", \"score\": 100},\n" +
                 "        {\"allowance\": 20, \"perTimeValue\": 10, \"perTimeUnit\": \"MINUTES\", \"score\": 200}\n" +
                 "    ]\n" +
                 " }"));
 
-        String from = "foo"+System.currentTimeMillis()+"@bar.com";
-        for(int i = 0; i<2; i++) {
+        String from = "foo" + System.currentTimeMillis() + "@bar.com";
+        for (int i = 0; i < 2; i++) {
             MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
             assertEquals(MessageState.SENT, response.getMessage().getState());
             rule.waitUntilIndexedInEs(response);
@@ -77,4 +77,6 @@ public class VolumeFilterIntegrationTest {
         MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
         assertEquals(MessageState.SENT, response.getMessage().getState());
     }
+
+
 }

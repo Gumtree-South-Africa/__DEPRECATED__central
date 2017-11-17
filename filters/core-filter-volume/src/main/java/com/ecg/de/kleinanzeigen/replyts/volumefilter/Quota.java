@@ -3,6 +3,7 @@ package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 import com.google.common.base.Objects;
 
 import javax.annotation.Nonnull;
+import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -11,6 +12,8 @@ import java.util.concurrent.TimeUnit;
  * @author mhuttar
  */
 public class Quota implements Comparable<Quota> {
+    static final Comparator<Quota> TIME_SPAN_COMPARATOR = Comparator.comparing(Quota::getTimeSpanMillis);
+
     private final int allowance;
     private final int perTimeValue;
     private final TimeUnit perTimeUnit;
@@ -33,6 +36,13 @@ public class Quota implements Comparable<Quota> {
 
     public TimeUnit getPerTimeUnit() {
         return perTimeUnit;
+    }
+
+    /**
+     * @return returns the result of conversion of {@link #getPerTimeValue()} in {@link #getPerTimeUnit()} ()} to milliseconds
+     */
+    final long getTimeSpanMillis() {
+        return perTimeUnit.toMillis(perTimeValue);
     }
 
     public int getScore() {
