@@ -1,8 +1,8 @@
 package com.ecg.replyts.app.mailreceiver;
 
 import com.ecg.replyts.app.MessageProcessingCoordinator;
-import com.ecg.replyts.core.runtime.cluster.ClusterMode;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
+import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,19 +37,13 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = DropfolderMessageProcessorTest.TestContext.class)
 @TestPropertySource(properties = {
         "mailreceiver.filesystem.dropfolder = #{systemProperties['java.io.tmpdir']}",
-
         "mailreceiver.retrydelay.minutes = 5",
-
         "mailreceiver.watch.retrydelay.millis = 1000",
-
         "mailreceiver.retries = 5"
 })
 public class DropfolderMessageProcessorTest {
     @Autowired
     private MessageProcessingCoordinator consumer;
-
-    @Autowired
-    private ClusterModeManager clusterModeManager;
 
     @Autowired
     private DropfolderMessageProcessor instance;
@@ -58,7 +52,6 @@ public class DropfolderMessageProcessorTest {
 
     @Before
     public void setup() {
-        when(clusterModeManager.determineMode()).thenReturn(ClusterMode.OK);
         watchedDirectory = spy(new File(System.getProperty("java.io.tmpdir")));
         ReflectionTestUtils.setField(instance, "mailDataDirectory", watchedDirectory);
     }
@@ -209,15 +202,26 @@ public class DropfolderMessageProcessorTest {
 
         instance.processNext();
 
-        File[] inprogressFiles = new File(tempDir).listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return file.getName().startsWith(DropfolderMessageProcessor.PROCESSING_FILE_PREFIX);
-            }
-
-        });
+        File[] inprogressFiles = new File(tempDir).listFiles(
+            file1 -> file1.getName().startsWith(DropfolderMessageProcessor.PROCESSING_FILE_PREFIX));
 
         assertThat(inprogressFiles.length, is(0));
+    }
+
+    @Test
+    public void processNext_whenMailUnparsable_shouldMoveToFailed() throws Exception {
+        File file = File.createTempFile("pre_junit-temp", "tempfile");
+        String tempDir = file.getParentFile().getPath();
+
+        when(watchedDirectory.listFiles(any(FileFilter.class))).thenReturn(new File[]{file});
+        doThrow(new ParsingException()).when(consumer).accept(any(InputStream.class));
+
+        instance.processNext();
+
+        File renamedTempFile = new File(tempDir + "/failed/" + DropfolderMessageProcessor.UNPARSABLE_PREFIX + file.getName());
+
+        assertThat(renamedTempFile.exists(), is(true));
+        renamedTempFile.deleteOnExit();
     }
 
     private static class TempFileFilter implements FileFilter {

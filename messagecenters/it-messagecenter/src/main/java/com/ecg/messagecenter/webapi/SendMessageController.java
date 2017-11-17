@@ -2,6 +2,8 @@ package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.chat.Template;
 import com.ecg.messagecenter.persistence.ConversationThread;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.util.AdUtil;
 import com.ecg.messagecenter.webapi.requests.ConversationContentPayload;
@@ -10,7 +12,6 @@ import com.ecg.messagecenter.webapi.requests.MessageCenterStartConversationComma
 import com.ecg.messagecenter.webapi.requests.StartConversationContentPayload;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.messagecenter.webapi.responses.ResponseUtil;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -18,6 +19,7 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
+import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.StringUtil;
 import org.joda.time.DateTime;
@@ -25,19 +27,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
 
 /**
  * Created by jaludden on 20/11/15.
@@ -67,7 +78,7 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
     @RequestMapping(value = MessageCenterStartConversationCommand.MAPPING, method = RequestMethod.POST, produces = APPLICATION_JSON_VALUE)
     @ResponseBody public ResponseObject<?> createConversation(@PathVariable("email") String email,
                                                               @RequestBody StartConversationContentPayload payload,
-                                                              HttpServletResponse response) throws IOException {
+                                                              HttpServletResponse response) throws IOException, ParsingException {
         Address from = new Address(payload.getBuyerName(), email);
         Address to = new Address(payload.getSellerName(), payload.getSellerEmail());
         payload.cleanupMessage();
@@ -101,7 +112,7 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
     @ResponseBody public ResponseObject<?> replyConversation(@PathVariable("email") String email,
                                                              @PathVariable("conversationId") String conversationId,
                                                              @RequestBody ConversationContentPayload payload, HttpServletResponse response)
-            throws IOException {
+            throws IOException, ParsingException {
         PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
         Optional<ConversationThread> lookupResult = postBox.lookupConversation(conversationId);
         if (!lookupResult.isPresent()) {
@@ -181,7 +192,7 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
 
     private void sendMessage(@RequestParam("adid") Long adId,
                              @RequestParam("message") String message, Address from, Address to,
-                             String buyerName, String subject) throws IOException {
+                             String buyerName, String subject) throws IOException, ParsingException {
         ConversationMessage conversationMessage =
                 new ConversationMessage(adId, from, to, message, buyerName, subject);
         coordinator.accept(conversationMessage.asInputStream());

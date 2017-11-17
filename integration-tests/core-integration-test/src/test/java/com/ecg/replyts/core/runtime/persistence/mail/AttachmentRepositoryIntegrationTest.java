@@ -69,7 +69,7 @@ public class AttachmentRepositoryIntegrationTest {
         SwiftObject so = attachmentRepository.fetch(messageid, attName).get();
         assertEquals(mimeType, so.getMimeType());
         assertEquals(size, so.getSizeInBytes());
-        
+
     }
 
     @Test
@@ -103,11 +103,7 @@ public class AttachmentRepositoryIntegrationTest {
     }
 
     private Mail parse(String mailContents) throws ParsingException {
-        try {
-            return StructuredMail.parseMail(new ByteArrayInputStream(mailContents.getBytes()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return StructuredMail.parseMail(new ByteArrayInputStream(mailContents.getBytes()));
     }
 
     @Configuration

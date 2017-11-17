@@ -34,9 +34,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
@@ -105,7 +111,9 @@ public class MessageProcessingCoordinatorTest {
         ParsingException exception = new ParsingException("parse error");
         when(Mails.readMail(any(byte[].class))).thenThrow(exception);
 
-        coordinator.accept(is);
+        assertThatExceptionOfType(ParsingException.class).isThrownBy(() -> {
+            coordinator.accept(is);
+        });
 
         verify(persister).persistAndIndex(deadConversation, "1", "foo".getBytes(), Optional.empty(), Termination.unparseable(exception));
     }
@@ -114,7 +122,9 @@ public class MessageProcessingCoordinatorTest {
     public void doesNotOfferUnparseableMailToProcessingFlow() throws Exception {
         when(Mails.readMail(any(byte[].class))).thenThrow(new ParsingException("parse error"));
 
-        coordinator.accept(is);
+        assertThatExceptionOfType(ParsingException.class).isThrownBy(() -> {
+            coordinator.accept(is);
+        });
 
         verifyZeroInteractions(flow);
     }
@@ -166,7 +176,9 @@ public class MessageProcessingCoordinatorTest {
     public void invokeListenerOnUnparseableMessage() throws ParsingException, IOException {
         when(Mails.readMail(any(byte[].class))).thenThrow(new ParsingException());
 
-        coordinator.accept(is);
+        assertThatExceptionOfType(ParsingException.class).isThrownBy(() -> {
+            coordinator.accept(is);
+        });
 
         verify(individualMessageProcessedListener)
                 .messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));

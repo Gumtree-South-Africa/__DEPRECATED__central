@@ -1,6 +1,5 @@
 package com.ecg.replyts.core.runtime.mailparser;
 
-import org.apache.james.mime4j.MimeIOException;
 import org.apache.james.mime4j.dom.Message;
 import org.apache.james.mime4j.message.DefaultMessageBuilder;
 import org.apache.james.mime4j.message.DefaultMessageWriter;
@@ -22,7 +21,7 @@ final class MimeHelper {
 
     }
 
-    static Message parseAndConsume(InputStream i) throws ParsingException, IOException {
+    static Message parseAndConsume(InputStream i) throws ParsingException {
         try (InputStream ii = i) {
             DefaultMessageBuilder messageBuilder = new DefaultMessageBuilder();
             MimeConfig mimeConfig = new MimeConfig();
@@ -36,7 +35,7 @@ final class MimeHelper {
 
             messageBuilder.setMimeEntityConfig(mimeConfig);
             return messageBuilder.parseMessage(ii);
-        } catch (MimeIOException e) {
+        } catch (IOException e) {
             throw new ParsingException("Could not parse message", e);
         }
     }

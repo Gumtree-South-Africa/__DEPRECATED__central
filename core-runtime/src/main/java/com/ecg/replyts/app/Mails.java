@@ -23,8 +23,6 @@ public class Mails {
     public static Mail readMail(byte[] input) throws ParsingException {
         try (Timer.Context ignore = PARSE_TIMER.time()) {
             return StructuredMail.parseMail(new ByteArrayInputStream(input));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 

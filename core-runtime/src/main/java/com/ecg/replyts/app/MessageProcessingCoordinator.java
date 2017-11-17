@@ -1,6 +1,9 @@
 package com.ecg.replyts.app;
 
+import com.ecg.replyts.core.runtime.mailparser.ParsingException;
+
 import javax.annotation.WillNotClose;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -13,5 +16,5 @@ public interface MessageProcessingCoordinator {
      * to redeliver that message at a later time.
      * @return messageId of a processed message if the processing was completed
      */
-    Optional<String> accept(@WillNotClose InputStream input) throws IOException;
+    Optional<String> accept(@WillNotClose InputStream input) throws IOException, ParsingException;
 }

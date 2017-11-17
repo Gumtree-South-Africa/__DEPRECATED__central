@@ -12,6 +12,7 @@ import org.apache.james.mime4j.dom.Message;
 import org.apache.james.mime4j.dom.SingleBody;
 
 import javax.mail.internet.InternetAddress;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,15 +22,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.ecg.replyts.core.runtime.mailparser.MimeHelper.*;
+import static com.ecg.replyts.core.runtime.mailparser.MimeHelper.copy;
+import static com.ecg.replyts.core.runtime.mailparser.MimeHelper.parseAndConsume;
+import static com.ecg.replyts.core.runtime.mailparser.MimeHelper.write;
 import static java.lang.String.format;
 
 /**
  * Default implementation for {@link Mail} and {@link MutableMail}.
  */
 public class StructuredMail implements Mail {
-
-
     public static final ContentTransferEncodingMultipartFix CONTENT_TRANSFER_ENCODING_MULTIPART_FIX = new ContentTransferEncodingMultipartFix();
     public static final LastReferenceMessageIdExtractor LAST_REFERENCE_MESSAGE_ID_EXTRACTOR = new LastReferenceMessageIdExtractor();
     public static final ContentTypeBoundaryFix CONTENT_TYPE_BOUNDARY_FIX = new ContentTypeBoundaryFix();
@@ -68,7 +69,7 @@ public class StructuredMail implements Mail {
         return mail;
     }
 
-    public static Mail parseMail(InputStream i) throws ParsingException, IOException {
+    public static Mail parseMail(InputStream i) throws ParsingException {
         try {
             StructuredMail structuredMail = new StructuredMail(parseAndConsume(i));
             // Mime4j will analyze the contents lazily. Do this now so that we know upfront when a mail is unparseable

@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 public class MessageTextHandlerTest {
     private static final Logger LOG = LoggerFactory.getLogger(MessageTextHandlerTest.class);
 
-
     public static class EmailTestCase {
         String expected;
         String actual;

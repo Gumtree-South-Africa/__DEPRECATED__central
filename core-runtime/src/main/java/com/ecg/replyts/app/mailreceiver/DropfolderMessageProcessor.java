@@ -5,6 +5,7 @@ import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.cluster.ClusterMode;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
+import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 
 @Component("mailDataProvider")
@@ -39,9 +41,11 @@ public class DropfolderMessageProcessor implements MessageProcessor {
     private static final Counter FAILED_COUNTER = TimingReports.newCounter("processing_failed");
     private static final Counter ABANDONED_RETRY_COUNTER = TimingReports.newCounter("processing_failed_abandoned");
     private static final Counter ACTIVE_DROPFOLDER_PROCESSORS_COUNTER = TimingReports.newCounter("active_dropfolder_processors");
+    private static final Counter UNPARSEABLE_COUNTER = TimingReports.newCounter("processing-unparseable-counter");
 
     static final String FAILED_DIRECTORY_NAME = "failed";
     static final String FAILED_PREFIX = "f_";
+    static final String UNPARSABLE_PREFIX = "x_";
     static final String INCOMING_FILE_PREFIX = "pre_";
     static final String PROCESSING_FILE_PREFIX = "inwork_";
 
@@ -179,6 +183,13 @@ public class DropfolderMessageProcessor implements MessageProcessor {
 
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(tempFilename))) {
             messageProcessor.accept(inputStream);
+        } catch (ParsingException e) {
+            UNPARSEABLE_COUNTER.inc();
+            File unparsableFilename = new File(failedDirectory, UNPARSABLE_PREFIX + originalFilename.getName());
+
+            if (!tempFilename.renameTo(unparsableFilename)) {
+                LOG.error("Failed to move unparsable mail to 'failed' directory " + tempFilename.getName());
+            }
         } catch (Exception e) {
             FAILED_COUNTER.inc();
 

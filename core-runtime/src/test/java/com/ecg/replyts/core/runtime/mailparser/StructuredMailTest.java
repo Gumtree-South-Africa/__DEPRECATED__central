@@ -4,6 +4,7 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -12,15 +13,27 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class StructuredMailTest {
-    @Test(expected = ParsingException.class)
-    public void wrapsUnparsableMailAddressToParsingException() throws ParsingException {
-        parse("Delivered-To: Pascal Kontzak<bluetrox@gmx.de<mailto:bluetrox@gmx.de>>\nTo: foo@bar.com\nSubject: asdfasdf\n\nhello world");
+    private static String MAIL_WITH_ATTACHMENT;
 
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        MAIL_WITH_ATTACHMENT = CharStreams.toString(new InputStreamReader(StructuredMailTest.class.getResourceAsStream("/mail-with-attachment.eml")));
+    }
+
+    @Test
+    public void wrapsUnparsableMailAddressToParsingException() {
+        assertThatExceptionOfType(ParsingException.class).isThrownBy(() -> {
+            parse("Delivered-To: Pascal Kontzak<bluetrox@gmx.de<mailto:bluetrox@gmx.de>>\nTo: foo@bar.com\nSubject: asdfasdf\n\nhello world");
+        });
     }
 
     @Test
@@ -42,14 +55,14 @@ public class StructuredMailTest {
     }
 
     @Test
-    public void extractsAttachmentNames() throws IOException, ParsingException {
-        Mail mail = parse();
+    public void extractsAttachmentNames() throws ParsingException {
+        Mail mail = parse(MAIL_WITH_ATTACHMENT);
         assertEquals(asList("Screen Shot 2013-08-23 at 10.09.19.png"), mail.getAttachmentNames());
     }
 
     @Test
-    public void retrievesAttachmentContents() throws IOException, ParsingException {
-        TypedContent<byte[]> attachment = parse().getAttachment("Screen Shot 2013-08-23 at 10.09.19.png");
+    public void retrievesAttachmentContents() throws ParsingException {
+        TypedContent<byte[]> attachment = parse(MAIL_WITH_ATTACHMENT).getAttachment("Screen Shot 2013-08-23 at 10.09.19.png");
         assertEquals("image/png", attachment.getMediaType().toString());
         assertEquals(71741, attachment.getContent().length);
     }
@@ -111,9 +124,11 @@ public class StructuredMailTest {
         assertThat(outputStream.toString(), not(containsString("_000_D163B3112A4Esomeoneebaycom_")));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void rejectsToRetrieveMissingAttachment() {
-            parse().getAttachment("asdf");
+    @Test
+    public void rejectsToRetrieveMissingAttachment() throws ParsingException {
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+            parse(MAIL_WITH_ATTACHMENT).getAttachment("asdf");
+        });
     }
 
     @Test
@@ -122,13 +137,9 @@ public class StructuredMailTest {
         Mail mail = parse("From: <      <foo@bar.com> >\nTo: foo@bar.com,a@b.com,c@d.com\nDelivered-To: asf@ac.com\nContent-Type: foo/bar\nSubject: asdfasdf\n\nhello world");
         assertEquals(mail.getFrom(), "foo@bar.com");
 
-        try {
-            // Haven't seen this yet, so expected to fail
+        assertThatExceptionOfType(ParsingException.class).isThrownBy(() -> {
             parse("From: <      <foo@bar.com\nTo: foo@bar.com,a@b.com,c@d.com\nDelivered-To: asf@ac.com\nContent-Type: foo/bar\nSubject: asdfasdf\n\nhello world");
-            fail("should fail to parse From: <      <foo@bar.com");
-        } catch (ParsingException e) {
-            // expected
-        }
+        });
     }
 
     @Test
@@ -137,21 +148,7 @@ public class StructuredMailTest {
         assertNull(mail.getMainContentType());
     }
 
-    private Mail parse() {
-        try {
-            return parse(CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream("/mail-with-attachment.eml"))));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private Mail parse(String mailContents) throws ParsingException {
-        try {
-            return StructuredMail.parseMail(new ByteArrayInputStream(mailContents.getBytes()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return StructuredMail.parseMail(new ByteArrayInputStream(mailContents.getBytes()));
     }
-
-
 }

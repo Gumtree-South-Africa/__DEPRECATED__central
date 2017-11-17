@@ -1,6 +1,5 @@
 package com.ecg.replyts.app;
 
-import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -20,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.WillNotClose;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -41,8 +41,6 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     private static final Logger LOG = LoggerFactory.getLogger(DefaultMessageProcessingCoordinator.class);
 
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("processing-total");
-
-    private static final Counter UNPARSEABLE_COUNTER = TimingReports.newCounter("processing-unparseable-counter");
 
     private final Guids guids;
     private final List<MessageProcessedListener> messageProcessedListeners = new ArrayList<>();
@@ -68,19 +66,20 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     /**
      * Invoked by a Mail Receiver. The passed input stream is an input stream the the actual mail contents. This method
      * will perform the full message processing and return once the message has reached an end state. If this method
-     * throws an exception, an abnormal behaviour occured during processing, indicating the the Mail Receiver should try
+     * throws an exception, an abnormal behaviour occurred during processing, indicating the the Mail Receiver should try
      * to redeliver that message at a later time.
      */
-    public final java.util.Optional<String> accept(@WillNotClose InputStream input) throws IOException {
+    @Override
+    public final Optional<String> accept(@WillNotClose InputStream input) throws IOException, ParsingException {
         try (Timer.Context ignored = OVERALL_TIMER.time()) {
             byte[] bytes = ByteStreams.toByteArray(input);
             LOG.trace("Received new message. Size {} bytes", bytes.length);
 
-            java.util.Optional<Mail> mail = parseMail(bytes);
+            Optional<Mail> mail = parseMail(bytes);
 
             if (!mail.isPresent()) {
                 // Return here, if unparseable, message is persisted in parse mail.
-                return java.util.Optional.empty();
+                return Optional.empty();
             }
 
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), guids.nextGuid());
@@ -99,7 +98,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             } else {
                 handleSuccess(context, bytes);
             }
-            return java.util.Optional.of(context.getMessageId());
+            return Optional.of(context.getMessageId());
         }
     }
 
@@ -109,7 +108,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         MDC.put(MAIL_ORIGINAL_TO, context.getOriginalTo().getAddress());
     }
 
-    private java.util.Optional<Mail> parseMail(byte[] incomingMailContents) {
+    private Optional<Mail> parseMail(byte[] incomingMailContents) throws ParsingException {
         try {
             Mail mail = Mails.readMail(incomingMailContents);
 
@@ -117,15 +116,13 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 throw new ParsingException("Delivered-To header missing");
             }
 
-            return java.util.Optional.of(mail);
-        } catch (ParsingException e) {
-            UNPARSEABLE_COUNTER.inc();
+            return Optional.of(mail);
+        } catch (ParsingException parsingException) {
             final String messageId = guids.nextGuid();
-            LOG.warn("Could not parse mail with id {}", messageId, e);
-            handleTermination(Termination.unparseable(e), messageId, Optional.empty(), Optional.empty(), incomingMailContents);
+            LOG.warn("Could not parse mail with id {}", messageId, parsingException);
+            handleTermination(Termination.unparseable(parsingException), messageId, Optional.empty(), Optional.empty(), incomingMailContents);
+            throw parsingException;
         }
-
-        return java.util.Optional.empty();
     }
 
     private void handleSuccess(MessageProcessingContext context, byte[] messageBytes) {
