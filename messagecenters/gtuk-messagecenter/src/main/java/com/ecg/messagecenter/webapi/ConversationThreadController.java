@@ -1,7 +1,6 @@
 package com.ecg.messagecenter.webapi;
 
-import com.ecg.messagecenter.diff.DiffReporter;
-import com.ecg.messagecenter.diff.WebApiDiffService;
+import com.ecg.messagecenter.diff.WebApiSyncService;
 import com.ecg.messagecenter.webapi.requests.MessageCenterDeleteConversationCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterReportConversationCommand;
@@ -12,7 +11,6 @@ import com.ecg.replyts.core.api.webapi.model.ConversationRts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpStatus;
@@ -30,20 +28,19 @@ public class ConversationThreadController {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationThreadController.class);
 
     private final ConversationService conversationService;
-    private final boolean diffEnabled;
+    private final boolean syncEnabled;
 
     @Autowired(required = false)
-    @Qualifier("webApiDiffService")
-    private WebApiDiffService webapiDiffService;
+    private WebApiSyncService webapiSyncService;
 
     @Autowired
     public ConversationThreadController(ConversationService conversationService,
-                                        @Value("${webapi.diff.uk.enabled:false}") boolean diffEnabled) {
+                                        @Value("${webapi.sync.uk.enabled:false}") boolean syncEnabled) {
         this.conversationService = conversationService;
-        this.diffEnabled = diffEnabled;
+        this.syncEnabled = syncEnabled;
 
-        if (diffEnabled) {
-            LOG.info(DiffReporter.DIFF_MARKER, this.getClass().getSimpleName() + " in Diffing mode");
+        if (syncEnabled) {
+            LOG.info(this.getClass().getSimpleName() + " runs in SyncMode");
         }
     }
 
@@ -61,8 +58,8 @@ public class ConversationThreadController {
             @PathVariable("conversationId") String conversationId) {
 
         Optional<PostBoxSingleConversationThreadResponse> response;
-        if (diffEnabled) {
-            response = webapiDiffService.getConversation(email, conversationId);
+        if (syncEnabled) {
+            response = webapiSyncService.getConversation(email, conversationId);
         } else {
             response = conversationService.getConversation(email, conversationId);
         }
@@ -81,10 +78,12 @@ public class ConversationThreadController {
             @PathVariable("conversationId") String conversationId) {
 
         Optional<PostBoxSingleConversationThreadResponse> response;
-        if (diffEnabled) {
-            response = webapiDiffService.readConversation(email, conversationId);
+        if (syncEnabled) {
+            response = webapiSyncService.readConversation(email, conversationId);
         } else {
             response = conversationService.readConversation(email, conversationId);
+            // Change also in MessageBox
+
         }
 
         return response.map(ResponseObject::of)
@@ -98,8 +97,8 @@ public class ConversationThreadController {
             @PathVariable("conversationId") String conversationId) {
 
         Optional<ConversationRts> response;
-        if (diffEnabled) {
-            response = webapiDiffService.deleteConversation(email, conversationId);
+        if (syncEnabled) {
+            response = webapiSyncService.deleteConversation(email, conversationId);
         } else {
             response = conversationService.deleteConversation(email, conversationId);
         }

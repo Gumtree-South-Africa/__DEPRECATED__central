@@ -33,11 +33,11 @@ import java.util.function.Function;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 
-@Component("webApiDiffService")
-@ConditionalOnProperty(name = "webapi.diff.uk.enabled", havingValue = "true")
-public class WebApiDiffService {
+@Component
+@ConditionalOnProperty(name = "webapi.sync.uk.enabled", havingValue = "true")
+public class WebApiSyncService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebApiDiffService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebApiSyncService.class);
     private static final Logger DIFF_LOGGER = LoggerFactory.getLogger("diffLogger");
 
     private final Timer getConversationTimer = newTimer("postBoxDelegatorService.getConversation");
@@ -49,6 +49,7 @@ public class WebApiDiffService {
     private final Counter newModelFailureCounter = TimingReports.newCounter("webapi.diff.newModel.failed");
     private final Counter diffFailureCounter = TimingReports.newCounter("webapi.diff.failed");
 
+    private boolean diffEnabled;
 
     private final DiffTool diff;
     private final ConversationService conversationService;
@@ -70,7 +71,7 @@ public class WebApiDiffService {
     private final int messagesLimit;
 
     @Autowired
-    public WebApiDiffService(
+    public WebApiSyncService(
             DiffTool diff,
             ConversationService conversationService,
             PostBoxService postBoxService,
@@ -81,7 +82,8 @@ public class WebApiDiffService {
             @Value("${webapi.diff.executor.maxPoolSize:50}") int maxPoolSize,
             @Value("${webapi.diff.executor.differ.corePoolSize:5}") int diffCorePoolSize,
             @Value("${webapi.diff.executor.differ.maxPoolSize:50}") int diffMaxPoolSize,
-            @Value("${webapi.diff.executor.differ.maxQueueSize:500}") int diffMaxQueueSize) {
+            @Value("${webapi.diff.executor.differ.maxQueueSize:500}") int diffMaxQueueSize,
+            @Value("${webapi.diff.uk.enabled:false}") boolean diffEnabled) {
 
         this.diff = diff;
         this.conversationService = conversationService;
@@ -94,6 +96,7 @@ public class WebApiDiffService {
         this.diffCorePoolSize = diffCorePoolSize;
         this.diffMaxPoolSize = diffMaxPoolSize;
         this.diffMaxQueueSize = diffMaxQueueSize;
+        this.diffEnabled = diffEnabled;
         this.oldExecutor = newExecutorService("old-webapi-executor");
         this.newExecutor = newExecutorService("new-webapi-executor");
         this.diffExecutor = newExecutorServiceForDiff();
@@ -106,19 +109,18 @@ public class WebApiDiffService {
                     .supplyAsync(() -> postBoxService.getConversations(id.asString(), Visibility.ACTIVE, page, size), newExecutor)
                     .exceptionally(handle(newModelFailureCounter, "New GetPostBox Failed - email: " + id));
 
-            com.ecg.messagecenter.persistence.simple.PostBox pb = postBoxRepository.byId(id);
-            responseBuilder.buildPostBoxResponse(id.asString(), size, page, pb, newCounterMode);
+            responseBuilder.buildPostBoxResponse(id.asString(), size, page, postBoxRepository.byId(id), newCounterMode);
 
             CompletableFuture<PostBoxDiff> oldModelFuture = CompletableFuture
                     .supplyAsync(() -> postBoxRepository.byId(id), oldExecutor)
                     .thenApply(postBox -> PostBoxDiff.of(postBox, responseBuilder.buildPostBoxResponse(id.asString(), size, page, postBox, newCounterMode)))
                     .exceptionally(handle(oldModelFailureCounter, "Old GetPostBox Failed - email: " + id));
 
-            diff.postBoxResponseDiff(id.asString(), newModelFuture, oldModelFuture);
-
-            CompletableFuture
-                    .runAsync(() -> diff.postBoxResponseDiff(id.asString(), newModelFuture, oldModelFuture), diffExecutor)
-                    .exceptionally(handleDiff("Postbox diffing Failed - email: " + id));
+            if (diffEnabled) {
+                CompletableFuture
+                        .runAsync(() -> diff.postBoxResponseDiff(id.asString(), newModelFuture, oldModelFuture), diffExecutor)
+                        .exceptionally(handleDiff("Postbox diffing Failed - email: " + id));
+            }
 
             return oldModelFuture.join().postBoxResponse;
         }
@@ -135,9 +137,11 @@ public class WebApiDiffService {
                     .supplyAsync(() -> conversationService.getConversation(email, conversationId), oldExecutor)
                     .exceptionally(handle(oldModelFailureCounter, "Old GetConversation Failed - email: " + email));
 
-            CompletableFuture
-                    .runAsync(() -> diff.conversationResponseDiff(email, conversationId, newModelFuture, oldModelFuture), diffExecutor)
-                    .exceptionally(handleDiff("Conversation diffing Failed - email: " + email));
+            if (diffEnabled) {
+                CompletableFuture
+                        .runAsync(() -> diff.conversationResponseDiff(email, conversationId, newModelFuture, oldModelFuture), diffExecutor)
+                        .exceptionally(handleDiff("Conversation diffing Failed - email: " + email));
+            }
 
             return oldModelFuture.join();
         }
@@ -154,9 +158,11 @@ public class WebApiDiffService {
                     .supplyAsync(() -> conversationService.readConversation(email, conversationId), oldExecutor)
                     .exceptionally(handle(oldModelFailureCounter, "Old ReadConversation Failed - email: " + email));
 
-            CompletableFuture
-                    .runAsync(() -> diff.conversationResponseDiff(email, conversationId, newModelFuture, oldModelFuture), diffExecutor)
-                    .exceptionally(handleDiff("Conversation diffing Failed - email: " + email));
+            if (diffEnabled) {
+                CompletableFuture
+                        .runAsync(() -> diff.conversationResponseDiff(email, conversationId, newModelFuture, oldModelFuture), diffExecutor)
+                        .exceptionally(handleDiff("Conversation diffing Failed - email: " + email));
+            }
 
             return oldModelFuture.join();
         }
@@ -174,9 +180,11 @@ public class WebApiDiffService {
                     .supplyAsync(() -> conversationService.deleteConversation(email, conversationId), oldExecutor)
                     .exceptionally(handle(oldModelFailureCounter, "Old ReadConversation Failed - email: " + email));
 
-            CompletableFuture
-                    .runAsync(() -> diff.conversationDeleteResponseDiff(email, conversationId, newModelFuture, oldModelFuture), diffExecutor)
-                    .exceptionally(handleDiff("Conversation diffing Failed - email: " + email));
+            if (diffEnabled) {
+                CompletableFuture
+                        .runAsync(() -> diff.conversationDeleteResponseDiff(email, conversationId, newModelFuture, oldModelFuture), diffExecutor)
+                        .exceptionally(handleDiff("Conversation diffing Failed - email: " + email));
+            }
 
             return oldModelFuture.join();
         }
