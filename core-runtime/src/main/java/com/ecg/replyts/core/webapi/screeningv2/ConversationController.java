@@ -25,7 +25,11 @@ import com.google.common.base.Preconditions;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -127,7 +131,14 @@ class ConversationController {
     }
 
     private void PreconditionIssuerEmailIsBuyerOrSeller(ChangeConversationStatePayload changeConversationStatePayload, MutableConversation conversation) {
-        Preconditions.checkArgument(changeConversationStatePayload.getIssuerEmail().equalsIgnoreCase(conversation.getBuyerId())
-                || changeConversationStatePayload.getIssuerEmail().equalsIgnoreCase(conversation.getSellerId()));
+        String issuerEmail = changeConversationStatePayload.getIssuerEmail();
+        String buyerId = conversation.getBuyerId();
+        String sellerId = conversation.getSellerId();
+        Preconditions.checkArgument(
+            issuerEmail.equalsIgnoreCase(buyerId) || issuerEmail.equalsIgnoreCase(sellerId),
+            "issuerEmail {} is not buyerId {} or sellerId {}",
+            issuerEmail,
+            buyerId,
+            sellerId);
     }
 }
