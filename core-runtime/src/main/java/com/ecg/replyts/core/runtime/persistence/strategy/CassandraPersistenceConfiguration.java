@@ -54,6 +54,8 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static java.util.stream.Collectors.toList;
 
@@ -130,6 +132,9 @@ public class CassandraPersistenceConfiguration {
          * the cassandra cluster.
          */
         private static final int HIGHEST_TRACKABLE_LATENCY_MILLIS = 15000;
+
+        // host name to metric name map
+        private final ConcurrentMap<String, String> hostMetricsNames = new ConcurrentHashMap<>();
 
         @Value("${persistence.cassandra.consistency.read:LOCAL_QUORUM}")
         private ConsistencyLevel cassandraReadConsistency;
@@ -339,12 +344,16 @@ public class CassandraPersistenceConfiguration {
 
             LatencyTracker latencyTracker = (host, statement, exception, newLatencyNanos) -> {
                 comaasRegistry.histogram(fullPrefix + ".custom.queryLatencyNanos").update(newLatencyNanos);
-                comaasRegistry.histogram(fullPrefix + ".custom.queryLatencyNanos." + host.getAddress().getHostName()).update(newLatencyNanos);
+                comaasRegistry.histogram(fullPrefix + ".custom.queryLatencyNanos." + getHostMetricName(host.getAddress().getHostName())).update(newLatencyNanos);
             };
             cluster.register(latencyTracker);
             cluster.init(); // this is totally safe to do here, check the javadoc
             comaasRegistry.removeMatching((name, metric) -> name != null && name.startsWith(fullPrefix + "."));
             comaasRegistry.register(fullPrefix, cluster.getMetrics().getRegistry());
+        }
+
+        String getHostMetricName(String hostName) {
+            return hostMetricsNames.computeIfAbsent(hostName, key -> key.split("\\.")[0]);
         }
 
         @PreDestroy
