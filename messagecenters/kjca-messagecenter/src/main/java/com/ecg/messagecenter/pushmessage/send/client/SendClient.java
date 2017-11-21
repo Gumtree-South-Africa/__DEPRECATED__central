@@ -129,11 +129,6 @@ public class SendClient {
         return new SendException(SendException.Cause.UNKNOWN, "Hystrix command did not succeed, unsure why", null);
     }
 
-    public enum DeliveryService {
-        MDNS,
-        FCM
-    }
-
     public enum NotificationType {
         CHATMESSAGE
     }

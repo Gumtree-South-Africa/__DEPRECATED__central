@@ -34,10 +34,10 @@ public class Subscription {
     private String deviceToken;
 
     @JsonProperty("deliveryService")
-    private SendClient.DeliveryService deliveryService;
+    private String deliveryService;
 
     @JsonProperty("type")
-    public SendClient.NotificationType type;
+    private SendClient.NotificationType type;
 
     @JsonProperty("enabled")
     private boolean enabled;
@@ -63,7 +63,7 @@ public class Subscription {
     private Subscription(Long id,
                          Long userId,
                          String deviceToken,
-                         SendClient.DeliveryService deliveryService,
+                         String deliveryService,
                          SendClient.NotificationType type,
                          boolean enabled,
                          Locale locale,
@@ -92,7 +92,7 @@ public class Subscription {
         return deviceToken;
     }
 
-    public SendClient.DeliveryService getDeliveryService() {
+    public String getDeliveryService() {
         return deliveryService;
     }
 

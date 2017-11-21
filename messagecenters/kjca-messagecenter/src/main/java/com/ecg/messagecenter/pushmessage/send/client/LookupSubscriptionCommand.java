@@ -28,7 +28,7 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
                                       Long id,
                                       Long userId,
                                       String deviceToken,
-                                      SendClient.DeliveryService deliveryService,
+                                      String deliveryService,
                                       SendClient.NotificationType type,
                                       Boolean enabled,
                                       Locale locale,
@@ -51,7 +51,7 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
         private Long id = null;
         private Long userId = null;
         private String deviceToken = null;
-        private SendClient.DeliveryService deliveryService = null;
+        private String deliveryService = null;
         private SendClient.NotificationType type = null;
         private Boolean enabled = null;
         private Locale locale = null;
@@ -75,11 +75,6 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
 
         public Builder setDeviceToken(String deviceToken) {
             this.deviceToken = deviceToken;
-            return this;
-        }
-
-        public Builder setDeliveryService(SendClient.DeliveryService deliveryService) {
-            this.deliveryService = deliveryService;
             return this;
         }
 
@@ -113,7 +108,7 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
         }
     }
 
-    private static URI buildWithParametersIfPossible(URIBuilder base, Long id, Long userId, String deviceToken, SendClient.DeliveryService deliveryService, SendClient.NotificationType type, Boolean enabled, Locale locale, Long page, Long limit) throws URISyntaxException {
+    private static URI buildWithParametersIfPossible(URIBuilder base, Long id, Long userId, String deviceToken, String deliveryService, SendClient.NotificationType type, Boolean enabled, Locale locale, Long page, Long limit) throws URISyntaxException {
         if (id != null) {
             base.addParameter("id", String.valueOf(id));
         }
@@ -124,7 +119,7 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
             base.addParameter("deviceToken", deviceToken);
         }
         if (deliveryService != null) {
-            base.addParameter("deliveryService", deliveryService.name());
+            base.addParameter("deliveryService", deliveryService);
         }
         if (type != null) {
             base.addParameter("type", type.name());
