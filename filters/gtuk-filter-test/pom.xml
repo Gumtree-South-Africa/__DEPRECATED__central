@@ -7,7 +7,7 @@
     <parent>
         <groupId>ecg.comaas</groupId>
         <artifactId>comaas</artifactId>
-        <version>${revision}</version>
+        <version>1-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -18,71 +18,51 @@
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-filter-blacklist</artifactId>
-            <version>${revision}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-filter-category</artifactId>
-            <version>${revision}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-handler</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.reactivex</groupId>
-                    <artifactId>rxjava</artifactId>
-                </exclusion>
-            </exclusions>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-filter-flagged</artifactId>
-            <version>${revision}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-filter-geoip</artifactId>
-            <version>${revision}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-filter-geoiplookup</artifactId>
-            <version>${revision}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-filter-knowngood</artifactId>
-            <version>${revision}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-filter-word</artifactId>
-            <version>${revision}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-filter-url</artifactId>
-            <version>${revision}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-filter-volume</artifactId>
-            <version>${revision}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-filter-watchlist</artifactId>
-            <version>${revision}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

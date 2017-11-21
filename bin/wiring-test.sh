@@ -58,10 +58,38 @@ function startComaas() {
     log "Starting comaas on port $COMAAS_HTTP_PORT"
 
     (cd distribution/target
-    tar xfz distribution-${TENANT}-docker.tar.gz
-    cd distribution
+    tar xfz comaas-${TENANT}_1-SNAPSHOT-comaas.tar.gz
+    cd comaas-${TENANT}_1-SNAPSHOT
+    mkdir -p log
 
-    COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} bin/comaas 2>&1 &
+    COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} \
+    java \
+    -DlogDir=log \
+    -DconfDir=conf \
+    -XX:-HeapDumpOnOutOfMemoryError \
+    -Djava.awt.headless=true \
+    -Dcom.datastax.driver.FORCE_NIO=true \
+    -XX:+PrintGCDetails \
+    -Xloggc:log/gc.log \
+    -verbose:gc \
+    -XX:+PrintGCTimeStamps \
+    -XX:+PrintGCDateStamps \
+    -XX:+PrintTenuringDistribution \
+    -XX:+UseGCLogFileRotation \
+    -XX:NumberOfGCLogFiles=7 \
+    -XX:GCLogFileSize=128M \
+    -XX:+PrintConcurrentLocks \
+    -XX:+PrintClassHistogram \
+    -XX:+PrintStringTableStatistics \
+    -classpath lib/\* \
+    -Dapp.name=comaas \
+    -Dapp.pid=63123 \
+    -Dapp.repo=lib \
+    -Dapp.home=. \
+    -Dbasedir=. \
+    com.ecg.replyts.core.runtime.ReplyTS \
+    2>&1 &
+
     echo $! > ${COMAAS_PID}
 
     log "Comaas pid: $(cat ${COMAAS_PID})")
