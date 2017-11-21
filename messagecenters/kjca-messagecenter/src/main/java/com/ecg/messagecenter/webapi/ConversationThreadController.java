@@ -114,16 +114,17 @@ class ConversationThreadController {
 
             if (newCounterMode) {
                 if (needToMarkAsRead) {
-                    markConversationAsRead(email, conversationId, postBox);
-                    unreadCountCachePopulater.populateCache(postBox);
+                    final PostBox updatedPostbox = markConversationAsRead(email, conversationId, postBox);
+                    unreadCountCachePopulater.populateCache(updatedPostbox);
 
                 }
                 return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, blockedByBuyer, blockedBySeller, response);
             } else {
                 long numUnread;
                 if (needToMarkAsRead) {
-                    numUnread = markConversationAsRead(email, conversationId, postBox);
-                    unreadCountCachePopulater.populateCache(postBox);
+                    final PostBox updatedPostbox = markConversationAsRead(email, conversationId, postBox);
+                    numUnread = updatedPostbox.getUnreadConversationsCapped().size();
+                    unreadCountCachePopulater.populateCache(updatedPostbox);
                 } else {
                     numUnread = postBox.getUnreadConversationsCapped().size();
                 }
@@ -163,7 +164,7 @@ class ConversationThreadController {
 
     }
 
-    private long markConversationAsRead(String email, String conversationId, PostBox<ConversationThread> postBox) {
+    private PostBox<ConversationThread> markConversationAsRead(String email, String conversationId, PostBox<ConversationThread> postBox) {
         List<ConversationThread> threadsToUpdate = new ArrayList<>();
 
         boolean needsUpdate = false;
@@ -194,14 +195,12 @@ class ConversationThreadController {
 
         //optimization to not cause too many write actions (potential for conflicts)
         if (needsUpdate) {
-            PostBox postBoxToUpdate = new PostBox(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate);
+            PostBox<ConversationThread> postBoxToUpdate = new PostBox<>(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate);
             postBoxRepository.markConversationAsRead(postBoxToUpdate, updatedConversation);
-            numUnreadCounter = postBoxToUpdate.getUnreadConversationsCapped().size();
+            return postBoxToUpdate;
         } else {
-            numUnreadCounter = postBox.getUnreadConversationsCapped().size();
+            return postBox;
         }
-
-        return numUnreadCounter;
     }
 
     private ResponseObject<?> entityNotFound(HttpServletResponse response) {

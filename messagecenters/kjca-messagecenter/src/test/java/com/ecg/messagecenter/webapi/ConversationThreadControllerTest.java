@@ -11,7 +11,10 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.google.common.collect.ImmutableList;
+import org.apache.james.mime4j.field.DateTimeFieldImpl;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -35,13 +38,19 @@ public class ConversationThreadControllerTest {
 
     private ConversationThreadController controller;
     private PostBox<AbstractConversationThread> postBox;
+    private PostBox<AbstractConversationThread> readPostBox;
 
     @Before
     public void setUp() throws Exception {
+        final DateTime now = DateTime.now();
+        DateTimeUtils.setCurrentMillisFixed(now.getMillis()); // Freeze what Joda reports as "now".
+
         controller = new ConversationThreadController(postBoxRepository, conversationRepository, conversationBlockRepository, mailCloakingService, textAnonymizer, unreadCountCachePopulater);
 
-        List<AbstractConversationThread> conversationThreads = ImmutableList.of(new ConversationThread("ad", CONVERSATION_ID, DateTime.now(), DateTime.now(), DateTime.now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(EMAIL), Optional.empty()));
-        postBox = new PostBox<>(EMAIL, Optional.empty(), conversationThreads);
+        List<AbstractConversationThread> unreadConversationThreads = ImmutableList.of(new ConversationThread("ad", CONVERSATION_ID, now, now, now, true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(EMAIL), Optional.empty()));
+        List<AbstractConversationThread> readConversationThreads = ImmutableList.of(new ConversationThread("ad", CONVERSATION_ID, now, now, now, true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(EMAIL), Optional.empty()));
+        postBox = new PostBox<>(EMAIL, Optional.empty(), unreadConversationThreads);
+        readPostBox = new PostBox<>(EMAIL, Optional.empty(), readConversationThreads);
         Mockito.when(postBoxRepository.byId(PostBoxId.fromEmail(EMAIL))).thenReturn(postBox);
     }
 
@@ -51,7 +60,7 @@ public class ConversationThreadControllerTest {
         request.setMethod("PUT");
         controller.getPostBoxConversationByEmailAndConversationId(EMAIL, CONVERSATION_ID, false, request, new MockHttpServletResponse());
 
-        Mockito.verify(unreadCountCachePopulater).populateCache(postBox);
+        Mockito.verify(unreadCountCachePopulater).populateCache(readPostBox);
     }
 
     @Test
@@ -59,5 +68,10 @@ public class ConversationThreadControllerTest {
         controller.deleteSingleConversation(EMAIL, CONVERSATION_ID, new MockHttpServletResponse());
 
         Mockito.verify(unreadCountCachePopulater).populateCache(postBox);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        DateTimeUtils.setCurrentMillisSystem();
     }
 }
