@@ -6,23 +6,22 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class IndexingJournals {
-
-    private final HazelcastInstance hazelcastInstance;
-
     @Autowired
-    public IndexingJournals(HazelcastInstance hazelcastInstance) {
-        this.hazelcastInstance = hazelcastInstance;
-    }
+    private HazelcastInstance hazelcastInstance;
 
     public IndexingJournal createJournalFor(DateTime start, DateTime end, IndexingMode mode) {
         IMap<IndexingMode, DataPayload> map = hazelcastInstance.getMap(getClass().getName());
+
         return new IndexingJournal(map, start, end, mode);
     }
 
     public IndexerStatus getLastRunStatisticsFor(IndexingMode mode) {
         DataPayload payload = hazelcastInstance.<IndexingMode, DataPayload>getMap(getClass().getName()).get(mode);
+
         if (payload == null) {
             return null;
         }

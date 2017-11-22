@@ -10,9 +10,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.net.InetAddress.getLocalHost;
 
-class IndexingJournal {
-
+public class IndexingJournal {
     private final Map<IndexingMode, DataPayload> distributedMap;
+
     private final IndexingMode indexingMode;
 
     IndexingJournal(Map<IndexingMode, DataPayload> distributedMap, DateTime startTime, DateTime endTime, IndexingMode indexingMode) {
@@ -23,11 +23,13 @@ class IndexingJournal {
 
     public void startRunning(int totalChunkCount) {
         DataPayload dataPayload = get();
+
         try {
             dataPayload.setHostname(getLocalHost().getHostName());
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
+
         dataPayload.setStartedRunning(DateTime.now());
         dataPayload.setChunkCount(totalChunkCount);
 
@@ -57,14 +59,21 @@ class IndexingJournal {
     }
 
     public static class DataPayload implements Serializable {
-
-        private final DateTime startTimeRange, endTimeRange;
-        private final String indexingType;
-        private DateTime startedRunning;
-        private DateTime endedRunning;
-        private String hostname;
-        private int chunkCount;
         private final AtomicInteger chunksProcessed = new AtomicInteger(0);
+
+        private final DateTime startTimeRange;
+
+        private final DateTime endTimeRange;
+
+        private final String indexingType;
+
+        private DateTime startedRunning;
+
+        private DateTime endedRunning;
+
+        private String hostname;
+
+        private int chunkCount;
 
         DataPayload(DateTime startTimeRange, DateTime endTimeRange, IndexingMode indexingType) {
             this.startTimeRange = startTimeRange;
@@ -90,6 +99,7 @@ class IndexingJournal {
 
         public IndexerStatus toIndexerStatus() {
             IndexerStatus status = new IndexerStatus();
+
             status.setCompletedChunks(chunksProcessed.get());
             status.setTotalChunks(chunkCount);
             status.setRunning(endedRunning == null);
@@ -99,6 +109,7 @@ class IndexingJournal {
             status.setStartDate(startedRunning);
             status.setEndDate(endedRunning);
             status.setHostName(hostname);
+
             return status;
         }
 

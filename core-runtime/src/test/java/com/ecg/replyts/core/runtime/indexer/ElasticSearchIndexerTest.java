@@ -6,8 +6,10 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -18,29 +20,28 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ElasticSearchIndexerTest {
-
     @Mock
     private IndexerClockRepository indexerClockRepository;
+
     @Mock
     private IndexerHealthCheck healthCheck;
 
     @Mock
     private SingleRunGuard singleRunGuard;
+
     @Mock
     private IndexerAction indexerAction;
+
     @Mock
     private IndexingJournals indexingJournals;
 
-    @Mock
-    private IndexStartPoint indexStartPoint;
-
+    @InjectMocks
     private ElasticSearchIndexer indexer;
 
     @Before
     public void setUp() {
-        when(indexStartPoint.startTimeForFullIndex()).thenReturn(DateTime.now().minusDays(1));
+        ReflectionTestUtils.setField(indexer, "maxAgeDays", 1); // Will ensure startTimeForFullIndex() returns now() - 1 day
         when(indexerClockRepository.get()).thenReturn(DateTime.now());
-        indexer = new ElasticSearchIndexer(healthCheck, indexerClockRepository, singleRunGuard, indexerAction, indexingJournals, indexStartPoint);
     }
 
     @Test
@@ -100,12 +101,10 @@ public class ElasticSearchIndexerTest {
 
     @Test
     public void checkFullIndexDateIfNoLastrun() {
-        when(indexStartPoint.startTimeForFullIndex()).thenReturn(DateTime.now());
         when(indexerClockRepository.get()).thenReturn(null);
 
         indexer.deltaIndex();
 
         verify(singleRunGuard).runExclusivelyOrSkip(eq(IndexingMode.DELTA), any(ExclusiveLauncherRunnable.class));
-        verify(indexStartPoint).startTimeForFullIndex();
     }
 }

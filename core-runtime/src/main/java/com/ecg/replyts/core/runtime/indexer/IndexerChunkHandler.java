@@ -13,37 +13,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+@Component
 public class IndexerChunkHandler {
+    private static final Logger LOG = LoggerFactory.getLogger(IndexerChunkHandler.class);
+    private static final Logger FAILED_IDX = LoggerFactory.getLogger("IndexingFailedConversations");
 
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("index-chunk");
     private static final Timer FETCH_TIMER = TimingReports.newTimer("fetch-chunk");
 
-    private final ConversationRepository conversationRepository;
-    private final SearchIndexer indexer;
-    private final int maxChunkSize;
-
-    private static final Logger LOG = LoggerFactory.getLogger(IndexerChunkHandler.class);
-    private static final Logger FAILED_IDX = LoggerFactory.getLogger("IndexingFailedConversations");
+    @Autowired
+    private ConversationRepository conversationRepository;
 
     @Autowired
-    IndexerChunkHandler(
-            ConversationRepository conversationRepository,
-            SearchIndexer indexer,
-            @Value("${batch.bulkoperations.maxChunkSize:200}") int maxChunkSize) {
-        this.conversationRepository = conversationRepository;
-        this.indexer = indexer;
-        this.maxChunkSize = maxChunkSize;
-    }
+    private SearchIndexer indexer;
+
+    @Value("${batch.bulkoperations.maxChunkSize:200}")
+    private int maxChunkSize;
 
     public void indexChunk(List<String> conversationIds) {
         if (conversationIds.size() > maxChunkSize) {
             LOG.trace("Partitioning conversation list with {} elements into chunks of size {}", conversationIds.size(), maxChunkSize);
         }
+
         List<List<String>> partitions = Lists.partition(conversationIds, maxChunkSize);
 
         for (List<String> partition : partitions) {
@@ -55,8 +52,10 @@ public class IndexerChunkHandler {
         if (conversationIds.isEmpty()) {
             return;
         }
-        try (Timer.Context timer = OVERALL_TIMER.time()) {
+
+        try (Timer.Context ignore = OVERALL_TIMER.time()) {
             List<Conversation> conversations = fetchConversations(conversationIds);
+
             indexer.updateSearchSync(conversations);
         }
     }
@@ -68,44 +67,47 @@ public class IndexerChunkHandler {
 
         List<List<String>> partitions = Lists.partition(new ArrayList<>(conversationIds), maxChunkSize);
         List<ListenableActionFuture<BulkResponse>> indexTasks = Lists.newArrayListWithExpectedSize(partitions.size());
+
         for (List<String> partition : partitions) {
             indexTasks.add(indexChunkPartitionAsync(partition));
         }
+
         return indexTasks;
     }
 
     public List<Conversation> fetchConversations(List<String> conversationIds) {
         List<Conversation> conversations = new ArrayList<>();
-        for (String convId : conversationIds) {
+
+        for (String conversationId : conversationIds) {
             try {
-                MutableConversation conversation = conversationRepository.getById(convId);
-                // might be null for very old conversation that have been removed by the cleanup job while the indexer
-                // was running.
+                MutableConversation conversation = conversationRepository.getById(conversationId);
+
+                // Might be null for very old conversation that have been removed by the cleanup job while the indexer was running
                 if (conversation != null) {
                     conversations.add(conversation);
                 }
             } catch (Exception e) {
-                LOG.error("Indexer could not load conversation '" + convId + "' from repository - skipping it", e);
-                FAILED_IDX.info(convId);
+                LOG.error("Indexer could not load conversation '{}' from repository - skipping it", conversationId, e);
+                FAILED_IDX.info(conversationId);
             }
         }
+
         if (conversations.size() > 0) {
             LOG.trace("Fetch {} conversations from {} to {} completed", conversationIds.size(), conversationIds.get(0), conversationIds.get(conversationIds.size() - 1));
         }
+
         return conversations;
     }
 
-
     private ListenableActionFuture<BulkResponse> indexChunkPartitionAsync(List<String> conversationIds) {
-        try (Timer.Context timer = FETCH_TIMER.time()) {
+        try (Timer.Context ignore = FETCH_TIMER.time()) {
             List<Conversation> conversations = fetchConversations(conversationIds);
+
             if (conversations.size() != conversationIds.size()) {
-                LOG.warn("At least some conversation IDs were not found in the database, {} conversations expected, but only {} retrieved",
-                        conversationIds.size(), conversations.size());
+                LOG.warn("At least some conversation IDs were not found in the database, {} conversations expected, but only {} retrieved", conversationIds.size(), conversations.size());
             }
+
             return indexer.updateSearchAsync(conversations, false);
         }
     }
-
-
 }

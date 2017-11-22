@@ -33,7 +33,6 @@
 
             <modules>
                 <module>coremods/gtau-coremod-autogatemaildelivery</module>
-                <module>coremods/gtau-coremod-readrepairindexer</module>
 
                 <module>filters/core-filter-bankaccount</module>
                 <module>filters/core-filter-belenblockedad</module>

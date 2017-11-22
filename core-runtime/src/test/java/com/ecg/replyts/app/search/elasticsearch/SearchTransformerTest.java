@@ -8,6 +8,10 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Date;
 
@@ -15,17 +19,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * Author: bpadhiar
- */
+@RunWith(MockitoJUnitRunner.class)
 public class SearchTransformerTest {
     private static final long FIXED_DATE = 1420070400000L; // Fixed date for testing purposes. 1st Jan 2015
 
+    @Mock
     private Client elasticsearchClient;
 
     @Before
     public void setUp() throws Exception {
-        elasticsearchClient = mock(Client.class);
         SearchRequestBuilder builder = new SearchRequestBuilder(elasticsearchClient);
         when(elasticsearchClient.prepareSearch("replyts")).thenReturn(builder);
     }

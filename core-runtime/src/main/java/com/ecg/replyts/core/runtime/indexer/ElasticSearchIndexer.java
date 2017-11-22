@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,45 +18,29 @@ import java.util.Optional;
 
 import static org.joda.time.DateTimeZone.UTC;
 
-class ElasticSearchIndexer implements Indexer {
-
+@Component
+public class ElasticSearchIndexer implements Indexer {
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchIndexer.class);
 
-    private final IndexerClockRepository indexerClockRepository;
-    private final IndexerHealthCheck healthCheck;
-    private final SingleRunGuard singleRunGuard;
-    private final IndexerAction indexerAction;
-    private final IndexingJournals indexingJournals;
-    private final IndexStartPoint indexStartPoint;
+    @Autowired
+    private IndexerClockRepository indexerClockRepository;
 
     @Autowired
-    ElasticSearchIndexer(
-            IndexerHealthCheck healthCheck,
-            @Value("${replyts.maxConversationAgeDays:180}") int maxAgeDays,
-            IndexerClockRepository indexerClockRepository,
-            SingleRunGuard singleRunGuard,
-            IndexerAction indexerAction,
-            IndexingJournals indexingJournals) {
+    private IndexerHealthCheck healthCheck;
 
-        this(healthCheck, indexerClockRepository, singleRunGuard, indexerAction, indexingJournals, new IndexStartPoint(new CurrentClock(), maxAgeDays));
-    }
+    @Autowired
+    private SingleRunGuard singleRunGuard;
 
-    ElasticSearchIndexer(
-            IndexerHealthCheck healthCheck,
-            IndexerClockRepository indexerClockRepository,
-            SingleRunGuard singleRunGuard,
-            IndexerAction indexerAction,
-            IndexingJournals indexingJournals,
-            IndexStartPoint indexStartPoint) {
+    @Autowired
+    private IndexerAction indexerAction;
 
-        this.indexerClockRepository = indexerClockRepository;
-        this.healthCheck = healthCheck;
+    @Autowired
+    private IndexingJournals indexingJournals;
 
-        this.singleRunGuard = singleRunGuard;
-        this.indexerAction = indexerAction;
-        this.indexingJournals = indexingJournals;
-        this.indexStartPoint = indexStartPoint;
-    }
+    @Value("${replyts.maxConversationAgeDays:180}")
+    private int maxAgeDays;
+
+    private CurrentClock clock = new CurrentClock();
 
     @Override
     public void fullIndex() {
@@ -64,7 +49,7 @@ class ElasticSearchIndexer implements Indexer {
         healthCheck.reportFull(Status.OK, Message.shortInfo(startMsg));
 
         try {
-            doIndexFromDate(indexStartPoint.startTimeForFullIndex(), IndexingMode.FULL);
+            doIndexFromDate(startTimeForFullIndex(), IndexingMode.FULL);
 
             String endMsg = "Full Indexing finished at " + new DateTime().withZone(UTC);
             LOG.debug(endMsg);
@@ -82,7 +67,7 @@ class ElasticSearchIndexer implements Indexer {
         healthCheck.reportDelta(Status.OK, Message.shortInfo(startMsg));
 
         try {
-            DateTime dateFrom = Optional.ofNullable(indexerClockRepository.get()).orElse(indexStartPoint.startTimeForFullIndex());
+            DateTime dateFrom = Optional.ofNullable(indexerClockRepository.get()).orElse(startTimeForFullIndex());
 
             doIndexFromDate(dateFrom, IndexingMode.DELTA);
 
@@ -111,9 +96,10 @@ class ElasticSearchIndexer implements Indexer {
 
     @Override
     public List<IndexerStatus> getStatus() {
-        return Arrays.asList(
-                indexingJournals.getLastRunStatisticsFor(IndexingMode.DELTA),
-                indexingJournals.getLastRunStatisticsFor(IndexingMode.FULL)
-        );
+        return Arrays.asList(indexingJournals.getLastRunStatisticsFor(IndexingMode.DELTA), indexingJournals.getLastRunStatisticsFor(IndexingMode.FULL));
+    }
+
+    private DateTime startTimeForFullIndex() {
+        return new DateTime(clock.now()).minusDays(maxAgeDays);
     }
 }

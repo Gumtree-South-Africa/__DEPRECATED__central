@@ -28,16 +28,16 @@
     <!-- The goal is to just be able to do a component-scan on the entire com.ecg.replyts.app package; any
          beans that plugins might want to override can just be marked with @Primary by a plugin -->
 
-    <context:component-scan base-package="com.ecg.replyts.app" resource-pattern="*.class"/>
+    <context:component-scan base-package="com.ecg.replyts.app" resource-pattern="*.class" />
 
-    <context:component-scan base-package="com.ecg.replyts.app.preprocessorchain"/>
-    <context:component-scan base-package="com.ecg.replyts.app.filterchain"/>
-    <context:component-scan base-package="com.ecg.replyts.app.cronjobs"/>
-    <context:component-scan base-package="com.ecg.replyts.app.postprocessorchain"/>
+    <context:component-scan base-package="com.ecg.replyts.app.preprocessorchain" />
+    <context:component-scan base-package="com.ecg.replyts.app.filterchain" />
+    <context:component-scan base-package="com.ecg.replyts.app.cronjobs" />
+    <context:component-scan base-package="com.ecg.replyts.app.postprocessorchain" />
 
-    <bean class="com.ecg.replyts.core.runtime.indexer.conversation.IndexingConfiguration"/>
+    <bean class="com.ecg.replyts.core.runtime.indexer.conversation.IndexingConfiguration" />
 
-    <bean class="com.ecg.replyts.core.runtime.indexer.AsyncOutdatedEntityReporter"/>
+    <bean class="com.ecg.replyts.core.runtime.indexer.AsyncOutdatedEntityReporter" />
 
 
     <context:component-scan base-package="com.ecg.replyts.core.runtime.cluster" />
@@ -48,22 +48,9 @@
 
     <context:component-scan base-package="com.ecg.replyts.core.runtime.service" />
 
-    <bean class="com.ecg.replyts.app.search.elasticsearch.ElasticSearchClientConfiguration"/>
-    <bean class="com.ecg.replyts.app.search.elasticsearch.ElasticSearchServiceConfiguration"
-          id="elasticSearchServiceConfiguration"/>
+    <context:component-scan base-package="com.ecg.replyts.app.search.elasticsearch" />
 
-    <bean class="com.ecg.replyts.core.runtime.indexer.ElasticSearchIndexer"/>
-
-    <bean class="com.ecg.replyts.core.runtime.indexer.IndexerActionConfiguration"/>
-
-    <bean class="com.ecg.replyts.core.runtime.indexer.SingleRunGuard"/>
-    <bean class="com.ecg.replyts.core.runtime.indexer.IndexingJournals"/>
-
-    <bean class="com.ecg.replyts.core.runtime.indexer.IndexerChunkHandler"/>
-    <bean class="com.ecg.replyts.core.runtime.indexer.IndexerBulkHandler"/>
-
-    <bean class="com.ecg.replyts.core.runtime.indexer.IndexerHealthCheck"/>
-    <bean class="com.ecg.replyts.core.runtime.indexer.DeltaIndexingCronJob"/>
+    <context:component-scan base-package="com.ecg.replyts.core.runtime.indexer" />
 
     <bean class="com.ecg.replyts.core.runtime.sanitycheck.SanityCheckService"/>
     <bean class="com.ecg.replyts.core.runtime.ModuleSystemConfiguration"/>
@@ -76,6 +63,5 @@
 
     <bean id="userIdentifierServiceFactory" class="com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory"/>
 
-    <bean id="userIdentifierService" factory-bean="userIdentifierServiceFactory"
-          factory-method="createUserIdentifierService"/>
+    <bean id="userIdentifierService" factory-bean="userIdentifierServiceFactory" factory-method="createUserIdentifierService"/>
 </beans>

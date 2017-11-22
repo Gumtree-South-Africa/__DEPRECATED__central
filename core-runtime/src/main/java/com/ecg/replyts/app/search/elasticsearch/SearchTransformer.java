@@ -13,37 +13,33 @@ import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.util.StringUtils;
 
-import java.util.Optional;
-
 import static java.util.Optional.ofNullable;
 import static org.elasticsearch.index.query.FilterBuilders.*;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
 
-/**
- * Takes a {@link com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload}
- * or a {@link com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessageGroupPayload}
- * and converts it into a query that ES can understand.
- *
- * @author mhuttar
- */
-final class SearchTransformer {
-
+public final class SearchTransformer {
     private static final int GROUP_SIZE = 10;
 
-    static final String GROUPING_AGG_NAME = "grouping";
-    static final String ITEMS_AGG_NAME = "items";
+    public static final String GROUPING_AGG_NAME = "grouping";
+    public static final String ITEMS_AGG_NAME = "items";
 
     private final SearchMessagePayload payload;
+
     private final Client client;
+
     private final String indexName;
+
+    private final boolean groupedSearch;
+
+    private final TermsBuilder topLevelFieldAggregation = AggregationBuilders.terms(GROUPING_AGG_NAME);
+
+    private final TopHitsBuilder itemsAggregation = AggregationBuilders.topHits(ITEMS_AGG_NAME);
+
     private BoolQueryBuilder rootQuery;
 
     private AndFilterBuilder rootFilter;
-    private final boolean groupedSearch;
-    private final TermsBuilder topLevelFieldAggregation = AggregationBuilders.terms(GROUPING_AGG_NAME);
-    private final TopHitsBuilder itemsAggregation = AggregationBuilders.topHits(ITEMS_AGG_NAME);
 
     private SearchTransformer(SearchMessagePayload payload, Client client, String indexName) {
         this.payload = payload;
@@ -59,17 +55,15 @@ final class SearchTransformer {
         this.groupedSearch = true;
     }
 
-    /**
-     * analyzes the given payload and builds an ES request out of it
-     */
     SearchRequestBuilder intoQuery() {
         SearchRequestBuilder searchRequestBuilder = client.prepareSearch(indexName).setTypes(ElasticSearchSearchService.TYPE_NAME);
+
         if (groupedSearch) {
             searchRequestBuilder = searchRequestBuilder
-                    // we only care about the aggregation hits.
-                    // also, query cache only works for this type
-                    .setSearchType(SearchType.COUNT)
-                    .setQueryCache(true);
+              // we only care about the aggregation hits.
+              // also, query cache only works for this type
+              .setSearchType(SearchType.COUNT)
+              .setQueryCache(true);
         } else {
             searchRequestBuilder = searchRequestBuilder.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
         }
@@ -92,29 +86,26 @@ final class SearchTransformer {
     }
 
     private void setupAttachmentsFilter() {
-        if (Strings.isNullOrEmpty(payload.getAttachments())) {
-            return;
+        if (!Strings.isNullOrEmpty(payload.getAttachments())) {
+            addFilter(queryFilter(queryStringQuery(payload.getAttachments()).defaultField("attachments")));
         }
-        FilterBuilder forAttachments = queryFilter(queryStringQuery(payload.getAttachments()).defaultField("attachments"));
-        addFilter(forAttachments);
     }
 
     private void setupEditorFilter() {
-        Optional<String> lastEditor = ofNullable(payload.getLastEditor());
-        lastEditor.ifPresent(value -> {
-            TermFilterBuilder adIdFilter = termFilter("lastEditor", value);
-            addFilter(adIdFilter);
-        });
+        if (payload.getLastEditor() != null) {
+            addFilter(termFilter("lastEditor", payload.getLastEditor()));
+        }
     }
 
     private void setupCustomValuesQuery() {
         if (!payload.getConversationCustomValues().isEmpty()) {
             BoolQueryBuilder andQuery = boolQuery();
+
             for (String key : payload.getConversationCustomValues().keySet()) {
                 // by convention headers are always lowercase
-                andQuery.must(matchPhraseQuery("customHeaders." + key.toLowerCase(),
-                        payload.getConversationCustomValues().get(key)));
+                andQuery.must(matchPhraseQuery("customHeaders." + key.toLowerCase(), payload.getConversationCustomValues().get(key)));
             }
+
             addQuery(andQuery);
         }
     }
@@ -122,6 +113,7 @@ final class SearchTransformer {
     private void setupMailAddressQuery() {
         if (StringUtils.hasText(payload.getUserEmail())) {
             String userEmailLowerCase = payload.getUserEmail().toLowerCase();
+
             switch (payload.getUserRole()) {
                 case RECEIVER:
                     addQuery(wildcardQuery("toEmail", userEmailLowerCase));
@@ -136,11 +128,12 @@ final class SearchTransformer {
                     addQuery(wildcardQuery("fromEmailAnonymous", userEmailLowerCase));
                     break;
                 case ANY:
-                    BoolQueryBuilder orQuery = boolQuery();
-                    orQuery.should(wildcardQuery("fromEmail", userEmailLowerCase));
-                    orQuery.should(wildcardQuery("toEmail", userEmailLowerCase));
-                    orQuery.should(wildcardQuery("fromEmailAnonymous", userEmailLowerCase));
-                    orQuery.should(wildcardQuery("toEmailAnonymous", userEmailLowerCase));
+                    BoolQueryBuilder orQuery = boolQuery()
+                      .should(wildcardQuery("fromEmail", userEmailLowerCase))
+                      .should(wildcardQuery("toEmail", userEmailLowerCase))
+                      .should(wildcardQuery("fromEmailAnonymous", userEmailLowerCase))
+                      .should(wildcardQuery("toEmailAnonymous", userEmailLowerCase));
+
                     addQuery(orQuery);
                     break;
                 default:
@@ -167,6 +160,7 @@ final class SearchTransformer {
             TermsFilterBuilder messageStateFilterBuilder = FilterBuilders.inFilter("messageState", payload.getMessageStates().stream().map(Enum::name).toArray());
             addFilter(messageStateFilterBuilder);
         }
+
         if (payload.getHumanResultState() != null) {
             TermFilterBuilder humanResultStateFilter = termFilter("humanResultState", payload.getHumanResultState().name());
             addFilter(humanResultStateFilter);
@@ -187,25 +181,16 @@ final class SearchTransformer {
 
     private void setupTimeRangeFilter() {
         if (payload.getFromDate() != null || payload.getToDate() != null) {
-            RangeFilterBuilder rangeFilter = rangeFilter("receivedDate");
-            rangeFilter.from(payload.getFromDate());
-            rangeFilter.to(payload.getToDate());
+            RangeFilterBuilder rangeFilter = rangeFilter("receivedDate")
+              .from(payload.getFromDate())
+              .to(payload.getToDate());
+
             addFilter(rangeFilter);
         }
     }
 
     private void setupOrdering(SearchRequestBuilder searchRequestBuilder) {
-        SortOrder so;
-        switch (payload.getOrdering()) {
-            case NEWEST_FIRST:
-                so = DESC;
-                break;
-            case OLDEST_FIRST:
-                so = ASC;
-                break;
-            default:
-                throw new IllegalStateException("can not understand ordering " + payload.getOrdering());
-        }
+        SortOrder so = payload.getOrdering().equals(SearchMessagePayload.ResultOrdering.NEWEST_FIRST) ? DESC : ASC;
 
         if (!groupedSearch) {
             searchRequestBuilder.addSort("receivedDate", so);
@@ -220,11 +205,14 @@ final class SearchTransformer {
             if (!groupedSearch) {
                 searchRequestBuilder.setSize(payload.getCount());
             }
+
             topLevelFieldAggregation.size(payload.getCount());
+
             // Reduce the likelihood of errors in the aggregation
             // See http://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-terms-aggregation.html
             topLevelFieldAggregation.shardSize(payload.getCount() * 2);
         }
+
         if (payload.getOffset() > 0) {
             searchRequestBuilder.setFrom(payload.getOffset());
             itemsAggregation.setFrom(payload.getOffset());
@@ -241,8 +229,8 @@ final class SearchTransformer {
         }
 
         topLevelFieldAggregation
-                .field(((SearchMessageGroupPayload) payload).getGroupBy())
-                .subAggregation(itemsAggregation);
+          .field(((SearchMessageGroupPayload) payload).getGroupBy())
+          .subAggregation(itemsAggregation);
 
         searchRequestBuilder.addAggregation(topLevelFieldAggregation);
     }
@@ -251,6 +239,7 @@ final class SearchTransformer {
         if (rootFilter == null) {
             rootFilter = FilterBuilders.andFilter();
         }
+
         rootFilter.add(filter);
     }
 
@@ -258,18 +247,15 @@ final class SearchTransformer {
         if (rootQuery == null) {
             rootQuery = boolQuery();
         }
+
         rootQuery.must(query);
     }
 
-
-    /**
-     * creates a new transformer that is capable of transforming the given search into a query that ES understands.
-     */
-    static SearchTransformer translate(SearchMessagePayload payload, Client client, String indexName) {
+    public static SearchTransformer translate(SearchMessagePayload payload, Client client, String indexName) {
         return new SearchTransformer(payload, client, indexName);
     }
 
-    static SearchTransformer translate(SearchMessageGroupPayload payload, Client client, String indexName) {
+    public static SearchTransformer translate(SearchMessageGroupPayload payload, Client client, String indexName) {
         return new SearchTransformer(payload, client, indexName);
     }
 }

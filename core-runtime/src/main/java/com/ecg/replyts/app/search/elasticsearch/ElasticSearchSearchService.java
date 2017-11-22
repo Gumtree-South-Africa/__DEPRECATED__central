@@ -21,34 +21,39 @@ import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
 import static com.ecg.replyts.app.search.elasticsearch.SearchTransformer.translate;
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 
-class ElasticSearchSearchService implements SearchService, MutableSearchService {
-
+@Component
+public class ElasticSearchSearchService implements SearchService, MutableSearchService {
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchSearchService.class);
+
     private static final Timer SEARCH_TIMER = TimingReports.newTimer("es-doSearch");
     private static final Timer GROUP_SEARCH_TIMER = TimingReports.newTimer("es-doGroupSearch");
-    static final String TYPE_NAME = "message";
 
-    private final Client client;
-    private final String indexName;
-    private final long timeoutMs;
+    public static final String TYPE_NAME = "message";
 
-    ElasticSearchSearchService(Client client, String indexName, long timeoutMs) {
-        this.client = client;
-        this.indexName = indexName;
-        this.timeoutMs = timeoutMs;
-    }
+    @Autowired
+    private Client client;
+
+    @Value("${search.es.indexname:replyts}")
+    private String indexName;
+
+    @Value("${search.es.timeout.ms:20000}")
+    private long timeoutMs;
 
     @Override
     public RtsSearchResponse search(SearchMessagePayload searchMessageCommand) {
-
         SearchRequestBuilder searchRequestBuilder = translate(searchMessageCommand, client, indexName).intoQuery();
+
         LOG.trace("\n\nRequest:\n\n {}", searchRequestBuilder);
 
         SearchResponse searchResponse = executeSearch(searchRequestBuilder, SEARCH_TIMER);
@@ -58,8 +63,8 @@ class ElasticSearchSearchService implements SearchService, MutableSearchService 
 
     @Override
     public RtsSearchGroupResponse search(SearchMessageGroupPayload searchMessageCommand) {
-
         SearchRequestBuilder searchRequestBuilder = translate(searchMessageCommand, client, indexName).intoQuery();
+
         LOG.trace("\n\nRequest:\n\n {}", searchRequestBuilder);
 
         SearchResponse searchResponse = executeSearch(searchRequestBuilder, GROUP_SEARCH_TIMER);
@@ -70,11 +75,12 @@ class ElasticSearchSearchService implements SearchService, MutableSearchService 
     private SearchResponse executeSearch(SearchRequestBuilder searchRequestBuilder, Timer searchTimer) {
         try (Timer.Context ignore = searchTimer.time()) {
             SearchResponse response = searchRequestBuilder.execute().actionGet(timeoutMs, TimeUnit.MILLISECONDS);
+
             LOG.trace("\n\nResponse:\n\n{}", response);
+
             return response;
-        } catch (Exception exception) {
-            LOG.error("Couldn't perform elastic search. Search query: {}", searchRequestBuilder, exception);
-            throw new RuntimeException(exception);
+        } catch (Exception e) {
+            throw new RuntimeException(format("Couldn't perform search query {}", searchRequestBuilder), e);
         }
     }
 
@@ -111,8 +117,8 @@ class ElasticSearchSearchService implements SearchService, MutableSearchService 
         for (SearchHit hit : hits) {
             try {
                 MessageDocumentId messageDocumentId = MessageDocumentId.parse(hit.getId());
-                storedIds.add(new RtsSearchResponse.IDHolder(messageDocumentId.getMessageId(),
-                        messageDocumentId.getConversationId()));
+
+                storedIds.add(new RtsSearchResponse.IDHolder(messageDocumentId.getMessageId(), messageDocumentId.getConversationId()));
             } catch (RuntimeException exception) {
                 LOG.error("Could not extract message/conv from searchresult: {} ", hit.getId(), exception);
             }
@@ -123,16 +129,17 @@ class ElasticSearchSearchService implements SearchService, MutableSearchService 
     public void delete(Range<DateTime> allConversationsCreatedBetween) {
         Date from = allConversationsCreatedBetween.lowerEndpoint().toDate();
         Date to = allConversationsCreatedBetween.upperEndpoint().toDate();
+
         Preconditions.checkNotNull(from);
         Preconditions.checkNotNull(to);
 
         client.prepareDeleteByQuery(indexName)
-                .setTypes(TYPE_NAME)
-                .setQuery(
-                        rangeQuery("conversationStartDate")
-                                .from(from)
-                                .to(to))
-                .execute()
-                .actionGet();
+          .setTypes(TYPE_NAME)
+          .setQuery(
+            rangeQuery("conversationStartDate")
+              .from(from)
+              .to(to))
+          .execute()
+          .actionGet();
     }
 }

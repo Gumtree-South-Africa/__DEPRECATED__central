@@ -140,11 +140,6 @@
                     <artifactId>gtau-coremod-autogatemaildelivery</artifactId>
                     <version>${project.version}</version>
                 </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>gtau-coremod-readrepairindexer</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>

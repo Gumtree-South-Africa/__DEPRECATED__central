@@ -10,6 +10,10 @@ import com.google.common.collect.Range;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -17,31 +21,27 @@ import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-class ChunkedIndexerAction implements IndexerAction {
-
+@Component
+@ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid') }")
+public class ChunkedIndexerAction implements IndexerAction {
     private static final Logger LOG = LoggerFactory.getLogger(ChunkedIndexerAction.class);
-    // Setup here a quite long time before job will be stopped because full index will also done with this indexer and might take some time.
-    private static final int MAX_PROCESSING_TIME_DAYS = 20;
 
-    private Counter submittedConvCounter = newCounter("indexer.chunked-submittedConvCounter");
-    private final Timer TIMER = TimingReports.newTimer("indexer.chunked-indexConversations");
+    private static final Counter SUBMITTED_CONVERSATIONS_COUNTER = newCounter("indexer.chunked-submittedConvCounter");
+    private static final Timer INDEX_CONVERSATIONS_TIMER = TimingReports.newTimer("indexer.chunked-indexConversations");
 
-    private final IndexerChunkHandler indexerChunkHandler;
-    private final ConversationRepository conversationRepository;
-    private final int threadCount;
-    private final int chunkSizeMinutes;
+    private static final int MAX_PROCESSING_TIME_DAYS = 20; // Needed as this will also be used for a full reindex
 
-    ChunkedIndexerAction(
-            ConversationRepository conversationRepository,
-            IndexerChunkHandler indexerChunkHandler,
-            int threadCount,
-            int chunkSizeMinutes
-    ) {
-        this.conversationRepository = conversationRepository;
-        this.indexerChunkHandler = indexerChunkHandler;
-        this.threadCount = threadCount;
-        this.chunkSizeMinutes = chunkSizeMinutes;
-    }
+    @Autowired
+    private ConversationRepository conversationRepository;
+
+    @Autowired
+    private IndexerChunkHandler indexerChunkHandler;
+
+    @Value("${batch.bulkoperations.threadcount:4}")
+    private int threadCount;
+
+    @Value("${batch.indexer.chunksize.minutes:10}")
+    private int chunkSizeMinutes;
 
     @Override
     public void doIndexBetween(DateTime dateFrom, DateTime dateTo, IndexingMode indexingMode, IndexingJournal journal) {
@@ -51,9 +51,8 @@ class ChunkedIndexerAction implements IndexerAction {
         BlockingBatchExecutor<Range<DateTime>> executor = new BlockingBatchExecutor<>("indexing-" + indexingMode.name(), threadCount, MAX_PROCESSING_TIME_DAYS, DAYS);
 
         executor.executeAll(dateSlices, slice -> new IndexChunkRunnable(slice, journal), indexingMode.errorHandlingPolicy());
-        LOG.debug("Full indexing complete, indexed {} conversations", submittedConvCounter.getCount());
+        LOG.debug("Full indexing complete, indexed {} conversations", SUBMITTED_CONVERSATIONS_COUNTER.getCount());
     }
-
 
     private class IndexChunkRunnable implements Runnable {
         private final Range<DateTime> slice;
@@ -66,13 +65,15 @@ class ChunkedIndexerAction implements IndexerAction {
 
         @Override
         public void run() {
-            try (Timer.Context ignored = TIMER.time()) {
+            try (Timer.Context ignored = INDEX_CONVERSATIONS_TIMER.time()) {
                 List<String> conversationIds = conversationRepository.listConversationsModifiedBetween(slice.lowerEndpoint(), slice.upperEndpoint());
                 if (!conversationIds.isEmpty()) {
-                    submittedConvCounter.inc(conversationIds.size());
+                    SUBMITTED_CONVERSATIONS_COUNTER.inc(conversationIds.size());
+
                     LOG.debug("Indexing conversations from {}, to {}", slice.lowerEndpoint(), slice.upperEndpoint());
                     LOG.trace("Indexing conversation ids: {}", conversationIds.toString());
-                    LOG.debug("Indexing {} conversation, total indexed so far {}", conversationIds.size(), submittedConvCounter.getCount());
+                    LOG.debug("Indexing {} conversation, total indexed so far {}", conversationIds.size(), SUBMITTED_CONVERSATIONS_COUNTER.getCount());
+
                     journal.completedChunk();
                     indexerChunkHandler.indexChunk(conversationIds);
                 }

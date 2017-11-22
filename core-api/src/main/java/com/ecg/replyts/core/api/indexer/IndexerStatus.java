@@ -3,16 +3,23 @@ package com.ecg.replyts.core.api.indexer;
 import org.joda.time.DateTime;
 
 public class IndexerStatus {
-
     private boolean running;
-    private DateTime dateFrom, dateTo;
-    private DateTime startDate;
-    private int totalChunks;
-    private int completedChunks;
-    private DateTime endDate;
-    private String mode;
-    private String hostName;
 
+    private DateTime dateFrom;
+
+    private DateTime dateTo;
+
+    private DateTime startDate;
+
+    private int totalChunks;
+
+    private int completedChunks;
+
+    private DateTime endDate;
+
+    private String mode;
+
+    private String hostName;
 
     public boolean isRunning() {
         return running;
