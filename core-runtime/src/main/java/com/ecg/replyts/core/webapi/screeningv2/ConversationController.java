@@ -136,7 +136,7 @@ class ConversationController {
         String sellerId = conversation.getSellerId();
         Preconditions.checkArgument(
             issuerEmail.equalsIgnoreCase(buyerId) || issuerEmail.equalsIgnoreCase(sellerId),
-            "issuerEmail {} is not buyerId {} or sellerId {}",
+            "issuerEmail '%s' is not buyerId '%s' or sellerId '%s'",
             issuerEmail,
             buyerId,
             sellerId);
