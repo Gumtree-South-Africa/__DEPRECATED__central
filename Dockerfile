@@ -1,6 +1,6 @@
-FROM openjdk:8u131-jre-alpine
+FROM docker-registry.ecg.so/comaas/openjdk:8u151-jre-alpine
 
-LABEL maintainer="Comaas team <TODO>"
+LABEL maintainer="Comaas team <DL-eCG-comaas-dev@ebay.com>"
 
 VOLUME /opt/replyts/dropfolder /opt/replyts/logs
 
