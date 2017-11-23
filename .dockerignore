@@ -1,3 +1,4 @@
 *
-!distribution/target/docker
 !docker
+# leave this in, used for building on Jenkins:
+!docker_image_src

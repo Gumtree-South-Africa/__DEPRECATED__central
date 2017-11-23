@@ -75,3 +75,6 @@ build-env
 comaas.out
 comaas.pid
 
+docker_image_src/
+logs/
+
