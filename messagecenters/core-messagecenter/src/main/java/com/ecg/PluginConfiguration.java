@@ -17,7 +17,7 @@ import javax.annotation.PostConstruct;
 public class PluginConfiguration {
     @Configuration
     @ComponentScan("com.ecg.messagebox")
-    @ConditionalOnExpression("#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde' || '${replyts.tenant}' == 'gtuk'}")
+    @ConditionalOnExpression("#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde'}")
     static class MessageBoxConfiguration { }
 
     @Configuration
