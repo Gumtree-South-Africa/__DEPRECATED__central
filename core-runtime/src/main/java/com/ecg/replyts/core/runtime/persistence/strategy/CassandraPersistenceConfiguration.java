@@ -2,6 +2,7 @@ package com.ecg.replyts.core.runtime.persistence.strategy;
 
 import com.codahale.metrics.MetricRegistry;
 import com.datastax.driver.core.AtomicMonotonicTimestampGenerator;
+import com.datastax.driver.core.CloseFuture;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.HostDistance;
@@ -39,7 +40,7 @@ import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraCon
 import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository;
 import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import com.google.common.base.Splitter;
-import com.google.common.io.Closeables;
+import com.google.common.util.concurrent.Futures;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +52,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PreDestroy;
-import java.io.IOException;
+
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -357,16 +360,17 @@ public class CassandraPersistenceConfiguration {
         }
 
         @PreDestroy
-        public void closeCassandra() {
-            try {
-                Closeables.close(cassandraSessionForCore, true);
-                Closeables.close(cassandraClusterForCore, true);
-                Closeables.close(cassandraSessionForJobs, true);
-                Closeables.close(cassandraClusterForJobs, true);
-                Closeables.close(cassandraSessionForMb, true);
-                Closeables.close(cassandraClusterForMb, true);
-            } catch (IOException ignored) {
-            }
+        public void closeCassandra() throws InterruptedException {
+            List<CloseFuture> closeFutures = new ArrayList<>();
+
+            closeFutures.add(cassandraSessionForCore.closeAsync());
+            closeFutures.add(cassandraClusterForCore.closeAsync());
+            closeFutures.add(cassandraSessionForJobs.closeAsync());
+            closeFutures.add(cassandraClusterForJobs.closeAsync());
+            closeFutures.add(cassandraSessionForMb.closeAsync());
+            closeFutures.add(cassandraClusterForMb.closeAsync());
+
+            closeFutures.forEach(Futures::getUnchecked);
         }
 
         @Bean(name = "cassandraReadConsistency")
