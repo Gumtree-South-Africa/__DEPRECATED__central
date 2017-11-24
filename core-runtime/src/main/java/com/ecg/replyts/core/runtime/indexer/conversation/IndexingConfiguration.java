@@ -2,19 +2,12 @@ package com.ecg.replyts.core.runtime.indexer.conversation;
 
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import org.elasticsearch.client.Client;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-class IndexingConfiguration {
-
-    @Bean
-    @Autowired
-    SearchIndexer searchIndexer(Client client, MailCloakingService mailCloakingService) {
-        IndexDataBuilder indexDataBuilder = new IndexDataBuilder(mailCloakingService);
-        return new SearchIndexer(client, indexDataBuilder);
-    }
-
+@Configuration
+public class IndexingConfiguration {
     @Value("${streaming.indexing.bulk.flush.sizemb:12}")
     private int batchSizeToFlushMb;
 
@@ -25,9 +18,12 @@ class IndexingConfiguration {
     private int maxActions;
 
     @Bean
-    @Autowired
-    BulkIndexer bulkIndexer(Client client, MailCloakingService mailCloakingService) {
-        IndexDataBuilder indexDataBuilder = new IndexDataBuilder(mailCloakingService);
-        return new BulkIndexer(client, indexDataBuilder, concurrency, batchSizeToFlushMb, maxActions);
+    public SearchIndexer searchIndexer(Client client, MailCloakingService mailCloakingService) {
+        return new SearchIndexer(client, new IndexDataBuilder(mailCloakingService));
+    }
+
+    @Bean
+    public BulkIndexer bulkIndexer(Client client, MailCloakingService mailCloakingService) {
+        return new BulkIndexer(client, new IndexDataBuilder(mailCloakingService), concurrency, batchSizeToFlushMb, maxActions);
     }
 }

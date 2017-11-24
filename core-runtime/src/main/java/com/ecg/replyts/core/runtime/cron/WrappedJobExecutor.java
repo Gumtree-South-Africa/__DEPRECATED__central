@@ -8,9 +8,9 @@ import org.quartz.JobKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.lang.String.format;
 
 public class WrappedJobExecutor implements Job {
-
     private static final Logger LOG = LoggerFactory.getLogger(WrappedJobExecutor.class);
 
     @Override
@@ -18,17 +18,18 @@ public class WrappedJobExecutor implements Job {
         JobKey jobKey = ctx.getJobDetail().getKey();
         String jobType = jobKey.getGroup();
         String jobName = jobKey.getName();
+
         try {
             LOG.trace("Executing Job {}:{}", jobType, jobName);
-            @SuppressWarnings("unchecked")
-            Class<? extends CronJobExecutor> executorType = (Class<? extends CronJobExecutor>) Class.forName(jobName);
-            CronJobService srvc = (CronJobService) ctx.getScheduler().getContext().get(CronJobService.CRON_JOB_SERVICE);
-            srvc.invokeMonitoredIfLeader(executorType);
-            LOG.trace("Job Execution Complete {}:{}", jobType, jobName);
-        } catch (Exception ex) {
-            LOG.error("Failed executing Cron Job " + jobName, ex);
-            throw new RuntimeException(ex);
-        }
 
+            Class<? extends CronJobExecutor> executorType = (Class<? extends CronJobExecutor>) Class.forName(jobName);
+            CronJobService service = (CronJobService) ctx.getScheduler().getContext().get(CronJobService.CRON_JOB_SERVICE);
+
+            service.invokeMonitoredIfLeader(executorType);
+
+            LOG.trace("Job Execution Complete {}:{}", jobType, jobName);
+        } catch (Exception e) {
+            throw new RuntimeException(format("Failed executing cronjob %s", jobName), e);
+        }
     }
 }

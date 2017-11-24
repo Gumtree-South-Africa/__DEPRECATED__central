@@ -4,19 +4,22 @@ import com.ecg.replyts.core.api.cron.CronExecution;
 import com.ecg.replyts.core.api.cron.ExecutionStatusMonitor;
 import com.google.common.collect.ImmutableList;
 import com.hazelcast.core.HazelcastInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
+@Component
 public class DistributedExecutionStatusMonitor implements ExecutionStatusMonitor {
+    @Autowired
+    private HazelcastInstance hazelcast;
 
-    private final List<CronExecution> runningExecutions;
+    private List<CronExecution> runningExecutions;
 
-    public DistributedExecutionStatusMonitor(HazelcastInstance hazelcast) {
-        this(hazelcast.<CronExecution>getList("distributed-execution-status-monitor"));
-    }
-
-    public DistributedExecutionStatusMonitor(List<CronExecution> set) {
-        this.runningExecutions = set;
+    @PostConstruct
+    private void initialize() {
+        this.runningExecutions = hazelcast.getList("distributed-execution-status-monitor");
     }
 
     @Override
@@ -24,13 +27,11 @@ public class DistributedExecutionStatusMonitor implements ExecutionStatusMonitor
         return ImmutableList.copyOf(runningExecutions);
     }
 
-    void start(CronExecution e) {
+    public void start(CronExecution e) {
         runningExecutions.add(e);
     }
 
-    void end(CronExecution e) {
+    public void end(CronExecution e) {
         runningExecutions.remove(e);
     }
-
-
 }

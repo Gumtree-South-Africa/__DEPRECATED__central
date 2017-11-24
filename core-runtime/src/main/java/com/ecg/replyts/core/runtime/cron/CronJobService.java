@@ -18,210 +18,125 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
 
-/**
- * Service capable of executing cron jobs. This service uses quartz internally to ensure cron jobs are executed uniquely
- * per cluster, not per machine. This service will pick up all Spring Beans that implement {@link CronJobExecutor} and
- * register them to quartz with their {@link CronJobExecutor#getPreferredCronExpression()}. <br/>
- * Also provides monitoring for all jobs by exporting one {@link Check} per {@link CronJobExecutor} that will be updated
- * on each job execution.<br/>
- * Registers MBeans for all Jobs to make them invokable via JMX. <br/>
- * Registers Sanity checks for all Cron Jobs that are registered.
- *
- * @author mhuttar
- */
 @Service
+@ConditionalOnProperty(value = "node.passive", havingValue = "false", matchIfMissing = true)
 public class CronJobService implements CheckProvider {
     private static final Logger LOG = LoggerFactory.getLogger(CronJobService.class);
 
     protected static final String CRON_JOB_SERVICE = CronJobService.class.getName();
 
-    private final MonitoringSupport monitoringSupport;
+    @Autowired
+    private HazelcastInstance hazelcast;
 
-    private final Map<Class<? extends CronJobExecutor>, CronJobExecutor> cronReg;
+    @Autowired
+    private DistributedExecutionStatusMonitor statusMonitor;
 
-    private final DistributedExecutionStatusMonitor statusMonitor;
+    @Autowired(required = false)
+    private List<CronJobExecutor> executors = Collections.emptyList();
 
-    private final HazelcastInstance hazelcast;
+    @Autowired
+    private MonitoringSupport monitoringSupport;
 
     private Scheduler scheduler;
 
-    private JmxInvokeSupport jmxInvokeSupport;
-
-    private final boolean disableCronjobs;
-
-
-    /**
-     * Initializes the {@link CronJobService} and registers all given {@link CronJobExecutor} to the embedded quartz
-     * scheduler.
-     *
-     * @param executors
-     * @param disableCronjobs
-     */
-    @Autowired
-    public CronJobService(
-      @Value("${cluster.jmx.enabled:true}") boolean isJmxEnabled,
-      List<CronJobExecutor> executors,
-      DistributedExecutionStatusMonitor statusMonitor,
-      HazelcastInstance hazelcast,
-      @Value("${node.passive:false}") boolean disableCronjobs) {
-        this.statusMonitor = statusMonitor;
-        this.hazelcast = hazelcast;
-        this.disableCronjobs = disableCronjobs;
+    @PostConstruct
+    private void initialize() {
+        LOG.info("Initializing cronjobs: {}", executors);
 
         try {
-            LOG.info("Initializing Cron Job Frameworks. Registered Cronjobs: {}", executors);
+            scheduler = new StdSchedulerFactory().getScheduler();
 
-            monitoringSupport = new MonitoringSupport(executors, hazelcast);
+            for (CronJobExecutor executor : executors) {
+                String jobName = executor.getClass().getName();
 
-            cronReg = sortExecutors(executors);
+                JobDetail jobDetail = JobBuilder.newJob(WrappedJobExecutor.class)
+                  .withIdentity(jobName, "ReplyTS")
+                  .build();
 
-            if (!disableCronjobs) {
-                scheduler = new StdSchedulerFactory().getScheduler();
+                LOG.info("Creating new cronjob for {} which fires at {}", executor.getClass(), executor.getPreferredCronExpression());
 
-                initExecutors();
+                CronTrigger jobSchedule = TriggerBuilder.newTrigger()
+                  .withIdentity(jobName + ".trigger", "ReplyTS")
+                  .withSchedule(CronScheduleBuilder.cronSchedule(executor.getPreferredCronExpression()))
+                  .build();
 
-                scheduler.getContext().put(CRON_JOB_SERVICE, this);
-
-                scheduler.start();
-
-                LOG.debug("Cron jobs initialized");
-            } else {
-                LOG.debug("Cron jobs disabled");
+                scheduler.scheduleJob(jobDetail, jobSchedule);
             }
 
-            jmxInvokeSupport = isJmxEnabled ? new JmxInvokeSupport(this, executors) : null;
+            scheduler.getContext().put(CRON_JOB_SERVICE, this);
+
+            scheduler.start();
         } catch (SchedulerException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Map<Class<? extends CronJobExecutor>, CronJobExecutor> sortExecutors(List<CronJobExecutor> executors) {
-        Map<Class<? extends CronJobExecutor>, CronJobExecutor> instances = new HashMap<>();
-        for (CronJobExecutor c : executors) {
-            if (instances.containsKey(c.getClass())) {
-                throw new IllegalStateException("Found Multiple Jobs of same type for Cron Job " + c);
-            }
-            instances.put(c.getClass(), c);
-        }
-        return Collections.unmodifiableMap(instances);
-    }
-
-
-    private void initExecutors() throws SchedulerException {
-        LOG.info("Initializing Cron Jobs");
-        if (disableCronjobs) {
-            LOG.warn("Cronjobs disabled - this is a passive node!");
-            return;
-        }
-        for (CronJobExecutor cje : cronReg.values()) {
-            String jobName = cje.getClass().getName();
-            JobDetail jobDetail = JobBuilder.newJob(WrappedJobExecutor.class)
-                    .withIdentity(jobName, "ReplyTS")
-                    .build();
-
-            if (scheduler.checkExists(jobDetail.getKey())) {
-                LOG.info("Reusing existing Cron Job configuration for job {}", jobDetail.getKey());
-                continue;
-            }
-            LOG.info("Creating new Cron Job for {}, fire at {}", cje.getClass(), cje.getPreferredCronExpression());
-            CronTrigger jobSchedule = TriggerBuilder
-                    .newTrigger()
-                    .withIdentity(jobName + ".trigger", "ReplyTS")
-                    .withSchedule(CronScheduleBuilder.cronSchedule(cje.getPreferredCronExpression()))
-                    .build();
-
-            scheduler.scheduleJob(jobDetail, jobSchedule);
-        }
-    }
-
-    /**
-     * Invokes a job and tries to ensure that this job is only executed once per cluster rather than on all nodes.
-     * Informs the job's monitor about it's outcome.
-     *
-     * @param type
-     */
-    void invokeMonitoredIfLeader(Class<? extends CronJobExecutor> type) {
+    public void invokeMonitoredIfLeader(Class<? extends CronJobExecutor> type) {
         ILock clusterJobLock = hazelcast.getLock(type.getName());
-        boolean executeJobOnThisNode = clusterJobLock.tryLock();
-        if (executeJobOnThisNode) {
+
+        if (clusterJobLock.tryLock()) {
             CronExecution cronExecution = CronExecution.forJob(type);
+
             try {
                 statusMonitor.start(cronExecution);
                 invokeMonitored(type);
             } finally {
-                try {
-                    clusterJobLock.unlock();
-                    statusMonitor.end(cronExecution);
-                } catch (Exception e) {
-                    LOG.error("failed to clean up after a job execution", e);
-                }
+                clusterJobLock.unlock();
+                statusMonitor.end(cronExecution);
             }
         }
     }
 
-    /**
-     * Invokes a Cronjob and informs the job's monitor about it's outcome.
-     *
-     * @param type
-     */
-    void invokeMonitored(Class<? extends CronJobExecutor> type) {
-        CronJobExecutor cronJobExecutor = cronReg.get(type);
+    private void invokeMonitored(Class<? extends CronJobExecutor> type) {
+        CronJobExecutor executor = executors.stream()
+          .filter(e -> e.getClass().equals(type))
+          .findFirst().orElseThrow(RuntimeException::new);
+
         String jobType = type.getSimpleName();
-        if (cronJobExecutor == null) {
-            LOG.error("No Job of type {} available", jobType);
-            return;
-        }
+
         try {
             setTaskFields(jobType);
-            LOG.trace("Invoking Cron Job {}", jobType);
+
+            LOG.trace("Invoking cronjob {}", jobType);
+
             monitoringSupport.start(type);
             Stopwatch timing = Stopwatch.createStarted();
-            cronJobExecutor.execute();
+
+            executor.execute();
+
             timing.stop();
             monitoringSupport.success(type);
-            LOG.info("Cron Job {} completed in {}", type, timing);
+
+            LOG.info("Cronjob {} completed in {}", type, timing);
         } catch (Exception e) {
-            LOG.error("Cron Job aborted Abnormally: " + jobType, e);
+            LOG.error("Cronjob aborted abnormally: {}", jobType, e);
+
             monitoringSupport.failure(type, e);
-        }
-
-    }
-
-
-    /**
-     * shuts down the cron job execution.
-     */
-    @PreDestroy
-    void stop() {
-        try {
-            if (jmxInvokeSupport != null) {
-                jmxInvokeSupport.stop();
-            }
-
-            if (scheduler != null) {
-                scheduler.shutdown();
-
-                LOG.info("Cron Job Service shutdown");
-            }
-        } catch (SchedulerException e) {
-            throw new RuntimeException(e);
         }
     }
 
     @Override
     public List<Check> getChecks() {
         return monitoringSupport.getChecks();
+    }
+
+    @PreDestroy
+    private void stop() {
+        try {
+            scheduler.shutdown();
+        } catch (SchedulerException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

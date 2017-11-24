@@ -35,11 +35,6 @@
     <context:component-scan base-package="com.ecg.replyts.app.cronjobs" />
     <context:component-scan base-package="com.ecg.replyts.app.postprocessorchain" />
 
-    <bean class="com.ecg.replyts.core.runtime.indexer.conversation.IndexingConfiguration" />
-
-    <bean class="com.ecg.replyts.core.runtime.indexer.AsyncOutdatedEntityReporter" />
-
-
     <context:component-scan base-package="com.ecg.replyts.core.runtime.cluster" />
 
     <context:component-scan base-package="com.ecg.replyts.core.runtime.maildelivery" />
@@ -52,16 +47,17 @@
 
     <context:component-scan base-package="com.ecg.replyts.core.runtime.indexer" />
 
-    <bean class="com.ecg.replyts.core.runtime.sanitycheck.SanityCheckService"/>
-    <bean class="com.ecg.replyts.core.runtime.ModuleSystemConfiguration"/>
+    <context:component-scan base-package="com.ecg.replyts.core.runtime.cron" />
 
-    <bean class="com.ecg.replyts.core.runtime.listener.MessageStatsListener"/>
+    <bean class="com.ecg.replyts.core.runtime.sanitycheck.SanityCheckService" />
 
-    <bean class="com.ecg.replyts.core.webapi.DefaultApiConfiguration"/>
+    <bean class="com.ecg.replyts.core.runtime.listener.MessageStatsListener" />
+
+    <bean class="com.ecg.replyts.core.webapi.DefaultApiConfiguration" />
 
     <bean class="com.ecg.replyts.migrations.MigrationConfiguration" />
 
-    <bean id="userIdentifierServiceFactory" class="com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory"/>
+    <bean id="userIdentifierServiceFactory" class="com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory" />
 
-    <bean id="userIdentifierService" factory-bean="userIdentifierServiceFactory" factory-method="createUserIdentifierService"/>
+    <bean id="userIdentifierService" factory-bean="userIdentifierServiceFactory" factory-method="createUserIdentifierService" />
 </beans>

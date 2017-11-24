@@ -1,14 +1,15 @@
 package com.ecg.replyts.core.runtime.cron;
 
-import com.ecg.replyts.core.api.cron.CronJobExecutor;
 import com.ecg.replyts.core.api.sanitychecks.Check;
 import com.ecg.replyts.core.api.sanitychecks.Status;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
 
@@ -17,11 +18,11 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MonitoringSupportTest {
-
-    private MonitoringSupport monitoringSupport;
-
     @Mock
     private HazelcastInstance hazelcast;
+
+    @InjectMocks
+    private MonitoringSupport monitoringSupport;
 
     private final AtomicReferenceSimulator isRunningReferenceA = new AtomicReferenceSimulator();
     private final AtomicReferenceSimulator lastExceptionReferenceA = new AtomicReferenceSimulator();
@@ -30,7 +31,6 @@ public class MonitoringSupportTest {
     private final AtomicReferenceSimulator isRunningReferenceB = new AtomicReferenceSimulator();
     private final AtomicReferenceSimulator lastExceptionReferenceB = new AtomicReferenceSimulator();
     private final AtomicReferenceSimulator lastRunReferenceB = new AtomicReferenceSimulator();
-
 
     private static class CronJobExecutorA extends SampleCronJobExecutor {
         private CronJobExecutorA() {
@@ -49,7 +49,6 @@ public class MonitoringSupportTest {
 
     @Before
     public void setup() {
-
         when(hazelcast.getAtomicReference("CronJobExecutorA-isRunning")).thenReturn(isRunningReferenceA);
         when(hazelcast.getAtomicReference("CronJobExecutorA-lastException")).thenReturn(lastExceptionReferenceA);
         when(hazelcast.getAtomicReference("CronJobExecutorA-lastRun")).thenReturn(lastRunReferenceA);
@@ -58,7 +57,8 @@ public class MonitoringSupportTest {
         when(hazelcast.getAtomicReference("CronJobExecutorB-lastException")).thenReturn(lastExceptionReferenceB);
         when(hazelcast.getAtomicReference("CronJobExecutorB-lastRun")).thenReturn(lastRunReferenceB);
 
-        monitoringSupport = new MonitoringSupport(Arrays.<CronJobExecutor>asList(a, b), hazelcast);
+        ReflectionTestUtils.setField(monitoringSupport, "executors", Arrays.asList(a, b));
+        ReflectionTestUtils.invokeMethod(monitoringSupport, "initialize");
     }
 
     @Test

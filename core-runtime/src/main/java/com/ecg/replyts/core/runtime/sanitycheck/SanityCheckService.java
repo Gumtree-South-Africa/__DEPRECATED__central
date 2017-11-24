@@ -21,7 +21,7 @@ import java.util.List;
  * @author mhuttar
  */
 @Component
-@ConditionalOnProperty(value = "cluster.jmx.enabled", havingValue = "true", matchIfMissing=  true)
+@ConditionalOnProperty(value = "cluster.jmx.enabled", havingValue = "true", matchIfMissing = true)
 public class SanityCheckService {
     private static final Logger LOG = LoggerFactory.getLogger(SanityCheckService.class);
 

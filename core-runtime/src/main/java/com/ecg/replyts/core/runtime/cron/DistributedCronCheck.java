@@ -15,13 +15,10 @@ import java.util.Date;
 import java.util.Optional;
 
 /**
- * The state of this check will reflect the cluster wide state via Hazelcast.
- * <p/>
- * This ensures that every node in the cluster shows the cluster wide state so that "failed" checks won't
- * show stale status when the cron job already ran successful on another node.
+ * This check ensures that every node in the cluster shows the cluster wide state, so that "failed" checks won't
+ * show a stale status when the cronjob already ran successfully on another node.
  */
-class DistributedCronCheck implements Check {
-
+public class DistributedCronCheck implements Check {
     private static final Logger LOG = LoggerFactory.getLogger(DistributedCronCheck.class);
 
     private static final String LAST_RUN_CLUSTER_KEY = "-lastRun";
@@ -33,10 +30,9 @@ class DistributedCronCheck implements Check {
     private final IAtomicReference<Exception> lastException;
     private final IAtomicReference<Boolean> isRunning;
 
-    DistributedCronCheck(Class<?> classType, HazelcastInstance hazelcast) {
+    public DistributedCronCheck(Class<?> classType, HazelcastInstance hazelcast) {
         type = classType.getSimpleName();
-        String name = type + LAST_EXCEPTION_CLUSTER_KEY;
-        lastException = hazelcast.getAtomicReference(name);
+        lastException = hazelcast.getAtomicReference(type + LAST_EXCEPTION_CLUSTER_KEY);
         lastRun = hazelcast.getAtomicReference(type + LAST_RUN_CLUSTER_KEY);
         isRunning = hazelcast.getAtomicReference(type + IS_RUNNING_CLUSTER_KEY);
     }
@@ -46,17 +42,13 @@ class DistributedCronCheck implements Check {
         Long lastRunValue = lastRun.get();
         Exception lastExceptionValue = lastException.get();
 
-        Status s = Status.OK;
-        Message msg;
         if (lastRunValue == null) {
-            msg = Message.shortInfo("Not run yet");
+            return Result.createResult(Status.OK, Message.shortInfo("Not run yet"));
         } else if (lastExceptionValue == null) {
-            msg = Message.shortInfo(String.format("Successfully completed at %s", new Date(lastRunValue)));
+            return Result.createResult(Status.OK, Message.shortInfo(String.format("Successfully completed at %s", new Date(lastRunValue))));
         } else {
-            s = Status.CRITICAL;
-            msg = Message.fromException(String.format("Error in execution at %s", new Date(lastRunValue)), lastExceptionValue);
+            return Result.createResult(Status.CRITICAL, Message.fromException(String.format("Error in execution at %s", new Date(lastRunValue)), lastExceptionValue));
         }
-        return Result.createResult(s, msg);
     }
 
     public void setState(Date lastRun, Exception e) {
@@ -86,10 +78,11 @@ class DistributedCronCheck implements Check {
     public boolean isRunning() {
         try {
             return Optional.ofNullable(isRunning.get()).orElse(false);
-        } catch (HazelcastException | HazelcastInstanceNotActiveException hzExc) {
+        } catch (HazelcastException | HazelcastInstanceNotActiveException e) {
             // Not printing the entire stack trace here, because it's basically useless and will
             // flood the logs due to how often this method is called.
-            LOG.warn("Can't fetch is-running status of check [{}]. Message: {}", getName(), hzExc.getMessage());
+            LOG.warn("Can't fetch is-running status of check [{}]. Message: {}", getName(), e.getMessage());
+
             return false;
         }
     }
