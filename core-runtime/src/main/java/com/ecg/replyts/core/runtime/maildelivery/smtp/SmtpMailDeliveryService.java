@@ -8,12 +8,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mail.MailException;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+
 import java.util.Properties;
 
 @Component
@@ -60,6 +62,11 @@ public class SmtpMailDeliveryService implements MailDeliveryService {
             MimeMessage message = mailTranscoderService.toJavaMail(m);
 
             sender.send(message);
+        } catch (MailSendException e) {
+            LOG.error("Unable to send mail message. To: {}, Delivered-To: {}, From: {}, messageId: {}", m.getTo(), m.getDeliveredTo(), m.getFrom(), m.getMessageId(), e);
+            e.getFailedMessages().forEach((message, exception) -> LOG.error("Failed message: {}", message, exception));
+
+            throw new MailDeliveryException(e);
         } catch (MessagingException | MailException e) {
             LOG.error("Unable to send mail message. To: {}, Delivered-To: {}, From: {}, messageId: {}", m.getTo(), m.getDeliveredTo(), m.getFrom(), m.getMessageId(), e);
 
