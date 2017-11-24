@@ -34,12 +34,10 @@ import java.util.concurrent.TimeUnit;
 public class Comparer {
 
     private final ExecutorService executor;
-
     private final CassConfigurationRepo configurationRepo;
-
     private final R2CConversationDiffTool convDiff;
-
     private final R2CPostboxDiffTool pboxDiff;
+    private final R2CConversationBlockDiffTool convBlockDiff;
 
     @Component
     static class Options {
@@ -58,7 +56,7 @@ public class Comparer {
         @Option(name = "-tz", usage = "Add/remove tz minutes from the time range")
         int timezoneShiftInMinutes = 0;
 
-        @Option(name = "-what", required = true, usage = "What to validate/load [conv, mbox, config]")
+        @Option(name = "-what", required = true, usage = "What to validate/load [conv, convBlock, mbox, config]")
         String what;
 
         @Option(name = "-configFile", forbids = {"-endDate", "-startDate", "-r2c", "-c2r", "-tz", "-rc", "-ids"}, usage = "File to load the Configuration from")
@@ -77,10 +75,11 @@ public class Comparer {
     private static final Logger LOG = LoggerFactory.getLogger(Comparer.class);
 
     @Autowired
-    public Comparer(ExecutorService executor, R2CConversationDiffTool convDiff, R2CPostboxDiffTool pboxDiff, CassConfigurationRepo configurationRepo) {
+    public Comparer(ExecutorService executor, R2CConversationDiffTool convDiff, R2CPostboxDiffTool pboxDiff, R2CConversationBlockDiffTool convBlockDiff, CassConfigurationRepo configurationRepo) {
         this.executor = executor;
         this.convDiff = convDiff;
         this.pboxDiff = pboxDiff;
+        this.convBlockDiff = convBlockDiff;
         this.configurationRepo = configurationRepo;
     }
 
@@ -189,6 +188,18 @@ public class Comparer {
                     }
                 }
                 break;
+            case "convBlock":
+                LOG.info("ConversationBlock diffing can only be performed on full range of entries (record counts and dat ranges are NOT supported)");
+                if (diffToolOpts.riakToCassandra) {
+                    if (diffToolOpts.conversationIds != null) {
+                        ConversationBlockComparer.compareRiakToCassandraConv(convBlockDiff, diffToolOpts.conversationIds);
+                    } else {
+                        ConversationBlockComparer.compareRiakToCassandraConv(convBlockDiff);
+                    }
+                } else {
+                    LOG.warn("Only -r2c option (Riak -> Cassandra) is supported");
+                }
+                break;
             default: {
                 String msg = String.format("'%s' unsupported or missing -what operation", diffToolOpts.what);
                 throw new UnsupportedOperationException(msg);
@@ -197,6 +208,4 @@ public class Comparer {
         executor.shutdown();
         executor.awaitTermination(5, TimeUnit.SECONDS);
     }
-
-
 }

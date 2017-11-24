@@ -35,6 +35,10 @@
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
+            <artifactId>kjca-messagecenter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
             <artifactId>core-graphite</artifactId>
         </dependency>
         <dependency>

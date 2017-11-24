@@ -65,6 +65,7 @@
         <dependency>
             <groupId>ca.kijiji</groupId>
             <artifactId>remote-service-command</artifactId>
+            <version>${kjca-remote-service-command-version}</version>
         </dependency>
 
         <!-- Testing -->

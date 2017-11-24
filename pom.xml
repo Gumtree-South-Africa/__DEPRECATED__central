@@ -130,10 +130,19 @@
         </profile>
 
         <profile>
+            <repositories>
+                <repository>
+                    <id>kjca-nexus</id>
+                    <url>http://nexus.kjdev.ca/content/repositories/public/</url>
+                </repository>
+            </repositories>
+
             <id>migration</id>
             <modules>
                 <module>migration/difftool</module>
                 <module>messagecenters/ebayk-messagecenter</module>
+                <module>messagecenters/kjca-messagecenter</module>
+                <module>coremods/kjca-coremod-shared</module>
             </modules>
         </profile>
 

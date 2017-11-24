@@ -3,6 +3,9 @@ package com.ecg.comaas.r2cmigration.difftool;
 import com.ecg.de.kleinanzeigen.replyts.graphite.GraphiteExporter;
 import com.ecg.messagecenter.persistence.JsonToPostBoxConverter;
 import com.ecg.messagecenter.persistence.PostBoxToJsonConverter;
+import com.ecg.messagecenter.persistence.block.ConversationBlockToJsonConverter;
+import com.ecg.messagecenter.persistence.block.JsonToConversationBlockConverter;
+import com.ecg.messagecenter.persistence.block.RiakConversationBlockConverter;
 import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxConflictResolver;
 import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxConverter;
 import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxMerger;
@@ -39,11 +42,9 @@ public class DiffToolConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(DiffToolConfiguration.class);
 
     public static final String RIAK_CONVERSATION_BUCKET_NAME = "conversation";
-
+    public static final String RIAK_CONVERSATION_BLOCK_BUCKET_NAME = "conversation_block";
     public static final String RIAK_POSTBOX_BUCKET_NAME = "postbox";
-
     public static final String RIAK_SECONDARY_INDEX_MODIFIED_AT = "modifiedAt";
-
     public static final String DATETIME_STRING = "dd-MM-yyyy'T'HH:mm";
 
     @Value("${graphite.enabled:true}")
@@ -83,6 +84,11 @@ public class DiffToolConfiguration {
     }
 
     @Bean
+    public R2CConversationBlockDiffTool r2CConversationBlockDiffTool() {
+        return new R2CConversationBlockDiffTool(idBatchSize);
+    }
+
+    @Bean
     public R2CPostboxDiffTool r2CPostboxDiffTool() {
         return new R2CPostboxDiffTool(idBatchSize, maxEntityAge);
     }
@@ -98,6 +104,21 @@ public class DiffToolConfiguration {
     }
 
     @Bean
+    public RiakConversationBlockConverter riakConversationBlockConverter() {
+        return new RiakConversationBlockConverter();
+    }
+
+    @Bean
+    public ConversationBlockToJsonConverter conversationBlockToJsonConverter() {
+        return new ConversationBlockToJsonConverter();
+    }
+
+    @Bean
+    public JsonToConversationBlockConverter jsonToConversationBlockConverter() {
+        return new JsonToConversationBlockConverter();
+    }
+
+    @Bean
     public RiakSimplePostBoxMerger postBoxMerger() {
         return new RiakSimplePostBoxMerger();
     }
@@ -108,5 +129,4 @@ public class DiffToolConfiguration {
                 new ArrayBlockingQueue<>(workQueueSize),
                 new InstrumentedCallerRunsPolicy("executorRun", "")), "executor", "");
     }
-
 }
