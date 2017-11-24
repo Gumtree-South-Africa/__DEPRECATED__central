@@ -15,7 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
@@ -40,6 +42,7 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
     private final Timer byIdTimer = TimingReports.newTimer("cassandra.blockRepo-byId");
     private final Timer writeTimer = TimingReports.newTimer("cassandra.blockRepo-write");
     private final Timer cleanupTimer = TimingReports.newTimer("cassandra.blockRepo-cleanup");
+    private final Timer getIdsTimer = TimingReports.newTimer("cassandra.blockRepo-getIds");
 
     private Map<StatementsBase, PreparedStatement> preparedStatements;
 
@@ -108,6 +111,22 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
         LOG.info("Cleanup: Finished deleting conversation blocks.");
     }
 
+    @Override
+    public List<String> getIds() {
+        try (Timer.Context ignored = getIdsTimer.time()) {
+            List<String> conversationBlockIds = new ArrayList<>();
+            ResultSet result = cassandraSessionForMb.execute(Statements.SELECT_CONVERSATION_BLOCK_IDS.bind(this));
+
+            List<Row> rows = result.all();
+            for (Row row : rows) {
+                if (row != null) {
+                    conversationBlockIds.add(row.getString(FIELD_CONVERSATION_ID));
+                }
+            }
+            return conversationBlockIds;
+        }
+    }
+
     @Autowired
     public void setObjectMapperConfigurer(JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
         this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
@@ -132,6 +151,7 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
     }
 
     static class Statements extends StatementsBase {
+        static Statements SELECT_CONVERSATION_BLOCK_IDS = new Statements("SELECT conversation_id FROM mb_conversationblock", false);
         static Statements SELECT_CONVERSATION_BLOCK = new Statements("SELECT conversation_id, json_value FROM mb_conversationblock WHERE conversation_id = ?", false);
         static Statements SELECT_CONVERSATION_BLOCK_BEFORE_DATE = new Statements("SELECT conversation_id FROM mb_conversationblock_idx WHERE modification_date < ? ALLOW FILTERING", false);
         static Statements SELECT_CONVERSATION_BLOCK_LATEST = new Statements("SELECT modification_date FROM mb_conversationblock_idx WHERE conversation_id = ? LIMIT 1", false);

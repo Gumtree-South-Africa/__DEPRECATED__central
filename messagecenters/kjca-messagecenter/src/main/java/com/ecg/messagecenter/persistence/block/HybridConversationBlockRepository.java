@@ -7,6 +7,8 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public class HybridConversationBlockRepository implements ConversationBlockRepository {
     private static final Logger LOG = LoggerFactory.getLogger(HybridConversationBlockRepository.class);
 
@@ -67,5 +69,11 @@ public class HybridConversationBlockRepository implements ConversationBlockRepos
         } catch (Exception e) {
             LOG.error("Error while performing Cassandra ConversationBlock cleanup", e);
         }
+    }
+
+    @Override
+    public List<String> getIds() {
+        // in hybrid mode Riak would have at least the same (or even bigger) dataset
+        return riakRepository.getIds();
     }
 }

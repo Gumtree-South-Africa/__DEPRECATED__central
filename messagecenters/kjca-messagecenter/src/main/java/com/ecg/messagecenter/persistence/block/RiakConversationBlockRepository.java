@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 
 public class RiakConversationBlockRepository implements ConversationBlockRepository {
     private static final Logger LOG = LoggerFactory.getLogger(RiakConversationBlockRepository.class);
@@ -27,6 +28,7 @@ public class RiakConversationBlockRepository implements ConversationBlockReposit
     private static final Timer COMMIT_TIMER = TimingReports.newTimer("convoBlockRepo-commit");
     private static final Timer GET_BY_ID_TIMER = TimingReports.newTimer("convoBlockRepo-getById");
     private static final Timer DELETE_TIMER = TimingReports.newTimer("convoBlockRepo-delete");
+    private static final Timer GET_IDS_TIMER = TimingReports.newTimer("convoBlockRepo-getIds");
 
     public static final String BUCKET_NAME = "conversation_block";
     public static final String CREATED_INDEX = "createdAt";
@@ -56,6 +58,7 @@ public class RiakConversationBlockRepository implements ConversationBlockReposit
         }
     }
 
+    @Override
     public ConversationBlock byId(String conversationId) {
         try (Timer.Context ignored = GET_BY_ID_TIMER.time()) {
             return bucket.fetch(conversationId, ConversationBlock.class)
@@ -71,6 +74,7 @@ public class RiakConversationBlockRepository implements ConversationBlockReposit
         }
     }
 
+    @Override
     public void write(ConversationBlock conversationBlock) {
         try (Timer.Context ignored = COMMIT_TIMER.time()) {
             bucket.store(conversationBlock.getConversationId(), conversationBlock)
@@ -85,6 +89,7 @@ public class RiakConversationBlockRepository implements ConversationBlockReposit
         }
     }
 
+    @Override
     public void cleanup(DateTime deleteBlocksBefore) {
         try {
             LOG.info("Beginning to remove user conversation blocks");
@@ -113,4 +118,12 @@ public class RiakConversationBlockRepository implements ConversationBlockReposit
         }
     }
 
+    @Override
+    public List<String> getIds() {
+        try (Timer.Context ignored = GET_IDS_TIMER.time()) {
+            return bucket.keys().getAll();
+        } catch (RiakException e) {
+            throw new RuntimeException("Getting all conversationBlock IDs failed", e);
+        }
+    }
 }
