@@ -1,4 +1,4 @@
-CREATE TABLE volume_events (
+CREATE TABLE message_occurrences (
     user_id text,
     received_time timestamp,
     message_id text,

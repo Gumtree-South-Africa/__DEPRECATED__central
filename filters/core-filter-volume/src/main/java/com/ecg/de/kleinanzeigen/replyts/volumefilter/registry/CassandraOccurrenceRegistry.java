@@ -40,8 +40,8 @@ public class CassandraOccurrenceRegistry implements OccurrenceRegistry {
     }
 
     private enum Statements {
-        COUNT("SELECT count(*) FROM volume_events WHERE user_id = ? AND received_time > ?"),
-        UPSERT("INSERT INTO volume_events (user_id, received_time, message_id) VALUES (?, ?, ?) IF NOT EXISTS USING TTL ?", true);
+        COUNT("SELECT count(*) FROM message_occurrences WHERE user_id = ? AND received_time > ?"),
+        UPSERT("INSERT INTO message_occurrences (user_id, received_time, message_id) VALUES (?, ?, ?) IF NOT EXISTS USING TTL ?", true);
 
         private final String cql;
         private final boolean modifying;
