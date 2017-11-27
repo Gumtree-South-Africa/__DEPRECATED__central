@@ -14,6 +14,7 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -36,10 +37,11 @@ class PostBoxOverviewController {
     @Autowired
     public PostBoxOverviewController(
             SimplePostBoxRepository postBoxRepository,
-            ConversationBlockRepository conversationBlockRepository
+            ConversationBlockRepository conversationBlockRepository,
+            @Value("${replyts.maxConversationAgeDays:180}") int maxAgeDays
     ) {
         this.postBoxRepository = postBoxRepository;
-        this.responseBuilder = new PostBoxResponseBuilder(conversationBlockRepository);
+        this.responseBuilder = new PostBoxResponseBuilder(conversationBlockRepository, maxAgeDays);
     }
 
 

@@ -21,16 +21,18 @@ public class PostBoxResponseBuilderTest {
 
     private PostBoxResponseBuilder builder;
     private static final String USER_EMAIL = "buyerEmail@example.com";
+    private static final String OTHER_USER_EMAIL = "otherBuyerEmail@example.com";
+
     private PostBox postBox;
 
     @Before
     public void setUp() throws Exception {
-        builder = new PostBoxResponseBuilder(mock(RiakConversationBlockRepository.class));
+        builder = new PostBoxResponseBuilder(mock(RiakConversationBlockRepository.class), 30);
         postBox = new PostBox("" +
                 USER_EMAIL,
                 Optional.of(0L),
                 Lists.newArrayList(
-                        new ConversationThread("1", "a", now(), now().minusHours(100), now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of("someOtherBuyer@example.com"), Optional.of("SELLER_TO_BUYER")),
+                        new ConversationThread("1", "a", now(), now().minusHours(100), now(), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(OTHER_USER_EMAIL), Optional.of("SELLER_TO_BUYER")),
                         new ConversationThread("2", "b", now(), now().minusHours(10), now().minusHours(4), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(USER_EMAIL), Optional.of("BUYER_TO_SELLER")),
                         new ConversationThread("3", "c", now(), now().minusHours(10), now().minusHours(4), false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(USER_EMAIL), Optional.of("BUYER_TO_SELLER")),
                         new ConversationThread("4", "d", now(), now().minusHours(10), now().minusHours(4), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(USER_EMAIL), Optional.of("BUYER_TO_SELLER"))
@@ -57,5 +59,22 @@ public class PostBoxResponseBuilderTest {
     public void testGetNumUnreadForRole_capCorrectly() throws Exception {
         int numUnreadAsBuyer = builder.getNumUnreadForRole(USER_EMAIL, ConversationRole.Buyer, postBox, 1);
         Assert.assertEquals(1, numUnreadAsBuyer);
+    }
+
+    @Test
+    public void testExpiredConversationsInPostBox() throws Exception {
+
+        PostBox expiredConvsPostBox = new PostBox(
+                USER_EMAIL,
+                Optional.of(0L),
+                Lists.newArrayList(
+                        new ConversationThread("2", "b", now(), now().minusDays(05), now().minusDays(04), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(OTHER_USER_EMAIL), Optional.of("BUYER_TO_SELLER")),
+                        new ConversationThread("3", "c", now(), now().minusDays(29), now().minusDays(29), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(OTHER_USER_EMAIL), Optional.of("BUYER_TO_SELLER")),
+                        new ConversationThread("4", "d", now(), now().minusDays(30), now().minusDays(30), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(OTHER_USER_EMAIL), Optional.of("BUYER_TO_SELLER")),
+                        new ConversationThread("5", "e", now(), now().minusDays(31), now().minusDays(31), true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(OTHER_USER_EMAIL), Optional.of("BUYER_TO_SELLER"))
+                )
+        );
+        ResponseObject<PostBoxResponse> postBoxResponseResponseObject = builder.buildPostBoxResponse(OTHER_USER_EMAIL, 5, 0, ConversationRole.Buyer, expiredConvsPostBox, false);
+        Assert.assertEquals(3, postBoxResponseResponseObject.getBody().getConversations().size());
     }
 }
