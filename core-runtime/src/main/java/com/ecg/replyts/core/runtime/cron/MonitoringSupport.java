@@ -16,7 +16,7 @@ import static java.lang.String.format;
 @Component
 public class MonitoringSupport {
     @Autowired(required = false)
-    private List<CronJobExecutor> executors;
+    private List<CronJobExecutor> executors = Collections.emptyList();
 
     @Autowired
     private HazelcastInstance hazelcast;
