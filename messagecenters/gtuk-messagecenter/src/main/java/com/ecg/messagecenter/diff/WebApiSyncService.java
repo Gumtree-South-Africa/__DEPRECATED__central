@@ -51,7 +51,9 @@ public class WebApiSyncService {
 
     private boolean diffEnabled;
 
-    private final DiffTool diff;
+    @Autowired(required = false)
+    private DiffTool diff;
+
     private final ConversationService conversationService;
     private final PostBoxService postBoxService;
     private final SimplePostBoxRepository postBoxRepository;
@@ -72,7 +74,6 @@ public class WebApiSyncService {
 
     @Autowired
     public WebApiSyncService(
-            DiffTool diff,
             ConversationService conversationService,
             PostBoxService postBoxService,
             SimplePostBoxRepository postBoxRepository,
@@ -85,7 +86,6 @@ public class WebApiSyncService {
             @Value("${webapi.diff.executor.differ.maxQueueSize:500}") int diffMaxQueueSize,
             @Value("${webapi.diff.uk.enabled:false}") boolean diffEnabled) {
 
-        this.diff = diff;
         this.conversationService = conversationService;
         this.postBoxService = postBoxService;
         this.postBoxRepository = postBoxRepository;
