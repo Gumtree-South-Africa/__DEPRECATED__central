@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.sanitychecks.Check;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -14,6 +15,7 @@ import java.util.*;
 import static java.lang.String.format;
 
 @Component
+@ConditionalOnProperty(value = "node.passive", havingValue = "false", matchIfMissing = true)
 public class MonitoringSupport {
     @Autowired(required = false)
     private List<CronJobExecutor> executors = Collections.emptyList();

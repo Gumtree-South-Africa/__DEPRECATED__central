@@ -5,12 +5,14 @@ import com.ecg.replyts.core.api.cron.ExecutionStatusMonitor;
 import com.google.common.collect.ImmutableList;
 import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Component
+@ConditionalOnProperty(value = "node.passive", havingValue = "false", matchIfMissing = true)
 public class DistributedExecutionStatusMonitor implements ExecutionStatusMonitor {
     @Autowired
     private HazelcastInstance hazelcast;

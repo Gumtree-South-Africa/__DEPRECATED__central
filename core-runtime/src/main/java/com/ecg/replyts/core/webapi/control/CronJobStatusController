@@ -5,12 +5,14 @@ import com.ecg.replyts.core.api.cron.ExecutionStatusMonitor;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-public class CronjobStatusController {
+@ConditionalOnProperty(value = "node.passive", havingValue = "false", matchIfMissing = true)
+public class CronJobStatusController {
     @Autowired
     private ExecutionStatusMonitor monitor;
 
