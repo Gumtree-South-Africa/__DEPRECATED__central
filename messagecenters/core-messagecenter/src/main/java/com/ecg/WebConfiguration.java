@@ -68,7 +68,7 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
 
     @Configuration
     @ComponentScan("com.ecg.messagebox.controllers")
-    @ConditionalOnExpression("#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde'}")
+    @ConditionalOnExpression("#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde' || ('${replyts.tenant}' == 'gtuk' && '${webapi.sync.uk.enabled}' == 'true')}")
     static class MessageBoxEndpoints { }
 
     @Configuration
