@@ -68,7 +68,7 @@ public class PostBoxOverviewController {
             PostBoxResponse postBoxResponse;
             if (syncEnabled) {
                 // Use retrieved PostBox Response from diffing to avoid the second call to cassandra
-                postBoxResponse = webapiSyncService.getPostBox(PostBoxId.fromEmail(email), page, size, newCounterMode);
+                postBoxResponse = webapiSyncService.getPostBox(email, page, size, newCounterMode);
             } else {
                 PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
                 API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
