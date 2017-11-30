@@ -473,7 +473,7 @@
         <jackson-version>2.8.9</jackson-version>
         <janino-version>2.6.1</janino-version>
         <javaxdelta-version>2.0.1</javaxdelta-version>
-        <javax-mail-version>1.4.7</javax-mail-version>
+        <javax-mail-version>1.6.0</javax-mail-version>
         <jetty-version>9.4.6.v20170531</jetty-version>
         <joda-time-version>2.8.2</joda-time-version>
         <jrest-version>1.0.2</jrest-version>
@@ -1619,8 +1619,8 @@
                 <version>${mime4j-version}</version>
             </dependency>
             <dependency>
-                <groupId>javax.mail</groupId>
-                <artifactId>mail</artifactId>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
                 <version>${javax-mail-version}</version>
                 <exclusions>
                     <exclusion>
@@ -1864,8 +1864,12 @@
                 <version>${subethasmtp-version}</version>
                 <exclusions>
                     <exclusion>
-                        <artifactId>slf4j-api</artifactId>
+                        <groupId>javax.mail</groupId>
+                        <artifactId>mail</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-api</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

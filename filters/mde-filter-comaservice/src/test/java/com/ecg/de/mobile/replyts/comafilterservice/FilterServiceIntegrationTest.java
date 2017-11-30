@@ -4,8 +4,8 @@ import com.ecg.de.mobile.replyts.comafilterservice.filters.ContactMessage;
 import com.ecg.de.mobile.replyts.comafilterservice.filters.PhoneNumber;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Charsets;
@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;
+import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -22,29 +23,31 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Supplier;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class FilterServiceIntegrationTest {
-    @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
 
+    @Rule
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(createProperties());
+
+    private Properties createProperties() {
+        Properties properties = new Properties();
         properties.put("replyts.mobile.comafilterservice.webserviceUrl","http://localhost:8181");
         properties.put("replyts.mobile.comafilterservice.active","true");
-
         return properties;
-    }).get());
+    }
 
     private Date testStartTime;
 
@@ -52,12 +55,12 @@ public class FilterServiceIntegrationTest {
     public static void setup() throws Exception {
         createServer(MockServlet.class);
     }
-    
+
     @Before
     public void setupTest() {
         MockServlet.reset();
-        testStartTime = new Date();
-        replyTsIntegrationTestRule.registerConfig(FilterServiceFactory.class,  (ObjectNode) JsonObjects.parse("{}"));
+        testStartTime = Instant.now().withMillis(0).toDate();
+        replyTsIntegrationTestRule.registerConfig(FilterServiceFactory.class, (ObjectNode) JsonObjects.parse("{}"));
     }
 
     private static void createServer(Class<? extends HttpServlet> servlet) throws Exception {
@@ -72,7 +75,7 @@ public class FilterServiceIntegrationTest {
     public void testSendingMessage() throws IOException {
         MailBuilder mailBuilder = createDummyMailWithFields();
         MockServlet.setJsonResponse("[]");
-        
+
         MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule.deliver(mailBuilder);
         assertEquals(MessageState.SENT, processedMail.getMessage().getState());
 
@@ -89,8 +92,6 @@ public class FilterServiceIntegrationTest {
 
         verifyReceivedContactMessageWithFields(MockServlet.getContactMessage());
     }
-    
-    
 
     @Test
     public void testSendingMessageWithInvalidFields() throws IOException {
@@ -108,7 +109,7 @@ public class FilterServiceIntegrationTest {
 
         assertTrue(MockServlet.getContactMessage().isPresent());
     }
-    
+
     @Test
     public void testNotFilteringMessageToDealerBuyer() throws IOException {
         MailBuilder mailBuilder = createDummyMailBase()
@@ -133,7 +134,7 @@ public class FilterServiceIntegrationTest {
         assertEquals(MessageState.SENT, processedMail.getMessage().getState());
 
         Optional<ContactMessage> contactMessage = MockServlet.getContactMessage();
-        
+
         verifyReceivedContactMessageBase(contactMessage);
         verifyUndefinedMessageCreationDate(contactMessage);
         assertEquals(null, contactMessage.get().getBuyerPhoneNumber());
@@ -175,17 +176,13 @@ public class FilterServiceIntegrationTest {
     private void verifyUndefinedMessageCreationDate(Optional<ContactMessage> contactMessage) {
 
         assertNotNull(contactMessage.get().getMessageCreatedTime());
-        assertTrue("message creation time after test start time", contactMessage.get().getMessageCreatedTime().after(testStartTime));
-        assertTrue("message creation time before current time", contactMessage.get().getMessageCreatedTime().before(new Date()));
-
+        assertThat(contactMessage.get().getMessageCreatedTime()).isAfterOrEqualsTo(testStartTime);
+        assertThat(contactMessage.get().getMessageCreatedTime()).isBeforeOrEqualsTo(new Date());
     }
 
-
-
-    
     private void verifyReceivedContactMessageWithFields(Optional<ContactMessage> contactMessage) {
         verifyReceivedContactMessageBase(contactMessage);
-        
+
         assertEquals(new PhoneNumber(49,"123456"), contactMessage.get().getBuyerPhoneNumber());
         assertEquals("GERMANY", contactMessage.get().getSiteId());
         assertEquals("127.0.0.1", contactMessage.get().getIpAddressV4V6());
@@ -201,12 +198,8 @@ public class FilterServiceIntegrationTest {
         calendar.set(Calendar.SECOND,15);
         calendar.set(Calendar.ZONE_OFFSET,0);
         assertEquals(calendar.getTime(), contactMessage.get().getMessageCreatedTime());
-
     }
 
-
-
-    
     @SuppressWarnings("serial")
     public static class MockServlet extends HttpServlet {
 
@@ -217,9 +210,9 @@ public class FilterServiceIntegrationTest {
             contactMessage = Optional.empty();
             jsonResponse = "";
         }
-        
+
         public static void setJsonResponse(String jsonResponse) {
-            MockServlet.jsonResponse = jsonResponse;               
+            MockServlet.jsonResponse = jsonResponse;
         }
 
         public static Optional<ContactMessage> getContactMessage() {
