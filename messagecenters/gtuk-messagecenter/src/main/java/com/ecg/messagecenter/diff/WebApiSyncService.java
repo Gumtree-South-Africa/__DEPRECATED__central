@@ -261,21 +261,25 @@ public class WebApiSyncService {
             return row.getString("conversation_id");
         }
 
-        throw new UserIdNotFoundException("Postbox not found for email: " + email);
+        throw new UserIdNotFoundException(email);
     }
 
     private String getUserId(String email, String conversationId) {
         MutableConversation conversation = conversationRepository.getById(conversationId);
         Optional<String> userId;
+        String userRole;
         if (conversation != null && email.equals(conversation.getBuyerId())) {
             userId = userIdentifierService.getBuyerUserId(conversation);
+            userRole = "buyer";
         } else if (conversation != null && email.equals(conversation.getSellerId())) {
             userId = userIdentifierService.getSellerUserId(conversation);
+            userRole = "seller";
         } else {
             userId = Optional.empty();
+            userRole = UserIdNotFoundException.UNKNOWN;
         }
 
-        return userId.orElseThrow(() -> new UserIdNotFoundException("UserId was not found for email: " + email));
+        return userId.orElseThrow(() -> new UserIdNotFoundException(email, userRole, conversationId));
     }
 
     private <T> Function<Throwable, Optional<T>> handleOpt(Counter errorCounter, String errorMessage) {
