@@ -22,7 +22,9 @@ public class CharsetAliaser extends CharsetProvider {
         this.aliasToTarget = ImmutableSortedMap.of(
                 // Not an exact alias, but not used often enough to warrant writing our own mapper
                 // At kijiji.ca only auto-responders have used this so far
-                "ansi_x3.110-1983", createAliasedCharset("ansi_x3.110-1983", "iso-8859-1")
+                "ansi_x3.110-1983", createAliasedCharset("ansi_x3.110-1983", "iso-8859-1"),
+                "cp932", createAliasedCharset("cp932", "Windows-31J"),
+                "iso-8859-8-i", createAliasedCharset("iso-8859-8-i", "iso-8859-8")
         );
     }
 
