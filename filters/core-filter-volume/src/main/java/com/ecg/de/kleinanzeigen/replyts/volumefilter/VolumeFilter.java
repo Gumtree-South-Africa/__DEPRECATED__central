@@ -40,14 +40,14 @@ class VolumeFilter implements Filter {
 
     VolumeFilter(SharedBrain sharedBrain, EventStreamProcessor processor, Collection<Window> windows,
                  Duration cassandraImplementationTimeout, boolean cassandraImplementationEnabled,
-                 @Nullable OccurrenceRegistry occurrenceRegistry) {
+                 @Nullable OccurrenceRegistry occurrenceRegistry, int cassandraImplementationThreads) {
         this.sharedBrain = sharedBrain;
         this.processor = processor;
         this.windows = Ordering.from(ORDERED_BY_QUOTA_TIME_SPAN).immutableSortedCopy(windows);
         this.cassandraImplementationTimeout = cassandraImplementationTimeout;
         this.cassandraImplementationEnabled = cassandraImplementationEnabled;
         this.occurrenceRegistry = occurrenceRegistry;
-        this.cassandraImplementationExecutor = Executors.newSingleThreadExecutor();
+        this.cassandraImplementationExecutor = Executors.newFixedThreadPool(cassandraImplementationThreads);
     }
 
     @Override

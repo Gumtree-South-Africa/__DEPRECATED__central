@@ -27,11 +27,12 @@ public class VolumeFilterFactory implements FilterFactory {
     private final Session session;
     private final Duration cassandraImplementationTimeout;
     private final boolean cassandraImplementationEnabled;
+    private final int cassandraImplementationThreads;
     private final int maxAllowedRegisteredOccurrences;
 
     public VolumeFilterFactory(SharedBrain sharedBrain, EventStreamProcessor eventStreamProcessor, Session session,
                                Duration cassandraImplementationTimeout, boolean cassandraImplementationEnabled,
-                               int maxAllowedRegisteredOccurrences) {
+                               int maxAllowedRegisteredOccurrences, int cassandraImplementationThreads) {
         this.sharedBrain = sharedBrain;
         this.eventStreamProcessor = eventStreamProcessor;
         this.session = checkNotNull(session, "session");
@@ -39,6 +40,8 @@ public class VolumeFilterFactory implements FilterFactory {
         this.cassandraImplementationEnabled = cassandraImplementationEnabled;
         checkArgument(maxAllowedRegisteredOccurrences > 0, "maxAllowedRegisteredOccurrences must be strictly positive");
         this.maxAllowedRegisteredOccurrences = maxAllowedRegisteredOccurrences;
+        checkArgument(cassandraImplementationThreads > 0, "cassandraImplementationThreads must be strictly positive");
+        this.cassandraImplementationThreads = cassandraImplementationThreads;
     }
 
     @Nonnull
@@ -67,7 +70,8 @@ public class VolumeFilterFactory implements FilterFactory {
         eventStreamProcessor.register(uniqueWindows);
 
         return new VolumeFilter(sharedBrain, eventStreamProcessor, uniqueWindows, cassandraImplementationTimeout, cassandraImplementationEnabled,
-                cassandraImplementationEnabled ? new CassandraOccurrenceRegistry(session, Duration.ofMillis(longestQuotaPeriodMillis)) : null);
+                cassandraImplementationEnabled ? new CassandraOccurrenceRegistry(session, Duration.ofMillis(longestQuotaPeriodMillis)) : null,
+                cassandraImplementationThreads);
     }
 
     static long getLongestQuotaPeriodMillis(List<Quota> quotas) {

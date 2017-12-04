@@ -21,11 +21,12 @@ public class VolumeFilterConfiguration {
     @Bean
     public FilterFactory volumeFilterFactory(SharedBrain sharedBrain, EventStreamProcessor eventStreamProcessor,
                                              @Qualifier("cassandraSessionForCore") Session session,
-                                             @Value("${filter.volume.cassandra.implementation.timeout.millis:5000}") long timeoutMillis,
+                                             @Value("${filter.volume.cassandra.implementation.timeout.millis:1000}") long timeoutMillis,
                                              @Value("${filter.volume.cassandra.implementation.enabled:false}") boolean cassandraImplementationEnabled,
-                                             @Value("${filter.volume.max.occurrences.allowed:10000}") int maxAllowedRegisteredOccurrences) {
+                                             @Value("${filter.volume.max.occurrences.allowed:10000}") int maxAllowedRegisteredOccurrences,
+                                             @Value("${filter.volume.cassandra.implementaion.threads:${replyts.threadpool.size:10}}") int cassandraImplementationThreads) {
         return new VolumeFilterFactory(sharedBrain, eventStreamProcessor, session, Duration.ofMillis(timeoutMillis),
-                cassandraImplementationEnabled, maxAllowedRegisteredOccurrences);
+                cassandraImplementationEnabled, maxAllowedRegisteredOccurrences, cassandraImplementationThreads);
     }
 
     @Bean

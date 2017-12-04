@@ -37,7 +37,7 @@ public class ShadowingTest {
             }
         };
         VolumeFilter filter = new VolumeFilter(mock(SharedBrain.class), mock(EventStreamProcessor.class),
-                Collections.singleton(window), Duration.ofMillis(5), true, registry) {
+                Collections.singleton(window), Duration.ofMillis(5), true, registry, 1) {
             @Override
             String extractSender(MessageProcessingContext context) {
                 return "jdoe@example.com";
@@ -76,7 +76,7 @@ public class ShadowingTest {
             }
         };
         VolumeFilter filter = new VolumeFilter(mock(SharedBrain.class), mock(EventStreamProcessor.class),
-                Collections.singleton(window), Duration.ofMillis(1), true, registry) {
+                Collections.singleton(window), Duration.ofMillis(1), true, registry, 1) {
             @Override
             String extractSender(MessageProcessingContext context) {
                 return "jdoe@example.com";
