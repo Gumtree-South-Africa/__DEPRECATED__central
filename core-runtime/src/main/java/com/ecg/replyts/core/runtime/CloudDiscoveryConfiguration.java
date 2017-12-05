@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @Configuration
 @PropertySource("discovery.properties")
 @EnableDiscoveryClient
-@EnableAutoConfiguration(exclude = {FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class, HazelcastAutoConfiguration.class})
+@EnableAutoConfiguration(exclude = { FreeMarkerAutoConfiguration.class, DataSourceAutoConfiguration.class, BusAutoConfiguration.class, HazelcastAutoConfiguration.class })
 @Import(ConsulConfigBootstrapConfiguration.class)
 @ConditionalOnExpression("#{'${service.discovery.enabled:true}' == 'true'}")
 public class CloudDiscoveryConfiguration {

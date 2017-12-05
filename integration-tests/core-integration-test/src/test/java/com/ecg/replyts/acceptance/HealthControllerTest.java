@@ -1,5 +1,6 @@
 package com.ecg.replyts.acceptance;
 
+import com.ecg.replyts.core.runtime.LoggingService;
 import com.ecg.replyts.core.webapi.control.HealthController;
 import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.jayway.restassured.RestAssured;
@@ -16,6 +17,7 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -38,9 +40,9 @@ import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringRunner.class)
 @ContextHierarchy({
-        @ContextConfiguration(classes = HealthControllerTest.TestConfiguration.class),
-        @ContextConfiguration(classes = HealthControllerTest.DiscoveryConfiguration.class),
-        @ContextConfiguration(locations = "classpath:server-context.xml")
+  @ContextConfiguration(classes = HealthControllerTest.TestConfiguration.class),
+  @ContextConfiguration(classes = HealthControllerTest.DiscoveryConfiguration.class),
+  @ContextConfiguration(locations = "classpath:server-context.xml")
 })
 @ActiveProfiles(EMBEDDED_PROFILE)
 public class HealthControllerTest {
@@ -62,6 +64,7 @@ public class HealthControllerTest {
     }
 
     @Configuration
+    @Import(LoggingService.class)
     public static class TestConfiguration {
         @Autowired
         private ConfigurableEnvironment environment;

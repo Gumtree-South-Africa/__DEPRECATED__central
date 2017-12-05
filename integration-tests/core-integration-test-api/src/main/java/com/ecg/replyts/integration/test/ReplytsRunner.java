@@ -1,6 +1,6 @@
 package com.ecg.replyts.integration.test;
 
-import com.ecg.replyts.core.runtime.ParentConfiguration;
+import com.ecg.replyts.core.runtime.LoggingService;
 import com.ecg.replyts.core.runtime.ReplyTS;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.io.Files;
@@ -11,19 +11,16 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.setEnv;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -88,6 +85,7 @@ public final class ReplytsRunner {
             context.registerShutdownHook();
 
             context.register(MailInterceptor.class);
+            context.register(LoggingService.class);
 
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(context.getClassLoader());
             Arrays.asList(
@@ -114,7 +112,6 @@ public final class ReplytsRunner {
             if (!context.getBean("started", Boolean.class)) {
                 throw new IllegalStateException("COMaaS did not start up in its entirety");
             }
-
         } catch (Exception e) {
             throw new IllegalStateException("COMaaS Abnormal Shutdown", e);
         }

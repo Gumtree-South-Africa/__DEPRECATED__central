@@ -1,6 +1,5 @@
 package com.ecg.replyts.core.runtime;
 
-import ch.qos.logback.classic.LoggerContext;
 import com.ecg.replyts.core.webapi.EmbeddedWebserver;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import com.hazelcast.config.Config;
@@ -11,13 +10,11 @@ import org.bitsofinfo.hazelcast.discovery.consul.ConsulDiscoveryStrategy;
 import org.bitsofinfo.hazelcast.discovery.consul.DoNothingRegistrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import uk.org.lidalia.sysoutslf4j.context.SysOutOverSLF4J;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,13 +22,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.APPLICATION;
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.REVISION;
 import static java.lang.String.format;
 
 @Configuration
-@ComponentScan(value = {"com.ecg", "com.ebay"}, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
-@Import({StartupExperience.class, EmbeddedWebserver.class})
+@ComponentScan(value = { "com.ecg", "com.ebay" }, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
+@Import({ StartupExperience.class, EmbeddedWebserver.class, LoggingPropagationService.class })
 public class ReplyTS {
     private static final Logger LOG = LoggerFactory.getLogger(ReplyTS.class);
 
@@ -118,21 +113,11 @@ public class ReplyTS {
     }
 
     public static void main(String[] args) throws Exception {
-        Thread.currentThread().setName("main");
-
-        SysOutOverSLF4J.sendSystemOutAndErrToSLF4J();
-
-        // Reset and redirect java.util.Logging to SLF4J
-        SLF4JBridgeHandler.removeHandlersForRootLogger();
-        SLF4JBridgeHandler.install();
-
-        setLoggerContextProperties();
-
         try {
-            AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[]{
-                    "classpath:server-context.xml",
-                    "classpath:runtime-context.xml",
-                    "classpath*:/plugin-inf/*.xml",
+            AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[] {
+              "classpath:server-context.xml",
+              "classpath:runtime-context.xml",
+              "classpath*:/plugin-inf/*.xml",
             }, false, new AnnotationConfigApplicationContext(ParentConfiguration.class));
 
             context.getEnvironment().setActiveProfiles(PRODUCTIVE_PROFILE);
@@ -145,11 +130,5 @@ public class ReplyTS {
 
             throw e;
         }
-    }
-
-    private static void setLoggerContextProperties() {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        loggerContext.putProperty(APPLICATION, ReplyTS.class.getPackage().getImplementationTitle());
-        loggerContext.putProperty(REVISION, ReplyTS.class.getPackage().getImplementationVersion());
     }
 }
