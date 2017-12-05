@@ -9,6 +9,7 @@ import com.ecg.messagecenter.capi.CommonApiConfig;
 import com.ecg.messagecenter.capi.HttpClientConfig;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.pushmessage.ActiveMQPushServiceImpl;
 import com.ecg.messagecenter.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.pushmessage.PushService;
@@ -35,6 +36,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private static final Counter PROCESSING_SKIPPED_PRO_AD = TimingReports.newCounter("message-box.postBoxUpdateListener.skipped.pro");
 
     private final UserNotificationRules userNotificationRules;
+    private final SimplePostBoxRepository postBoxRepository;
     private final SimplePostBoxInitializer postBoxInitializer;
     private final PushService amqPushService;
     private final PushService sendPushService;
@@ -46,6 +48,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
 
     @Autowired
     public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
+                                 SimplePostBoxRepository postBoxRepository,
                                  @Value("${push-mobile.enabled:true}") boolean pushEnabled,
                                  @Value("${capi.scheme:http}") String capiScheme,
                                  @Value("${capi.host:www.dev.kjdev.ca}") String capiHost,
@@ -63,6 +66,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                                  TextAnonymizer textAnonymizer,
                                  UnreadCountCacher unreadCountCacher) {
         this.postBoxInitializer = postBoxInitializer;
+        this.postBoxRepository = postBoxRepository;
         this.textAnonymizer = textAnonymizer;
         this.unreadCountCacher = unreadCountCacher;
 
@@ -125,6 +129,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                 conversation,
                 newReplyArrived,
                 new PushMessageOnUnreadConversationCallback(
+                        postBoxRepository,
                         pushServicePercentage,
                         amqPushService,
                         sendPushService,

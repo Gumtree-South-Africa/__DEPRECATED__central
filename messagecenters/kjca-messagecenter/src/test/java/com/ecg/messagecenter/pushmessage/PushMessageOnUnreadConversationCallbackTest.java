@@ -6,6 +6,8 @@ import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.pushmessage.send.SendPushService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -31,6 +33,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
     private PushMessageOnUnreadConversationCallback listener;
 
+    private SimplePostBoxRepository postBoxRepository;
     private Message message;
     private PushService amqPushService;
     private PushService sendPushService;
@@ -60,6 +63,9 @@ public class PushMessageOnUnreadConversationCallbackTest {
         message = mock(Message.class);
         when(message.getPlainTextBody()).thenReturn("message-text");
 
+        postBoxRepository = mock(SimplePostBoxRepository.class);
+        when(postBoxRepository.byId(PostBoxId.fromEmail("foo@bar.de"))).thenReturn(postBox);
+
         conversation = mock(Conversation.class);
         when(conversation.getId()).thenReturn("asdf:asdf");
         when(conversation.getAdId()).thenReturn("123");
@@ -77,7 +83,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
         userInfoLookup = mock(UserInfoLookup.class);
         when(userInfoLookup.lookupInfo(anyString(), anyString())).thenReturn(Optional.of(new UserInfoLookup.UserInfo("123")));
 
-        listener = new PushMessageOnUnreadConversationCallback(0, amqPushService, sendPushService, textAnonymizer, adInfoLookup, userInfoLookup, conversation, message);
+        listener = new PushMessageOnUnreadConversationCallback(postBoxRepository, 0, amqPushService, sendPushService, textAnonymizer, adInfoLookup, userInfoLookup, conversation, message);
     }
 
     @Test
@@ -89,7 +95,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
 
     @Test
     public void canSwitchToSendService() throws Exception {
-        listener = new PushMessageOnUnreadConversationCallback(100, amqPushService, sendPushService, textAnonymizer, adInfoLookup, userInfoLookup, conversation, message);
+        listener = new PushMessageOnUnreadConversationCallback(postBoxRepository, 100, amqPushService, sendPushService, textAnonymizer, adInfoLookup, userInfoLookup, conversation, message);
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
         when(message.getHeaders()).thenReturn(ImmutableMap.of("From", SELLER_MAIL));
         when(textAnonymizer.anonymizeText(any(Conversation.class), anyString())).thenReturn("message-text");

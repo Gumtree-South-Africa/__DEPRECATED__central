@@ -6,7 +6,11 @@ import ca.kijiji.tracing.TraceThreadLocal;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.cleanup.TextCleaner;
+import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.google.common.collect.ImmutableMap;
@@ -28,6 +32,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     private static final Locale DEFAULT_LOCALE = Locale.CANADA;
     private static final Pattern DISPLAY_NAME_REMOVE_QUOTES = Pattern.compile("^\"([^\"]+)\"$");
 
+    private final SimplePostBoxRepository postBoxRepository;
     private final PushService amqPushService;
     private final PushService sendPushService;
     private final TextAnonymizer textAnonymizer;
@@ -38,6 +43,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     private final Integer sendPushPercentage;
 
     public PushMessageOnUnreadConversationCallback(
+            SimplePostBoxRepository postBoxRepository,
             Integer sendPushPercentage,
             PushService amqPushService,
             PushService sendPushService,
@@ -46,6 +52,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             UserInfoLookup userInfoLookup,
             Conversation conversation,
             Message message) {
+        this.postBoxRepository = postBoxRepository;
         this.sendPushPercentage = sendPushPercentage;
         this.amqPushService = amqPushService;
         this.sendPushService = sendPushService;
@@ -92,18 +99,18 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             return;
         }
 
-        sendPushMessage(email, unreadCount);
+        sendPushMessage(email);
     }
 
-    private void sendPushMessage(String email, Long unreadCount) {
+    private void sendPushMessage(String email) {
         PushService pushService = null;
         try {
             TraceThreadLocal.set(UUID.randomUUID().toString());
             Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.lookupInfo("adId", conversation.getAdId());
             Optional<UserInfoLookup.UserInfo> userInfo = userInfoLookup.lookupInfo("email", email);
+            int unreadCount = getUnreadConversationCount(email);
 
             Optional<PushMessagePayload> payload = createPayloadBasedOnNotificationRules(conversation, message, email, unreadCount, adInfo, userInfo);
-
             if (!payload.isPresent()) {
                 return;
             }
@@ -117,6 +124,11 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             }
             LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), e);
         }
+    }
+
+    private int getUnreadConversationCount(String email) {
+        final PostBox<AbstractConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        return postBox.getUnreadConversations().size();
     }
 
     private void sendPushMessageInternal(PushService pushService, PushMessagePayload payload) {
@@ -147,7 +159,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
         return sendPushService;
     }
 
-    private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, String email, Long unreadCount, Optional<AdInfoLookup.AdInfo> adInfo, Optional<UserInfoLookup.UserInfo> userInfo) {
+    private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, String email, int unreadCount, Optional<AdInfoLookup.AdInfo> adInfo, Optional<UserInfoLookup.UserInfo> userInfo) {
         if (!userInfo.isPresent()) {
             return Optional.empty();
         }
@@ -159,8 +171,8 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
                         userInfo.map(UserInfoLookup.UserInfo::getUserId).orElse(""),
                         pushMessage,
                         "CHATMESSAGE",
-                        Optional.of(details(conversation, adInfo, pushMessage, unreadCount.intValue())),
-                        Optional.of(unreadCount.intValue())
+                        Optional.of(details(conversation, adInfo, pushMessage, unreadCount)),
+                        Optional.of(unreadCount)
                 )
         );
     }
@@ -178,7 +190,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     private Map<String, String> details(final Conversation conversation,
                                         Optional<AdInfoLookup.AdInfo> adInfo,
                                         String pushMessage,
-                                        int unreadConversationCount) {
+                                        long unreadConversationCount) {
         return ImmutableMap.<String, String>builder()
                 .put("sound", SOUND_FILE_NAME)
                 .put("AdImageUrl", adInfo.map(AdInfoLookup.AdInfo::getImageUrl).orElse(""))

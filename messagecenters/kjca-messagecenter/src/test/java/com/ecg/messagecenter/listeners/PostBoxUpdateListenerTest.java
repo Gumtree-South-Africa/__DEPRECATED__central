@@ -4,6 +4,7 @@ import ca.kijiji.replyts.TextAnonymizer;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.pushmessage.PushService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -38,6 +39,8 @@ public class PostBoxUpdateListenerTest {
     @Mock
     private SimplePostBoxInitializer postBoxInitializer;
     @Mock
+    private SimplePostBoxRepository postBoxRepository;
+    @Mock
     private PushService pushService;
     @Mock
     private PushService sendPushService;
@@ -55,7 +58,7 @@ public class PostBoxUpdateListenerTest {
 
     @Before
     public void setUp() throws Exception {
-        listener = new PostBoxUpdateListener(postBoxInitializer, false, "http", "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, 0, null, sendPushService, textAnonymizer, unreadCountCacher);
+        listener = new PostBoxUpdateListener(postBoxInitializer, postBoxRepository, false, "http", "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, 0, null, sendPushService, textAnonymizer, unreadCountCacher);
 
         convoBuilder = ImmutableConversation.Builder
                 .aConversation()
