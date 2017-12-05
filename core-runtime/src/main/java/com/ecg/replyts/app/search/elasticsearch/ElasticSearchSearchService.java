@@ -80,7 +80,7 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
 
             return response;
         } catch (Exception e) {
-            throw new RuntimeException(format("Couldn't perform search query {}", searchRequestBuilder), e);
+            throw new RuntimeException(format("Couldn't perform search query %s", searchRequestBuilder), e);
         }
     }
 
