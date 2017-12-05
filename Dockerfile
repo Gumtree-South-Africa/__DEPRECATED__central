@@ -1,4 +1,4 @@
-FROM docker-registry.ecg.so/comaas/openjdk:8u131-jre-alpine
+FROM openjdk:8u131-jre-alpine
 
 LABEL maintainer="Comaas team <DL-eCG-comaas-dev@ebay.com>"
 
