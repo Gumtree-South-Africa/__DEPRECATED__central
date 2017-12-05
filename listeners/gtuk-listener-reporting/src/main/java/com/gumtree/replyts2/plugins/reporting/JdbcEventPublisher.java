@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 
 import javax.sql.DataSource;
+
 import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,7 +70,8 @@ public class JdbcEventPublisher implements EventPublisher {
         } catch (Exception ex) {
             LOG.error("Failed to write event to event log for message {} in conversation {}",
                     event.getMessageId(),
-                    event.getConversationId());
+                    event.getConversationId(),
+                    ex);
         }
     }
 
