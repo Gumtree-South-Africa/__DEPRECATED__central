@@ -48,7 +48,6 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     private final ProcessingFinalizer persister;
     private final ProcessingContextFactory processingContextFactory;
 
-
     @Autowired
     public DefaultMessageProcessingCoordinator(Guids guids,
                                                @Autowired(required = false) Collection<MessageProcessedListener> messageProcessedListeners,

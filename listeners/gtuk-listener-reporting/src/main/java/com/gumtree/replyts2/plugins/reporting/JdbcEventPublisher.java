@@ -35,35 +35,35 @@ public class JdbcEventPublisher implements EventPublisher {
     public void publish(MessageProcessedEvent event) {
         try {
             Map<String, Object> parameters = new HashMap<>();
-            addToParameters("message_id", event.getMessageId(), parameters);
-            addToParameters("conversation_id", event.getConversationId(), parameters);
-            addToParameters("message_direction", event.getMessageDirection().ordinal() + 1, parameters);
-            addToParameters("conversation_state", event.getConversationState().ordinal() + 1, parameters);
-            addToParameters("message_state", event.getMessageState().ordinal() + 1, parameters);
-            addToParameters("filter_result_state", event.getFilterResultState().ordinal() + 1, parameters);
-            addToParameters("human_result_state", event.getHumanResultState().ordinal() + 1, parameters);
-            addToParameters("ad_id", event.getAdId(), parameters);
-            addToParameters("seller_mail", event.getSellerMail(), parameters);
-            addToParameters("buyer_mail", event.getBuyerMail(), parameters);
-            addToParameters("num_of_message_in_conversation", event.getNumOfMessageInConversation(), parameters);
-            addToParameters("timestamp", new Date(event.getTimestamp().getMillis()), parameters);
-            addToParameters("conversation_created_at", new Date(event.getConversationCreatedAt().getMillis()), parameters);
-            addToParameters("message_received_at", new Date(event.getMessageReceivedAt().getMillis()), parameters);
-            addToParameters("conversation_last_modified_at", new Date(event.getConversationLastModifiedAt().getMillis()), parameters);
-            addToParameters("message_last_modified_at", new Date(event.getMessageLastModifiedAt().getMillis()), parameters);
-            addToParameters("category_id", event.getCustomCategoryId(), parameters);
+            parameters.put("message_id", event.getMessageId());
+            parameters.put("conversation_id", event.getConversationId());
+            parameters.put("message_direction", event.getMessageDirection().ordinal() + 1);
+            parameters.put("conversation_state", event.getConversationState().ordinal() + 1);
+            parameters.put("message_state", event.getMessageState().ordinal() + 1);
+            parameters.put("filter_result_state", event.getFilterResultState().ordinal() + 1);
+            parameters.put("human_result_state", event.getHumanResultState().ordinal() + 1);
+            parameters.put("ad_id", event.getAdId());
+            parameters.put("seller_mail", event.getSellerMail());
+            parameters.put("buyer_mail", event.getBuyerMail());
+            parameters.put("num_of_message_in_conversation", event.getNumOfMessageInConversation());
+            parameters.put("timestamp", new Date(event.getTimestamp().getMillis()));
+            parameters.put("conversation_created_at", new Date(event.getConversationCreatedAt().getMillis()));
+            parameters.put("message_received_at", new Date(event.getMessageReceivedAt().getMillis()));
+            parameters.put("conversation_last_modified_at", new Date(event.getConversationLastModifiedAt().getMillis()));
+            parameters.put("message_last_modified_at", new Date(event.getMessageLastModifiedAt().getMillis()));
+            parameters.put("category_id", event.getCustomCategoryId());
 
             // Inet address
             PGobject inetObject = new PGobject();
             inetObject.setType("inet");
             inetObject.setValue(event.getCustomIp());
-            addToParameters("buyer_ip", inetObject, parameters);
+            parameters.put("buyer_ip", inetObject);
 
             // Processing Feedback JSON blob
             PGobject jsonObject = new PGobject();
             jsonObject.setType("jsonb");
             jsonObject.setValue(mapper.writeValueAsString(event.filterResults));
-            addToParameters("processing_feedback", jsonObject, parameters);
+            parameters.put("processing_feedback", jsonObject);
 
             insertEvent.execute(parameters);
 
@@ -74,11 +74,4 @@ public class JdbcEventPublisher implements EventPublisher {
                     ex);
         }
     }
-
-    private void addToParameters(String key, Object value, Map<String, Object> parameters) {
-        parameters.put(key, value);
-    }
-
 }
-
-

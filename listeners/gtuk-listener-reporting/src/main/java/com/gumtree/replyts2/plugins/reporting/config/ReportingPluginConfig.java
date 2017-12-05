@@ -18,6 +18,8 @@ import org.springframework.util.Assert;
 
 import javax.sql.DataSource;
 
+import java.util.concurrent.TimeUnit;
+
 @Configuration
 public class ReportingPluginConfig {
 
@@ -37,6 +39,9 @@ public class ReportingPluginConfig {
 
     @Value("${gumtree.replyts2.event.log.jdbc.pool.maxsize:10}")
     private int poolSize;
+
+    @Value("${gumtree.replyts2.event.log.jdbc.pool.connectionTimeoutSeconds:5}")
+    private long connectionTimeoutSeconds;
 
     @Bean
     public EventPublisher jdbcEventPublisher() {
@@ -70,6 +75,7 @@ public class ReportingPluginConfig {
         dataSource.setUsername(jdbcUsername);
         dataSource.setPassword(jdbcPassword);
         dataSource.setMaximumPoolSize(poolSize);
+        dataSource.setConnectionTimeout(TimeUnit.SECONDS.toMillis(connectionTimeoutSeconds));
 
         LOG.info("Data warehouse event logging to database is enabled");
         LOG.info("Data warehouse event logging using maximum pool size of {}", poolSize);
