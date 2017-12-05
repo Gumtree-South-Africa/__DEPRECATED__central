@@ -1,6 +1,8 @@
 package com.ecg.replyts.core.runtime.maildelivery.smtp;
 
+import com.codahale.metrics.Counter;
 import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
 import org.slf4j.Logger;
@@ -22,6 +24,8 @@ import java.util.Properties;
 @Qualifier("smtpMailDeliveryService")
 public class SmtpMailDeliveryService implements MailDeliveryService {
     private static final Logger LOG = LoggerFactory.getLogger(SmtpMailDeliveryService.class);
+
+    private static final Counter SEND_FAILED_COUNTER = TimingReports.newCounter("send_failed");
 
     @Autowired
     private MailTranscoderService mailTranscoderService;
@@ -63,11 +67,15 @@ public class SmtpMailDeliveryService implements MailDeliveryService {
 
             sender.send(message);
         } catch (MailSendException e) {
+            SEND_FAILED_COUNTER.inc();
+
             LOG.error("Unable to send mail message. To: {}, Delivered-To: {}, From: {}, messageId: {}", m.getTo(), m.getDeliveredTo(), m.getFrom(), m.getMessageId(), e);
             e.getFailedMessages().forEach((message, exception) -> LOG.error("Failed message: {}", message, exception));
 
             throw new MailDeliveryException(e);
         } catch (MessagingException | MailException e) {
+            SEND_FAILED_COUNTER.inc();
+
             LOG.error("Unable to send mail message. To: {}, Delivered-To: {}, From: {}, messageId: {}", m.getTo(), m.getDeliveredTo(), m.getFrom(), m.getMessageId(), e);
 
             throw new MailDeliveryException(e);
