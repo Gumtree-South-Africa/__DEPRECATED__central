@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PreDestroy;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -80,7 +81,7 @@ public class AdInfoLookup {
             LOG.trace("Calling Capi service [{}] - Request: [{}]", capiHost.toURI(), request);
             return httpClient.execute(capiHost, request, new AdInfoResponseHandler(), clientContext);
         } catch (Exception e) {
-            LOG.error("Error fetching image-url for ad #{}: {}", adId, e.getMessage(), e);
+            LOG.warn("Error fetching image-url for ad #{}: {}", adId, e.getMessage(), e);
             return Optional.empty();
         }
     }
