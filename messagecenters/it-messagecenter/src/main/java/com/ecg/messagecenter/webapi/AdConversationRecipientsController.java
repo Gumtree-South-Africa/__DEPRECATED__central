@@ -21,7 +21,12 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -102,11 +107,9 @@ import java.util.List;
                     // only look at conversations for given ad
                     if (conversationThread.getAdId().equals(adId)) {
                         // that match the state (default = ACTIVE)
-                        final Conversation conversation = conversationRepository
-                                        .getById(conversationThread.getConversationId());
-                        if (conversation.getState().equals(state)) {
-                            addBuyerContact(buyerContacts, conversationThread,
-                                            conversation.getState());
+                        final Conversation conversation = conversationRepository.getById(conversationThread.getConversationId());
+                        if (conversation != null && conversation.getState().equals(state)) {
+                            addBuyerContact(buyerContacts, conversationThread, conversation.getState());
                         }
                     }
                 } catch (Exception e) {
