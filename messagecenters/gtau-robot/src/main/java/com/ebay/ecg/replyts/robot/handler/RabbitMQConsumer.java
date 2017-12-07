@@ -8,6 +8,7 @@ import com.ebay.ecg.replyts.robot.api.requests.payload.MessagePayload;
 import com.ebay.ecg.replyts.robot.api.requests.payload.MessageSender;
 import com.ebay.ecg.replyts.robot.service.RobotService;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.google.protobuf.GeneratedMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,9 @@ public class RabbitMQConsumer implements EventHandler {
     @Override
     public void fire(Object e) {
         if (e instanceof GeneratedMessage) {
+            
+            MDCConstants.setTaskFields(RabbitMQConsumer.class.getSimpleName());
+            
             GeneratedMessage message = (GeneratedMessage) e;
             try {
                 if (message.getClass().getName().contains(RobotCommands.PostMessageCommand.class.getSimpleName())) {
