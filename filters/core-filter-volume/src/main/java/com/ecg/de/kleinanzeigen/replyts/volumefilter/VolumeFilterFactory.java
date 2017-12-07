@@ -22,26 +22,13 @@ public class VolumeFilterFactory implements FilterFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(VolumeFilterFactory.class);
 
-    private final EventStreamProcessor eventStreamProcessor;
-    private final SharedBrain sharedBrain;
     private final Session session;
-    private final Duration cassandraImplementationTimeout;
-    private final boolean cassandraImplementationEnabled;
-    private final int cassandraImplementationThreads;
     private final int maxAllowedRegisteredOccurrences;
 
-    public VolumeFilterFactory(SharedBrain sharedBrain, EventStreamProcessor eventStreamProcessor, Session session,
-                               Duration cassandraImplementationTimeout, boolean cassandraImplementationEnabled,
-                               int maxAllowedRegisteredOccurrences, int cassandraImplementationThreads) {
-        this.sharedBrain = sharedBrain;
-        this.eventStreamProcessor = eventStreamProcessor;
+    public VolumeFilterFactory(Session session, int maxAllowedRegisteredOccurrences) {
         this.session = checkNotNull(session, "session");
-        this.cassandraImplementationTimeout = checkNotNull(cassandraImplementationTimeout, cassandraImplementationTimeout);
-        this.cassandraImplementationEnabled = cassandraImplementationEnabled;
         checkArgument(maxAllowedRegisteredOccurrences > 0, "maxAllowedRegisteredOccurrences must be strictly positive");
         this.maxAllowedRegisteredOccurrences = maxAllowedRegisteredOccurrences;
-        checkArgument(cassandraImplementationThreads > 0, "cassandraImplementationThreads must be strictly positive");
-        this.cassandraImplementationThreads = cassandraImplementationThreads;
     }
 
     @Nonnull
@@ -61,17 +48,10 @@ public class VolumeFilterFactory implements FilterFactory {
             }
         }
 
-        if (cassandraImplementationEnabled) {
-            checkMaximumPossibleOccurrenceCount(quotas, maxAllowedRegisteredOccurrences);
-        }
+        checkMaximumPossibleOccurrenceCount(quotas, maxAllowedRegisteredOccurrences);
         long longestQuotaPeriodMillis = getLongestQuotaPeriodMillis(quotas);
 
-        LOG.info("Registering VolumeFilter with windows {}", uniqueWindows);
-        eventStreamProcessor.register(uniqueWindows);
-
-        return new VolumeFilter(sharedBrain, eventStreamProcessor, uniqueWindows, cassandraImplementationTimeout, cassandraImplementationEnabled,
-                cassandraImplementationEnabled ? new CassandraOccurrenceRegistry(session, Duration.ofMillis(longestQuotaPeriodMillis)) : null,
-                cassandraImplementationThreads);
+        return new VolumeFilter(uniqueWindows, new CassandraOccurrenceRegistry(session, Duration.ofMillis(longestQuotaPeriodMillis)));
     }
 
     static long getLongestQuotaPeriodMillis(List<Quota> quotas) {

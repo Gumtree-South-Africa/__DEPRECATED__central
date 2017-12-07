@@ -28,10 +28,6 @@
             <groupId>org.antlr</groupId>
             <artifactId>antlr-runtime</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.espertech</groupId>
-            <artifactId>esper</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>ecg.comaas</groupId>

@@ -16,7 +16,8 @@ import static org.junit.Assert.assertEquals;
 
 public class VolumeFilterIntegrationTest {
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED)
+            .addCassandraSchema("core_volume_filter.cql");
 
     @Test
     public void multipleRegistrations() {
