@@ -7,6 +7,7 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationDeletedCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIndex;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.model.conversation.InvalidConversationException;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
@@ -65,6 +66,9 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     @Autowired(required = false)
     private AttachmentRepository attachmentRepository;
 
+    @Value("${replyts.cleanup.conversation.readFromNewIndexTable:false}")
+    private boolean readFromNewIndexTable;
+
     @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;
 
@@ -105,6 +109,16 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
     @Override
     public void execute() throws Exception {
+        if (readFromNewIndexTable) {
+            executeOnNewIndex();
+        }
+        else {
+            executeOnOldIndex();
+        }
+    }
+
+    private void executeOnNewIndex() throws Exception {
+
         DateTime cleanupDate = cleanupDateCalculator.getCleanupDate(maxAgeDays, CLEANUP_CONVERSATION_JOB_NAME);
 
         if (cleanupDate == null) {
@@ -113,7 +127,7 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
         LOG.info("Cleanup: Deleting conversations for the date '{}'", cleanupDate);
 
-        Stream<ConversationEventIdx> conversationEventIdxs = conversationRepository.streamConversationEventIdxsByHour(cleanupDate);
+        Stream<ConversationEventIndex> conversationEventIdxs = conversationRepository.streamConversationEventIndexesByHour(cleanupDate);
 
         List<Future<?>> cleanUpTasks = new ArrayList<>();
 
@@ -122,7 +136,8 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
                 MDCConstants.setTaskFields(CassandraCleanupConversationCronJob.class.getSimpleName());
 
-                Set<String> convIds = idxs.stream().collect(Collectors.toConcurrentMap(id -> id.getConversationId(), id -> true, (k,v) -> true)).keySet();
+                Set<String> convIds = idxs.stream().collect(Collectors.toConcurrentMap(id -> id.getConversationId(), id -> true, (k, v) -> true)).keySet();
+
                 LOG.info("Cleanup: Deleting data related to {} de-duplicated conversation events out of {} events ", convIds.size(), idxs.size());
 
                 convIds.forEach(conversationId -> {
@@ -142,8 +157,75 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
                             persistMessageId(conversation);
                             deleteConversationWithIdxs(conversation, conversationId);
                         } catch (InvalidConversationException ie) {
-                                LOG.warn("Cannot load conversation {} - due to lack of ConversationCreatedEvent, please remove manually." +
-                                                " Existing events are {}", conversationId, ie.getEvents());
+                            LOG.warn("Cannot load conversation {} - due to lack of ConversationCreatedEvent, please remove manually." +
+                                    " Existing events are {}", conversationId, ie.getEvents());
+                            deleteConversationWithIdxs(null, conversationId);
+                        }
+                    }
+                });
+            }));
+        });
+
+        for (Future<?> task : cleanUpTasks) {
+            try {
+                task.get(cleanupTaskTimeoutSec, TimeUnit.SECONDS);
+            } catch (ExecutionException | RuntimeException e) {
+                LOG.error("Conversation cleanup task execution failure", e);
+                return;
+            } catch (InterruptedException e) {
+                LOG.warn("The cleanup task has been interrupted");
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+
+        cronJobClockRepository.set(CLEANUP_CONVERSATION_JOB_NAME, now(), cleanupDate);
+
+        LOG.info("Cleanup: Finished deleting conversations.");
+    }
+
+    private void executeOnOldIndex() throws Exception {
+
+        DateTime cleanupDate = cleanupDateCalculator.getCleanupDate(maxAgeDays, CLEANUP_CONVERSATION_JOB_NAME);
+
+        if (cleanupDate == null) {
+            return;
+        }
+
+        LOG.info("Cleanup: Deleting conversations for the date '{}'", cleanupDate);
+
+        Stream<ConversationEventIdx> conversationEventIdxs = conversationRepository.streamConversationEventIdxsByHour(cleanupDate);
+
+        List<Future<?>> cleanUpTasks = new ArrayList<>();
+
+        Iterators.partition(conversationEventIdxs.iterator(), batchSize).forEachRemaining(idxs -> {
+            cleanUpTasks.add(threadPoolExecutor.submit(() -> {
+
+                MDCConstants.setTaskFields(CassandraCleanupConversationCronJob.class.getSimpleName());
+
+                Set<String> convIds = idxs.stream().collect(Collectors.toConcurrentMap(id -> id.getConversationId(), id -> true, (k, v) -> true)).keySet();
+
+                LOG.info("Cleanup: Deleting data related to {} de-duplicated conversation events out of {} events ", convIds.size(), idxs.size());
+
+                convIds.forEach(conversationId -> {
+
+                    double sleepTimeSeconds = rateLimiter.acquire();
+                    newGauge("cleanup.conversations.rateLimiter.sleepTimeSecondsGauge", () -> sleepTimeSeconds);
+
+                    Long lastModifiedDate = conversationRepository.getLastModifiedDate(conversationId);
+
+                    // Round the lastModifiedDate to the day, then compare to the (already rounded) cleanup date
+
+                    DateTime roundedLastModifiedDate = lastModifiedDate != null ? new DateTime((lastModifiedDate)).hourOfDay().roundFloorCopy().toDateTime() : null;
+
+                    if (lastModifiedDate != null && (roundedLastModifiedDate.isBefore(cleanupDate) || roundedLastModifiedDate.equals(cleanupDate))) {
+                        try {
+                            MutableConversation conversation = conversationRepository.getById(conversationId);
+                            persistMessageId(conversation);
+                            deleteConversationWithIdxs(conversation, conversationId);
+                        } catch (InvalidConversationException ie) {
+                            LOG.warn("Cannot load conversation {} - due to lack of ConversationCreatedEvent, please remove manually." +
+                                    " Existing events are {}", conversationId, ie.getEvents());
                             deleteConversationWithIdxs(null, conversationId);
                         }
                     }

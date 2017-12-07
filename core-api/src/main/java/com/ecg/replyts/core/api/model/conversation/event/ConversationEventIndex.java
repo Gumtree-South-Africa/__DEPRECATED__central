@@ -3,29 +3,19 @@ package com.ecg.replyts.core.api.model.conversation.event;
 import org.joda.time.DateTime;
 
 import java.util.Objects;
-import java.util.UUID;
 
-// this class represent a row in table core_conversation_events_by_date, which
-// will be discarded after closing https://jira.corp.ebay.com/browse/COMAAS-645 .
-// It will be replaced by ConversationEventIndex class.
-public class ConversationEventIdx {
+public class ConversationEventIndex {
 
     private final DateTime creationDateRoundedByHour;
     private final String conversationId;
-    private final UUID eventId;
 
-    public ConversationEventIdx(DateTime creationDateRoundedByHour, String conversationId, UUID eventId) {
+    public ConversationEventIndex(DateTime creationDateRoundedByHour, String conversationId) {
         this.conversationId = conversationId;
-        this.eventId = eventId;
         this.creationDateRoundedByHour = creationDateRoundedByHour;
     }
 
     public String getConversationId() {
         return conversationId;
-    }
-
-    public UUID getEventId() {
-        return eventId;
     }
 
     public DateTime getCreationDateRoundedByHour() {
@@ -36,15 +26,14 @@ public class ConversationEventIdx {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ConversationEventIdx that = (ConversationEventIdx) o;
+        ConversationEventIndex that = (ConversationEventIndex) o;
         return Objects.equals(creationDateRoundedByHour, that.creationDateRoundedByHour) &&
-                Objects.equals(conversationId, that.conversationId) &&
-                Objects.equals(eventId, that.eventId);
+                Objects.equals(conversationId, that.conversationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(creationDateRoundedByHour, conversationId, eventId);
+        return Objects.hash(creationDateRoundedByHour, conversationId);
     }
 
     @Override
@@ -52,7 +41,6 @@ public class ConversationEventIdx {
         return "ConversationEventIdx{" +
                 "ConversationEventIdx=" + creationDateRoundedByHour +
                 ", conversationId='" + conversationId + '\'' +
-                ", eventId=" + eventId +
                 '}';
     }
 }
