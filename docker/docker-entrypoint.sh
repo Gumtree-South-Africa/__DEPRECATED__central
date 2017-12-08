@@ -1,5 +1,12 @@
 #!/bin/sh
+
+cat /etc/resolv.conf
+nslookup carbon.service.consul
+
 set -e
+
+# yes.
+sleep 1
 
 BASE_DIR=/opt/replyts
 
