@@ -99,10 +99,12 @@ public class LoggingService {
           .filter(property -> property.startsWith(LOG_LEVEL_PREFIX))
           .distinct()
           .map(property -> property.substring(LOG_LEVEL_PREFIX.length()).trim())
-          .forEach(logger -> upsertAndSet(logger, environment.getProperty(logger)));
+          .forEach(logger -> upsertAndSet(logger, environment.getProperty(LOG_LEVEL_PREFIX + logger)));
 
-        if (levels.containsKey(Logger.ROOT_LOGGER_NAME)) {
-            this.rootLevel = levels.get(Logger.ROOT_LOGGER_NAME);
+        Logger actualRootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+
+        if (levels.containsKey(actualRootLogger)) {
+            this.rootLevel = levels.get(actualRootLogger);
         } else {
             this.rootLevel = Level.INFO;
         }
