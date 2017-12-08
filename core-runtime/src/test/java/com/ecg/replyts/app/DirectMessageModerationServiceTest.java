@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
+import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
@@ -64,7 +65,7 @@ public class DirectMessageModerationServiceTest {
     private byte[] INBOUND_MAIL;
 
     @Before
-    public void setUp() {
+    public void setUp() throws MessageNotFoundException {
         when(conversationRepository.getById("1")).thenReturn(c);
         INBOUND_MAIL = "From: foo\nDelivered-To: bar\n\nhello".getBytes();
         when(heldMailRepository.read("1")).thenReturn(INBOUND_MAIL);
@@ -76,7 +77,7 @@ public class DirectMessageModerationServiceTest {
     }
 
     @Test
-    public void moderateSendable() {
+    public void moderateSendable() throws MessageNotFoundException {
         mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.GOOD, Optional.empty()));
 
         verify(flow).inputForPostProcessor(any(MessageProcessingContext.class));
@@ -86,7 +87,7 @@ public class DirectMessageModerationServiceTest {
     }
 
     @Test
-    public void updatesMailAndIndexOnNotSendable() {
+    public void updatesMailAndIndexOnNotSendable() throws MessageNotFoundException {
         mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.BAD, Optional.empty()));
 
         verify(c).commit(conversationRepository, conversationEventListeners);
@@ -95,12 +96,12 @@ public class DirectMessageModerationServiceTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void rejectIllegalState() {
+    public void rejectIllegalState() throws MessageNotFoundException {
         mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.UNCHECKED, Optional.empty()));
     }
 
     @Test
-    public void informsListenersAfterCompletion() {
+    public void informsListenersAfterCompletion() throws MessageNotFoundException {
         mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.BAD, Optional.empty()));
         verify(listener).messageProcessed(c, m);
     }

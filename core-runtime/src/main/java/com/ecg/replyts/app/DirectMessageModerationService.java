@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.model.conversation.command.MessageModeratedComma
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
+import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.api.processing.ModerationService;
@@ -67,7 +68,7 @@ public class DirectMessageModerationService implements ModerationService {
     private AttachmentRepository attachmentRepository;
 
     @Override
-    public void changeMessageState(MutableConversation conversation, String messageId, ModerationAction moderationAction) {
+    public void changeMessageState(MutableConversation conversation, String messageId, ModerationAction moderationAction) throws MessageNotFoundException {
         Preconditions.checkArgument(moderationAction.getModerationResultState().isAcceptableOutcome(), "Moderation State " + moderationAction.getModerationResultState() + " is not an acceptable moderation outcome");
         LOG.debug("Attempting to changing state {} for conversation {}  message {} ", moderationAction, conversation.getId(), messageId);
         conversation.applyCommand(new MessageModeratedCommand(conversation.getId(), messageId, now(), moderationAction));

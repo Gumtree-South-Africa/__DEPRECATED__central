@@ -3,6 +3,7 @@ package com.ecg.replyts.core.runtime.persistence.mail;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
+import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
 import com.ecg.replyts.core.runtime.persistence.StatementsBase;
@@ -32,14 +33,14 @@ public class CassandraHeldMailRepository implements HeldMailRepository, Cassandr
     }
 
     @Override
-    public byte[] read(String messageId) {
+    public byte[] read(String messageId) throws MessageNotFoundException {
         try (Timer.Context ignored = readTimer.time()) {
             ResultSet result = session.execute(Statements.SELECT_INBOUND_MAIL.bind(this, messageId));
 
             Row row = result.one();
 
             if (row == null) {
-                throw new RuntimeException("Could not load held mail data by message id #" + messageId);
+                throw new MessageNotFoundException("Could not load held mail data by message id '" + messageId + "'");
             }
 
             return row.getBytes(FIELD_MAIL_DATA).array();

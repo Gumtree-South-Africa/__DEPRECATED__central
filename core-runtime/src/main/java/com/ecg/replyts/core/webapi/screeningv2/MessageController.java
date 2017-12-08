@@ -5,6 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
+import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.api.processing.ModerationService;
 import com.ecg.replyts.core.api.search.RtsSearchResponse;
@@ -78,7 +79,11 @@ public class MessageController {
             return ResponseObject.of(RequestState.ENTITY_OUTDATED, String.format("The state of the message with id %s has already changed", messageId));
         }
 
-        moderationService.changeMessageState(conversation, messageId, new ModerationAction(newState, Optional.ofNullable(mmc.getEditor())));
+        try {
+            moderationService.changeMessageState(conversation, messageId, new ModerationAction(newState, Optional.ofNullable(mmc.getEditor())));
+        } catch (MessageNotFoundException e) {
+            return ResponseObject.of(RequestState.ENTITY_NOT_FOUND, "Not found");
+        }
 
         return ResponseObject.success("Set message state to " + newState);
     }

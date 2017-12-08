@@ -1,5 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.mail;
 
+import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -28,7 +30,7 @@ public class HybridHeldMailRepositoryTest {
     private HybridHeldMailRepository hybridHeldMailRepository;
 
     @Test
-    public void testReadAlreadyMigrated() {
+    public void testReadAlreadyMigrated() throws MessageNotFoundException {
         when(cassandraHeldMailRepository.read("123")).thenReturn(new byte[] { 1, 2, 3 });
 
         byte[] content = hybridHeldMailRepository.read("123");
@@ -39,8 +41,8 @@ public class HybridHeldMailRepositoryTest {
     }
 
     @Test
-    public void testReadMigration() {
-        when(cassandraHeldMailRepository.read("123")).thenThrow(RuntimeException.class);
+    public void testReadMigration() throws MessageNotFoundException {
+        when(cassandraHeldMailRepository.read("123")).thenThrow(MessageNotFoundException.class);
         when(riakHeldMailRepository.read("123")).thenReturn(new byte[] { 4, 5 });
 
         byte[] content = hybridHeldMailRepository.read("123");
@@ -50,12 +52,13 @@ public class HybridHeldMailRepositoryTest {
         verify(cassandraHeldMailRepository, times(1)).write(eq("123"), any(byte[].class));
     }
 
-    @Test(expected = RuntimeException.class)
-    public void testNowhereFound() {
-        when(cassandraHeldMailRepository.read("123")).thenThrow(RuntimeException.class);
-        when(riakHeldMailRepository.read("123")).thenThrow(RuntimeException.class);
+    @Test
+    public void testNowhereFound() throws MessageNotFoundException {
+        when(cassandraHeldMailRepository.read("123")).thenThrow(MessageNotFoundException.class);
+        when(riakHeldMailRepository.read("123")).thenThrow(MessageNotFoundException.class);
 
-        hybridHeldMailRepository.read("123");
+        byte[] bytes = hybridHeldMailRepository.read("123");
+        assertNull(bytes);
     }
 
     @Test

@@ -13,6 +13,7 @@ import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuil
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
+import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.api.processing.ModerationService;
 import com.ecg.replyts.core.api.search.RtsSearchResponse;
@@ -177,7 +178,12 @@ public class RobotService {
 
         LOGGER.debug("Done persisting message " + messageId + ".");
 
-        moderationService.changeMessageState(conversation, messageId, new ModerationAction(ModerationResultState.GOOD, Optional.empty()));
+        try {
+            moderationService.changeMessageState(conversation, messageId, new ModerationAction(ModerationResultState.GOOD, Optional.empty()));
+        } catch (MessageNotFoundException e) {
+            LOGGER.warn("Message state with id " + messageId + " was not changed as message was not found", e);
+            return;
+        }
 
         LOGGER.debug("Done changing message state of " + messageId + " to GOOD.");
     }

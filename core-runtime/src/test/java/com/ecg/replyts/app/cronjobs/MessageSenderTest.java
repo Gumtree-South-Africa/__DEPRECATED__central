@@ -2,6 +2,7 @@ package com.ecg.replyts.app.cronjobs;
 
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.api.processing.ModerationService;
 import com.ecg.replyts.core.api.search.RtsSearchResponse;
@@ -67,7 +68,7 @@ public class MessageSenderTest {
     }
 
     @Test
-    public void moderatesAllFoundMessagesToSent() {
+    public void moderatesAllFoundMessagesToSent() throws MessageNotFoundException {
         sender.work();
 
         verify(moderationService).changeMessageState(conv1, "123a", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
@@ -76,7 +77,7 @@ public class MessageSenderTest {
     }
 
     @Test
-    public void moderatesOtherMessagesIfOneFails() {
+    public void moderatesOtherMessagesIfOneFails() throws MessageNotFoundException {
         doThrow(new RuntimeException()).when(moderationService).changeMessageState(conv1, "123a", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
 
         sender.work();

@@ -1,6 +1,7 @@
 package com.ecg.replyts.app.cronjobs;
 
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.api.processing.ModerationService;
 import com.ecg.replyts.core.api.search.RtsSearchResponse;
@@ -68,8 +69,9 @@ class MessageSender {
                         new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
             } catch (RuntimeException e) {
                 LOG.warn("could not auto send message after retention time - skipping conv/msg " + idHolder.getConversationId() + "/" + idHolder.getMessageId(), e);
+            } catch (MessageNotFoundException e) {
+                LOG.warn("Message with id " + idHolder.getMessageId() + " was not found", e);
             }
         }
-
     }
 }

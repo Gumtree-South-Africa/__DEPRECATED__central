@@ -1,14 +1,11 @@
 package com.ecg.replyts.core.webapi.screeningv2;
 
-import com.ecg.replyts.core.api.model.conversation.ConversationState;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
-import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.model.conversation.command.MessageModeratedCommand;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
+import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.api.processing.ModerationService;
 import com.ecg.replyts.core.api.search.SearchService;
@@ -24,6 +21,7 @@ import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -32,9 +30,8 @@ import java.util.Optional;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageControllerTest {
@@ -94,6 +91,21 @@ public class MessageControllerTest {
         verify(conversationRepository).getById(CONVERSATION_ID);
     }
 
+    @Test
+    public void whenNoMessageInHeldTable_shouldReturnError() throws MessageNotFoundException {
+        when(conversationRepository.getById(CONVERSATION_ID)).thenReturn(conversation);
+        doThrow(MessageNotFoundException.class)
+                .when(moderationService).changeMessageState(eq(conversation), eq(MESSAGE_ID), Matchers.any(ModerationAction.class));
+        conversation.applyCommand(new AddMessageCommand(
+                CONVERSATION_ID, MESSAGE_ID, MessageState.HELD, MessageDirection.BUYER_TO_SELLER,
+                now, "", "", ImmutableMap.of(), ImmutableList.of(), ImmutableList.of()));
+
+        ResponseObject<?> response = messageController.changeMessageState(CONVERSATION_ID, MESSAGE_ID, positiveModeration);
+        assertThat(response.getStatus().getState(), equalTo(RequestState.ENTITY_NOT_FOUND));
+
+        verify(moderationService).changeMessageState(eq(conversation), eq(MESSAGE_ID), Matchers.any(ModerationAction.class));
+    }
+
     @Test(expected = IllegalStateException.class)
     public void unacceptableUserDecision_exceptionThrown() throws Exception {
         when(conversationRepository.getById(CONVERSATION_ID)).thenReturn(conversation);
@@ -142,7 +154,7 @@ public class MessageControllerTest {
 
         ResponseObject<?> response = messageController.changeMessageState(CONVERSATION_ID, MESSAGE_ID, moderationCommandWithOldState);
         assertThat(response.getStatus().getState(), equalTo(RequestState.ENTITY_OUTDATED));
-        assertThat(response.getStatus().getDetails(), equalTo("The state of the message with id " + MESSAGE_ID +" has already changed"));
+        assertThat(response.getStatus().getDetails(), equalTo("The state of the message with id " + MESSAGE_ID + " has already changed"));
 
         verify(conversationRepository).getById(CONVERSATION_ID);
         verifyNoMoreInteractions(moderationService);
