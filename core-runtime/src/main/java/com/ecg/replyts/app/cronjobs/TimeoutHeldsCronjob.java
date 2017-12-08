@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 @Component
-@ConditionalOnExpression("#{'${replyts2.sendHeld.timeoutEnabled}' == 'true' || '${replyts2.sendHeld.timeoutEnabled}' == '${region}'}")
+@ConditionalOnExpression("#{'${cronjob.sendHeld.timeout.runIn}' == '${region}'}")
 public class TimeoutHeldsCronjob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(TimeoutHeldsCronjob.class);
 
@@ -26,9 +26,9 @@ public class TimeoutHeldsCronjob implements CronJobExecutor {
     @PostConstruct
     public void log() {
         LOG.info("ENABLED Auto Sending of Held Mails after retention time. Agents Working Hours: {}h-{}h. Retention time: {}h",
-          workingSlot.getCsWorkingHoursStart(),
-          workingSlot.getCsWorkingHoursEnd(),
-          workingSlot.getRetentionTime());
+                workingSlot.getCsWorkingHoursStart(),
+                workingSlot.getCsWorkingHoursEnd(),
+                workingSlot.getRetentionTime());
     }
 
     @Override
