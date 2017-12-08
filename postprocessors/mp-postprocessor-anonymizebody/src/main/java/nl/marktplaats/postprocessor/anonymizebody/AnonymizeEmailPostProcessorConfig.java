@@ -29,7 +29,7 @@ public class AnonymizeEmailPostProcessorConfig {
         );
     }
 
-    public AnonymizeEmailPostProcessorConfig(List<String> patterns) {
+    private AnonymizeEmailPostProcessorConfig(List<String> patterns) {
         if (patterns == null || patterns.isEmpty()) {
             LOG.warn("Not cleaning outgoing emails, no message normalization patterns set.");
             return;

@@ -18,6 +18,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.core.env.StandardEnvironment;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,13 +29,16 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AnonymizeEmailPostProcessorTest {
     private String unanonymizedSender = "unanonymized@hotmail.com";
@@ -49,9 +55,10 @@ public class AnonymizeEmailPostProcessorTest {
     public void setup() throws PersistenceException, IOException {
         Properties props = new Properties();
         props.load(getClass().getResourceAsStream("/anonymizeemail.properties"));
-        List<String> patterns = props.values().stream().map(Object::toString).collect(Collectors.toList());
 
-        anonymizeEmailPostProcessorConfig = new AnonymizeEmailPostProcessorConfig(patterns);
+        AbstractEnvironment environment = new StandardEnvironment();
+        environment.getPropertySources().addFirst(new PropertiesPropertySource("test", props));
+        anonymizeEmailPostProcessorConfig = new AnonymizeEmailPostProcessorConfig(environment);
         postProcessor = new AnonymizeEmailPostProcessor(new String[]{"mail.marktplaats.nl"}, anonymizeEmailPostProcessorConfig);
 
         // create mock conversation and repository
@@ -728,6 +735,77 @@ public class AnonymizeEmailPostProcessorTest {
         assertThat(argument.getValue(), equalTo(text.replace("{{{sender}}}", anonymizedSender)));
     }
 
+    @Test
+    public void regressionSuite_comaas717_multilineText() {
+        // An imitation of self-reply message with original email in signature
+        String text = "Dat gaat via iDeal\n" +
+                "\n" +
+                "> Op 22 nov. 2017 om 22:09 heeft JP <{{{sender}}}> het volgende geschreven:\n" +
+                ">\n" +
+                "> Zie betalingsverzoek via Marktplaats!\n" +
+                ">\n" +
+                "> Met vriendelijke groet,\n" +
+                "> JP\n" +
+                "> ";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text.replace("{{{sender}}}", unanonymizedSender));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(text.replace("{{{sender}}}", anonymizedSender)));
+    }
+
+    @Test
+    public void regressionSuite_comaas717_multilineTextEng() {
+        // An imitation of self-reply message with original email in signature (english version)
+        String text = "So go via iDeal\n" +
+                "\n" +
+                "> On 4 December 2017 at 11:36, John Smith <{{{sender}}}> wrote:\n" +
+                ">\n" +
+                "> yes, you can!\n" +
+                ">\n" +
+                "> Best regards,\n" +
+                "> John Smith\n" +
+                "> ";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text.replace("{{{sender}}}", unanonymizedSender));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(text.replace("{{{sender}}}", anonymizedSender)));
+    }
+
+    @Test
+    public void regressionSuite_comaas717_multilineTextHtml() {
+        // An imitation of self-reply message with original email in signature (html version)
+        String text =
+                "2017-12-06 9:12 GMT+01:00 John Smith <span dir=3D\"ltr\">&lt;<a href=3D\"mailto:{{{sender}}}\"";
+
+        // create mock mail and content
+        MutableMail mail = prepareMailWithPainText(text.replace("{{{sender}}}", unanonymizedSender));
+
+        // call method under test
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
+        postProcessor.postProcess(messageProcessingContext);
+
+        // verify contents of mail message were adjusted
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(messageContent).overrideContent(argument.capture());
+        assertThat(argument.getValue(), equalTo(text.replace("{{{sender}}}", anonymizedSender)));
+    }
+    
     @Test
     public void testRegressionSuite_aur287_multilineText_2() {
         String text = "From: Ik via Marktplaats <a.bucrbf2y3rkd9@mail.marktplaats.nl<mailto:a.bucrbf2y3rkd9@mail.marktplaats.nl>>\n" +
