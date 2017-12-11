@@ -13,7 +13,7 @@ import java.util.*;
 
 @Configuration
 @PropertySource(name = ParentConfiguration.CONF_DIR_PROPERTY_SOURCE, value = "file:${confDir}/replyts.properties")
-@Import({ LoggingService.class, CloudDiscoveryConfiguration.class })
+@Import({ CloudDiscoveryConfiguration.class, LoggingService.class })
 public class ParentConfiguration {
     static final String CONF_DIR_PROPERTY_SOURCE = "confDirProperties";
 

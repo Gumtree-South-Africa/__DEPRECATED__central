@@ -241,6 +241,9 @@ public class CloudDiscoveryConfigurationTest {
         @MockBean
         private DiscoveryClient discoveryClient;
 
+        @MockBean
+        private LoggingService loggingService;
+
         @Autowired
         private ConfigurableEnvironment environment;
 
