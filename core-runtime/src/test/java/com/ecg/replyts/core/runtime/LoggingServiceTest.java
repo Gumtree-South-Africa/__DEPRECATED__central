@@ -91,6 +91,23 @@ public class LoggingServiceTest {
     }
 
     @Test
+    public void testClassOverride() {
+        String className = getClass().getTypeName();
+
+        loggingService.replaceAll(new HashMap<String, String>() {{
+            put(Logger.ROOT_LOGGER_NAME, "ERROR");
+            put(getClass().getPackage().getName(), "WARN");
+            put(className, "INFO");
+        }});
+
+        assertEquals("Actual Logback level for package was set to WARN", Level.WARN, ((Logger) LoggerFactory.getLogger(getClass().getPackage().getName())).getLevel());
+        assertEquals("Actual Logback level for class was set to INFO", Level.INFO, ((Logger) LoggerFactory.getLogger(className)).getLevel());
+
+        assertTrue("Actual Logback indicates INFO is enabled for this class", LoggerFactory.getLogger(getClass()).isInfoEnabled());
+        assertFalse("Actual Logback indicates DEBUG is disabled for this class", LoggerFactory.getLogger(getClass()).isDebugEnabled());
+    }
+
+    @Test
     public void testReplaceAllLogLevel() {
         loggingService.replaceAll(new HashMap<String, String>() {{
             put("ROOT", "DEBUG");
