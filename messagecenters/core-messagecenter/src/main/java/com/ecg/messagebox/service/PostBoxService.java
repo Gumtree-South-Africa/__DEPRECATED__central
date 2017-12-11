@@ -21,6 +21,8 @@ public interface PostBoxService {
 
     Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit);
 
+    PostBox markConversationsAsRead(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit);
+
     PostBox getConversations(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit);
 
     PostBox changeConversationVisibilities(String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis, int conversationsOffset, int conversationsLimit);

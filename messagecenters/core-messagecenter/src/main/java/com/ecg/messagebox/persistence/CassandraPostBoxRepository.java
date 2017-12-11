@@ -76,6 +76,13 @@ public interface CassandraPostBoxRepository {
     void resetConversationUnreadCount(String userId, String otherParticipantUserId, String conversationId, String adId);
 
     /**
+     * Resets the message unread count to 0 for the given postbox.
+     *
+     * @param postBox postbox containing conversation to read
+     */
+    void resetConversationsUnreadCount(PostBox postBox);
+
+    /**
      * Creates a new conversation with the passed message.
      *
      * @param userId               identifier of user that this conversation belongs to

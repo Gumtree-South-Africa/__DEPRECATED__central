@@ -19,7 +19,6 @@ import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
-import com.ecg.replyts.core.api.webapi.model.ConversationRts;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.workers.InstrumentedCallerRunsPolicy;
@@ -33,7 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.function.Function;
@@ -41,7 +40,7 @@ import java.util.function.Function;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 
 @Component
-@ConditionalOnProperty(name = "webapi.sync.uk.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "webapi.sync.ek.enabled", havingValue = "true")
 public class WebApiSyncService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebApiSyncService.class);
@@ -125,7 +124,7 @@ public class WebApiSyncService {
      * Method is not a mutator that means that if the diffing is not enabled then there is no need to use executor service and calling
      * MessageBox API. Code is executed synchronously and called directly.
      */
-    public PostBoxResponse getPostBox(String email, int page, int size, boolean newCounterMode) {
+    public PostBoxResponse getPostBox(String email, int page, int size) {
         try (Timer.Context ignored = getConversationsTimer.time()) {
 
             PostBoxResponse response;
@@ -145,7 +144,7 @@ public class WebApiSyncService {
 
                 CompletableFuture<PostBoxDiff> oldModelFuture = CompletableFuture
                         .supplyAsync(() -> postBoxRepository.byId(PostBoxId.fromEmail(email)), oldExecutor)
-                        .thenApply(postBox -> PostBoxDiff.of(postBox, responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode)))
+                        .thenApply(postBox -> PostBoxDiff.of(postBox, responseBuilder.buildPostBoxResponse(email, size, page, postBox)))
                         .exceptionally(handle(oldModelFailureCounter, "Old GetPostBox Failed - email: " + email));
 
                 CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
@@ -157,11 +156,93 @@ public class WebApiSyncService {
 
                 response = oldModelFuture.join().postBoxResponse;
             } else {
-                com.ecg.messagecenter.persistence.simple.PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-                response = responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
+                com.ecg.messagecenter.persistence.simple.PostBox postBox;
+                if (size != 0) {
+                    postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+                } else {
+                    postBox = postBoxRepository.byIdWithoutConversationThreads(PostBoxId.fromEmail(email));
+                }
+
+                response = responseBuilder.buildPostBoxResponse(email, size, page, postBox);
             }
 
             return response;
+        }
+    }
+
+    /**
+     * Method is a mutator that means that 'readPostbox' change an internal state of the postbox. Therefore, MessageBox API must be
+     * called even if the diffing is not enable because of changing the internal state.
+     */
+    public PostBoxResponse readPostBox(String email, int page, int size) {
+        try (Timer.Context ignored = getConversationsTimer.time()) {
+
+            Function<com.ecg.messagecenter.persistence.simple.PostBox, com.ecg.messagecenter.persistence.simple.PostBox> readPostbox =
+                    (com.ecg.messagecenter.persistence.simple.PostBox postBox) -> {
+                        List conversations = postBox.getConversationThreadsCapTo(page, size);
+                        int totalUnreads = postBoxRepository.unreadCountInConversations(postBox.getId(), conversations);
+                        postBox.decrementNewReplies(totalUnreads);
+                        postBoxRepository.markConversationsAsRead(postBox, conversations);
+                        return postBox;
+                    };
+
+            /*
+             * First two calls are dedicated to find real UserID using the email:
+             * - find first conversation using V1
+             * - find created event to this conversation and look into custom headers to resolve real UserID belonging to this email
+             * - if user does not have any conversation in V1 or UserID is not found in conversation event then UserIdNotFound is thrown
+             * and Warning is logged
+             */
+
+            CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture
+                    .supplyAsync(() -> getConversationId(email), newExecutor)
+                    .thenApply(conversationId -> getUserId(email, conversationId))
+                    .thenApply(userId -> Optional.of(postBoxService.markConversationsAsRead(userId, Visibility.ACTIVE, page, size)))
+                    .exceptionally(handleOpt(newModelFailureCounter, "New ReadPostBox Failed - email: " + email));
+
+            CompletableFuture<PostBoxDiff> oldModelFuture = CompletableFuture
+                    .supplyAsync(() -> postBoxRepository.byId(PostBoxId.fromEmail(email)), oldExecutor)
+                    .thenApply(readPostbox)
+                    .thenApply(postBox -> PostBoxDiff.of(postBox, responseBuilder.buildPostBoxResponse(email, size, page, postBox)))
+                    .exceptionally(handle(oldModelFailureCounter, "Old GetPostBox Failed - email: " + email));
+
+            CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
+            if (diffEnabled && newModelFuture.join().isPresent()) {
+                CompletableFuture
+                        .runAsync(() -> diff.postBoxResponseDiff(email, newModelFuture.join().get(), oldModelFuture.join()), diffExecutor)
+                        .exceptionally(handleDiff("Postbox diffing Failed - email: " + email));
+            }
+
+            return oldModelFuture.join().postBoxResponse;
+        }
+    }
+
+    /**
+     * Method is a mutator that means that 'deleteConversation' change an internal state of the conversion. Therefore, MessageBox API must be
+     * called even if the diffing is not enable because of changing the internal state.
+     * <p>
+     * Diffing cannot be used because there is not easy way how to get a deleted conversation without deeper changes or an DB additional call.
+     */
+    public PostBoxResponse deleteConversations(String email, List<String> ids, int page, int size) {
+        try (Timer.Context ignored = deleteConversationsTimer.time()) {
+
+            CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture
+                    .supplyAsync(() -> getConversationId(email), newExecutor)
+                    .thenApply(conversationId -> getUserId(email, conversationId))
+                    .thenApply(userId -> Optional.of(deleteConversationV2(userId, ids)))
+                    .exceptionally(handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
+
+            CompletableFuture<PostBoxResponse> oldModelFuture = CompletableFuture
+                    .supplyAsync(() -> postBoxRepository.byId(PostBoxId.fromEmail(email)), oldExecutor)
+                    .thenApply(postbox -> {
+                        postBoxRepository.deleteConversations(postbox, ids);
+                        return postbox;
+                    })
+                    .thenApply(postBox -> responseBuilder.buildPostBoxResponse(email, size, page, postBox))
+                    .exceptionally(handle(oldModelFailureCounter, "Old ReadConversation Failed - email: " + email));
+
+            CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
+            return oldModelFuture.join();
         }
     }
 
@@ -226,31 +307,8 @@ public class WebApiSyncService {
         }
     }
 
-    /**
-     * Method is a mutator that means that 'deleteConversation' change an internal state of the conversion. Therefore, MessageBox API must be
-     * called even if the diffing is not enable because of changing the internal state.
-     *
-     * Diffing cannot be used because there is not easy way how to get a deleted conversation without deeper changes or an DB additional call.
-     */
-    public Optional<ConversationRts> deleteConversation(String email, String conversationId) {
-        try (Timer.Context ignored = deleteConversationsTimer.time()) {
-
-            CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture
-                    .supplyAsync(() -> getUserId(email, conversationId), newExecutor)
-                    .thenApply(userId -> Optional.of(deleteConversationV2(userId, conversationId)))
-                    .exceptionally(handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
-
-            CompletableFuture<Optional<ConversationRts>> oldModelFuture = CompletableFuture
-                    .supplyAsync(() -> conversationService.deleteConversation(email, conversationId), oldExecutor)
-                    .exceptionally(handle(oldModelFailureCounter, "Old ReadConversation Failed - email: " + email));
-
-            CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
-            return oldModelFuture.join();
-        }
-    }
-
-    private PostBox deleteConversationV2(String userId, String conversationId) {
-        return postBoxService.changeConversationVisibilities(userId, Collections.singletonList(conversationId),
+    private PostBox deleteConversationV2(String userId, List<String> conversationIds) {
+        return postBoxService.changeConversationVisibilities(userId, conversationIds,
                 Visibility.ARCHIVED, Visibility.ACTIVE, 0, messagesLimit);
     }
 

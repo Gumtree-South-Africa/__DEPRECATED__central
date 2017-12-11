@@ -6,6 +6,9 @@ import java.text.SimpleDateFormat;
 
 public class MessageCenterUtils {
 
+    private MessageCenterUtils() {
+    }
+
     public static String truncateText(String description, int maxChars) {
 
         if (isNullOrEmpty(description))

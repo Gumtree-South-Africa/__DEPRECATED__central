@@ -18,8 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PostBoxUpdateListener implements MessageProcessedListener {
-    private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
+public class EkPostBoxUpdateListener implements MessageProcessedListener {
+    private static final Logger LOG = LoggerFactory.getLogger(EkPostBoxUpdateListener.class);
 
     private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
@@ -33,9 +33,9 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final AdImageLookup adImageLookup;
 
     @Autowired
-    public PostBoxUpdateListener(AdImageLookup adImageLookup,
-                                 PushService pushService,
-                                 SimplePostBoxInitializer postBoxInitializer) {
+    public EkPostBoxUpdateListener(AdImageLookup adImageLookup,
+                                   PushService pushService,
+                                   SimplePostBoxInitializer postBoxInitializer) {
         this.postBoxInitializer = postBoxInitializer;
         this.adImageLookup = adImageLookup;
         this.pushService = pushService;

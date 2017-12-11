@@ -131,6 +131,20 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
+    public PostBox markConversationsAsRead(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit) {
+        try (Timer.Context ignored = markConversationAsReadTimer.time()) {
+            PostBox postBox = postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
+            postBoxRepository.resetConversationsUnreadCount(postBox);
+
+            for (ConversationThread conversation: postBox.getConversations()) {
+                conversation.addNumUnreadMessages(userId, 0);
+            }
+
+            return postBox;
+        }
+    }
+
+    @Override
     public PostBox getConversations(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit) {
         try (Timer.Context ignored = getConversationsTimer.time()) {
             return postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);

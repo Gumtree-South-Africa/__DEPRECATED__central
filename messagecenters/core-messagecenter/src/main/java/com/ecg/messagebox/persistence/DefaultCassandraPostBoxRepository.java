@@ -44,6 +44,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer addSystemMessageTimer = newTimer("cassandra.postBoxRepo.v2.addSystemMessage");
     private final Timer getConversationAdIdsMapTimer = newTimer("cassandra.postBoxRepo.v2.getConversationAdIdsMap");
     private final Timer resetConversationUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.resetConversationUnreadCount");
+    private final Timer resetConversationsUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.resetConversationsUnreadCount");
     private final Timer changeConversationVisibilitiesTimer = newTimer("cassandra.postBoxRepo.v2.changeConversationVisibilities");
     private final Timer getUserUnreadCountsTimer = newTimer("cassandra.postBoxRepo.v2.getUserUnreadCounts");
     private final Timer getConversationUnreadCountMapTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCountMap");
@@ -84,7 +85,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             List<ConversationThread> conversations = StreamUtils.toStream(resultSet)
                     .map(row -> {
                         ConversationThread conversation = createConversation(userId, row);
-                        for (Participant participant: conversation.getParticipants()) {
+                        for (Participant participant : conversation.getParticipants()) {
                             if (userId.equals(participant.getUserId())) {
                                 conversation.addNumUnreadMessages(userId, conversationUnreadCountsMap.getOrDefault(row.getString("convid"),
                                         new UnreadCounts(0, 0)).getUserUnreadCounts());
@@ -265,6 +266,29 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
+    public void resetConversationsUnreadCount(PostBox postBox) {
+        try (Timer.Context ignored = resetConversationsUnreadCountTimer.time()) {
+            BatchStatement batch = new BatchStatement();
+
+            for (ConversationThread conversation : postBox.getConversations()) {
+                if (conversation.getNumUnreadMessages(postBox.getUserId()) > 0) {
+                    batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, postBox.getUserId(), conversation.getId()));
+                    batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, postBox.getUserId(), conversation.getAdId(), conversation.getId()));
+
+                    List<Participant> participants = conversation.getParticipants();
+                    String otherParticipantUserId = participants.get(0).getUserId().equals(postBox.getUserId()) ? participants.get(1).getUserId() : participants.get(0).getUserId();
+                    batch.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, 0, otherParticipantUserId, conversation.getId()));
+                }
+            }
+
+            if (!batch.getStatements().isEmpty()) {
+                batch.setConsistencyLevel(getWriteConsistency());
+                session.execute(batch);
+            }
+        }
+    }
+
+    @Override
     public void createConversation(String userId, ConversationThread conversation, Message message, boolean incrementUnreadCount) {
         try (Timer.Context ignored = createConversationTimer.time()) {
             createConversation(conversation.getId(), userId, conversation.getAdId(), conversation.getParticipants(), message, conversation.getMetadata(), incrementUnreadCount);
@@ -309,7 +333,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         List<Statement> statements = new ArrayList<>();
         statements.add(Statements.UPDATE_AD_CONVERSATION_INDEX.bind(this, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
 
-        if(insertMessage) {
+        if (insertMessage) {
             String messageMetadata = jsonConverter.toMessageMetadataJson(userId, conversationId, message);
             statements.add(Statements.INSERT_MESSAGE.bind(this, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
         }

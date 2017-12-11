@@ -7,7 +7,6 @@ import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
-import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 
 import java.util.List;
@@ -24,7 +23,7 @@ public class PostBoxResponseBuilder {
         this.conversationRepository = conversationRepository;
     }
 
-    ResponseObject<PostBoxResponse> buildPostBoxResponse(String email, int size, int page, PostBox postBox) {
+    public PostBoxResponse buildPostBoxResponse(String email, int size, int page, PostBox postBox) {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         postBoxResponse.initNumUnread((int) postBox.getNewRepliesCounter().getValue(), postBox.getLastModification());
@@ -33,7 +32,7 @@ public class PostBoxResponseBuilder {
 
         postBoxResponse.meta(postBox.getConversationThreads().size(), page, size);
 
-        return ResponseObject.of(postBoxResponse);
+        return postBoxResponse;
     }
 
 
@@ -68,7 +67,6 @@ public class PostBoxResponseBuilder {
                 conversationThread.isContainsUnreadMessages(),
                 conversation);
     }
-
 
 
 }
