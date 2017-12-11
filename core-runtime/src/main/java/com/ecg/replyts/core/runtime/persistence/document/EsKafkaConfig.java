@@ -23,6 +23,14 @@ public class EsKafkaConfig {
     @Value("${kafka.es.topic:esdocuments}")
     private String topic;
 
+    // Send this many messages to broker without waiting for response, increase throughput
+    @Value("${kafka.core.max-in-flight-request-per-connection:4000}")
+    private int maxInFlightRequests;
+
+    // Sending in batch more efficiently
+    @Value("${kafka.core.batch.size:10000000}")
+    private int batchSize;
+
     @Bean
     KafkaProducerConfigBuilder<String, byte[]> defaultKafkaProducerConfig() {
         return new KafkaProducerConfigBuilder<>();
@@ -36,6 +44,8 @@ public class EsKafkaConfig {
 
         KafkaProducerConfigBuilder.KafkaProducerConfig producerConfig = defaultKafkaProducerConfig
                 .getProducerConfig()
+                .withMaxInFlightPerConnection(maxInFlightRequests)
+                .withBatchSize(batchSize)
                 .withTopic(topic);
 
         LOG.debug("Initialized the Kafka Service for ES bean");
