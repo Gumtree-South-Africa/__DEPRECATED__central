@@ -1,6 +1,8 @@
 package com.ecg.messagecenter.pushmessage;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Timer;
+import com.codahale.metrics.Timer.Context;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.util.PushNotificationTextShortener;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -26,6 +28,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     private static final Counter COUNTER_PUSH_SENT = TimingReports.newCounter("message-box.push-message-sent");
     private static final Counter COUNTER_PUSH_NO_DEVICE = TimingReports.newCounter("message-box.push-message-no-device");
     private static final Counter COUNTER_PUSH_FAILED = TimingReports.newCounter("message-box.push-message-failed");
+    private static final Timer PUSH_MESSAGE_TIMING = TimingReports.newTimer("message-box.push-message.timing");
 
     private static final Logger LOG = LoggerFactory.getLogger(PushMessageOnUnreadConversationCallback.class);
 
@@ -59,7 +62,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
 
 
     void sendPushMessage(String email, Long unreadCount) {
-        try {
+        try (Context ignore = PUSH_MESSAGE_TIMING.time()) {
             Optional<PushMessagePayload> payload = createPayloadBasedOnNotificationRules(conversation, message, email, unreadCount);
 
             if (!payload.isPresent()) {
