@@ -7,7 +7,6 @@ import com.ecg.replyts.core.runtime.indexer.conversation.BulkIndexer;
 import com.ecg.replyts.core.runtime.migrator.Util;
 import com.ecg.replyts.core.runtime.workers.InstrumentedCallerRunsPolicy;
 import com.ecg.replyts.core.runtime.workers.InstrumentedExecutorService;
-
 import com.google.common.collect.Iterators;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -18,11 +17,18 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -70,6 +76,23 @@ public class BulkIndexerAction implements IndexerAction {
         this.threadPoolExecutor = new InstrumentedExecutorService(executor, "indexer", BulkIndexerAction.class.getSimpleName());
     }
 
+    @PreDestroy
+    public void shutdown() {
+        threadPoolExecutor.shutdown();
+        try {
+            LOG.info("Indexing terminating due to shuwdown");
+            if (!threadPoolExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                LOG.warn("Some of the thread haven't completed during the graceful period, going to interrupt them...");
+            }
+            threadPoolExecutor.shutdownNow();
+            LOG.info("Indexing terminated due to shuwdown");
+        } catch (InterruptedException e) {
+            LOG.warn("Indexing termination failed", e);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    @Override
     public void doIndexBetween(DateTime dateFrom, DateTime dateTo, IndexingMode indexingMode, IndexingJournal journal) {
         LOG.info("Started indexing between {} and {}", dateFrom, dateTo);
 

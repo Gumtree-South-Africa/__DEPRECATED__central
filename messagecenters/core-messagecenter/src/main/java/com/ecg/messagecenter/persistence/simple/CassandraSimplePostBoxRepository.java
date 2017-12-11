@@ -1,7 +1,13 @@
 package com.ecg.messagecenter.persistence.simple;
 
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
@@ -21,8 +27,19 @@ import org.springframework.beans.factory.annotation.Value;
 import javax.annotation.PostConstruct;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -71,7 +88,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @PostConstruct
     public void createThreadPoolExecutor() {
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(workQueueSize);
-        RejectedExecutionHandler rejectionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
+        RejectedExecutionHandler rejectionHandler = new ThreadPoolExecutor.AbortPolicy();
 
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat(CassandraSimplePostBoxRepository.class.getSimpleName() + "-%d").setDaemon(true).build();
         this.threadPoolExecutor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, threadFactory, rejectionHandler);
@@ -263,21 +280,28 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
         List<Future<?>> cleanUpTasks = new ArrayList<>();
 
+        boolean isFinished = true;
+
         try (Timer.Context ignored = streamConversationThreadModificationsByHourTimer.time()) {
             Statement bound = Statements.SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this, roundedToHour.toDate());
             ResultSet resultSet = session.execute(bound);
             Iterator<List<Row>> partitions = Iterators.partition(resultSet.iterator(), batchSize);
 
-            while(partitions.hasNext()) {
-                List<Row> rows = partitions.next();
-                resultSet.fetchMoreResults();
-                List<ConversationThreadModificationDate> idxs = rows.stream()
-                        .map(this::createConversationThreadModificationDate).collect(toList());
+            try {
+                while(partitions.hasNext()) {
+                    List<Row> rows = partitions.next();
+                    resultSet.fetchMoreResults();
+                    List<ConversationThreadModificationDate> idxs = rows.stream()
+                            .map(this::createConversationThreadModificationDate).collect(toList());
 
-                Future<?> future = threadPoolExecutor
-                        .submit(setTaskFields(() -> doCleanup(idxs), CassandraSimplePostBoxRepository.class.getSimpleName() + ".cleanup"));
+                    Future<?> future = threadPoolExecutor
+                            .submit(setTaskFields(() -> doCleanup(idxs), CassandraSimplePostBoxRepository.class.getSimpleName() + ".cleanup"));
 
-                cleanUpTasks.add(future);
+                    cleanUpTasks.add(future);
+                }
+            }
+            catch (RejectedExecutionException rejectedExecutionException) {
+                isFinished = false;
             }
         }
 
@@ -296,7 +320,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
         LOG.info("Cleanup: Finished deleting conversations");
 
-        return true;
+        return isFinished;
     }
 
     private ConversationThreadModificationDate createConversationThreadModificationDate(Row row) {
@@ -399,8 +423,6 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
             deleteConversationThreadStatements(batch, id, conversationId);
 
-            batch.setConsistencyLevel(writeConsistency).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
-
             session.execute(batch);
         }
     }
@@ -409,10 +431,10 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     public void deleteConversations(PostBox postBox, List<String> convIds) {
         try (Timer.Context ignored = deleteConversationThreadBatchTimer.time()) {
             BatchStatement batch = new BatchStatement();
+
             for (String conv : convIds) {
                 deleteConversationThreadStatements(batch, PostBoxId.fromEmail(postBox.getEmail()), conv);
             }
-            batch.setConsistencyLevel(writeConsistency).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
 
             session.execute(batch);
         }

@@ -67,18 +67,21 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             }
 
             PushService.Result sendPushResult = pushService.sendPushMessage(payload.get());
-
-            if (PushService.Result.Status.OK == sendPushResult.getStatus()) {
-                COUNTER_PUSH_SENT.inc();
-            }
-
-            if (PushService.Result.Status.NOT_FOUND == sendPushResult.getStatus()) {
-                COUNTER_PUSH_NO_DEVICE.inc();
-            }
-
-            if (PushService.Result.Status.ERROR == sendPushResult.getStatus()) {
-                COUNTER_PUSH_FAILED.inc();
-                LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), sendPushResult.getException().get());
+            switch (sendPushResult.getStatus()) {
+                case OK:
+                    COUNTER_PUSH_SENT.inc();
+                    break;
+                case NOT_FOUND:
+                    COUNTER_PUSH_NO_DEVICE.inc();
+                    break;
+                case ERROR:
+                    COUNTER_PUSH_FAILED.inc();
+                    LOG.warn(
+                        "Error sending push for conversation '{}' and message '{}'",
+                        conversation.getId(),
+                        message.getId(),
+                        sendPushResult.getException().get());
+                    break;
             }
         } catch (Exception e) {
             COUNTER_PUSH_FAILED.inc();

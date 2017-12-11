@@ -4,6 +4,7 @@ import com.codahale.metrics.Timer;
 import com.ebay.ecg.australia.events.command.robot.RobotCommands;
 import com.ebay.ecg.australia.events.entity.Entities;
 import com.ebay.ecg.australia.events.service.EventHandler;
+import com.ebay.ecg.replyts.robot.api.exception.ConversationNotFoundException;
 import com.ebay.ecg.replyts.robot.api.requests.payload.MessagePayload;
 import com.ebay.ecg.replyts.robot.api.requests.payload.MessageSender;
 import com.ebay.ecg.replyts.robot.service.RobotService;
@@ -36,9 +37,9 @@ public class RabbitMQConsumer implements EventHandler {
     @Override
     public void fire(Object e) {
         if (e instanceof GeneratedMessage) {
-            
+
             MDCConstants.setTaskFields(RabbitMQConsumer.class.getSimpleName());
-            
+
             GeneratedMessage message = (GeneratedMessage) e;
             try {
                 if (message.getClass().getName().contains(RobotCommands.PostMessageCommand.class.getSimpleName())) {
@@ -63,11 +64,12 @@ public class RabbitMQConsumer implements EventHandler {
                         LOG.debug("Gumbot Message received for ConversationID: " + conversationId);
 
                         robotService.addMessageToConversation(conversationId, payload);
+                        LOG.debug("Message " + message.getClass().getName() + " written successfully");
+                    } catch (ConversationNotFoundException exception) {
+                        LOG.warn("Message " + message.getClass().getName() + " not written: {}", exception.getMessage());
                     } finally {
                         timerContext.stop();
                     }
-
-                    LOG.debug("Message " + message.getClass().getName() + " written successfully");
                 }
             } catch (Exception ex) {
                 LOG.error("Error writing message to event log", ex);

@@ -47,13 +47,13 @@ public class CassandraSimplePostBoxCleanupCronJob implements CronJobExecutor {
             return;
         }
 
-        LOG.info("Cleanup: Deleting conversations for the date {}", cleanupDate);
+        LOG.info("Cleanup: Deleting postbox conversations for the date {}", cleanupDate);
 
         if (postBoxRepository.cleanup(cleanupDate)) {
             cronJobClockRepository.set(CLEANUP_CONVERSATION_JOB_NAME, now(), cleanupDate);
-            LOG.info("Cleanup: Finished deleting conversations");
+            LOG.info("Cleanup: Finished deleting postbox conversations");
         } else {
-            LOG.warn("Cleanup: Deleting conversations interrupted");
+            LOG.warn("Cleanup: Deleting postbox conversations interrupted");
         }
     }
 
