@@ -7,17 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinutes;
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnExpression("#{" +
-            "('${replyts2.cronjob.cleanupMail.enabled}' == 'true' || '${replyts2.cronjob.cleanupMail.enabled}' == '${region}') && " +
-            "('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))" +
-        "}")
+@ConditionalOnExpression("#{'${replyts2.cronjob.cleanupMail.enabled}' == '${region}' && ('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))}")
 public class CleanupMailCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CleanupMailCronJob.class);
 

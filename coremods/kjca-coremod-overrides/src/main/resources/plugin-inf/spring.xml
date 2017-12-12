@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/util
-        http://www.springframework.org/schema/util/spring-util.xsd">
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean class="ca.kijiji.replyts.TextAnonymizer" id="textAnonymizer"/>
 
@@ -23,9 +21,9 @@
     <bean id="currentClock" class="com.ecg.replyts.core.api.util.CurrentClock"/>
     <!-- Redefine the timeframe to be without bounds, as our retention period is independent of CS working hours -->
     <bean id="timeoutHeldsCronJobTimeframe" class="com.ecg.replyts.app.cronjobs.BoundlessTimeframe">
-        <constructor-arg index="0" value="${replyts2.sendHeld.csWorkingHoursStart:0}"/>
-        <constructor-arg index="1" value="${replyts2.sendHeld.csWorkingHoursEnd:24}"/>
-        <constructor-arg index="2" value="${replyts2.sendHeld.retentionTimeHours:12}"/>
+        <constructor-arg index="0" value="${cronjob.sendHeld.csWorkingHoursStart:0}"/>
+        <constructor-arg index="1" value="${cronjob.sendHeld.csWorkingHoursEnd:24}"/>
+        <constructor-arg index="2" value="${cronjob.sendHeld.retentionTimeHours:12}"/>
         <constructor-arg index="3" ref="currentClock"/>
     </bean>
 

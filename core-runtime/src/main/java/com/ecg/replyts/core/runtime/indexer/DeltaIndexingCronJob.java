@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnExpression("#{('${replyts2.cronjob.deltaindexer.enabled:true}' == 'true' || '${replyts2.cronjob.deltaindexer.enabled:true}' == '${region}') && '${persistence.strategy}' == 'riak'}")
+@ConditionalOnExpression("#{('${replyts2.cronjob.deltaindexer.enabled}' == '${region}') && '${persistence.strategy}' == 'riak'}")
 public class DeltaIndexingCronJob implements CronJobExecutor {
     @Value("${replyts.deltaindexer.intervalMinutes:10}")
     private int intervalMinutes;
