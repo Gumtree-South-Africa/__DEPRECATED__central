@@ -103,7 +103,7 @@ public class ConversationController {
                 LOG.info("Invalid arguments. {}", bindingResult.getAllErrors());
                 return ResponseObject.of(RequestState.INVALID_ARGUMENTS);
             }
-            postBoxService.createSystemMessage(userId, conversationId, payload.getAdId(), payload.getText(), payload.getCustomData());
+            postBoxService.createSystemMessage(userId, conversationId, payload.getAdId(), payload.getText(), payload.getCustomData(), payload.isSendPush());
             return ResponseObject.of(RequestState.OK);
         }
     }

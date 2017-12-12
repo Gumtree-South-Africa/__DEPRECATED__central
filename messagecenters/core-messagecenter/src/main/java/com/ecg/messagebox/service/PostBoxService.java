@@ -35,5 +35,5 @@ public interface PostBoxService {
 
     Optional<String> createEmptyConversation(EmptyConversationRequest emptyConversation);
 
-    void createSystemMessage(String userId, String conversationId, String adId, String text, String customData);
+    void createSystemMessage(String userId, String conversationId, String adId, String text, String customData, boolean sendPush);
 }

@@ -16,7 +16,11 @@ public enum MessageDirection {
     /**
      * undefined message direction for when the mail was unparsable or the cloaked mail format was illegal.
      */
-    UNKNOWN(null, null);
+    UNKNOWN(null, null),
+    /**
+     * for system messages
+     */
+    SYSTEM_MESSAGE(null, null);
 
     private final ConversationRole fromRole;
     private final ConversationRole toRole;

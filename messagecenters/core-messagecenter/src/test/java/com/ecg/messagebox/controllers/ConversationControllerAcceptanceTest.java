@@ -120,6 +120,7 @@ public class ConversationControllerAcceptanceTest extends ReplyTsIntegrationTest
         payload.setText("some text");
         payload.setAdId("abc");
         payload.setCustomData("some custom data");
+        payload.setSendPush(true);
 
         RestAssured.given()
                 .header("Content-Type", MediaType.APPLICATION_JSON_UTF8_VALUE)

@@ -4,12 +4,12 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
+import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.model.*;
+import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationState;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
+import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.service.NewConversationService;
 import org.slf4j.MDC;
@@ -33,6 +33,8 @@ public class CassandraPostBoxService implements PostBoxService {
     private final UserIdentifierService userIdentifierService;
     private final ResponseDataService responseDataService;
     private final NewConversationService newConversationService;
+    private final MessageAddedEventProcessor messageAddedEventProcessor;
+    private final ConversationRepository conversationRepository;
 
     private final Timer processNewMessageTimer = newTimer("postBoxService.v2.processNewMessage");
     private final Timer getConversationTimer = newTimer("postBoxService.v2.getConversation");
@@ -54,12 +56,16 @@ public class CassandraPostBoxService implements PostBoxService {
             CassandraPostBoxRepository postBoxRepository,
             UserIdentifierService userIdentifierService,
             ResponseDataService responseDataService,
-            NewConversationService newConversationService
+            NewConversationService newConversationService,
+            MessageAddedEventProcessor messageAddedEventProcessor,
+            ConversationRepository conversationRepository
     ) {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.responseDataService = responseDataService;
         this.newConversationService = newConversationService;
+        this.messageAddedEventProcessor = messageAddedEventProcessor;
+        this.conversationRepository = conversationRepository;
     }
 
     @SuppressWarnings("Duplicates")
@@ -219,12 +225,19 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public void createSystemMessage(String userId, String conversationId, String adId, String text, String customData) {
+    public void createSystemMessage(String userId, String conversationId, String adId, String text, String customData, boolean sendPush) {
         try (Timer.Context ignored = createSystemMessage.time()) {
+            UUID messageId = UUIDs.timeBased();
 
-            Message systemMessage = new Message(UUIDs.timeBased(), text, SYSTEM_MESSAGE_USER_ID, MessageType.SYSTEM_MESSAGE, customData);
+            Message systemMessage = new Message(messageId, text, SYSTEM_MESSAGE_USER_ID, MessageType.SYSTEM_MESSAGE, customData);
 
             postBoxRepository.addSystemMessage(userId, conversationId, adId, systemMessage);
+
+            if(sendPush) {
+                Conversation conv = conversationRepository.getById(conversationId);
+
+                messageAddedEventProcessor.publishMessageAddedEvent(conv, messageId.toString(), text, postBoxRepository.getUserUnreadCounts(userId));
+            }
         }
     }
 

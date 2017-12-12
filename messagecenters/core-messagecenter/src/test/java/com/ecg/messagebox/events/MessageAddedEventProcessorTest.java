@@ -108,6 +108,50 @@ public class MessageAddedEventProcessorTest {
     }
 
     @Test
+    public void publishMessageWithId() throws ClassNotFoundException {
+        MessageAddedEventProcessor processor = new MessageAddedEventProcessor(converter, publisher, true);
+
+        when(converter.toEvents(any(), any(), any(), anyBoolean())).thenReturn(Lists.newArrayList(new EventPublisher.Event(null, null)));
+
+        ImmutableMessage.Builder msgBuilder = ImmutableMessage.Builder.aMessage()
+                .withMessageDirection(BUYER_TO_SELLER)
+                .withState(MessageState.SENT)
+                .withReceivedAt(new DateTime())
+                .withLastModifiedAt(new DateTime())
+                .withFilterResultState(FilterResultState.OK)
+                .withHumanResultState(ModerationResultState.GOOD)
+                .withHeaders(new HashMap<>())
+                .withProcessingFeedback(ProcessingFeedbackBuilder.aProcessingFeedback()
+                        .withFilterName("filter1")
+                        .withFilterInstance("filter1"))
+                .withTextParts(Lists.newArrayList())
+                .withId("id");
+
+
+        processor.publishMessageAddedEvent(
+                ImmutableConversation.Builder.aConversation()
+                        .withCreatedAt(new DateTime())
+                        .withLastModifiedAt(new DateTime())
+                        .withState(ConversationState.ACTIVE)
+                        .withMessage(msgBuilder)
+                        .build(),
+                "id", "test 123", new UserUnreadCounts("1", 1, 1));
+
+        Mockito.verify(converter).toEvents(any(), convEventsCaptor.capture(), unreadCountsArgumentCaptor.capture(), anyBoolean());
+        List<ConversationEvent> addedEvent = convEventsCaptor.getValue();
+        MessageAddedEvent m = (MessageAddedEvent) addedEvent.get(0);
+        assertEquals("id", m.getMessageId());
+        assertEquals(null, m.getState());
+        assertEquals("test 123", m.getTextParts().get(0));
+        assertEquals("test 123", m.getHeaders().get("X-User-Message"));
+
+        UserUnreadCounts uc = unreadCountsArgumentCaptor.getValue();
+        assertEquals(1, uc.getNumUnreadConversations());
+        assertEquals(1, uc.getNumUnreadMessages());
+        assertEquals("1", uc.getUserId());
+    }
+
+    @Test
     public void newConnection() {
         MessageAddedEventProcessor processor = new MessageAddedEventProcessor(converter, publisher, true);
 

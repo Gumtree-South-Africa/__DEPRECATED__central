@@ -16,6 +16,8 @@ public class SystemMessagePayload {
     @NotEmpty
     private String adId;
 
+    private boolean sendPush = false;
+
     public String getText() {
         return text;
     }
@@ -38,6 +40,14 @@ public class SystemMessagePayload {
 
     public void setAdId(String adId) {
         this.adId = adId;
+    }
+
+    public boolean isSendPush() {
+        return sendPush;
+    }
+
+    public void setSendPush(boolean sendPush) {
+        this.sendPush = sendPush;
     }
 }
 

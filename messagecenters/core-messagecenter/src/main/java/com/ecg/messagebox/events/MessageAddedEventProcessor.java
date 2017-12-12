@@ -10,6 +10,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +52,12 @@ public class MessageAddedEventProcessor {
         }
     }
 
+    public void publishMessageAddedEvent(Conversation conv, String id, String msgText, UserUnreadCounts unreadCounts) {
+        if (enabled) {
+            publisher.publishNewMessage(constructEvent(conv, id, msgText, unreadCounts));
+        }
+    }
+
     private EventPublisher.Event constructEvent(Conversation conv, Message msg, String msgText, UserUnreadCounts unreadCounts) {
         final Map<String, String> headers = new HashMap<>(msg.getHeaders());
         headers.put(USER_MESSAGE_HEADER, msgText);
@@ -70,6 +77,27 @@ public class MessageAddedEventProcessor {
 
         return eventConverter.toEvents(conv, newArrayList(messageAddedEvent), unreadCounts, isNewConnection(conv.getMessages())).get(0);
     }
+
+    private EventPublisher.Event constructEvent(Conversation conv, String id, String msgText, UserUnreadCounts unreadCounts) {
+        final Map<String, String> headers = new HashMap<>();
+        headers.put(USER_MESSAGE_HEADER, msgText);
+
+        final MessageAddedEvent messageAddedEvent = new MessageAddedEvent(id,
+                MessageDirection.SYSTEM_MESSAGE,
+                DateTime.now(),
+                null,
+                null,
+                null,
+                FilterResultState.OK,
+                ModerationResultState.GOOD,
+                headers,
+                msgText,
+                null,
+                singletonList(msgText));
+
+        return eventConverter.toEvents(conv, newArrayList(messageAddedEvent), unreadCounts, isNewConnection(conv.getMessages())).get(0);
+    }
+
 
     @Autowired(required = false)
     public void setPublisher(@Qualifier("messageAddedEventPublisher") MessageAddedKafkaPublisher publisher) {

@@ -2,6 +2,7 @@ package com.ecg.messagebox.service;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
+import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.util.EmptyConversationFixture;
@@ -9,6 +10,7 @@ import com.ecg.messagebox.util.MessagePreProcessor;
 import com.ecg.messagebox.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -90,8 +92,10 @@ public class CassandraPostBoxServiceTest {
     private static final int CONVERSATION_OFFSET = 0;
     private static final int CONVERSATION_LIMIT = 50;
 
+    private static final UserUnreadCounts UNREAD_COUNTS = new UserUnreadCounts(USER_ID_1, 2, 5);
+
     @Mock
-    private CassandraPostBoxRepository conversationsRepo;
+    private CassandraPostBoxRepository postBoxRepo;
     @Mock
     private UserIdentifierService userIdentifierService;
     @Mock
@@ -102,6 +106,12 @@ public class CassandraPostBoxServiceTest {
     private PostBox postBox;
     @Mock
     private NewConversationService newConversationService;
+    @Mock
+    private MessageAddedEventProcessor messageAddedEventProcessor;
+    @Mock
+    private ConversationRepository conversationRepo;
+    @Mock
+    private MutableConversation conversation;
 
     @Autowired
     private MessagesResponseFactory messagesResponseFactory;
@@ -112,12 +122,14 @@ public class CassandraPostBoxServiceTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         DateTimeUtils.setCurrentMillisFixed(now().getMillis());
-        service = new CassandraPostBoxService(conversationsRepo, userIdentifierService,
-                responseDataService, newConversationService);
+        service = new CassandraPostBoxService(postBoxRepo, userIdentifierService,
+                responseDataService, newConversationService, messageAddedEventProcessor, conversationRepo);
         when(userIdentifierService.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierService.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(blockUserRepo.areUsersBlocked(any(), any())).thenReturn(false);
-        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, CONVERSATION_ID_1)).thenReturn(empty());
+        when(postBoxRepo.getConversationMessageNotification(USER_ID_1, CONVERSATION_ID_1)).thenReturn(empty());
+        when(postBoxRepo.getUserUnreadCounts(USER_ID_1)).thenReturn(UNREAD_COUNTS);
+        when(conversationRepo.getById(CONVERSATION_ID_1)).thenReturn(conversation);
     }
 
     @After
@@ -138,7 +150,7 @@ public class CassandraPostBoxServiceTest {
 
         ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
         ArgumentCaptor<com.ecg.messagebox.model.Message> messageArgCaptor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
-        verify(conversationsRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), anyBoolean());
+        verify(postBoxRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), anyBoolean());
 
         ConversationThread capturedConversationThread = conversationThreadArgCaptor.getValue();
         Assert.assertEquals(DEFAULT_SUBJECT, capturedConversationThread.getMetadata().getEmailSubject());
@@ -181,7 +193,7 @@ public class CassandraPostBoxServiceTest {
 
         service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true, "text 123");
 
-        verify(conversationsRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), eq(true));
+        verify(postBoxRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), eq(true));
 
         com.ecg.messagebox.model.Message capturedMessage = messageArgCaptor.getValue();
 
@@ -227,7 +239,7 @@ public class CassandraPostBoxServiceTest {
 
         service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true, "text 123");
 
-        verify(conversationsRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), eq(true));
+        verify(postBoxRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), eq(true));
 
         ConversationThread conversation = conversationThreadArgCaptor.getValue();
         Assert.assertEquals(conversation.getMetadata().getImageUrl(), "conversation.image.url");
@@ -235,7 +247,7 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void processNewMessageWithIdHeader() {
-        when(conversationsRepo.getConversationMessageNotification(USER_ID_1, CONVERSATION_ID_1)).thenReturn(empty());
+        when(postBoxRepo.getConversationMessageNotification(USER_ID_1, CONVERSATION_ID_1)).thenReturn(empty());
 
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
@@ -268,13 +280,13 @@ public class CassandraPostBoxServiceTest {
 
         service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true, "text 123");
 
-        verify(conversationsRepo).createConversation(USER_ID_1, conversation, newMessage, true);
+        verify(postBoxRepo).createConversation(USER_ID_1, conversation, newMessage, true);
     }
 
     @Test
     public void getConversation(){
         ConversationThread expectedConversationThread = newConversationThread(CONVERSATION_ID_1);
-        when(conversationsRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT)).thenReturn(Optional.of(expectedConversationThread));
+        when(postBoxRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT)).thenReturn(Optional.of(expectedConversationThread));
         Optional<ConversationThread> conversationThread = service.getConversation(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT);
 
         Assert.assertEquals(expectedConversationThread, conversationThread.get());
@@ -284,20 +296,20 @@ public class CassandraPostBoxServiceTest {
     @Test
     public void markConversationAsRead(){
         ConversationThread repoConversationThread = newConversationThread(CONVERSATION_ID_1).addNumUnreadMessages(USER_ID_1,5);
-        when(conversationsRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT)).thenReturn(Optional.of(repoConversationThread));
+        when(postBoxRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT)).thenReturn(Optional.of(repoConversationThread));
 
         Optional<ConversationThread> conversationThread = service.markConversationAsRead(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT);
 
         ConversationThread expectedConversationThread = repoConversationThread.addNumUnreadMessages(USER_ID_1,0);
 
-        verify(conversationsRepo).resetConversationUnreadCount(USER_ID_1, USER_ID_2, CONVERSATION_ID_1, AD_ID_1);
+        verify(postBoxRepo).resetConversationUnreadCount(USER_ID_1, USER_ID_2, CONVERSATION_ID_1, AD_ID_1);
         Assert.assertEquals(expectedConversationThread, conversationThread.get());
     }
 
     @Test
     public void getConversations(){
         PostBox expectedPostBox = newPostBox();
-        when(conversationsRepo.getPostBox(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT)).thenReturn(expectedPostBox);
+        when(postBoxRepo.getPostBox(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT)).thenReturn(expectedPostBox);
         PostBox postBox = service.getConversations(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET , CONVERSATION_LIMIT);
 
         Assert.assertEquals(expectedPostBox, postBox);
@@ -312,20 +324,20 @@ public class CassandraPostBoxServiceTest {
 
         PostBox expectedPostBox = newPostBox();
 
-        when(conversationsRepo.getConversationAdIdsMap(USER_ID_1, conversationIds)).thenReturn(conversationAdIdsMap);
-        when(conversationsRepo.getPostBox(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT)).thenReturn(postBox);
+        when(postBoxRepo.getConversationAdIdsMap(USER_ID_1, conversationIds)).thenReturn(conversationAdIdsMap);
+        when(postBoxRepo.getPostBox(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT)).thenReturn(postBox);
         when(postBox.removeConversations(conversationIds)).thenReturn(expectedPostBox);
 
         PostBox returnedPostBox = service.changeConversationVisibilities(USER_ID_1, conversationIds, Visibility.ARCHIVED, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT);
 
-        verify(conversationsRepo).changeConversationVisibilities(USER_ID_1, conversationAdIdsMap, Visibility.ARCHIVED);
+        verify(postBoxRepo).changeConversationVisibilities(USER_ID_1, conversationAdIdsMap, Visibility.ARCHIVED);
         Assert.assertEquals(expectedPostBox, returnedPostBox);
     }
 
     @Test
     public void getUnreadCounts(){
         UserUnreadCounts expectedUserUnreadCounts = new UserUnreadCounts(USER_ID_1, 3, 5);
-        when(conversationsRepo.getUserUnreadCounts(USER_ID_1)).thenReturn(expectedUserUnreadCounts);
+        when(postBoxRepo.getUserUnreadCounts(USER_ID_1)).thenReturn(expectedUserUnreadCounts);
 
         UserUnreadCounts userUnreadCounts = service.getUnreadCounts(USER_ID_1);
 
@@ -336,7 +348,7 @@ public class CassandraPostBoxServiceTest {
     public void deleteConversation(){
         service.deleteConversation(USER_ID_1, CONVERSATION_ID_1, AD_ID_1);
 
-        verify(conversationsRepo).deleteConversation(USER_ID_1, CONVERSATION_ID_1, AD_ID_1);
+        verify(postBoxRepo).deleteConversation(USER_ID_1, CONVERSATION_ID_1, AD_ID_1);
     }
 
     @Test
@@ -344,8 +356,8 @@ public class CassandraPostBoxServiceTest {
 
         EmptyConversationRequest request = EmptyConversationFixture.validEmptyConversation();
 
-        when(conversationsRepo.createEmptyConversationProjection(any(EmptyConversationRequest.class), anyString(), eq(EmptyConversationFixture.SELLER_ID_1))).thenReturn(CONVERSATION_ID_1);
-        when(conversationsRepo.createEmptyConversationProjection(any(EmptyConversationRequest.class), anyString(), eq(EmptyConversationFixture.BUYER_ID_1))).thenReturn(CONVERSATION_ID_1);
+        when(postBoxRepo.createEmptyConversationProjection(any(EmptyConversationRequest.class), anyString(), eq(EmptyConversationFixture.SELLER_ID_1))).thenReturn(CONVERSATION_ID_1);
+        when(postBoxRepo.createEmptyConversationProjection(any(EmptyConversationRequest.class), anyString(), eq(EmptyConversationFixture.BUYER_ID_1))).thenReturn(CONVERSATION_ID_1);
         when(newConversationService.nextGuid()).thenReturn(CONVERSATION_ID_1);
 
         Optional<String> resultConversationId = service.createEmptyConversation(request);
@@ -353,8 +365,8 @@ public class CassandraPostBoxServiceTest {
         Assert.assertTrue(resultConversationId.isPresent());
         Assert.assertEquals("Should get back expected conversationId", Optional.of(CONVERSATION_ID_1), resultConversationId);
 
-        verify(conversationsRepo).createEmptyConversationProjection(eq(request), eq(CONVERSATION_ID_1), eq(EmptyConversationFixture.SELLER_ID_1));
-        verify(conversationsRepo).createEmptyConversationProjection(eq(request), eq(CONVERSATION_ID_1), eq(EmptyConversationFixture.BUYER_ID_1));
+        verify(postBoxRepo).createEmptyConversationProjection(eq(request), eq(CONVERSATION_ID_1), eq(EmptyConversationFixture.SELLER_ID_1));
+        verify(postBoxRepo).createEmptyConversationProjection(eq(request), eq(CONVERSATION_ID_1), eq(EmptyConversationFixture.BUYER_ID_1));
         verify(newConversationService).nextGuid();
         verify(newConversationService).commitConversation(eq(CONVERSATION_ID_1), eq(request.getAdId()), eq(EmptyConversationFixture.BUYER_EMAIL_1), eq(EmptyConversationFixture.SELLER_EMAIL_1), eq(ConversationState.ACTIVE), anyMap());
     }
@@ -366,7 +378,7 @@ public class CassandraPostBoxServiceTest {
 
         EmptyConversationRequest request = EmptyConversationFixture.invalidEmptyConversation();
 
-        when(conversationsRepo.createEmptyConversationProjection(any(EmptyConversationRequest.class), anyString(), eq(EmptyConversationFixture.SELLER_ID_1))).thenReturn(CONVERSATION_ID_1);
+        when(postBoxRepo.createEmptyConversationProjection(any(EmptyConversationRequest.class), anyString(), eq(EmptyConversationFixture.SELLER_ID_1))).thenReturn(CONVERSATION_ID_1);
         when(newConversationService.nextGuid()).thenReturn(CONVERSATION_ID_1);
         when(newConversationService.nextSecret()).thenReturn(SECRETS);
 
@@ -375,17 +387,17 @@ public class CassandraPostBoxServiceTest {
         Assert.assertFalse(resultConversationId.isPresent());
         Assert.assertEquals(Optional.empty(), resultConversationId);
 
-        verifyZeroInteractions(conversationsRepo);
+        verifyZeroInteractions(postBoxRepo);
         verifyZeroInteractions(newConversationService);
     }
 
     @Test
     public void createSystemMessage() {
-        service.createSystemMessage(USER_ID_1, CONVERSATION_ID_1, AD_ID_1, "text", "custom data");
+        service.createSystemMessage(USER_ID_1, CONVERSATION_ID_1, AD_ID_1, "text", "custom data", false);
 
         ArgumentCaptor<com.ecg.messagebox.model.Message> captor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
 
-        verify(conversationsRepo).addSystemMessage(eq(USER_ID_1), eq(CONVERSATION_ID_1), eq(AD_ID_1), captor.capture());
+        verify(postBoxRepo).addSystemMessage(eq(USER_ID_1), eq(CONVERSATION_ID_1), eq(AD_ID_1), captor.capture());
 
         com.ecg.messagebox.model.Message verifyMessage = captor.getValue();
 
@@ -393,6 +405,24 @@ public class CassandraPostBoxServiceTest {
         Assert.assertEquals(CassandraPostBoxService.SYSTEM_MESSAGE_USER_ID, verifyMessage.getSenderUserId());
         Assert.assertEquals(MessageType.SYSTEM_MESSAGE, verifyMessage.getType());
         Assert.assertEquals("custom data", verifyMessage.getCustomData());
+        verifyZeroInteractions(messageAddedEventProcessor);
+    }
+
+    @Test
+    public void createSystemMessageWithSendPush() {
+        service.createSystemMessage(USER_ID_1, CONVERSATION_ID_1, AD_ID_1, "text", "custom data", true);
+
+        ArgumentCaptor<com.ecg.messagebox.model.Message> captor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
+
+        verify(postBoxRepo).addSystemMessage(eq(USER_ID_1), eq(CONVERSATION_ID_1), eq(AD_ID_1), captor.capture());
+
+        com.ecg.messagebox.model.Message verifyMessage = captor.getValue();
+
+        Assert.assertEquals("text", verifyMessage.getText());
+        Assert.assertEquals(CassandraPostBoxService.SYSTEM_MESSAGE_USER_ID, verifyMessage.getSenderUserId());
+        Assert.assertEquals(MessageType.SYSTEM_MESSAGE, verifyMessage.getType());
+        Assert.assertEquals("custom data", verifyMessage.getCustomData());
+        verify(messageAddedEventProcessor).publishMessageAddedEvent(eq(conversation), any(String.class), eq("text"), eq(UNREAD_COUNTS));
     }
 
     private ImmutableConversation.Builder newConversation(String id) {
