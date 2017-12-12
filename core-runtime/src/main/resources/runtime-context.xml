@@ -17,9 +17,9 @@
 
     <bean id="currentClock" class="com.ecg.replyts.core.api.util.CurrentClock"/>
     <bean id="timeoutHeldsCronJobTimeframe" class="com.ecg.replyts.app.cronjobs.Timeframe">
-        <constructor-arg index="0" value="${replyts2.sendHeld.csWorkingHoursStart:0}"/>
-        <constructor-arg index="1" value="${replyts2.sendHeld.csWorkingHoursEnd:24}"/>
-        <constructor-arg index="2" value="${replyts2.sendHeld.retentionTimeHours:12}"/>
+        <constructor-arg index="0" value="${cronjob.sendHeld.csWorkingHoursStart:0}"/>
+        <constructor-arg index="1" value="${cronjob.sendHeld.csWorkingHoursEnd:24}"/>
+        <constructor-arg index="2" value="${cronjob.sendHeld.retentionTimeHours:12}"/>
         <constructor-arg index="3" ref="currentClock"/>
     </bean>
 

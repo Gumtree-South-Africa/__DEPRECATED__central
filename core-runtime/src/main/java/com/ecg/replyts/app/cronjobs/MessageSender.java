@@ -34,7 +34,7 @@ class MessageSender {
     MessageSender(
             SearchService searchService,
             ApplicationContext applicationContext,
-            @Value("${replyts2.sendHeld.retentionTimeHours:12}") int retentionTimeHours,
+            @Value("${cronjob.sendHeld.retentionTimeHours:12}") int retentionTimeHours,
             MutableConversationRepository conversationRepository) {
         this.searchService = searchService;
         this.applicationContext = applicationContext;

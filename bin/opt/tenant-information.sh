@@ -4,7 +4,7 @@ set -o nounset
 
 # tenant env
 get_region () {
-    local ip=$(dig +short ${1}.${2}.comaas.ecg.so)
+    local ip=$(dig +short ${1}.${2}.comaas.cloud)
     echo ${ip} | egrep -q '^10\.32\.24\.' && echo -n ams1
     echo ${ip} | egrep -q '^10\.32\.56\.' && echo -n dus1
 }
