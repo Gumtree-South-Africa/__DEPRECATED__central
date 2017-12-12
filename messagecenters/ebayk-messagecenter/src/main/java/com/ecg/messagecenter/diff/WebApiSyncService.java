@@ -326,10 +326,10 @@ public class WebApiSyncService {
         MutableConversation conversation = conversationRepository.getById(conversationId);
         Optional<String> userId;
         String userRole;
-        if (conversation != null && email.equals(conversation.getBuyerId())) {
+        if (conversation != null && email.equalsIgnoreCase(conversation.getBuyerId())) {
             userId = userIdentifierService.getBuyerUserId(conversation);
             userRole = "buyer";
-        } else if (conversation != null && email.equals(conversation.getSellerId())) {
+        } else if (conversation != null && email.equalsIgnoreCase(conversation.getSellerId())) {
             userId = userIdentifierService.getSellerUserId(conversation);
             userRole = "seller";
         } else {
