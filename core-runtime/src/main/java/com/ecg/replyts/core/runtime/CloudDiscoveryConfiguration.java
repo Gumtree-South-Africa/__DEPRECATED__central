@@ -42,11 +42,11 @@ public class CloudDiscoveryConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CloudDiscoveryConfiguration.class);
 
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
-            "persistence.cassandra.core.endpoint", "cassandra",
-            "persistence.cassandra.mb.endpoint", "cassandra",
-            "queue.kafka.endpoint", "kafkacore",
-            "kafka.core.servers", "kafkacore",
-            "search.es.endpoints", "elasticsearch"
+      "persistence.cassandra.core.endpoint", "cassandra",
+      "persistence.cassandra.mb.endpoint", "cassandra",
+      "queue.kafka.endpoint", "kafkacore",
+      "kafka.core.servers", "kafkacore",
+      "search.es.endpoints", "elasticsearch"
     );
 
     @Autowired
@@ -60,6 +60,9 @@ public class CloudDiscoveryConfiguration {
 
     @Autowired
     private DiscoveryClient discoveryClient;
+
+    @Autowired
+    private LoggingService loggingService;
 
     @Value("${replyts.tenant:unknown}")
     private String tenant;
@@ -86,6 +89,9 @@ public class CloudDiscoveryConfiguration {
                     }
                 }
         ));
+
+        // This will not longer be needed once we can use e.g. @RefreshScope
+        loggingService.initialize();
 
         // This will add properties from Consul KV and select Consul services
         discoverProperties();

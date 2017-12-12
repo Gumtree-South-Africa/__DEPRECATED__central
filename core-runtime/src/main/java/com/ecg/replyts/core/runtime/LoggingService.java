@@ -12,7 +12,6 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.stereotype.Component;
 import uk.org.lidalia.sysoutslf4j.context.SysOutOverSLF4J;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -46,8 +45,7 @@ public class LoggingService {
 
     private Map<Logger, Level> levels = new ConcurrentHashMap<>();
 
-    @PostConstruct
-    private void initialize() {
+    public void initialize() {
         LOGGER_CONTEXT.putProperty(TENANT, environment.getProperty("replyts.tenant", "unknown"));
 
         initializeToProperties();
@@ -59,14 +57,19 @@ public class LoggingService {
     }
 
     public void replaceAll(Map<String, String> newLevels) {
+        Logger actualRootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+
         if (newLevels.containsKey(Logger.ROOT_LOGGER_NAME)) {
             this.rootLevel = Level.valueOf(newLevels.get(Logger.ROOT_LOGGER_NAME));
         } else {
             this.rootLevel = Level.INFO;
+            actualRootLogger.setLevel(rootLevel);
         }
 
         synchronized (levels) {
-            levels.forEach((logger, level) -> logger.setLevel(rootLevel));
+            levels.keySet().stream()
+              .filter(logger -> !logger.equals(actualRootLogger))
+              .forEach(logger -> logger.setLevel(null));
 
             levels.clear();
         }
@@ -107,10 +110,11 @@ public class LoggingService {
             this.rootLevel = levels.get(actualRootLogger);
         } else {
             this.rootLevel = Level.INFO;
+            actualRootLogger.setLevel(rootLevel);
         }
 
         oldLevels.keySet().stream()
           .filter(logger -> !levels.containsKey(logger))
-          .forEach(logger -> logger.setLevel(rootLevel));
+          .forEach(logger -> logger.setLevel(null));
     }
 }

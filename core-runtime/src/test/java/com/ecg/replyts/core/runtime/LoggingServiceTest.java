@@ -3,6 +3,7 @@ package com.ecg.replyts.core.runtime;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,11 @@ public class LoggingServiceTest {
     @Autowired
     private LoggingService loggingService;
 
+    @Before
+    public void initialize() {
+        loggingService.initialize();
+    }
+  
     @Test
     public void testContext() {
         assertEquals("Logger context contains tenant", "foo", LOGGER_CONTEXT.getProperty("tenant"));
@@ -88,6 +94,23 @@ public class LoggingServiceTest {
         assertTrue("Replaced set of logging statements does contain 'baz.foz'", loggingService.getLevels().containsKey("baz.foz"));
         assertEquals("Replaced set of logging statements contains 'baz.foz' set to DEBUG", "DEBUG", loggingService.getLevels().get("baz.foz"));
         assertFalse("Replaced set of logging statements does not contain 'foo.bar'", loggingService.getLevels().containsKey("foo.bar"));
+    }
+
+    @Test
+    public void testClassOverride() {
+        String className = getClass().getTypeName();
+
+        loggingService.replaceAll(new HashMap<String, String>() {{
+            put(Logger.ROOT_LOGGER_NAME, "ERROR");
+            put(getClass().getPackage().getName(), "WARN");
+            put(className, "INFO");
+        }});
+
+        assertEquals("Actual Logback level for package was set to WARN", Level.WARN, ((Logger) LoggerFactory.getLogger(getClass().getPackage().getName())).getLevel());
+        assertEquals("Actual Logback level for class was set to INFO", Level.INFO, ((Logger) LoggerFactory.getLogger(className)).getLevel());
+
+        assertTrue("Actual Logback indicates INFO is enabled for this class", LoggerFactory.getLogger(getClass()).isInfoEnabled());
+        assertFalse("Actual Logback indicates DEBUG is disabled for this class", LoggerFactory.getLogger(getClass()).isDebugEnabled());
     }
 
     @Test
