@@ -25,12 +25,12 @@ GET replyts_*/_search
 }
 ```
 
-(Also useful is the query `GET replyts_mail.gemaaktvoorelkaar.nl/_mapping`.)
+(Also useful is the query `GET replyts_mail.qa-mp.so/_mapping`.)
 
 Look at result, for example in the fragment
 ```"hits": [
          {
-            "_index": "replyts_mail.gemaaktvoorelkaar.nl",
+            "_index": "replyts_mail.qa-mp.so",
             "_type": "message",
             "_id": "2uvu:-oqbvtw:ihxogvlk/2uvt:-oqbvtw:ihxogvlk",
             "_score": null,
@@ -47,7 +47,7 @@ With DevCenter (see [Debugging Cassandra with DeveCenter](cassandra-debugging.md
 to find conversation with orphaned message.
 
 Select second event (MessageAddedEvent) and find the `To` header. In this case the value
-is `"a-2xkcvzmxilw9m@mail.gemaaktvoorelkaar.nl"`.
+is `"a-2xkcvzmxilw9m@mail.qa-mp.so"`.
 
 Take out the ‘secret’ which is `2xkcvzmxilw9m`. Use to query cassandra again:
 `select * from core_conversation_secret where secret = '2xkcvzmxilw9m';`
