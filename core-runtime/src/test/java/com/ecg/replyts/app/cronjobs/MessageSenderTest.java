@@ -9,24 +9,25 @@ import com.ecg.replyts.core.api.search.RtsSearchResponse;
 import com.ecg.replyts.core.api.search.RtsSearchResponse.IDHolder;
 import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
+import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-
 @RunWith(MockitoJUnitRunner.class)
 public class MessageSenderTest {
-
     @Mock
     private SearchService searchService;
 
@@ -40,21 +41,26 @@ public class MessageSenderTest {
     private MutableConversationRepository conversationRepository;
 
     @Mock
+    private SearchIndexer searchIndexer;
+
+    @Mock
     private MutableConversation conv1;
+
     @Mock
     private MutableConversation conv2;
+
     @Mock
     private MutableConversation conv3;
 
+    @InjectMocks
     private MessageSender sender;
 
     @Before
     public void setUp() {
-
         when(searchService.search(any(SearchMessagePayload.class))).thenReturn(new RtsSearchResponse(Lists.newArrayList(
-                new IDHolder("123a", "321a"),
-                new IDHolder("123b", "321b"),
-                new IDHolder("123c", "321c")
+          new IDHolder("123a", "321a"),
+          new IDHolder("123b", "321b"),
+          new IDHolder("123c", "321c")
         )));
 
         when(applicationContext.getBean(ModerationService.class)).thenReturn(moderationService);
@@ -63,8 +69,7 @@ public class MessageSenderTest {
         when(conversationRepository.getById("321b")).thenReturn(conv2);
         when(conversationRepository.getById("321c")).thenReturn(conv3);
 
-        //when(conversationRepository)
-        sender = new MessageSender(searchService, applicationContext, 4, conversationRepository);
+        ReflectionTestUtils.setField(sender, "retentionTimeHours", 4);
     }
 
     @Test
@@ -85,8 +90,5 @@ public class MessageSenderTest {
         verify(moderationService).changeMessageState(conv1, "123a", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
         verify(moderationService).changeMessageState(conv2, "123b", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
         verify(moderationService).changeMessageState(conv3, "123c", new ModerationAction(ModerationResultState.TIMED_OUT, Optional.empty()));
-
-
     }
-
 }
