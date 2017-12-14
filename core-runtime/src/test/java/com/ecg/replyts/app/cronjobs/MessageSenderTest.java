@@ -70,6 +70,8 @@ public class MessageSenderTest {
         when(conversationRepository.getById("321c")).thenReturn(conv3);
 
         ReflectionTestUtils.setField(sender, "retentionTimeHours", 4);
+        ReflectionTestUtils.setField(sender, "retentionTimeStartHours", 24);
+        ReflectionTestUtils.setField(sender, "processingMaximum", 20000);
     }
 
     @Test
