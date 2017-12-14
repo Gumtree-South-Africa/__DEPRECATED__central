@@ -43,25 +43,29 @@ public class MessageSender {
     @Value("${replyts2.sendHeld.retentionTimeHours:12}")
     private int retentionTimeHours;
 
+    @Value("${replyts2.sendHeld.retentionTimeStartHours:24}") // 24 hours is the default to guard against stuck mails
+    private int retentionTimeStartHours;
+    
+    @Value("${replyts2.sendHeld.processingMaximum:20000}")
+    private int processingMaximum;
+    
     public void work() {
         // moderation service is in a feedback loop to the filter chain that needs the plugin system to work
         // this cronjob is a plugin --> we've got a circular dependency at startup here
         // I resolve this by fetching the moderation service on the cron job run individually.
         ModerationService moderationService = applicationContext.getBean(ModerationService.class);
 
-        // all mails received before now - retention time and are still in held can be sent out.
-        // the filter starts to operate after cs agent working hours + retention time, so no care must be taken about breaks.
-        Date endOfRetentionTime = DateTime.now().minusHours(retentionTimeHours).toDate();
-        // if a mail continous to fail then there might be something wrong with it. this is to ensure that it's not retried forever.
-        Date oneDayBeforeEndOfRetentionTime = DateTime.now().minusHours(retentionTimeHours).minusHours(24).toDate();
+        Date startDate = DateTime.now().minusHours(retentionTimeHours).minusHours(retentionTimeStartHours).toDate();
+        // All mails received before (now() - retentionTimeHours) which are still in held can be sent out.
+        Date endDate = DateTime.now().minusHours(retentionTimeHours).toDate();
 
         SearchMessagePayload smp = new SearchMessagePayload();
 
         smp.setMessageState(MessageRtsState.HELD);
-        smp.setFromDate(oneDayBeforeEndOfRetentionTime);
-        smp.setToDate(endOfRetentionTime);
+        smp.setFromDate(startDate);
+        smp.setToDate(endDate);
         smp.setOffset(0);
-        smp.setCount(20000);
+        smp.setCount(processingMaximum);
 
         RtsSearchResponse searchResponse = searchService.search(smp);
 
