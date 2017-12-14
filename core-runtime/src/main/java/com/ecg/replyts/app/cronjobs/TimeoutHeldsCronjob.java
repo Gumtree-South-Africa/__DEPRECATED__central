@@ -42,6 +42,6 @@ public class TimeoutHeldsCronjob implements CronJobExecutor {
 
     @Override
     public String getPreferredCronExpression() {
-        return CronExpressionBuilder.everyNMinutes(30);
+        return CronExpressionBuilder.everyNMinutes(10);
     }
 }
