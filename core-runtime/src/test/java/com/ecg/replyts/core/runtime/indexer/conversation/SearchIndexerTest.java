@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -47,14 +47,13 @@ public class SearchIndexerTest {
     private IndexRequestBuilder indexBuilder;
 
     private SearchIndexer searchIndexer;
-    private BulkRequestBuilder brb;
 
     @Before
     public void setup() throws InterruptedException, ExecutionException, TimeoutException {
         MockitoAnnotations.initMocks(this);
         client = mock(Client.class, RETURNS_DEEP_STUBS);
         mailCloakingService = mock(MailCloakingService.class);
-        brb = mock(BulkRequestBuilder.class, RETURNS_DEEP_STUBS);
+        BulkRequestBuilder brb = mock(BulkRequestBuilder.class, RETURNS_DEEP_STUBS);
         BulkResponse resp = mock(BulkResponse.class);
         ListenableActionFuture<BulkResponse> laf = mock(ListenableActionFuture.class);
         when(brb.execute()).thenReturn(laf);
@@ -72,7 +71,7 @@ public class SearchIndexerTest {
     public void updateWithTwoMessagesWritesTwoUpdates() {
         Conversation conversation = makeConversation(2);
 
-        searchIndexer.updateSearchSync(Arrays.asList(conversation));
+        searchIndexer.updateSearchSync(Collections.singletonList(conversation));
 
         verify(client, times(1)).prepareIndex(eq("replyts"), eq("message"), eq("id/msgid0"));
         verify(client, times(1)).prepareIndex(eq("replyts"), eq("message"), eq("id/msgid1"));
@@ -87,7 +86,7 @@ public class SearchIndexerTest {
         when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation)).thenReturn(new MailAddress("anonymous-buyer@test.com"));
         when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conversation)).thenReturn(new MailAddress("anonymous-seller@test.com"));
 
-        searchIndexer.updateSearchSync(Arrays.asList(conversation));
+        searchIndexer.updateSearchSync(Collections.singletonList(conversation));
 
         verify(client, times(1)).prepareIndex("replyts", "message", "id/msgid0");
         verify(indexBuilder, times(1)).setSource(captor.capture());
@@ -96,7 +95,7 @@ public class SearchIndexerTest {
         String output = contentBuilder.string();
 
         // Note that emails are indexed lowercased because API searches explicitly do the same
-        String expectedOutput = "{\"toEmail\":\"buyer@test.com\",\"toEmailAnonymous\":\"anonymous-buyer@test.com\",\"fromEmail\":\"seller@test.com\",\"fromEmailAnonymous\":\"anonymous-seller@test.com\",\"messageDirection\":\"SELLER_TO_BUYER\",\"messageState\":\"SENT\",\"humanResultState\":\"UNCHECKED\",\"receivedDate\":\"2012-01-30T19:01:52.000Z\",\"conversationStartDate\":\"2012-01-29T18:01:52.000Z\",\"messageText\":\"some text\",\"adId\":\"myAd#123\",\"attachments\":[],\"lastEditor\":null,\"customHeaders\":{},\"feedback\":[]}";
+        String expectedOutput = "{\"toEmail\":\"buyer@test.com\",\"toEmailAnonymous\":\"anonymous-buyer@test.com\",\"fromEmail\":\"seller@test.com\",\"fromEmailAnonymous\":\"anonymous-seller@test.com\",\"messageDirection\":\"SELLER_TO_BUYER\",\"messageState\":\"SENT\",\"humanResultState\":\"UNCHECKED\",\"receivedDate\":\"2012-01-30T19:01:52.000Z\",\"conversationStartDate\":\"2012-01-29T18:01:52.000Z\",\"messageText\":\"some text\",\"adId\":\"myAd#123\",\"attachments\":[],\"lastEditor\":null,\"lastModified\":\"2012-01-30T19:01:52.000Z\",\"customHeaders\":{},\"feedback\":[]}";
         assertEquals(expectedOutput, output);
     }
 
@@ -124,6 +123,6 @@ public class SearchIndexerTest {
                 .withReceivedAt(new DateTime(2012, 1, 30, 20, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withLastModifiedAt(new DateTime(2012, 1, 30, 20, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withHeader("Subject", "Hello subject")
-                .withTextParts(Arrays.asList("some text"));
+                .withTextParts(Collections.singletonList("some text"));
     }
 }

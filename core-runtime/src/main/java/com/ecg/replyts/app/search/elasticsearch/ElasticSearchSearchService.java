@@ -10,7 +10,6 @@ import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.MessageDocumentId;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Range;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
@@ -18,18 +17,21 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static java.lang.String.format;
 import static com.ecg.replyts.app.search.elasticsearch.SearchTransformer.translate;
+import static java.lang.String.format;
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 
 @Component
@@ -126,20 +128,17 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
     }
 
     @Override
-    public void delete(Range<DateTime> allConversationsCreatedBetween) {
-        Date from = allConversationsCreatedBetween.lowerEndpoint().toDate();
-        Date to = allConversationsCreatedBetween.upperEndpoint().toDate();
-
+    public void deleteModifiedAt(LocalDate from, LocalDate to) {
         Preconditions.checkNotNull(from);
         Preconditions.checkNotNull(to);
 
         client.prepareDeleteByQuery(indexName)
-          .setTypes(TYPE_NAME)
-          .setQuery(
-            rangeQuery("conversationStartDate")
-              .from(from)
-              .to(to))
-          .execute()
-          .actionGet();
+                .setTypes(TYPE_NAME)
+                .setQuery(
+                        rangeQuery("lastModified")
+                                .from(from)
+                                .to(to))
+                .execute()
+                .actionGet();
     }
 }

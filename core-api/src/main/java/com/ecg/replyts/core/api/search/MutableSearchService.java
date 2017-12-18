@@ -1,7 +1,6 @@
 package com.ecg.replyts.core.api.search;
 
-import com.google.common.collect.Range;
-import org.joda.time.DateTime;
+import java.time.LocalDate;
 
 /**
  * allows deletion of items in the search index
@@ -9,7 +8,7 @@ import org.joda.time.DateTime;
 public interface MutableSearchService {
 
     /**
-     * deletes all messages in the search index where the conversation was created in the specified range.
+     * deletes all messages in the search index which were modified in the specified range.
      */
-    void delete(Range<DateTime> allConversationsCreatedBetween);
+    void deleteModifiedAt(LocalDate from, LocalDate to);
 }

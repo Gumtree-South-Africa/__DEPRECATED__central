@@ -2,8 +2,6 @@ package com.ecg.replyts.app.cronjobs;
 
 import com.ecg.replyts.core.api.cron.CronJobExecutor;
 import com.ecg.replyts.core.api.search.MutableSearchService;
-import com.google.common.collect.Range;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
 import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinutes;
-import static org.joda.time.DateTime.now;
 
 @Component
 @ConditionalOnProperty(name = "replyts2.cronjob.cleanupSearch.enabled", havingValue = "true")
@@ -22,23 +21,32 @@ public class CleanupSearchCronJob implements CronJobExecutor {
     @Value("${replyts2.cronjob.cleanupSearch.minuteInterval:30}")
     private int minuteInterval;
 
-    @Autowired
-    private CleanupConfiguration config;
+    private final CleanupConfiguration config;
+
+    private final MutableSearchService searchService;
 
     @Autowired
-    private MutableSearchService searchService;
+    public CleanupSearchCronJob(CleanupConfiguration config, MutableSearchService searchService) {
+        this.config = config;
+        this.searchService = searchService;
+    }
 
     @Override
     public void execute() throws Exception {
-        DateTime deleteEverythingBefore = now().minusDays(config.getMaxConversationAgeDays());
+        LocalDate now = now();
+        LocalDate deleteEverythingBefore = now.minusDays(config.getMaxConversationAgeDays());
 
         LOG.info("Cleanup: Deleting SearchIndex older than {} days: everything before '{}'", config.getMaxConversationAgeDays(), deleteEverythingBefore);
 
         try {
-            searchService.delete(Range.closed(new DateTime(0), now().minusDays(config.getMaxConversationAgeDays())));
+            searchService.deleteModifiedAt(LocalDate.of(1970,1,1), deleteEverythingBefore);
         } catch (RuntimeException e) {
             LOG.error("Cleanup: ElasticSearch cleanup failed", e);
         }
+    }
+
+    protected LocalDate now() {
+        return LocalDate.now();
     }
 
     @Override

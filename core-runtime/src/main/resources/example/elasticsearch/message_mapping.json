@@ -40,6 +40,10 @@
                 "format": "dateOptionalTime",
                 "type": "date"
             },
+            "lastModified": {
+                "format": "dateOptionalTime",
+                "type": "date"
+            },
             "adId": {
                 "type": "string",
                 "index": "not_analyzed"
