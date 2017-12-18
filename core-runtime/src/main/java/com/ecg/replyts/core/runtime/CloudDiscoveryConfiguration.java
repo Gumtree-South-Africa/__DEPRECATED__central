@@ -90,11 +90,11 @@ public class CloudDiscoveryConfiguration {
                 }
         ));
 
-        // This will not longer be needed once we can use e.g. @RefreshScope
-        loggingService.initialize();
-
         // This will add properties from Consul KV and select Consul services
         discoverProperties();
+
+        // This will not longer be needed once we can use e.g. @RefreshScope
+        loggingService.initialize();
     }
 
     private void discoverProperties() {
