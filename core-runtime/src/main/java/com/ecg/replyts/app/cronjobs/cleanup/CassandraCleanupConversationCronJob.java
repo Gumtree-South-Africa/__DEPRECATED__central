@@ -66,7 +66,7 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     @Autowired(required = false)
     private AttachmentRepository attachmentRepository;
 
-    @Value("${replyts.cleanup.conversation.readFromNewIndexTable:false}")
+    @Value("${cronjob.cleanup.conversation.readFromNewIndexTable:false}")
     private boolean readFromNewIndexTable;
 
     @Value("${replyts.maxConversationAgeDays:180}")
