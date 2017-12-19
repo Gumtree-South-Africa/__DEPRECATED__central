@@ -1,11 +1,11 @@
 package com.ecg.replyts.app.cronjobs;
 
 import com.ecg.replyts.core.api.cron.CronJobExecutor;
-import com.ecg.replyts.core.runtime.cron.CronExpressionBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
@@ -16,12 +16,19 @@ import javax.annotation.PostConstruct;
 public class TimeoutHeldsCronjob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(TimeoutHeldsCronjob.class);
 
-    @Autowired
-    @Qualifier("timeoutHeldsCronJobTimeframe")
-    private Timeframe workingSlot;
+    private final Timeframe workingSlot;
+
+    private final MessageSender messageSender;
+
+    private final String cronJobExpression;
 
     @Autowired
-    private MessageSender messageSender;
+    public TimeoutHeldsCronjob(@Qualifier("timeoutHeldsCronJobTimeframe") Timeframe workingSlot, MessageSender messageSender,
+                               @Value("${cronjob.sendHeld.expression:0 0/30 * * * ? *}") String cronJobExpression) {
+        this.workingSlot = workingSlot;
+        this.messageSender = messageSender;
+        this.cronJobExpression = cronJobExpression;
+    }
 
     @PostConstruct
     public void log() {
@@ -42,6 +49,6 @@ public class TimeoutHeldsCronjob implements CronJobExecutor {
 
     @Override
     public String getPreferredCronExpression() {
-        return CronExpressionBuilder.everyNMinutes(30);
+        return cronJobExpression;
     }
 }
