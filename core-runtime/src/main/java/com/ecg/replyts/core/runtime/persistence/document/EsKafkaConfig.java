@@ -24,11 +24,11 @@ public class EsKafkaConfig {
     private String topic;
 
     // Send this many messages to broker without waiting for response, increase throughput
-    @Value("${kafka.core.max-in-flight-request-per-connection:4000}")
+    @Value("${kafka.es.max-in-flight-request-per-connection:4000}")
     private int maxInFlightRequests;
 
     // Sending in batch more efficiently
-    @Value("${kafka.core.batch.size:10000000}")
+    @Value("${kafka.es.batch.size:10000000}")
     private int batchSize;
 
     @Bean

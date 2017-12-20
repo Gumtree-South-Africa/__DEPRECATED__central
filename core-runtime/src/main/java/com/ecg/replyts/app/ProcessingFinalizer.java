@@ -63,7 +63,7 @@ public class ProcessingFinalizer {
     private ConversationEventListeners conversationEventListeners;
 
     @Value("#{'${indexing.2kafka.enabled:false}' == '${region:ams1}' }")
-    private Boolean enableIndexing2Kafka;
+    private boolean enableIndexing2Kafka;
 
     @Autowired(required = false)
     private MailPublisher mailPublisher;
@@ -133,8 +133,6 @@ public class ProcessingFinalizer {
         } else if (document2KafkaSink != null) {
             LOG.info("Both legacy and new indexing strategies are enabled");
         }
-
-
     }
 
 }

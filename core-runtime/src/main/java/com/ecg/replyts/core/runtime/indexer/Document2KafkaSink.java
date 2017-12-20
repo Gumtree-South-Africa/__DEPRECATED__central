@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.util.List;
 
 import static com.ecg.replyts.app.ProcessingFinalizer.KAFKA_KEY_FIELD_SEPARATOR;
 
@@ -44,6 +45,16 @@ public class Document2KafkaSink {
         }
     }
 
+
+
+    public void pushToKafka(List<Conversation> conversations) {
+        if (documentSink == null) {
+            return;
+        }
+        for (Conversation conversation : conversations) {
+            pushToKafka(conversation);
+        }
+    }
 
     public void pushToKafka(Conversation conversation) {
         if (documentSink == null) {

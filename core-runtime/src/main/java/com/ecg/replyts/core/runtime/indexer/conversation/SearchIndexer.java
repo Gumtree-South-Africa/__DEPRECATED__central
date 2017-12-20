@@ -4,6 +4,7 @@ import com.codahale.metrics.Counter;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -12,6 +13,7 @@ import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
@@ -39,9 +41,16 @@ public class SearchIndexer {
     @Value("${search.es.indexname:replyts}")
     private String indexName = "replyts";
 
+    // This can only be disabled in tests
     @Value("${search.es.enabled:true}")
     private boolean esEnabled = true;
 
+    @Autowired(required = false)
+    private Document2KafkaSink document2KafkaSink;
+
+    @Value("#{'${indexing.2kafka.enabled:false}' == '${region:ams1}' }")
+    private boolean enableIndexing2Kafka;
+    
     public SearchIndexer(Client elasticSearchClient, IndexDataBuilder indexDataBuilder) {
         this.elasticSearchClient = elasticSearchClient;
         this.indexDataBuilder = indexDataBuilder;
@@ -77,33 +86,43 @@ public class SearchIndexer {
         if (!esEnabled) {
             return null;
         }
-        try {
-            BulkRequestBuilder bulk = elasticSearchClient.prepareBulk();
-            for (Conversation conversation : conversations) {
-                updateSearch(conversation, bulk);
-            }
-            ListenableActionFuture<BulkResponse> execute = bulk.execute();
 
-            if (registerListener) {
-                ActionListener<BulkResponse> listener = new ActionListener<BulkResponse>() {
-                    @Override
-                    public void onResponse(BulkResponse bulkItemResponses) {
-                        LOG.trace("Indexing complete");
-                    }
-
-                    @Override
-                    public void onFailure(Throwable e) {
-                        String msg = conversations.stream().map(Conversation::getId)
-                                .collect(joining("Failed Indexing conversations: '", "'", ", "));
-                        LOG.error(msg, e);
-                    }
-                };
-                execute.addListener(listener);
-            }
-            return execute;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (document2KafkaSink != null) {
+            document2KafkaSink.pushToKafka(conversations);
         }
+
+        if (!enableIndexing2Kafka) {
+
+            try {
+                BulkRequestBuilder bulk = elasticSearchClient.prepareBulk();
+                for (Conversation conversation : conversations) {
+                    updateSearch(conversation, bulk);
+                }
+                ListenableActionFuture<BulkResponse> execute = bulk.execute();
+
+                if (registerListener) {
+                    ActionListener<BulkResponse> listener = new ActionListener<BulkResponse>() {
+                        @Override
+                        public void onResponse(BulkResponse bulkItemResponses) {
+                            LOG.trace("Indexing complete");
+                        }
+
+                        @Override
+                        public void onFailure(Throwable e) {
+                            String msg = conversations.stream().map(Conversation::getId)
+                                    .collect(joining("Failed Indexing conversations: '", "'", ", "));
+                            LOG.error(msg, e);
+                        }
+                    };
+                    execute.addListener(listener);
+                }
+                return execute;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+        return null;
     }
 
     private void updateSearch(Conversation conversation, BulkRequestBuilder bulk) throws IOException {
