@@ -1,13 +1,16 @@
 package com.ecg.replyts.app.cronjobs.cleanup;
 
-import com.ecg.replyts.app.ConversationEventListeners;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.attachment.SwiftAttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
+import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaSinkService;
+import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -23,14 +26,22 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.joda.time.DateTime.now;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@SuppressWarnings("UnnecessaryLocalVariable")
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = CassandraCleanupConversationCronJobMsgidOnTest.TestContext.class)
 @TestPropertySource(properties = {
@@ -38,7 +49,7 @@ import static org.mockito.Mockito.*;
         "replyts.cleanup.conversation.streaming.queue.size = 1",
         "replyts.cleanup.conversation.streaming.threadcount = 1",
         "replyts.cleanup.conversation.streaming.batch.size = 1",
-        "replyts.cleanup.conversation.schedule.expression = 0 0 0 * * ? *"
+        "replyts.cleanup.conversation.schedule.expression = 0 0/30 * * * ? *"
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class CassandraCleanupConversationCronJobMsgidOnTest {
@@ -49,6 +60,9 @@ public class CassandraCleanupConversationCronJobMsgidOnTest {
 
     @Autowired
     private CassandraConversationRepository conversationRepository;
+
+    @Autowired
+    private CassandraHeldMailRepository cassandraHeldMailRepository;
 
     @Autowired
     private CronJobClockRepository cronJobClockRepository;
@@ -73,7 +87,7 @@ public class CassandraCleanupConversationCronJobMsgidOnTest {
         when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
         ConversationEventIdx conversationEventIdx = new ConversationEventIdx(dateToBeProcessed, CONVERSATION_ID1, UUID.randomUUID());
-        List<ConversationEventIdx> conversationEventIdxList = Arrays.asList(conversationEventIdx);
+        List<ConversationEventIdx> conversationEventIdxList = Collections.singletonList(conversationEventIdx);
         Stream<ConversationEventIdx> conversationEventIdxStream = conversationEventIdxList.stream();
         when(conversationRepository.streamConversationEventIdxsByHour(dateToBeProcessed)).thenReturn(conversationEventIdxStream);
 
@@ -86,8 +100,9 @@ public class CassandraCleanupConversationCronJobMsgidOnTest {
 
         cronJob.execute();
 
-        verify(conversationRepository).getById(CONVERSATION_ID1);
-        verify(conversation).getMessages();
+        verify(cassandraHeldMailRepository).remove("msg1");
+        verify(cassandraHeldMailRepository).remove("msg2");
+        verify(cassandraHeldMailRepository).remove("msg3");
         verify(attachmentRepository).getCompositeKey("msg1", "att1");
         verify(attachmentRepository).getCompositeKey("msg1", "att2");
         verify(attachmentRepository).getCompositeKey("msg2", FILENAME);
@@ -102,8 +117,9 @@ public class CassandraCleanupConversationCronJobMsgidOnTest {
         Conversation conversation = mock(Conversation.class);
         when(conversation.getId()).thenReturn(CONVERSATION_ID1);
 
-        MutableConversation mutableConversation = Mockito.mock(MutableConversation.class);
+        MutableConversation mutableConversation = mock(DefaultMutableConversation.class);
         when(mutableConversation.getImmutableConversation()).thenReturn(conversation);
+        when(mutableConversation.getId()).thenReturn(CONVERSATION_ID1);
 
         List<Message> msgs = mockMessage();
         when(mutableConversation.getMessages()).thenReturn(msgs);
@@ -125,21 +141,7 @@ public class CassandraCleanupConversationCronJobMsgidOnTest {
     }
 
     @Configuration
-    static class TestContext {
-        @Bean
-        public CassandraConversationRepository conversationRepository() {
-            return mock(CassandraConversationRepository.class);
-        }
-
-        @Bean
-        public CronJobClockRepository cronJobClockRepository() {
-            return mock(CronJobClockRepository.class);
-        }
-
-        @Bean
-        public ConversationEventListeners conversationEventListeners() {
-            return mock(ConversationEventListeners.class);
-        }
+    static class TestContext extends CassandreConversationCleanupTestContext {
 
         @Bean
         public SwiftAttachmentRepository swiftAttachmentRepository() {
@@ -160,16 +162,6 @@ public class CassandraCleanupConversationCronJobMsgidOnTest {
         @Bean
         public AttachmentRepository attachmentRepository() {
             return mock(AttachmentRepository.class);
-        }
-
-        @Bean
-        public CleanupDateCalculator cleanupDateCalculator() {
-            return mock(CleanupDateCalculator.class);
-        }
-
-        @Bean
-        public CassandraCleanupConversationCronJob cleanupCronJob() {
-            return new CassandraCleanupConversationCronJob();
         }
 
         @Bean

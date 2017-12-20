@@ -1,8 +1,6 @@
 package com.ecg.replyts.app.cronjobs.cleanup;
 
-import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIndex;
-import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.CassandraConversationRepository;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -21,7 +19,9 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.joda.time.DateTime.now;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = CassandraCleanupConversationCronJobNewIndexTest.TestContext.class)
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
   "replyts.cleanup.conversation.streaming.threadcount = 1",
   "replyts.cleanup.conversation.streaming.batch.size = 1",
   "cronjob.cleanup.conversation.readFromNewIndexTable = true",
-  "replyts.cleanup.conversation.schedule.expression = 0 0 0 * * ? *"
+        "replyts.cleanup.conversation.schedule.expression = 0 0/30 * * * ? *"
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class CassandraCleanupConversationCronJobNewIndexTest {
@@ -67,31 +67,7 @@ public class CassandraCleanupConversationCronJobNewIndexTest {
 
 
     @Configuration
-    static class TestContext {
-        @Bean
-        public CassandraConversationRepository conversationRepository() {
-            return mock(CassandraConversationRepository.class);
-        }
-
-        @Bean
-        public CronJobClockRepository cronJobClockRepository() {
-            return mock(CronJobClockRepository.class);
-        }
-
-        @Bean
-        public ConversationEventListeners conversationEventListeners() {
-            return mock(ConversationEventListeners.class);
-        }
-
-        @Bean
-        public CleanupDateCalculator cleanupDateCalculator() {
-            return mock(CleanupDateCalculator.class);
-        }
-
-        @Bean
-        public CassandraCleanupConversationCronJob cleanupCronJob() {
-            return new CassandraCleanupConversationCronJob();
-        }
+    static class TestContext extends CassandreConversationCleanupTestContext {
 
         @Bean
         public PropertySourcesPlaceholderConfigurer configurer() {

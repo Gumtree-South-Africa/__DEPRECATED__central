@@ -4,7 +4,7 @@ import org.joda.time.DateTime;
 
 import java.util.Objects;
 
-public class ConversationEventIndex {
+public class ConversationEventIndex implements ConversationEventId {
 
     private final DateTime creationDateRoundedByHour;
     private final String conversationId;
@@ -14,6 +14,7 @@ public class ConversationEventIndex {
         this.creationDateRoundedByHour = creationDateRoundedByHour;
     }
 
+    @Override
     public String getConversationId() {
         return conversationId;
     }

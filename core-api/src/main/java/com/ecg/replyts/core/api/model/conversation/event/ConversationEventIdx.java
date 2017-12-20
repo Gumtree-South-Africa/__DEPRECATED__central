@@ -8,7 +8,7 @@ import java.util.UUID;
 // this class represent a row in table core_conversation_events_by_date, which
 // will be discarded after closing https://jira.corp.ebay.com/browse/COMAAS-645 .
 // It will be replaced by ConversationEventIndex class.
-public class ConversationEventIdx {
+public class ConversationEventIdx implements ConversationEventId {
 
     private final DateTime creationDateRoundedByHour;
     private final String conversationId;
@@ -20,6 +20,7 @@ public class ConversationEventIdx {
         this.creationDateRoundedByHour = creationDateRoundedByHour;
     }
 
+    @Override
     public String getConversationId() {
         return conversationId;
     }
