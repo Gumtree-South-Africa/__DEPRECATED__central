@@ -1,0 +1,86 @@
+#!/usr/bin/env groovy
+
+library 'commonFunctions'
+
+runCoreTests = {
+    echo 'Running core tests'
+    commonFunctions.forcefullyRemoveStaleDockerContainers()
+    ansiColor('xterm') {
+        sh "cd ecg-comaas-central; bin/build.sh -3"
+    }
+}
+
+runIntegrationTests = { param ->
+    echo "Running integration tests (part $param)"
+    commonFunctions.forcefullyRemoveStaleDockerContainers()
+    ansiColor('xterm') {
+        sh "cd ecg-comaas-central; bin/build.sh -$param"
+    }
+}
+
+runTenantTests = { tenant ->
+    echo "Running tests for tenant $tenant"
+    commonFunctions.forcefullyRemoveStaleDockerContainers()
+    ansiColor('xterm') {
+        sh "cd ecg-comaas-central; bin/build.sh -R $tenant"
+    }
+}
+
+startComaasForTenant = { tenant ->
+    String currentTime = sh(
+            script: "date +'%s'",
+            returnStdout: true
+    ).trim()
+    String comaasDockerName = "comaasztestz${tenant}z${currentTime}"
+
+    try {
+        commonFunctions.forcefullyRemoveStaleDockerContainers()
+
+        commonFunctions.downloadComaasDocker()
+
+        ansiColor('xterm') {
+            sh "cd ecg-comaas-docker; ECG_COMAAS_DOCKER_PROJECT_NAME=$comaasDockerName make up"
+        }
+
+        echo "Starting Comaas for tenant $tenant"
+        sh "cd ecg-comaas-central; bin/wiring-test.sh $tenant $comaasDockerName"
+    } finally {
+        if (commonFunctions.isDirPresent(env.WORKSPACE as String, 'ecg-comaas-docker') && comaasDockerName != null && comaasDockerName != '') {
+            ansiColor('xterm') {
+                sh "cd ecg-comaas-docker; ECG_COMAAS_DOCKER_PROJECT_NAME=$comaasDockerName make down"
+            }
+        }
+    }
+}
+
+void setEnvVars(configFile) {
+    env.MAVEN_HOME = "/usr/share/apache-maven"
+    env.PATH = "$env.MAVEN_HOME/bin:$env.PATH"
+}
+
+node('qa') {
+    configFile = commonFunctions.downloadConfig('pipelines/testing/configuration.yaml')
+
+    setEnvVars(configFile)
+
+    tenants = commonFunctions.activeTenants(configFile.tenants.disabled as List)
+
+    buildSteps = ["failFast": false]
+
+    buildSteps += ["core-tests": commonFunctions.wrapWithStepDefinition(null, runCoreTests, ghprbActualCommit as String, "Core tests", ghprbAuthorRepoGitUrl as String)]
+    buildSteps += [1, 2].collectEntries { testParam ->
+        [((String) "integration-tests-$testParam"): commonFunctions.wrapWithStepDefinition(testParam, runIntegrationTests, ghprbActualCommit as String, "Integration tests (part $testParam)", ghprbAuthorRepoGitUrl as String)]
+    }
+    buildSteps += tenants.collectEntries { tenant ->
+        [((String) "$tenant-tests"): commonFunctions.wrapWithStepDefinition(tenant, runTenantTests, ghprbActualCommit as String, "Tests for $tenant", ghprbAuthorRepoGitUrl as String)]
+    }
+
+    wiringTenants = commonFunctions.activeTenants(configFile.tenants.wiring_disabled as List)
+    buildSteps += wiringTenants.collectEntries { tenant ->
+        [((String) "$tenant-start-comaas"): commonFunctions.wrapWithStepDefinition(tenant, startComaasForTenant, ghprbActualCommit as String, "Start Comaas for $tenant", ghprbAuthorRepoGitUrl as String)]
+    }
+
+    parallel buildSteps
+
+    commonFunctions.sendToSlackJenkinsChannel('#00FF00', "Testing <${ghprbPullLink}|pull request ${ghprbPullId}> succeeded (<${env.RUN_DISPLAY_URL}|Build>)")
+}

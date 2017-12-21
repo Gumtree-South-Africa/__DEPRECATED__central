@@ -1,0 +1,271 @@
+#!/usr/bin/env groovy
+
+library 'commonFunctions'
+
+def checkInputParameters(providedVersion, providedEnv, providedDc, providedTenant) {
+    if (providedDc == "-") {
+        error("Please provide a DC")
+    }
+    if (providedTenant == "-") {
+        error("Please provide a tenant")
+    }
+    if (providedVersion != '' && !(providedVersion =~ /^\d{4}\.\d{2}\..+/)) {
+        error("Provided version does not have the form 'YYYY.mm.xxx', or empty. Leave empty to deploy the version on LP.")
+    }
+    if (providedEnv == 'lp' && providedVersion == '') {
+        error("You did not provide a version to deploy to lp. Don't know what to do.")
+    }
+    if (providedDc != 'ams1' && providedEnv == 'lp') {
+        error("The lp environment is only available in the ams1 dc.")
+    }
+    if (!commonFunctions.allTenants().contains(providedTenant) && providedEnv != 'lp') {
+        error("You are trying to deploy to all tenants on production. This is not allowed.")
+    }
+}
+
+void deploymentFailed(final String tenant, final String version, final String dc,
+                      final String environmentShort, final Exception ex) {
+    echo "--->>> Exception: $ex"
+    exMessage = ex.getMessage()
+    String currentVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
+    String slackMessage = "Deploying Comaas `$tenant` `$version` to `$environmentShort` failed with `$exMessage`, `$currentVersion` remains" as String
+    String graphitePayload = commonFunctions.createGraphitePayload('failed', commonFunctions.getAlias(tenant), "tried $version, current $currentVersion remains")
+
+    sendGraphiteMetric(dc, environmentShort, graphitePayload)
+    sendToSlack('#FF0000', tenant, slackMessage, environmentShort)
+
+    error("Deploying Comaas version $version to $environmentShort failed with $exMessage")
+}
+
+void sendGraphiteMetric(String dc, String environmentShort, String jsonPayload) {
+    sh "curl -s -X POST 'https://graphite.comaas-${environmentShort}.${dc}.cloud/events/' -d '$jsonPayload'"
+}
+
+void sendToSlack(final String colour, final String channel, final String message, final String environmentShort) {
+    final String c = environmentShort == 'lp' ? 'jenkins' : channel
+    commonFunctions.sendToSlack(colour, c, message)
+    if (environmentShort == 'prod') {
+        commonFunctions.sendToSlackProdChannel(colour, message)
+    }
+}
+
+String activeDcSlackString(final String tenantLong, final String dc, final String environmentShort) {
+    if (environmentShort != "prod") {
+        return ""
+    }
+    return commonFunctions.getActiveDC(tenantLong, environmentShort) == dc ? "*active DC*" : "_inactive DC_"
+}
+
+void notifyAboutPendingUpgrade(final String tenant, final String version, final String dc,
+                               final String environmentShort) {
+    final String currentVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
+    final String dcState = activeDcSlackString(tenant, dc, environmentShort)
+
+    String slackMessage = "Upgrading Comaas for `$tenant` from version `$currentVersion` to `$version` on `$environmentShort` " +
+            "in `$dc` $dcState (<https://github.corp.ebay.com/ecg-comaas/central/compare/$currentVersion...$version|Diff>) (<$BUILD_URL|Build>)"
+
+    String graphitePayload = commonFunctions.createGraphitePayload('started', commonFunctions.getAlias(tenant), "from $currentVersion to $version")
+
+    sendGraphiteMetric(dc, environmentShort, graphitePayload)
+    sendToSlack('#FFFF00', tenant, slackMessage, environmentShort)
+}
+
+String downloadVersionFromSwift(final String tenant, final String version) {
+    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'swift',
+                      usernameVariable: 'SWIFT_USER', passwordVariable: 'SWIFT_PASS']]) {
+
+        final String userId = commonFunctions.getUID()
+        final String artifact = "${tenant}/builds/comaas-${tenant}_${version}.tar.gz" as String
+
+        sh """
+                docker run \\
+                --rm \\
+                --network host \\
+                -u $userId \\
+                -v \$PWD:/objects \\
+                -e OS_AUTH_URL=https://keystone.dus1.cloud.ecg.so/v2.0 \\
+                -e OS_TENANT_NAME="comaas-qa" \\
+                -e OS_USERNAME="$SWIFT_USER" \\
+                -e OS_PASSWORD="$SWIFT_PASS" \\
+                -e OS_PROJECT_NAME="comaas-control-prod" \\
+                -e OS_REGION_NAME="dus1" \\
+                registry.ecg.so/mp-so/python-swiftclient:latest \\
+                swift download --output-dir /objects --skip-identical --prefix $artifact comaas
+            """
+
+        final String moveStatus = sh(
+                script: "mv -v $artifact .",
+                returnStatus: true
+        )
+        if (moveStatus != "0") {
+            error("Could not find artifact $artifact in Swift")
+        }
+    }
+
+    return "comaas-${tenant}_${version}.tar.gz" as String
+}
+
+void downloadFileFromGithub(final String filePath, final String destination) {
+    withCredentials([string(credentialsId: 'GITHUBBOT-COMAAS-PAT', variable: 'TOKEN')]) {
+        final String status = sh(
+                script: "curl --fail -o $destination -sLH 'Authorization: token $TOKEN' https://raw.github.corp.ebay.com/$filePath",
+                returnStatus: true
+        )
+        if (status != "0") {
+            error("Could not download $filePath from Github")
+        }
+    }
+}
+
+void loadPropsIntoConsul(final String tenant, final String version, final String environmentShort) {
+    downloadFileFromGithub("ecg-comaas/central/$version/distribution/conf/$tenant/import_into_consul/${environmentShort}.properties" as String, "props.properties" as String)
+
+    final String status = sh(
+            script: "properties-to-consul -file props.properties",
+            returnStatus: true
+    )
+    if (status != "0") {
+        error("Could not load properties into Consul, tenant $tenant, version $version, environment $environmentShort")
+    }
+}
+
+void deployToEnv(final String tenant, final String artifact, final String environment, final String version) {
+    ansiColor('xterm') {
+        sh "PYTHONWARNINGS='ignore' deploy.py --config /etc/comaas/comaas-${tenant}.yaml --logdir ~ --component $artifact"
+    }
+}
+
+Closure wrapWithStepDefinition(
+        final String tenant, final String version, final String environmentShort,
+        final String dc, final String stageName) {
+    return {
+        stage(stageName) {
+            node("$environmentShort && $dc") {
+                try {
+                    String currentlyDeployedVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
+                    echo "currentlyDeployedVersion == newVersion : $currentlyDeployedVersion == $version"
+                    if (currentlyDeployedVersion == version) {
+                        echo "Current Comaas $tenant version $currentlyDeployedVersion is up to date, nothing to update (desired version: $version)"
+                        currentBuild.result = 'SUCCESS'
+                        env."SKIP_$tenant" = true
+                        return
+                    }
+                } catch (ex) {
+                    deploymentFailed(tenant, version, dc, environmentShort, ex)
+                } finally {
+                    if (env."SKIP_$tenant" == 'true') {
+                        cleanWs notFailBuild: true
+                    }
+                }
+
+                if (env."SKIP_$tenant" != 'true') {
+                    try {
+                        echo "About to deploy Comaas version $version to $environmentShort in $dc for $tenant"
+                        notifyAboutPendingUpgrade(tenant, version, dc, environmentShort)
+
+                        if (!commonFunctions.isVersionPresentInSwift(tenant, version)) {
+                            error("Version $version for tenant $tenant was not found in Swift")
+                        }
+
+                        // To be used in a later commit, when we'll implement Docker image deployment
+                        // loginToDocker()
+                        // check if available in docker registry
+                        // https://docs.docker.com/registry/spec/auth/token/#requesting-a-token
+                        // https://docs.docker.com/registry/spec/api/
+
+                        final String artifact = downloadVersionFromSwift(tenant, version)
+                        loadPropsIntoConsul(tenant, version, environmentShort)
+                        deployToEnv(tenant, artifact, environmentShort, version)
+
+                        final String graphitePayload = commonFunctions.createGraphitePayload('succeeded', commonFunctions.getAlias(tenant), "$version deployed")
+                        sendGraphiteMetric(dc, environmentShort, graphitePayload)
+
+                        final String slackMessage = "Comaas version `$version` for `$tenant` successfully deployed to " +
+                                "`$environmentShort` in `$dc` " + activeDcSlackString(tenant, dc, environmentShort)
+                        sendToSlack('#00FF00', tenant, slackMessage, environmentShort)
+                    } catch (ex) {
+                        deploymentFailed(tenant, version, dc, environmentShort, ex)
+                        env."SKIP_$tenant" = true
+                    } finally {
+                        if (env."SKIP_$tenant" == 'true') {
+                            cleanWs notFailBuild: true
+                        }
+                    }
+                }
+
+                if (env."SKIP_$tenant" != 'true') {
+                    try {
+                        echo "Running smoke tests for $PROVIDED_TENANT against $PROVIDED_DC $PROVIDED_ENV"
+                        build job: 'smoke-tests', parameters: [
+                                string(name: 'PROVIDED_TENANT', value: "$PROVIDED_TENANT"),
+                                string(name: 'PROVIDED_ENV', value: "$PROVIDED_ENV"),
+                                string(name: 'PROVIDED_DC', value: "$PROVIDED_DC")
+                        ], wait: false
+                    } finally {
+                        cleanWs notFailBuild: true
+                    }
+                }
+            }
+        }
+    }
+}
+
+static boolean useLpVersionForProd(final String versionToDeploy, final String environmentShort) {
+    return versionToDeploy == '' && environmentShort == 'prod'
+}
+
+node(PROVIDED_ENV) {
+    checkInputParameters(PROVIDED_VERSION, PROVIDED_ENV, PROVIDED_DC, PROVIDED_TENANT)
+
+    String[] tenants
+
+    if (PROVIDED_ENV as String == 'lp') {
+        configFile = commonFunctions.downloadConfig('pipelines/deployment/lp/configuration.yaml')
+
+        if (PROVIDED_TENANT as String == 'all-enabled') {
+            tenants = commonFunctions.activeTenants(configFile.tenants.disabled as List)
+        } else {
+            tenants = [PROVIDED_TENANT as String]
+        }
+    } else {
+        tenants = [PROVIDED_TENANT as String]
+    }
+
+    String environmentShort = PROVIDED_ENV as String
+    String versionToDeploy = PROVIDED_VERSION as String
+    String dc = PROVIDED_DC as String
+
+    if (useLpVersionForProd(versionToDeploy, environmentShort)) {
+        // If the version is empty, deploy the version that's live on lp to prod
+        versionToDeploy = commonFunctions.getCurrentlyDeployedVersion(tenants[0], 'ams1', 'lp')
+    }
+
+    if (environmentShort == "prod") {
+        // This implies only a single tenant is selected, see checkInputParameters(), but let's make sure
+        if (tenants.length != 1) {
+            error("You cannot use active/inactive dc when deploying to multiple tenants")
+        }
+
+        switch (dc) {
+            case "active":
+                dc = commonFunctions.getActiveDC(tenants[0], "prod")
+                break
+            case "inactive":
+                dc = commonFunctions.getInactiveDcProd(tenants[0])
+                break
+        }
+    }
+
+    currentBuild.description = "$PROVIDED_TENANT/$dc/$versionToDeploy"
+
+    buildSteps = ["failFast": false]
+    buildSteps += tenants.collectEntries { tenant ->
+        String n = "$tenant-deployment" as String
+        return [(n): wrapWithStepDefinition(tenant, versionToDeploy, environmentShort, dc, "Deploy $tenant" as String)]
+    }
+    parallel buildSteps
+
+    if (currentBuild.result == 'FAILURE') {
+        currentBuild.result = 'UNSTABLE'
+    }
+}

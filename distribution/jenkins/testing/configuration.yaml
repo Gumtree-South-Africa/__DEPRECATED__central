@@ -1,0 +1,3 @@
+tenants:
+  disabled: []
+  wiring_disabled: [gtau,gtuk] # tenants that _only_ have the wiring test disabled

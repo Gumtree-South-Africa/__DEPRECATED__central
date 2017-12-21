@@ -1,0 +1,107 @@
+#!/usr/bin/env groovy
+import java.text.SimpleDateFormat
+
+library 'commonFunctions'
+
+void packageComaas(String tenant, String version) {
+
+    echo "Packaging Comaas for $tenant"
+    sh "cd ecg-comaas-central && " +
+            "mvn --settings etc/settings.xml versions:set -DnewVersion=\"$version\" -DgenerateBackupPoms=false &&" +
+            "bin/build.sh -T ${tenant} -P prod && " +
+            "mkdir -p builds && " +
+            "mv -v distribution/target/*.tar.gz builds/comaas-${tenant}_${version}.tar.gz"
+
+    echo "Creating Docker image for $tenant"
+    final String dockerImageName = "docker-registry.ecg.so/comaas/comaas-${tenant}:${version}"
+    final String tmpDir = "docker_image_src"
+    sh "cd ecg-comaas-central && " +
+            "rm -rf ${tmpDir} && " +
+            "mkdir -p ${tmpDir} && " +
+            "tar xf builds/comaas-${tenant}_${version}.tar.gz -C ${tmpDir} && " +
+            "docker build --tag ${dockerImageName} --label tenant=${tenant} ."
+    sh "docker push $dockerImageName && docker image remove $dockerImageName"
+}
+
+// p contains [tenant, version]
+distribute = { String[] p ->
+    String tenant = p[0], version = p[1]
+
+    if (commonFunctions.isVersionPresentInSwift(tenant, version)) {
+        echo "Version $version for tenant $tenant is already present in Swift"
+        return
+    }
+
+    packageComaas(tenant, version)
+
+    final String pwd = env.WORKSPACE + "/ecg-comaas-central/builds"
+    commonFunctions.uploadToSwift(tenant, version, pwd)
+}
+
+void setEnvVars() {
+    env.MAVEN_HOME = "/usr/share/apache-maven"
+    env.PATH = "$env.MAVEN_HOME/bin:$env.PATH"
+}
+
+static String createVersionString(String buildNr) {
+    return new SimpleDateFormat("yyyy.MM.").format(new Date()) + buildNr
+}
+
+node('qa') {
+    final String remote = "https://github.corp.ebay.com/ecg-comaas/central.git"
+    setEnvVars()
+
+    if (PROVIDED_VERSION != '' && !(PROVIDED_VERSION =~ /^\d{4}\.\d{2}\..+/)) {
+        error("Provided version does not have the form 'YYYY.mm.xxx', or empty. Leave empty to create a new version on master.")
+    }
+
+    String version, gitHash
+    Boolean createTag = false
+
+    if (PROVIDED_VERSION == '') {
+        gitHash = commonFunctions.getMasterSha()
+
+        echo "Checking if commit $gitHash already has a version tag"
+        commonFunctions.checkoutComaasCentralRepo(gitHash, remote)
+        version = sh(
+                script: "cd ecg-comaas-central; git show-ref --dereference --tags | grep \"^$gitHash\" | sort | head -1 | sed -e 's~.* refs/tags/~~' -e 's/\\^{}//'",
+                returnStdout: true
+        ).trim()
+
+        if (version != '') {
+            echo "PROVIDED_VERSION was empty, but commit $gitHash already has version $version. Rebuilding but not making a new version tag"
+        } else {
+            version = createVersionString(env.BUILD_NUMBER as String)
+            createTag = true
+            echo "PROVIDED_VERSION was empty, creating new version $version on commit $gitHash"
+        }
+    } else {
+        version = PROVIDED_VERSION
+        gitHash = commonFunctions.getGitHashForTag(version)
+        echo "Rebuilding version $version from commit $gitHash"
+    }
+
+    echo "Packaging version $version using git hash $gitHash"
+    currentBuild.description = "$version $PROVIDED_TENANT"
+
+    if (PROVIDED_TENANT == 'all' || PROVIDED_TENANT == '') {
+        tenants = commonFunctions.allTenants()
+    } else {
+        tenants = [PROVIDED_TENANT]
+    }
+
+    buildSteps = ["failFast": false]
+    buildSteps += tenants.collectEntries { tenant ->
+        String stageName = "Package artifact for $tenant"
+        [((String) "package-$tenant"): commonFunctions.wrapWithStepDefinition([tenant, version], distribute, gitHash, stageName, remote)]
+    }
+    parallel buildSteps
+
+    if (createTag) {
+        stage("Tag commit with version") {
+            node('lp') {
+                commonFunctions.tagWithVersion(gitHash, version)
+            }
+        }
+    }
+}

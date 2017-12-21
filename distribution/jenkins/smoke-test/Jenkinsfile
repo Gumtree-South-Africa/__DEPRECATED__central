@@ -1,0 +1,83 @@
+library 'commonFunctions'
+
+static String getSmtpAddress(final String dc, final String tenant, final String envShort) {
+    return "${dc}.smtp-${tenant}.${envShort}.comaas.cloud"
+}
+
+static String getApiHost(final String dc, final String tenant, final String envShort) {
+    return "${dc}.${tenant}.${envShort}.comaas.cloud:80"
+}
+
+def runSmokeTests(final String dc, final String tenant, final String envShort, final String smokeTestVersion) {
+    commonFunctions.loginToDocker()
+
+    final String apiHost = getApiHost(dc, tenant, envShort)
+    final String smtpAddress = getSmtpAddress(dc, tenant, envShort)
+    sh "docker pull docker-registry.ecg.so/comaas/smoke-tests:${smokeTestVersion}"
+    sh "docker run --rm docker-registry.ecg.so/comaas/smoke-tests:${smokeTestVersion} -api_host=${apiHost} -smtp_host=${smtpAddress} -tenant ${tenant}"
+}
+
+Closure wrapWithStepDefinition(final String tenantLong, final String environmentShort,
+                               final String dc, final String stageName, final String smokeTestVersion) {
+    return {
+        stage(stageName) {
+            node('qa') {
+                try {
+                    final String tenantShort = commonFunctions.getAlias(tenantLong)
+                    switch (dc) {
+                        case 'both':
+                            runSmokeTests("ams1", tenantShort, environmentShort, smokeTestVersion)
+                            runSmokeTests("dus1", tenantShort, environmentShort, smokeTestVersion)
+                            break
+                        case 'active':
+                            runSmokeTests(commonFunctions.getActiveDC(tenantLong, environmentShort), tenantShort, environmentShort, smokeTestVersion)
+                            break
+                        case 'inactive':
+                            runSmokeTests(commonFunctions.getInactiveDcProd(tenantLong), tenantShort, environmentShort, smokeTestVersion)
+                            break
+                        default:
+                            runSmokeTests(dc, tenantShort, environmentShort, smokeTestVersion)
+                            break
+                    }
+                } catch (ex) {
+                    echo "--->>> Exception: $ex"
+                    String exMessage = ex.getMessage()
+                    String slackMessage
+                    if (environmentShort == "prod") {
+                        slackMessage = "Smoke tests against Comaas `$tenantLong $environmentShort $dc` failed with `$exMessage`"
+                        commonFunctions.sendSlackNotification('#FF0000', tenantLong, slackMessage)
+                    } else {
+                        slackMessage = "Smoke tests against Comaas `$environmentShort $dc` failed with `$exMessage`"
+                        commonFunctions.sendToSlackJenkinsChannel('#FF0000', slackMessage)
+                    }
+                    commonFunctions.sendSlackNotification('#FF0000', 'alerts', slackMessage)
+                    error(ex.getMessage())
+                }
+            }
+        }
+    }
+}
+
+node('lp') {
+    configFile = commonFunctions.downloadConfig('pipelines/smoke-test/configuration.yaml')
+
+    String[] tenants
+    if (PROVIDED_TENANT == 'all-enabled') {
+        tenants = commonFunctions.activeTenants(configFile.tenants.disabled as List)
+    } else {
+        tenants = [PROVIDED_TENANT]
+    }
+
+    if (PROVIDED_ENV != "prod") {
+        PROVIDED_DC = "ams1"
+    }
+
+    currentBuild.description = "$PROVIDED_TENANT/$PROVIDED_DC/$PROVIDED_ENV"
+
+    buildSteps = ["failFast": false]
+    buildSteps += tenants.collectEntries { tenant ->
+        [((String) "$tenant-smoke-test"): wrapWithStepDefinition(tenant, PROVIDED_ENV as String,
+                PROVIDED_DC as String, "smoke test $tenant", configFile.smokeTest.version as String)]
+    }
+    parallel buildSteps
+}
