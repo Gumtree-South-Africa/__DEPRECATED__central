@@ -6,18 +6,29 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.RatioGauge;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.google.common.collect.Maps;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.server.AsyncContextState;
 import org.eclipse.jetty.server.HttpChannelState;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.HandlerWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.codahale.metrics.MetricRegistry.name;
@@ -27,13 +38,21 @@ import static com.codahale.metrics.MetricRegistry.name;
  * https://raw.githubusercontent.com/dropwizard/metrics/3.2-development/metrics-jetty9/src/main/java/com/codahale/metrics/jetty9/InstrumentedHandler.java
  */
 public class HostReportingServletHandler extends HandlerWrapper {
+    private static final Logger LOG = LoggerFactory.getLogger(HostReportingServletHandler.class);
+    private static final String HEADER_X_REQUEST_TIME = "X-REQUEST-TIME";
+    private static final DateTimeFormatter ISO_8604_WITH_MILLIS = new DateTimeFormatterBuilder().appendInstant(3)
+            .toFormatter();
+
     private final MetricRegistry metricRegistry;
 
     private String name;
-    private final String prefix;
 
     // the requests handled by this handler, excluding active
     private Timer requests;
+
+    // the request delays handled by this handler, based on the X-Request-Time
+    // header, excluding active
+    private Timer requestDelays;
 
     // the number of dispatches seen by this handler, excluding active
     private Timer dispatches;
@@ -55,15 +74,7 @@ public class HostReportingServletHandler extends HandlerWrapper {
 
     private Meter[] responses;
 
-    private Timer getRequests;
-    private Timer postRequests;
-    private Timer headRequests;
-    private Timer putRequests;
-    private Timer deleteRequests;
-    private Timer optionsRequests;
-    private Timer traceRequests;
-    private Timer connectRequests;
-    private Timer moveRequests;
+    private Map<HttpMethod, Timer> httpMethodRequests;
     private Timer otherRequests;
 
     private AsyncListener listener;
@@ -71,21 +82,11 @@ public class HostReportingServletHandler extends HandlerWrapper {
     /**
      * Create a new instrumented handler using a given metrics registry.
      *
-     * @param registry the registry for the metrics
+     * @param registry
+     *            the registry for the metrics
      */
     public HostReportingServletHandler(MetricRegistry registry) {
-        this(registry, null);
-    }
-
-    /**
-     * Create a new instrumented handler using a given metrics registry.
-     *
-     * @param registry the registry for the metrics
-     * @param prefix   the prefix to use for the metrics names
-     */
-    public HostReportingServletHandler(MetricRegistry registry, String prefix) {
         this.metricRegistry = registry;
-        this.prefix = prefix;
     }
 
     public String getName() {
@@ -99,10 +100,11 @@ public class HostReportingServletHandler extends HandlerWrapper {
     @Override
     protected void doStart() throws Exception {
         super.doStart();
-        final String prefix = (this.prefix == null) ? name(TimingReports.getHostName(), getHandler().getClass().getName(), name)
-                : name(TimingReports.getHostName(), this.prefix, name);
+
+        final String prefix = name(TimingReports.getHostName(), getHandler().getClass().getName(), name);
 
         this.requests = metricRegistry.timer(name(prefix, "requests"));
+        this.requestDelays = metricRegistry.timer(name(prefix, "request-delays"));
         this.dispatches = metricRegistry.timer(name(prefix, "dispatches"));
 
         this.activeRequests = metricRegistry.counter(name(prefix, "active-requests"));
@@ -112,73 +114,60 @@ public class HostReportingServletHandler extends HandlerWrapper {
         this.asyncDispatches = metricRegistry.meter(name(prefix, "async-dispatches"));
         this.asyncTimeouts = metricRegistry.meter(name(prefix, "async-timeouts"));
 
-        this.responses = new Meter[]{
-                metricRegistry.meter(name(prefix, "1xx-responses")), // 1xx
+        this.responses = new Meter[] { metricRegistry.meter(name(prefix, "1xx-responses")), // 1xx
                 metricRegistry.meter(name(prefix, "2xx-responses")), // 2xx
                 metricRegistry.meter(name(prefix, "3xx-responses")), // 3xx
                 metricRegistry.meter(name(prefix, "4xx-responses")), // 4xx
-                metricRegistry.meter(name(prefix, "5xx-responses"))  // 5xx
+                metricRegistry.meter(name(prefix, "5xx-responses")) // 5xx
         };
 
-        this.getRequests = metricRegistry.timer(name(prefix, "get-requests"));
-        this.postRequests = metricRegistry.timer(name(prefix, "post-requests"));
-        this.headRequests = metricRegistry.timer(name(prefix, "head-requests"));
-        this.putRequests = metricRegistry.timer(name(prefix, "put-requests"));
-        this.deleteRequests = metricRegistry.timer(name(prefix, "delete-requests"));
-        this.optionsRequests = metricRegistry.timer(name(prefix, "options-requests"));
-        this.traceRequests = metricRegistry.timer(name(prefix, "trace-requests"));
-        this.connectRequests = metricRegistry.timer(name(prefix, "connect-requests"));
-        this.moveRequests = metricRegistry.timer(name(prefix, "move-requests"));
+        httpMethodRequests = Maps.toMap(
+            Arrays.asList(HttpMethod.values()),
+            httpMethod -> metricRegistry.timer(name(prefix, httpMethod.toString().toLowerCase() + "-requests")));
+
         this.otherRequests = metricRegistry.timer(name(prefix, "other-requests"));
 
         metricRegistry.register(name(prefix, "percent-4xx-1m"), new RatioGauge() {
             @Override
             protected Ratio getRatio() {
-                return Ratio.of(responses[3].getOneMinuteRate(),
-                        requests.getOneMinuteRate());
+                return Ratio.of(responses[3].getOneMinuteRate(), requests.getOneMinuteRate());
             }
         });
 
         metricRegistry.register(name(prefix, "percent-4xx-5m"), new RatioGauge() {
             @Override
             protected Ratio getRatio() {
-                return Ratio.of(responses[3].getFiveMinuteRate(),
-                        requests.getFiveMinuteRate());
+                return Ratio.of(responses[3].getFiveMinuteRate(), requests.getFiveMinuteRate());
             }
         });
 
         metricRegistry.register(name(prefix, "percent-4xx-15m"), new RatioGauge() {
             @Override
             protected Ratio getRatio() {
-                return Ratio.of(responses[3].getFifteenMinuteRate(),
-                        requests.getFifteenMinuteRate());
+                return Ratio.of(responses[3].getFifteenMinuteRate(), requests.getFifteenMinuteRate());
             }
         });
 
         metricRegistry.register(name(prefix, "percent-5xx-1m"), new RatioGauge() {
             @Override
             protected Ratio getRatio() {
-                return Ratio.of(responses[4].getOneMinuteRate(),
-                        requests.getOneMinuteRate());
+                return Ratio.of(responses[4].getOneMinuteRate(), requests.getOneMinuteRate());
             }
         });
 
         metricRegistry.register(name(prefix, "percent-5xx-5m"), new RatioGauge() {
             @Override
             protected Ratio getRatio() {
-                return Ratio.of(responses[4].getFiveMinuteRate(),
-                        requests.getFiveMinuteRate());
+                return Ratio.of(responses[4].getFiveMinuteRate(), requests.getFiveMinuteRate());
             }
         });
 
         metricRegistry.register(name(prefix, "percent-5xx-15m"), new RatioGauge() {
             @Override
             protected Ratio getRatio() {
-                return Ratio.of(responses[4].getFifteenMinuteRate(),
-                        requests.getFifteenMinuteRate());
+                return Ratio.of(responses[4].getFifteenMinuteRate(), requests.getFifteenMinuteRate());
             }
         });
-
 
         this.listener = new AsyncListener() {
             private long startTime;
@@ -212,10 +201,8 @@ public class HostReportingServletHandler extends HandlerWrapper {
     }
 
     @Override
-    public void handle(String path,
-                       Request request,
-                       HttpServletRequest httpRequest,
-                       HttpServletResponse httpResponse) throws IOException, ServletException {
+    public void handle(String path, Request request, HttpServletRequest httpRequest, HttpServletResponse httpResponse)
+            throws IOException, ServletException {
 
         activeDispatches.inc();
 
@@ -255,36 +242,6 @@ public class HostReportingServletHandler extends HandlerWrapper {
         }
     }
 
-    private Timer requestTimer(String method) {
-        final HttpMethod m = HttpMethod.fromString(method);
-        if (m == null) {
-            return otherRequests;
-        } else {
-            switch (m) {
-                case GET:
-                    return getRequests;
-                case POST:
-                    return postRequests;
-                case PUT:
-                    return putRequests;
-                case HEAD:
-                    return headRequests;
-                case DELETE:
-                    return deleteRequests;
-                case OPTIONS:
-                    return optionsRequests;
-                case TRACE:
-                    return traceRequests;
-                case CONNECT:
-                    return connectRequests;
-                case MOVE:
-                    return moveRequests;
-                default:
-                    return otherRequests;
-            }
-        }
-    }
-
     private void updateResponses(HttpServletRequest request, HttpServletResponse response, long start) {
         final int responseStatus = response.getStatus() / 100;
         if (responseStatus >= 1 && responseStatus <= 5) {
@@ -292,7 +249,36 @@ public class HostReportingServletHandler extends HandlerWrapper {
         }
         activeRequests.dec();
         final long elapsedTime = System.currentTimeMillis() - start;
+        HttpMethod httpMethod = HttpMethod.fromString(request.getMethod());
+        updateRequestsMetric(elapsedTime);
+        updateHttpMethodRequestsMetric(httpMethod, elapsedTime);
+        updateRequestDelayMetric(request);
+    }
+
+    private void updateRequestsMetric(long elapsedTime) {
         requests.update(elapsedTime, TimeUnit.MILLISECONDS);
-        requestTimer(request.getMethod()).update(elapsedTime, TimeUnit.MILLISECONDS);
+    }
+
+    private void updateHttpMethodRequestsMetric(HttpMethod httpMethod, long elapsedTime) {
+        Timer timer = httpMethodRequests.getOrDefault(httpMethod, otherRequests);
+        timer.update(elapsedTime, TimeUnit.MILLISECONDS);
+    }
+
+    private void updateRequestDelayMetric(HttpServletRequest request) {
+        String requestTimeHeader = request.getHeader(HEADER_X_REQUEST_TIME);
+        if (requestTimeHeader == null) {
+            return;
+        }
+        try {
+            Instant requestTime = Instant.from(ISO_8604_WITH_MILLIS.parse(requestTimeHeader));
+            Duration requestTimeDelay = Duration.between(requestTime, Instant.now());
+            requestDelays.update(requestTimeDelay.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (DateTimeParseException dateTimeParseException) {
+            LOG.warn(
+                "Request header {} malformed: {}",
+                HEADER_X_REQUEST_TIME,
+                requestTimeHeader,
+                dateTimeParseException);
+        }
     }
 }
