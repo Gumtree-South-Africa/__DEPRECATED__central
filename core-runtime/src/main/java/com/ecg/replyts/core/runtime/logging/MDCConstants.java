@@ -15,6 +15,7 @@ public class MDCConstants {
     public static final String APPLICATION = "application";
     public static final String CONVERSATION_ID = "conversation_id";
     public static final String CORRELATION_ID = "correlation_id";
+    public static final String FILENAME = "filename";
     public static final String MAIL_ORIGINAL_FROM = "mail_original_from";
     public static final String MAIL_ORIGINAL_TO = "mail_original_to";
     public static final String MAIL_FROM = "mail_from";

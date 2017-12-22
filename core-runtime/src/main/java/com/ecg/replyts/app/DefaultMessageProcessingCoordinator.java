@@ -1,11 +1,14 @@
 package com.ecg.replyts.app;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.Termination;
+import com.ecg.replyts.core.runtime.MetricsService;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
@@ -27,10 +30,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static com.codahale.metrics.MetricRegistry.name;
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_ORIGINAL_FROM;
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_ORIGINAL_TO;
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.MESSAGE_ID;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static net.logstash.logback.argument.StructuredArguments.keyValue;
 
 /**
  * Coordinates a message flowing through the system and is therefore the main entry point for a message running through
@@ -47,12 +52,14 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     private final ProcessingFlow processingFlow;
     private final ProcessingFinalizer persister;
     private final ProcessingContextFactory processingContextFactory;
+    private final Meter contentLengthMeter;
 
     @Autowired
     public DefaultMessageProcessingCoordinator(Guids guids,
-                                               @Autowired(required = false) Collection<MessageProcessedListener> messageProcessedListeners,
-                                               ProcessingFlow processingFlow, ProcessingFinalizer persister,
-                                               ProcessingContextFactory processingContextFactory) {
+            @Autowired(required = false) Collection<MessageProcessedListener> messageProcessedListeners,
+            ProcessingFlow processingFlow,
+            ProcessingFinalizer persister,
+            ProcessingContextFactory processingContextFactory) {
         this.guids = checkNotNull(guids, "guids");
         if (messageProcessedListeners != null) {
             this.messageProcessedListeners.addAll(messageProcessedListeners);
@@ -60,6 +67,10 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         this.processingFlow = checkNotNull(processingFlow, "processingFlow");
         this.persister = checkNotNull(persister, "presister");
         this.processingContextFactory = checkNotNull(processingContextFactory, "processingContextFactory");
+
+        MetricRegistry registry = MetricsService.getInstance().getRegistry();
+        this.contentLengthMeter = registry.meter(
+            name(TimingReports.getHostName(), DefaultMessageProcessingCoordinator.class.getName(), "content-length"));
     }
 
     /**
@@ -83,7 +94,8 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), guids.nextGuid());
             setMDC(context);
-            LOG.debug("Received Message");
+            LOG.debug("Received Message", keyValue("contentLength", bytes.length));
+            contentLengthMeter.mark(bytes.length);
 
             processingFlow.inputForPreProcessor(context);
 

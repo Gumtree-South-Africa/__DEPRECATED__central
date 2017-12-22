@@ -5,9 +5,11 @@ import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.cluster.ClusterMode;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -180,6 +182,8 @@ public class DropfolderMessageProcessor implements MessageProcessor {
             // Some other thread probably picked up the file already
             return;
         }
+
+        MDC.put(MDCConstants.FILENAME, originalFilename.getName());
 
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(tempFilename))) {
             messageProcessor.accept(inputStream);

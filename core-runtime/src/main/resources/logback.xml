@@ -4,11 +4,12 @@
             <fieldNames>
                 <levelValue>[ignore]</levelValue>
             </fieldNames>
+            <provider class="net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider"/>
         </encoder>
         <target>FileDescriptor.err</target>
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="STDERR"/>
+        <appender-ref ref="STDERR" />
     </root>
 </configuration>
