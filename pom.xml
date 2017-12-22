@@ -257,6 +257,8 @@
                 <module>messagecenters/ebayk-messagecenter</module>
 
                 <module>resultinspectors/core-resultinspector-threshold</module>
+
+                <module>cronjob-cleanup-conversations</module>
             </modules>
 
             <distributionManagement>
