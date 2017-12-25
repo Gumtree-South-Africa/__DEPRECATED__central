@@ -1,0 +1,5 @@
+node('qa') {
+    stage('Test stage') {
+        echo "Revision: ${REVISION}"
+    }
+}
