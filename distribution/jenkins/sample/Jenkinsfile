@@ -1,7 +1,7 @@
 node('build001-dmz.comaas-lp.ams1.cloud') {
     stage('Test stage') {
 
-        library "commonFunctions@${ghprbActualCommit}"
+        library "commonFunctions@${ghprbSourceBranch}"
         commonFunctions.helloWorld()
 
         //+refs/pull/*:refs/remotes/origin/pr/*
