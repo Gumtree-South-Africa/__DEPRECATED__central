@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-library 'commonFunctions'
+library "commonFunctions@${ghprbSourceBranch}"
 
 runCoreTests = {
     echo 'Running core tests'
