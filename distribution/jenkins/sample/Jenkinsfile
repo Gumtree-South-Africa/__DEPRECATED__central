@@ -1,8 +1,10 @@
 node('build001-dmz.comaas-lp.ams1.cloud') {
     stage('Test stage') {
 
-        library "commonFunctions@${sha1}"
+        library "commonFunctions@refs/pull/${sha1}"
         commonFunctions.helloWorld()
+
+        //+refs/pull/*:refs/remotes/origin/pr/*
 
         /*commonFunctions.checkoutGithubRepo(ghprbActualCommit, 'ecg-comaas-central', ghprbAuthorRepoGitUrl)
 
