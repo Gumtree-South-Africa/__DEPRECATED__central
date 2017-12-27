@@ -1,7 +1,8 @@
 node('build001-dmz.comaas-lp.ams1.cloud') {
     stage('Test stage') {
 
-        library "commonFunctions@${ghprbSourceBranch}"
+        //library "commonFunctions@${ghprbSourceBranch}"
+        library "commonFunctions@${sha1}"
         commonFunctions.helloWorld()
 
         cleanWs notFailBuild: true
