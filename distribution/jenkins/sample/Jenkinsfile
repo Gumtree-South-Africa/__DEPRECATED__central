@@ -4,19 +4,6 @@ node('build001-dmz.comaas-lp.ams1.cloud') {
         library "commonFunctions@${ghprbSourceBranch}"
         commonFunctions.helloWorld()
 
-        //+refs/pull/*:refs/remotes/origin/pr/*
-
-        /*commonFunctions.checkoutGithubRepo(ghprbActualCommit, 'ecg-comaas-central', ghprbAuthorRepoGitUrl)
-
-        String gitBranchName = sh(
-                script: "cd ecg-comaas-central; git rev-parse --abbrev-ref HEAD",
-                returnStdout: true
-        ).trim()
-
-        echo "Branch name: $gitBranchName"
-
-        library "commonFunctions@${gitBranchName}"
-
-        commonFunctions.helloWorld()*/
+        cleanWs notFailBuild: true
     }
 }
