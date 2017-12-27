@@ -1,4 +1,4 @@
-node('qa') {
+node('lp') {
     stage('Test stage') {
         String gitBranchName = sh(
                 script: "git rev-parse --abbrev-ref HEAD",
