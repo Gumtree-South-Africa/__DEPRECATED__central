@@ -1,5 +1,10 @@
 node('qa') {
     stage('Test stage') {
-        echo "Revision: ${REVISION}"
+        String gitBranchName = sh(
+                script: "git rev-parse --abbrev-ref HEAD",
+                returnStdout: true
+        ).trim()
+
+        echo "Branch name: $gitBranchName"
     }
 }
