@@ -1,7 +1,8 @@
 node('build001-dmz.comaas-lp.ams1.cloud') {
     stage('Test stage') {
 
-        library "commonFunctions@refs/remotes/${sha1}"
+        String obtained = "${sha1}"
+        library "commonFunctions@refs/remotes/$obtained"
         commonFunctions.helloWorld()
 
         //+refs/pull/*:refs/remotes/origin/pr/*
