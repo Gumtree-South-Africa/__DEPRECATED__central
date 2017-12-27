@@ -464,3 +464,7 @@ Closure wrapWithStepDefinition(param, closure, String commit, String stageName, 
         }
     }
 }
+
+void helloWorld() {
+    echo "Hello from shared library!"
+}

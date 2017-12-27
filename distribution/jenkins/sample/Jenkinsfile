@@ -1,10 +1,19 @@
 node('build001-dmz.comaas-lp.ams1.cloud') {
     stage('Test stage') {
+
+        library "commonFunctions"
+
+        commonFunctions.checkoutGithubRepo(ghprbActualCommit, 'ecg-comaas-central', ghprbAuthorRepoGitUrl)
+
         String gitBranchName = sh(
-                script: "git rev-parse --abbrev-ref HEAD",
+                script: "cd ecg-comaas-central; git rev-parse --abbrev-ref HEAD",
                 returnStdout: true
         ).trim()
 
         echo "Branch name: $gitBranchName"
+
+        library "commonFunctions@${gitBranchName}"
+
+        commonFunctions.helloWorld()
     }
 }
