@@ -11,6 +11,7 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
 import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsBuilder;
 import org.elasticsearch.search.sort.SortOrder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.StringUtils;
 
 import static java.util.Optional.ofNullable;
@@ -251,11 +252,11 @@ public final class SearchTransformer {
         rootQuery.must(query);
     }
 
-    public static SearchTransformer translate(SearchMessagePayload payload, Client client, String indexName) {
+    public static SearchTransformer translate(SearchMessagePayload payload, @Qualifier("esclient") Client client, String indexName) {
         return new SearchTransformer(payload, client, indexName);
     }
 
-    public static SearchTransformer translate(SearchMessageGroupPayload payload, Client client, String indexName) {
+    public static SearchTransformer translate(SearchMessageGroupPayload payload, @Qualifier("esclient") Client client, String indexName) {
         return new SearchTransformer(payload, client, indexName);
     }
 }

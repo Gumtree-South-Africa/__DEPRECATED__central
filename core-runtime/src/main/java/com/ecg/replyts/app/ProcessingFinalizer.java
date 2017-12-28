@@ -17,6 +17,7 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -91,17 +92,17 @@ public class ProcessingFinalizer {
 
         CONVERSATION_MESSAGE_COUNT.update(conversation.getMessages().size());
 
-        if(document2KafkaSink!=null) {
-            document2KafkaSink.pushToKafka(conversation, messageId);
-        }
-
         if (!enableIndexing2Kafka) {
             try {
                 searchIndexer.updateSearchAsync(ImmutableList.of(conversation));
             } catch (RuntimeException e) {
                 LOG.error("Search update failed for conversation", e);
             }
+        // Document is published to kafka if configured in searchIndexer.updateSearchAsync()
+        } else if(document2KafkaSink!=null) {
+            document2KafkaSink.pushToKafka(conversation, messageId);
         }
+
     }
 
     private void processEmail(String messageId, byte[] incomingMailContent, Optional<byte[]> outgoingMailContent) {

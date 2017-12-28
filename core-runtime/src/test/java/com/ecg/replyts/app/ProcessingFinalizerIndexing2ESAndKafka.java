@@ -16,7 +16,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -26,7 +25,7 @@ import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.never;
+
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -84,7 +83,6 @@ public class ProcessingFinalizerIndexing2ESAndKafka {
 
         verify(searchIndexer).updateSearchAsync(Arrays.<Conversation>asList(conv));
 
-        verify(document2KafkaSink).pushToKafka(conv, msgid);
     }
 }
 

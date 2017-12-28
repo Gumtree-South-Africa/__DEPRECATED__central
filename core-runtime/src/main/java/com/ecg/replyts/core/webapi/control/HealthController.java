@@ -5,6 +5,7 @@ import org.elasticsearch.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -70,6 +71,7 @@ public class HealthController {
     }
 
     @Autowired(required = false)
+    @Qualifier("esclient")
     private Client searchClient = null;
 
     @RequestMapping(method = RequestMethod.GET)

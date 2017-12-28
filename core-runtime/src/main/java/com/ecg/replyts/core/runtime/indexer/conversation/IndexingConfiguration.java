@@ -2,6 +2,7 @@ package com.ecg.replyts.core.runtime.indexer.conversation;
 
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import org.elasticsearch.client.Client;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,12 +19,12 @@ public class IndexingConfiguration {
     private int maxActions;
 
     @Bean
-    public SearchIndexer searchIndexer(Client client, MailCloakingService mailCloakingService) {
+    public SearchIndexer searchIndexer(@Qualifier("esclient") Client client, MailCloakingService mailCloakingService) {
         return new SearchIndexer(client, new IndexDataBuilder(mailCloakingService));
     }
 
     @Bean
-    public BulkIndexer bulkIndexer(Client client, MailCloakingService mailCloakingService) {
+    public BulkIndexer bulkIndexer(@Qualifier("esclient") Client client, MailCloakingService mailCloakingService) {
         return new BulkIndexer(client, new IndexDataBuilder(mailCloakingService), concurrency, batchSizeToFlushMb, maxActions);
     }
 }

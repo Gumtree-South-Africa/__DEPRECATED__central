@@ -124,7 +124,7 @@ public final class ReplytsRunner {
 
     Client getSearchClient() {
         if (searchClient == null) {
-            searchClient = context.getBean(Client.class);
+            searchClient = context.getBean("esclient", Client.class);
 
             if (searchClient == null) {
                 throw new IllegalStateException("COMaaS did not start up in its entirety");

@@ -7,6 +7,7 @@ import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
+import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.Builder;
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -18,8 +19,11 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
@@ -29,28 +33,25 @@ import java.util.concurrent.TimeoutException;
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.Builder.aConversation;
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage.Builder.aMessage;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
 
+
+@RunWith(SpringRunner.class)
 public class SearchIndexerTest {
 
-    private Client client;
-    private MailCloakingService mailCloakingService;
-    private IndexRequestBuilder indexBuilder;
+    protected Client client;
+    protected MailCloakingService mailCloakingService;
+    protected IndexRequestBuilder indexBuilder;
 
-    private SearchIndexer searchIndexer;
+    protected SearchIndexer searchIndexer;
 
     @Before
     public void setup() throws InterruptedException, ExecutionException, TimeoutException {
         MockitoAnnotations.initMocks(this);
+
         client = mock(Client.class, RETURNS_DEEP_STUBS);
         mailCloakingService = mock(MailCloakingService.class);
         BulkRequestBuilder brb = mock(BulkRequestBuilder.class, RETURNS_DEEP_STUBS);
@@ -58,12 +59,14 @@ public class SearchIndexerTest {
         ListenableActionFuture<BulkResponse> laf = mock(ListenableActionFuture.class);
         when(brb.execute()).thenReturn(laf);
         when(laf.get(anyLong(), any(TimeUnit.class))).thenReturn(resp);
+
         indexBuilder = mock(IndexRequestBuilder.class);
         when(client.prepareIndex(anyString(), anyString(), anyString())).thenReturn(indexBuilder);
         when(client.prepareBulk()).thenReturn(brb);
         when(mailCloakingService.createdCloakedMailAddress(anyObject(), anyObject())).thenReturn(new MailAddress("anonymized@test.com"));
         when(indexBuilder.setSource(any(XContentBuilder.class))).thenReturn(indexBuilder);
         when(indexBuilder.setTTL(anyLong())).thenReturn(indexBuilder);
+
         searchIndexer = new SearchIndexer(client, new IndexDataBuilder(mailCloakingService));
     }
 
@@ -99,7 +102,53 @@ public class SearchIndexerTest {
         assertEquals(expectedOutput, output);
     }
 
-    private Conversation makeConversation(int messageCount) {
+
+    @MockBean
+    private Document2KafkaSink document2KafkaSink;
+
+    @Test
+    public void updatesESOnly() {
+        Conversation conversation = SearchIndexerTest.makeConversation(2);
+
+        searchIndexer.updateSearchSync(Collections.singletonList(conversation));
+
+        verify(client).prepareIndex(eq("replyts"), eq("message"), eq("id/msgid0"));
+        verify(client).prepareIndex(eq("replyts"), eq("message"), eq("id/msgid1"));
+
+        verify(document2KafkaSink, never()).pushToKafka(anyListOf(Conversation.class));
+    }
+
+
+    @Test
+    public void updatesESAndKafka() {
+        searchIndexer.enableIndexing2Kafka = false;
+        searchIndexer.document2KafkaSink = document2KafkaSink;
+
+        Conversation conversation = SearchIndexerTest.makeConversation(2);
+
+        searchIndexer.updateSearchSync(Collections.singletonList(conversation));
+
+        verify(client).prepareIndex(eq("replyts"), eq("message"), eq("id/msgid0"));
+        verify(client).prepareIndex(eq("replyts"), eq("message"), eq("id/msgid1"));
+
+        verify(document2KafkaSink).pushToKafka(anyListOf(Conversation.class));
+    }
+
+    @Test
+    public void updatesKafkaOnly() {
+        searchIndexer.enableIndexing2Kafka = true;
+        searchIndexer.document2KafkaSink = document2KafkaSink;
+
+        Conversation conversation = SearchIndexerTest.makeConversation(2);
+
+        searchIndexer.updateSearchSync(Collections.singletonList(conversation));
+
+        verify(client, never()).prepareIndex(eq("replyts"), eq("message"), eq("id/msgid0"));
+
+        verify(document2KafkaSink).pushToKafka(anyListOf(Conversation.class));
+    }
+
+    private static Conversation makeConversation(int messageCount) {
         Builder builder = aConversation().withId("id")
                 .withCreatedAt(new DateTime(2012, 1, 29, 19, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withLastModifiedAt(new DateTime(2012, 1, 30, 19, 1, 55, DateTimeZone.forID("Europe/Amsterdam")))

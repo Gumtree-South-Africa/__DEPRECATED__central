@@ -1,5 +1,8 @@
 package com.ecg.replyts.core.api.search;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
+
 import java.util.List;
 
 public class RtsSearchResponse {
@@ -53,6 +56,32 @@ public class RtsSearchResponse {
         return (offset != NOT_APPLICABLE && count != NOT_APPLICABLE && total != NOT_APPLICABLE) && count != total;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RtsSearchResponse)) return false;
+        RtsSearchResponse that = (RtsSearchResponse) o;
+        return offset == that.offset &&
+                count == that.count &&
+                total == that.total &&
+                Objects.equal(result, that.result);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(result, offset, count, total);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("result", result)
+                .add("offset", offset)
+                .add("count", count)
+                .add("total", total)
+                .toString();
+    }
+
     public static class IDHolder {
 
         private String messageId;
@@ -69,6 +98,28 @@ public class RtsSearchResponse {
 
         public String getMessageId() {
             return messageId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof IDHolder)) return false;
+            IDHolder idHolder = (IDHolder) o;
+            return Objects.equal(messageId, idHolder.messageId) &&
+                    Objects.equal(conversationId, idHolder.conversationId);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(messageId, conversationId);
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(this)
+                    .add("messageId", messageId)
+                    .add("conversationId", conversationId)
+                    .toString();
         }
     }
 }

@@ -14,6 +14,7 @@ import org.elasticsearch.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
@@ -46,13 +47,13 @@ public class SearchIndexer {
     private boolean esEnabled = true;
 
     @Autowired(required = false)
-    private Document2KafkaSink document2KafkaSink;
+    Document2KafkaSink document2KafkaSink;
 
     @Value("#{'${indexing.2kafka.enabled:false}' == '${region:ams1}' }")
-    private boolean enableIndexing2Kafka;
-    
-    public SearchIndexer(Client elasticSearchClient, IndexDataBuilder indexDataBuilder) {
-        this.elasticSearchClient = elasticSearchClient;
+    boolean enableIndexing2Kafka;
+
+    public SearchIndexer(@Qualifier("esclient") Client esClient, IndexDataBuilder indexDataBuilder) {
+        this.elasticSearchClient = esClient;
         this.indexDataBuilder = indexDataBuilder;
     }
 
@@ -66,6 +67,10 @@ public class SearchIndexer {
         }
         try {
             ListenableActionFuture<BulkResponse> responseFuture = updateSearchAsync(conversations);
+            // Direct ES updates are disabled, nothing to wait for
+            if (responseFuture == null) {
+                return;
+            }
             BulkResponse response = responseFuture.get(TIMEOUT_SYNC_UPDATE_MINUTES, MINUTES);
             if (response.hasFailures()) {
                 throw new RuntimeException(response.buildFailureMessage());

@@ -1,5 +1,6 @@
 package com.ecg.replyts.app.search.elasticsearch;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.search.MutableSearchService;
 import com.ecg.replyts.core.api.search.RtsSearchGroupResponse;
@@ -20,6 +21,7 @@ import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -38,13 +40,22 @@ import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 public class ElasticSearchSearchService implements SearchService, MutableSearchService {
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchSearchService.class);
 
+    private static final Counter MATCH_COUNTER = TimingReports.newCounter("es-match-counter");
+    private static final Counter MISMATCH_COUNTER = TimingReports.newCounter("es-mismatch-counter");
+    private static final Timer TOTAL_SEARCH_TIMER = TimingReports.newTimer("es-total-search");
+
     private static final Timer SEARCH_TIMER = TimingReports.newTimer("es-doSearch");
     private static final Timer GROUP_SEARCH_TIMER = TimingReports.newTimer("es-doGroupSearch");
 
     public static final String TYPE_NAME = "message";
 
     @Autowired
+    @Qualifier("esclient")
     private Client client;
+
+    @Autowired(required = false)
+    @Qualifier("crossDCEsClient")
+    private Client xDCclient;
 
     @Value("${search.es.indexname:replyts}")
     private String indexName;
@@ -54,13 +65,30 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
 
     @Override
     public RtsSearchResponse search(SearchMessagePayload searchMessageCommand) {
-        SearchRequestBuilder searchRequestBuilder = translate(searchMessageCommand, client, indexName).intoQuery();
+       try (Timer.Context timer = TOTAL_SEARCH_TIMER.time()) {
+           RtsSearchResponse response = doSearch(xDCclient, indexName, searchMessageCommand);
+
+           if (xDCclient != null) {
+               RtsSearchResponse xDCresponse = doSearch(xDCclient, indexName, searchMessageCommand);
+               if (response.equals(xDCresponse)) {
+                   MATCH_COUNTER.inc();
+               } else {
+                   MISMATCH_COUNTER.inc();
+                   LOG.info("Elastic search cross DC response differs from local Elastic. \nLocal: {}\n Remote {}", response, xDCresponse);
+               }
+           }
+           return response;
+       }
+    }
+
+    private RtsSearchResponse doSearch(Client client, String indexName, SearchMessagePayload searchMessagePayload) {
+        SearchRequestBuilder searchRequestBuilder = translate(searchMessagePayload, client, indexName).intoQuery();
 
         LOG.trace("\n\nRequest:\n\n {}", searchRequestBuilder);
 
         SearchResponse searchResponse = executeSearch(searchRequestBuilder, SEARCH_TIMER);
 
-        return createRtsSearchResponse(searchMessageCommand, searchResponse);
+        return createRtsSearchResponse(searchMessagePayload, searchResponse);
     }
 
     @Override
@@ -77,8 +105,6 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
     private SearchResponse executeSearch(SearchRequestBuilder searchRequestBuilder, Timer searchTimer) {
         try (Timer.Context ignore = searchTimer.time()) {
             SearchResponse response = searchRequestBuilder.execute().actionGet(timeoutMs, TimeUnit.MILLISECONDS);
-
-            LOG.trace("\n\nResponse:\n\n{}", response);
 
             return response;
         } catch (Exception e) {

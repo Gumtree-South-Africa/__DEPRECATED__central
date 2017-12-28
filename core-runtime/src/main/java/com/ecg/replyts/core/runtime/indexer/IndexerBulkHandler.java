@@ -5,6 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.conversation.BulkIndexer;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,7 @@ public class IndexerBulkHandler {
     private static final Timer FETCH_TIMER = TimingReports.newTimer("fetch-chunk");
     private static final Timer SAVE2KAFKA_TIMER = TimingReports.newTimer("save-chunk2kafka");
 
-    @Autowired
+    @Autowired(required = false)
     private Document2KafkaSink  document2KafkaSink;
 
     @Autowired
@@ -40,6 +41,7 @@ public class IndexerBulkHandler {
     @PostConstruct
     private void reportConfiguration() {
         if(enableReindex2Kafka) {
+            Preconditions.checkNotNull(document2KafkaSink,"Must have ship.documents2kafka.enabled=true when indexing.2kafka.enabled=true");
             LOG.info("Comaas indexing is disabled, sending documents to kafka for reindex instead");
         } else {
             LOG.info("Indexing with comaas indexer");

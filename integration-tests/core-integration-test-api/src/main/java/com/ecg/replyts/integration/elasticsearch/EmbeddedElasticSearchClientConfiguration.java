@@ -22,7 +22,7 @@ public class EmbeddedElasticSearchClientConfiguration {
     @Value("${search.es.enabled:true}")
     private boolean esEnabled;
 
-    @Bean
+    @Bean(name="esclient")
     public Client esClient() {
         if (!esEnabled) {
             LOG.debug("ES is not enabled, not returning a client");
