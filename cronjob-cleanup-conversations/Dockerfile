@@ -2,7 +2,10 @@ FROM openjdk:8u131-jre-alpine
 
 LABEL maintainer="Comaas team <DL-eCG-comaas-dev@ebay.com>"
 
-ADD target/cronjobs-cleanup-conversations-1-SNAPSHOT-jar-with-dependencies.jar /
-ADD dc_aware_wrapper.sh /
+RUN apk --no-cache add bind-tools
 
-ENTRYPOINT ["./dc_aware_wrapper.sh"]
+COPY target/cronjobs-cleanup-conversations-1-SNAPSHOT.jar /
+COPY dc_aware_wrapper.sh /dc_aware_wrapper.sh
+COPY src/main/resources/* /
+
+ENTRYPOINT ["/dc_aware_wrapper.sh"]

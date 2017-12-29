@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #$NOMAD_RERGION is made available through nomad and is usable as an environment variable. This will contain the lowercase ams1 or dus1 region
 
@@ -16,5 +16,5 @@ then
   exit 0
 else
   echo "This is not the active dc, so running the command"
-  java -jar cronjobs-cleanup-conversations-1-SNAPSHOT-jar-with-dependencies.jar
+  java -cp /:/cronjobs-cleanup-conversations-1-SNAPSHOT-jar-with-dependencies.jar -jar cronjobs-cleanup-conversations-1-SNAPSHOT.jar
 fi
