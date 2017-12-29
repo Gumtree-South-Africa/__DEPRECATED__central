@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 import java.text.SimpleDateFormat
 
-library 'commonFunctions'
+library "commonFunctions@${PROVIDED_PIPELINE_BRANCH}"
 
 void packageComaas(String tenant, String version) {
 

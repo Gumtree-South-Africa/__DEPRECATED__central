@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-library 'commonFunctions'
+library "commonFunctions@${PROVIDED_PIPELINE_BRANCH}"
 
 def checkInputParameters(providedVersion, providedEnv, providedDc, providedTenant) {
     if (providedDc == "-") {

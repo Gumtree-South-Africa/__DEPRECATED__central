@@ -1,4 +1,6 @@
-library 'commonFunctions'
+#!/usr/bin/env groovy
+
+library "commonFunctions@${PROVIDED_PIPELINE_BRANCH}"
 
 static String getSmtpAddress(final String dc, final String tenant, final String envShort) {
     return "${dc}.smtp-${tenant}.${envShort}.comaas.cloud"
