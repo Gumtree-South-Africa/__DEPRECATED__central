@@ -458,6 +458,15 @@ Closure wrapWithStepDefinition(param, closure, String commit, String stageName, 
                     }
                     error "Stage $stageName failed with $exMessage"
                 } finally {
+                    step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true])
+                    publishHTML (target: [
+                            allowMissing: true,
+                            alwaysLinkToLastBuild: false,
+                            keepAll: true,
+                            reportDir: 'coverage',
+                            reportFiles: 'index.html',
+                            reportName: "Junit Report"
+                    ])
                     cleanWs notFailBuild: true
                 }
             }
