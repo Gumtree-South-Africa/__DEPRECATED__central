@@ -59,7 +59,9 @@ void setEnvVars(configFile) {
 }
 
 node('qa') {
-    configFile = commonFunctions.downloadConfig('pipelines/testing/configuration.yaml')
+    checkout scm
+    
+    configFile = readYaml file: "distribution/jenkins/testing/configuration.yaml"
 
     setEnvVars(configFile)
 
