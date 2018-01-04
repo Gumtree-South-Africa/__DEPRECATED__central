@@ -445,7 +445,7 @@
         <archaius.version>0.7.4</archaius.version>
         <rxjava.version>1.1.2</rxjava.version>
         <servo.version>0.9.2</servo.version>
-        <kafka.version>0.9.0.1</kafka.version>
+        <kafka.version>0.11.0.2</kafka.version>
         <scala-library.version>2.11.11</scala-library.version>
         <zookeeper.version>3.4.8</zookeeper.version>
         <rabbitmq.version>3.5.4</rabbitmq.version>
@@ -507,7 +507,7 @@
         <restassured-version>2.6.0</restassured-version>
         <awaitility-version>1.7.0</awaitility-version>
         <riak-client.version>1.4.4</riak-client.version>
-        <slf4j-version>1.7.21</slf4j-version>
+        <slf4j-version>1.7.25</slf4j-version>
         <sysout-over-slf4j.version>1.0.2</sysout-over-slf4j.version>
         <spring-version>4.3.4.RELEASE</spring-version>
         <subethasmtp-version>3.1.7</subethasmtp-version>
