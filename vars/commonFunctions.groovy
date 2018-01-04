@@ -97,18 +97,6 @@ def downloadComaasDocker() {
     }
 }
 
-def downloadConfig(final String filePath, final String branch) {
-    withCredentials([string(credentialsId: 'GITHUBBOT-COMAAS-PAT', variable: 'TOKEN')]) {
-        sh "curl -o configuration.yaml -sLH 'Authorization: token $TOKEN' https://raw.github.corp.ebay.com/ecg-comaas/jenkins/${branch}/${filePath}"
-    }
-    configFile = readYaml file: "configuration.yaml"
-    return configFile
-}
-
-def downloadConfig(final String filePath) {
-    return downloadConfig(filePath, "master")
-}
-
 void setGitCommitInfo(String targetDir) {
     env.LATEST_GIT_HASH = sh(
             script: "cd $targetDir; git log -1 --format=%h",

@@ -215,12 +215,15 @@ static boolean useLpVersionForProd(final String versionToDeploy, final String en
 }
 
 node(PROVIDED_ENV) {
+    scm checkout
+
     checkInputParameters(PROVIDED_VERSION, PROVIDED_ENV, PROVIDED_DC, PROVIDED_TENANT)
 
     String[] tenants
 
     if (PROVIDED_ENV as String == 'lp') {
-        configFile = commonFunctions.downloadConfig('pipelines/deployment/lp/configuration.yaml')
+    
+        configFile = readYaml file: "distribution/jenkins/deployment/lp/configuration.yaml"
 
         if (PROVIDED_TENANT as String == 'all-enabled') {
             tenants = commonFunctions.activeTenants(configFile.tenants.disabled as List)

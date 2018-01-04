@@ -61,7 +61,9 @@ Closure wrapWithStepDefinition(final String tenantLong, final String environment
 }
 
 node('lp') {
-    configFile = commonFunctions.downloadConfig('pipelines/smoke-test/configuration.yaml')
+    checkout scm
+
+    configFile = readYaml file: "distribution/jenkins/smoke-test/configuration.yaml"
 
     String[] tenants
     if (PROVIDED_TENANT == 'all-enabled') {
