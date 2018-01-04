@@ -215,7 +215,7 @@ static boolean useLpVersionForProd(final String versionToDeploy, final String en
 }
 
 node(PROVIDED_ENV) {
-    scm checkout
+    checkout scm
 
     checkInputParameters(PROVIDED_VERSION, PROVIDED_ENV, PROVIDED_DC, PROVIDED_TENANT)
 
