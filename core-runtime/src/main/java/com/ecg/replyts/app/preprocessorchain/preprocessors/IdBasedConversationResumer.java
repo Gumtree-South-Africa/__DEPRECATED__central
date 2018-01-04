@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-@ConditionalOnProperty(value = "replyts.conversationResumeStrategy", havingValue = "id")
+@ConditionalOnProperty(value = "conversation.resume.strategy", havingValue = "id")
 public class IdBasedConversationResumer extends ConversationResumer {
     @Autowired
     private UserIdentifierService userIdentifierService;

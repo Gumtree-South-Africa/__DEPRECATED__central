@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(value = "replyts.conversationResumeStrategy", havingValue = "mail", matchIfMissing = true)
+@ConditionalOnProperty(value = "conversation.resume.strategy", havingValue = "mail", matchIfMissing = true)
 public class MailBasedConversationResumer extends ConversationResumer {
     public boolean resumeExistingConversation(ConversationRepository repository, MessageProcessingContext context) {
         ConversationStartInfo info = new ConversationStartInfo(context);

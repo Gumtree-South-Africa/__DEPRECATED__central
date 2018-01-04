@@ -48,44 +48,31 @@ public class AnonymizerTest {
 
     @Test
     public void senderEmailIsCloaked() {
-
-
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
-
         anonymizer.postProcess(context);
 
-        verify(outgoingMail).setTo(new MailAddress("seller@domain.tld"));
         verify(outgoingMail).setFrom(new MailAddress("buyer.cloaked@ebay.com"));
-
     }
 
     @Test
     public void recieverIsSetToUncloakedBuyerWhenMessageDirectionIsSellerToBuyer() {
-
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
         when(context.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
 
         anonymizer.postProcess(context);
 
-        verify(outgoingMail).setTo(new MailAddress("buyer@domain.tld"));
         verify(outgoingMail).setFrom(new MailAddress("seller.cloaked@ebay.com"));
-
     }
 
     @Test
     public void recieverIsSetToUncloakedSellerWhenMessageDirectionIsBuyerToSeller() {
-
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
         anonymizer.postProcess(context);
 
-        verify(outgoingMail).setTo(new MailAddress("seller@domain.tld"));
         verify(outgoingMail).setFrom(new MailAddress("buyer.cloaked@ebay.com"));
-
     }
-
-
 }
