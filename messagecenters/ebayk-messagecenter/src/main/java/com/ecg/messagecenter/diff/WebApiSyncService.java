@@ -226,11 +226,13 @@ public class WebApiSyncService {
     public PostBoxResponse deleteConversations(String email, List<String> ids, int page, int size) {
         try (Timer.Context ignored = deleteConversationsTimer.time()) {
 
-            CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture
-                    .supplyAsync(() -> getConversationId(email), newExecutor)
-                    .thenApply(conversationId -> getUserId(email, conversationId))
-                    .thenApply(userId -> Optional.of(deleteConversationV2(userId, ids)))
-                    .exceptionally(handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
+            CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture.completedFuture(null);
+            if (!ids.isEmpty()) {
+                newModelFuture = CompletableFuture
+                        .supplyAsync(() -> getUserId(email, ids.get(0)), newExecutor)
+                        .thenApply(userId -> Optional.of(deleteConversationV2(userId, ids)))
+                        .exceptionally(handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
+            }
 
             CompletableFuture<PostBoxResponse> oldModelFuture = CompletableFuture
                     .supplyAsync(() -> postBoxRepository.byId(PostBoxId.fromEmail(email)), oldExecutor)
