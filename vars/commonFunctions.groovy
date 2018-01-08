@@ -80,7 +80,7 @@ String getActiveDC(String tenantLongName, String env) {
     return dc
 }
 
-String getInactiveDcProd(final String tenant) {
+String getPassiveDcProd(final String tenant) {
     final String activeDc = getActiveDC(tenant, 'prod')
     if (activeDc != "dus1" && activeDc != "ams1") {
         error("Active dc could not be established. Please specify the dc")

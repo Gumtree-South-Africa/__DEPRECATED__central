@@ -53,7 +53,7 @@ String activeDcSlackString(final String tenantLong, final String dc, final Strin
     if (environmentShort != "prod") {
         return ""
     }
-    return commonFunctions.getActiveDC(tenantLong, environmentShort) == dc ? "*active DC*" : "_inactive DC_"
+    return commonFunctions.getActiveDC(tenantLong, environmentShort) == dc ? "*active DC*" : "_passive DC_"
 }
 
 void notifyAboutPendingUpgrade(final String tenant, final String version, final String dc,
@@ -246,15 +246,15 @@ node(PROVIDED_ENV) {
     if (environmentShort == "prod") {
         // This implies only a single tenant is selected, see checkInputParameters(), but let's make sure
         if (tenants.length != 1) {
-            error("You cannot use active/inactive dc when deploying to multiple tenants")
+            error("You cannot use active/passive dc when deploying to multiple tenants")
         }
 
         switch (dc) {
             case "active":
                 dc = commonFunctions.getActiveDC(tenants[0], "prod")
                 break
-            case "inactive":
-                dc = commonFunctions.getInactiveDcProd(tenants[0])
+            case "passive":
+                dc = commonFunctions.getPassiveDcProd(tenants[0])
                 break
         }
     }

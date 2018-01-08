@@ -34,8 +34,8 @@ Closure wrapWithStepDefinition(final String tenantLong, final String environment
                         case 'active':
                             runSmokeTests(commonFunctions.getActiveDC(tenantLong, environmentShort), tenantShort, environmentShort, smokeTestVersion)
                             break
-                        case 'inactive':
-                            runSmokeTests(commonFunctions.getInactiveDcProd(tenantLong), tenantShort, environmentShort, smokeTestVersion)
+                        case 'passive':
+                            runSmokeTests(commonFunctions.getPassiveDcProd(tenantLong), tenantShort, environmentShort, smokeTestVersion)
                             break
                         default:
                             runSmokeTests(dc, tenantShort, environmentShort, smokeTestVersion)
