@@ -37,17 +37,23 @@ public class PostBoxResponseBuilder {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         if (newCounterMode) {
+            // not used. should be removed.
             postBoxResponse.initNumUnread((int) postBox.getNewRepliesCounter().getValue(), null, null, postBox.getLastModification());
         } else {
-            postBoxResponse.initNumUnread(postBox.getUnreadConversationsCapped().size(), getNumUnreadForRole(email, ConversationRole.Buyer, postBox, MAX_UNREAD_NUMBER), getNumUnreadForRole(email, ConversationRole.Seller, postBox, MAX_UNREAD_NUMBER), postBox.getLastModification());
+            final List<AbstractConversationThread> unreadThreads =
+                    (List<AbstractConversationThread>) postBox.getUnreadConversations().values()
+                            .stream()
+                            .filter(getLiveConversationsFilter())
+                            .collect(Collectors.toList());
+            postBoxResponse.initNumUnread(unreadThreads.size(),
+                    getNumForRole(unreadThreads, email, ConversationRole.Buyer, PostBox.MAX_CONVERSATIONS_IN_POSTBOX),
+                    getNumForRole(unreadThreads, email, ConversationRole.Seller, PostBox.MAX_CONVERSATIONS_IN_POSTBOX),
+                    postBox.getLastModification());
         }
 
         List notExpiredConversations = new ArrayList<ConversationThread>(postBox.getConversationThreads())
                 .stream()
-                .filter(conversation -> {
-                    LocalDate modificationDate = LocalDate.of(conversation.getModifiedAt().getYear(), conversation.getModifiedAt().getMonthOfYear(), conversation.getModifiedAt().getDayOfMonth());
-                    return DAYS.between(modificationDate, LocalDate.now()) <= maxAgeDays;
-                })
+                .filter(getLiveConversationsFilter())
                 .collect(Collectors.toList());
         PostBox notExpiredConversationsPostBox = new PostBox(postBox.getEmail(), postBox.getNewRepliesCounter(), notExpiredConversations);
         initConversationsPayload(email, notExpiredConversationsPostBox.getFilteredConversationThreads(roleFilter(role, email), page, size), postBoxResponse);
@@ -61,11 +67,17 @@ public class PostBoxResponseBuilder {
         return ResponseObject.of(postBoxResponse);
     }
 
-    int getNumUnreadForRole(String email, ConversationRole role, PostBox postBox, int maxNum) {
+    private Predicate<ConversationThread> getLiveConversationsFilter() {
+        return conversation -> {
+            LocalDate modificationDate = LocalDate.of(conversation.getModifiedAt().getYear(), conversation.getModifiedAt().getMonthOfYear(), conversation.getModifiedAt().getDayOfMonth());
+            return DAYS.between(modificationDate, LocalDate.now()) <= maxAgeDays;
+        };
+    }
+
+    private int getNumForRole(List<AbstractConversationThread> threads, String email, ConversationRole role, int maxNum) {
         return Math.toIntExact(
-                postBox.getConversationThreads().stream()
-                        .filter(thread -> ((AbstractConversationThread) thread).isContainsUnreadMessages())
-                        .filter(thread -> ConversationBoundnessFinder.lookupUsersRole(email, (AbstractConversationThread) thread) == role)
+                threads.stream()
+                        .filter(thread -> ConversationBoundnessFinder.lookupUsersRole(email, thread) == role)
                         .limit(maxNum)
                         .count()
         );

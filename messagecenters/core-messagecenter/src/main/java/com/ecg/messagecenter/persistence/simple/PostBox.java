@@ -21,6 +21,7 @@ import static org.joda.time.DateTime.now;
 
 public class PostBox<T extends AbstractConversationThread> {
     private static final Logger LOG = LoggerFactory.getLogger(PostBox.class);
+    public static final int MAX_CONVERSATIONS_IN_POSTBOX = 500;
 
     private final PostBoxId id;
     private final String email;
@@ -47,7 +48,7 @@ public class PostBox<T extends AbstractConversationThread> {
     public List<T> getConversationThreads() {
         return conversations.stream()
                 // we cap to 500 to not kill the persistence store for very large objects
-                .limit(500)
+                .limit(MAX_CONVERSATIONS_IN_POSTBOX)
                 .collect(Collectors.toList());
     }
 
