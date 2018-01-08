@@ -27,6 +27,8 @@ runTenantTests = { tenant ->
 }
 
 startComaasForTenant = { tenant ->
+    sh "mkdir -p /tmp/mailreceiver"
+
     String currentTime = sh(
             script: "date +'%s'",
             returnStdout: true
