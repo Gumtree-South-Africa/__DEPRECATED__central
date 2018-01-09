@@ -23,7 +23,7 @@ public class RecipientAdderTest {
     private MessageProcessingContext context;
 
     @Mock
-    private MutableMail outgoingMail;
+    private MutableMail mail;
 
     @Mock
     private Conversation conversation;
@@ -31,7 +31,8 @@ public class RecipientAdderTest {
     @Before
     public void setUp() {
         when(context.getConversation()).thenReturn(conversation);
-        when(context.getOutgoingMail()).thenReturn(outgoingMail);
+        when(context.getMail()).thenReturn(mail);
+        when(context.getOutgoingMail()).thenReturn(mail);
 
         when(conversation.getUserIdFor(ConversationRole.Seller)).thenReturn("seller@domain.tld");
         when(conversation.getUserIdFor(ConversationRole.Buyer)).thenReturn("buyer@domain.tld");
@@ -41,30 +42,30 @@ public class RecipientAdderTest {
     public void notOverriddenAddress() {
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
         new RecipientAdder(false).postProcess(context);
-        verify(outgoingMail).setTo(new MailAddress("seller@domain.tld"));
+        verify(mail).setTo(new MailAddress("seller@domain.tld"));
     }
 
     @Test
     public void emptyReplyTo() {
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(outgoingMail.getReplyTo()).thenReturn("");
+        when(mail.getReplyTo()).thenReturn("");
         new RecipientAdder(true).postProcess(context);
-        verify(outgoingMail).setTo(new MailAddress("seller@domain.tld"));
+        verify(mail).setTo(new MailAddress("seller@domain.tld"));
     }
 
     @Test
     public void sameReplyTo() {
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(outgoingMail.getReplyTo()).thenReturn("seller@domain.tld");
+        when(mail.getReplyTo()).thenReturn("seller@domain.tld");
         new RecipientAdder(true).postProcess(context);
-        verify(outgoingMail).setTo(new MailAddress("seller@domain.tld"));
+        verify(mail).setTo(new MailAddress("seller@domain.tld"));
     }
 
     @Test
     public void overriddenAddress() {
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(outgoingMail.getReplyTo()).thenReturn("overridden@domain.tld");
+        when(mail.getReplyTo()).thenReturn("overridden@domain.tld");
         new RecipientAdder(true).postProcess(context);
-        verify(outgoingMail).setTo(new MailAddress("overridden@domain.tld"));
+        verify(mail).setTo(new MailAddress("overridden@domain.tld"));
     }
 }

@@ -35,7 +35,7 @@ public class RecipientAdder implements PostProcessor {
         Conversation conversation = context.getConversation();
         MutableMail mail = context.getOutgoingMail();
         String storedRecipient = conversation.getUserIdFor(context.getMessageDirection().getToRole());
-        String replyToRecipient = mail.getReplyTo();
+        String replyToRecipient = context.getMail().getReplyTo();
 
         // if tenant support overriding of stored email addresses and `Reply-To` header is not blank
         if (replyToOverride && StringUtils.isNotBlank(replyToRecipient) && !replyToRecipient.equals(storedRecipient)) {
