@@ -6,7 +6,7 @@ runCoreTests = {
     echo 'Running core tests'
     commonFunctions.forcefullyRemoveStaleDockerContainers()
     ansiColor('xterm') {
-        sh "cd ecg-comaas-central; bin/build.sh -3"
+        sh "cd ecg-comaas-central; bin/build.sh -3 -S"
     }
 }
 
@@ -14,7 +14,7 @@ runIntegrationTests = { param ->
     echo "Running integration tests (part $param)"
     commonFunctions.forcefullyRemoveStaleDockerContainers()
     ansiColor('xterm') {
-        sh "cd ecg-comaas-central; bin/build.sh -$param"
+        sh "cd ecg-comaas-central; bin/build.sh -$param -S"
     }
 }
 
@@ -22,7 +22,7 @@ runTenantTests = { tenant ->
     echo "Running tests for tenant $tenant"
     commonFunctions.forcefullyRemoveStaleDockerContainers()
     ansiColor('xterm') {
-        sh "cd ecg-comaas-central; bin/build.sh -R $tenant"
+        sh "cd ecg-comaas-central; bin/build.sh -R $tenant -S"
     }
 }
 

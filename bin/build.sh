@@ -96,7 +96,7 @@ function main() {
     export region=localhost
     export swift_authentication_url=https://keystone.ams1.cloud.ecg.so/v2.0
 
-    MVN_ARGS="$MVN_ARGS -s etc/settings.xml"
+    MVN_ARGS="$MVN_ARGS -s etc/settings.xml -T0.5C"
     MVN_TASKS="clean compile test-compile"
     PROFILES=""
 
