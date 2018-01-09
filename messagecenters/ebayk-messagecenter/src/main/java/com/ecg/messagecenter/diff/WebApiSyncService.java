@@ -3,14 +3,12 @@ package com.ecg.messagecenter.diff;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.CassandraPostBoxService;
+import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.ConversationService;
@@ -32,10 +30,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 
@@ -45,6 +45,7 @@ public class WebApiSyncService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebApiSyncService.class);
     private static final Logger DIFF_LOGGER = LoggerFactory.getLogger("diffLogger");
+    private static final int MAX_CONVERSATIONS_TO_RETRIEVE_PER_USER = 5;
 
     private final Timer getConversationTimer = newTimer("postBoxDelegatorService.getConversation");
     private final Timer markConversationAsReadTimer = newTimer("postBoxDelegatorService.markConversationAsRead");
@@ -81,8 +82,6 @@ public class WebApiSyncService {
     // so keeping it until we migrate to the new data model
     private final int messagesLimit;
 
-    private final PreparedStatement conversationStatement;
-
     @Autowired
     public WebApiSyncService(
             ConversationService conversationService,
@@ -116,8 +115,6 @@ public class WebApiSyncService {
         this.oldExecutor = newExecutorService("old-webapi-executor");
         this.newExecutor = newExecutorService("new-webapi-executor");
         this.diffExecutor = newExecutorServiceForDiff();
-
-        this.conversationStatement = this.session.prepare("SELECT conversation_id FROM mb_postbox WHERE postbox_id = ? LIMIT 1");
     }
 
     /**
@@ -138,7 +135,7 @@ public class WebApiSyncService {
                  */
                 CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture
                         .supplyAsync(() -> getConversationId(email), newExecutor)
-                        .thenApply(conversationId -> getUserId(email, conversationId))
+                        .thenApply(convIds -> getUserId(email, convIds))
                         .thenApply(userId -> Optional.of(postBoxService.getConversations(userId, Visibility.ACTIVE, page * size, size)))
                         .exceptionally(handleOpt(newModelFailureCounter, "New GetPostBox Failed - email: " + email));
 
@@ -196,7 +193,7 @@ public class WebApiSyncService {
 
             CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture
                     .supplyAsync(() -> getConversationId(email), newExecutor)
-                    .thenApply(conversationId -> getUserId(email, conversationId))
+                    .thenApply(convIds -> getUserId(email, convIds))
                     .thenApply(userId -> Optional.of(postBoxService.markConversationsAsRead(userId, Visibility.ACTIVE, page, size)))
                     .exceptionally(handleOpt(newModelFailureCounter, "New ReadPostBox Failed - email: " + email));
 
@@ -229,7 +226,7 @@ public class WebApiSyncService {
             CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture.completedFuture(null);
             if (!ids.isEmpty()) {
                 newModelFuture = CompletableFuture
-                        .supplyAsync(() -> getUserId(email, ids.get(0)), newExecutor)
+                        .supplyAsync(() -> getUserId(email, ids), newExecutor)
                         .thenApply(userId -> Optional.of(deleteConversationV2(userId, ids)))
                         .exceptionally(handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
             }
@@ -258,7 +255,7 @@ public class WebApiSyncService {
             Optional<PostBoxSingleConversationThreadResponse> response;
             if (diffEnabled) {
                 CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
-                        .supplyAsync(() -> getUserId(email, conversationId), newExecutor)
+                        .supplyAsync(() -> getUserId(email, Collections.singletonList(conversationId)), newExecutor)
                         .thenApply(userId -> postBoxService.getConversation(userId, conversationId, Optional.empty(), messagesLimit))
                         .exceptionally(handleOpt(newModelFailureCounter, "New GetConversation Failed - email: " + email));
 
@@ -290,7 +287,7 @@ public class WebApiSyncService {
         try (Timer.Context ignored = markConversationAsReadTimer.time()) {
 
             CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
-                    .supplyAsync(() -> getUserId(email, conversationId), newExecutor)
+                    .supplyAsync(() -> getUserId(email, Collections.singletonList(conversationId)), newExecutor)
                     .thenApply(userId -> postBoxService.markConversationAsRead(userId, conversationId, Optional.empty(), messagesLimit))
                     .exceptionally(handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
 
@@ -314,38 +311,69 @@ public class WebApiSyncService {
                 Visibility.ARCHIVED, Visibility.ACTIVE, 0, messagesLimit);
     }
 
-    private String getConversationId(String email) {
-        ResultSet resultSet = session.execute(conversationStatement.bind(email));
-        if (resultSet.iterator().hasNext()) {
-            Row row = resultSet.iterator().next();
-            return row.getString("conversation_id");
-        }
+    /**
+     * Returns {@link #MAX_CONVERSATIONS_TO_RETRIEVE_PER_USER} latest conversations.
+     *
+     * @param email email which postbox belongs to.
+     * @return latest conversations.
+     */
+    @SuppressWarnings("unchecked")
+    private List<String> getConversationId(String email) {
+        com.ecg.messagecenter.persistence.simple.PostBox<AbstractConversationThread> postbox =
+                (com.ecg.messagecenter.persistence.simple.PostBox<AbstractConversationThread>) postBoxRepository.byId(PostBoxId.fromEmail(email));
 
-        throw new UserIdNotFoundException(email);
+        return postbox.getConversationThreads().stream()
+                .map(AbstractConversationThread::getConversationId)
+                .limit(MAX_CONVERSATIONS_TO_RETRIEVE_PER_USER)
+                .collect(Collectors.toList());
     }
 
-    private String getUserId(String email, String conversationId) {
-        MutableConversation conversation = conversationRepository.getById(conversationId);
-        Optional<String> userId;
-        String userRole;
-        if (conversation != null && email.equalsIgnoreCase(conversation.getBuyerId())) {
-            userId = userIdentifierService.getBuyerUserId(conversation);
-            userRole = "buyer";
-        } else if (conversation != null && email.equalsIgnoreCase(conversation.getSellerId())) {
-            userId = userIdentifierService.getSellerUserId(conversation);
-            userRole = "seller";
-        } else {
-            userId = Optional.empty();
-            userRole = UserIdNotFoundException.UNKNOWN;
+    /**
+     * Methods takes collection of conversation events and tries to to find 'userId' in it.
+     * Best-case scenario is to use only one call to conversation repository but because ebayk contains multiple conversation which
+     * does not contain any conversation event, we repeat this action several times to be more likely that we find something.
+     *
+     * @param email   email of the client.
+     * @param convIds list of conversation from which 'userId' is going to be retrieved.
+     * @return 'userId' of the client having the provided email.
+     */
+    private String getUserId(String email, List<String> convIds) {
+        if (convIds.isEmpty()) {
+            throw new UserIdNotFoundException("No conversations to process");
         }
 
-        return userId.orElseThrow(() -> new UserIdNotFoundException(email, userRole, conversationId));
+        for (String conversationId : convIds) {
+            MutableConversation conversation = conversationRepository.getById(conversationId);
+
+            if (conversation == null) {
+                LOGGER.debug("V2 Migration: Conversation Event not found, e-mail: {}, conversation: {}", email, conversationId);
+                continue;
+            }
+
+            if (email.equalsIgnoreCase(conversation.getBuyerId())) {
+                Optional<String> userId = userIdentifierService.getBuyerUserId(conversation);
+                if (userId.isPresent()) {
+                    return userId.get();
+                }
+
+                LOGGER.debug("V2 Migration: UserId was not found for email: %s, role: buyer, conversation: %s", email, conversationId);
+            } else if (email.equalsIgnoreCase(conversation.getSellerId())) {
+                Optional<String> userId = userIdentifierService.getSellerUserId(conversation);
+                if (userId.isPresent()) {
+                    return userId.get();
+                }
+
+                LOGGER.debug("V2 Migration: UserId was not found for email: %s, role: seller, conversation: %s", email, conversationId);
+            }
+        }
+
+        throw new UserIdNotFoundException("Cannot find 'userId' for email: " + email);
     }
 
     private <T> Function<Throwable, Optional<T>> handleOpt(Counter errorCounter, String errorMessage) {
         return ex -> {
             if (ex.getCause() instanceof UserIdNotFoundException) {
-                LOGGER.warn(ex.getMessage(), ex.getCause());
+                LOGGER.warn("V2 Migration: " + ex.getMessage(), ex.getCause());
                 return Optional.empty();
             } else {
                 errorCounter.inc();
