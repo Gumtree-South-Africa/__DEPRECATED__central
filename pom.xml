@@ -127,7 +127,6 @@
                 <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>
         </profile>
-
         <profile>
             <id>gtuk</id>
 
@@ -544,6 +543,15 @@
                 <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>
         </profile>
+
+        <profile>
+            <id>sonar</id>
+            <properties>
+                <!--<sonar.host.url>http://localhost:9000</sonar.host.url>-->
+                <sonar.host.url>https://sonarqube.comaas-lp.ams1.cloud</sonar.host.url>
+            </properties>
+        </profile>
+
     </profiles>
 
     <properties>
@@ -691,8 +699,14 @@
         <thymeleaf.version>2.1.4.RELEASE</thymeleaf.version>
         <javassist.version>3.22.0-CR1</javassist.version>
 
+        <!-- Sonar properties -->
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- The destination file for the code coverage report has to be set to the same value
+             in the parent pom and in each module pom. Then JaCoCo will add up information in
+             the same report, so that, it will give the cross-module code coverage. -->
+        <sonar.jacoco.reportPaths>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPaths>
+        <sonar.groovy.binaries>target/classes</sonar.groovy.binaries>
     </properties>
-
 
     <dependencyManagement>
         <dependencies>
@@ -2376,6 +2390,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-version}</version>
                     <configuration>
+                        <argLine>${jacocoArgLine}</argLine>
                         <useFile>true</useFile>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     </configuration>
@@ -2483,6 +2498,35 @@
                         </configuration>
                         <goals>
                             <goal>enforce</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.8</version>
+                <configuration>
+                    <append>true</append>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>agent-for-ut</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>agent-for-it</id>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>jacoco-site</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>

@@ -44,8 +44,9 @@ function parseCmd() {
     PACKAGE=
     EXECUTE=
     WAIT_FOR_DEBUGGER=0
+    SONAR=0
 
-    while getopts ":htI123T:R:P:ED" OPTION; do
+    while getopts ":htI123T:R:P:EDS" OPTION; do
         case ${OPTION} in
             h) usage; exit 0;
                ;;
@@ -68,6 +69,8 @@ function parseCmd() {
             E) log "Build and Execute Comaas for specific tenant. Please start ecg-comaas-docker manually"; EXECUTE=true
                ;;
             D) log "Wait for debugger before running Maven" ; WAIT_FOR_DEBUGGER=1;
+               ;;
+            S) log "Run SonarQube and Jacoco code coverage"; SONAR=1;
                ;;
             \?) fatal "Invalid option: -${OPTARG}"
                ;;
@@ -93,7 +96,7 @@ function main() {
     export region=localhost
     export swift_authentication_url=https://keystone.ams1.cloud.ecg.so/v2.0
 
-    MVN_ARGS="$MVN_ARGS -s etc/settings.xml -T0.5C"
+    MVN_ARGS="$MVN_ARGS -s etc/settings.xml"
     MVN_TASKS="clean compile test-compile"
     PROFILES=""
 
@@ -107,6 +110,11 @@ function main() {
 
         if [[ "$RUN_CORE_TESTS" -eq 1 ]] ; then
                 PROFILES="core,core-tests,"
+
+            if [[ "$SONAR" -eq 1 ]] ; then
+                MVN_ARGS="$MVN_ARGS -Dsonar.branch=core-tests[${PROFILES}]"
+                MVN_TASKS="clean package sonar:sonar"
+            fi
         fi
     else
         log "Skipping the tests"
@@ -115,6 +123,17 @@ function main() {
 
     if [[ "$RUN_INTEGRATION_TESTS" -eq 1 ]] ; then
         PROFILES="${PROFILES}integration-tests-part1,integration-tests-part2,"
+
+        if [[ "$SONAR" -eq 1 ]] ; then
+
+            if [[ "$RUN_CORE_TESTS" -eq 1 ]]; then
+                MVN_ARGS="$MVN_ARGS -Dsonar.branch=all-tests[${PROFILES}]"
+            else
+                MVN_ARGS="$MVN_ARGS -Dsonar.branch=integration-tests[${PROFILES}]"
+            fi
+
+            MVN_TASKS="clean package sonar:sonar"
+        fi
     fi
 
     if ! [[ -z $TENANT ]] ; then
@@ -139,17 +158,41 @@ function main() {
         fi
 
     elif [[ "$RUN_ONLY_INTEGRATION_TESTS_P1" -eq 1 ]] ; then
-        log "Running Integration Tests P1 only"
-        MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P integration-tests-part1,!distribution "
-        MVN_TASKS="clean package"
+
+        if [[ "$SONAR" -eq 1 ]]; then
+            log "Running Integration Tests P1 only with Sonar coverage"
+            MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P integration-tests-part1,!distribution -Dsonar.branch=integration-tests-p1 "
+            MVN_TASKS="clean package sonar:sonar"
+        else
+            log "Running Integration Tests P1 only"
+            MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P integration-tests-part1,!distribution "
+            MVN_TASKS="clean package"
+        fi
+
     elif [[ "$RUN_ONLY_INTEGRATION_TESTS_P2" -eq 1 ]] ; then
-        log "Running Integration Tests P2 only"
-        MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P integration-tests-part2,!distribution "
-        MVN_TASKS="clean package"
+
+        if [[ "$SONAR" -eq 1 ]]; then
+            log "Running Integration Tests P2 only with Sonar coverage"
+            MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P integration-tests-part2,!distribution -Dsonar.branch=integration-tests-p2 "
+            MVN_TASKS="clean package sonar:sonar"
+        else
+            log "Running Integration Tests P2 only"
+            MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P integration-tests-part2,!distribution "
+            MVN_TASKS="clean package"
+        fi
+
     elif [[ "$RUN_CORE_TESTS" -eq 1 && "$RUN_INTEGRATION_TESTS" -eq 0 ]] ; then
-        log "Running Core Tests only"
-        MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P core,core-tests,!distribution "
-        MVN_TASKS="clean package"
+
+        if [[ "$SONAR" -eq 1 ]]; then
+            log "Running Core Tests only with Sonar coverage"
+            MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P core,core-tests,!distribution -Dsonar.branch=core-tests "
+            MVN_TASKS="clean package sonar:sonar"
+        else
+            log "Running Core Tests only"
+            MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P core,core-tests,!distribution "
+            MVN_TASKS="clean package"
+        fi
+
     else
         log "Building all tenant modules (skipping distribution and benchmarks)"
 
@@ -211,9 +254,10 @@ Usage:
     -T <TENANT> -E - build, package and execute tenant's code
     -T <TENANT> -P <ENVNAME> -E - build, package and execute tenant's code with ENVNAME
     -D - suspends Maven until a remote debugger is attached. May be combined with any of the options above
+    -S - enables Sonar coverage metrics (would work only with runs which actually include tests inside)
 
     where TENANT is one or more of [ebayk,mp,kjca,mde,gtau,bt,it],
-    ENVNAME is the properties profile name. common values [local, comaasqa, bare]
+    ENVNAME is the properties profile name. common values [docker, lp, prod]
 
     Examples: "$0 -t -T ebayk,mp " - build and test ebayk and mp distributions
 
