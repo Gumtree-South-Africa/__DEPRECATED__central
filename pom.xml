@@ -11,6 +11,78 @@
 
     <profiles>
         <profile>
+            <id>default</id>
+
+            <modules>
+                <module>core-api</module>
+                <module>core-runtime</module>
+                <module>core-graphite</module>
+
+                <module>messagecenters/core-messagecenter</module>
+                <module>eventpublishers/core-eventpublisher-kafka-mail</module>
+
+                <module>integration-tests/core-integration-test-api</module>
+                <module>integration-tests/core-integration-test</module>
+            </modules>
+
+            <!-- Always enable this profile (can't use activeByDefault in combination with -P) -->
+
+            <activation>
+                <property>
+                    <name>!always.enable</name>
+                </property>
+            </activation>
+        </profile>
+
+        <profile>
+            <id>core</id>
+
+            <modules>
+                <module>filters/core-filter-bankaccount</module>
+                <module>filters/core-filter-belenblockedad</module>
+                <module>filters/core-filter-belenblockeduser</module>
+                <module>filters/core-filter-ebayservices</module>
+                <module>filters/core-filter-volume</module>
+                <module>filters/core-filter-word</module>
+                <module>filters/core-filter-user</module>
+                <module>filters/core-filter-activable</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>benchmarks</id>
+
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+
+            <modules>
+                <module>core-runtime</module>
+                <module>core-benchmarks</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>distribution</id>
+
+            <modules>
+                <module>distribution</module>
+            </modules>
+
+            <!-- Always enable this profile as well; but it can still be disabled with '-P !distribution' -->
+
+            <activation>
+                <property>
+                    <name>!always.enable</name>
+                </property>
+            </activation>
+        </profile>
+
+	<!-- Tenant profiles -->
+
+        <profile>
             <id>gtau</id>
 
             <repositories>
@@ -25,11 +97,6 @@
                     </snapshots>
                 </repository>
             </repositories>
-
-            <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
-                <profile-classifier>gtau</profile-classifier>
-            </properties>
 
             <modules>
                 <module>coremods/gtau-coremod-autogatemaildelivery</module>
@@ -59,8 +126,8 @@
 
                 <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>
-
         </profile>
+
         <profile>
             <id>gtuk</id>
 
@@ -76,11 +143,6 @@
                     </snapshots>
                 </repository>
             </repositories>
-
-            <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
-                <profile-classifier>gtuk</profile-classifier>
-            </properties>
 
             <modules>
                 <module>coremods/gtuk-coremod-shared</module>
@@ -109,91 +171,6 @@
 
                 <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>
-
-        </profile>
-
-        <!-- This profile is required to be able to run core tests only-->
-        <profile>
-            <id>core</id>
-            <modules>
-                <module>filters/core-filter-bankaccount</module>
-                <module>filters/core-filter-belenblockedad</module>
-                <module>filters/core-filter-belenblockeduser</module>
-                <module>filters/core-filter-ebayservices</module>
-                <module>filters/core-filter-volume</module>
-                <module>filters/core-filter-word</module>
-                <module>filters/core-filter-user</module>
-                <module>filters/core-filter-activable</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <repositories>
-                <repository>
-                    <id>kjca-nexus</id>
-                    <url>http://nexus.kjdev.ca/content/repositories/public/</url>
-                </repository>
-            </repositories>
-
-            <id>migration</id>
-            <modules>
-                <module>migration/difftool</module>
-                <module>messagecenters/ebayk-messagecenter</module>
-                <module>messagecenters/kjca-messagecenter</module>
-                <module>coremods/kjca-coremod-shared</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>default</id>
-            <modules>
-                <module>core-api</module>
-                <module>core-runtime</module>
-                <module>core-graphite</module>
-
-                <module>messagecenters/core-messagecenter</module>
-                <module>eventpublishers/core-eventpublisher-kafka-mail</module>
-
-                <module>integration-tests/core-integration-test-api</module>
-                <module>integration-tests/core-integration-test</module>
-            </modules>
-
-            <!-- Always enable this profile (can't use activeByDefault in combination with -P) -->
-
-            <activation>
-                <property>
-                    <name>!always.enable</name>
-                </property>
-            </activation>
-        </profile>
-
-        <profile>
-            <id>benchmarks</id>
-            <properties>
-                <maven.test.skip>true</maven.test.skip>
-            </properties>
-            <modules>
-                <module>core-runtime</module>
-                <module>core-benchmarks</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>distribution</id>
-
-            <modules>
-                <module>distribution</module>
-            </modules>
-
-            <!-- Always enable this profile as well; but it can still be disabled with '-P !distribution' -->
-
-            <activation>
-                <property>
-                    <name>!always.enable</name>
-                </property>
-            </activation>
         </profile>
 
         <profile>
@@ -381,7 +358,7 @@
         </profile>
 
         <profile>
-            <id>bt</id>
+            <id>btmx</id>
 
             <repositories>
                 <repository>
@@ -410,6 +387,150 @@
                     <layout>default</layout>
                 </repository>
             </distributionManagement>
+
+            <modules>
+                <module>filters/bt-filter-word</module>
+                <module>filters/bt-filter-user</module>
+
+                <module>postprocessors/core-postprocessor-idreplacer</module>
+                <module>postprocessors/core-postprocessor-fromnamepreparator</module>
+
+                <module>messagecenters/bt-messagecenter</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>btar</id>
+
+            <repositories>
+                <repository>
+                    <releases>
+                        <enabled>true</enabled>
+                        <updatePolicy>always</updatePolicy>
+                        <checksumPolicy>warn</checksumPolicy>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>bolt-nexus</id>
+                    <name>Bolt-Nexus</name>
+                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/groups/public</url>
+                    <layout>default</layout>
+                </repository>
+            </repositories>
+
+            <distributionManagement>
+                <repository>
+                    <id>bolt-nexus</id>
+                    <name>Bolt-Nexus</name>
+                    <url>
+                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
+                    </url>
+                    <layout>default</layout>
+                </repository>
+            </distributionManagement>
+
+            <modules>
+                <module>filters/bt-filter-word</module>
+                <module>filters/bt-filter-user</module>
+
+                <module>postprocessors/core-postprocessor-idreplacer</module>
+                <module>postprocessors/core-postprocessor-fromnamepreparator</module>
+
+                <module>messagecenters/bt-messagecenter</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>btza</id>
+
+            <repositories>
+                <repository>
+                    <releases>
+                        <enabled>true</enabled>
+                        <updatePolicy>always</updatePolicy>
+                        <checksumPolicy>warn</checksumPolicy>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>bolt-nexus</id>
+                    <name>Bolt-Nexus</name>
+                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/groups/public</url>
+                    <layout>default</layout>
+                </repository>
+            </repositories>
+
+            <distributionManagement>
+                <repository>
+                    <id>bolt-nexus</id>
+                    <name>Bolt-Nexus</name>
+                    <url>
+                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
+                    </url>
+                    <layout>default</layout>
+                </repository>
+            </distributionManagement>
+
+            <modules>
+                <module>filters/bt-filter-word</module>
+                <module>filters/bt-filter-user</module>
+
+                <module>postprocessors/core-postprocessor-idreplacer</module>
+                <module>postprocessors/core-postprocessor-fromnamepreparator</module>
+
+                <module>messagecenters/bt-messagecenter</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>btsg</id>
+
+            <repositories>
+                <repository>
+                    <releases>
+                        <enabled>true</enabled>
+                        <updatePolicy>always</updatePolicy>
+                        <checksumPolicy>warn</checksumPolicy>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>bolt-nexus</id>
+                    <name>Bolt-Nexus</name>
+                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/groups/public</url>
+                    <layout>default</layout>
+                </repository>
+            </repositories>
+
+            <distributionManagement>
+                <repository>
+                    <id>bolt-nexus</id>
+                    <name>Bolt-Nexus</name>
+                    <url>
+                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
+                    </url>
+                    <layout>default</layout>
+                </repository>
+            </distributionManagement>
+
+            <modules>
+                <module>filters/bt-filter-word</module>
+                <module>filters/bt-filter-user</module>
+
+                <module>postprocessors/core-postprocessor-idreplacer</module>
+                <module>postprocessors/core-postprocessor-fromnamepreparator</module>
+
+                <module>messagecenters/bt-messagecenter</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
+            </modules>
         </profile>
 
         <profile>
@@ -423,7 +544,6 @@
                 <module>resultinspectors/core-resultinspector-threshold</module>
             </modules>
         </profile>
-
     </profiles>
 
     <properties>

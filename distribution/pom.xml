@@ -703,7 +703,6 @@
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
-
         </profile>
 
         <profile>
@@ -731,22 +730,158 @@
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
-
         </profile>
 
         <profile>
-            <id>bt</id>
+            <id>btmx</id>
 
             <properties>
                 <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
-                <profile-classifier>bt</profile-classifier>
+                <profile-classifier>btmx</profile-classifier>
             </properties>
 
-            <!-- TODO(gg): add dependencies here once they're imported -->
-            <!--<dependencies>-->
-            <!--<dependency></dependency>-->
-            <!--</dependencies>-->
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-user</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
 
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-postprocessor-idreplacer</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-postprocessor-fromnamepreparator</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>btar</id>
+
+            <properties>
+                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                <profile-classifier>btar</profile-classifier>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-user</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-postprocessor-idreplacer</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-postprocessor-fromnamepreparator</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>btza</id>
+
+            <properties>
+                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                <profile-classifier>btza</profile-classifier>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-user</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-postprocessor-idreplacer</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-postprocessor-fromnamepreparator</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>btsg</id>
+
+            <properties>
+                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                <profile-classifier>btsg</profile-classifier>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-user</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-postprocessor-idreplacer</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-postprocessor-fromnamepreparator</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
         </profile>
 
         <profile>
@@ -889,7 +1024,7 @@
                         <configuration>
                             <rules>
                                 <requireActiveProfile>
-                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,bt,it,migration,dk</profiles>
+                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,btmx,btar,btza,btsg,it,migration,dk</profiles>
                                     <all>false</all>
                                 </requireActiveProfile>
                             </rules>

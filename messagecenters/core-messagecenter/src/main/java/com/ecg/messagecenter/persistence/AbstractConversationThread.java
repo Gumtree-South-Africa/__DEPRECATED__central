@@ -123,28 +123,17 @@ public abstract class AbstractConversationThread {
 
         AbstractConversationThread that = (AbstractConversationThread) o;
 
-        boolean equals = pairsAreEqual(
-                adId, that.adId,
-                conversationId, that.conversationId,
-                createdAt.getMillis(), that.createdAt.getMillis(),
-                modifiedAt.getMillis(), that.modifiedAt.getMillis(),
-                previewLastMessage, that.previewLastMessage,
-                buyerName, that.buyerName,
-                sellerName, that.sellerName,
-                buyerId, that.buyerId,
-                messageDirection, that.messageDirection
-        );
-        if (!equals) {
-            return false;
-        }
-        if (receivedAt == null && that.receivedAt == null) {
-            return true;
-        }
-        if (receivedAt != null && that.receivedAt != null) {
-            return pairsAreEqual(receivedAt.getMillis(), that.receivedAt.getMillis());
-        }
-        // The difference is only in receivedAt at this point
-        return false;
+        return pairsAreEqual(
+          adId, that.adId,
+          conversationId, that.conversationId,
+          createdAt.getMillis(), that.createdAt.getMillis(),
+          modifiedAt.getMillis(), that.modifiedAt.getMillis(),
+          receivedAt != null ? receivedAt.getMillis() : null, that.receivedAt != null ? that.receivedAt.getMillis() : null,
+          previewLastMessage, that.previewLastMessage,
+          buyerName, that.buyerName,
+          sellerName, that.sellerName,
+          buyerId, that.buyerId,
+          messageDirection, that.messageDirection);
     }
 
     @Override
@@ -155,23 +144,25 @@ public abstract class AbstractConversationThread {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("modifiedAt", modifiedAt.toDateTime(DateTimeZone.UTC))
-                .add("createdAt", createdAt.toDateTime(DateTimeZone.UTC))
-                .add("adId", adId)
-                .add("conversationId", conversationId)
-                .add("containsUnreadMessages", containsUnreadMessages)
-                .toString();
+          .add("modifiedAt", modifiedAt.toDateTime(DateTimeZone.UTC))
+          .add("createdAt", createdAt.toDateTime(DateTimeZone.UTC))
+          .add("adId", adId)
+          .add("conversationId", conversationId)
+          .add("containsUnreadMessages", containsUnreadMessages)
+          .toString();
     }
 
     public String fullToString() {
         StringBuilder objstr = new StringBuilder(this.toString());
+
         objstr.append(MoreObjects.toStringHelper(this)
-                .add("receivedAt", receivedAt != null ? receivedAt.toDateTime(DateTimeZone.UTC) : "")
-                .add("previewLastMessage", previewLastMessage)
-                .add("buyerName", buyerName)
-                .add("sellerName", sellerName)
-                .add("buyerId", buyerId)
-                .add("messageDirection", messageDirection));
+          .add("receivedAt", receivedAt != null ? receivedAt.toDateTime(DateTimeZone.UTC) : "")
+          .add("previewLastMessage", previewLastMessage)
+          .add("buyerName", buyerName)
+          .add("sellerName", sellerName)
+          .add("buyerId", buyerId)
+          .add("messageDirection", messageDirection));
+
         return objstr.toString();
     }
 }

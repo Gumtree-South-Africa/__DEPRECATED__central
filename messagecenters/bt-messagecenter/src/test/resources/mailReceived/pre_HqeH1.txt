@@ -1,0 +1,7 @@
+Hello Scott,
+
+This would work fabulously in a truck Cab.  What you would need to get is an inverter which converts 12 Volts DC (Battery) to 110 Volt AC. You would probably need to talk to someone in the know in electronics. Check out Inverter Suppliers. I had one but it has been scrapped now. 
+
+Regards,
+
+Hannu

@@ -41,6 +41,10 @@ public class PluginConfiguration {
 
     private static String getPath(String tenant) {
         switch (tenant) {
+            case "btar":
+            case "btmx":
+            case "btsg":
+            case "btza":
             case "ebayk":
             case "gtau":
             case "gtuk":

@@ -14,10 +14,9 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 
 /**
- * Abstract PostBox initializer which is typically called from a tenant-specific MessageProcessedListener whenever
- * a new Conversation passes through the COMaaS pipeline.
+ * Abstract PostBox initializer which is typically called from a tenant-specific MessageProcessedListener whenever a new Conversation passes through the COMaaS pipeline.
  *
- * @param <T> the specific type of AbstractConversationType this initializer works with (different tenants have their own implementations - which we will ideally consolidate soon)
+ * @param <T> the specific type of AbstractConversationThread this initializer works with
  */
 public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConversationThread> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractSimplePostBoxInitializer.class);
@@ -31,25 +30,24 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
     @Value("${replyts.maxConversationAgeDays:180}")
     protected int maxAgeDays;
 
-    public void moveConversationToPostBox(
-            String email,
-            Conversation conversation,
-            boolean newReplyArrived,
-            PostBoxWriteCallback... postBoxWriteCallbacks) {
+    public void moveConversationToPostBox(String email, Conversation conversation, boolean newReplyArrived, PostBoxWriteCallback... postBoxWriteCallbacks) {
+        PostBoxId postBoxId = PostBoxId.fromEmail(email);
 
         // We don't want to continue spamming PostBox for user if it was set as ignored before
+
         if (conversation.isClosedBy(ConversationRole.getRole(email, conversation))) {
             return;
         }
 
         // Additional filter defined by the tenant implementation (e.g. conversation-level blocking)
+
         if (filter(email, conversation)) {
             return;
         }
 
         // Don't display empty conversations and don't add empty messages to existing conversations
+
         Optional<String> previewLastMessage = extractPreviewLastMessage(conversation, email);
-        PostBoxId postBoxId = PostBoxId.fromEmail(email);
         Optional<? extends AbstractConversationThread> existingThread = postBoxRepository.threadById(postBoxId, conversation.getId());
 
         if (!previewLastMessage.isPresent() || shouldReuseExistingThread(existingThread, previewLastMessage.get())) {
@@ -75,7 +73,7 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
 
     private boolean shouldReuseExistingThread(Optional<? extends AbstractConversationThread> existingThread, @Nonnull String newMessage) {
         return existingThread.flatMap(AbstractConversationThread::getPreviewLastMessage)
-                .map(last -> last.equals(newMessage)).orElse(false);
+          .map(last -> last.equals(newMessage)).orElse(false);
     }
 
     protected abstract boolean filter(String email, Conversation conversation);
