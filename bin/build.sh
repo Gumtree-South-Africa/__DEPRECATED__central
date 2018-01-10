@@ -110,11 +110,11 @@ function main() {
 
         if [[ "$RUN_CORE_TESTS" -eq 1 ]] ; then
                 PROFILES="core,core-tests,"
+        fi
 
-            if [[ "$SONAR" -eq 1 ]] ; then
-                MVN_ARGS="$MVN_ARGS -Dsonar.branch=core-tests[${PROFILES}]"
-                MVN_TASKS="clean package sonar:sonar"
-            fi
+        if [[ "$SONAR" -eq 1 ]] ; then
+            MVN_ARGS="$MVN_ARGS -Dsonar.branch=core-tests[${PROFILES}]"
+            MVN_TASKS="clean package sonar:sonar"
         fi
     else
         log "Skipping the tests"
