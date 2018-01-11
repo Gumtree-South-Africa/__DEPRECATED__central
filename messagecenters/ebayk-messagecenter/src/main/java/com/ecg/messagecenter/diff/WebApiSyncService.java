@@ -3,6 +3,8 @@ package com.ecg.messagecenter.diff;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
@@ -45,7 +47,7 @@ public class WebApiSyncService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebApiSyncService.class);
     private static final Logger DIFF_LOGGER = LoggerFactory.getLogger("diffLogger");
-    private static final int MAX_CONVERSATIONS_TO_RETRIEVE_PER_USER = 5;
+    private static final int MAX_CONVERSATIONS_TO_RETRIEVE_PER_USER = 3;
 
     private final Timer getConversationTimer = newTimer("postBoxDelegatorService.getConversation");
     private final Timer markConversationAsReadTimer = newTimer("postBoxDelegatorService.markConversationAsRead");
@@ -61,7 +63,6 @@ public class WebApiSyncService {
     @Autowired(required = false)
     private DiffTool diff;
 
-    private final Session session;
     private final ConversationService conversationService;
     private final CassandraPostBoxService postBoxService;
     private final SimplePostBoxRepository postBoxRepository;
@@ -82,6 +83,9 @@ public class WebApiSyncService {
     // so keeping it until we migrate to the new data model
     private final int messagesLimit;
 
+    private final Session session;
+    private final PreparedStatement conversationStatement;
+
     @Autowired
     public WebApiSyncService(
             ConversationService conversationService,
@@ -101,7 +105,6 @@ public class WebApiSyncService {
         this.conversationService = conversationService;
         this.postBoxService = postBoxService;
         this.postBoxRepository = postBoxRepository;
-        this.session = session;
         this.conversationRepository = conversationRepository;
         this.userIdentifierService = userIdentifierService;
         this.responseBuilder = new PostBoxResponseBuilder(conversationRepository);
@@ -115,6 +118,9 @@ public class WebApiSyncService {
         this.oldExecutor = newExecutorService("old-webapi-executor");
         this.newExecutor = newExecutorService("new-webapi-executor");
         this.diffExecutor = newExecutorServiceForDiff();
+
+        this.session = session;
+        this.conversationStatement = this.session.prepare("SELECT conversation_id FROM mb_postbox WHERE postbox_id = ? LIMIT 1");
     }
 
     /**
@@ -255,7 +261,8 @@ public class WebApiSyncService {
             Optional<PostBoxSingleConversationThreadResponse> response;
             if (diffEnabled) {
                 CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
-                        .supplyAsync(() -> getUserId(email, Collections.singletonList(conversationId)), newExecutor)
+                        .supplyAsync(() -> conversationExists(email, conversationId), newExecutor)
+                        .thenApply(convId -> getUserId(email, convId))
                         .thenApply(userId -> postBoxService.getConversation(userId, conversationId, Optional.empty(), messagesLimit))
                         .exceptionally(handleOpt(newModelFailureCounter, "New GetConversation Failed - email: " + email));
 
@@ -287,7 +294,8 @@ public class WebApiSyncService {
         try (Timer.Context ignored = markConversationAsReadTimer.time()) {
 
             CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
-                    .supplyAsync(() -> getUserId(email, Collections.singletonList(conversationId)), newExecutor)
+                    .supplyAsync(() -> conversationExists(email, conversationId), newExecutor)
+                    .thenApply(convId -> getUserId(email, convId))
                     .thenApply(userId -> postBoxService.markConversationAsRead(userId, conversationId, Optional.empty(), messagesLimit))
                     .exceptionally(handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
 
@@ -329,6 +337,22 @@ public class WebApiSyncService {
     }
 
     /**
+     * Returns conversation ID if conversation exists or {@link Collections#emptyList()}.
+     *
+     * @param email          email which postbox belongs to.
+     * @param conversationId conversation id to check.
+     * @return conversation ID in list if conversation exists.
+     */
+    private List<String> conversationExists(String email, String conversationId) {
+        ResultSet resultSet = session.execute(conversationStatement.bind(email));
+        if (resultSet.iterator().hasNext()) {
+            return Collections.singletonList(conversationId);
+        }
+
+        return Collections.emptyList();
+    }
+
+    /**
      * Methods takes collection of conversation events and tries to to find 'userId' in it.
      * Best-case scenario is to use only one call to conversation repository but because ebayk contains multiple conversation which
      * does not contain any conversation event, we repeat this action several times to be more likely that we find something.
@@ -339,7 +363,7 @@ public class WebApiSyncService {
      */
     private String getUserId(String email, List<String> convIds) {
         if (convIds.isEmpty()) {
-            throw new UserIdNotFoundException("No conversations to process");
+            throw new UserIdNotFoundException("No conversations to process", false);
         }
 
         for (String conversationId : convIds) {
@@ -356,14 +380,14 @@ public class WebApiSyncService {
                     return userId.get();
                 }
 
-                LOGGER.debug("V2 Migration: UserId was not found for email: %s, role: buyer, conversation: %s", email, conversationId);
+                LOGGER.debug("V2 Migration: UserId was not found for email: {}, role: buyer, conversation: {}", email, conversationId);
             } else if (email.equalsIgnoreCase(conversation.getSellerId())) {
                 Optional<String> userId = userIdentifierService.getSellerUserId(conversation);
                 if (userId.isPresent()) {
                     return userId.get();
                 }
 
-                LOGGER.debug("V2 Migration: UserId was not found for email: %s, role: seller, conversation: %s", email, conversationId);
+                LOGGER.debug("V2 Migration: UserId was not found for email: {}, role: seller, conversation: {}", email, conversationId);
             }
         }
 
@@ -373,7 +397,10 @@ public class WebApiSyncService {
     private <T> Function<Throwable, Optional<T>> handleOpt(Counter errorCounter, String errorMessage) {
         return ex -> {
             if (ex.getCause() instanceof UserIdNotFoundException) {
-                LOGGER.warn("V2 Migration: " + ex.getMessage(), ex.getCause());
+                UserIdNotFoundException userEx = (UserIdNotFoundException) ex;
+                if (userEx.isLoggable()) {
+                    LOGGER.warn("V2 Migration: " + ex.getMessage(), ex.getCause());
+                }
                 return Optional.empty();
             } else {
                 errorCounter.inc();
