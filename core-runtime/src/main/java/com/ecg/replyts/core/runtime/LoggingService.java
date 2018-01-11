@@ -3,6 +3,12 @@ package com.ecg.replyts.core.runtime;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.ConsoleAppender;
+import ch.qos.logback.core.joran.spi.ConsoleTarget;
+import net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider;
+import net.logstash.logback.encoder.LogstashEncoder;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.stereotype.Component;
-import uk.org.lidalia.sysoutslf4j.context.SysOutOverSLF4J;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -24,18 +30,6 @@ public class LoggingService {
     private static final LoggerContext LOGGER_CONTEXT = (LoggerContext) LoggerFactory.getILoggerFactory();
 
     private static final String LOG_LEVEL_PREFIX = "log.level.";
-
-    static {
-        Thread.currentThread().setName("main");
-
-        SysOutOverSLF4J.sendSystemOutAndErrToSLF4J();
-
-        SLF4JBridgeHandler.removeHandlersForRootLogger();
-        SLF4JBridgeHandler.install();
-
-        LOGGER_CONTEXT.putProperty(APPLICATION, ReplyTS.class.getPackage().getImplementationTitle());
-        LOGGER_CONTEXT.putProperty(REVISION, ReplyTS.class.getPackage().getImplementationVersion());
-    }
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -116,5 +110,44 @@ public class LoggingService {
         oldLevels.keySet().stream()
           .filter(logger -> !levels.containsKey(logger))
           .forEach(logger -> logger.setLevel(null));
+    }
+
+    public static void bootstrap() {
+        Thread.currentThread().setName("main");
+
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+
+        Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+
+        rootLogger.setLevel(Level.INFO);
+
+        // Make it possible to disable structured logging for the purpose of running locally
+
+        if (Boolean.parseBoolean(System.getProperty("logging.service.structured.logging", "true"))) {
+            ConsoleAppender<ILoggingEvent> appender = StreamSupport.stream(Spliterators.spliteratorUnknownSize(rootLogger.iteratorForAppenders(), Spliterator.ORDERED), false)
+              .filter(a -> a instanceof ConsoleAppender<?>)
+              .map(a -> (ConsoleAppender<ILoggingEvent>) a)
+              .findFirst().orElseThrow(() -> new RuntimeException("Root logger doesn't contain a console appender"));
+
+            appender.setTarget(ConsoleTarget.SystemErr.getName());
+
+            try {
+                LogstashEncoder encoder = new LogstashEncoder();
+
+                encoder.getFieldNames().setLevelValue("[ignore]");
+                encoder.getProviders().addProvider(new ArgumentsJsonProvider());
+
+                encoder.init(appender.getOutputStream());
+                encoder.start();
+
+                appender.setEncoder(encoder);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        LOGGER_CONTEXT.putProperty(APPLICATION, ReplyTS.class.getPackage().getImplementationTitle());
+        LOGGER_CONTEXT.putProperty(REVISION, ReplyTS.class.getPackage().getImplementationVersion());
     }
 }

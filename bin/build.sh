@@ -133,7 +133,8 @@ function main() {
             -Dmail.mime.parameters.strict=false -Dmail.mime.address.strict=false
             -Dmail.mime.ignoreunknownencoding=true
             -Dmail.mime.uudecode.ignoreerrors=true -Dmail.mime.uudecode.ignoremissingbeginend=true
-            -Dmail.mime.multipart.allowempty=true -Dmaven.test.skip=true -Dmaven.exec.skip=false"
+            -Dmail.mime.multipart.allowempty=true -Dlogging.service.structured.logging=false
+            -Dmaven.test.skip=true -Dmaven.exec.skip=false"
             MVN_TASKS="clean verify"
         fi
 

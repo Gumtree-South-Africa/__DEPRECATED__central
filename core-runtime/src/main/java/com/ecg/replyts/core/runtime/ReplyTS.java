@@ -30,6 +30,10 @@ import static java.lang.String.format;
 public class ReplyTS {
     private static final Logger LOG = LoggerFactory.getLogger(ReplyTS.class);
 
+    static {
+        LoggingService.bootstrap();
+    }
+
     public static final String PRODUCTIVE_PROFILE = "productive";
     public static final String EMBEDDED_PROFILE = "embedded";
     public static final String MIGRATION_PROFILE = "migration";
