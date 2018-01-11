@@ -35,12 +35,12 @@ public class RecipientAdder implements PostProcessor {
         Conversation conversation = context.getConversation();
         MutableMail mail = context.getOutgoingMail();
         String storedRecipient = conversation.getUserIdFor(context.getMessageDirection().getToRole());
-        String replyToRecipient = context.getMail().getReplyTo();
+        String recipient = context.getMail().getDeliveredTo();
 
-        // if tenant support overriding of stored email addresses and `Reply-To` header is not blank
-        if (replyToOverride && StringUtils.isNotBlank(replyToRecipient) && !replyToRecipient.equals(storedRecipient)) {
-            mail.setTo(new MailAddress(replyToRecipient));
-            LOG.info("Recipient of Outgoing mail was overridden: {}", replyToRecipient);
+        // if tenant supports an overriding of stored email addresses and Original TO field has been changed in comparison to stored email
+        if (replyToOverride && StringUtils.isNotBlank(recipient) && !recipient.equalsIgnoreCase(storedRecipient)) {
+            mail.setTo(new MailAddress(recipient));
+            LOG.info("Recipient of Outgoing mail was overridden: from {} to {}", storedRecipient, recipient);
         } else {
             mail.setTo(new MailAddress(storedRecipient));
             LOG.debug("Recipient of Outgoing mail: {}", storedRecipient);

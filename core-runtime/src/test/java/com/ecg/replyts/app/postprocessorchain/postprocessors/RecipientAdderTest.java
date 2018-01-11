@@ -41,22 +41,31 @@ public class RecipientAdderTest {
     @Test
     public void notOverriddenAddress() {
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
+        when(mail.getDeliveredTo()).thenReturn("");
         new RecipientAdder(false).postProcess(context);
         verify(mail).setTo(new MailAddress("seller@domain.tld"));
     }
 
     @Test
-    public void emptyReplyTo() {
+    public void emptyOriginalTo() {
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(mail.getReplyTo()).thenReturn("");
+        when(mail.getDeliveredTo()).thenReturn("");
         new RecipientAdder(true).postProcess(context);
         verify(mail).setTo(new MailAddress("seller@domain.tld"));
     }
 
     @Test
-    public void sameReplyTo() {
+    public void nullOriginalTo() {
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(mail.getReplyTo()).thenReturn("seller@domain.tld");
+        when(mail.getDeliveredTo()).thenReturn(null);
+        new RecipientAdder(true).postProcess(context);
+        verify(mail).setTo(new MailAddress("seller@domain.tld"));
+    }
+
+    @Test
+    public void sameOriginalTo() {
+        when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
+        when(mail.getDeliveredTo()).thenReturn("seller@domain.tld");
         new RecipientAdder(true).postProcess(context);
         verify(mail).setTo(new MailAddress("seller@domain.tld"));
     }
@@ -64,7 +73,7 @@ public class RecipientAdderTest {
     @Test
     public void overriddenAddress() {
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(mail.getReplyTo()).thenReturn("overridden@domain.tld");
+        when(mail.getDeliveredTo()).thenReturn("overridden@domain.tld");
         new RecipientAdder(true).postProcess(context);
         verify(mail).setTo(new MailAddress("overridden@domain.tld"));
     }
