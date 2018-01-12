@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.codec.DecodeMonitor;
 import org.apache.james.mime4j.dom.Message;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -126,6 +128,9 @@ class StructuredMailHeader {
         }
 
         String fieldBody = field.getBody();
+        if (StringUtils.isBlank(fieldBody)) {
+            return Optional.empty();
+        }
         try {
             return Optional.of(new InternetAddress(fieldBody));
         } catch (AddressException e) {
