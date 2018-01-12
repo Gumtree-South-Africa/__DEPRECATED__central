@@ -39,7 +39,7 @@ import static com.codahale.metrics.MetricRegistry.name;
  */
 public class HostReportingServletHandler extends HandlerWrapper {
     private static final Logger LOG = LoggerFactory.getLogger(HostReportingServletHandler.class);
-    private static final String HEADER_X_REQUEST_TIME = "X-REQUEST-TIME";
+    private static final String HEADER_X_REQUEST_TIMESTAMP = "X-REQUEST-TIMESTAMP";
     private static final DateTimeFormatter ISO_8604_WITH_MILLIS = new DateTimeFormatterBuilder().appendInstant(3)
             .toFormatter();
 
@@ -50,7 +50,7 @@ public class HostReportingServletHandler extends HandlerWrapper {
     // the requests handled by this handler, excluding active
     private Timer requests;
 
-    // the request delays handled by this handler, based on the X-Request-Time
+    // the request delays handled by this handler, based on the X-Request-Timestamp
     // header, excluding active
     private Timer requestDelays;
 
@@ -265,19 +265,19 @@ public class HostReportingServletHandler extends HandlerWrapper {
     }
 
     private void updateRequestDelayMetric(HttpServletRequest request) {
-        String requestTimeHeader = request.getHeader(HEADER_X_REQUEST_TIME);
-        if (requestTimeHeader == null) {
+        String requestTimestampHeader = request.getHeader(HEADER_X_REQUEST_TIMESTAMP);
+        if (requestTimestampHeader == null) {
             return;
         }
         try {
-            Instant requestTime = Instant.from(ISO_8604_WITH_MILLIS.parse(requestTimeHeader));
+            Instant requestTime = Instant.from(ISO_8604_WITH_MILLIS.parse(requestTimestampHeader));
             Duration requestTimeDelay = Duration.between(requestTime, Instant.now());
             requestDelays.update(requestTimeDelay.toMillis(), TimeUnit.MILLISECONDS);
         } catch (DateTimeParseException dateTimeParseException) {
             LOG.warn(
                 "Request header {} malformed: {}",
-                HEADER_X_REQUEST_TIME,
-                requestTimeHeader,
+                HEADER_X_REQUEST_TIMESTAMP,
+                requestTimestampHeader,
                 dateTimeParseException);
         }
     }
