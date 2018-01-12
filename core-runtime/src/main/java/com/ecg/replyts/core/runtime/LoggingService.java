@@ -136,6 +136,8 @@ public class LoggingService {
             try {
                 LogstashEncoder encoder = new LogstashEncoder();
 
+                encoder.setContext(LOGGER_CONTEXT);
+
                 encoder.getFieldNames().setLevelValue("[ignore]");
                 encoder.getProviders().addProvider(new ArgumentsJsonProvider());
 
