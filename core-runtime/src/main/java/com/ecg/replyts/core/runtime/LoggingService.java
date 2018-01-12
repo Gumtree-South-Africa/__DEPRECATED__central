@@ -131,6 +131,7 @@ public class LoggingService {
               .findFirst().orElseThrow(() -> new RuntimeException("Root logger doesn't contain a console appender"));
 
             appender.setTarget(ConsoleTarget.SystemErr.getName());
+            appender.setOutputStream(ConsoleTarget.SystemErr.getStream());
 
             try {
                 LogstashEncoder encoder = new LogstashEncoder();
