@@ -20,13 +20,10 @@ import java.util.Map;
 public class PostBoxResponse {
 
     private Integer numUnread;
-    //not supported for newCounterMode
     private Map<ConversationRole, Integer> numUnreadPerRole = new HashMap<>();
     private DateTime lastModified;
     private Meta _meta;
-    private List<PostBoxListItemResponse> conversations = new ArrayList<PostBoxListItemResponse>();
-
-
+    private List<PostBoxListItemResponse> conversations = new ArrayList<>();
 
     public PostBoxResponse addItem(PostBoxListItemResponse conversationListItem) {
         conversations.add(conversationListItem);
@@ -47,7 +44,6 @@ public class PostBoxResponse {
         _meta.pageSize = pageSize;
         _meta.pageNum = currentPage;
     }
-
 
     public List<PostBoxListItemResponse> getConversations() {
         return conversations;

@@ -60,15 +60,15 @@ public class PostBoxOverviewControllerTest {
         when(postBoxRepository.byId(PostBoxId.fromEmail(email))).thenReturn(postbox);
 
         //not having role filter, return everything
-        ResponseObject<PostBoxResponse> response = controller.getPostBoxByEmail(email, false, 100, 0, null, request);
+        ResponseObject<PostBoxResponse> response = controller.getPostBoxByEmail(email, 100, 0, null, request);
         assertThat(response.getBody().getConversations().size(), equalTo(2));
 
         //retrieve conversation only if the user is buyer
-        ResponseObject<PostBoxResponse> response1 = controller.getPostBoxByEmail(email, false, 100, 0, ConversationRole.Buyer, request);
+        ResponseObject<PostBoxResponse> response1 = controller.getPostBoxByEmail(email, 100, 0, ConversationRole.Buyer, request);
         assertThat(response1.getBody().getConversations().size(), equalTo(1));
         assertEquals("userIsBuyer", response1.getBody().getConversations().get(0).getId());
 
-        ResponseObject<PostBoxResponse> response2 = controller.getPostBoxByEmail(email, false, 100, 0, ConversationRole.Seller, request);
+        ResponseObject<PostBoxResponse> response2 = controller.getPostBoxByEmail(email, 100, 0, ConversationRole.Seller, request);
         assertThat(response2.getBody().getConversations().size(), equalTo(1));
         assertEquals("userIsSeller", response2.getBody().getConversations().get(0).getId());
     }

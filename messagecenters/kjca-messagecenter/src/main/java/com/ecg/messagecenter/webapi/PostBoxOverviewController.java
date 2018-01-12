@@ -19,9 +19,15 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.Arrays;
 
 @Controller
@@ -55,7 +61,6 @@ class PostBoxOverviewController {
     @ResponseBody
     ResponseObject<PostBoxResponse> getPostBoxByEmail(
             @PathVariable String email,
-            @RequestParam(value = "newCounterMode", defaultValue = "false") boolean newCounterMode,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(value = "role", required = false) ConversationRole role,
@@ -73,7 +78,7 @@ class PostBoxOverviewController {
                 postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
             }
 
-            return responseBuilder.buildPostBoxResponse(email, size, page, role, postBox, newCounterMode);
+            return responseBuilder.buildPostBoxResponse(email, size, page, role, postBox);
 
         } finally {
             timerContext.stop();
@@ -87,7 +92,6 @@ class PostBoxOverviewController {
     ResponseObject<PostBoxResponse> removePostBoxConversationByEmailAndBulkConversationIds(
             @PathVariable("email") String email,
             @RequestParam(value = "ids", defaultValue = "") String[] ids,
-            @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size) {
 
@@ -102,7 +106,7 @@ class PostBoxOverviewController {
 
             postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
 
-            return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
+            return responseBuilder.buildPostBoxResponse(email, size, page, postBox);
 
         } finally {
             timerContext.stop();

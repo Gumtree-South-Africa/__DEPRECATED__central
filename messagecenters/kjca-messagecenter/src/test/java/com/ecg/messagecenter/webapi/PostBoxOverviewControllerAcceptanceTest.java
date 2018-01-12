@@ -8,11 +8,14 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
 import javax.mail.internet.MimeMessage;
+
 import java.util.Properties;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 
 public class PostBoxOverviewControllerAcceptanceTest {
     private final Properties testProperties = new Properties() {{
@@ -196,13 +199,6 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .statusCode(200)
                 .body("body.numUnread", equalTo(2))
                 .get("http://localhost:" + testRule.getHttpPort() + "/message-center/postboxes/seller1@seller.com");
-
-        // counter reset in new counter mode
-        RestAssured.given()
-                .expect()
-                .statusCode(200)
-                .body("body.numUnread", equalTo(0))
-                .get("http://localhost:" + testRule.getHttpPort() + "/message-center/postboxes/seller1@seller.com?newCounterMode=true");
     }
 
     @Test
