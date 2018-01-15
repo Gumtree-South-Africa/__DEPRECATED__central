@@ -57,6 +57,7 @@ public class CleanupDateCalculator {
     public DateTime getCleanupDate(int maxAgeDays, String jobName) {
         LocalTime now = LocalTime.now(timeZone.toZoneId());
         if (now.isAfter(quietTimeStart) && now.isBefore(quietTimeEnd)) {
+            LOG.debug("Skipping cronjob because of quiet time");
             return null;
         }
 
@@ -79,7 +80,6 @@ public class CleanupDateCalculator {
             return roundedLastProcessedDate.withPeriodAdded(incrementPeriod, 1);
         } else if (lastProcessedDate != null) {
             LOG.info("Cleanup: All data was already deleted for job {} on date {} (cleaning period set to {})", jobName, lastProcessedDate, ROUNDING_TO.getDurationType());
-
             return null;
         } else {
             return roundedLastCleanupDate;

@@ -96,11 +96,13 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
     @Override
     public void execute() throws Exception {
+        LOG.info("Started Cleanup Conversation Cronjob");
         if (config.isReadFromNewIndexTable()) {
             executeOnNewIndex();
         } else {
             executeOnOldIndex();
         }
+        LOG.info("Finished Cleanup Conversation Cronjob");
     }
 
     private void executeOnNewIndex() throws Exception {
@@ -152,8 +154,6 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
         }
 
         cronJobClockRepository.set(CLEANUP_CONVERSATION_JOB_NAME, now(), cleanupDate);
-
-        LOG.info("Cleanup: Finished deleting conversations.");
     }
 
     private List<Future<?>> createCleanUpTasks(Stream<? extends ConversationEventId> conversationEventIdxs, DateTime cleanupDate) {

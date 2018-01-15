@@ -30,14 +30,16 @@ public class CassandraSimplePostBoxCleanupCronJob implements CronJobExecutor {
     @Autowired
     private CronJobClockRepository cronJobClockRepository;
 
-    @Value("${replyts.cleanup.postboxes.schedule.expression:0 0 * * * ? *}")
+    @Value("${replyts.cleanup.postboxes.schedule.expression:0 0/30 * * * ? *}")
     private String cronJobExpression;
 
     @Value("${replyts.maxConversationAgeDays:180}")
     private int maxConversationAgeDays;
 
     @Override
-    public void execute() throws Exception {
+    public void execute() {
+        LOG.info("Started Cleanup Postbox Cronjob");
+
         DateTime cleanupDate = cleanupDateCalculator.getCleanupDate(maxConversationAgeDays, CLEANUP_CONVERSATION_JOB_NAME);
 
         if (cleanupDate == null) {
