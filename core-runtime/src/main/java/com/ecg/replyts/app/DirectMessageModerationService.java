@@ -64,6 +64,9 @@ public class DirectMessageModerationService implements ModerationService {
     @Autowired
     private ConversationEventListeners conversationEventListeners;
 
+    @Autowired
+    private ProcessingContextFactory processingContextFactory;
+
     @Autowired(required = false)
     private AttachmentRepository attachmentRepository;
 
@@ -114,7 +117,7 @@ public class DirectMessageModerationService implements ModerationService {
 
     private MessageProcessingContext putIntoFlow(MutableConversation conversation, byte[] mail, String messageId) {
         try {
-            MessageProcessingContext context = new MessageProcessingContext(Mails.readMail(mail), messageId, new ProcessingTimeGuard(MAX_MESSAGE_PROCESSING_TIME_SECONDS));
+            MessageProcessingContext context = processingContextFactory.newContext(Mails.readMail(mail), messageId, new ProcessingTimeGuard(MAX_MESSAGE_PROCESSING_TIME_SECONDS));
 
             context.setConversation(conversation);
             context.setMessageDirection(conversation.getMessageById(messageId).getMessageDirection());

@@ -4,13 +4,16 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ModerationAction;
+import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
+import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import org.junit.Before;
@@ -59,17 +62,23 @@ public class DirectMessageModerationServiceTest {
     @MockBean
     private ConversationEventListeners conversationEventListeners;
 
+    @MockBean
+    private ProcessingContextFactory processingContextFactory;
+
     @Autowired
     private DirectMessageModerationService mms;
+
 
     private byte[] INBOUND_MAIL;
 
     @Before
-    public void setUp() throws MessageNotFoundException {
+    public void setUp() throws MessageNotFoundException, ParsingException {
         when(conversationRepository.getById("1")).thenReturn(c);
         INBOUND_MAIL = "From: foo\nDelivered-To: bar\n\nhello".getBytes();
         when(heldMailRepository.read("1")).thenReturn(INBOUND_MAIL);
         when(mailRepository.readInboundMail("1")).thenReturn(INBOUND_MAIL);
+        when(processingContextFactory.newContext((Mail) notNull(), eq("1"), (ProcessingTimeGuard) notNull()))
+                .thenReturn(new MessageProcessingContext(Mails.readMail(INBOUND_MAIL), "1", new ProcessingTimeGuard(300L)));
 
         when(c.getId()).thenReturn("1");
         when(c.getMessageById("1")).thenReturn(m);

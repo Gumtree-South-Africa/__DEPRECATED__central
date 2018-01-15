@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class AnonymizedMailConverter {
+public class AnonymizedMailConverter {
     private static final char MAIL_CLOAKING_SEPARATOR = '-'; // Do not ever change this, you will break replies to existing messages.
 
     private final String buyerRole;
@@ -20,7 +20,7 @@ class AnonymizedMailConverter {
     private final Map<String, Pattern> mailFormatPatterns;
 
     @Autowired
-    AnonymizedMailConverter(
+    public AnonymizedMailConverter(
             @Value("${mailcloaking.localized.buyer}") String buyerRole,
             @Value("${mailcloaking.localized.seller}") String sellerRole,
             @Value("${mailcloaking.domains}") String[] domains
@@ -76,7 +76,7 @@ class AnonymizedMailConverter {
         throw new IllegalArgumentException("Mail Address " + mailAddress.getAddress() + " is not in the correct format");
     }
 
-    boolean isCloaked(MailAddress mailAddress) {
+    public boolean isCloaked(MailAddress mailAddress) {
         for (String domain : this.domains) {
             Pattern mailFormatPattern = this.mailFormatPatterns.get(domain);
             Matcher matcher = mailFormatPattern.matcher(mailAddress.getAddress());

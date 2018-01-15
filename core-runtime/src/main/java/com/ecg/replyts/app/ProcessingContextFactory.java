@@ -4,9 +4,13 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
+import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewDeadConversationCommand;
@@ -23,14 +28,39 @@ import static com.ecg.replyts.core.api.model.conversation.command.NewConversatio
  */
 @Component
 public class ProcessingContextFactory {
+
     @Value("${replyts.maxMessageProcessingTimeSeconds:0}")
     private long maxMessageProcessingTimeSeconds;
+
+    @Value("${email.recipient.override:false}")
+    private boolean overrideRecipient;
+
+    @Autowired
+    private AnonymizedMailConverter anonymizedMailConverter;
 
     /**
      * Creates and returns a new MessageProcessingContext, that holds the given mail and the given message id. messageId must be globally unique.
      */
     public MessageProcessingContext newContext(Mail mail, String messageId) {
-        return new MessageProcessingContext(mail, messageId, new ProcessingTimeGuard(maxMessageProcessingTimeSeconds));
+        return newContext(mail, messageId, new ProcessingTimeGuard(maxMessageProcessingTimeSeconds));
+    }
+
+    /**
+     * Creates and returns a new MessageProcessingContext, that holds the given mail and the given message id. messageId must be globally unique.
+     */
+    public MessageProcessingContext newContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard) {
+        BiPredicate<MailAddress, MailAddress> overrideRecipientPredicate = (toRecipient, storedRecipient) -> {
+            if (overrideRecipient && !anonymizedMailConverter.isCloaked(toRecipient)) {
+                String toRecipientAddress = toRecipient.getAddress();
+                String storedRecipientAddress = storedRecipient.getAddress();
+
+                return StringUtils.isNotBlank(toRecipientAddress) && !toRecipientAddress.equalsIgnoreCase(storedRecipientAddress);
+            }
+
+            return false;
+        };
+
+        return new MessageProcessingContext(mail, messageId, processingTimeGuard, overrideRecipientPredicate);
     }
 
     /**

@@ -6,13 +6,19 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.google.common.base.MoreObjects;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class MessageProcessingContext {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MessageProcessingContext.class);
 
     /**
      * The default delivery channel: email
@@ -22,6 +28,7 @@ public class MessageProcessingContext {
     private final Mail mail;
     private final String messageId;
     private final MutableMail outgoingMail;
+    private final BiPredicate<MailAddress, MailAddress> overrideRecipientPredicate;
 
     private Termination termination = null;
 
@@ -36,12 +43,17 @@ public class MessageProcessingContext {
     private final Map<String, Object> filterContext = new HashMap<>();
 
     public MessageProcessingContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard) {
+        this(mail, messageId, processingTimeGuard, (toRecipient, storeRecipient)  -> false);
+    }
+
+    public MessageProcessingContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard, BiPredicate<MailAddress, MailAddress> overrideRecipientPredicate) {
         checkNotNull(processingTimeGuard);
 
         this.mail = mail;
         this.messageId = messageId;
         this.processingTimeGuard = processingTimeGuard;
-        outgoingMail = mail.makeMutableCopy();
+        this.outgoingMail = mail.makeMutableCopy();
+        this.overrideRecipientPredicate = overrideRecipientPredicate;
     }
 
     public boolean hasConversation() {
@@ -96,17 +108,31 @@ public class MessageProcessingContext {
      * @return real sender of the current email processing, a value is not available sooner than the conversation is created or fetched.
      */
     public MailAddress getSender() {
-        return getMailMember(MessageDirection::getFromRole);
+        return getMailStoredMember(MessageDirection::getFromRole);
     }
 
     /**
      * @return real sender of the current email processing, a value is not available sooner than the conversation is created or fetched.
      */
     public MailAddress getRecipient() {
-        return getMailMember(MessageDirection::getToRole);
+        MailAddress storedRecipient = getMailStoredMember(MessageDirection::getToRole);
+        String toRecipientAddress = getMail().getDeliveredTo();
+
+        if (StringUtils.isNotBlank(toRecipientAddress)) {
+            MailAddress toRecipient = new MailAddress(toRecipientAddress);
+
+            // Current stored e-mail in conversation events is overridden by a new email from SMTP TO header
+            if (overrideRecipientPredicate.test(toRecipient, storedRecipient)) {
+                // TODO: Remove the statement later on
+                LOG.debug("Recipient of Outgoing mail overridden: {}", toRecipient);
+                return toRecipient;
+            }
+        }
+
+        return storedRecipient;
     }
 
-    private MailAddress getMailMember(Function<MessageDirection, ConversationRole> roleExtractor) {
+    private MailAddress getMailStoredMember(Function<MessageDirection, ConversationRole> roleExtractor) {
         if (conversation != null && messageDirection != null) {
             ConversationRole fromRole = roleExtractor.apply(messageDirection);
             return new MailAddress(conversation.getUserId(fromRole));
@@ -175,7 +201,7 @@ public class MessageProcessingContext {
 
     /**
      * adds a delivery channel to the list of channels to ignore for this message.
-     *
+     * <p>
      * The default delivery channel is {@link #DELIVERY_CHANNEL_MAIL}
      *
      * @param deliveryChannel the delivery channel to ignore.
