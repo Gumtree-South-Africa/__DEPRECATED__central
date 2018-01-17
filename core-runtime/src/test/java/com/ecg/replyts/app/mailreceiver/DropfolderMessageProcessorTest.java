@@ -183,7 +183,7 @@ public class DropfolderMessageProcessorTest {
             assertThat(currentFile + " doesn't exist", currentFile.exists(), is(true));
 
             //prepare for next loop
-            currentFile.setLastModified(System.currentTimeMillis() - 6 * 1000 * 60);
+            currentFile.setLastModified(System.currentTimeMillis() - 6 * 1000 * 60 * i);
         }
 
         //one more try, should not result in invocation of consumer.accept

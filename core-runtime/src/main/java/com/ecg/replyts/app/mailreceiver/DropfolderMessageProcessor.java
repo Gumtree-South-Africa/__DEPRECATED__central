@@ -7,6 +7,7 @@ import com.ecg.replyts.core.runtime.cluster.ClusterMode;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -95,9 +96,7 @@ public class DropfolderMessageProcessor implements MessageProcessor {
 
         this.failedFileFilter = file -> {
             Matcher matcher = failureFileNamePattern.matcher(file.getName());
-            boolean fileIsOldEnough = file.lastModified() < (System.currentTimeMillis() - (retryOnFailedMessagePeriod * 60L * 1000L));
-
-            return matcher.matches() && fileIsOldEnough;
+            return matcher.matches() && isFileOldEnough(file);
         };
 
         this.abandonedFileNameMatchPattern = "^(?:" + FAILED_PREFIX + "){" + (retryCounter + 1) + "}(?!" + FAILED_PREFIX + ").*$";
@@ -118,6 +117,11 @@ public class DropfolderMessageProcessor implements MessageProcessor {
 
         LOG.info("Scanning dropfolder {} every {} ms for files starting with {}", mailDataDirectory.getAbsolutePath(),
                 watchRetryDelayMs, INCOMING_FILE_PREFIX);
+    }
+
+    private boolean isFileOldEnough(File file) {
+        int retryCount = StringUtils.countMatches(file.getName(), FAILED_PREFIX);
+        return file.lastModified() < (System.currentTimeMillis() - (retryOnFailedMessagePeriod * 60L * 1000L * retryCount));
     }
 
     @Override
