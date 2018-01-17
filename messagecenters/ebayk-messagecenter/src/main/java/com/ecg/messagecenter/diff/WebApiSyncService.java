@@ -207,7 +207,7 @@ public class WebApiSyncService {
                     .supplyAsync(() -> postBoxRepository.byId(PostBoxId.fromEmail(email)), oldExecutor)
                     .thenApply(readPostbox)
                     .thenApply(postBox -> PostBoxDiff.of(postBox, responseBuilder.buildPostBoxResponse(email, size, page, postBox)))
-                    .exceptionally(handle(oldModelFailureCounter, "Old GetPostBox Failed - email: " + email));
+                    .exceptionally(handle(oldModelFailureCounter, "Old ReadPostBox Failed - email: " + email));
 
             CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
             if (diffEnabled && newModelFuture.join().isPresent()) {
@@ -234,7 +234,7 @@ public class WebApiSyncService {
                 newModelFuture = CompletableFuture
                         .supplyAsync(() -> getUserId(email, ids), newExecutor)
                         .thenApply(userId -> Optional.of(deleteConversationV2(userId, ids)))
-                        .exceptionally(handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
+                        .exceptionally(handleOpt(newModelFailureCounter, "New DeleteConversation Failed - email: " + email));
             }
 
             CompletableFuture<PostBoxResponse> oldModelFuture = CompletableFuture
@@ -244,7 +244,7 @@ public class WebApiSyncService {
                         return postbox;
                     })
                     .thenApply(postBox -> responseBuilder.buildPostBoxResponse(email, size, page, postBox))
-                    .exceptionally(handle(oldModelFailureCounter, "Old ReadConversation Failed - email: " + email));
+                    .exceptionally(handle(oldModelFailureCounter, "Old DeleteConversation Failed - email: " + email));
 
             CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
             return oldModelFuture.join();
