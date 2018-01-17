@@ -397,7 +397,7 @@ public class WebApiSyncService {
     private <T> Function<Throwable, Optional<T>> handleOpt(Counter errorCounter, String errorMessage) {
         return ex -> {
             if (ex.getCause() instanceof UserIdNotFoundException) {
-                UserIdNotFoundException userEx = (UserIdNotFoundException) ex;
+                UserIdNotFoundException userEx = (UserIdNotFoundException) ex.getCause();
                 if (userEx.isLoggable()) {
                     LOGGER.warn("V2 Migration: " + ex.getMessage(), ex.getCause());
                 }
