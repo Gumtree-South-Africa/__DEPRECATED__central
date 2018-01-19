@@ -656,7 +656,7 @@
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
-        <gumtree-au-events.version>1.63</gumtree-au-events.version>
+        <gumtree-au-events.version>2.24</gumtree-au-events.version>
         <wiremock.version>1.58</wiremock.version>
         <gumtree-au-lbs2-client-version>0.3</gumtree-au-lbs2-client-version>
         <vavr.version>0.9.0</vavr.version>
@@ -746,6 +746,10 @@
                     <exclusion>
                         <groupId>com.rabbitmq</groupId>
                         <artifactId>amqp-client</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-lang3</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
