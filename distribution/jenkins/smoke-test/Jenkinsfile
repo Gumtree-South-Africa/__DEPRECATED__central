@@ -16,7 +16,7 @@ def runSmokeTests(final String dc, final String tenant, final String envShort, f
     final String apiHost = getApiHost(dc, tenant, envShort)
     final String smtpAddress = getSmtpAddress(dc, tenant, envShort)
     sh "docker pull docker-registry.ecg.so/comaas/smoke-tests:${smokeTestVersion}"
-    sh "docker run --rm docker-registry.ecg.so/comaas/smoke-tests:${smokeTestVersion} -api_host=${apiHost} -smtp_host=${smtpAddress} -tenant ${tenant}"
+    sh "docker run --rm --network=host docker-registry.ecg.so/comaas/smoke-tests:${smokeTestVersion} -api_host=${apiHost} -smtp_host=${smtpAddress} -tenant ${tenant}"
 }
 
 Closure wrapWithStepDefinition(final String tenantLong, final String environmentShort,
