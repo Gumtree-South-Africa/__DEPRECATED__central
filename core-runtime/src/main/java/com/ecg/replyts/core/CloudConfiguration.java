@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.embedded.EmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
@@ -26,13 +27,18 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MapPropertySource;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
 @PropertySource("discovery.properties")
 @EnableDiscoveryClient
-@EnableAutoConfiguration(exclude = BusAutoConfiguration.class)
+@EnableAutoConfiguration(exclude = {BusAutoConfiguration.class, DataSourceAutoConfiguration.class})
 @Import(ConsulConfigBootstrapConfiguration.class)
 @ConditionalOnExpression("#{'${service.discovery.enabled:true}' == 'true'}")
 public class CloudConfiguration {
