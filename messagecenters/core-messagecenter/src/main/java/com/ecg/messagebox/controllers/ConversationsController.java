@@ -13,29 +13,20 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
-@Controller
+@RestController
+@RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ConversationsController {
-
-    private static final String CONVERSATIONS_RESOURCE = "/users/{userId}/conversations";
-    private static final String CONVERSATION_IDS_BY_ADID_RESOURCE = "/users/{userId}/ads/{adId}/conversations/ids";
-    private static final String CONVERSATION_ADS_RESOURCE = "/users/{userId}/ads/{adId}";
-    private static final String MISSING_PARTICIPANT_MESSAGE = "Missing participant for buyer or seller";
 
     private final Timer getConversationsTimer = TimingReports.newTimer("webapi.get-conversations");
     private final Timer executeActionsTimer = TimingReports.newTimer("webapi.execute-actions");
@@ -46,8 +37,7 @@ public class ConversationsController {
     private final ConversationsResponseConverter responseConverter;
 
     @Autowired
-    public ConversationsController(PostBoxService postBoxService,
-                                   ConversationsResponseConverter responseConverter) {
+    public ConversationsController(PostBoxService postBoxService, ConversationsResponseConverter responseConverter) {
         this.postBoxService = postBoxService;
         this.responseConverter = responseConverter;
     }
@@ -57,14 +47,13 @@ public class ConversationsController {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
     }
 
-    @RequestMapping(value = CONVERSATIONS_RESOURCE, produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
-    @ResponseBody
-    ResponseObject<?> getConversations(
+    @GetMapping("/users/{userId}/conversations")
+    public ResponseObject<?> getConversations(
             @PathVariable("userId") String userId,
-            @RequestParam(value = "offset", defaultValue = "0", required = false) int offset,
-            @RequestParam(value = "limit", defaultValue = "50", required = false) int limit,
-            @RequestParam(value = "visibility", defaultValue = "active", required = false) String visibility
-    ) {
+            @RequestParam(name = "offset", defaultValue = "0") int offset,
+            @RequestParam(name = "limit", defaultValue = "50") int limit,
+            @RequestParam(name = "visibility", defaultValue = "active") String visibility) {
+
         try (Timer.Context ignored = getConversationsTimer.time()) {
             PostBox conversations = postBoxService.getConversations(userId, Visibility.valueOf(visibility.toUpperCase()), offset, limit);
             ConversationsResponse conversationsResponse = responseConverter.toConversationsResponse(conversations, offset, limit);
@@ -72,16 +61,16 @@ public class ConversationsController {
         }
     }
 
-    @RequestMapping(value = CONVERSATIONS_RESOURCE, produces = APPLICATION_JSON_UTF8_VALUE, method = POST)
-    @ResponseBody
-    ResponseObject<?> executeActions(
+    @PostMapping("/users/{userId}/conversations")
+    public ResponseObject<?> executeActions(
             @PathVariable("userId") String userId,
             @RequestParam("action") String action,
-            @RequestParam(value = "visibility", defaultValue = "ACTIVE", required = false) String visibility,
-            @RequestParam(value = "ids", required = false) String[] conversationIds,
-            @RequestParam(value = "offset", defaultValue = "0", required = false) int offset,
-            @RequestParam(value = "limit", defaultValue = "50", required = false) int limit
-    ) {
+            @RequestParam(name = "visibility", defaultValue = "ACTIVE") String visibility,
+            @RequestParam(name = "ids", required = false) String[] conversationIds,
+            @RequestParam(name = "offset", defaultValue = "0") int offset,
+            @RequestParam(name = "limit", defaultValue = "50") int limit) {
+
+        //TODO: Throws NullPointerException when ids is empty
         try (Timer.Context ignored = executeActionsTimer.time()) {
             PostBox postBox;
             Visibility newVisibility = Visibility.valueOf(visibility.toUpperCase());
@@ -99,13 +88,12 @@ public class ConversationsController {
         }
     }
 
-    @RequestMapping(value = CONVERSATION_IDS_BY_ADID_RESOURCE, produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
-    @ResponseBody
-    ResponseObject<?> getConversationIds(
+    @GetMapping("/users/{userId}/ads/{adId}/conversations/ids")
+    public ResponseObject<?> getConversationIds(
             @PathVariable("userId") String userId,
             @PathVariable("adId") String adId,
-            @RequestParam(value = "limit", defaultValue = "500", required = false) int limit
-    ) {
+            @RequestParam(name = "limit", defaultValue = "500") int limit) {
+
         try (Timer.Context ignored = getConversationIdsByAdId.time()) {
             List<String> resolvedConversationIds = postBoxService
                     .resolveConversationIdByUserIdAndAdId(userId, adId, limit);
@@ -113,19 +101,17 @@ public class ConversationsController {
         }
     }
 
-    @RequestMapping(value = CONVERSATION_ADS_RESOURCE, produces = APPLICATION_JSON_UTF8_VALUE, method = POST)
-    @ResponseBody
-    ResponseEntity<ResponseObject<?>> createEmptyConversation(@Valid @RequestBody EmptyConversationRequest emptyConversation, BindingResult bindingResult) {
-
+    @PostMapping("/users/{userId}/ads/{adId}")
+    public ResponseEntity createEmptyConversation(@Valid @RequestBody EmptyConversationRequest emptyConversation, BindingResult bindingResult) {
         try (Timer.Context ignored = postEmptyConversation.time()) {
-
-            if(bindingResult.hasErrors()) {
-                return new ResponseEntity(HttpStatus.BAD_REQUEST);
+            if (bindingResult.hasErrors()) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
             Optional<String> conversationId = postBoxService.createEmptyConversation(emptyConversation);
-
-            return conversationId.isPresent() ? new ResponseEntity(ResponseObject.of(conversationId.get()), HttpStatus.OK) : new ResponseEntity(MISSING_PARTICIPANT_MESSAGE, HttpStatus.BAD_REQUEST);
+            return conversationId.isPresent()
+                    ? new ResponseEntity<>(ResponseObject.of(conversationId.get()), HttpStatus.OK)
+                    : new ResponseEntity<>("Missing participant for buyer or seller", HttpStatus.BAD_REQUEST);
         }
     }
 }

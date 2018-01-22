@@ -9,22 +9,15 @@ import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-
-@Controller
+@RestController
 public class ResponseDataController {
-
-    private static final String MAPPING = "/users/{userId}/response-data";
-
-    private static final String AGGREGATED_MAPPING = "/users/{userId}/aggregated-response-data";
 
     private final Timer getResponseDataTimer = TimingReports.newTimer("webapi.get-response-data");
     private final Timer getAggregatedResponseDataTimer = TimingReports.newTimer("webapi.get-aggregated-response-data");
@@ -36,18 +29,15 @@ public class ResponseDataController {
         this.responseDataService = responseDataService;
     }
 
-    @RequestMapping(value = MAPPING, method = GET)
-    @ResponseBody
+    @GetMapping("/users/{userId}/response-data")
     public ResponseObject<ResponseDataResponse> getResponseData(@PathVariable String userId) {
-
         try (Timer.Context ignored = getResponseDataTimer.time()) {
             List<ResponseData> responseDataList = responseDataService.getResponseData(userId);
             return ResponseObject.of(new ResponseDataResponse(responseDataList));
         }
     }
 
-    @RequestMapping(value = AGGREGATED_MAPPING, method = GET)
-    @ResponseBody
+    @GetMapping("/users/{userId}/aggregated-response-data")
     public ResponseObject<?> getAggregatedResponseData(@PathVariable String userId) {
         try (Timer.Context ignored = getAggregatedResponseDataTimer.time()) {
             Optional<AggregatedResponseData> responseData = responseDataService.getAggregatedResponseData(userId);

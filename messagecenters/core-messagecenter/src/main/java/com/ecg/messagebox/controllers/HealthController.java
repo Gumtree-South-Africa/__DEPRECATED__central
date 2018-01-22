@@ -1,31 +1,27 @@
 package com.ecg.messagebox.controllers;
 
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-
-@Controller
-@RequestMapping(value = "/health")
+@RestController
 public class HealthController {
-    @RequestMapping(method = GET)
-    @ResponseBody
-    public ResponseObject<Health> getResponseData() {
-        return ResponseObject.of(new Health());
+
+    private final JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
+
+    public HealthController(JacksonAwareObjectMapperConfigurer objectMapperConfigurer) {
+        this.objectMapperConfigurer = objectMapperConfigurer;
     }
 
-    class Health {
-        private Health() {
-        }
+    @GetMapping("/health")
+    public ResponseObject<ObjectNode> getResponseData() {
+        ObjectNode health = objectMapperConfigurer.getObjectMapper()
+                .createObjectNode()
+                .put("model", "messagebox")
+                .put("status", "OK");
 
-        public String getModel() {
-            return "messagebox";
-        }
-
-        public String getStatus() {
-            return "OK";
-        }
+        return ResponseObject.of(health);
     }
 }
