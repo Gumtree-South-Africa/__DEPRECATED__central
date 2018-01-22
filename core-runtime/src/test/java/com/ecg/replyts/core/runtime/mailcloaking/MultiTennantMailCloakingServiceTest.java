@@ -9,6 +9,7 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -19,8 +20,6 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTennantMailCloakingServiceTest {
-
-
     @Mock
     private AnonymizedMailConverter anonymizedMailConverter;
 
@@ -33,15 +32,14 @@ public class MultiTennantMailCloakingServiceTest {
     @Mock
     private MessageProcessingContext context;
 
+    @InjectMocks
     private MultiTennantMailCloakingService mailCloakingService;
 
     @Before
     public void setUp() {
         when(anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer)).thenReturn(new MailAddress("new@host.com"));
-        mailCloakingService = new MultiTennantMailCloakingService(conversationRepository, anonymizedMailConverter);
         when(context.getConversation()).thenReturn(conversation);
     }
-
 
     @Test
     public void createNewCloakedMailAddress() {

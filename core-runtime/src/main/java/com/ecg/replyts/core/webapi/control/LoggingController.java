@@ -1,9 +1,8 @@
 package com.ecg.replyts.core.webapi.control;
 
-import com.ecg.replyts.core.runtime.LoggingPropagationService;
-import com.ecg.replyts.core.runtime.LoggingService;
+import com.ecg.replyts.core.runtime.logging.LoggingPropagationService;
+import com.ecg.replyts.core.LoggingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.ws.rs.NotFoundException;

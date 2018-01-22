@@ -10,7 +10,7 @@ import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
-import com.ecg.replyts.core.runtime.ReplyTS;
+import com.ecg.replyts.core.Application;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.RiakIndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
@@ -18,7 +18,6 @@ import com.ecg.replyts.core.runtime.persistence.config.RiakConfigurationReposito
 import com.ecg.replyts.core.runtime.persistence.conversation.RiakConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.DiffingRiakMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.RiakHeldMailRepository;
-import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -81,13 +80,8 @@ public class RiakPersistenceConfiguration {
         return new RiakIndexerClockRepository(riakClient, bucketNamePrefix);
     }
 
-    @Bean
-    public ConversationMigrator conversationMigrator(RiakConversationRepository conversationRepository) throws RiakRetryFailedException {
-        return new ConversationMigrator(conversationRepository, riakClient);
-    }
-
     @Configuration
-    @Profile({ReplyTS.PRODUCTIVE_PROFILE, ReplyTS.MIGRATION_PROFILE})
+    @Profile({Application.PRODUCTIVE_PROFILE, Application.MIGRATION_PROFILE})
     @ConditionalOnExpression("'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')")
     public static class RiakClientConfiguration {
         @Value("${persistence.riak.idleConnectionTimeoutMs:60000}")

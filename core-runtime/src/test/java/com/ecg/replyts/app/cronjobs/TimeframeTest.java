@@ -4,21 +4,38 @@ import com.ecg.replyts.core.api.util.Clock;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = TimeframeTest.TestContext.class)
+@TestPropertySource(properties = {
+  "cronjob.sendHeld.csWorkingHoursStart = 10",
+  "cronjob.sendHeld.csWorkingHoursEnd = 20",
+  "cronjob.sendHeld.retentionTimeHours = 2"
+})
 public class TimeframeTest {
-
-    private Clock clock = mock(Clock.class);
-
+    @Autowired
     private Timeframe timeframe;
 
+    @Mock
+    private Clock clock;
+
     @Before
-    public void setUp() {
-        timeframe = new Timeframe(10, 20, 2, clock);
+    public void init() {
+        ReflectionTestUtils.setField(timeframe, "clock", clock);
     }
 
     @Test
@@ -49,5 +66,12 @@ public class TimeframeTest {
     public void doesNotFireAfterWorkingHour() {
         when(clock.now()).thenReturn(DateTime.parse("2013-01-01T20:00:00").toDate());
         assertFalse(timeframe.operateNow());
+    }
+
+    @Configuration
+    @Import(Timeframe.class)
+    static class TestContext {
+        @MockBean
+        private Clock clock;
     }
 }

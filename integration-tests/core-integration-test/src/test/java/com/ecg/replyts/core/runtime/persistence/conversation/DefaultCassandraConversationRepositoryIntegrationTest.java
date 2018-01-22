@@ -10,7 +10,7 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEven
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
-import com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierConfiguration;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.joda.time.DateTime;
@@ -41,10 +41,9 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
 
         ConversationResumer resumer = new IdBasedConversationResumer();
 
-        ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierServiceFactory().createUserIdentifierService());
+        ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierConfiguration().createUserIdentifierService());
 
-        DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, resumer, 100);
-        myRepo.setObjectMapperConfigurer(new JacksonAwareObjectMapperConfigurer());
+        DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, resumer, 100, new JacksonAwareObjectMapperConfigurer().getObjectMapper());
 
         return myRepo;
     }

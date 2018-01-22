@@ -19,7 +19,6 @@
             <id>gtuk</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>gtuk</profile-classifier>
             </properties>
 
@@ -130,7 +129,6 @@
             <id>gtau</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>gtau</profile-classifier>
             </properties>
 
@@ -248,7 +246,6 @@
             <id>mp</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>mp</profile-classifier>
             </properties>
 
@@ -325,7 +322,6 @@
             <id>ebayk</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>ebayk</profile-classifier>
             </properties>
 
@@ -460,7 +456,6 @@
             <id>mde</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>mde</profile-classifier>
             </properties>
 
@@ -539,7 +534,6 @@
             <id>kjca</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>kjca</profile-classifier>
             </properties>
 
@@ -647,7 +641,6 @@
             <id>it</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>it</profile-classifier>
             </properties>
 
@@ -709,7 +702,6 @@
             <id>dk</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>dk</profile-classifier>
             </properties>
 
@@ -736,7 +728,6 @@
             <id>btmx</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>btmx</profile-classifier>
             </properties>
 
@@ -774,7 +765,6 @@
             <id>btar</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>btar</profile-classifier>
             </properties>
 
@@ -812,7 +802,6 @@
             <id>btza</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>btza</profile-classifier>
             </properties>
 
@@ -850,7 +839,6 @@
             <id>btsg</id>
 
             <properties>
-                <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
                 <profile-classifier>btsg</profile-classifier>
             </properties>
 
@@ -888,7 +876,6 @@
             <id>migration</id>
 
             <properties>
-                <mainClass>com.ecg.comaas.r2cmigration.difftool</mainClass>
                 <profile-classifier>migration</profile-classifier>
             </properties>
 
@@ -956,7 +943,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>${mainClass}</mainClass>
+                            <mainClass>com.ecg.replyts.core.Application</mainClass>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
                         </manifest>
@@ -1000,7 +987,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>${mainClass}</mainClass>
+                    <mainClass>com.ecg.replyts.core.Application</mainClass>
                 </configuration>
             </plugin>
 

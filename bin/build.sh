@@ -129,11 +129,12 @@ function main() {
             if [[ -z $PACKAGE ]]; then
                     PACKAGE="docker"
             fi
-            MVN_ARGS="${MVN_ARGS} -DconfDir=distribution/conf/${TENANT}/${PACKAGE} -DlogDir=/tmp
+            MVN_ARGS="${MVN_ARGS} -Dtenant=${TENANT} -DlogDir=/tmp
             -Dmail.mime.parameters.strict=false -Dmail.mime.address.strict=false
             -Dmail.mime.ignoreunknownencoding=true
             -Dmail.mime.uudecode.ignoreerrors=true -Dmail.mime.uudecode.ignoremissingbeginend=true
-            -Dmail.mime.multipart.allowempty=true -Dlogging.service.structured.logging=false
+            -Dmail.mime.multipart.allowempty=true
+            -Dservice.discovery.port=8599 -Dlogging.service.structured.logging=false
             -Dmaven.test.skip=true -Dmaven.exec.skip=false"
             MVN_TASKS="clean verify"
         fi

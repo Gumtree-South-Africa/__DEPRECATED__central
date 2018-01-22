@@ -5,26 +5,15 @@ import com.ebay.ecg.australia.events.rabbitmq.RabbitMQConsumerConfiguration;
 import com.ebay.ecg.australia.events.rabbitmq.RabbitMQEventHandlerConsumer;
 import com.ebay.ecg.replyts.robot.handler.RabbitMQConsumer;
 import com.ebay.ecg.replyts.robot.service.RobotService;
-import com.ecg.replyts.core.webapi.EmbeddedWebserver;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
-
-/**
- * @author mdarapour
- */
 @Configuration
-class RobotApiConfiguration {
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
+public class RobotApiConfiguration {
     @Value("${rabbitmq.host}")
     private String host;
 
@@ -46,12 +35,9 @@ class RobotApiConfiguration {
     @Value("${rabbitmq.endpoint}")
     private String endpoint;
 
-    @Autowired
-    private EmbeddedWebserver webserver;
-
-    @PostConstruct
-    public void context() {
-        webserver.context(new SpringContextProvider("/gtau-robot", new String[]{"classpath:gtau-robot-context.xml"}, applicationContext));
+    @Bean
+    public SpringContextProvider contextProvider(ApplicationContext context) {
+        return new SpringContextProvider("/gtau-robot", new String[] { "classpath:gtau-robot-context.xml" }, context);
     }
 
     @Bean(name = "rabbitMQConfigConsumer")

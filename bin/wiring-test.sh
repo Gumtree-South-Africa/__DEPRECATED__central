@@ -65,7 +65,9 @@ function startComaas() {
     COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} \
     java \
     -DlogDir=log \
-    -DconfDir=conf \
+    -Dtenant=${TENANT} \
+    -Dservice.discovery.port=8599 \
+    -Dlogging.service.structured.logging=false \
     -XX:-HeapDumpOnOutOfMemoryError \
     -Djava.awt.headless=true \
     -Dcom.datastax.driver.FORCE_NIO=true \
@@ -87,7 +89,7 @@ function startComaas() {
     -Dapp.repo=lib \
     -Dapp.home=. \
     -Dbasedir=. \
-    com.ecg.replyts.core.runtime.ReplyTS \
+    com.ecg.replyts.core.Application \
     2>&1 &
 
     echo $! > ${COMAAS_PID}

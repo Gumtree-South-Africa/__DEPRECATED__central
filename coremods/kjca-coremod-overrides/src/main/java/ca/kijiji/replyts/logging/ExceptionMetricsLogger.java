@@ -5,10 +5,12 @@ import ch.qos.logback.classic.LoggerContext;
 import com.codahale.metrics.logback.InstrumentedAppender;
 import com.ecg.replyts.core.runtime.MetricsService;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+@Component
 public class ExceptionMetricsLogger {
     private static String hostName = "localhost";
     private static final Logger LOG = (Logger) LoggerFactory.getLogger(ExceptionMetricsLogger.class);

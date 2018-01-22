@@ -4,6 +4,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.Ordered;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AbstractRefreshableWebApplicationContext;
@@ -15,12 +16,10 @@ import javax.servlet.DispatcherType;
 
 import java.util.EnumSet;
 
-public class SpringContextProvider implements ContextProvider {
+public class SpringContextProvider implements ContextProvider, Ordered {
     private String path;
 
     private AbstractRefreshableWebApplicationContext context;
-
-    private ApplicationContext parentContext;
 
     /**
      * @param path             context path (e.g. /apiv2)
@@ -29,7 +28,6 @@ public class SpringContextProvider implements ContextProvider {
      */
     public SpringContextProvider(String path, String[] contextLocations, ApplicationContext parentContext) {
         this.path = path;
-        this.parentContext = parentContext;
 
         if (parentContext instanceof WebApplicationContext) {
             throw new IllegalArgumentException("Trying to create a web context within a web context");
@@ -50,7 +48,6 @@ public class SpringContextProvider implements ContextProvider {
      */
     public SpringContextProvider(String path, Class configurationClass, ApplicationContext parentContext) {
         this.path = path;
-        this.parentContext = parentContext;
 
         if (parentContext instanceof WebApplicationContext) {
             throw new IllegalArgumentException("Trying to create a web context within a web context");
@@ -67,7 +64,7 @@ public class SpringContextProvider implements ContextProvider {
     @Override
     public Handler create() {
         DispatcherServlet dispatcherServlet = new DispatcherServlet(context);
-        ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS | ServletContextHandler.NO_SECURITY);
+        ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SECURITY);
 
         contextHandler.setContextPath(path);
         contextHandler.addFilter(CorrelationIdFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
@@ -96,5 +93,12 @@ public class SpringContextProvider implements ContextProvider {
     @Override
     public String getPath() {
         return path;
+    }
+
+    // Make sure that / always comes last
+
+    @Override
+    public int getOrder() {
+        return getPath().equals("/") ? Ordered.LOWEST_PRECEDENCE : Ordered.HIGHEST_PRECEDENCE;
     }
 }

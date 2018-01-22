@@ -1,7 +1,7 @@
 package com.ebay.ecg.replyts.robot.api;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.runtime.ReplyTS;
+import com.ecg.replyts.core.Application;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
 import org.junit.BeforeClass;
@@ -17,7 +17,7 @@ import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENA
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.equalTo;
 
-@Profile(ReplyTS.EMBEDDED_PROFILE)
+@Profile(Application.EMBEDDED_PROFILE)
 public class MessageControllerAcceptanceTest {
 
     private final Properties properties = new Properties() {{

@@ -35,7 +35,7 @@ public class MdePushNotificationConfiguration {
     @Value("${replyts.outbound.push.notification.service.socket.timeout.ms:10000}")
     private int socketTimeout;
 
-    @Value("${replyts.outbound.push.notification.service.proxy:null}")
+    @Value("${replyts.outbound.push.notification.service.proxy:#{null}}")
     private URI proxyUri;
 
     @Bean

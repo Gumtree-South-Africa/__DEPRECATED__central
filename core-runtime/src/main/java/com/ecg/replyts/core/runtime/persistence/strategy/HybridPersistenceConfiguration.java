@@ -22,7 +22,6 @@ import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository
 import com.ecg.replyts.core.runtime.persistence.mail.DiffingRiakMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.HybridHeldMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.RiakHeldMailRepository;
-import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -92,9 +91,7 @@ public class HybridPersistenceConfiguration {
     @Bean
     @Primary
     public HybridConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState) {
-        cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer,
-                conversationEventsFetchLimit);
-        cassandraConversationRepository.setObjectMapperConfigurer(objectMapperConfigurer);
+        cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer, conversationEventsFetchLimit, objectMapperConfigurer.getObjectMapper());
 
         RiakConversationRepository riakRepository = new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins);
 
@@ -138,10 +135,5 @@ public class HybridPersistenceConfiguration {
     @ConditionalOnExpression("${email.opt.out.enabled:false}")
     public EmailOptOutRepository emailOptOutRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession) {
         return new EmailOptOutRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
-    }
-
-    @Bean
-    public ConversationMigrator conversationMigrator() {
-        return null;
     }
 }

@@ -3,7 +3,7 @@ package com.ecg.messagebox.util;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.runtime.EnvironmentSupport;
+import com.ecg.replyts.core.EnvironmentSupport;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

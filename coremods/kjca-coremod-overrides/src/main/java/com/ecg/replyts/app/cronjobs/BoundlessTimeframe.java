@@ -1,14 +1,14 @@
 package com.ecg.replyts.app.cronjobs;
 
-import com.ecg.replyts.core.api.util.Clock;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 
 // Redefine the working timeframe for the send-out-helds job to be "any time",
 // so that the retention period is honored with no regard for CS working hours.
-public class BoundlessTimeframe extends Timeframe {
-    public BoundlessTimeframe(int csWorkingHoursStart, int csWorkingHoursEnd, int retentionTime, Clock clock) {
-        super(csWorkingHoursStart, csWorkingHoursEnd, retentionTime, clock);
-    }
 
+@Component
+@Primary
+public class BoundlessTimeframe extends Timeframe {
     @Override
     public boolean operateNow() {
         return true;

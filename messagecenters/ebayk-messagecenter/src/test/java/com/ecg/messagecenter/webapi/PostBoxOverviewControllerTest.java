@@ -16,7 +16,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
-import com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierConfiguration;
 import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
@@ -44,13 +44,12 @@ import java.util.stream.IntStream;
 import static com.ecg.messagecenter.webapi.PostBoxResponseAssertions.*;
 import static org.joda.time.DateTime.now;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {PostBoxOverviewControllerTest.TestContext.class})
 @TestPropertySource(properties = {
-        "persistence.strategy = cassandra"
+  "persistence.strategy = cassandra"
 })
 public class PostBoxOverviewControllerTest {
-
     static final String DETAILED_CONVERSATION = "detailed-conversation";
     static final List<String> DETAILED_CONVERSATION_LIST = Collections.singletonList(DETAILED_CONVERSATION);
 
@@ -300,9 +299,8 @@ public class PostBoxOverviewControllerTest {
                 Optional.of(BUYER_ID), Optional.of(SELLER_ID));
     }
 
-    @Import({CassandraSimplePostBoxConfiguration.class, JacksonAwareObjectMapperConfigurer.class, PostBoxOverviewController.class})
+    @Import({ CassandraSimplePostBoxConfiguration.class, JacksonAwareObjectMapperConfigurer.class, PostBoxOverviewController.class })
     static class TestContext {
-
         @Value("${persistence.cassandra.consistency.read:#{null}}")
         private ConsistencyLevel cassandraReadConsistency;
 
@@ -336,9 +334,9 @@ public class PostBoxOverviewControllerTest {
         @Bean
         public ConversationRepository conversationRepository(Session cassandraSessionForCore) {
             ConversationResumer resumer = new IdBasedConversationResumer();
-            ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierServiceFactory().createUserIdentifierService());
+            ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierConfiguration().createUserIdentifierService());
 
-            return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, 100);
+            return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, 100, new JacksonAwareObjectMapperConfigurer().getObjectMapper());
         }
     }
 }

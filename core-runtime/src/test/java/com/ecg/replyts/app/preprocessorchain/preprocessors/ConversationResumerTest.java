@@ -8,7 +8,7 @@ import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceFactory;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierConfiguration;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Before;
@@ -63,7 +63,7 @@ public class ConversationResumerTest {
 
         resumer = new IdBasedConversationResumer();
 
-        ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierServiceFactory().createUserIdentifierService());
+        ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierConfiguration().createUserIdentifierService());
     }
 
     @After

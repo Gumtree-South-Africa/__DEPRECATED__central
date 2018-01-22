@@ -77,7 +77,7 @@ public class HttpClientProvider {
         @Value("${replyts.outbound.event.collector.service.socket.timeout.ms}")
         private int socketTimeout = 10000;
 
-        @Value("${replyts.outbound.event.collector.service.proxy:null}")
+        @Value("${replyts.outbound.event.collector.service.proxy:#{null}}")
         private URI proxyUri;
 
         public int connectionTimeout() {

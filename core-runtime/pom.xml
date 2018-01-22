@@ -361,12 +361,8 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>./</classpathPrefix>
-                            <mainClass>com.ecg.replyts.core.runtime.ReplyTS</mainClass>
+                            <mainClass>com.ecg.replyts.core.Application</mainClass>
                         </manifest>
-                        <manifestEntries>
-                            <!--COMAAS-355: gtuk temp version for debian package based on build date-->
-                            <Build-Date>${t}</Build-Date>
-                        </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>

@@ -23,7 +23,6 @@ import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository
 import com.ecg.replyts.core.runtime.persistence.mail.HybridHeldMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.ReadOnlyRiakMailRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.RiakHeldMailRepository;
-import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,10 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({
-        CassandraPersistenceConfiguration.CassandraClientConfiguration.class,
-        RiakPersistenceConfiguration.RiakClientConfiguration.class
-})
+@Import({ CassandraPersistenceConfiguration.CassandraClientConfiguration.class, RiakPersistenceConfiguration.RiakClientConfiguration.class })
 @ConditionalOnProperty(name = "persistence.strategy", havingValue = "hybrid-riak-readonly")
 public class ReadOnlyRiakHybridPersistenceConfiguration {
     private static final boolean NO_DEEP_MIGRATION = false;
@@ -77,11 +73,9 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
 
     @Bean
     public ConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState) {
-        DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer,
-                conversationEventsFetchLimit);
-        RiakConversationRepository riakRepository = new QuietReadOnlyRiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastwriteWins);
+        DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer, conversationEventsFetchLimit, objectMapperConfigurer.getObjectMapper());
 
-        cassandraRepository.setObjectMapperConfigurer(objectMapperConfigurer);
+        RiakConversationRepository riakRepository = new QuietReadOnlyRiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastwriteWins);
 
         return new HybridConversationRepository(cassandraRepository, riakRepository, migrationState, NO_DEEP_MIGRATION);
     }
@@ -127,10 +121,5 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     @ConditionalOnExpression("${email.opt.out.enabled:false}")
     public EmailOptOutRepository emailOptOutRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession) {
         return new EmailOptOutRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency);
-    }
-
-    @Bean
-    public ConversationMigrator conversationMigrator() {
-        return null;
     }
 }

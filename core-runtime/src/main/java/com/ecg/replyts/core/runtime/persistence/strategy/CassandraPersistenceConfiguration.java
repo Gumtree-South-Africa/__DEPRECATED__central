@@ -33,12 +33,12 @@ import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
+import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.mail.CassandraHeldMailRepository;
-import com.ecg.replyts.migrations.cleanupoptimizer.ConversationMigrator;
 import com.google.common.base.Splitter;
 import com.google.common.util.concurrent.Futures;
 import org.slf4j.Logger;
@@ -79,12 +79,15 @@ public class CassandraPersistenceConfiguration {
     @Autowired
     private ConversationResumer resumer;
 
+    @Autowired
+    private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
+
     @Value("${persistence.cassandra.conversations.fetch.size:100}")
     private int conversationEventsFetchLimit;
 
     @Bean
     public ConversationRepository conversationRepository(Session cassandraSessionForCore) {
-        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, conversationEventsFetchLimit);
+        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, conversationEventsFetchLimit, objectMapperConfigurer.getObjectMapper());
     }
 
     @Bean
@@ -116,11 +119,6 @@ public class CassandraPersistenceConfiguration {
     @ConditionalOnExpression("${email.opt.out.enabled:false}")
     public EmailOptOutRepository emailOptOutRepository(Session cassandraSessionForCore) {
         return new EmailOptOutRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency);
-    }
-
-    @Bean
-    public ConversationMigrator conversationMigrator() {
-        return null;
     }
 
     @Configuration

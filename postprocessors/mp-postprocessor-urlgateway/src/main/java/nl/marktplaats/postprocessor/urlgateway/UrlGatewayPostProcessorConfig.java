@@ -1,14 +1,11 @@
 package nl.marktplaats.postprocessor.urlgateway;
 
-import com.ecg.replyts.core.runtime.EnvironmentSupport;
+import com.ecg.replyts.core.EnvironmentSupport;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.env.Environment;
 
 import java.util.List;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 public class UrlGatewayPostProcessorConfig {

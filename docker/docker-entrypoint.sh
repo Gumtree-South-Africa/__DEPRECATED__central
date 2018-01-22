@@ -7,6 +7,8 @@ CLASSPATH="${BASE_DIR}/lib/*"
 REPO=${BASE_DIR}/lib
 CONF_DIR=${BASE_DIR}/conf
 
+[ -z ${TENANT} ] && { echo "Please set TENANT"; exit 1; }
+
 export COMAAS_HTTP_PORT=${NOMAD_PORT_http}
 export COMAAS_HAZELCAST_PORT=${NOMAD_PORT_hazelcast}
 
@@ -37,12 +39,12 @@ export swift_authentication_url=https://keystone.${region}.cloud.ecg.so/v2.0
 
 /usr/bin/java \
     -DlogDir=/tmp \
+    -Dtenant=${TENANT} \
     -Dfile.encoding=UTF-8 \
     -XX:+PreserveFramePointer \
     -Xms${HEAP_SIZE} \
     -Xmx${HEAP_SIZE} \
     ${JAVA_OPTS} \
-    -DconfDir=${CONF_DIR} \
     -XX:-HeapDumpOnOutOfMemoryError \
     -Djava.awt.headless=true \
     -Dcom.datastax.driver.FORCE_NIO=true \
@@ -64,7 +66,7 @@ export swift_authentication_url=https://keystone.${region}.cloud.ecg.so/v2.0
     -Dapp.home="${BASE_DIR}" \
     -Dbasedir="${BASE_DIR}" \
     -Dapp.repo="${REPO}" \
-    com.ecg.replyts.core.runtime.ReplyTS & pid=$!
+    com.ecg.replyts.core.Application & pid=$!
 
 wait
 pid=

@@ -12,17 +12,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-@Component("mailCloakingService")
+@Component
 public class MultiTennantMailCloakingService implements MailCloakingService {
-    private final ConversationRepository conversationRepository;
-
-    private final AnonymizedMailConverter anonymizedMailConverter;
+    @Autowired
+    private ConversationRepository conversationRepository;
 
     @Autowired
-    public MultiTennantMailCloakingService(ConversationRepository conversationRepository, AnonymizedMailConverter anonymizedMailConverter) {
-        this.conversationRepository = conversationRepository;
-        this.anonymizedMailConverter = anonymizedMailConverter;
-    }
+    private AnonymizedMailConverter anonymizedMailConverter;
 
     @Override
     public MailAddress createdCloakedMailAddress(ConversationRole role, Conversation conversation) {

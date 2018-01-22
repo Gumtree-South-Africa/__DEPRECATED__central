@@ -1,8 +1,6 @@
 package com.ecg.replyts.acceptance;
 
-import com.ecg.replyts.core.runtime.ReplyTS;
-import com.ecg.replyts.integration.test.MailInterceptor;
-import com.ecg.replyts.integration.test.MailInterceptor;
+import com.ecg.replyts.core.Application;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.google.common.io.ByteStreams;
 import org.hamcrest.MatcherAssert;
@@ -28,7 +26,7 @@ import static org.hamcrest.Matchers.nullValue;
 /**
  * All-is-well integration tests.
  */
-@Profile(ReplyTS.EMBEDDED_PROFILE)
+@Profile(Application.EMBEDDED_PROFILE)
 public class SunnyDayAcceptanceTest {
 
     private static final int deliveryTimeoutSeconds = 45;

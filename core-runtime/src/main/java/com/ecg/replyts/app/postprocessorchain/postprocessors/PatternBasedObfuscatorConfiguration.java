@@ -1,19 +1,14 @@
 package com.ecg.replyts.app.postprocessorchain.postprocessors;
 
-import com.ecg.replyts.core.runtime.EnvironmentSupport;
+import com.ecg.replyts.core.EnvironmentSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 

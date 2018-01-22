@@ -13,7 +13,6 @@ import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.StatementsBase;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +22,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -65,21 +63,25 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     private final Timer deleteConversationModificationIdxsTimer = TimingReports.newTimer("cassandra.conversationRepo-deleteConversationModificationIdxs");
     private final Histogram committedBatchSizeHistogram = TimingReports.newHistogram("cassandra.conversationRepo-commit-batch-size");
 
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-    private ConversationResumer resumer;
+    private final ConversationResumer resumer;
+
     private final int conversationEventsFetchLimit;
 
     public DefaultCassandraConversationRepository(Session session, ConsistencyLevel readConsistency,
                                                   ConsistencyLevel writeConsistency, ConversationResumer resumer,
-                                                  int conversationEventsFetchLimit) {
+                                                  int conversationEventsFetchLimit,
+                                                  ObjectMapper objectMapper) {
         checkArgument(conversationEventsFetchLimit > 0, "conversationEventsFetchLimit must be a strictly positive number");
+
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
         this.preparedStatements = StatementsBase.prepare(Statements.class, session);
         this.resumer = resumer;
         this.conversationEventsFetchLimit = conversationEventsFetchLimit;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -396,11 +398,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
             }
             return new DefaultMutableConversation(replay(applicableEvents));
         }
-    }
-
-    @Autowired
-    public void setObjectMapperConfigurer(JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
-        this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
     }
 
     @Override

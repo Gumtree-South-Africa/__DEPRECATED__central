@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.webapi;
 
-import com.ecg.replyts.core.runtime.ReplyTS;
+import com.ecg.replyts.core.Application;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +35,8 @@ public final class RuntimeExceptionHandler extends ResponseEntityExceptionHandle
         Map<String, String> response = new LinkedHashMap<>();
         response.put(STATE, FAILURE);
         response.put(MESSAGE, ex.getClass().getName() + ": " + ex.getMessage());
-        response.put(APPLICATION, ReplyTS.class.getPackage().getImplementationTitle());
-        response.put(REVISION, ReplyTS.class.getPackage().getImplementationVersion());
+        response.put(APPLICATION, Application.class.getPackage().getImplementationTitle());
+        response.put(REVISION, Application.class.getPackage().getImplementationVersion());
 
         MDC.getCopyOfContextMap().forEach((key, value) -> response.put(key, value));
 

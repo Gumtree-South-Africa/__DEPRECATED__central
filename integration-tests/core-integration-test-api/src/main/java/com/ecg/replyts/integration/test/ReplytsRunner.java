@@ -1,7 +1,8 @@
 package com.ecg.replyts.integration.test;
 
-import com.ecg.replyts.core.runtime.LoggingService;
-import com.ecg.replyts.core.runtime.ReplyTS;
+import com.ecg.replyts.core.LoggingService;
+import com.ecg.replyts.core.Application;
+import com.ecg.replyts.core.Webserver;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.io.Files;
 import org.elasticsearch.client.Client;
@@ -11,13 +12,12 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -28,33 +28,32 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class ReplytsRunner {
     private static final Logger LOG = LoggerFactory.getLogger(ReplytsRunner.class);
 
-    public static final String DEFAULT_CONFIG_RESOURCE_DIRECTORY = "/integrationtest-conf";
-
     private static final String ELASTIC_SEARCH_PREFIX = "comaas_integration_test_";
 
     private final File dropFolder = Files.createTempDir();
+
     private final Integer httpPort = OpenPortFinder.findFreePort();
+
     private final Integer smtpOutPort = OpenPortFinder.findFreePort();
 
     private Wiser wiser = new Wiser(smtpOutPort);
+
     private AnnotationConfigApplicationContext context;
+
     private Client searchClient;
+
     private MailInterceptor mailInterceptor;
 
-    ReplytsRunner(Properties testProperties, String configResourcePrefix, Class<?>[] configurations) {
+    protected ReplytsRunner(Properties testProperties, String configResourcePrefix, Class<?>[] configurations) {
         wiser.start();
-
-        if (!wiser.getServer().isRunning())
-            throw new IllegalStateException("SMTP server thread is not running");
 
         try {
             context = new AnnotationConfigApplicationContext();
 
-            context.getEnvironment().setActiveProfiles(ReplyTS.EMBEDDED_PROFILE);
+            context.getEnvironment().setActiveProfiles(Application.EMBEDDED_PROFILE);
 
             Properties properties = new Properties();
 
-            properties.put("confDir", "classpath:" + configResourcePrefix);
             properties.put("logDir", "./target");
 
             ClassPathResource resource = new ClassPathResource(configResourcePrefix + "/replyts.properties");
@@ -82,34 +81,24 @@ public final class ReplytsRunner {
                 properties.putAll(testProperties);
             }
 
-            context.registerShutdownHook();
-
             context.register(MailInterceptor.class);
             context.register(LoggingService.class);
 
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(context.getClassLoader());
-            Arrays.asList(
-              "classpath:server-context.xml",
-              "classpath:runtime-context.xml",
-              "classpath*:/plugin-inf/*.xml").stream()
-              .flatMap((x) -> {
-                try {
-                    return Arrays.stream(resolver.getResources(x));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-              })
-              .forEach((r) -> new XmlBeanDefinitionReader(context).loadBeanDefinitions(r));
+            Resource megaTemporaryResource = new PathMatchingResourcePatternResolver(context.getClassLoader()).getResources("classpath:super-mega-temporary-context.xml")[0];
+
+            new XmlBeanDefinitionReader(context).loadBeanDefinitions(megaTemporaryResource);
 
             if (configurations != null && configurations.length != 0) {
                 context.register(configurations);
             }
 
+            context.registerShutdownHook();
+
             context.refresh();
 
             this.mailInterceptor = checkNotNull(context.getBean(MailInterceptor.class), "mailInterceptor");
 
-            if (!context.getBean("started", Boolean.class)) {
+            if (!context.getBean(Webserver.class).isStarted()) {
                 throw new IllegalStateException("COMaaS did not start up in its entirety");
             }
         } catch (Exception e) {

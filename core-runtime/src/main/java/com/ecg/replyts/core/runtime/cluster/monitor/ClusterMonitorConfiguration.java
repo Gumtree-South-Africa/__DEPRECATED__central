@@ -6,7 +6,7 @@ import com.basho.riak.client.RiakFactory;
 import com.basho.riak.client.raw.http.HTTPClientConfig;
 import com.ecg.replyts.core.api.ClusterMonitor;
 import com.ecg.replyts.core.api.sanitychecks.Check;
-import com.ecg.replyts.core.runtime.ReplyTS;
+import com.ecg.replyts.core.Application;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
 import com.ecg.replyts.core.runtime.persistence.RiakHostConfig.Host;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@Profile(ReplyTS.PRODUCTIVE_PROFILE)
+@Profile(Application.PRODUCTIVE_PROFILE)
 @Deprecated
 @Configuration
 @ConditionalOnExpression(

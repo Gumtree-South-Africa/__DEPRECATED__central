@@ -6,11 +6,13 @@ import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Component
 public class AnonymizedMailConverter {
     private static final char MAIL_CLOAKING_SEPARATOR = '-'; // Do not ever change this, you will break replies to existing messages.
 
@@ -21,10 +23,9 @@ public class AnonymizedMailConverter {
 
     @Autowired
     public AnonymizedMailConverter(
-            @Value("${mailcloaking.localized.buyer}") String buyerRole,
-            @Value("${mailcloaking.localized.seller}") String sellerRole,
-            @Value("${mailcloaking.domains}") String[] domains
-    ) {
+      @Value("${mailcloaking.localized.buyer}") String buyerRole,
+      @Value("${mailcloaking.localized.seller}") String sellerRole,
+      @Value("${mailcloaking.domains}") String[] domains) {
         this.buyerRole = buyerRole;
         this.sellerRole = sellerRole;
         this.domains = domains.clone();

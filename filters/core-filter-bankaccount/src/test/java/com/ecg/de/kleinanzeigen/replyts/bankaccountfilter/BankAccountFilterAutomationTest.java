@@ -12,8 +12,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class BankAccountFilterAutomationTest {
-
-
     @Rule
     public ReplyTsIntegrationTestRule replyTS = new ReplyTsIntegrationTestRule();
 
@@ -35,8 +33,6 @@ public class BankAccountFilterAutomationTest {
         assertEquals(MessageState.SENT, processedMail.getMessage().getState());
     }
 
-
-
     @Test
     public void skipsIfNoBankAccount() {
         ArrayNode rules = JsonObjects.newJsonArray();
@@ -45,5 +41,4 @@ public class BankAccountFilterAutomationTest {
         ProcessedMail processedMail = replyTS.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com").adId("1233343").htmlBody("hello world"));
         assertEquals(MessageState.SENT, processedMail.getMessage().getState());
     }
-
 }
