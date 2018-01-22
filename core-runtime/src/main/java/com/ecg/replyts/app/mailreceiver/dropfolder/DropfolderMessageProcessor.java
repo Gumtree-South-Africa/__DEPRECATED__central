@@ -1,7 +1,8 @@
-package com.ecg.replyts.app.mailreceiver;
+package com.ecg.replyts.app.mailreceiver.dropfolder;
 
 import com.codahale.metrics.Counter;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
+import com.ecg.replyts.app.mailreceiver.MessageProcessor;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.cluster.ClusterMode;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
@@ -17,7 +18,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileFilter;
@@ -36,15 +36,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 
-@Component("mailDataProvider")
+@Component("dropfolderMessageProcessor")
 @ConditionalOnProperty(name = "mail.provider.strategy", havingValue = "fs", matchIfMissing = true)
 public class DropfolderMessageProcessor implements MessageProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(DropfolderMessageProcessor.class);
 
-    private static final Counter FAILED_COUNTER = TimingReports.newCounter("processing_failed");
-    private static final Counter ABANDONED_RETRY_COUNTER = TimingReports.newCounter("processing_failed_abandoned");
     private static final Counter ACTIVE_DROPFOLDER_PROCESSORS_COUNTER = TimingReports.newCounter("active_dropfolder_processors");
-    private static final Counter UNPARSEABLE_COUNTER = TimingReports.newCounter("processing-unparseable-counter");
 
     static final String FAILED_DIRECTORY_NAME = "failed";
     static final String FAILED_PREFIX = "f_";
@@ -52,7 +49,7 @@ public class DropfolderMessageProcessor implements MessageProcessor {
     static final String INCOMING_FILE_PREFIX = "pre_";
     static final String PROCESSING_FILE_PREFIX = "inwork_";
 
-    static final FileFilter INCOMING_FILE_FILTER = file -> file.isFile() && file.getName().startsWith(INCOMING_FILE_PREFIX);
+    private static final FileFilter INCOMING_FILE_FILTER = file -> file.isFile() && file.getName().startsWith(INCOMING_FILE_PREFIX);
 
     @Autowired(required = false)
     private ClusterModeManager clusterModeManager;
@@ -105,7 +102,11 @@ public class DropfolderMessageProcessor implements MessageProcessor {
 
         LOG.info("Searching dropfolder for orphaned {}* files and renaming them to {}*", PROCESSING_FILE_PREFIX, INCOMING_FILE_PREFIX);
 
-        for (File file : mailDataDirectory.listFiles()) {
+        final File[] files = mailDataDirectory.listFiles();
+        if (files == null) {
+            throw new IllegalStateException("Dropfolder could not be listed: " + dropfolder);
+        }
+        for (File file : files) {
             if (file.getName().startsWith(PROCESSING_FILE_PREFIX)) {
                 File targetName = new File(file.getParent(), INCOMING_FILE_PREFIX + file.getName());
 
@@ -196,23 +197,23 @@ public class DropfolderMessageProcessor implements MessageProcessor {
             File unparsableFilename = new File(failedDirectory, UNPARSABLE_PREFIX + originalFilename.getName());
 
             if (!tempFilename.renameTo(unparsableFilename)) {
-                LOG.error("Failed to move unparsable mail to 'failed' directory " + tempFilename.getName());
+                LOG.error("Failed to move unparsable mail to 'failed' directory {}", tempFilename.getName());
             }
         } catch (Exception e) {
-            FAILED_COUNTER.inc();
+            RETRIED_MESSAGE_COUNTER.inc();
 
             File failedFilename = new File(failedDirectory, FAILED_PREFIX + originalFilename.getName());
 
             if (failedFilename.getName().matches(abandonedFileNameMatchPattern)) {
                 ABANDONED_RETRY_COUNTER.inc();
 
-                LOG.error("Mail processing abandoned for file: '" + failedFilename.getName() + "'", e);
+                LOG.error("Mail processing abandoned for file: '{}'", failedFilename.getName(), e);
             } else {
-                LOG.warn("Mail processing failed. Storing mail in failed folder as '" + failedFilename.getName() + "'", e);
+                LOG.warn("Mail processing failed. Storing mail in failed folder as '{}'", failedFilename.getName(), e);
             }
 
             if (!tempFilename.renameTo(failedFilename)) {
-                LOG.error("Failed to move failed mail to 'failed' directory " + tempFilename.getName());
+                LOG.error("Failed to move failed mail to 'failed' directory {}", tempFilename.getName());
             }
         } finally {
             if (tempFilename.exists() && !tempFilename.delete()) {

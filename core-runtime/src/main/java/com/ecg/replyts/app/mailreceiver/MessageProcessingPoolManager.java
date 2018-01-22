@@ -8,17 +8,16 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
+import javax.annotation.concurrent.NotThreadSafe;
 import java.time.Duration;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -28,24 +27,20 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 @Component
-public class MessageProcessingPoolManager {
+@NotThreadSafe
+public abstract class MessageProcessingPoolManager {
     private static final Logger LOG = LoggerFactory.getLogger(MessageProcessingPoolManager.class);
 
-    private final int mailProcessingThreads;
-    private final ListeningExecutorService executor;
-    private final MessageProcessor messageProcessor;
+    protected final ListeningExecutorService executor;
     private final Duration gracefulShutdownDuration;
 
-    @Autowired
-    public MessageProcessingPoolManager(@Value("${replyts.threadpool.size:2}") int mailProcessingThreads,
-                                        @Value("${replyts.threadpool.shutdown.await.ms:10000}") long gracefulShutdownTimeoutMs,
-                                        @Qualifier("mailDataProvider") MessageProcessor messageProcessor) {
-        checkArgument(mailProcessingThreads > 0, "mailProcessingThreads <= 0");
+    private Set<MessageProcessor> messageProcessors = new HashSet<>();
+
+    public MessageProcessingPoolManager(int nrOfExecutors, long gracefulShutdownTimeoutMs) {
+        checkArgument(nrOfExecutors > 0, "nrOfExecutors <= 0");
         checkArgument(gracefulShutdownTimeoutMs > 0, "gracefulShutdownTimeoutMs <= 0");
-        this.mailProcessingThreads = mailProcessingThreads;
         this.gracefulShutdownDuration = Duration.ofMillis(gracefulShutdownTimeoutMs);
-        this.messageProcessor = messageProcessor;
-        this.executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(mailProcessingThreads,
+        this.executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(nrOfExecutors,
                 new ThreadFactoryBuilder()
                         .setDaemon(false)
                         .setNameFormat("ReplyTS-worker-thread-%d")
@@ -53,13 +48,7 @@ public class MessageProcessingPoolManager {
         ));
     }
 
-    @PostConstruct
-    public void startProcessing() {
-        checkState(!executor.isShutdown(), "The mail processing pool has been shutdown");
-        Stream.generate(this::createWorker).limit(mailProcessingThreads).forEach(this::submitWorker);
-    }
-
-    private Runnable createWorker() {
+    private Runnable createWorker(MessageProcessor messageProcessor) {
         return setTaskFields(() -> {
             try {
                 messageProcessor.processNext();
@@ -92,6 +81,15 @@ public class MessageProcessingPoolManager {
 
     @PreDestroy
     public void stopProcessing() {
+        for (MessageProcessor messageProcessor : messageProcessors) {
+            try {
+                messageProcessor.destroy();
+            } catch (Exception e) {
+                LOG.error("Was not able to clean up message processor", e);
+            }
+        }
+        messageProcessors.clear();
+
         executor.shutdown();
         try {
             LOG.info("Awaiting {}ms for the mail processing threads termination...", gracefulShutdownDuration.toMillis());
@@ -99,10 +97,18 @@ public class MessageProcessingPoolManager {
                 LOG.warn("Some of the thread haven't completed during the graceful period, going to interrupt them...");
             }
             executor.shutdownNow();
-            LOG.info("The mail processing service executor has been stopped (the threads may've not)");
+            LOG.info("The mail processing service executor has been stopped, the threads may not have");
         } catch (InterruptedException e) {
             LOG.warn("Interrupted while waiting for the mail processing threads termination");
             Thread.currentThread().interrupt();
         }
+    }
+
+    protected abstract Stream<MessageProcessor> createProcessorStream();
+
+    @PostConstruct
+    public final void startProcessing() {
+        checkState(!executor.isShutdown(), "The mail processing pool has been shutdown");
+        createProcessorStream().peek(messageProcessors::add).map(this::createWorker).forEach(this::submitWorker);
     }
 }

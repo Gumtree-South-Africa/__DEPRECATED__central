@@ -156,7 +156,7 @@ public class KafkaProducerConfigBuilder<K, V> {
             configProperties.put(MAX_REQUEST_SIZE_CONFIG, maxRequestSize);
             configProperties.put(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, maxInFlightPerConnection);
             LOG.info("Kafka producer configuration: {} Topic: {}, Timeout: {} ms", configProperties, topic, storeTimeoutMs);
-            producer = new KafkaProducer(configProperties);
+            producer = new KafkaProducer<>(configProperties);
             return this;
         }
 

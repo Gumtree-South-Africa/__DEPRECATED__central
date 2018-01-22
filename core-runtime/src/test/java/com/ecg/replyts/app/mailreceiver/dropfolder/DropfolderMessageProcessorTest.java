@@ -1,4 +1,4 @@
-package com.ecg.replyts.app.mailreceiver;
+package com.ecg.replyts.app.mailreceiver.dropfolder;
 
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
@@ -25,17 +25,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = DropfolderMessageProcessorTest.TestContext.class)
 @TestPropertySource(properties = {
+        "mail.provider.strategy = fs",
         "mailreceiver.filesystem.dropfolder = #{systemProperties['java.io.tmpdir']}",
         "mailreceiver.retrydelay.minutes = 5",
         "mailreceiver.watch.retrydelay.millis = 1000",

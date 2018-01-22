@@ -1,5 +1,6 @@
 package com.ecg.replyts.app.mailreceiver;
 
+import com.ecg.replyts.app.mailreceiver.dropfolder.DropfolderMessageProcessingPoolManager;
 import com.google.common.collect.Iterables;
 import org.junit.Test;
 
@@ -9,18 +10,19 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.jayway.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class MessageProcessingPoolManagerTest {
+public class DropfolderMessageProcessingPoolManagerTest {
 
     @Test
     public void uncaughtExceptionInWorkerResultsInThreadRestart() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(2);
         Map<String, Integer> threadNames = new ConcurrentHashMap<>();
 
-        MessageProcessingPoolManager manager = new MessageProcessingPoolManager(1, 1, () -> {
+        MessageProcessingPoolManager manager = new DropfolderMessageProcessingPoolManager(1, 1, () -> {
             // on each invocation, increment counter for this thread name in the map, to check later how many times
             // this callback was invoked in this particular thread
             threadNames.compute(Thread.currentThread().getName(), (k, v) -> v == null ? 1 : v + 1);
@@ -47,7 +49,7 @@ public class MessageProcessingPoolManagerTest {
         AtomicInteger workerInvocationCount = new AtomicInteger(0);
         semaphore.tryAcquire(1, TimeUnit.SECONDS);
 
-        MessageProcessingPoolManager manager = new MessageProcessingPoolManager(5, 1, () -> {
+        MessageProcessingPoolManager manager = new DropfolderMessageProcessingPoolManager(5, 1, () -> {
             workerInvocationCount.incrementAndGet();
             semaphore.acquire();
         });
@@ -67,7 +69,7 @@ public class MessageProcessingPoolManagerTest {
         Set<Boolean> daemonFlags = new ConcurrentSkipListSet<>();
         Semaphore semaphore = new Semaphore(1, true);
         semaphore.tryAcquire(1, TimeUnit.SECONDS);
-        MessageProcessingPoolManager manager = new MessageProcessingPoolManager(5, 1, () -> {
+        MessageProcessingPoolManager manager = new DropfolderMessageProcessingPoolManager(5, 1, () -> {
             threadNames.add(Thread.currentThread().getName());
             daemonFlags.add(Thread.currentThread().isDaemon());
             semaphore.acquire();
