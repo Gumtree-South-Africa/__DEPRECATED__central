@@ -4,30 +4,21 @@ import com.ecg.messagebox.controllers.responses.ConversationResponse;
 import com.ecg.messagebox.controllers.responses.MessageResponse;
 import com.ecg.messagebox.controllers.responses.ParticipantResponse;
 import com.ecg.messagebox.model.ConversationThread;
+import com.ecg.messagebox.model.Message;
+import com.ecg.messagebox.model.Participant;
 import com.ecg.messagecenter.util.MessageCenterUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
+import static com.ecg.messagecenter.util.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
+
 public class ConversationResponseConverter {
 
-    private final ParticipantResponseConverter participantRespConverter;
-    private final MessageResponseConverter msgRespConverter;
-
-    @Autowired
-    public ConversationResponseConverter(ParticipantResponseConverter participantRespConverter,
-                                         MessageResponseConverter msgRespConverter) {
-        this.participantRespConverter = participantRespConverter;
-        this.msgRespConverter = msgRespConverter;
-    }
-
-    public ConversationResponse toConversationResponseWithMessages(ConversationThread conversationThread) {
+    public static ConversationResponse toConversationResponseWithMessages(ConversationThread conversationThread) {
         List<MessageResponse> messageResponses = conversationThread.getMessages().stream()
-                .map(msgRespConverter::toMessageResponse).collect(Collectors.toList());
+                .map(ConversationResponseConverter::toMessageResponse).collect(Collectors.toList());
 
         if (messageResponses.size() > 0) {
             int otherParticipantNumUnread = conversationThread.getHighestOtherParticipantNumUnread();
@@ -38,14 +29,13 @@ public class ConversationResponseConverter {
         return toConversationResponse(conversationThread, Optional.of(messageResponses));
     }
 
-    public ConversationResponse toConversationResponse(ConversationThread conversationThread) {
+    public static ConversationResponse toConversationResponse(ConversationThread conversationThread) {
         return toConversationResponse(conversationThread, Optional.empty());
     }
 
-    private ConversationResponse toConversationResponse(ConversationThread conversation,
-                                                        Optional<List<MessageResponse>> messageResponsesOpt) {
+    private static ConversationResponse toConversationResponse(ConversationThread conversation, Optional<List<MessageResponse>> messageResponsesOpt) {
         List<ParticipantResponse> participantResponses = conversation.getParticipants().stream()
-                .map(participantRespConverter::toParticipantResponse)
+                .map(ConversationResponseConverter::toParticipantResponse)
                 .collect(Collectors.toList());
 
         String creationDateStr = conversation.getMetadata().getCreationDate()
@@ -57,12 +47,30 @@ public class ConversationResponseConverter {
                 conversation.getVisibility().name().toLowerCase(),
                 conversation.getMessageNotification().name().toLowerCase(),
                 participantResponses,
-                msgRespConverter.toMessageResponse(conversation.getLatestMessage()).withIsRead(conversation.getHighestOtherParticipantNumUnread() == 0),
+                toMessageResponse(conversation.getLatestMessage()).withIsRead(conversation.getHighestOtherParticipantNumUnread() == 0),
                 creationDateStr,
                 conversation.getMetadata().getEmailSubject(),
                 conversation.getMetadata().getTitle().orElse(null),
                 conversation.getMetadata().getImageUrl(),
                 conversation.getNumUnreadMessages(conversation.getUserId()),
                 messageResponsesOpt);
+    }
+
+    private static MessageResponse toMessageResponse(Message message) {
+        return new MessageResponse(
+                message.getId().toString(),
+                message.getType().getValue(),
+                message.getText(),
+                message.getSenderUserId(),
+                toFormattedTimeISO8601ExplicitTimezoneOffset(message.getReceivedDate()),
+                message.getCustomData());
+    }
+
+    private static ParticipantResponse toParticipantResponse(Participant participant) {
+        return new ParticipantResponse(
+                participant.getUserId(),
+                participant.getName(),
+                participant.getEmail(),
+                participant.getRole().getValue());
     }
 }

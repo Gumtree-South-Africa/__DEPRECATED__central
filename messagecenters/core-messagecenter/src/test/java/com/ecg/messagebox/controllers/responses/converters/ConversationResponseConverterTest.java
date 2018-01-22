@@ -9,7 +9,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
@@ -20,10 +19,8 @@ import static com.ecg.messagebox.model.MessageNotification.RECEIVE;
 import static com.ecg.messagebox.model.Visibility.ACTIVE;
 import static com.ecg.messagecenter.util.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
 import static java.util.Arrays.asList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.joda.time.DateTime.now;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConversationResponseConverterTest {
@@ -39,24 +36,17 @@ public class ConversationResponseConverterTest {
     private static final Participant PARTICIPANT_1 = new Participant("buyerId", "buyerName", "buyer@email.com", ParticipantRole.BUYER);
     private static final Participant PARTICIPANT_2 = new Participant("sellerId", "sellerName", "seller@email.com", ParticipantRole.SELLER);
 
+    private static final ParticipantResponse PARTICIPANT_RESP_1 = new ParticipantResponse(
+            PARTICIPANT_1.getUserId(), PARTICIPANT_1.getName(), PARTICIPANT_1.getEmail(), PARTICIPANT_1.getRole().getValue());
+    private static final ParticipantResponse PARTICIPANT_RESP_2 = new ParticipantResponse(
+            PARTICIPANT_2.getUserId(), PARTICIPANT_2.getName(), PARTICIPANT_2.getEmail(), PARTICIPANT_2.getRole().getValue());
+
     private static final Message MSG_BUYER = new Message(timeBased(), MessageType.ASQ, new MessageMetadata("text buyer", "buyerId"));
     private static final Message MSG_SELLER = new Message(timeBased(), MessageType.CHAT, new MessageMetadata("text seller", "sellerId"));
-
-    @Mock
-    private MessageResponse messageRespMock;
-    @Mock
-    private ParticipantResponse participantRespMock;
-    @Mock
-    private ParticipantResponseConverter participantRespConverterMock;
-    @Mock
-    private MessageResponseConverter msgRespConverterMock;
-
-    private ConversationResponseConverter convRespConverter;
 
     @Before
     public void setup() {
         DateTimeUtils.setCurrentMillisFixed(now().getMillis());
-        convRespConverter = new ConversationResponseConverter(participantRespConverterMock, msgRespConverterMock);
     }
 
     @After
@@ -66,11 +56,10 @@ public class ConversationResponseConverterTest {
 
     @Test
     public void toConversationWithMessagesResponse() {
-        MessageResponse msgResp1 = new MessageResponse("m1", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data");
-        MessageResponse msgResp2 = new MessageResponse("m2", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data");
-
-        MessageResponse expectedMsgResp1 = new MessageResponse("m1", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data");
-        MessageResponse expectedMsgResp2 = new MessageResponse("m2", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data");
+        MessageResponse expectedMsgResp1 = new MessageResponse(MSG_BUYER.getId().toString(), MSG_BUYER.getType().getValue(),
+                MSG_BUYER.getText(), MSG_BUYER.getSenderUserId(), MSG_BUYER.getReceivedDate().toString(), MSG_BUYER.getCustomData());
+        MessageResponse expectedMsgResp2 = new MessageResponse(MSG_SELLER.getId().toString(), MSG_SELLER.getType().getValue(),
+                MSG_SELLER.getText(), MSG_SELLER.getSenderUserId(), MSG_SELLER.getReceivedDate().toString(), MSG_SELLER.getCustomData());
         expectedMsgResp2.setIsRead(false);
 
         ConversationThread conversation = new ConversationThread(
@@ -91,7 +80,7 @@ public class ConversationResponseConverterTest {
                 AD_ID,
                 "active",
                 "receive",
-                asList(participantRespMock, participantRespMock),
+                asList(PARTICIPANT_RESP_1, PARTICIPANT_RESP_2),
                 expectedMsgResp2,
                 toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
                 EMAIL_SUBJECT,
@@ -100,25 +89,15 @@ public class ConversationResponseConverterTest {
                 UNREAD_MSGS_COUNT,
                 Optional.of(asList(expectedMsgResp1, expectedMsgResp2)));
 
-
-        when(msgRespConverterMock.toMessageResponse(MSG_BUYER)).thenReturn(msgResp1);
-        when(msgRespConverterMock.toMessageResponse(MSG_SELLER)).thenReturn(msgResp2);
-        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_1)).thenReturn(participantRespMock);
-        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_2)).thenReturn(participantRespMock);
-
-        ConversationResponse actual = convRespConverter.toConversationResponseWithMessages(conversation);
-
-        verify(msgRespConverterMock).toMessageResponse(MSG_BUYER);
-        verify(msgRespConverterMock, times(2)).toMessageResponse(MSG_SELLER);
-        verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_1);
-        verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_2);
-        assertThat(actual, is(expected));
+        ConversationResponse actual = ConversationResponseConverter.toConversationResponseWithMessages(conversation);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void toConversationResponse() {
-        MessageResponse msgResp = new MessageResponse("m1", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data");
-        MessageResponse expectedMsgResp = new MessageResponse("m1", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data").withIsRead(true);
+        MessageResponse expectedMsgResp = new MessageResponse(MSG_SELLER.getId().toString(), MSG_SELLER.getType().getValue(), MSG_SELLER.getText(),
+                MSG_SELLER.getSenderUserId(), MSG_SELLER.getReceivedDate().toString(), MSG_SELLER.getCustomData())
+                .withIsRead(true);
 
         ConversationThread conversation = new ConversationThread(
                 CONVERSATION_ID,
@@ -138,7 +117,7 @@ public class ConversationResponseConverterTest {
                 AD_ID,
                 "active",
                 "receive",
-                asList(participantRespMock, participantRespMock),
+                asList(PARTICIPANT_RESP_1, PARTICIPANT_RESP_2),
                 expectedMsgResp,
                 toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
                 EMAIL_SUBJECT,
@@ -147,22 +126,14 @@ public class ConversationResponseConverterTest {
                 UNREAD_MSGS_COUNT,
                 Optional.empty());
 
-        when(msgRespConverterMock.toMessageResponse(MSG_SELLER)).thenReturn(msgResp);
-        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_1)).thenReturn(participantRespMock);
-        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_2)).thenReturn(participantRespMock);
-
-        ConversationResponse actual = convRespConverter.toConversationResponse(conversation);
-
-        verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_1);
-        verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_2);
-        verify(msgRespConverterMock).toMessageResponse(MSG_SELLER);
-        assertThat(actual, is(expected));
+        ConversationResponse actual = ConversationResponseConverter.toConversationResponse(conversation);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void toConversationResponseWithoutMessages() {
-        MessageResponse msgResp = new MessageResponse("m1", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data");
-        MessageResponse expectedMsgResp = new MessageResponse("m1", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data");
+        MessageResponse expectedMsgResp = new MessageResponse(MSG_SELLER.getId().toString(), MSG_SELLER.getType().getValue(), MSG_SELLER.getText(),
+                MSG_SELLER.getSenderUserId(), MSG_SELLER.getReceivedDate().toString(), MSG_SELLER.getCustomData());
         expectedMsgResp.setIsRead(false);
         ConversationThread conversation = new ConversationThread(
                 CONVERSATION_ID,
@@ -182,7 +153,7 @@ public class ConversationResponseConverterTest {
                 AD_ID,
                 "active",
                 "receive",
-                asList(participantRespMock, participantRespMock),
+                asList(PARTICIPANT_RESP_1, PARTICIPANT_RESP_2),
                 expectedMsgResp,
                 toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
                 EMAIL_SUBJECT,
@@ -191,24 +162,15 @@ public class ConversationResponseConverterTest {
                 UNREAD_MSGS_COUNT,
                 Optional.of(new ArrayList<>()));
 
-        when(msgRespConverterMock.toMessageResponse(MSG_SELLER)).thenReturn(msgResp);
-        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_1)).thenReturn(participantRespMock);
-        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_2)).thenReturn(participantRespMock);
-
-        ConversationResponse actual = convRespConverter.toConversationResponseWithMessages(conversation);
-
-        verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_1);
-        verify(participantRespConverterMock).toParticipantResponse(PARTICIPANT_2);
-        verify(msgRespConverterMock).toMessageResponse(MSG_SELLER);
-        assertThat(actual, is(expected));
+        ConversationResponse actual = ConversationResponseConverter.toConversationResponseWithMessages(conversation);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void toConversationResponseWithoutTitle() {
-
-        MessageResponse msgResp = new MessageResponse("m1", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data");
-
-        MessageResponse expectedMsgResp = new MessageResponse("m1", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data").withIsRead(true);
+        MessageResponse expectedMsgResp = new MessageResponse(MSG_SELLER.getId().toString(), MSG_SELLER.getType().getValue(), MSG_SELLER.getText(),
+                MSG_SELLER.getSenderUserId(), MSG_SELLER.getReceivedDate().toString(), MSG_SELLER.getCustomData())
+                .withIsRead(true);
 
         ConversationThread conversation = new ConversationThread(
                 CONVERSATION_ID,
@@ -229,7 +191,7 @@ public class ConversationResponseConverterTest {
                 AD_ID,
                 "active",
                 "receive",
-                asList(participantRespMock, participantRespMock),
+                asList(PARTICIPANT_RESP_1, PARTICIPANT_RESP_2),
                 expectedMsgResp,
                 toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
                 EMAIL_SUBJECT,
@@ -237,19 +199,14 @@ public class ConversationResponseConverterTest {
                 null,
                 UNREAD_MSGS_COUNT,
                 Optional.empty());
-
-        when(msgRespConverterMock.toMessageResponse(MSG_SELLER)).thenReturn(msgResp);
-        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_1)).thenReturn(participantRespMock);
-        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_2)).thenReturn(participantRespMock);
-
-        ConversationResponse actual = convRespConverter.toConversationResponse(conversation);
-
-        assertThat(actual, is(expected));
+        ConversationResponse actual = ConversationResponseConverter.toConversationResponse(conversation);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void toConversationResponseWithImageUrl() {
-        MessageResponse msgResp = new MessageResponse("m1", "message", "text", PARTICIPANT_1.getUserId(), "1/1/1", "data");
+        MessageResponse msgResp = new MessageResponse(MSG_SELLER.getId().toString(), MSG_SELLER.getType().getValue(), MSG_SELLER.getText(),
+                MSG_SELLER.getSenderUserId(), MSG_SELLER.getReceivedDate().toString(), MSG_SELLER.getCustomData());
         String imageUrl = "some-image-url";
 
         ConversationThread conversation = new ConversationThread(
@@ -271,7 +228,7 @@ public class ConversationResponseConverterTest {
                 AD_ID,
                 "active",
                 "receive",
-                asList(participantRespMock, participantRespMock),
+                asList(PARTICIPANT_RESP_1, PARTICIPANT_RESP_2),
                 msgResp,
                 toFormattedTimeISO8601ExplicitTimezoneOffset(now()),
                 EMAIL_SUBJECT,
@@ -280,12 +237,7 @@ public class ConversationResponseConverterTest {
                 UNREAD_MSGS_COUNT,
                 Optional.empty());
 
-        when(msgRespConverterMock.toMessageResponse(MSG_SELLER)).thenReturn(msgResp);
-        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_1)).thenReturn(participantRespMock);
-        when(participantRespConverterMock.toParticipantResponse(PARTICIPANT_2)).thenReturn(participantRespMock);
-
-        ConversationResponse actual = convRespConverter.toConversationResponse(conversation);
-
-        assertThat(actual, is(expected));
+        ConversationResponse actual = ConversationResponseConverter.toConversationResponse(conversation);
+        assertEquals(expected, actual);
     }
 }

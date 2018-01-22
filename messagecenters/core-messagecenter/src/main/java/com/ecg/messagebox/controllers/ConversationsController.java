@@ -3,7 +3,7 @@ package com.ecg.messagebox.controllers;
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.controllers.responses.ConversationsResponse;
-import com.ecg.messagebox.controllers.responses.converters.ConversationsResponseConverter;
+import com.ecg.messagebox.controllers.responses.converters.ConversationResponseConverter;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.PostBoxService;
@@ -23,6 +23,7 @@ import javax.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -34,12 +35,10 @@ public class ConversationsController {
     private final Timer postEmptyConversation = TimingReports.newTimer("webapi.post-empty-conversation");
 
     private final PostBoxService postBoxService;
-    private final ConversationsResponseConverter responseConverter;
 
     @Autowired
-    public ConversationsController(PostBoxService postBoxService, ConversationsResponseConverter responseConverter) {
+    public ConversationsController(PostBoxService postBoxService) {
         this.postBoxService = postBoxService;
-        this.responseConverter = responseConverter;
     }
 
     @InitBinder
@@ -56,7 +55,7 @@ public class ConversationsController {
 
         try (Timer.Context ignored = getConversationsTimer.time()) {
             PostBox conversations = postBoxService.getConversations(userId, Visibility.valueOf(visibility.toUpperCase()), offset, limit);
-            ConversationsResponse conversationsResponse = responseConverter.toConversationsResponse(conversations, offset, limit);
+            ConversationsResponse conversationsResponse = toConversationsResponse(conversations, offset, limit);
             return ResponseObject.of(conversationsResponse);
         }
     }
@@ -82,7 +81,7 @@ public class ConversationsController {
                     postBox = null;
                     break;
             }
-            Object response = postBox == null ? RequestState.INVALID_ARGUMENTS : responseConverter.toConversationsResponse(postBox, offset, limit);
+            Object response = postBox == null ? RequestState.INVALID_ARGUMENTS : toConversationsResponse(postBox, offset, limit);
             return ResponseObject.of(response);
         }
     }
@@ -112,5 +111,18 @@ public class ConversationsController {
                     ? new ResponseEntity<>(ResponseObject.of(conversationId.get()), HttpStatus.OK)
                     : new ResponseEntity<>("Missing participant for buyer or seller", HttpStatus.BAD_REQUEST);
         }
+    }
+
+
+    private static ConversationsResponse toConversationsResponse(PostBox postBox, int offset, int limit) {
+        return new ConversationsResponse(
+                postBox.getUserId(),
+                postBox.getUnreadCounts().getNumUnreadMessages(),
+                postBox.getUnreadCounts().getNumUnreadConversations(),
+                postBox.getConversations().stream().map(ConversationResponseConverter::toConversationResponse).collect(Collectors.toList()),
+                offset,
+                limit,
+                postBox.getConversationsTotalCount()
+        );
     }
 }

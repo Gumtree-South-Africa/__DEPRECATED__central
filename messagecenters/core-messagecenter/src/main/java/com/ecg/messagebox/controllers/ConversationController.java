@@ -30,12 +30,10 @@ public class ConversationController {
     private final Timer postSystemMessage = TimingReports.newTimer("webapi.post-system-message");
 
     private final PostBoxService postBoxService;
-    private final ConversationResponseConverter responseConverter;
 
     @Autowired
-    public ConversationController(PostBoxService postBoxService, ConversationResponseConverter responseConverter) {
+    public ConversationController(PostBoxService postBoxService) {
         this.postBoxService = postBoxService;
-        this.responseConverter = responseConverter;
     }
 
     @GetMapping("/users/{userId}/conversations/{conversationId}")
@@ -49,7 +47,7 @@ public class ConversationController {
         try (Timer.Context ignored = getConversationTimer.time()) {
             Optional<ConversationResponse> conversationResponse = postBoxService
                     .getConversation(userId, conversationId, messageIdCursorOpt, limit)
-                    .map(responseConverter::toConversationResponseWithMessages);
+                    .map(ConversationResponseConverter::toConversationResponseWithMessages);
             if (!conversationResponse.isPresent()) {
                 LOG.trace("Conversation not found with conversationID: {}, userId: {}", conversationId, userId);
             }
@@ -70,7 +68,7 @@ public class ConversationController {
                 try (Timer.Context ignored = markConversationAsReadTimer.time()) {
                     Optional<ConversationResponse> conversationResponse = postBoxService
                             .markConversationAsRead(userId, conversationId, messageIdCursorOpt, limit)
-                            .map(responseConverter::toConversationResponseWithMessages);
+                            .map(ConversationResponseConverter::toConversationResponseWithMessages);
                     return wrapResponse(conversationResponse);
                 }
             default:
