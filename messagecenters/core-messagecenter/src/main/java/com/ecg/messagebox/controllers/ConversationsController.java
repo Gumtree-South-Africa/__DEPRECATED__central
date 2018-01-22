@@ -66,11 +66,10 @@ public class ConversationsController {
             @PathVariable("userId") String userId,
             @RequestParam("action") String action,
             @RequestParam(name = "visibility", defaultValue = "ACTIVE") String visibility,
-            @RequestParam(name = "ids", required = false) String[] conversationIds,
+            @RequestParam(name = "ids") String[] conversationIds,
             @RequestParam(name = "offset", defaultValue = "0") int offset,
             @RequestParam(name = "limit", defaultValue = "50") int limit) {
 
-        //TODO: Throws NullPointerException when ids is empty
         try (Timer.Context ignored = executeActionsTimer.time()) {
             PostBox postBox;
             Visibility newVisibility = Visibility.valueOf(visibility.toUpperCase());
