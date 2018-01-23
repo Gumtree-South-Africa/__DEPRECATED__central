@@ -28,7 +28,17 @@ function startEnv() {
         exit
     fi
 
+    set +e
     ${DOCKER_COMPOSE} up -d
+    success=$?
+    if [ $success -ne 0 ]; then
+        echo
+        echo "Did you try logging in?"
+        echo "docker login docker-registry.ecg.so"
+        echo
+        exit $success
+    fi
+    set -e
 }
 
 function stopEnv() {
