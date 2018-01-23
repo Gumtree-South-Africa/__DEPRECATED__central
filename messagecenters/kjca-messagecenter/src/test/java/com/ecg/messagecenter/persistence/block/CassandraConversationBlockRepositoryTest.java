@@ -2,7 +2,6 @@ package com.ecg.messagecenter.persistence.block;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,8 +70,7 @@ public class CassandraConversationBlockRepositoryTest {
 
     @Configuration
     @Import({
-            CassandraConversationBlockConfiguration.class,
-            JacksonAwareObjectMapperConfigurer.class
+            CassandraConversationBlockConfiguration.class
     })
     static class TestContext {
         @Value("${persistence.cassandra.consistency.read:#{null}}")

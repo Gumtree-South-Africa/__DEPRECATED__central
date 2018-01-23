@@ -4,10 +4,9 @@ import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.StatementsBase;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +45,6 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
 
     private Map<StatementsBase, PreparedStatement> preparedStatements;
 
-    private ObjectMapper objectMapper;
-
     @Override
     public ConversationBlock byId(String conversationId) {
         try (Timer.Context ignored = byIdTimer.time()) {
@@ -59,7 +56,7 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
             }
 
             try {
-                return objectMapper.readValue(row.getString(FIELD_JSON_VALUE), ConversationBlock.class);
+                return ObjectMapperConfigurer.getObjectMapper().readValue(row.getString(FIELD_JSON_VALUE), ConversationBlock.class);
             } catch (IOException e) {
                 throw new RuntimeException("Could not read convertible JSON value from table", e);
             }
@@ -71,7 +68,7 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
         DateTime modificationDate = DateTime.now();
 
         try (Timer.Context ignored = writeTimer.time()) {
-            String jsonValue = objectMapper.writeValueAsString(conversationBlock);
+            String jsonValue = ObjectMapperConfigurer.getObjectMapper().writeValueAsString(conversationBlock);
 
             cassandraSessionForMb.execute(Statements.UPDATE_CONVERSATION_BLOCK.bind(this, jsonValue, conversationBlock.getConversationId()));
             cassandraSessionForMb.execute(Statements.INSERT_CONVERSATION_BLOCK_IDX.bind(this, conversationBlock.getConversationId(), modificationDate.toDate()));
@@ -125,11 +122,6 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
             }
             return conversationBlockIds;
         }
-    }
-
-    @Autowired
-    public void setObjectMapperConfigurer(JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
-        this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
     }
 
     @Override

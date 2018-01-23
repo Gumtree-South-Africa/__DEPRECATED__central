@@ -9,7 +9,6 @@ import com.ecg.messagecenter.persistence.block.RiakConversationBlockConverter;
 import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxConflictResolver;
 import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxConverter;
 import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxMerger;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
 import com.ecg.replyts.core.runtime.persistence.strategy.CassandraPersistenceConfiguration;
 import com.ecg.replyts.core.runtime.persistence.strategy.RiakPersistenceConfiguration;
@@ -33,7 +32,6 @@ import java.util.concurrent.TimeUnit;
         RiakHostConfig.class,
         RiakPersistenceConfiguration.RiakClientConfiguration.class,
         CassandraPersistenceConfiguration.CassandraClientConfiguration.class,
-        JacksonAwareObjectMapperConfigurer.class,
         JsonToPostBoxConverter.class,     // This has to be specific for each tenant!
         PostBoxToJsonConverter.class      // This has to be specific for each tenant!
 })

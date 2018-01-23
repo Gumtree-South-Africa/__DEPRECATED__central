@@ -11,7 +11,6 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierConfiguration;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.joda.time.DateTime;
 import org.junit.After;
@@ -43,7 +42,7 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
 
         ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierConfiguration().createUserIdentifierService());
 
-        DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, resumer, 100, new JacksonAwareObjectMapperConfigurer().getObjectMapper());
+        DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, resumer, 100);
 
         return myRepo;
     }

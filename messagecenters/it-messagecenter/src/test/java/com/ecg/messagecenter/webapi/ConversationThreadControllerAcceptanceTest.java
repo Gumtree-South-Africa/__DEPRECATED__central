@@ -2,7 +2,7 @@ package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.Header;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import org.junit.Test;
@@ -34,7 +34,7 @@ public class ConversationThreadControllerAcceptanceTest extends BaseReplyTsInteg
                 "\"messageDirection\":\"SELLER_TO_BUYER\"," +
                 "\"robot\":null," +
                 "\"offerId\":null}";
-        final ObjectMapper objectMapper = new JacksonAwareObjectMapperConfigurer().getObjectMapper();
+        final ObjectMapper objectMapper = ObjectMapperConfigurer.getObjectMapper();
         ConversationThread conversationThread = objectMapper.readValue(msg, ConversationThread.class);
         assertTrue(conversationThread.getSellerName().isPresent());
         assertEquals("Motorsud", conversationThread.getSellerName().get());

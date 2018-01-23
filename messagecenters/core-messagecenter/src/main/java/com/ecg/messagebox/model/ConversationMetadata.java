@@ -12,8 +12,8 @@ import java.util.Optional;
 public class ConversationMetadata {
 
     private String emailSubject;
-    private Optional<DateTime> creationDate = Optional.empty();
-    private Optional<String> title = Optional.empty();
+    private Optional<DateTime> creationDate;
+    private Optional<String> title;
     private String imageUrl;
 
     @JsonCreator

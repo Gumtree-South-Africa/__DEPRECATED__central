@@ -11,17 +11,15 @@ import com.datastax.driver.core.Statement;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.StatementsBase;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
@@ -71,8 +69,6 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     private final Timer upsertThreadTimer = TimingReports.newTimer("cassandra.postBoxRepo-upsertThread");
 
     private Map<StatementsBase, PreparedStatement> preparedStatements;
-
-    private ObjectMapper objectMapper;
 
     @Value("${replyts.cleanup.conversation.streaming.queue.size:500}")
     private int workQueueSize;
@@ -157,7 +153,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             String jsonClass = jsonValue.substring(0, jsonValue.indexOf("@@"));
             String jsonContent = jsonValue.substring(jsonValue.indexOf("@@") + 2);
 
-            AbstractConversationThread conversationThread = objectMapper.readValue(jsonContent, (Class<? extends AbstractConversationThread>) Class.forName(jsonClass));
+            AbstractConversationThread conversationThread = ObjectMapperConfigurer.getObjectMapper().readValue(jsonContent, (Class<? extends AbstractConversationThread>) Class.forName(jsonClass));
 
             conversationThread.setContainsUnreadMessages(numUnreadMessages > 0);
 
@@ -174,7 +170,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             // AbstractConversationThread is parameterized so store the effective class in the data
 
             String jsonClass = conversationThread.getClass().getName();
-            String jsonContent = objectMapper.writeValueAsString(conversationThread);
+            String jsonContent = ObjectMapperConfigurer.getObjectMapper().writeValueAsString(conversationThread);
 
             return Optional.of(jsonClass + "@@" + jsonContent);
         } catch (JsonProcessingException e) {
@@ -479,11 +475,6 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
             session.execute(statement);
         }
-    }
-
-    @Autowired
-    public void setObjectMapperConfigurer(JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
-        this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
     }
 
     @Override

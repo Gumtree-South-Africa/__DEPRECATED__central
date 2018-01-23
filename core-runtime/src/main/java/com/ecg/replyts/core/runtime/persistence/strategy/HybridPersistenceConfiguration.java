@@ -66,9 +66,6 @@ public class HybridPersistenceConfiguration {
     private IRiakClient riakClient;
 
     @Autowired
-    private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
-
-    @Autowired
     private ConversationResumer resumer;
 
     @Value("${migration.conversations.deepMigration.enabled:false}")
@@ -91,7 +88,8 @@ public class HybridPersistenceConfiguration {
     @Bean
     @Primary
     public HybridConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState) {
-        cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer, conversationEventsFetchLimit, objectMapperConfigurer.getObjectMapper());
+        cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer,
+                conversationEventsFetchLimit);
 
         RiakConversationRepository riakRepository = new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins);
 

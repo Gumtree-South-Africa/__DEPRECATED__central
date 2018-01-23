@@ -4,7 +4,7 @@ import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -48,10 +48,9 @@ public class CassConversationRepo {
 
     @Autowired
     public CassConversationRepo(@Qualifier("cassandraSessionForCore") Session session,
-                                JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer,
                                 @Value("${persistence.cassandra.consistency.read:#{null}}") ConsistencyLevel cassandraReadConsistency) {
         try {
-            this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
+            this.objectMapper = ObjectMapperConfigurer.getObjectMapper();
             this.session = session;
             this.getByConvID = session.prepare(SELECT_FROM_CONVERSATION_EVENTS);
             this.getByDate = session.prepare(SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN);

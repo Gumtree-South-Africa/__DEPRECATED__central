@@ -4,10 +4,10 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.ecg.de.mobile.replyts.pushnotification.JsonConverter;
 import com.ecg.de.mobile.replyts.pushnotification.model.Message;
 import com.ecg.de.mobile.replyts.pushnotification.model.MessageMetadata;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.StatementsBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +35,6 @@ public class CassandraMessageRepository implements CassandraRepository {
     @Autowired
     private ConsistencyLevel cassandraWriteConsistency;
 
-    @Autowired
-    private JsonConverter jsonConverter;
-
     private Map<StatementsBase, PreparedStatement> preparedStatements;
 
     @PostConstruct
@@ -61,7 +58,7 @@ public class CassandraMessageRepository implements CassandraRepository {
 
     private MessageMetadata fromMessageMetadataJson(String userId, String conversationId, String messageId, String jsonValue) {
         try {
-            return jsonConverter.toObject(jsonValue, MessageMetadata.class);
+            return ObjectMapperConfigurer.getObjectMapper().readValue(jsonValue, MessageMetadata.class);
         } catch (IOException e) {
             LOG.error("Could not deserialize message metadata of userId {}, conversationId {} and messageId {}, json: {}",
                     userId, conversationId, messageId, jsonValue, e);

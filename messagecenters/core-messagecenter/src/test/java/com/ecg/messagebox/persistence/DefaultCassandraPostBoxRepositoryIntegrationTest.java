@@ -13,12 +13,10 @@ import com.ecg.messagebox.model.MessageType;
 import com.ecg.messagebox.model.Participant;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
-import com.ecg.messagebox.persistence.jsonconverter.JsonConverter;
 import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
 import com.ecg.messagebox.util.EmptyConversationFixture;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.runtime.cluster.Guids;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
@@ -74,8 +72,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        JsonConverter jsonConverter = new JsonConverter(new JacksonAwareObjectMapperConfigurer());
-        conversationsRepo = new DefaultCassandraPostBoxRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, jsonConverter);
+        conversationsRepo = new DefaultCassandraPostBoxRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
     }
 
     @After

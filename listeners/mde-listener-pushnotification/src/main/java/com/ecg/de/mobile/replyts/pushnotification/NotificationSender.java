@@ -1,5 +1,6 @@
 package com.ecg.de.mobile.replyts.pushnotification;
 
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
@@ -29,9 +30,6 @@ public class NotificationSender {
     @Autowired
     private HttpClient httpClient;
 
-    @Autowired
-    private JsonConverter jsonConverter;
-
     public void send(MdePushMessagePayload payload) {
         if (StringUtils.isEmpty(apiUrl)) {
             LOG.warn("Not sending push notification, apiUrl not configured.");
@@ -48,9 +46,8 @@ public class NotificationSender {
     }
 
     private HttpPost post(MdePushMessagePayload payload) throws Exception {
-        StringEntity params = new StringEntity(
-                jsonConverter.toJsonString(payload), ContentType.APPLICATION_JSON
-        );
+        String jsonPayload = ObjectMapperConfigurer.getObjectMapper().writeValueAsString(payload);
+        StringEntity params = new StringEntity(jsonPayload, ContentType.APPLICATION_JSON);
         HttpPost post = new HttpPost(apiUrl);
         post.addHeader(HTTP.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
         post.setEntity(params);

@@ -33,7 +33,6 @@ import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
@@ -79,15 +78,12 @@ public class CassandraPersistenceConfiguration {
     @Autowired
     private ConversationResumer resumer;
 
-    @Autowired
-    private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
-
     @Value("${persistence.cassandra.conversations.fetch.size:100}")
     private int conversationEventsFetchLimit;
 
     @Bean
     public ConversationRepository conversationRepository(Session cassandraSessionForCore) {
-        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, conversationEventsFetchLimit, objectMapperConfigurer.getObjectMapper());
+        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, conversationEventsFetchLimit);
     }
 
     @Bean

@@ -17,7 +17,6 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierConfiguration;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.joda.time.DateTime;
@@ -299,7 +298,7 @@ public class PostBoxOverviewControllerTest {
                 Optional.of(BUYER_ID), Optional.of(SELLER_ID));
     }
 
-    @Import({ CassandraSimplePostBoxConfiguration.class, JacksonAwareObjectMapperConfigurer.class, PostBoxOverviewController.class })
+    @Import({CassandraSimplePostBoxConfiguration.class, PostBoxOverviewController.class})
     static class TestContext {
         @Value("${persistence.cassandra.consistency.read:#{null}}")
         private ConsistencyLevel cassandraReadConsistency;
@@ -336,7 +335,7 @@ public class PostBoxOverviewControllerTest {
             ConversationResumer resumer = new IdBasedConversationResumer();
             ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierConfiguration().createUserIdentifierService());
 
-            return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, 100, new JacksonAwareObjectMapperConfigurer().getObjectMapper());
+            return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, 100);
         }
     }
 }

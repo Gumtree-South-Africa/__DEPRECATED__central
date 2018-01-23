@@ -4,7 +4,7 @@ import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +33,10 @@ public class CassConversationBlockRepo {
     @Autowired
     public CassConversationBlockRepo(
             @Qualifier("cassandraSessionForCore") Session session,
-            JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer,
             @Value("${persistence.cassandra.consistency.read:#{null}}") ConsistencyLevel cassandraReadConsistency
     ) {
         this.session = session;
-        this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
+        this.objectMapper = ObjectMapperConfigurer.getObjectMapper();
         this.cassandraReadConsistency = cassandraReadConsistency;
 
         this.getByConvID = session.prepare(SELECT_FROM_CONVERSATION_BLOCK);

@@ -5,7 +5,6 @@ import com.datastax.driver.core.*;
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.model.Message;
-import com.ecg.messagebox.persistence.jsonconverter.JsonConverter;
 import com.ecg.messagebox.persistence.model.ConversationIndex;
 import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
 import com.ecg.messagebox.persistence.model.UnreadCounts;
@@ -59,19 +58,15 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     private Map<Statements, PreparedStatement> preparedStatements;
 
-    private final JsonConverter jsonConverter;
-
     @Autowired
     public DefaultCassandraPostBoxRepository(
             @Qualifier("cassandraSessionForMb") Session session,
             @Qualifier("cassandraReadConsistency") ConsistencyLevel readConsistency,
-            @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency,
-            JsonConverter jsonConverter
-    ) {
+            @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency) {
+
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
-        this.jsonConverter = jsonConverter;
         this.preparedStatements = Statements.prepare(session);
     }
 
@@ -180,7 +175,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             return StreamUtils.toStream(resultSet)
                     .map(row -> {
                         UUID messageId = row.getUUID("msgid");
-                        MessageMetadata metadata = jsonConverter.fromMessageMetadataJson(userId, conversationId, messageId.toString(), row.getString("metadata"));
+                        MessageMetadata metadata = JsonConverter.fromMessageMetadataJson(userId, conversationId, messageId.toString(), row.getString("metadata"));
                         return new Message(row.getUUID("msgid"),
                                 MessageType.get(row.getString("type")),
                                 metadata);
@@ -196,9 +191,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         Visibility visibility = get(row.getInt("vis"));
         MessageNotification messageNotification = MessageNotification.get(row.getInt("ntfynew"));
-        List<Participant> participants = jsonConverter.fromParticipantsJson(userId, conversationId, row.getString("participants"));
-        Message latestMessage = jsonConverter.fromMessageJson(userId, conversationId, row.getString("latestmsg"));
-        ConversationMetadata metadata = jsonConverter.fromConversationMetadataJson(userId, conversationId, row.getString("metadata"));
+        List<Participant> participants = JsonConverter.fromParticipantsJson(userId, conversationId, row.getString("participants"));
+        Message latestMessage = JsonConverter.fromMessageJson(userId, conversationId, row.getString("latestmsg"));
+        ConversationMetadata metadata = JsonConverter.fromConversationMetadataJson(userId, conversationId, row.getString("metadata"));
 
         return new ConversationThread(conversationId, adId, userId, visibility, messageNotification, participants, latestMessage, metadata);
     }
@@ -298,7 +293,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     @Override
     public void addMessage(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount) {
         try (Timer.Context ignored = addMessageTimer.time()) {
-            String messageJson = jsonConverter.toMessageJson(userId, conversationId, message);
+            String messageJson = JsonConverter.toMessageJson(userId, conversationId, message);
 
             BatchStatement batch = new BatchStatement();
 
@@ -313,7 +308,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     @Override
     public void addSystemMessage(String userId, String conversationId, String adId, Message message) {
         try (Timer.Context ignored = addSystemMessageTimer.time()) {
-            String messageJson = jsonConverter.toMessageJson(userId, conversationId, message);
+            String messageJson = JsonConverter.toMessageJson(userId, conversationId, message);
 
             BatchStatement batch = new BatchStatement();
 
@@ -334,7 +329,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         statements.add(Statements.UPDATE_AD_CONVERSATION_INDEX.bind(this, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
 
         if (insertMessage) {
-            String messageMetadata = jsonConverter.toMessageMetadataJson(userId, conversationId, message);
+            String messageMetadata = JsonConverter.toMessageMetadataJson(userId, conversationId, message);
             statements.add(Statements.INSERT_MESSAGE.bind(this, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
         }
 
@@ -354,7 +349,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private List<Statement> newSystemMessageCqlStatements(String userId, String conversationId, String adId, Message message) {
         List<Statement> statements = new ArrayList<>();
         statements.add(Statements.UPDATE_AD_CONVERSATION_INDEX.bind(this, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
-        String messageMetadata = jsonConverter.toMessageMetadataJson(userId, conversationId, message);
+        String messageMetadata = JsonConverter.toMessageMetadataJson(userId, conversationId, message);
         statements.add(Statements.INSERT_MESSAGE.bind(this, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
 
         int newUnreadCount = getConversationUnreadCount(userId, conversationId) + 1;
@@ -439,7 +434,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                     newConversationId,
                     userId,
                     emptyConversation.getAdId(),
-                    new ArrayList(emptyConversation.getParticipants().values()),
+                    new ArrayList<>(emptyConversation.getParticipants().values()),
                     emptyConversation.getMessage(),
                     new ConversationMetadata(DateTime.now(), emptyConversation.getEmailSubject(), emptyConversation.getAdTitle(), imageUrl),
                     false,
@@ -456,9 +451,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     private void createConversation(String conversationId, String senderId, String adId, List<Participant> participants, Message message, ConversationMetadata metadata, boolean incrementUnreadCount, boolean insertMessage) {
 
-        String participantsJson = jsonConverter.toParticipantsJson(senderId, conversationId, participants);
-        String messageJson = jsonConverter.toMessageJson(senderId, conversationId, message);
-        String metadataJson = jsonConverter.toConversationMetadataJson(senderId, conversationId, metadata);
+        String participantsJson = JsonConverter.toParticipantsJson(senderId, conversationId, participants);
+        String messageJson = JsonConverter.toMessageJson(senderId, conversationId, message);
+        String metadataJson = JsonConverter.toConversationMetadataJson(senderId, conversationId, metadata);
 
         BatchStatement batch = new BatchStatement();
 

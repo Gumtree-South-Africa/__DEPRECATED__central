@@ -1,4 +1,4 @@
-package com.ecg.messagebox.controllers.responses.converters;
+package com.ecg.messagebox.controllers;
 
 import com.ecg.messagebox.controllers.responses.ConversationResponse;
 import com.ecg.messagebox.controllers.responses.MessageResponse;

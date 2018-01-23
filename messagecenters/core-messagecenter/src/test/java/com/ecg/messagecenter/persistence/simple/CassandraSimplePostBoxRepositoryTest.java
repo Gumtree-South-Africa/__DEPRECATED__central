@@ -4,7 +4,6 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.Counter;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -393,8 +392,7 @@ public class CassandraSimplePostBoxRepositoryTest {
     }
     @Configuration
     @Import({
-      CassandraSimplePostBoxConfiguration.class,
-      JacksonAwareObjectMapperConfigurer.class
+      CassandraSimplePostBoxConfiguration.class
     })
     static class TestContext {
 

@@ -4,12 +4,10 @@ import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.replyts.core.runtime.persistence.JacksonAwareObjectMapperConfigurer;
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.util.StreamUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -38,7 +36,6 @@ public class CassPostboxRepo {
 
     private final Timer byIdTimer = newTimer("cassandra.postBoxRepo-byId");
     private AtomicLong streamGauge = new AtomicLong();
-    private ObjectMapper objectMapper;
 
     @Value("${replyts.cleanup.conversation.streaming.queue.size:500}")
     private int workQueueSize;
@@ -113,7 +110,7 @@ public class CassPostboxRepo {
             String jsonClass = jsonValue.substring(0, jsonValue.indexOf("@@"));
             String jsonContent = jsonValue.substring(jsonValue.indexOf("@@") + 2);
 
-            AbstractConversationThread conversationThread = objectMapper.readValue(jsonContent, (Class<? extends AbstractConversationThread>) Class.forName(jsonClass));
+            AbstractConversationThread conversationThread = ObjectMapperConfigurer.getObjectMapper().readValue(jsonContent, (Class<? extends AbstractConversationThread>) Class.forName(jsonClass));
 
             conversationThread.setContainsUnreadMessages(numUnreadMessages > 0);
 
@@ -140,10 +137,4 @@ public class CassPostboxRepo {
         return toStream(resultset).map(row -> row.getString(FIELD_POSTBOX_ID));
 
     }
-
-    @Autowired
-    public void setObjectMapperConfigurer(JacksonAwareObjectMapperConfigurer jacksonAwareObjectMapperConfigurer) {
-        this.objectMapper = jacksonAwareObjectMapperConfigurer.getObjectMapper();
-    }
-
 }

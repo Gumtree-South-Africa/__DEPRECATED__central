@@ -63,9 +63,6 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
     private IRiakClient riakClient;
 
     @Autowired
-    private JacksonAwareObjectMapperConfigurer objectMapperConfigurer;
-
-    @Autowired
     private ConversationResumer resumer;
 
     @Value("${persistence.cassandra.conversations.fetch.size:100}")
@@ -73,7 +70,7 @@ public class ReadOnlyRiakHybridPersistenceConfiguration {
 
     @Bean
     public ConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState) {
-        DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer, conversationEventsFetchLimit, objectMapperConfigurer.getObjectMapper());
+        DefaultCassandraConversationRepository cassandraRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer, conversationEventsFetchLimit);
 
         RiakConversationRepository riakRepository = new QuietReadOnlyRiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastwriteWins);
 

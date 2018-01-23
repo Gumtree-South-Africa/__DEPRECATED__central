@@ -13,9 +13,9 @@ import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.StatementsBase;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
@@ -63,16 +63,13 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     private final Timer deleteConversationModificationIdxsTimer = TimingReports.newTimer("cassandra.conversationRepo-deleteConversationModificationIdxs");
     private final Histogram committedBatchSizeHistogram = TimingReports.newHistogram("cassandra.conversationRepo-commit-batch-size");
 
-    private final ObjectMapper objectMapper;
-
     private final ConversationResumer resumer;
 
     private final int conversationEventsFetchLimit;
 
     public DefaultCassandraConversationRepository(Session session, ConsistencyLevel readConsistency,
                                                   ConsistencyLevel writeConsistency, ConversationResumer resumer,
-                                                  int conversationEventsFetchLimit,
-                                                  ObjectMapper objectMapper) {
+                                                  int conversationEventsFetchLimit) {
         checkArgument(conversationEventsFetchLimit > 0, "conversationEventsFetchLimit must be a strictly positive number");
 
         this.session = session;
@@ -81,7 +78,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         this.preparedStatements = StatementsBase.prepare(Statements.class, session);
         this.resumer = resumer;
         this.conversationEventsFetchLimit = conversationEventsFetchLimit;
-        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -112,7 +108,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         String className = eventJsonWithClass.substring(0, eventJsonWithClass.indexOf("@@"));
         String eventJson = eventJsonWithClass.substring(eventJsonWithClass.indexOf("@@") + 2);
         try {
-            ConversationEvent conversationEvent = objectMapper.readValue(eventJson, (Class<? extends ConversationEvent>) Class.forName(className));
+            ConversationEvent conversationEvent = ObjectMapperConfigurer.getObjectMapper().readValue(eventJson, (Class<? extends ConversationEvent>) Class.forName(className));
             conversationEvent.setEventTimeUUID(eventId);
             return conversationEvent;
         } catch (Exception e) {
@@ -247,7 +243,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
                 try {
                     UUID eventId = conversationEvent.getEventTimeUUID();
                     DateTime currentTime = new DateTime(UUIDs.unixTimestamp(eventId));
-                    String jsonEventStr = objectMapper.writeValueAsString(conversationEvent);
+                    String jsonEventStr = ObjectMapperConfigurer.getObjectMapper().writeValueAsString(conversationEvent);
                     batch.add(Statements.INSERT_CONVERSATION_EVENTS.bind(
                             this,
                             conversationId,

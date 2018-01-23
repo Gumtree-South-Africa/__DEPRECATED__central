@@ -3,7 +3,6 @@ package com.ecg.messagebox.controllers;
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.controllers.responses.ConversationsResponse;
-import com.ecg.messagebox.controllers.responses.converters.ConversationResponseConverter;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.PostBoxService;
