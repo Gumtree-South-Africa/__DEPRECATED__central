@@ -2,6 +2,7 @@ package com.ecg.replyts.autogatemaildelivery;
 
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
+import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
 import com.ecg.replyts.core.runtime.mailparser.MailEnhancer;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Component;
  * Mail Delivery Service performs HTTP Posts of Leads to Autogate dataconnect service when the 
  * specific URL header has been set - otherwise sends as normal mail message.
  */
+@ComaasPlugin
 @Primary
 @Component
 public class AutogateAwareMailDeliveryService implements MailDeliveryService {
@@ -45,26 +47,26 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
 
     @Autowired
     public AutogateAwareMailDeliveryService(
-            @Qualifier("smtpMailDeliveryService") MailDeliveryService smtpMailDeliveryService,
-            MailEnhancer mailEnhancer,
-            @Value("${replyts.autogate.header.url:X-Cust-Http-Url}")
-            String autogateHttpUrlHeader,
-            @Value("${replyts.autogate.header.account:X-Cust-Http-Account-Name}")
-            String autogateHttpAccountName,
-            @Value("${replyts.autogate.header.password:X-Cust-Http-Account-Password}")
-            String autogateHttpAccountPassword,
-            @Value("${replyts.autogate.httpclient.proxyHost:}")
-            String proxyHost,
-            @Value("${replyts.autogate.httpclient.proxyPort:80}")
-            int proxyPort,
-            @Value("${replyts.autogate.httpclient.maxConnectionsPerRoute:100}")
-            int maxConnectionsPerRoute,
-            @Value("${replyts.autogate.httpclient.maxConnections:100}")
-            int maxConnections,
-            @Value("${replyts.autogate.httpclient.connectionTimeout:1000}")
-            int connectionTimeout,
-            @Value("${replyts.autogate.httpclient.socketTimeout:1000}")
-            int socketTimeout) {
+      @Qualifier("smtpMailDeliveryService") MailDeliveryService smtpMailDeliveryService,
+      MailEnhancer mailEnhancer,
+      @Value("${replyts.autogate.header.url:X-Cust-Http-Url}")
+      String autogateHttpUrlHeader,
+      @Value("${replyts.autogate.header.account:X-Cust-Http-Account-Name}")
+      String autogateHttpAccountName,
+      @Value("${replyts.autogate.header.password:X-Cust-Http-Account-Password}")
+      String autogateHttpAccountPassword,
+      @Value("${replyts.autogate.httpclient.proxyHost:}")
+      String proxyHost,
+      @Value("${replyts.autogate.httpclient.proxyPort:80}")
+      int proxyPort,
+      @Value("${replyts.autogate.httpclient.maxConnectionsPerRoute:100}")
+      int maxConnectionsPerRoute,
+      @Value("${replyts.autogate.httpclient.maxConnections:100}")
+      int maxConnections,
+      @Value("${replyts.autogate.httpclient.connectionTimeout:1000}")
+      int connectionTimeout,
+      @Value("${replyts.autogate.httpclient.socketTimeout:1000}")
+      int socketTimeout) {
         this.smtpMailDeliveryService = smtpMailDeliveryService;
         this.mailEnhancer = mailEnhancer;
         this.autogateHttpAccountName = autogateHttpAccountName;
@@ -77,13 +79,13 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
     private HttpClient buildHttpClient(String proxyHost, int proxyPort, int socketTimeout, int connectionTimeout, int maxConnections, int maxConnectionsPerRoute) {
         HttpClientBuilder builder = HttpClientBuilder.createHttpclient();
 
-        if(!Strings.isNullOrEmpty(proxyHost)) {
+        if (!Strings.isNullOrEmpty(proxyHost)) {
             builder.usingProxy(proxyHost, proxyPort);
         }
 
         return builder.withSocketTimeout(socketTimeout)
-                .withConnectionTimeout(connectionTimeout)
-                .withConnectionsLimitedTo(maxConnections, maxConnectionsPerRoute).build();
+          .withConnectionTimeout(connectionTimeout)
+          .withConnectionsLimitedTo(maxConnections, maxConnectionsPerRoute).build();
     }
 
     @Override
@@ -103,7 +105,6 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
             postHttpLead(m, postUrl);
         }
     }
-
 
     /**
      * Send HTTP Post lead to the professional sellers

@@ -85,7 +85,7 @@ public class Webserver {
 
     private void start() {
         if (started) {
-            throw new IllegalStateException("The EmbeddedWebserver has already been started!");
+            throw new IllegalStateException("The Webserver has already been started");
         }
 
         ServerStartupLifecycleListener listener = new ServerStartupLifecycleListener();
@@ -96,14 +96,7 @@ public class Webserver {
             registerJettyOnJmx();
         }
 
-        if (gzipEnabled) {
-            LOG.info("Jetty gzip compression is enabled");
-            GzipHandler gzipHandler = buildGzipHandler(createContextHandler());
-            handlers.addHandler(instrument(gzipHandler));
-        } else {
-            handlers.addHandler(instrument(createContextHandler()));
-        }
-
+        handlers.addHandler(instrument(gzip(new HandlerCollection(contextProviders.stream().map(SpringContextProvider::create).toArray(Handler[]::new)))));
         handlers.addHandler(instrument(createAccessLoggingHandler()));
 
         server.setHandler(handlers);
@@ -119,6 +112,8 @@ public class Webserver {
         contextProviders.forEach(ContextProvider::test);
 
         started = true;
+
+        LOG.info("The Webserver has been started with {} context providers", contextProviders.size());
     }
 
     public boolean isStarted() {
@@ -137,14 +132,6 @@ public class Webserver {
         } else {
             return handler;
         }
-    }
-
-    private Handler createContextHandler() {
-        LOG.info("Adding {} context handler(s) to the webserver", contextProviders.size());
-
-        HandlerCollection contextHandler = new HandlerCollection();
-        contextProviders.forEach(context -> contextHandler.addHandler(context.create()));
-        return contextHandler;
     }
 
     private void registerJettyOnJmx() {
@@ -179,11 +166,17 @@ public class Webserver {
         return handler;
     }
 
-    private GzipHandler buildGzipHandler(Handler contextHandler) {
-        GzipHandler gzipHandler = new GzipHandler();
-        gzipHandler.setIncludedMethods(GET.asString(), POST.asString(), PUT.asString(), DELETE.asString());
-        gzipHandler.setIncludedMimeTypes(TEXT_PLAIN.asString(), TEXT_JSON.asString(), APPLICATION_JSON.asString());
-        gzipHandler.setHandler(contextHandler);
-        return gzipHandler;
+    private Handler gzip(Handler contextHandler) {
+        if (gzipEnabled) {
+            GzipHandler gzipHandler = new GzipHandler();
+
+            gzipHandler.setIncludedMethods(GET.asString(), POST.asString(), PUT.asString(), DELETE.asString());
+            gzipHandler.setIncludedMimeTypes(TEXT_PLAIN.asString(), TEXT_JSON.asString(), APPLICATION_JSON.asString());
+            gzipHandler.setHandler(contextHandler);
+
+            return gzipHandler;
+        } else {
+            return contextHandler;
+        }
     }
 }

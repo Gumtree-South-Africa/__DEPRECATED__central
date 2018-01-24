@@ -79,12 +79,14 @@ public class SpringContextProvider implements ContextProvider, Ordered {
 
     @Override
     public void test() {
-        if (context == null)
+        if (context == null) {
             throw new IllegalStateException("Spring context is being tested but hasn't been initialized yet");
+        }
 
         try {
-            if (!context.isRunning())
+            if (!context.isRunning()) {
                 throw new IllegalStateException("Spring context is not running");
+            }
         } catch (Exception e) {
             throw new RuntimeException("Spring context not running", e);
         }
@@ -95,7 +97,7 @@ public class SpringContextProvider implements ContextProvider, Ordered {
         return path;
     }
 
-    // Make sure that / always comes last
+    // Make sure that "/" always comes last
 
     @Override
     public int getOrder() {

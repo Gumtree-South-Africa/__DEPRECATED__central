@@ -2,6 +2,7 @@ package com.ecg.replyts.core.runtime.mailparser;
 
 import com.codahale.metrics.Counter;
 import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.apache.james.mime4j.dom.address.Mailbox;
 import org.apache.james.mime4j.dom.field.AddressListField;
@@ -27,21 +28,24 @@ import java.util.List;
 /**
  * This is a helper class to amend the To, Cc and Bcc headers with any overrides
  */
+@ComaasPlugin
 @Component
 public class MailEnhancer {
-
     private final static Logger LOG = LoggerFactory.getLogger(MailEnhancer.class);
+
+    private static final Counter BROADCAST_SUCCESS = TimingReports.newCounter("message-box.postBoxBroadcast.success");
 
     @Value("${replyts.header.email.from.list:X-Cust-Email-From-Override}")
     private String emailFromListHeader;
+
     @Value("${replyts.header.email.to.list:X-Cust-Email-To-Override}")
     private String emailToListHeader;
+
     @Value("${replyts.header.email.cc.list:X-Cust-Email-Cc-Override}")
     private String emailCcListHeader;
+
     @Value("${replyts.header.email.bcc.list:X-Cust-Email-Bcc-Override}")
     private String emailBccListHeader;
-
-    private static final Counter BROADCAST_SUCCESS = TimingReports.newCounter("message-box.postBoxBroadcast.success");
 
     /**
      * Attempt to override the mail headers with To, Cc and Bcc lists
@@ -49,19 +53,24 @@ public class MailEnhancer {
     public Mail process(Mail m) {
         try {
             StructuredMutableMail mail = (StructuredMutableMail) m;
+
             boolean isUpdated = false;
+
             isUpdated |= amendMailHeader(mail, FieldName.FROM, emailFromListHeader);
             isUpdated |= amendMailHeader(mail, FieldName.TO, emailToListHeader);
             isUpdated |= amendMailHeader(mail, FieldName.CC, emailCcListHeader);
             isUpdated |= amendMailHeader(mail, FieldName.BCC, emailBccListHeader);
 
-            if(isUpdated) {
+            if (isUpdated) {
                 BROADCAST_SUCCESS.inc(); // Update the counter
             }
+
             LOG.info("Headers for message id {} after processing {} ",mail.getMessageId(), mail.getUniqueHeaders());
+
             return mail;
         } catch (Exception e) {
             LOG.error("Exception while processing mail", e); // Do nothing
+
             return m;
         }
     }

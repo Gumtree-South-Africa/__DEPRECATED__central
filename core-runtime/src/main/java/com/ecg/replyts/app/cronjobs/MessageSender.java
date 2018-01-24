@@ -2,6 +2,7 @@ package com.ecg.replyts.app.cronjobs;
 
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.api.processing.ModerationService;
@@ -11,7 +12,6 @@ import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
-import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public class MessageSender {
     private final ApplicationContext applicationContext;
 
     private final SearchService searchService;
-    private final MutableConversationRepository conversationRepository;
+    private final ConversationRepository conversationRepository;
     private final SearchIndexer searchIndexer;
 
     private final int retentionTimeHours;
@@ -39,7 +39,7 @@ public class MessageSender {
 
     @Autowired
     public MessageSender(ApplicationContext applicationContext, SearchService searchService,
-                         MutableConversationRepository conversationRepository, SearchIndexer searchIndexer,
+                         ConversationRepository conversationRepository, SearchIndexer searchIndexer,
                          @Value("${cronjob.sendHeld.retentionTimeHours:12}") int retentionTimeHours,
                          // 24 hours is the default to guard against stuck mails
                          @Value("${cronjob.sendHeld.retentionTimeStartHours:24}") int retentionTimeStartHours,

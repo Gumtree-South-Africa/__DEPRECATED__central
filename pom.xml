@@ -146,7 +146,6 @@
 
             <modules>
                 <module>coremods/gtuk-coremod-shared</module>
-                <module>coremods/gtuk-coremod-healthcheck</module>
 
                 <module>filters/gtuk-filter-word</module>
                 <module>filters/gtuk-filter-blacklist</module>
