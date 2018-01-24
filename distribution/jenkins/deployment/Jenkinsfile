@@ -134,43 +134,45 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
         sh "PYTHONWARNINGS='ignore' deploy.py --config /etc/comaas/comaas-${tenant}.yaml --logdir ~ --component $artifact"
     }
 
-    final String tenantShort = commonFunctions.getAlias(tenant)
+    if (environment == "lp") {
+        final String tenantShort = commonFunctions.getAlias(tenant)
 
-    // There are 4 availability zones (called DC in Nomad), and we want to be able to both spread more or less evenly
-    // over zones, and have the allocation space to reschedule enough instances when a zone goes down. This is a best
-    // effort effort:
-    final Integer nrOfInstancesPerZone = nrOfInstances.intdiv(4) + 1
+        // There are 4 availability zones (called DC in Nomad), and we want to be able to both spread more or less evenly
+        // over zones, and have the allocation space to reschedule enough instances when a zone goes down. This is a best
+        // effort effort:
+        final Integer nrOfInstancesPerZone = nrOfInstances.intdiv(4) + 1
 
-    // Is this really necessary? Can we pass the files to the builder instead?
-    checkout scm
+        // Is this really necessary? Can we pass the files to the builder instead?
+        checkout scm
 
-    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
-                      usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
-        sh "levant render " +
-                "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
-                "-var='version=${version}' " +
-                "-var='docker_password=${DOCKER_PASS}' " +
-                "-var='tenant=${tenant}' " +
-                "-var='tenant_short=${tenantShort}' " +
-                "-var='environment=${environment}' " +
-                "-var='region=${dc}' " +
-                "-var='api_count=${nrOfInstances}' " +
-                "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
-                "distribution/jenkins/deployment/core-api.nomad"
-        sh "levant deploy " +
-                "-log-level=debug " +
-                "-force-count=true " +
-                "-address='http://http.nomad.service.consul:4646' " +
-                "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
-                "-var='version=${version}' " +
-                "-var='docker_password=${DOCKER_PASS}' " +
-                "-var='tenant=${tenant}' " +
-                "-var='tenant_short=${tenantShort}' " +
-                "-var='environment=${environment}' " +
-                "-var='region=${dc}' " +
-                "-var='api_count=${nrOfInstances}' " +
-                "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
-                "distribution/jenkins/deployment/core-api.nomad"
+        withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
+                          usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
+            sh "levant render " +
+                    "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
+                    "-var='version=${version}' " +
+                    "-var='docker_password=${DOCKER_PASS}' " +
+                    "-var='tenant=${tenant}' " +
+                    "-var='tenant_short=${tenantShort}' " +
+                    "-var='environment=${environment}' " +
+                    "-var='region=${dc}' " +
+                    "-var='api_count=${nrOfInstances}' " +
+                    "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
+                    "distribution/jenkins/deployment/core-api.nomad"
+            sh "levant deploy " +
+                    "-log-level=debug " +
+                    "-force-count=true " +
+                    "-address='http://http.nomad.service.consul:4646' " +
+                    "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
+                    "-var='version=${version}' " +
+                    "-var='docker_password=${DOCKER_PASS}' " +
+                    "-var='tenant=${tenant}' " +
+                    "-var='tenant_short=${tenantShort}' " +
+                    "-var='environment=${environment}' " +
+                    "-var='region=${dc}' " +
+                    "-var='api_count=${nrOfInstances}' " +
+                    "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
+                    "distribution/jenkins/deployment/core-api.nomad"
+        }
     }
 }
 

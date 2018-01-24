@@ -61,6 +61,7 @@ job "[[ .tenant ]]-core-api" {
       env {
         HEAP_SIZE = "2g"
         JAVA_OPTS = ""
+        TENANT = "[[ .tenant ]]"
       }
 
       service {
