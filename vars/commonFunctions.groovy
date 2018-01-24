@@ -414,20 +414,24 @@ String getGitHashForTag(String tag) {
         ).trim()
 
         def tagObjJson = new JsonSlurper().parseText(tagObj)
-        switch (tagObjJson.type) {
-            case 'commit':
-                env.TEMP = tagObjJson.sha
-                break
-            case 'tag': default:
-                final String url = tagObjJson.url
-                env.TEMP = sh(
-                        script: "curl --silent --location --fail --header \"Authorization: token $TOKEN\" $url" +
-                                " | jq -r .object.sha",
-                        returnStdout: true
-                ).trim()
-                break
+        final String type = tagObjJson.type
+        final String sha = tagObjJson.sha
+        final String url = tagObjJson.url
+        // Yes, really. Jenkins/Groovy cannot serialize LazyMap (output of JsonSlurper().parseText())
+        // When entering the sh() closure below, Jenkins(?) will try to serialize the current context, which fails.
+        tagObjJson = null
+        if (type == 'commit') {
+            env.TEMP = sha
+        }
+        if (type == 'tag') {
+            env.TEMP = sh(
+                    script: "curl --silent --location --fail --header \"Authorization: token $TOKEN\" $url" +
+                            " | jq -r .object.sha",
+                    returnStdout: true
+            ).trim()
         }
     }
+
     return env.TEMP
 }
 
