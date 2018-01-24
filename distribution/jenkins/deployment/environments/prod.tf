@@ -1,7 +1,7 @@
 variable tenant { default = "unset" }
 variable tenant_short { default = "unset" }
 variable environment { default = "dev" }
-variable region { default = "ams1" }
+variable region { default = "unset" }
 variable datacenters { type = "list" default = ["zone1", "zone2", "zone3", "zone4"] }
 variable registry_namespace { default = "docker-registry.ecg.so/comaas" }
 variable docker_username { default = "comaas-docker-registry" }

@@ -1,5 +1,6 @@
 #!/usr/bin/env groovy
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 
 import java.text.SimpleDateFormat
 
@@ -406,17 +407,26 @@ String getMasterSha() {
 
 String getGitHashForTag(String tag) {
     withCredentials([string(credentialsId: 'GITHUBBOT-COMAAS-PAT', variable: 'TOKEN')]) {
-        final String tagUrl = sh(
+        final String tagObj = sh(
                 script: "curl --silent --location --fail --header \"Authorization: token $TOKEN\" https://github.corp.ebay.com/api/v3/repos/ecg-comaas/central/git/refs/tags/$tag" +
-                        " | jq -r .object.url",
+                        " | jq -r .object",
                 returnStdout: true
         ).trim()
 
-        env.TEMP = sh(
-                script: "curl --silent --location --fail --header \"Authorization: token $TOKEN\" $tagUrl" +
-                        " | jq -r .object.sha",
-                returnStdout: true
-        ).trim()
+        def tagObjJson = new JsonSlurper().parseText(tagObj)
+        switch (tagObjJson.type) {
+            case 'commit':
+                env.TEMP = tagObjJson.sha
+                break
+            case 'tag': default:
+                final String url = tagObjJson.url
+                env.TEMP = sh(
+                        script: "curl --silent --location --fail --header \"Authorization: token $TOKEN\" $url" +
+                                " | jq -r .object.sha",
+                        returnStdout: true
+                ).trim()
+                break
+        }
     }
     return env.TEMP
 }

@@ -28,7 +28,7 @@ void deploymentFailed(final String tenant, final String version, final String dc
     echo "--->>> Exception: $ex"
     exMessage = ex.getMessage()
     String currentVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
-    String slackMessage = "Deploying Comaas `$tenant` `$version` to `$environmentShort` failed with `$exMessage`, `$currentVersion` remains" as String
+    String slackMessage = "Deploying Comaas `$tenant` `$version` to `$environmentShort` failed with `$exMessage`, `$currentVersion` remains"
     String graphitePayload = commonFunctions.createGraphitePayload('failed', commonFunctions.getAlias(tenant), "tried $version, current $currentVersion remains")
 
     sendGraphiteMetric(dc, environmentShort, graphitePayload)
@@ -75,7 +75,7 @@ String downloadVersionFromSwift(final String tenant, final String version) {
                       usernameVariable: 'SWIFT_USER', passwordVariable: 'SWIFT_PASS']]) {
 
         final String userId = commonFunctions.getUID()
-        final String artifact = "${tenant}/builds/comaas-${tenant}_${version}.tar.gz" as String
+        final String artifact = "${tenant}/builds/comaas-${tenant}_${version}.tar.gz"
 
         sh """
                 docker run \\
@@ -102,7 +102,7 @@ String downloadVersionFromSwift(final String tenant, final String version) {
         }
     }
 
-    return "comaas-${tenant}_${version}.tar.gz" as String
+    return "comaas-${tenant}_${version}.tar.gz"
 }
 
 void downloadFileFromGithub(final String filePath, final String destination) {
@@ -118,7 +118,7 @@ void downloadFileFromGithub(final String filePath, final String destination) {
 }
 
 void loadPropsIntoConsul(final String tenant, final String version, final String environmentShort) {
-    downloadFileFromGithub("ecg-comaas/central/$version/distribution/conf/$tenant/import_into_consul/${environmentShort}.properties" as String, "props.properties" as String)
+    downloadFileFromGithub("ecg-comaas/central/$version/distribution/conf/$tenant/import_into_consul/${environmentShort}.properties", "props.properties")
 
     final String status = sh(
             script: "properties-to-consul -file props.properties",
@@ -129,36 +129,81 @@ void loadPropsIntoConsul(final String tenant, final String version, final String
     }
 }
 
-void deployToEnv(final String tenant, final String artifact, final String environment, final String version) {
+void deployToEnv(final String tenant, final String artifact, final String environment, final String version, final String dc, final Integer nrOfInstances) {
     ansiColor('xterm') {
         sh "PYTHONWARNINGS='ignore' deploy.py --config /etc/comaas/comaas-${tenant}.yaml --logdir ~ --component $artifact"
+    }
+
+    final String tenantShort = commonFunctions.getAlias(tenant)
+
+    // There are 4 availability zones (called DC in Nomad), and we want to be able to both spread more or less evenly
+    // over zones, and have the allocation space to reschedule enough instances when a zone goes down. This is a best
+    // effort effort:
+    final Integer nrOfInstancesPerZone = nrOfInstances.intdiv(4) + 1
+
+    // Is this really necessary? Can we pass the files to the builder instead?
+    checkout scm
+
+    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
+                      usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
+        sh "levant render " +
+                "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
+                "-var='version=${version}' " +
+                "-var='docker_password=${DOCKER_PASS}' " +
+                "-var='tenant=${tenant}' " +
+                "-var='tenant_short=${tenantShort}' " +
+                "-var='environment=${environment}' " +
+                "-var='region=${dc}' " +
+                "-var='api_count=${nrOfInstances}' " +
+                "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
+                "distribution/jenkins/deployment/core-api.nomad"
+        sh "levant deploy " +
+                "-log-level=debug " +
+                "-force-count=true " +
+                "-address='http://http.nomad.service.consul:4646' " +
+                "-var-file=pipelines/deployment/environments/${environment}.tf " +
+                "-var='version=${version}' " +
+                "-var='docker_password=${DOCKER_PASS}' " +
+                "-var='tenant=${tenant}' " +
+                "-var='tenant_short=${tenantShort}' " +
+                "-var='environment=${environment}' " +
+                "-var='region=${dc}' " +
+                "-var='api_count=${nrOfInstances}' " +
+                "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
+                "distribution/jenkins/deployment/core-api.nomad"
     }
 }
 
 Closure wrapWithStepDefinition(
         final String tenant, final String version, final String environmentShort,
-        final String dc, final String stageName) {
+        final String dc, final String stageName, final boolean force, final Integer nrOfInstances) {
     return {
         stage(stageName) {
             node("$environmentShort && $dc") {
-                try {
-                    String currentlyDeployedVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
-                    echo "currentlyDeployedVersion == newVersion : $currentlyDeployedVersion == $version"
-                    if (currentlyDeployedVersion == version) {
-                        echo "Current Comaas $tenant version $currentlyDeployedVersion is up to date, nothing to update (desired version: $version)"
-                        currentBuild.result = 'SUCCESS'
-                        env."SKIP_$tenant" = true
-                        return
-                    }
-                } catch (ex) {
-                    deploymentFailed(tenant, version, dc, environmentShort, ex)
-                } finally {
-                    if (env."SKIP_$tenant" == 'true') {
-                        cleanWs notFailBuild: true
+                boolean skip = false
+
+                if (force) {
+                    echo "Force deployment, not checking existing version. Note that deploy.py or levant may still not upgrade for same version."
+                } else {
+                    try {
+                        String currentlyDeployedVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
+                        echo "currentlyDeployedVersion == newVersion : $currentlyDeployedVersion == $version"
+                        if (currentlyDeployedVersion == version) {
+                            echo "Current Comaas $tenant version $currentlyDeployedVersion is up to date, nothing to update (desired version: $version)"
+                            currentBuild.result = 'SUCCESS'
+                            skip = true
+                            return
+                        }
+                    } catch (ex) {
+                        deploymentFailed(tenant, version, dc, environmentShort, ex)
+                    } finally {
+                        if (skip) {
+                            cleanWs notFailBuild: true
+                        }
                     }
                 }
 
-                if (env."SKIP_$tenant" != 'true') {
+                if (!skip) {
                     try {
                         echo "About to deploy Comaas version $version to $environmentShort in $dc for $tenant"
                         notifyAboutPendingUpgrade(tenant, version, dc, environmentShort)
@@ -175,32 +220,17 @@ Closure wrapWithStepDefinition(
 
                         final String artifact = downloadVersionFromSwift(tenant, version)
                         loadPropsIntoConsul(tenant, version, environmentShort)
-                        deployToEnv(tenant, artifact, environmentShort, version)
+                        deployToEnv(tenant, artifact, environmentShort, version, dc, nrOfInstances)
 
                         final String graphitePayload = commonFunctions.createGraphitePayload('succeeded', commonFunctions.getAlias(tenant), "$version deployed")
                         sendGraphiteMetric(dc, environmentShort, graphitePayload)
 
+                        final String activeDcSlack = activeDcSlackString(tenant, dc, environmentShort)
                         final String slackMessage = "Comaas version `$version` for `$tenant` successfully deployed to " +
-                                "`$environmentShort` in `$dc` " + activeDcSlackString(tenant, dc, environmentShort)
+                                "`$environmentShort` in `$dc` ${activeDcSlack} with ${nrOfInstances} API nodes"
                         sendToSlack('#00FF00', tenant, slackMessage, environmentShort)
                     } catch (ex) {
                         deploymentFailed(tenant, version, dc, environmentShort, ex)
-                        env."SKIP_$tenant" = true
-                    } finally {
-                        if (env."SKIP_$tenant" == 'true') {
-                            cleanWs notFailBuild: true
-                        }
-                    }
-                }
-
-                if (env."SKIP_$tenant" != 'true') {
-                    try {
-                        echo "Running smoke tests for $PROVIDED_TENANT against $PROVIDED_DC $PROVIDED_ENV"
-                        build job: 'smoke-tests', parameters: [
-                                string(name: 'PROVIDED_TENANT', value: "$PROVIDED_TENANT"),
-                                string(name: 'PROVIDED_ENV', value: "$PROVIDED_ENV"),
-                                string(name: 'PROVIDED_DC', value: "$PROVIDED_DC")
-                        ], wait: false
                     } finally {
                         cleanWs notFailBuild: true
                     }
@@ -219,24 +249,26 @@ node(PROVIDED_ENV) {
 
     checkInputParameters(PROVIDED_VERSION, PROVIDED_ENV, PROVIDED_DC, PROVIDED_TENANT)
 
+    configFile = readYaml file: "distribution/jenkins/deployment/configuration.yaml"
+
     String[] tenants
 
-    if (PROVIDED_ENV as String == 'lp') {
-    
+    if (PROVIDED_ENV == 'lp') {
         configFile = readYaml file: "distribution/jenkins/deployment/lp/configuration.yaml"
 
-        if (PROVIDED_TENANT as String == 'all-enabled') {
+        if (PROVIDED_TENANT == 'all-enabled') {
             tenants = commonFunctions.activeTenants(configFile.tenants.disabled as List)
         } else {
-            tenants = [PROVIDED_TENANT as String]
+            tenants = [PROVIDED_TENANT]
         }
     } else {
-        tenants = [PROVIDED_TENANT as String]
+        tenants = [PROVIDED_TENANT]
     }
 
-    String environmentShort = PROVIDED_ENV as String
-    String versionToDeploy = PROVIDED_VERSION as String
-    String dc = PROVIDED_DC as String
+    final String environmentShort = PROVIDED_ENV
+    String versionToDeploy = PROVIDED_VERSION.trim()
+    String dc = PROVIDED_DC
+    final boolean force = PROVIDED_FORCE == 'true'
 
     if (useLpVersionForProd(versionToDeploy, environmentShort)) {
         // If the version is empty, deploy the version that's live on lp to prod
@@ -263,8 +295,9 @@ node(PROVIDED_ENV) {
 
     buildSteps = ["failFast": false]
     buildSteps += tenants.collectEntries { tenant ->
-        String n = "$tenant-deployment" as String
-        return [(n): wrapWithStepDefinition(tenant, versionToDeploy, environmentShort, dc, "Deploy $tenant" as String)]
+        String n = "$tenant-deployment"
+        Integer nrOfInstances = environmentShort == 'lp' ? 3 : configFile.instances[tenant] as Integer
+        return [(n): wrapWithStepDefinition(tenant, versionToDeploy, environmentShort, dc, "Deploy $tenant", force, nrOfInstances)]
     }
     parallel buildSteps
 

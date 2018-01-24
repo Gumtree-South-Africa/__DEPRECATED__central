@@ -10,6 +10,12 @@ job "[[ .tenant ]]-core-api" {
 
   type = "service"
 
+  meta {
+    wanted_instances = [[.api_count]]
+    docker_image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
+    wanted_instances_per_zone = "[[.api_count_per_zone]]"
+  }
+
   update {
     max_parallel = 1
     auto_revert = "true"
@@ -18,21 +24,32 @@ job "[[ .tenant ]]-core-api" {
     healthy_deadline = "90s"
     stagger = "1m"
   }
-  vault {
-    policies    = [ "[[.vault_policy]]" ]
-    change_mode = "noop"
-    env         = "false"
-  }
+//  vault {
+//    policies    = [ "[[.vault_policy]]" ]
+//    change_mode = "noop"
+//    env         = "false"
+//  }
 
   group "api" {
 
     count = [[.api_count]]
 
+    constraint {
+      operator = "distinct_property"
+      attribute = "${node.datacenter}"
+      value = "[[.api_count_per_zone]]"
+    }
+
+    constraint {
+      attribute = "${node.class}"
+      value = "services"
+    }
+
     task "api" {
       driver = "docker"
 
       config {
-        image = "[[.registry_namespace]]/[[.registry_imagename]]:[[.version]]"
+        image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
         network_mode = "host"
 
         auth {
@@ -49,7 +66,12 @@ job "[[ .tenant ]]-core-api" {
       service {
         name = "comaas-core-[[ .tenant ]]"
         port = "http"
-        tags = ["urlprefix-[[ .tenant ]].lp.comaas.cloud/"]
+        tags = [
+//          "urlprefix-[[ .tenant_short ]].[[ .environment ]].comaas.cloud/",
+//          "urlprefix-[[ .region ]].[[ .tenant_short ]].[[ .environment ]].comaas.cloud/",
+//          "urlprefix-[[ .tenant_short ]].[[ .environment ]].comaas.ecg.so/",
+//          "urlprefix-[[ .region ]].[[ .tenant_short ]].[[ .environment ]].comaas.ecg.so/"
+        ]
         check {
           type     = "http"
           path     = "/health"
@@ -57,7 +79,7 @@ job "[[ .tenant ]]-core-api" {
           timeout  = "2s"
         }
       }
-  
+
       service {
         name = "comaas-core-[[ .tenant ]]"
         port = "hazelcast"
@@ -65,7 +87,7 @@ job "[[ .tenant ]]-core-api" {
           "hazelcast"
         ]
       }
-  
+
       resources {
         cpu    = [[.api_resources_cpu]]
         memory = [[.api_resources_mem]]
