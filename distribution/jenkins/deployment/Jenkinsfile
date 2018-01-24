@@ -161,7 +161,7 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
                 "-log-level=debug " +
                 "-force-count=true " +
                 "-address='http://http.nomad.service.consul:4646' " +
-                "-var-file=pipelines/deployment/environments/${environment}.tf " +
+                "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
                 "-var='version=${version}' " +
                 "-var='docker_password=${DOCKER_PASS}' " +
                 "-var='tenant=${tenant}' " +
