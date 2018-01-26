@@ -615,7 +615,7 @@
         <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
         <git-commit-id-plugin.version>2.2.0</git-commit-id-plugin.version>
         <maven-release-plugin-version>2.4.2</maven-release-plugin-version>
-        <maven-source-plugin-version>2.2.1</maven-source-plugin-version>
+        <maven-source-plugin-version>3.0.1</maven-source-plugin-version>
         <maven-surefire-version>2.19.1</maven-surefire-version>
         <junit-toolbox.version>2.2</junit-toolbox.version>
         <metrics.version>3.1.2</metrics.version>
