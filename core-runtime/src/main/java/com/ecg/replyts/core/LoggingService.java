@@ -17,12 +17,18 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.APPLICATION;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.REVISION;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.TENANT;
 
 @Component
 public class LoggingService {
@@ -39,8 +45,6 @@ public class LoggingService {
     private Map<Logger, Level> levels = new ConcurrentHashMap<>();
 
     public void initialize() {
-        LOGGER_CONTEXT.putProperty(TENANT, environment.getProperty("replyts.tenant", "unknown"));
-
         initializeToProperties();
     }
 
@@ -114,6 +118,10 @@ public class LoggingService {
     public static void bootstrap() {
         Thread.currentThread().setName("main");
 
+        LOGGER_CONTEXT.putProperty(TENANT, System.getProperty("tenant", "unknown"));
+        LOGGER_CONTEXT.putProperty(APPLICATION, Application.class.getPackage().getImplementationTitle());
+        LOGGER_CONTEXT.putProperty(REVISION, Application.class.getPackage().getImplementationVersion());
+
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
@@ -148,8 +156,5 @@ public class LoggingService {
                 throw new RuntimeException(e);
             }
         }
-
-        LOGGER_CONTEXT.putProperty(APPLICATION, Application.class.getPackage().getImplementationTitle());
-        LOGGER_CONTEXT.putProperty(REVISION, Application.class.getPackage().getImplementationVersion());
     }
 }

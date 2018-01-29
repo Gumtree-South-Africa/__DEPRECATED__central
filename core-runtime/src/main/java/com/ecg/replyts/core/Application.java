@@ -1,6 +1,8 @@
 package com.ecg.replyts.core;
 
 import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.runtime.HttpServerFactory;
+import com.ecg.replyts.core.runtime.StartupExperience;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.DiscoveryStrategyConfig;
@@ -52,6 +54,7 @@ public class Application {
       @Value("${hazelcast.discovery.enabled:${service.discovery.enabled:true}}") boolean discoveryEnabled,
       @Value("${service.discovery.hostname:localhost}") String discoveryHostname,
       @Value("${service.discovery.port:8500}") int discoveryPort,
+      @Value("${service.discovery.delay:10000}") int serviceDiscoveryDelay,
       @Value("${hazelcast.password}") String hazelcastPassword,
       @Value("${hazelcast.port:5701}") int hazelcastPort,
       @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement,
@@ -81,7 +84,7 @@ public class Application {
             properties.put("consul-service-name", format("comaas-core-%s", tenant));
             properties.put("consul-healthy-only", "true");
             properties.put("consul-service-tags", "hazelcast");
-            properties.put("consul-discovery-delay-ms", "10000");
+            properties.put("consul-discovery-delay-ms", Integer.toString(serviceDiscoveryDelay));
 
             properties.put("consul-registrator", DoNothingRegistrator.class.getName());
 
@@ -156,6 +159,8 @@ public class Application {
             context.registerShutdownHook();
 
             context.refresh();
+
+            context.getBean(StartupExperience.class).running(context.getBean(HttpServerFactory.class).getPort());
         } catch (Exception e) {
             LOG.error("Unable to start COMaaS", e);
         }

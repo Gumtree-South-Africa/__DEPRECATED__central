@@ -44,4 +44,8 @@ public class HttpServerFactory {
 
         return server;
     }
+
+    public int getPort() {
+        return httpPortNumber;
+    }
 }

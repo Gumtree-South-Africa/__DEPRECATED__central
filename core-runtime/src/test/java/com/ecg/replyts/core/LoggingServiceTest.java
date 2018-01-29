@@ -2,7 +2,6 @@ package com.ecg.replyts.core;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,26 +24,17 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = LoggingServiceTest.TestContext.class)
 @TestPropertySource(properties = {
-  "replyts.tenant = foo",
-
   "log.level.ROOT = ERROR",
   "log.level.foo.bar = DEBUG"
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class LoggingServiceTest {
-    private static final LoggerContext LOGGER_CONTEXT = (LoggerContext) LoggerFactory.getILoggerFactory();
-
     @Autowired
     private LoggingService loggingService;
 
     @Before
     public void initialize() {
         loggingService.initialize();
-    }
-  
-    @Test
-    public void testContext() {
-        assertEquals("Logger context contains tenant", "foo", LOGGER_CONTEXT.getProperty("tenant"));
     }
 
     @Test
