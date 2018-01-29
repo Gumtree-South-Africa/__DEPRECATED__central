@@ -4,15 +4,13 @@ import com.ecg.replyts.core.api.sanitychecks.Check;
 import com.ecg.replyts.core.api.sanitychecks.Message;
 import com.ecg.replyts.core.api.sanitychecks.Result;
 import com.ecg.replyts.core.api.sanitychecks.Status;
-import com.hazelcast.core.HazelcastException;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.hazelcast.core.IAtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This check ensures that every node in the cluster shows the cluster wide state, so that "failed" checks won't
@@ -23,18 +21,17 @@ public class DistributedCronCheck implements Check {
 
     private static final String LAST_RUN_CLUSTER_KEY = "-lastRun";
     private static final String LAST_EXCEPTION_CLUSTER_KEY = "-lastException";
-    private static final String IS_RUNNING_CLUSTER_KEY = "-isRunning";
 
     private final String type;
     private final IAtomicReference<Long> lastRun; // Use AtomicReference instead of AtomicLong to be able detect null as never running.
     private final IAtomicReference<Exception> lastException;
-    private final IAtomicReference<Boolean> isRunning;
+    private final AtomicBoolean isRunning = new AtomicBoolean();
+    private final AtomicBoolean isFirstReport = new AtomicBoolean();
 
     public DistributedCronCheck(Class<?> classType, HazelcastInstance hazelcast) {
         type = classType.getSimpleName();
         lastException = hazelcast.getAtomicReference(type + LAST_EXCEPTION_CLUSTER_KEY);
         lastRun = hazelcast.getAtomicReference(type + LAST_RUN_CLUSTER_KEY);
-        isRunning = hazelcast.getAtomicReference(type + IS_RUNNING_CLUSTER_KEY);
     }
 
     @Override
@@ -73,17 +70,12 @@ public class DistributedCronCheck implements Check {
 
     public void setRunning(boolean value) {
         isRunning.set(value);
+        if (value) {
+            isFirstReport.set(true);
+        }
     }
 
     public boolean isRunning() {
-        try {
-            return Optional.ofNullable(isRunning.get()).orElse(false);
-        } catch (HazelcastException | HazelcastInstanceNotActiveException e) {
-            // Not printing the entire stack trace here, because it's basically useless and will
-            // flood the logs due to how often this method is called.
-            LOG.warn("Can't fetch is-running status of check [{}]. Message: {}", getName(), e.getMessage());
-
-            return false;
-        }
+        return isFirstReport.getAndSet(false) || isRunning.get();
     }
 }

@@ -10,7 +10,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
 
@@ -44,18 +49,18 @@ public class MonitoringSupport {
     }
 
     public void success(Class<? extends CronJobExecutor> type) {
-        completed(type, Optional.empty());
+        completed(type, null);
     }
 
     public void failure(Class<? extends CronJobExecutor> type, Exception e) {
-        completed(type, Optional.of(e));
+        completed(type, e);
     }
 
-    private void completed(Class<? extends CronJobExecutor> type, Optional<Exception> e) {
+    private void completed(Class<? extends CronJobExecutor> type, Exception e) {
         DistributedCronCheck check = checks.get(type);
 
         check.setRunning(false);
-        check.setState(new Date(), e.orElse(null));
+        check.setState(new Date(), e);
     }
 
     static class CronRunningGauge implements Gauge<Integer> {
