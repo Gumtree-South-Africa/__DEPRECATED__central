@@ -8,6 +8,7 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.DiscoveryStrategyConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.spi.discovery.impl.DefaultDiscoveryServiceProvider;
 import org.bitsofinfo.hazelcast.discovery.consul.ConsulDiscoveryStrategy;
 import org.bitsofinfo.hazelcast.discovery.consul.DoNothingRegistrator;
 import org.slf4j.Logger;
@@ -91,6 +92,7 @@ public class Application {
             DiscoveryStrategyConfig strategy = new DiscoveryStrategyConfig(ConsulDiscoveryStrategy.class.getName(), properties);
 
             config.getNetworkConfig().getJoin().getDiscoveryConfig().addDiscoveryStrategyConfig(strategy);
+            config.getNetworkConfig().getJoin().getDiscoveryConfig().setDiscoveryServiceProvider(new DefaultDiscoveryServiceProvider());
         } else {
             if (!"".equals(hazelcastMembers)) {
                 config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(true);
