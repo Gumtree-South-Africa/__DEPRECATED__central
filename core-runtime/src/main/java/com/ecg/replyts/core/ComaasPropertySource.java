@@ -1,23 +1,36 @@
 package com.ecg.replyts.core;
 
+import com.google.common.collect.ImmutableMap;
 import org.springframework.core.env.MapPropertySource;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class ComaasPropertySource extends MapPropertySource {
     static final String NAME = "comaas_environment";
 
-    public ComaasPropertySource() {
-        this(NAME, new HashMap<String, Object>() {{
-            Optional.ofNullable(System.getenv("COMAAS_HTTP_PORT")).ifPresent(port -> put("replyts.http.port", port));
-            Optional.ofNullable(System.getenv("COMAAS_HAZELCAST_PORT")).ifPresent(port -> put("hazelcast.port", port));
+    private static Map<String, Object> getEnvVars() {
+        final ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
 
+        putEnvIfNotNull(builder, "COMAAS_HTTP_PORT", "replyts.http.port");
+        putEnvIfNotNull(builder, "COMAAS_HAZELCAST_IP", "hazelcast.ip");
+        putEnvIfNotNull(builder, "COMAAS_HAZELCAST_PORT", "hazelcast.port");
+
+        if (System.getProperty("tenant") != null) {
             // XXX: Once everyone is over to the ecg-salt-comaas PR #108 we can s/replyts\.tenant/tenant/g
+            builder.put("replyts.tenant", System.getProperty("tenant"));
+        }
 
-            Optional.of(System.getProperty("tenant")).ifPresent(tenant -> put("replyts.tenant", tenant));
-        }});
+        return builder.build();
+    }
+
+    private static void putEnvIfNotNull(ImmutableMap.Builder<String, Object> builder, String envVar, String propertyName) {
+        if (System.getenv(envVar) != null) {
+            builder.put(propertyName, System.getenv(envVar));
+        }
+    }
+
+    ComaasPropertySource() {
+        this(NAME, getEnvVars());
     }
 
     private ComaasPropertySource(String name, Map<String, Object> source) {

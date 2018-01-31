@@ -4,6 +4,7 @@ import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.ecg.replyts.core.runtime.HttpServerFactory;
 import com.ecg.replyts.core.runtime.StartupExperience;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
+import com.google.common.base.Strings;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.DiscoveryStrategyConfig;
 import com.hazelcast.core.Hazelcast;
@@ -22,7 +23,6 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -50,15 +50,15 @@ public class Application {
 
     @Bean
     public Config hazelcastConfiguration(
-      @Value("${replyts.tenant}") String tenant,
-      @Value("${hazelcast.discovery.enabled:${service.discovery.enabled:true}}") boolean discoveryEnabled,
-      @Value("${service.discovery.hostname:localhost}") String discoveryHostname,
-      @Value("${service.discovery.port:8500}") int discoveryPort,
-      @Value("${service.discovery.delay:10000}") int serviceDiscoveryDelay,
-      @Value("${hazelcast.password}") String hazelcastPassword,
-      @Value("${hazelcast.port:5701}") int hazelcastPort,
-      @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement,
-      @Value("${hazelcast.members:}") String hazelcastMembers) throws IOException {
+            @Value("${replyts.tenant}") String tenant,
+            @Value("${hazelcast.discovery.enabled:${service.discovery.enabled:true}}") boolean discoveryEnabled,
+            @Value("${service.discovery.hostname:localhost}") String discoveryHostname,
+            @Value("${service.discovery.port:8500}") int discoveryPort,
+            @Value("${hazelcast.password}") String hazelcastPassword,
+            @Value("${hazelcast.ip:}") String hazelcastIp,
+            @Value("${hazelcast.port:5701}") int hazelcastPort,
+            @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement,
+            @Value("${hazelcast.members:}") String hazelcastMembers) {
         Config config = new Config();
 
         config.getGroupConfig().setName(format("replyts_%s", tenant));
@@ -67,6 +67,7 @@ public class Application {
         config.getProperties().setProperty("hazelcast.jmx", "true");
         config.getProperties().setProperty("hazelcast.phone.home.enabled", "false");
         config.getProperties().setProperty("hazelcast.logging.type", "slf4j");
+        config.getProperties().setProperty("hazelcast.discovery.enabled", String.valueOf(discoveryEnabled));
 
         config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
         config.getNetworkConfig().getJoin().getAwsConfig().setEnabled(false);
@@ -77,14 +78,18 @@ public class Application {
         if (discoveryEnabled) {
             config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
 
-            Map<String, Comparable> properties = new HashMap<>();
+            if (!Strings.isNullOrEmpty(hazelcastIp)) {
+                config.getNetworkConfig().setPublicAddress(hazelcastIp);
+                config.getNetworkConfig().getInterfaces().setEnabled(true).addInterface(hazelcastIp);
+            }
 
+            Map<String, Comparable> properties = new HashMap<>();
             properties.put("consul-host", discoveryHostname);
             properties.put("consul-port", String.valueOf(discoveryPort));
             properties.put("consul-service-name", format("comaas-core-%s", tenant));
             properties.put("consul-healthy-only", "true");
             properties.put("consul-service-tags", "hazelcast");
-            properties.put("consul-discovery-delay-ms", Integer.toString(serviceDiscoveryDelay));
+            properties.put("consul-discovery-delay-ms", "0");
 
             properties.put("consul-registrator", DoNothingRegistrator.class.getName());
 
@@ -92,7 +97,7 @@ public class Application {
 
             config.getNetworkConfig().getJoin().getDiscoveryConfig().addDiscoveryStrategyConfig(strategy);
         } else {
-            if (!"".equals(hazelcastMembers)) {
+            if (!Strings.isNullOrEmpty(hazelcastMembers)) {
                 config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(true);
                 config.getNetworkConfig().getJoin().getTcpIpConfig().setMembers(Arrays.stream(hazelcastMembers.split(",")).map(String::trim).collect(Collectors.toList()));
             } else {
