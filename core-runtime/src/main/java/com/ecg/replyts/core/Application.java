@@ -54,11 +54,10 @@ public class Application {
       @Value("${hazelcast.discovery.enabled:${service.discovery.enabled:true}}") boolean discoveryEnabled,
       @Value("${service.discovery.hostname:localhost}") String discoveryHostname,
       @Value("${service.discovery.port:8500}") int discoveryPort,
-      @Value("${service.discovery.delay:10000}") int serviceDiscoveryDelay,
       @Value("${hazelcast.password}") String hazelcastPassword,
       @Value("${hazelcast.port:5701}") int hazelcastPort,
       @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement,
-      @Value("${hazelcast.members:}") String hazelcastMembers) throws IOException {
+      @Value("${hazelcast.members:}") String hazelcastMembers) {
         Config config = new Config();
 
         config.getGroupConfig().setName(format("replyts_%s", tenant));
@@ -79,13 +78,12 @@ public class Application {
             config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
 
             Map<String, Comparable> properties = new HashMap<>();
-
             properties.put("consul-host", discoveryHostname);
             properties.put("consul-port", String.valueOf(discoveryPort));
             properties.put("consul-service-name", format("comaas-core-%s", tenant));
             properties.put("consul-healthy-only", "true");
             properties.put("consul-service-tags", "hazelcast");
-            properties.put("consul-discovery-delay-ms", Integer.toString(serviceDiscoveryDelay));
+            properties.put("consul-discovery-delay-ms", "0");
 
             properties.put("consul-registrator", DoNothingRegistrator.class.getName());
 

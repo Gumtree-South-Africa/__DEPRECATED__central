@@ -69,7 +69,62 @@ class AtomicReferenceSimulator implements IAtomicReference<Object> {
     public <R> R apply(IFunction<Object, R> function) {
         return null;
     }
-    
+
+    @Override
+    public ICompletableFuture<Boolean> compareAndSetAsync(Object o, Object e1) {
+        return null;
+    }
+
+    @Override
+    public ICompletableFuture<Object> getAsync() {
+        return null;
+    }
+
+    @Override
+    public ICompletableFuture<Void> setAsync(Object o) {
+        return null;
+    }
+
+    @Override
+    public ICompletableFuture<Object> getAndSetAsync(Object o) {
+        return null;
+    }
+
+    @Override
+    public ICompletableFuture<Boolean> isNullAsync() {
+        return null;
+    }
+
+    @Override
+    public ICompletableFuture<Void> clearAsync() {
+        return null;
+    }
+
+    @Override
+    public ICompletableFuture<Boolean> containsAsync(Object o) {
+        return null;
+    }
+
+    @Override
+    public ICompletableFuture<Void> alterAsync(IFunction<Object, Object> iFunction) {
+        return null;
+    }
+
+    @Override
+    public ICompletableFuture<Object> alterAndGetAsync(IFunction<Object, Object> iFunction) {
+        return null;
+    }
+
+    @Override
+    public ICompletableFuture<Object> getAndAlterAsync(IFunction<Object, Object> iFunction) {
+        return null;
+    }
+
+    @Override
+    public <R> ICompletableFuture<R> applyAsync(IFunction<Object, R> iFunction) {
+        return null;
+    }
+
     @Override
     public String getPartitionKey() {
         return null;
