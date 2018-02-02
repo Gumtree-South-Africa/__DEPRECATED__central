@@ -7,13 +7,8 @@ CLASSPATH="${BASE_DIR}/lib/*"
 REPO=${BASE_DIR}/lib
 CONF_DIR=${BASE_DIR}/conf
 
-[ -z ${TENANT} ] && { echo "Please set TENANT"; exit 1; }
-
-export COMAAS_HTTP_PORT=${NOMAD_PORT_http}
-export COMAAS_HAZELCAST_PORT=${NOMAD_PORT_hazelcast}
-
-if [ -z ${COMAAS_HTTP_PORT} ] || [ -z ${COMAAS_HAZELCAST_PORT} ]; then
-    echo "Error starting up Comaas, please provide a port for both HTTP and Hazelcast"
+if [ -z ${TENANT} ] || [ -z ${NOMAD_PORT_http} ] || [ -z ${NOMAD_IP_hazelcast} ] || [ -z ${NOMAD_PORT_hazelcast} ] || [ -z ${NOMAD_REGION} ] || [ -z ${HEAP_SIZE} ]; then
+    echo "Please set TENANT, NOMAD_PORT_http, NOMAD_IP_hazelcast, NOMAD_PORT_hazelcast, NOMAD_REGION, and HEAP_SIZE"
     exit 1
 fi
 
@@ -29,10 +24,10 @@ stop () {
 
 trap stop SIGTERM
 
+export COMAAS_HTTP_PORT=${NOMAD_PORT_http}
+export COMAAS_HAZELCAST_IP=${NOMAD_IP_hazelcast}
+export COMAAS_HAZELCAST_PORT=${NOMAD_PORT_hazelcast}
 export region=${NOMAD_REGION}
-[ -z ${NOMAD_REGION} ] && { echo "Please set NOMAD_REGION"; exit 1; }
-[ -z ${HEAP_SIZE} ] && { echo "Please set HEAP_SIZE"; exit 1; }
-
 export http_proxy=http://proxy.${region}.cloud.ecg.so:3128
 export https_proxy=http://proxy.${region}.cloud.ecg.so:3128
 export swift_authentication_url=https://keystone.${region}.cloud.ecg.so/v2.0
