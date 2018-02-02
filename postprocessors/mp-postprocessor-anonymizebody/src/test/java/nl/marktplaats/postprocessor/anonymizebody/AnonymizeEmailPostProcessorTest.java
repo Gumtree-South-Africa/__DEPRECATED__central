@@ -67,7 +67,7 @@ public class AnonymizeEmailPostProcessorTest {
         // create mock message
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
     }
-    
+
     private MessageProcessingContext prepareContext(Conversation conversation, Message message, MutableMail mail) {
         MessageProcessingContext messageProcessingContext = mock(MessageProcessingContext.class);
         when(messageProcessingContext.getConversation()).thenReturn(conversation);
@@ -183,7 +183,7 @@ public class AnonymizeEmailPostProcessorTest {
         MutableMail mail = prepareMailWithHtml(text, charset);
 
         // call method under test   abc
-        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);         
+        MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);
         postProcessor.postProcess(messageProcessingContext);
 
         // verify contents of mail message were adjusted
@@ -805,7 +805,7 @@ public class AnonymizeEmailPostProcessorTest {
         verify(messageContent).overrideContent(argument.capture());
         assertThat(argument.getValue(), equalTo(text.replace("{{{sender}}}", anonymizedSender)));
     }
-    
+
     @Test
     public void testRegressionSuite_aur287_multilineText_2() {
         String text = "From: Ik via Marktplaats <a.bucrbf2y3rkd9@mail.marktplaats.nl<mailto:a.bucrbf2y3rkd9@mail.marktplaats.nl>>\n" +

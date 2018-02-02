@@ -118,7 +118,7 @@ void downloadFileFromGithub(final String filePath, final String destination) {
 }
 
 void loadPropsIntoConsul(final String tenant, final String version, final String environmentShort) {
-    downloadFileFromGithub("ecg-comaas/central/$version/distribution/conf/$tenant/import_into_consul/${environmentShort}.properties", "props.properties")
+    downloadFileFromGithub("ecg-comaas/central/$version/distribution/conf/$tenant/${environmentShort}.properties", "props.properties")
 
     final String status = sh(
             script: "properties-to-consul -file props.properties",
