@@ -111,7 +111,7 @@
                 <module>filters/gtau-filter-blockedip</module>
                 <module>filters/gtau-filter-echelon</module>
 
-                <module>listeners/gtau-listener-jsonmessagelogger</module>
+                <module>listeners/gtau-listener-message-logger</module>
                 <module>listeners/gtau-listener-message-event</module>
 
                 <module>messagecenters/gtau-messagecenter</module>

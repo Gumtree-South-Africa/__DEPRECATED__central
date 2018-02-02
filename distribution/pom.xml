@@ -182,7 +182,7 @@
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>gtau-listener-jsonmessagelogger</artifactId>
+                    <artifactId>gtau-listener-message-logger</artifactId>
                     <version>${project.version}</version>
                 </dependency>
 
