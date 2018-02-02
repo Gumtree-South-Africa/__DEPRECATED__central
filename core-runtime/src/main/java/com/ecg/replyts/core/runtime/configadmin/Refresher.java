@@ -75,8 +75,6 @@ public class Refresher {
     }
 
     public void updateConfigurations() {
-        LOG.info("Updating configurations, TODO remove by Remmelt");
-
         Map<ConfigurationId, PluginConfiguration> runningConfigs = admin.getRunningServices().stream()
                 .collect(Collectors.toMap((p) -> p.getConfiguration().getId(), PluginInstanceReference::getConfiguration, (a, b) -> b));
 
