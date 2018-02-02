@@ -22,6 +22,6 @@ public class ClusterRefreshSubscriber {
 
     @PostConstruct
     public void init() {
-        refreshers.forEach((r) -> configChangeTopic.addMessageListener(objectMessage -> r.updateConfigurations()));
+        refreshers.forEach(refresher -> configChangeTopic.addMessageListener(objectMessage -> refresher.updateConfigurations()));
     }
 }

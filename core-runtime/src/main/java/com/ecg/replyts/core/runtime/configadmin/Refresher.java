@@ -10,18 +10,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.apache.commons.lang3.time.DurationFormatUtils.formatDurationWords;
 
 /**
@@ -44,7 +43,7 @@ public class Refresher {
 
     private final ScheduledExecutorService refreshScheduler;
 
-    public Refresher(ConfigurationAdmin<Object> admin) {
+    Refresher(ConfigurationAdmin<Object> admin) {
         this.admin = admin;
         this.threadName = "configuration-checker-" + admin.getAdminName();
         this.refreshScheduler = newSingleThreadScheduledExecutor(
@@ -59,7 +58,7 @@ public class Refresher {
         updateConfigurations();
 
         refreshScheduler.scheduleWithFixedDelay(setTaskFields(this::refreshConfiguration, threadName),
-                REFRESH_RATE.toNanos(), REFRESH_RATE.toNanos(), NANOSECONDS);
+                REFRESH_RATE.toNanos(), REFRESH_RATE.toNanos(), TimeUnit.NANOSECONDS);
     }
 
     private void refreshConfiguration() {
@@ -76,12 +75,14 @@ public class Refresher {
     }
 
     public void updateConfigurations() {
+        LOG.info("Updating configurations, TODO remove by Remmelt");
+
         Map<ConfigurationId, PluginConfiguration> runningConfigs = admin.getRunningServices().stream()
-          .collect(Collectors.toMap((p) -> p.getConfiguration().getId(), (p) -> p.getConfiguration(), (a, b) -> b));
+                .collect(Collectors.toMap((p) -> p.getConfiguration().getId(), PluginInstanceReference::getConfiguration, (a, b) -> b));
 
         Map<ConfigurationId, PluginConfiguration> newConfigs = repository.getConfigurations().stream()
-          .filter((c) -> admin.handlesConfiguration(c.getId()))
-          .collect(Collectors.toMap((c) -> c.getId(), (c) -> c, (a, b) -> b));
+          .filter(c -> admin.handlesConfiguration(c.getId()))
+                .collect(Collectors.toMap(PluginConfiguration::getId, c -> c, (a, b) -> b));
 
         Set<ConfigurationId> configsToBeRemoved = runningConfigs.keySet().stream()
           .filter((c) -> !newConfigs.containsKey(c))
