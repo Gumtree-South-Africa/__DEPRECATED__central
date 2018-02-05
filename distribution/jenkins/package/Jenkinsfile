@@ -51,6 +51,8 @@ node('qa') {
     final String remote = "https://github.corp.ebay.com/ecg-comaas/central.git"
     setEnvVars()
 
+    PROVIDED_VERSION = PROVIDED_VERSION.trim()
+
     if (PROVIDED_VERSION != '' && !(PROVIDED_VERSION =~ /^\d{4}\.\d{2}\..+/)) {
         error("Provided version does not have the form 'YYYY.mm.xxx', or empty. Leave empty to create a new version on master.")
     }
