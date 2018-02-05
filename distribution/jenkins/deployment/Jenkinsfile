@@ -105,20 +105,30 @@ String downloadVersionFromSwift(final String tenant, final String version) {
     return "comaas-${tenant}_${version}.tar.gz"
 }
 
-void downloadFileFromGithub(final String filePath, final String destination) {
+void downloadFileFromGithub(final String version, final String tenant, final String environmentShort) {
+    final String destination = "props.properties"
+
     withCredentials([string(credentialsId: 'GITHUBBOT-COMAAS-PAT', variable: 'TOKEN')]) {
-        final String status = sh(
+        String filePath = "ecg-comaas/central/$version/distribution/conf/$tenant/${environmentShort}.properties"
+        String status = sh(
                 script: "curl --fail -o $destination -sLH 'Authorization: token $TOKEN' https://raw.github.corp.ebay.com/$filePath",
                 returnStatus: true
         )
         if (status != "0") {
-            error("Could not download $filePath from Github")
+            filePath = "ecg-comaas/central/$version/distribution/conf/$tenant/import_into_consul/${environmentShort}.properties"
+            status = sh(
+                    script: "curl --fail -o $destination -sLH 'Authorization: token $TOKEN' https://raw.github.corp.ebay.com/$filePath",
+                    returnStatus: true
+            )
+            if (status != "0") {
+                error("Could not download $filePath from Github (also tried without 'import_into_consul')")
+            }
         }
     }
 }
 
 void loadPropsIntoConsul(final String tenant, final String version, final String environmentShort) {
-    downloadFileFromGithub("ecg-comaas/central/$version/distribution/conf/$tenant/${environmentShort}.properties", "props.properties")
+    downloadFileFromGithub(version, tenant, environmentShort)
 
     final String status = sh(
             script: "properties-to-consul -file props.properties",
