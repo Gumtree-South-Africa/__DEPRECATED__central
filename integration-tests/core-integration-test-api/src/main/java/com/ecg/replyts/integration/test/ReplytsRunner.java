@@ -70,7 +70,7 @@ public final class ReplytsRunner {
             String elasticClusterName = ELASTIC_SEARCH_PREFIX + UUID.randomUUID();
             properties.put("search.es.clustername", elasticClusterName);
 
-            properties.put("node.passive", "true");
+            properties.put("node.run.cronjobs", "false");
             properties.put("cluster.jmx.enabled", "false");
 
             properties.put("service.discovery.enabled", "false");
