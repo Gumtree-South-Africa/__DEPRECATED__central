@@ -1,6 +1,7 @@
 package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Timer;
+import com.ecg.messagecenter.diff.ConversationService;
 import com.ecg.messagecenter.diff.WebApiSyncService;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
