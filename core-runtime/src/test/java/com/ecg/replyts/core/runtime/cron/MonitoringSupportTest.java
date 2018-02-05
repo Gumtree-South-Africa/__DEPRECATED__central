@@ -24,11 +24,9 @@ public class MonitoringSupportTest {
     @InjectMocks
     private MonitoringSupport monitoringSupport;
 
-    private final AtomicReferenceSimulator isRunningReferenceA = new AtomicReferenceSimulator();
     private final AtomicReferenceSimulator lastExceptionReferenceA = new AtomicReferenceSimulator();
     private final AtomicReferenceSimulator lastRunReferenceA = new AtomicReferenceSimulator();
 
-    private final AtomicReferenceSimulator isRunningReferenceB = new AtomicReferenceSimulator();
     private final AtomicReferenceSimulator lastExceptionReferenceB = new AtomicReferenceSimulator();
     private final AtomicReferenceSimulator lastRunReferenceB = new AtomicReferenceSimulator();
 
@@ -49,11 +47,9 @@ public class MonitoringSupportTest {
 
     @Before
     public void setup() {
-        when(hazelcast.getAtomicReference("CronJobExecutorA-isRunning")).thenReturn(isRunningReferenceA);
         when(hazelcast.getAtomicReference("CronJobExecutorA-lastException")).thenReturn(lastExceptionReferenceA);
         when(hazelcast.getAtomicReference("CronJobExecutorA-lastRun")).thenReturn(lastRunReferenceA);
 
-        when(hazelcast.getAtomicReference("CronJobExecutorB-isRunning")).thenReturn(isRunningReferenceB);
         when(hazelcast.getAtomicReference("CronJobExecutorB-lastException")).thenReturn(lastExceptionReferenceB);
         when(hazelcast.getAtomicReference("CronJobExecutorB-lastRun")).thenReturn(lastRunReferenceB);
 
