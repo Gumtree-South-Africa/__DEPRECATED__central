@@ -36,7 +36,7 @@ public class RobotApiConfiguration {
     private String endpoint;
 
     @Bean
-    public SpringContextProvider contextProvider(ApplicationContext context) {
+    public SpringContextProvider robotContextProvider(ApplicationContext context) {
         return new SpringContextProvider("/gtau-robot", new String[] { "classpath:gtau-robot-context.xml" }, context);
     }
 

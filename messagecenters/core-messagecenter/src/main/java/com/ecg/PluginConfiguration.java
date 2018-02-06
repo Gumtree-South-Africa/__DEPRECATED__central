@@ -10,7 +10,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @ComaasPlugin
-@Configuration("core-messagecenter")
+@Configuration
 public class PluginConfiguration {
     @Configuration
     @ComponentScan("com.ecg.messagebox")
@@ -23,7 +23,7 @@ public class PluginConfiguration {
     static class MessageCenterConfiguration { }
 
     @Bean
-    public SpringContextProvider contextProvider(@Value("${replyts.tenant}") String tenant, ApplicationContext context)  {
+    public SpringContextProvider messageCenterContextProvider(@Value("${replyts.tenant}") String tenant, ApplicationContext context)  {
         return new SpringContextProvider(getPath(tenant), WebConfiguration.class, context);
     }
 
