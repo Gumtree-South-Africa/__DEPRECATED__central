@@ -10,6 +10,7 @@
 Install [Docker](https://docs.docker.com/engine/installation/mac/) to be able to run tests. Alternatively, `brew cask install docker` and start `Docker.app`.
 
 One time setup:
+
 `docker login docker-registry.ecg.so`
 
 Start all Comaas supporting services by checking out https://github.corp.ebay.com/ecg-comaas/ecg-comaas-docker:

@@ -60,7 +60,7 @@ public class Application {
             @Value("${hazelcast.members:#{null}}") String hazelcastMembers) {
         Config config = new Config();
 
-        config.getGroupConfig().setName(format("replyts_%s", tenant));
+        config.getGroupConfig().setName(format("comaas_%s", tenant));
         config.getGroupConfig().setPassword(hazelcastPassword);
 
         config.getProperties().setProperty("hazelcast.jmx", "true");
