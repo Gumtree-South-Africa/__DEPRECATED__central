@@ -29,9 +29,9 @@ public class MessageLoggingListener implements MessageProcessedListener {
         DriverManagerDataSource source = new DriverManagerDataSource();
 
         source.setDriverClass(driver);
-        source.setDriverClass(url);
-        source.setDriverClass(username);
-        source.setDriverClass(password);
+        source.setJdbcUrl(url);
+        source.setUser(username);
+        source.setPassword(password);
 
         template = new JdbcTemplate(source);
     }
