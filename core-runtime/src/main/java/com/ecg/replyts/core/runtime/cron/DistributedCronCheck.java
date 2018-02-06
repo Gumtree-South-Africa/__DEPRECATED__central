@@ -6,8 +6,6 @@ import com.ecg.replyts.core.api.sanitychecks.Result;
 import com.ecg.replyts.core.api.sanitychecks.Status;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IAtomicReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,8 +15,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * show a stale status when the cronjob already ran successfully on another node.
  */
 public class DistributedCronCheck implements Check {
-    private static final Logger LOG = LoggerFactory.getLogger(DistributedCronCheck.class);
-
     private static final String LAST_RUN_CLUSTER_KEY = "-lastRun";
     private static final String LAST_EXCEPTION_CLUSTER_KEY = "-lastException";
 
