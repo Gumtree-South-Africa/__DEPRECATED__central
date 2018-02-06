@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.Collection;
+
 @ComaasPlugin
 @ConditionalOnProperty(value = "au.messagelogger.enabled", havingValue = "true", matchIfMissing = true)
 public class MessageLoggingListener implements MessageProcessedListener {
@@ -39,7 +41,9 @@ public class MessageLoggingListener implements MessageProcessedListener {
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
         try {
-            template.update(INSERT_STATEMENT, EventCreator.toValues(conversation, message).values());
+            Collection<String> values = EventCreator.toValues(conversation, message).values();
+
+            template.update(INSERT_STATEMENT, values.toArray(new String[values.size()]);
         } catch (RuntimeException e) {
             LOG.error("Message logging failed", e);
         }
