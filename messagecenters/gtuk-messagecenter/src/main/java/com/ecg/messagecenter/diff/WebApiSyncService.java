@@ -13,6 +13,7 @@ import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.CassandraPostBoxService;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.webapi.ConversationService;
 import com.ecg.messagecenter.webapi.PostBoxResponseBuilder;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;

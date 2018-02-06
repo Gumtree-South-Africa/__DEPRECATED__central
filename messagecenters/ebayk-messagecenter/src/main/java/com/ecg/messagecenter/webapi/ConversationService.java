@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.diff;
+package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Histogram;
 import com.ecg.messagecenter.persistence.ConversationThread;

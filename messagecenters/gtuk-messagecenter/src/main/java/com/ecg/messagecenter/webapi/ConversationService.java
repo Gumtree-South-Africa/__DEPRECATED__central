@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.diff;
+package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
@@ -6,9 +6,6 @@ import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
-import com.ecg.messagecenter.webapi.ConversationCustomValue;
-import com.ecg.messagecenter.webapi.DeletedCustomValue;
-import com.ecg.messagecenter.webapi.FlaggedCustomValue;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.core.api.model.MailCloakingService;

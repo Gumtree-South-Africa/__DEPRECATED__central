@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.webapi;
 
-import com.ecg.messagecenter.diff.ConversationService;
 import com.ecg.messagecenter.diff.WebApiSyncService;
 import com.ecg.messagecenter.webapi.requests.MessageCenterDeleteConversationCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;

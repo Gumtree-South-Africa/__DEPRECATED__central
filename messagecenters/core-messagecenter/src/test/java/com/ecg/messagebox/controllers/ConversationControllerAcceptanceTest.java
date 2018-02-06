@@ -29,7 +29,7 @@ public class ConversationControllerAcceptanceTest extends ReplyTsIntegrationTest
             .header("X-CUST-" + "user-id-buyer", "1")
             .header("X-CUST-" + "user-id-seller", "100")
             .adId("abc")
-            .plainBody("anot relevant message");
+            .plainBody("not relevant message");
 
 
     @Test
@@ -93,7 +93,7 @@ public class ConversationControllerAcceptanceTest extends ReplyTsIntegrationTest
                 .when()
                 .post("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/2/conversations/abc/system-messages")
                 .then()
-                .statusCode(400);
+                .statusCode(500);
     }
 
     @Test
