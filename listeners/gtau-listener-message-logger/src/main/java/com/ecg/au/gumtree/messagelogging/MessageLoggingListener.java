@@ -43,7 +43,7 @@ public class MessageLoggingListener implements MessageProcessedListener {
         try {
             Collection<String> values = EventCreator.toValues(conversation, message).values();
 
-            template.update(INSERT_STATEMENT, values.toArray(new String[values.size()]);
+            template.update(INSERT_STATEMENT, values.toArray(new String[values.size()]));
         } catch (RuntimeException e) {
             LOG.error("Message logging failed", e);
         }
