@@ -28,16 +28,16 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
     final private KafkaMessageConsumerFactory kafkaMessageConsumerFactory;
 
-    final String tenant;
+    final String shortTenant;
 
     protected Consumer<String, byte[]> consumer;
 
     KafkaMessageProcessor(QueueService queueService, KafkaMessageConsumerFactory kafkaMessageConsumerFactory,
-                          int retryOnFailedMessagePeriodMinutes, String tenant) {
+                          int retryOnFailedMessagePeriodMinutes, String shortTenant) {
         this.queueService = queueService;
         this.kafkaMessageConsumerFactory = kafkaMessageConsumerFactory;
         this.retryOnFailedMessagePeriodMinutes = retryOnFailedMessagePeriodMinutes;
-        this.tenant = tenant;
+        this.shortTenant = shortTenant;
     }
 
     @Override
@@ -101,7 +101,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     void unparseableMessage(final RetryableMessage retryableMessage) {
         UNPARSEABLE_COUNTER.inc();
         try {
-            publishToTopic(KafkaTopicService.getTopicUnparseable(tenant), retryableMessage);
+            publishToTopic(KafkaTopicService.getTopicUnparseable(shortTenant), retryableMessage);
         } catch (JsonProcessingException e) {
             LOG.error("Could not serialize message before putting it in the unparseable queue, correlationId: {}", retryableMessage.getCorrelationId(), e);
         }
@@ -117,7 +117,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
                     retryableMessage.getPayload(),
                     retryableMessage.getTriedCount() + 1,
                     retryableMessage.getCorrelationId());
-            publishToTopic(KafkaTopicService.getTopicRetry(tenant), retriedMessage);
+            publishToTopic(KafkaTopicService.getTopicRetry(shortTenant), retriedMessage);
         } catch (JsonProcessingException e) {
             LOG.error("Could not serialize message before putting it in the retry queue, correlationId: {}", retryableMessage.getCorrelationId(), e);
         }
@@ -126,7 +126,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     // Put the message back in the incoming topic
     void retryMessage(final RetryableMessage retryableMessage) {
         try {
-            queueService.publish(KafkaTopicService.getTopicIncoming(tenant), retryableMessage);
+            queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
         } catch (JsonProcessingException e) {
             LOG.error("Could not serialize message before putting it back in the incoming queue after retry, correlationId: {}", retryableMessage.getCorrelationId(), e);
         }
@@ -137,7 +137,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
         ABANDONED_RETRY_COUNTER.inc();
         LOG.error("Mail processing abandoned for message with correlationId {}", retryableMessage.getCorrelationId(), e);
         try {
-            publishToTopic(KafkaTopicService.getTopicAbandoned(tenant), retryableMessage);
+            publishToTopic(KafkaTopicService.getTopicAbandoned(shortTenant), retryableMessage);
         } catch (JsonProcessingException e1) {
             LOG.warn("Could not serialize message before putting it in the abandon queue, correlationId: {}", retryableMessage.getCorrelationId(), e1);
         }
@@ -146,6 +146,6 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     // Don't know what to do... Put it in the failed queue! Most likely unparseable json
     void failMessage(final byte[] payload, final Exception e) {
         LOG.error("Could not handle message, writing raw value to failed topic", e);
-        queueService.publish(KafkaTopicService.getTopicFailed(tenant), payload);
+        queueService.publish(KafkaTopicService.getTopicFailed(shortTenant), payload);
     }
 }

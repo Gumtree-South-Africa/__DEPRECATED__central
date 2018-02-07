@@ -29,10 +29,10 @@ public class PluginConfiguration {
 
     private static String getPath(String tenant) {
         switch (tenant) {
-            case "btar":
-            case "btmx":
-            case "btsg":
-            case "btza":
+            case "ar":
+            case "mx":
+            case "sg":
+            case "za":
             case "ebayk":
             case "gtau":
             case "gtuk":

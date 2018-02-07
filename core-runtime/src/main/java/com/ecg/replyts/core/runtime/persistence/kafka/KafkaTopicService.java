@@ -1,7 +1,5 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
-import com.ecg.replyts.core.runtime.util.TenantNameUtil;
-
 public class KafkaTopicService {
     // The topic for fresh and new incoming messages
     private static final String TOPIC_INCOMING = "_messages";
@@ -18,27 +16,27 @@ public class KafkaTopicService {
     // After n retries, put the message on this topic
     private static final String TOPIC_ABANDONED = "_messages_abandoned";
 
-    public static String getTopicIncoming(String tenantLongName) {
-        return prependTenant(tenantLongName, TOPIC_INCOMING);
+    public static String getTopicIncoming(String tenantShortName) {
+        return prependTenant(tenantShortName, TOPIC_INCOMING);
     }
 
-    public static String getTopicRetry(String tenantLongName) {
-        return prependTenant(tenantLongName, TOPIC_RETRY);
+    public static String getTopicRetry(String tenantShortName){
+        return prependTenant(tenantShortName, TOPIC_RETRY);
     }
 
-    public static String getTopicFailed(String tenantLongName) {
-        return prependTenant(tenantLongName, TOPIC_FAILED);
+    public static String getTopicFailed(String tenantShortName) {
+        return prependTenant(tenantShortName, TOPIC_FAILED);
     }
 
-    public static String getTopicUnparseable(String tenantLongName) {
-        return prependTenant(tenantLongName, TOPIC_UNPARSEABLE);
+    public static String getTopicUnparseable(String tenantShortName) {
+        return prependTenant(tenantShortName, TOPIC_UNPARSEABLE);
     }
 
-    public static String getTopicAbandoned(String tenantLongName) {
-        return prependTenant(tenantLongName, TOPIC_ABANDONED);
+    public static String getTopicAbandoned(String tenantShortName) {
+        return prependTenant(tenantShortName, TOPIC_ABANDONED);
     }
 
-    private static String prependTenant(String tenantLongName, String topicName) {
-        return TenantNameUtil.getShortName(tenantLongName) + topicName;
+    private static String prependTenant(String tenantShortName, String topicName) {
+        return tenantShortName + topicName;
     }
 }

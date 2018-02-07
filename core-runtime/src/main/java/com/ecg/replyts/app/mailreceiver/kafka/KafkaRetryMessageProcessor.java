@@ -24,8 +24,8 @@ public class KafkaRetryMessageProcessor extends KafkaMessageProcessor {
     private static final Histogram RETRY_LAG = TimingReports.newHistogram("kafka.retry.lag");
 
     KafkaRetryMessageProcessor(QueueService queueService, KafkaMessageConsumerFactory kafkaMessageConsumerFactory,
-                               int retryOnFailedMessagePeriodMinutes, String tenant) {
-        super(queueService, kafkaMessageConsumerFactory, retryOnFailedMessagePeriodMinutes, tenant);
+                               int retryOnFailedMessagePeriodMinutes, String shortTenant) {
+        super(queueService, kafkaMessageConsumerFactory, retryOnFailedMessagePeriodMinutes, shortTenant);
     }
 
     protected void processMessage(ConsumerRecord<String, byte[]> messageRecord) {
@@ -68,6 +68,6 @@ public class KafkaRetryMessageProcessor extends KafkaMessageProcessor {
 
     @Override
     protected String getTopicName() {
-        return KafkaTopicService.getTopicRetry(tenant);
+        return KafkaTopicService.getTopicRetry(shortTenant);
     }
 }

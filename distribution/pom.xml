@@ -720,10 +720,10 @@
         </profile>
 
         <profile>
-            <id>btmx</id>
+            <id>mx</id>
 
             <properties>
-                <profile-classifier>btmx</profile-classifier>
+                <profile-classifier>mx</profile-classifier>
             </properties>
 
             <dependencies>
@@ -757,10 +757,10 @@
         </profile>
 
         <profile>
-            <id>btar</id>
+            <id>ar</id>
 
             <properties>
-                <profile-classifier>btar</profile-classifier>
+                <profile-classifier>ar</profile-classifier>
             </properties>
 
             <dependencies>
@@ -794,10 +794,10 @@
         </profile>
 
         <profile>
-            <id>btza</id>
+            <id>za</id>
 
             <properties>
-                <profile-classifier>btza</profile-classifier>
+                <profile-classifier>za</profile-classifier>
             </properties>
 
             <dependencies>
@@ -831,10 +831,10 @@
         </profile>
 
         <profile>
-            <id>btsg</id>
+            <id>sg</id>
 
             <properties>
-                <profile-classifier>btsg</profile-classifier>
+                <profile-classifier>sg</profile-classifier>
             </properties>
 
             <dependencies>
@@ -1006,7 +1006,7 @@
                         <configuration>
                             <rules>
                                 <requireActiveProfile>
-                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,btmx,btar,btza,btsg,it,migration,dk</profiles>
+                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,mx,ar,za,sg,it,migration,dk</profiles>
                                     <all>false</all>
                                 </requireActiveProfile>
                             </rules>

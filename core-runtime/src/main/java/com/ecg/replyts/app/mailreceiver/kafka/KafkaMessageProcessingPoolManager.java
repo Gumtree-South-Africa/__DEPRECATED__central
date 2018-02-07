@@ -24,8 +24,8 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
     @Value("${mailreceiver.retrydelay.minutes:5}")
     private int retryOnFailedMessagePeriodMinutes;
 
-    @Value("${replyts.tenant}")
-    private String tenantLongName;
+    @Value("${replyts.tenant.short:${replyts.tenant}}")
+    private String shortTenant;
 
     @Value("${kafka.message.processing.enabled:false}")
     private boolean messageProcessingEnabled;
@@ -58,10 +58,10 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
 
     private KafkaNewMessageProcessor createNewMessageConsumer() {
         return new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService, kafkaMessageConsumerFactory,
-                retryOnFailedMessagePeriodMinutes, maxRetries, tenantLongName, messageProcessingEnabled);
+                retryOnFailedMessagePeriodMinutes, maxRetries, shortTenant, messageProcessingEnabled);
     }
 
     private KafkaRetryMessageProcessor createRetryMessageConsumer() {
-        return new KafkaRetryMessageProcessor(queueService, kafkaMessageConsumerFactory, retryOnFailedMessagePeriodMinutes, tenantLongName);
+        return new KafkaRetryMessageProcessor(queueService, kafkaMessageConsumerFactory, retryOnFailedMessagePeriodMinutes, shortTenant);
     }
 }

@@ -25,14 +25,16 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaNewMessageProcessor.class);
 
     private final int maxRetries;
+
     private final boolean messageProcessingEnabled;
+
     private final MessageProcessingCoordinator messageProcessingCoordinator;
 
     KafkaNewMessageProcessor(MessageProcessingCoordinator messageProcessingCoordinator, QueueService queueService,
                              KafkaMessageConsumerFactory kafkaMessageConsumerFactory, int retryOnFailedMessagePeriodMinutes,
-                             int maxRetries, String tenant, boolean messageProcessingEnabled) {
+                             int maxRetries, String shortTenant, boolean messageProcessingEnabled) {
+        super(queueService, kafkaMessageConsumerFactory, retryOnFailedMessagePeriodMinutes, shortTenant);
 
-        super(queueService, kafkaMessageConsumerFactory, retryOnFailedMessagePeriodMinutes, tenant);
         this.maxRetries = maxRetries;
         this.messageProcessingCoordinator = messageProcessingCoordinator;
         this.messageProcessingEnabled = messageProcessingEnabled;
@@ -70,6 +72,6 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
 
     @Override
     protected String getTopicName() {
-        return KafkaTopicService.getTopicIncoming(tenant);
+        return KafkaTopicService.getTopicIncoming(shortTenant);
     }
 }

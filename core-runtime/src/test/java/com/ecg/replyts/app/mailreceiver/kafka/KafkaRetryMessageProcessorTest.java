@@ -34,12 +34,12 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class KafkaRetryMessageProcessorTest {
-    private static final String TENANT = "mp";
-    private static final String TOPIC_UNPARSEABLE = KafkaTopicService.getTopicUnparseable(TENANT);
-    private static final String TOPIC_RETRY = KafkaTopicService.getTopicRetry(TENANT);
-    private static final String TOPIC_ABANDONED = KafkaTopicService.getTopicAbandoned(TENANT);
-    private static final String TOPIC_FAILED = KafkaTopicService.getTopicFailed(TENANT);
-    private static final String TOPIC_INCOMING = KafkaTopicService.getTopicIncoming(TENANT);
+    private static final String SHORT_TENANT = "mp";
+    private static final String TOPIC_UNPARSEABLE = KafkaTopicService.getTopicUnparseable(SHORT_TENANT);
+    private static final String TOPIC_RETRY = KafkaTopicService.getTopicRetry(SHORT_TENANT);
+    private static final String TOPIC_ABANDONED = KafkaTopicService.getTopicAbandoned(SHORT_TENANT);
+    private static final String TOPIC_FAILED = KafkaTopicService.getTopicFailed(SHORT_TENANT);
+    private static final String TOPIC_INCOMING = KafkaTopicService.getTopicIncoming(SHORT_TENANT);
     private static final String CORRELATION_ID = "corr";
     private static final byte[] PAYLOAD = "some payload".getBytes();
     public static final int RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES = 5;
@@ -80,7 +80,7 @@ public class KafkaRetryMessageProcessorTest {
         consumer.updateBeginningOffsets(beginningOffsets);
         when(kafkaMessageConsumerFactory.createConsumer(any())).thenReturn(consumer);
 
-        kafkaRetryMessageProcessor = new KafkaRetryMessageProcessor(queueService, kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, TENANT);
+        kafkaRetryMessageProcessor = new KafkaRetryMessageProcessor(queueService, kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, SHORT_TENANT);
     }
 
     private void sendRetryMessage(final RetryableMessage retryableMessage) throws JsonProcessingException {

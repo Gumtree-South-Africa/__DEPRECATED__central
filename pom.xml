@@ -357,7 +357,7 @@
         </profile>
 
         <profile>
-            <id>btmx</id>
+            <id>mx</id>
 
             <repositories>
                 <repository>
@@ -401,7 +401,7 @@
         </profile>
 
         <profile>
-            <id>btar</id>
+            <id>ar</id>
 
             <repositories>
                 <repository>
@@ -445,7 +445,7 @@
         </profile>
 
         <profile>
-            <id>btza</id>
+            <id>za</id>
 
             <repositories>
                 <repository>
@@ -489,7 +489,7 @@
         </profile>
 
         <profile>
-            <id>btsg</id>
+            <id>sg</id>
 
             <repositories>
                 <repository>

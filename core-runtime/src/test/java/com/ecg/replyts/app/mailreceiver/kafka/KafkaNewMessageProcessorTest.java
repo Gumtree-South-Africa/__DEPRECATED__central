@@ -35,12 +35,12 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class KafkaNewMessageProcessorTest {
-    private static final String TENANT = "ebayk";
-    private static final String TOPIC_UNPARSEABLE = KafkaTopicService.getTopicUnparseable(TENANT);
-    private static final String TOPIC_RETRY = KafkaTopicService.getTopicRetry(TENANT);
-    private static final String TOPIC_INCOMING = KafkaTopicService.getTopicIncoming(TENANT);
-    private static final String TOPIC_FAILED = KafkaTopicService.getTopicFailed(TENANT);
-    private static final String TOPIC_ABANDONED = KafkaTopicService.getTopicAbandoned(TENANT);
+    private static final String SHORT_TENANT = "ek";
+    private static final String TOPIC_UNPARSEABLE = KafkaTopicService.getTopicUnparseable(SHORT_TENANT);
+    private static final String TOPIC_RETRY = KafkaTopicService.getTopicRetry(SHORT_TENANT);
+    private static final String TOPIC_INCOMING = KafkaTopicService.getTopicIncoming(SHORT_TENANT);
+    private static final String TOPIC_FAILED = KafkaTopicService.getTopicFailed(SHORT_TENANT);
+    private static final String TOPIC_ABANDONED = KafkaTopicService.getTopicAbandoned(SHORT_TENANT);
     private static final String CORRELATION_ID = "corr";
     private static final byte[] PAYLOAD = "some payload".getBytes();
     private static final int RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES = 5;
@@ -82,7 +82,7 @@ public class KafkaNewMessageProcessorTest {
         when(kafkaMessageConsumerFactory.createConsumer(any())).thenReturn(consumer);
 
         kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService, kafkaMessageConsumerFactory,
-                RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, MAX_RETRIES, TENANT, true);
+                RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, MAX_RETRIES, SHORT_TENANT, true);
     }
 
     private void sendIncomingMessage(final byte[] rawMessage) {
