@@ -245,6 +245,18 @@ Closure wrapWithStepDefinition(
                         cleanWs notFailBuild: true
                     }
                 }
+                if (env."SKIP_$tenant" != 'true') {
+                    try {
+                        echo "Running smoke tests for $PROVIDED_TENANT against $PROVIDED_DC $PROVIDED_ENV"
+                        build job: 'smoke-tests', parameters: [
+                                string(name: 'PROVIDED_TENANT', value: "$PROVIDED_TENANT"),
+                                string(name: 'PROVIDED_ENV', value: "$PROVIDED_ENV"),
+                                string(name: 'PROVIDED_DC', value: "$PROVIDED_DC")
+                        ], wait: false
+                    } finally {
+                        cleanWs notFailBuild: true
+                    }
+                }
             }
         }
     }
