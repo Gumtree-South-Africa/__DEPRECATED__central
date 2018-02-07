@@ -27,7 +27,7 @@ public class MessageLoggingListener implements MessageProcessedListener {
     private JdbcTemplate template;
 
     @Autowired
-    private MessageLoggingListener(@Value("${au.messagelogger.driver}") String driver, @Value("${au.messagelogger.url}") String url, @Value("${au.messagelogger.username}") String username, @Value("${au.messagelogger.password}") String password) {
+    MessageLoggingListener(@Value("${au.messagelogger.driver}") String driver, @Value("${au.messagelogger.url}") String url, @Value("${au.messagelogger.username}") String username, @Value("${au.messagelogger.password}") String password) {
         DriverManagerDataSource source = new DriverManagerDataSource();
 
         source.setDriverClass(driver);
@@ -47,5 +47,9 @@ public class MessageLoggingListener implements MessageProcessedListener {
         } catch (RuntimeException e) {
             LOG.error("Message logging failed", e);
         }
+    }
+
+    void setTemplate(JdbcTemplate template) {
+        this.template = template;
     }
 }

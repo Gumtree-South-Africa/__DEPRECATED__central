@@ -22,7 +22,7 @@ public class EventCreator {
     public static final String EMPTY_VALUE = "-";
 
     public static Map<String, String> toValues(Conversation conversation, Message message) {
-        return new LinkedHashMap() {{
+        return new LinkedHashMap<String, String>() {{
           put("messageId", message.getId());
           put("conversationId", conversation.getId());
           put("messageDirection", message.getMessageDirection().name());
@@ -31,7 +31,7 @@ public class EventCreator {
           put("adId", conversation.getAdId());
           put("sellerMail", conversation.getSellerId());
           put("buyerMail", conversation.getBuyerId());
-          put("numOfMessageInConversation", conversation.getMessages().indexOf(message));
+          put("numOfMessageInConversation", Integer.toString(conversation.getMessages().indexOf(message)));
           put("logTimestamp", new DateTime().toString(DATE_FORMAT));
           put("conversationCreatedAt", conversation.getCreatedAt().toString(DATE_FORMAT));
           put("messageReceivedAt", message.getReceivedAt().toString(DATE_FORMAT));
