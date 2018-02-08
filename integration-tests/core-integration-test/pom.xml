@@ -183,7 +183,7 @@
                                     </includes>
                                     <forkCount>0.5C</forkCount>
                                     <reuseForks>false</reuseForks>
-                                    <argLine>-Xmx8G</argLine>
+                                    <argLine>-Xmx2G</argLine>
                                 </configuration>
                             </execution>
                         </executions>
@@ -215,7 +215,7 @@
                                     </includes>
                                     <forkCount>0.5C</forkCount>
                                     <reuseForks>false</reuseForks>
-                                    <argLine>-Xmx8G</argLine>
+                                    <argLine>-Xmx2G</argLine>
                                 </configuration>
                             </execution>
                         </executions>
