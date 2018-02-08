@@ -21,14 +21,20 @@ public class AnonymizedMailConverter {
     private final String[] domains;
     private final Map<String, Pattern> mailFormatPatterns;
 
+    // temporary parameter for using an hardcoded '.' as the mail cloaking separator; needed for safely rollbacking Bolt
+    // in case of failure when onboarding. To be removed as soon an the Bolt onboarding is successfully completed.
+    private boolean allowBoltOnboardingRollback;
+
     @Autowired
     public AnonymizedMailConverter(
       @Value("${mailcloaking.localized.buyer}") String buyerRole,
       @Value("${mailcloaking.localized.seller}") String sellerRole,
-      @Value("${mailcloaking.domains}") String[] domains) {
+      @Value("${mailcloaking.domains}") String[] domains,
+      @Value("${mailcloaking.allowBoltOnboardingRollback:false}") boolean allowBoltOnboardingRollback) {
         this.buyerRole = buyerRole;
         this.sellerRole = sellerRole;
         this.domains = domains.clone();
+        this.allowBoltOnboardingRollback = allowBoltOnboardingRollback;
 
         ImmutableMap.Builder<String, Pattern> builder = ImmutableMap.builder();
         for (String domain : domains) {
@@ -45,7 +51,10 @@ public class AnonymizedMailConverter {
         String roleName = ConversationRole.Buyer == role ? buyerRole : sellerRole;
         String hash = conv.getSecretFor(role);
         String domain = renderDomainFromContext(conv, role);
-        String ma = String.format("%s%s%s@%s", roleName, MAIL_CLOAKING_SEPARATOR, hash, domain);
+        String ma = allowBoltOnboardingRollback ?
+            String.format("%s%s%s@%s", roleName, ".", hash, domain) :
+            String.format("%s%s%s@%s", roleName, MAIL_CLOAKING_SEPARATOR, hash, domain);
+
         return new MailAddress(ma);
     }
 

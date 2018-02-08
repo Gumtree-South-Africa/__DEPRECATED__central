@@ -29,7 +29,7 @@ public class AnonymizedMailConverterMultiDomainTest {
     @Mock
     private Conversation conversation;
 
-    private AnonymizedMailConverter anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS);
+    private AnonymizedMailConverter anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS, false);
 
     @Before
     public void setUp() throws Exception {
