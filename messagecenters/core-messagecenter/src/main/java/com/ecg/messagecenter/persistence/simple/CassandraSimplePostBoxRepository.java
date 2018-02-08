@@ -283,7 +283,9 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         boolean isFinished = true;
 
         try (Timer.Context ignored = streamConversationThreadModificationsByHourTimer.time()) {
-            Statement bound = Statements.SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this, roundedToHour.toDate());
+            Statement bound = Statements.SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE
+                    .bind(this, roundedToHour.toDate())
+                    .setFetchSize(50);
             ResultSet resultSet = session.execute(bound);
             Iterator<List<Row>> partitions = Iterators.partition(resultSet.iterator(), batchSize);
 
