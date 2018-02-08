@@ -1,0 +1,94 @@
+#!/usr/bin/env groovy
+
+static def tenantAliases() {
+    [
+            'mp'   : 'mp',
+            'ebayk': 'ek',
+            'it'   : 'it',
+            'kjca' : 'ca',
+            'mde'  : 'mo',
+            'gtuk' : 'uk',
+            'gtau' : 'au',
+    ]
+}
+
+def checkInputParameters(providedEnv, providedDc, providedTenant) {
+    if (providedDc == "-") {
+        error("Please provide a DC")
+    }
+    if (providedTenant == "-") {
+        error("Please provide a tenant")
+    }
+    if (providedDc != 'ams1' && providedEnv == 'lp') {
+        error("The lp environment is only available in the ams1 dc.")
+    }
+}
+
+String getActiveDC(String tenantLongName, String env) {
+    if (env == 'lp') {
+        return 'ams1'
+    }
+
+    final String tenant = tenantAliases().get(tenantLongName)
+    String ip = sh(
+            script: "dig +short ${tenant}.prod.comaas.cloud",
+            returnStdout: true
+    ).trim()
+
+    echo "getActiveDC: ip = $ip"
+
+    String dc = "???"
+    if (ip.startsWith("10.32.24.")) {
+        dc = "ams1"
+    }
+    if (ip.startsWith("10.32.56.")) {
+        dc = "dus1"
+    }
+
+    echo "getActiveDC: dc = $dc"
+
+    return dc
+}
+
+node(PROVIDED_ENV) {
+    checkInputParameters(PROVIDED_ENV, PROVIDED_DC, PROVIDED_TENANT)
+
+    final String environmentShort = PROVIDED_ENV
+    String dc = PROVIDED_DC
+    final String tenant = PROVIDED_TENANT
+    final String activeDC = getActiveDC(tenant, environmentShort)
+    boolean isActiveDC = activeDC == dc
+
+    String description = "$tenant/$dc/$environmentShort/"
+
+    if (environmentShort == "prod") {
+        switch (dc) {
+            case "active":
+                dc = activeDC
+                description += "active"
+                break
+            case "passive":
+                dc = (activeDC == "ams1" ? "dus1" : "ams1")
+                description += "passive"
+                break
+            default:
+                description += (dc == activeDC ? "active" : "passive")
+                break
+        }
+    } else {
+        // Must be LP environment
+        description += "-"
+    }
+
+    currentBuild.description = description
+
+    timeout(time: 1, unit: 'MINUTES') {
+        input message: "Restarting Comaas for tenant: ${tenant} in " + (isActiveDC ? "ACTIVE " : "") + "dc: ${dc} on env: ${environmentShort}. Are you sure?"
+    }
+
+    stage("Restarting Comaas") {
+        node("$environmentShort && $dc") {
+            sh "servicecontrol.py --logdir ~ --config /etc/comaas/comaas-${tenant}.yaml --restartservice comaas-${tenant}"
+        }
+    }
+}
