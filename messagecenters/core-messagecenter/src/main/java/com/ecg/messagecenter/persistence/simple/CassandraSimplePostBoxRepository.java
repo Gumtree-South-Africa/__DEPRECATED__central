@@ -287,7 +287,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
                     .bind(this, roundedToHour.toDate())
                     .setFetchSize(50);
             ResultSet resultSet = session.execute(bound);
-            Iterator<List<Row>> partitions = Iterators.partition(resultSet.iterator(), batchSize);
+            Iterator<List<Row>> partitions = Iterators.partition(resultSet.iterator(), 1_000);
 
             try {
                 while(partitions.hasNext()) {
