@@ -15,10 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 
@@ -93,7 +90,7 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
                 // Compare this modification to the latest modification for this conversation block
 
                 ResultSet latestResult = cassandraSessionForMb.execute(Statements.SELECT_CONVERSATION_BLOCK_LATEST.bind(this, conversationId));
-                Date latest = toStream(latestResult).map(row -> row.getDate(FIELD_MODIFICATION_DATE)).findFirst().get();
+                Date latest = toStream(latestResult).map(row -> row.getDate(FIELD_MODIFICATION_DATE)).filter(Objects::nonNull).findFirst().orElse(null);
 
                 if (latest != null && latest.after(beforeDate)) {
                     // Only delete this _idx entry

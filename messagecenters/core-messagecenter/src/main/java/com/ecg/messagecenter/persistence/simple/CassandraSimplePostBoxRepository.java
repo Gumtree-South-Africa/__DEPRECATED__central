@@ -83,6 +83,9 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @Value("${replyts.cleanup.conversation.streaming.batch.size:3000}")
     private int batchSize;
 
+    @Value("${comaas.cleanup.postbox.fetch.size:5000}")
+    private int fetchSize;
+
     private ThreadPoolExecutor threadPoolExecutor;
 
     @PostConstruct
@@ -285,9 +288,9 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         try (Timer.Context ignored = streamConversationThreadModificationsByHourTimer.time()) {
             Statement bound = Statements.SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE
                     .bind(this, roundedToHour.toDate())
-                    .setFetchSize(50);
+                    .setFetchSize(fetchSize);
             ResultSet resultSet = session.execute(bound);
-            Iterator<List<Row>> partitions = Iterators.partition(resultSet.iterator(), 1_000);
+            Iterator<List<Row>> partitions = Iterators.partition(resultSet.iterator(), batchSize);
 
             try {
                 while(partitions.hasNext()) {
