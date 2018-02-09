@@ -8,6 +8,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.exceptions.ReadTimeoutException;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
@@ -27,11 +28,8 @@ import org.springframework.beans.factory.annotation.Value;
 import javax.annotation.PostConstruct;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -277,7 +275,8 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @Override
     public boolean cleanup(DateTime time) {
 
-        DateTime roundedToHour = time.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
+        Date roundedToHour = time.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC).toDate();
+        String roundedToHourStr = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(roundedToHour);
 
         LOG.info("Cleanup: Deleting conversations for the date {} and rounded hour {}", time, roundedToHour);
 
@@ -287,9 +286,15 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
         try (Timer.Context ignored = streamConversationThreadModificationsByHourTimer.time()) {
             Statement bound = Statements.SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE
-                    .bind(this, roundedToHour.toDate())
+                    .bind(this, roundedToHour)
                     .setFetchSize(fetchSize);
-            ResultSet resultSet = session.execute(bound);
+            ResultSet resultSet;
+            try {
+                resultSet = session.execute(bound);
+            } catch (ReadTimeoutException rte) {
+                LOG.error("Getting postbox data for '" + roundedToHourStr + "' timed out", rte);
+                return false;
+            }
             Iterator<List<Row>> partitions = Iterators.partition(resultSet.iterator(), batchSize);
 
             try {
