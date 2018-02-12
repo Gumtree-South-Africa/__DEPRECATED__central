@@ -15,6 +15,7 @@ import java.io.FilenameFilter;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -71,6 +72,40 @@ public class TextCleanerTest {
             }
         }
     }
+
+    @Test
+    public void cleanupMarkupCodesInMessage(){
+        String result = TextCleaner.cleanupText("blockquote, div.yahoo_quoted margin-left: 0 !important; " +
+                "border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white " +
+                "!important; Hi Rodney. I collected the mirror but I just noticed when i got home and tried to adjust " +
+                "the mirror that the left hand side adjustment has no nut holding it in? If you happen across a small " +
+                "black threaded nut that fits in an Ikea hole for the threaded bolt to screw into, I would appreciate " +
+                "you keeping it and maybe mailing it to me? I wish I found the issue at your place as I wouldn't have " +
+                "bought it as it is. I hope I can find that missing piece...\n" +
+                "On Tuesday, February 6, 2018, 10:35 AM, Rodney via Gumtree wrote:\n" +
+                "Ok.. perfect see than..");
+        assertEquals(" Hi Rodney. I collected the mirror but I just noticed when i got home and tried to adjust " +
+                "the mirror that the left hand side adjustment has no nut holding it in? If you happen across a small " +
+                "black threaded nut that fits in an Ikea hole for the threaded bolt to screw into, I would appreciate " +
+                "you keeping it and maybe mailing it to me? I wish I found the issue at your place as I wouldn't have " +
+                "bought it as it is. I hope I can find that missing piece...\n" +
+                "On Tuesday, February 6, 2018, 10:35 AM, Rodney via Gumtree wrote:\n" +
+                "Ok.. perfect see than..", result);
+
+
+        result = TextCleaner.cleanupText("blockquote, div.yahoo_quoted margin-left: 0 !important; " +
+                "border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; Ok\n" +
+                "Sent from Yahoo Mail for iPhone\n" +
+                "On Tuesday, February 6, 2018, 8:40 AM, Shan via Gumtree wrote:\n" +
+                "Thanks Brett. Sorry i missed your message. Can you please come tomorrow to come have a look? I will be home in the evening.\n" +
+                "Regards");
+        assertEquals(" Ok\n" +
+                "Sent from Yahoo Mail for iPhone\n" +
+                "On Tuesday, February 6, 2018, 8:40 AM, Shan via Gumtree wrote:\n" +
+                "Thanks Brett. Sorry i missed your message. Can you please come tomorrow to come have a look? I will be home in the evening.\n" +
+                "Regards", result);
+    }
+
 
     private static void assertEqualsIgnoreLineEnding(String message, String expected, String actual) {
         Assert.assertEquals(message, expected.replaceAll("(\\r?\\n)+", "\n"), actual.replaceAll("(\\r?\\n)+", "\n"));
