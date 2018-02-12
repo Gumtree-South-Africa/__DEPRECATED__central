@@ -156,6 +156,11 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
 
     withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
                       usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
+        nomadFile = "core-api.nomad"
+        if (tenant == "gtuk") {
+            nomadFile = "core-api_ACTIVE.nomad"
+        }
+
         sh "levant render " +
                 "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
                 "-var='version=${version}' " +
@@ -166,7 +171,7 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
                 "-var='region=${dc}' " +
                 "-var='api_count=${nrOfInstances}' " +
                 "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
-                "distribution/jenkins/deployment/core-api.nomad"
+                "distribution/jenkins/deployment/${nomadFile}"
         sh "levant deploy " +
                 "-log-level=debug " +
                 "-force-count=true " +
@@ -180,7 +185,7 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
                 "-var='region=${dc}' " +
                 "-var='api_count=${nrOfInstances}' " +
                 "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
-                "distribution/jenkins/deployment/core-api.nomad"
+                "distribution/jenkins/deployment/${nomadFile}"
     }
 }
 
