@@ -36,6 +36,9 @@ public class CassandraSimplePostBoxCleanupCronJob implements CronJobExecutor {
     @Value("${replyts.maxConversationAgeDays:180}")
     private int maxConversationAgeDays;
 
+    @Value("${comaas.cleanup.postbox.skipFailed:false}")
+    private boolean skipFailed;
+
     @Override
     public void execute() throws Exception {
         DateTime cleanupDate = cleanupDateCalculator.getCleanupDate(maxConversationAgeDays, CLEANUP_CONVERSATION_JOB_NAME);
@@ -49,8 +52,11 @@ public class CassandraSimplePostBoxCleanupCronJob implements CronJobExecutor {
         if (postBoxRepository.cleanup(cleanupDate)) {
             cronJobClockRepository.set(CLEANUP_CONVERSATION_JOB_NAME, now(), cleanupDate);
             LOG.info("Cleanup: Finished deleting postbox conversations");
+        } else if (skipFailed) {
+            cronJobClockRepository.set(CLEANUP_CONVERSATION_JOB_NAME, now(), cleanupDate);
+            LOG.info("Cleanup: Deleting postbox conversations failed, skipping to next time frame");
         } else {
-            LOG.warn("Cleanup: Deleting postbox conversations interrupted");
+            LOG.warn("Cleanup: Deleting postbox conversations failed");
         }
     }
 

@@ -81,7 +81,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @Value("${replyts.cleanup.conversation.streaming.batch.size:3000}")
     private int batchSize;
 
-    @Value("${comaas.cleanup.postbox.fetch.size:5000}")
+    @Value("${comaas.cleanup.postbox.fetchSize:5000}")
     private int fetchSize;
 
     private ThreadPoolExecutor threadPoolExecutor;
