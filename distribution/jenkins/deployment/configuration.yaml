@@ -1,10 +1,10 @@
 # the number of instances of comaas deployed on production as API/http only nodes in Nomad
 # LP always gets 3 instances per tenant
 instances:
-  gtuk: 3
-  mp: 3
-  ebayk: 3
+  ebayk: 15
+  gtau: 9
+  gtuk: 6
   it: 3
-  kjca: 3
+  kjca: 9
   mde: 3
-  gtau: 3
+  mp: 6
