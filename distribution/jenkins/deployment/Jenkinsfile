@@ -157,7 +157,7 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
     withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
                       usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
         nomadFile = "core-api.nomad"
-        if (tenant == "gtuk") {
+        if (environment == "lp" || tenant == "gtuk") {
             nomadFile = "core-api_ACTIVE.nomad"
         }
 
