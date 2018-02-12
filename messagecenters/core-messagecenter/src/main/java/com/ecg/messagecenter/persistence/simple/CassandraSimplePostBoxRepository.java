@@ -311,6 +311,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
                 }
             }
             catch (RejectedExecutionException rejectedExecutionException) {
+                LOG.warn("Execution was rejected", rejectedExecutionException);
                 isFinished = false;
             }
         }
