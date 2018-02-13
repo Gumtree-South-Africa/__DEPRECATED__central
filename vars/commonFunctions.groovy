@@ -252,7 +252,7 @@ boolean isVersionPresentInSwift(String tenant, String version) {
                         "-e OS_PASSWORD='$SWIFT_PASS' " +
                         "-e OS_PROJECT_NAME='comaas-control-prod' " +
                         "-e OS_REGION_NAME='dus1' " +
-                        "ebayclassifiedsgroup/python-swiftclient:3.5.0 list --prefix $tenant comaas " +
+                        "ebayclassifiedsgroup/python-swiftclient:3.5.0 swift list --prefix $tenant comaas " +
                         "| grep -c $version ) ]",
                 returnStatus: true
         )
