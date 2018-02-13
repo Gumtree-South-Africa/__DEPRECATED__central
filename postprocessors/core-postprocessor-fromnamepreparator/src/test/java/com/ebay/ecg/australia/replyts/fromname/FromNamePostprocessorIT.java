@@ -1,7 +1,6 @@
 package com.ebay.ecg.australia.replyts.fromname;
 
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.BeforeClass;
@@ -10,7 +9,6 @@ import org.junit.Test;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,9 +22,9 @@ public class FromNamePostprocessorIT {
 
     @BeforeClass
     public static void load() {
-        System.setProperty( "replyts.from-name.header.buyer", "buyer-name" );
-        System.setProperty( "replyts.from-name.header.seller", "seller-name" );
-        System.setProperty( "replyts.from-name.plugin.order", "250" );
+        System.setProperty("replyts.from-name.header.buyer", "buyer-name");
+        System.setProperty("replyts.from-name.header.seller", "seller-name");
+        System.setProperty("replyts.from-name.plugin.order", "250");
     }
 
     @Test
@@ -42,7 +40,7 @@ public class FromNamePostprocessorIT {
 
         assertNotNull("Headers must include 'From'", mail.getHeaders("From"));
         assertEquals("Expecting one 'From' in the header", 1, mail.getHeaders("From").size());
-        assertEquals(String.format("Fooler <%s>",mail.getFrom()), mail.getHeaders("From").get(0));
+        assertEquals(String.format("Fooler <%s>", mail.getFrom()), mail.getHeaders("From").get(0));
     }
 
     @Test
@@ -69,6 +67,6 @@ public class FromNamePostprocessorIT {
 
         assertNotNull("Headers must include 'From'", mail.getHeaders("From"));
         assertEquals("Expecting one 'From' in the header", 1, mail.getHeaders("From").size());
-        assertEquals(String.format("Barber <%s>",mail.getFrom()), mail.getHeaders("From").get(0));
+        assertEquals(String.format("Barber <%s>", mail.getFrom()), mail.getHeaders("From").get(0));
     }
 }

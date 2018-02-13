@@ -5,38 +5,39 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class PatternRulesParserTest {
 
     @Test(expected = IllegalArgumentException.class)
-    public void rejectsJsonObjectWithoutRulesElement() throws Exception {
+    public void rejectsJsonObjectWithoutRulesElement() {
         new PatternRulesParser(JsonObjects.parse("{}"));
     }
 
-    @Test(expected = IllegalArgumentException.class )
-    public void rejectsBrokenRegularExpression() throws Exception {
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsBrokenRegularExpression() {
         new PatternRulesParser(JsonObjects.parse("{rules: [{'regexp': '[', 'score': 20}]}"));
 
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void rejectsUnparsableScroe() throws Exception {
+    public void rejectsUnparsableScroe() {
         new PatternRulesParser(JsonObjects.parse("{rules: [{'regexp': '', 'score': 'as'}]}"));
     }
 
 
     @Test
-    public void generatesCaseInsensitivePatterns() throws Exception {
+    public void generatesCaseInsensitivePatterns() {
         PatternEntry caseInsensPattern = new PatternRulesParser(JsonObjects.parse("{rules: [{'regexp': 'ab', 'score': 10}]}")).getConfig().getPatterns().get(0);
 
         assertTrue(caseInsensPattern.getPattern().matcher("AB").find());
     }
 
     @Test
-    public void extractsPatternEntries() throws Exception {
+    public void extractsPatternEntries() {
         List<PatternEntry> rules = new PatternRulesParser(JsonObjects.parse("{rules: [{'regexp': 'ab', 'score': 10}, {'regexp': 'bc', 'score': 20}]}")).getConfig().getPatterns();
 
         assertEquals(2, rules.size());
@@ -50,12 +51,11 @@ public class PatternRulesParserTest {
 
 
     @Test
-    public void extractsPatternEntriesWithCategories() throws Exception {
+    public void extractsPatternEntriesWithCategories() {
         List<PatternEntry> rules = new PatternRulesParser(JsonObjects.parse("{rules: [{'regexp': 'ab', 'score': 10, 'categoryIds' : ['12', '216', 'cars']}]}")).getConfig().getPatterns();
 
         assertEquals(1, rules.size());
-
-        assertThat(rules.get(0).getCategoryIds().isPresent()).isTrue();
-        assertThat(rules.get(0).getCategoryIds().get()).contains("12", "216", "cars");
+        assertTrue(rules.get(0).getCategoryIds().isPresent());
+        assertThat((List<String>) rules.get(0).getCategoryIds().get(), hasItems("12", "216", "cars"));
     }
 }

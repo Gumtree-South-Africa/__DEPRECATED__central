@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,10 +26,10 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class WordfilterTest {
 
-    public static final PatternEntry FOOSTR_PATTERN = new PatternEntry(Pattern.compile("FooStr[a-z]*"), 100, Optional.<List>absent());
-    //public static final PatternEntry SUBJECT_PATTERN = new PatternEntry(Pattern.compile("subject"), 100, Optional.<List>absent());
+    private static final PatternEntry FOOSTR_PATTERN = new PatternEntry(Pattern.compile("FooStr[a-z]*"), 100, Optional.<List>absent());
+    //private static final PatternEntry SUBJECT_PATTERN = new PatternEntry(Pattern.compile("subject"), 100, Optional.<List>absent());
 
-    public static final PatternEntry ANY_CHARACTER_PATTERN = new PatternEntry(Pattern.compile("."), 200, Optional.<List>absent());
+    private static final PatternEntry ANY_CHARACTER_PATTERN = new PatternEntry(Pattern.compile("."), 200, Optional.<List>absent());
     private static final PatternEntry NOT_EXISTANT_PATTERN = new PatternEntry(Pattern.compile("googahhhbaaah"), 300, Optional.<List>absent());
 
     @Mock
@@ -45,7 +45,7 @@ public class WordfilterTest {
     private Mail mail;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         when(msg.getId()).thenReturn("msgid1");
         when(mpc.getMessage()).thenReturn(msg);
         when(msg.getPlainTextBody()).thenReturn("Foobar FooString FooBooh Doh!");
@@ -58,14 +58,14 @@ public class WordfilterTest {
     }
 
     @Test
-    public void matchesSinglePatternInBody() throws Exception {
+    public void matchesSinglePatternInBody() {
         List<FilterFeedback> fb = filter(FOOSTR_PATTERN);
 
         assertEquals(1, fb.size());
     }
 
 //    @Test
-//    public void matchesSinglePatternInSubject() throws Exception {
+//    public void matchesSinglePatternInSubject() {
 //        List<FilterFeedback> fb = filter(SUBJECT_PATTERN);
 //
 //        assertEquals(1, fb.size());
@@ -73,21 +73,21 @@ public class WordfilterTest {
 
 
     @Test
-    public void onePatternHitOnlyGeneratesOneFeedback() throws Exception {
+    public void onePatternHitOnlyGeneratesOneFeedback() {
         List<FilterFeedback> fb = filter(ANY_CHARACTER_PATTERN);
 
         assertEquals(1, fb.size());
     }
 
     @Test
-    public void multiplePatternsMatch() throws Exception {
+    public void multiplePatternsMatch() {
         List<FilterFeedback> fb = filter(ANY_CHARACTER_PATTERN, FOOSTR_PATTERN);
 
         assertEquals(2, fb.size());
     }
 
     @Test
-    public void emptyListReturnedOnNoPatternMatch() throws Exception {
+    public void emptyListReturnedOnNoPatternMatch() {
         List<FilterFeedback> fb = filter(NOT_EXISTANT_PATTERN);
 
         assertEquals(0, fb.size());
@@ -98,7 +98,7 @@ public class WordfilterTest {
     }
 
     @Test
-    public void generatesRightProcessingFeedbackOutput() throws Exception {
+    public void generatesRightProcessingFeedbackOutput() {
         FilterFeedback result = filter(FOOSTR_PATTERN).get(0);
 
         assertEquals(100l, result.getScore().longValue());
@@ -116,19 +116,18 @@ public class WordfilterTest {
     public void filterWithMatchingCategory() {
         when(conversation.getCustomValues()).thenReturn(ImmutableMap.of(Wordfilter.CATEGORY_ID, "216"));
 
-        List<FilterFeedback> fb = filter(new PatternEntry(Pattern.compile("Foobar"), 100, Optional.<List>of(Arrays.asList("44","216"))));
+        List<FilterFeedback> fb = filter(new PatternEntry(Pattern.compile("Foobar"), 100, Optional.<List>of(Arrays.asList("44", "216"))));
 
-        assertThat(fb).hasSize(1);
-        assertThat(fb.get(0).getScore()).isEqualTo(100);
+        assertEquals(1, fb.size());
+        assertEquals(Integer.valueOf(100), fb.get(0).getScore());
     }
 
     @Test
     public void doNotFilterOnNonMatchingCategory() {
         when(conversation.getCustomValues()).thenReturn(ImmutableMap.of(Wordfilter.CATEGORY_ID, "212"));
 
-        List<FilterFeedback> fb = filter(new PatternEntry(Pattern.compile("Foobar"), 100, Optional.<List>of(Arrays.asList("44","216"))));
-
-        assertThat(fb).isEmpty();
+        List<FilterFeedback> fb = filter(new PatternEntry(Pattern.compile("Foobar"), 100, Optional.<List>of(Arrays.asList("44", "216"))));
+        assertTrue(fb.isEmpty());
     }
 
     @Test
@@ -137,8 +136,8 @@ public class WordfilterTest {
 
         List<FilterFeedback> fb = filter(new PatternEntry(Pattern.compile("Foobar"), 100, Optional.<List>absent()));
 
-        assertThat(fb).hasSize(1);
-        assertThat(fb.get(0).getScore()).isEqualTo(100);
+        assertEquals(1, fb.size());
+        assertEquals(Integer.valueOf(100), fb.get(0).getScore());
     }
 
     @Test

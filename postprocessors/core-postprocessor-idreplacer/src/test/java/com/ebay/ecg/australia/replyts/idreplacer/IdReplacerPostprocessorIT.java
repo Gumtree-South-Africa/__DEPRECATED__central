@@ -1,8 +1,8 @@
 package com.ebay.ecg.australia.replyts.idreplacer;
 
 import com.ecg.replyts.core.api.model.mail.TypedContent;
-import com.ecg.replyts.integration.test.AwaitMailSentProcessedListener;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.BeforeClass;
@@ -56,13 +56,13 @@ public class IdReplacerPostprocessorIT {
     }
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(10);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
     @Test
     public void testPrepare() throws Exception {
         String body = String.format("raspd=%s_=_%s_=_%s_=_%s",AD_ID,CONVERSATION_ID_FORMAT,MESSAGE_ID_FORMAT,HASH_FORMAT);
 
-        AwaitMailSentProcessedListener.ProcessedMail processedMail = rule.deliver(MailBuilder
+        MailInterceptor.ProcessedMail processedMail = rule.deliver(MailBuilder
                 .aNewMail()
                 .from("buyer@foo.com")
                 .to("seller@bar.com")
