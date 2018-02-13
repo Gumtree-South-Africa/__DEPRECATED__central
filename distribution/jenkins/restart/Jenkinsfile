@@ -9,6 +9,10 @@ static def tenantAliases() {
             'mde'  : 'mo',
             'gtuk' : 'uk',
             'gtau' : 'au',
+            'ar'   : 'ar',
+            'mx'   : 'mx',
+            'sg'   : 'sg',
+            'za'   : 'za',
     ]
 }
 
