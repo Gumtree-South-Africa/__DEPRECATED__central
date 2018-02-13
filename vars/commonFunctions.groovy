@@ -229,7 +229,7 @@ def uploadToSwift(String tenant, String version, String pwd) {
                         "-e OS_PASSWORD='$SWIFT_PASS' " +
                         "-e OS_PROJECT_NAME='comaas-control-prod' " +
                         "-e OS_REGION_NAME='dus1' " +
-                        "registry.ecg.so/mp-so/python-swiftclient:latest " +
+                        "ebayclassifiedsgroup/python-swiftclient:3.5.0 " +
                         "swift upload --skip-identical --object-name $target comaas /objects/$file",
                 returnStdout: true
         )
@@ -251,8 +251,8 @@ boolean isVersionPresentInSwift(String tenant, String version) {
                         "-e OS_USERNAME='$SWIFT_USER' " +
                         "-e OS_PASSWORD='$SWIFT_PASS' " +
                         "-e OS_PROJECT_NAME='comaas-control-prod' " +
-                        "-e OS_REGION_NAME='dus1'" +
-                        " registry.ecg.so/mp-so/python-swiftclient:latest swift list --prefix $tenant comaas " +
+                        "-e OS_REGION_NAME='dus1' " +
+                        "ebayclassifiedsgroup/python-swiftclient:3.5.0 list --prefix $tenant comaas " +
                         "| grep -c $version ) ]",
                 returnStatus: true
         )
@@ -276,8 +276,8 @@ boolean isPresentInSwift(String tenant, String gitHash) {
                         "-e OS_USERNAME='$SWIFT_USER' " +
                         "-e OS_PASSWORD='$SWIFT_PASS' " +
                         "-e OS_PROJECT_NAME='comaas-control-prod' " +
-                        "-e OS_REGION_NAME='dus1'" +
-                        " registry.ecg.so/mp-so/python-swiftclient:latest swift list --prefix $tenant comaas " +
+                        "-e OS_REGION_NAME='dus1' " +
+                        "ebayclassifiedsgroup/python-swiftclient:3.5.0 swift list --prefix $tenant comaas " +
                         "| grep -c $gitHash ) ]",
                 returnStatus: true
         )
@@ -306,7 +306,7 @@ def downloadFromSwift(String tenant, String gitHash) {
                 -e OS_PASSWORD="$SWIFT_PASS" \\
                 -e OS_PROJECT_NAME="comaas-control-prod" \\
                 -e OS_REGION_NAME="dus1" \\
-                registry.ecg.so/mp-so/python-swiftclient:latest \\
+                ebayclassifiedsgroup/python-swiftclient:3.5.0 \\
                 swift download --output-dir /objects --skip-identical --prefix $tenant/$env.ENVIRONMENT_NAME/$gitHash/ comaas
             """
     }
