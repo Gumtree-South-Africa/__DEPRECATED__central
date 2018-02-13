@@ -1,26 +1,22 @@
-package com.ecg.messagebox.controllers;
+package com.ecg.messagebox.resources;
 
 import com.codahale.metrics.Timer;
-import com.ecg.messagebox.controllers.responses.ResponseDataResponse;
 import com.ecg.messagebox.model.AggregatedResponseData;
-import com.ecg.messagebox.model.ResponseData;
+import com.ecg.messagebox.resources.exceptions.NotFoundException;
+import com.ecg.messagebox.resources.responses.ResponseDataResponse;
 import com.ecg.messagebox.service.ResponseDataService;
-import com.ecg.replyts.core.api.webapi.envelope.RequestState;
-import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-public class ResponseDataController {
+public class ResponseDataResource {
 
     private final Timer getResponseDataTimer = TimingReports.newTimer("webapi.get-response-data");
     private final Timer getAggregatedResponseDataTimer = TimingReports.newTimer("webapi.get-aggregated-response-data");
@@ -28,23 +24,24 @@ public class ResponseDataController {
     private final ResponseDataService responseDataService;
 
     @Autowired
-    public ResponseDataController(ResponseDataService responseDataService) {
+    public ResponseDataResource(ResponseDataService responseDataService) {
         this.responseDataService = responseDataService;
     }
 
     @GetMapping("/users/{userId}/response-data")
-    public ResponseObject<ResponseDataResponse> getResponseData(@PathVariable String userId) {
+    public List<ResponseDataResponse> getResponseData(@PathVariable String userId) {
         try (Timer.Context ignored = getResponseDataTimer.time()) {
-            List<ResponseData> responseDataList = responseDataService.getResponseData(userId);
-            return ResponseObject.of(new ResponseDataResponse(responseDataList));
+            return responseDataService.getResponseData(userId).stream()
+                    .map(ResponseDataResponse::new)
+                    .collect(Collectors.toList());
         }
     }
 
     @GetMapping("/users/{userId}/aggregated-response-data")
-    public ResponseObject<?> getAggregatedResponseData(@PathVariable String userId) {
+    public AggregatedResponseData getAggregatedResponseData(@PathVariable String userId) {
         try (Timer.Context ignored = getAggregatedResponseDataTimer.time()) {
-            Optional<AggregatedResponseData> responseData = responseDataService.getAggregatedResponseData(userId);
-            return ResponseObject.of(responseData.isPresent() ? responseData.get() : RequestState.ENTITY_NOT_FOUND);
+            return responseDataService.getAggregatedResponseData(userId)
+                    .orElseThrow(NotFoundException::new);
         }
     }
 }
