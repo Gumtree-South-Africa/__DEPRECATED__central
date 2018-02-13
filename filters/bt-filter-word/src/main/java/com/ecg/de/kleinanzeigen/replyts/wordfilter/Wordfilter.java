@@ -4,30 +4,27 @@ import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
-class Wordfilter implements Filter {
+import static java.lang.String.format;
 
-    public static final long TIMEOUT = TimeUnit.MINUTES.toMillis(10);
-
-    static final String CATEGORY_ID = "categoryid";
-
+public class Wordfilter implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(Wordfilter.class);
 
-    private final List<PatternEntry> patterns;
-    private final boolean ignoreDuplicatePatterns;
+    private static final long TIMEOUT = TimeUnit.MINUTES.toMillis(10);
 
-    Wordfilter(FilterConfig filterConfig) {
+    private static final String CATEGORY_ID = "categoryid";
+
+    private List<PatternEntry> patterns;
+
+    private boolean ignoreDuplicatePatterns;
+
+    public Wordfilter(FilterConfig filterConfig) {
         this.patterns = filterConfig.getPatterns();
         this.ignoreDuplicatePatterns = filterConfig.isIgnoreQuotedPatterns(); 
     }
@@ -36,58 +33,47 @@ class Wordfilter implements Filter {
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         String processText = getProcessText(messageProcessingContext);
         Optional<String> categoryId = getCategoryId(messageProcessingContext);
+
         return filterByPatterns(processText, messageProcessingContext, categoryId);
     }
 
     private Optional<String> getCategoryId(MessageProcessingContext messageProcessingContext) {
         return messageProcessingContext.getConversation().getCustomValues().containsKey(CATEGORY_ID) ?
-                Optional.of(messageProcessingContext.getConversation().getCustomValues().get(CATEGORY_ID)) :
-                Optional.<String>absent();
+          Optional.of(messageProcessingContext.getConversation().getCustomValues().get(CATEGORY_ID)) : Optional.empty();
     }
 
     private String getProcessText(MessageProcessingContext messageProcessingContext) {
-        //return messageProcessingContext.getMail().getSubject()
-        //        + " " + messageProcessingContext.getMessage().getPlainTextBody();
         return messageProcessingContext.getMessage().getPlainTextBody();
     }
 
     private List<FilterFeedback> filterByPatterns(String processText, MessageProcessingContext context, Optional<String> conversationCategoryId) {
-        ImmutableList.Builder<FilterFeedback> feedbacks = ImmutableList.<FilterFeedback>builder();
+        List<FilterFeedback> result = new ArrayList<>();
 
         Set<String> foundPatterns = ignoreDuplicatePatterns  ? new PreviousPatternsExtractor(context.getConversation(), context.getMessage()).previouselyFiredPatterns() : Collections.<String>emptySet();
 
         for (PatternEntry patternEntry : patterns) {
-            if(!patternEntry.getCategoryIds().isPresent() ||
-                    (conversationCategoryId.isPresent() && patternEntry.getCategoryIds().get().contains(conversationCategoryId.get()))){
+            if (!patternEntry.getCategoryIds().isPresent() || (conversationCategoryId.isPresent() && patternEntry.getCategoryIds().get().contains(conversationCategoryId.get()))){
                 Matcher matcher = new ExpiringRegEx(processText, patternEntry.getPattern(), TIMEOUT, context.getConversation().getId(), context.getMessageId()).createMatcher();
-                applyPattern(feedbacks, patternEntry, matcher, foundPatterns);
+
+                applyPattern(result, patternEntry, matcher, foundPatterns).ifPresent(result::add);
             }
         }
 
-        return feedbacks.build();
+        return Collections.unmodifiableList(result);
     }
 
-
-
-    private void applyPattern(Builder<FilterFeedback> feedbacks, PatternEntry p, Matcher matcher, Set<String> previouselyFoundPatterns) {
-        boolean foundMatch = false;
+    private Optional<FilterFeedback> applyPattern(List<FilterFeedback> result, PatternEntry pattern, Matcher matcher, Set<String> previouselyFoundPatterns) {
         try {
-            foundMatch = matcher.find();
+            if (matcher.find()) {
+                String description = format("Matched word %s", matcher.group());
+                int score = previouselyFoundPatterns.contains(pattern.getPattern().toString()) ? 0 : pattern.getScore();
+
+                return Optional.of(new FilterFeedback(pattern.getPattern().toString(), description, score, FilterResultState.OK));
+            }
         } catch (RuntimeException e) {
-            LOG.error("Skipping Regular Expression '"+p.getPattern()+"': ", e);
+            LOG.error("Skipping Regular Expression '{}'", pattern, e);
         }
 
-        if (foundMatch) {
-            String description = "Matched word " + matcher.group();
-            String currentRegexp = p.getPattern().toString();
-            int score = previouselyFoundPatterns.contains(currentRegexp) ? 0 : p.getScore();
-            feedbacks.add(
-                    new FilterFeedback(
-                            currentRegexp,
-                            description,
-                            score,
-                            FilterResultState.OK));
-        }
+        return Optional.empty();
     }
-
 }

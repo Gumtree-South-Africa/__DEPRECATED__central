@@ -51,6 +51,8 @@ public class SearchMessagePayload {
 
     private String messageTextKeywords;
 
+    private String messageTextMinimumShouldMatch;
+
     private Map<String, String> conversationCustomValues = Collections.emptyMap();
 
     private String filterName;
@@ -130,6 +132,14 @@ public class SearchMessagePayload {
 
     public void setMessageTextKeywords(String messageTextKeywords) {
         this.messageTextKeywords = messageTextKeywords;
+    }
+
+    public String getMessageTextMinimumShouldMatch() {
+        return messageTextMinimumShouldMatch;
+    }
+
+    public void setMessageTextMinimumShouldMatch(String setMessageTextMinimumShouldMatch) {
+        this.messageTextMinimumShouldMatch = setMessageTextMinimumShouldMatch;
     }
 
     public Map<String, String> getConversationCustomValues() {

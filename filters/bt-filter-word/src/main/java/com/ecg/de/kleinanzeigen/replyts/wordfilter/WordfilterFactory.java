@@ -2,13 +2,15 @@ package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
+import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.stereotype.Component;
 
-/** Factory that generates wordfilters form a json config that basically contains an array of pattern/score pairs. */
-class WordfilterFactory implements FilterFactory {
+@ComaasPlugin
+@Component
+public class WordfilterFactory implements FilterFactory {
     @Override
-    public Filter createPlugin(String filtername, JsonNode jsonNode) {
-        PatternRulesParser ruleParser = new PatternRulesParser(jsonNode);
-        return new Wordfilter(ruleParser.getConfig());
+    public Filter createPlugin(String filterName, JsonNode jsonNode) {
+        return new Wordfilter(PatternRulesParser.parse(jsonNode));
     }
 }

@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.ecg.replyts.integration.test.support.Waiter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.elasticsearch.action.admin.indices.flush.FlushRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -200,6 +201,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     private Client getSearchClient() {
         return testRunner.getSearchClient();
+    }
+
+    public void flushSearchIndex() {
+        testRunner.getSearchClient().admin().indices().flush(new FlushRequest("replyts"));
     }
 
     private static final AtomicInteger COUNTER = new AtomicInteger(0);

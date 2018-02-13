@@ -2,10 +2,10 @@ package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 
 import java.util.List;
 
-class FilterConfig {
+public class FilterConfig {
+    private boolean ignoreQuotedPatterns;
 
-    private final boolean ignoreQuotedPatterns;
-    private final List<PatternEntry> patterns;
+    private List<PatternEntry> patterns;
 
     public FilterConfig(boolean ignoreQuotedPatterns, List<PatternEntry> patterns) {
         this.ignoreQuotedPatterns = ignoreQuotedPatterns;

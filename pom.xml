@@ -380,19 +380,20 @@
                 <repository>
                     <id>bolt-nexus</id>
                     <name>Bolt-Nexus</name>
-                    <url>
-                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
-                    </url>
+                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases</url>
                     <layout>default</layout>
                 </repository>
             </distributionManagement>
 
             <modules>
-                <module>filters/bt-filter-word</module>
-                <module>filters/bt-filter-user</module>
+                <module>coremods/bt-coremod-pushservice</module>
 
-                <module>postprocessors/core-postprocessor-idreplacer</module>
-                <module>postprocessors/core-postprocessor-fromnamepreparator</module>
+                <module>filters/bt-filter-user</module>
+                <module>filters/bt-filter-word</module>
+                <module>filters/bt-filter-ip</module>
+                <module>filters/bt-filter-volume</module>
+                <module>filters/bt-filter-identicalcap</module>
+                <module>filters/bt-filter-dedupe</module>
 
                 <module>messagecenters/bt-messagecenter</module>
 
@@ -424,19 +425,20 @@
                 <repository>
                     <id>bolt-nexus</id>
                     <name>Bolt-Nexus</name>
-                    <url>
-                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
-                    </url>
+                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases</url>
                     <layout>default</layout>
                 </repository>
             </distributionManagement>
 
             <modules>
-                <module>filters/bt-filter-word</module>
-                <module>filters/bt-filter-user</module>
+                <module>coremods/bt-coremod-pushservice</module>
 
-                <module>postprocessors/core-postprocessor-idreplacer</module>
-                <module>postprocessors/core-postprocessor-fromnamepreparator</module>
+                <module>filters/bt-filter-user</module>
+                <module>filters/bt-filter-word</module>
+                <module>filters/bt-filter-ip</module>
+                <module>filters/bt-filter-volume</module>
+                <module>filters/bt-filter-identicalcap</module>
+                <module>filters/bt-filter-dedupe</module>
 
                 <module>messagecenters/bt-messagecenter</module>
 
@@ -468,19 +470,20 @@
                 <repository>
                     <id>bolt-nexus</id>
                     <name>Bolt-Nexus</name>
-                    <url>
-                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
-                    </url>
+                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases</url>
                     <layout>default</layout>
                 </repository>
             </distributionManagement>
 
             <modules>
-                <module>filters/bt-filter-word</module>
-                <module>filters/bt-filter-user</module>
+                <module>coremods/bt-coremod-pushservice</module>
 
-                <module>postprocessors/core-postprocessor-idreplacer</module>
-                <module>postprocessors/core-postprocessor-fromnamepreparator</module>
+                <module>filters/bt-filter-user</module>
+                <module>filters/bt-filter-word</module>
+                <module>filters/bt-filter-ip</module>
+                <module>filters/bt-filter-volume</module>
+                <module>filters/bt-filter-identicalcap</module>
+                <module>filters/bt-filter-dedupe</module>
 
                 <module>messagecenters/bt-messagecenter</module>
 
@@ -512,19 +515,18 @@
                 <repository>
                     <id>bolt-nexus</id>
                     <name>Bolt-Nexus</name>
-                    <url>
-                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
-                    </url>
+                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases</url>
                     <layout>default</layout>
                 </repository>
             </distributionManagement>
 
             <modules>
-                <module>filters/bt-filter-word</module>
                 <module>filters/bt-filter-user</module>
-
-                <module>postprocessors/core-postprocessor-idreplacer</module>
-                <module>postprocessors/core-postprocessor-fromnamepreparator</module>
+                <module>filters/bt-filter-word</module>
+                <module>filters/bt-filter-ip</module>
+                <module>filters/bt-filter-volume</module>
+                <module>filters/bt-filter-identicalcap</module>
+                <module>filters/bt-filter-dedupe</module>
 
                 <module>messagecenters/bt-messagecenter</module>
 
@@ -555,7 +557,7 @@
         <maven.exec.skip>true</maven.exec.skip>
         <cs-filter-shared.version>1.5</cs-filter-shared.version>
         <jolokia-spring.version>1.1.1</jolokia-spring.version>
-        <mongo-java-driver-version>2.13.0</mongo-java-driver-version>
+        <mongo-java-driver-version>2.14.3</mongo-java-driver-version>
         <openstack4j.version>3.0.4</openstack4j.version>
         <amqp-client-version>3.4.2</amqp-client-version>
         <logstash-logback-encoder-version>4.7</logstash-logback-encoder-version>
@@ -571,6 +573,8 @@
         <replyts.version>2.19.7</replyts.version>
         <spring-boot.version>1.4.1.RELEASE</spring-boot.version>
         <spring-cloud-consul.version>1.1.2.RELEASE</spring-cloud-consul.version>
+        <spring-data-mongodb.version>1.10.10.RELEASE</spring-data-mongodb.version>
+        <web-push.version>2.0.0</web-push.version>
         <json-lib.version>2.2.3</json-lib.version>
         <jsonpath-version>2.2.0</jsonpath-version>
         <assertj-core.version>3.6.2</assertj-core.version>
@@ -1480,6 +1484,57 @@
             </dependency>
 
             <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-mongodb</artifactId>
+                <version>${spring-data-mongodb.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-expression</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-beans</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-context</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-tx</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>nl.martijndwars</groupId>
+                <artifactId>web-push</artifactId>
+                <version>${web-push.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk15on</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.json</groupId>
+                        <artifactId>json</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysql-connector-version}</version>
@@ -1679,6 +1734,11 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-webmvc</artifactId>
+                <version>${spring-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
                 <version>${spring-version}</version>
             </dependency>
             <dependency>

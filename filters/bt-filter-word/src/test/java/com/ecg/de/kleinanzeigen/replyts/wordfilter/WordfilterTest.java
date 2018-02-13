@@ -4,8 +4,6 @@ import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,7 +11,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -25,12 +25,12 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WordfilterTest {
+    private static final PatternEntry FOOSTR_PATTERN = new PatternEntry(Pattern.compile("FooStr[a-z]*"), 100, Optional.empty());
 
-    private static final PatternEntry FOOSTR_PATTERN = new PatternEntry(Pattern.compile("FooStr[a-z]*"), 100, Optional.<List>absent());
-    //private static final PatternEntry SUBJECT_PATTERN = new PatternEntry(Pattern.compile("subject"), 100, Optional.<List>absent());
+    private static final PatternEntry ANY_CHARACTER_PATTERN = new PatternEntry(Pattern.compile("."), 200, Optional.empty());
+    private static final PatternEntry NOT_EXISTANT_PATTERN = new PatternEntry(Pattern.compile("googahhhbaaah"), 300, Optional.empty());
 
-    private static final PatternEntry ANY_CHARACTER_PATTERN = new PatternEntry(Pattern.compile("."), 200, Optional.<List>absent());
-    private static final PatternEntry NOT_EXISTANT_PATTERN = new PatternEntry(Pattern.compile("googahhhbaaah"), 300, Optional.<List>absent());
+    private static final String CATEGORY_ID = "categoryid";
 
     @Mock
     private MessageProcessingContext mpc;
@@ -54,7 +54,6 @@ public class WordfilterTest {
         when(conversation.getId()).thenReturn("cid");
         // Checkout there is a flag for supporting only partial diff in WordFilter.class
         when(msg.getPlainTextBodyDiff(any(Conversation.class))).thenReturn("Foobar FooString FooBooh Doh!");
-        //when(mail.getSubject()).thenReturn("this is the subject");
     }
 
     @Test
@@ -63,14 +62,6 @@ public class WordfilterTest {
 
         assertEquals(1, fb.size());
     }
-
-//    @Test
-//    public void matchesSinglePatternInSubject() {
-//        List<FilterFeedback> fb = filter(SUBJECT_PATTERN);
-//
-//        assertEquals(1, fb.size());
-//    }
-
 
     @Test
     public void onePatternHitOnlyGeneratesOneFeedback() {
@@ -114,42 +105,45 @@ public class WordfilterTest {
 
     @Test
     public void filterWithMatchingCategory() {
-        when(conversation.getCustomValues()).thenReturn(ImmutableMap.of(Wordfilter.CATEGORY_ID, "216"));
+        when(conversation.getCustomValues()).thenReturn(Collections.singletonMap(CATEGORY_ID, "216"));
 
-        List<FilterFeedback> fb = filter(new PatternEntry(Pattern.compile("Foobar"), 100, Optional.<List>of(Arrays.asList("44", "216"))));
+        List<FilterFeedback> feedback = filter(new PatternEntry(Pattern.compile("Foobar"), 100, Optional.of(Arrays.asList("44", "216"))));
 
-        assertEquals(1, fb.size());
-        assertEquals(Integer.valueOf(100), fb.get(0).getScore());
+        assertEquals(1, feedback.size());
+        assertEquals(100L, (long) feedback.get(0).getScore());
     }
 
     @Test
     public void doNotFilterOnNonMatchingCategory() {
-        when(conversation.getCustomValues()).thenReturn(ImmutableMap.of(Wordfilter.CATEGORY_ID, "212"));
+        when(conversation.getCustomValues()).thenReturn(Collections.singletonMap(CATEGORY_ID, "212"));
 
-        List<FilterFeedback> fb = filter(new PatternEntry(Pattern.compile("Foobar"), 100, Optional.<List>of(Arrays.asList("44", "216"))));
-        assertTrue(fb.isEmpty());
+        List<FilterFeedback> feedback = filter(new PatternEntry(Pattern.compile("Foobar"), 100, Optional.of(Arrays.asList("44", "216"))));
+
+        assertTrue(feedback.isEmpty());
     }
 
     @Test
     public void allwaysFilterOnAbsentPatternCategory() {
-        when(conversation.getCustomValues()).thenReturn(ImmutableMap.of(Wordfilter.CATEGORY_ID, "212"));
+        when(conversation.getCustomValues()).thenReturn(Collections.singletonMap(CATEGORY_ID, "212"));
 
-        List<FilterFeedback> fb = filter(new PatternEntry(Pattern.compile("Foobar"), 100, Optional.<List>absent()));
+        List<FilterFeedback> feedback = filter(new PatternEntry(Pattern.compile("Foobar"), 100, Optional.empty()));
 
-        assertEquals(1, fb.size());
-        assertEquals(Integer.valueOf(100), fb.get(0).getScore());
+        assertEquals(1, feedback.size());
+        assertEquals(100L, (long) feedback.get(0).getScore());
     }
 
     @Test
     public void firesWithZeroScoreifDupliateIsFoundOnIgnoreDuplicates() {
         Message previousMessage = mock(Message.class);
+
         when(previousMessage.getId()).thenReturn("previousMsg");
         when(previousMessage.getState()).thenReturn(MessageState.SENT);
-        when(previousMessage.getProcessingFeedback()).thenReturn(Arrays.<ProcessingFeedback>asList(new ImmutableProcessingFeedback(WordfilterFactory.class.getName(), "sampleinstance", "FooStr[a-z]*", "desc", 100, FilterResultState.OK, false)));
+        when(previousMessage.getProcessingFeedback()).thenReturn(Arrays.asList(new ImmutableProcessingFeedback(WordfilterFactory.class.getName(), "sampleinstance", "FooStr[a-z]*", "desc", 100, FilterResultState.OK, false)));
 
         when(conversation.getMessages()).thenReturn(Arrays.asList(previousMessage));
 
         FilterFeedback result = filter(FOOSTR_PATTERN).get(0);
+
         assertEquals(0l, result.getScore().longValue());
     }
 }

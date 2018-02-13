@@ -4,41 +4,47 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSet.Builder;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-class PreviousPatternsExtractor {
-    private final Conversation conversation;
-    private final Message currentMessage;
+public class PreviousPatternsExtractor {
+    private Conversation conversation;
 
-    PreviousPatternsExtractor(Conversation conversation,Message currentMessage) {
+    private Message currentMessage;
+
+    public PreviousPatternsExtractor(Conversation conversation, Message currentMessage) {
         this.conversation = conversation;
         this.currentMessage = currentMessage;
     }
 
     public Set<String> previouselyFiredPatterns() {
-        Builder<String> found = ImmutableSet.builder();
+        Set<String> found = new HashSet<>();
 
         for (Message message : conversation.getMessages()) {
-            boolean isCurentMessage = message.getId().equals(currentMessage.getId());
+            boolean isCurrentMessage = message.getId().equals(currentMessage.getId());
             boolean messageWasNotSent = message.getState() != MessageState.SENT;
-            if(isCurentMessage || messageWasNotSent) {
+
+            if (isCurrentMessage || messageWasNotSent) {
                 continue;
             }
-            addAllWordfilterHits(message.getProcessingFeedback(), found);
+
+            found.addAll(findAllWordfilterHits(message.getProcessingFeedback()));
         }
-        return found.build();
+
+        return found;
     }
 
-    private void addAllWordfilterHits(List<ProcessingFeedback> processingFeedback, Builder<String> found) {
+    private Set<String> findAllWordfilterHits(List<ProcessingFeedback> processingFeedback) {
+        Set<String> result = new HashSet<>();
+
         for (ProcessingFeedback feedback : processingFeedback) {
-            boolean isWordfilterHit = feedback.getFilterName().equals(WordfilterFactory.class.getName());
-            if(isWordfilterHit) {
-                found.add(feedback.getUiHint());
+            if (feedback.getFilterName().equals(WordfilterFactory.class.getName())) {
+                result.add(feedback.getUiHint());
             }
         }
+
+        return result;
     }
 }

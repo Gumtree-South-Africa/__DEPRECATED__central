@@ -21,11 +21,7 @@ public class SpringContextProvider implements ContextProvider, Ordered {
 
     private AbstractRefreshableWebApplicationContext context;
 
-    /**
-     * @param path             context path (e.g. /apiv2)
-     * @param contextLocations path to spring context xml files for this spring webapp
-     * @param parentContext    parent app context to be set to the {@link DispatcherServlet}'s context.
-     */
+    @Deprecated
     public SpringContextProvider(String path, String[] contextLocations, ApplicationContext parentContext) {
         this.path = path;
 
@@ -41,22 +37,7 @@ public class SpringContextProvider implements ContextProvider, Ordered {
         this.context = context;
     }
 
-    /**
-     * @param path               context path (e.g. /apiv2)
-     * @param configurationClass path to spring context xml files for this spring webapp
-     * @param parentContext      parent app context to be set to the {@link DispatcherServlet}'s context.
-     */
     public SpringContextProvider(String path, Class configurationClass, ApplicationContext parentContext) {
-        this(path, configurationClass, null, parentContext);
-    }
-
-    /**
-     * @param path               context path (e.g. /apiv2)
-     * @param configurationClass path to spring context xml files for this spring webapp
-     * @param scan               path to scan components
-     * @param parentContext      parent app context to be set to the {@link DispatcherServlet}'s context.
-     */
-    public SpringContextProvider(String path, Class configurationClass, String scan, ApplicationContext parentContext) {
         this.path = path;
 
         if (parentContext instanceof WebApplicationContext) {
@@ -66,9 +47,6 @@ public class SpringContextProvider implements ContextProvider, Ordered {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         context.setParent(parentContext);
         context.register(configurationClass);
-        if (scan != null) {
-            context.scan(scan);
-        }
 
         this.context = context;
     }

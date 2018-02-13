@@ -144,7 +144,13 @@ public final class SearchTransformer {
 
     private void setupMessageFreetextQuery() {
         if (StringUtils.hasText(payload.getMessageTextKeywords())) {
-            addQuery(new QueryStringQueryBuilder(payload.getMessageTextKeywords()).field("messageText"));
+            QueryStringQueryBuilder queryStringQuery = new QueryStringQueryBuilder(payload.getMessageTextKeywords()).field("messageText");
+
+            if (StringUtils.hasText(payload.getMessageTextMinimumShouldMatch())) {
+                queryStringQuery = queryStringQuery.minimumShouldMatch(payload.getMessageTextMinimumShouldMatch());
+            }
+
+            addQuery(queryStringQuery);
         }
     }
 

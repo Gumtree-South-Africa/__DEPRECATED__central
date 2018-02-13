@@ -729,28 +729,44 @@
             <dependencies>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-coremod-pushservice</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-user</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>bt-filter-word</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>bt-filter-user</artifactId>
+                    <artifactId>bt-filter-ip</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-volume</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-identicalcap</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-dedupe</artifactId>
                     <version>${project.version}</version>
                 </dependency>
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>core-resultinspector-threshold</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>core-postprocessor-idreplacer</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>core-postprocessor-fromnamepreparator</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
@@ -766,28 +782,44 @@
             <dependencies>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-coremod-pushservice</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-user</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>bt-filter-word</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>bt-filter-user</artifactId>
+                    <artifactId>bt-filter-ip</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-volume</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-identicalcap</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-dedupe</artifactId>
                     <version>${project.version}</version>
                 </dependency>
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>core-resultinspector-threshold</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>core-postprocessor-idreplacer</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>core-postprocessor-fromnamepreparator</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
@@ -803,28 +835,44 @@
             <dependencies>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-coremod-pushservice</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-user</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>bt-filter-word</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>bt-filter-user</artifactId>
+                    <artifactId>bt-filter-ip</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-volume</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-identicalcap</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-dedupe</artifactId>
                     <version>${project.version}</version>
                 </dependency>
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>core-resultinspector-threshold</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>core-postprocessor-idreplacer</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>core-postprocessor-fromnamepreparator</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
@@ -840,28 +888,38 @@
             <dependencies>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-user</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>bt-filter-word</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>bt-filter-user</artifactId>
+                    <artifactId>bt-filter-ip</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-volume</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-identicalcap</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-filter-dedupe</artifactId>
                     <version>${project.version}</version>
                 </dependency>
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>core-resultinspector-threshold</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>core-postprocessor-idreplacer</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>core-postprocessor-fromnamepreparator</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>

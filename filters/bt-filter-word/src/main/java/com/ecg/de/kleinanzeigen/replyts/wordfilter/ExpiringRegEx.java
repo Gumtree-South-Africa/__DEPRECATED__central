@@ -5,17 +5,18 @@ import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 
-/**
- *
- */
-class ExpiringRegEx {
+public class ExpiringRegEx {
+    private String text;
 
-    private final String text;
-    private final Pattern pattern;
-    private final long expirationTime;
-    private final long timeoutMillis;
-    private final String conversationId;
-    private final String messageId;
+    private Pattern pattern;
+
+    private long expirationTime;
+
+    private long timeoutMillis;
+
+    private String conversationId;
+
+    private String messageId;
 
     public ExpiringRegEx(String text, Pattern pattern, long timeoutMillis, String conversationId, String messageId) {
         this.text = text;
@@ -27,12 +28,11 @@ class ExpiringRegEx {
     }
 
     public Matcher createMatcher() {
-        CharSequence charSequence = new ExpiringCharSequence(text);
-        return pattern.matcher(charSequence);
+        return pattern.matcher(new ExpiringCharSequence(text));
     }
 
     private class ExpiringCharSequence implements CharSequence {
-        private final CharSequence text;
+        private CharSequence text;
 
         public ExpiringCharSequence(CharSequence text) {
             this.text = text;
@@ -46,13 +46,14 @@ class ExpiringRegEx {
         @Override
         public char charAt(int index) {
             if (System.currentTimeMillis() > expirationTime) {
-                throw new RuntimeException(format("Matcher expired after %d ms with pattern '%s' on conv/message '%s/%s'", timeoutMillis, pattern, conversationId, messageId ));
+                throw new RuntimeException(format("Matcher expired after %d ms with pattern '%s' on conv/message '%s/%s'", timeoutMillis, pattern, conversationId, messageId));
             }
+
             return text.charAt(index);
         }
 
+        @Override
         public String toString(){
-
             return text == null ? "" : text.toString();
         }
 

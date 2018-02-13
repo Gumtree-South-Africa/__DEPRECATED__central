@@ -1,16 +1,17 @@
 package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 
-import com.google.common.base.Optional;
-
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
-class PatternEntry {
-    private final Pattern pattern;
-    private final int score;
-    private Optional<List> categoryIds;
+public class PatternEntry {
+    private Pattern pattern;
 
-    public PatternEntry(Pattern pattern, int score, Optional<List> categoryIds) {
+    private int score;
+
+    private Optional<List<String>> categoryIds;
+
+    public PatternEntry(Pattern pattern, int score, Optional<List<String>> categoryIds) {
         this.pattern = pattern;
         this.score = score;
         this.categoryIds = categoryIds;
@@ -24,7 +25,7 @@ class PatternEntry {
         return score;
     }
 
-    public Optional<List> getCategoryIds() {
+    public Optional<List<String>> getCategoryIds() {
         return categoryIds;
     }
 }
