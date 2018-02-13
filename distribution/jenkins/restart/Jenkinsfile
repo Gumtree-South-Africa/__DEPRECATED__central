@@ -92,7 +92,9 @@ node(PROVIDED_ENV) {
 
     stage("Restarting Comaas") {
         node("$environmentShort && $dc") {
-            sh "servicecontrol.py --logdir ~ --config /etc/comaas/comaas-${tenant}.yaml --restartservice comaas-${tenant}"
+            ansiColor('xterm') {
+                sh "PYTHONWARNINGS='ignore' servicecontrol.py --logdir ~ --config /etc/comaas/comaas-${tenant}.yaml --restartservice comaas-${tenant}"
+            }
         }
     }
 }
