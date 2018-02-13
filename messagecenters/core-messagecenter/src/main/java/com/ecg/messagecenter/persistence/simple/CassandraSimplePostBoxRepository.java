@@ -1,14 +1,11 @@
 package com.ecg.messagecenter.persistence.simple;
 
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.BatchStatement;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.ReadTimeoutException;
+import com.datastax.driver.core.policies.DowngradingConsistencyRetryPolicy;
+import com.datastax.driver.core.policies.FallthroughRetryPolicy;
+import com.datastax.driver.core.policies.LoggingRetryPolicy;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
@@ -26,18 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
-
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -84,6 +73,9 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @Value("${comaas.cleanup.postbox.fetchSize:5000}")
     private int fetchSize;
 
+    @Value("${comaas.cleanup.postbox.retryLowerConsistency:false}")
+    private boolean retryCleanupLowerConsistency;
+
     private ThreadPoolExecutor threadPoolExecutor;
 
     @PostConstruct
@@ -128,7 +120,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
                     conversationThreads.add(conversationThread.get());
                     newRepliesCount += unreadCount;
                 }
-            };
+            }
             LOG.trace("Found {} threads ({} unread) for PostBox with email {} in Cassandra", conversationThreads.size(), newRepliesCount, id.asString());
 
             return new PostBox(id.asString(), Optional.of(newRepliesCount), conversationThreads);
@@ -287,6 +279,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         try (Timer.Context ignored = streamConversationThreadModificationsByHourTimer.time()) {
             Statement bound = Statements.SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE
                     .bind(this, roundedToHour)
+                    .setRetryPolicy(retryCleanupLowerConsistency ? new LoggingRetryPolicy(DowngradingConsistencyRetryPolicy.INSTANCE) : FallthroughRetryPolicy.INSTANCE)
                     .setFetchSize(fetchSize);
             ResultSet resultSet;
             try {
@@ -298,7 +291,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             Iterator<List<Row>> partitions = Iterators.partition(resultSet.iterator(), batchSize);
 
             try {
-                while(partitions.hasNext()) {
+                while (partitions.hasNext()) {
                     List<Row> rows = partitions.next();
                     resultSet.fetchMoreResults();
                     List<ConversationThreadModificationDate> idxs = rows.stream()
@@ -309,8 +302,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
                     cleanUpTasks.add(future);
                 }
-            }
-            catch (RejectedExecutionException rejectedExecutionException) {
+            } catch (RejectedExecutionException rejectedExecutionException) {
                 LOG.warn("Execution was rejected", rejectedExecutionException);
                 isFinished = false;
             }
