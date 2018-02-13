@@ -4,7 +4,7 @@ import groovy.json.JsonSlurper
 
 import java.text.SimpleDateFormat
 
-static def allTenants() { ["ebayk", "gtau", "gtuk", "it", "kjca", "mde", "mp"] }
+static def allTenants() { ["ebayk", "gtau", "gtuk", "it", "kjca", "mde", "mp", "ar", "mx", "sg", "za"] }
 
 static def activeTenants(List disabled_tenants) {
     def all = allTenants()
@@ -21,6 +21,10 @@ static def tenantAliases() {
             'mde'  : 'mo',
             'gtuk' : 'uk',
             'gtau' : 'au',
+            'ar'   : 'ar',
+            'mx'   : 'mx',
+            'sg'   : 'sg',
+            'za'   : 'za',
     ]
 }
 
