@@ -31,8 +31,8 @@ import java.util.stream.Stream;
 import static com.ecg.replyts.core.runtime.TimingReports.*;
 
 public class ChunkedPostboxMigrationAction {
-
     private static final Logger LOG = LoggerFactory.getLogger(ChunkedPostboxMigrationAction.class);
+
     private static final Logger FAILED_POSTBOX_IDS = LoggerFactory.getLogger("FailedToFetchPostboxes");
 
     private final AtomicLong submittedBatchCounter = new AtomicLong();
@@ -116,7 +116,6 @@ public class ChunkedPostboxMigrationAction {
         return 0;
     }
 
-
     private LocalDateTime getStartingTime() {
         return new LocalDateTime(new Date()).minusDays(conversationMaxAgeDays);
     }
@@ -199,7 +198,6 @@ public class ChunkedPostboxMigrationAction {
         }
     }
 
-
     public void fetchPostboxes(List<String> postboxIds) {
         try (Timer.Context ignored = BATCH_MIGRATION_TIMER.time()) {
 
@@ -236,5 +234,4 @@ public class ChunkedPostboxMigrationAction {
             }
         }
     }
-
 }

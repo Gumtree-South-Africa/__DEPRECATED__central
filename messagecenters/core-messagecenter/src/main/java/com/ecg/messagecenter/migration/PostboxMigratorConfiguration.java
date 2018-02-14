@@ -15,11 +15,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-
 @Configuration
 @ConditionalOnExpression("#{'${persistence.strategy}'.startsWith('hybrid') }")
 public class PostboxMigratorConfiguration {
-
     private final Logger LOG = LoggerFactory.getLogger(PostboxMigratorConfiguration.class);
 
     @Autowired
@@ -45,16 +43,13 @@ public class PostboxMigratorConfiguration {
 
     @Bean
     public ThreadPoolExecutor threadPoolExecutor() {
-        return new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(workQueueSize),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+        return new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<>(workQueueSize), new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     @Bean
     public ChunkedPostboxMigrationAction chunkedPostboxMigrationAction(ThreadPoolExecutor threadPoolExecutor) {
         LOG.info("Activating r2c migration functionality");
+
         return new ChunkedPostboxMigrationAction(hazelcastInstance, hybridRepository, threadPoolExecutor, idBatchSize, maxConversationAgeDays, completionTimeoutSec);
     }
-
 }
-
