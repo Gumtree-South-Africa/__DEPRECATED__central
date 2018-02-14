@@ -80,7 +80,7 @@
             </activation>
         </profile>
 
-	<!-- Tenant profiles -->
+        <!-- Tenant profiles -->
 
         <profile>
             <id>gtau</id>
@@ -608,7 +608,7 @@
         <logback-version>1.1.8</logback-version>
         <java-uuid-generator-version>3.1.3</java-uuid-generator-version>
         <hazelcast-consul-discovery-spi-version>1.0-RC7</hazelcast-consul-discovery-spi-version>
-	    <retrofit2-version>2.1.0</retrofit2-version>
+        <retrofit2-version>2.1.0</retrofit2-version>
 
         <appassembler-maven-plugin.version>1.10</appassembler-maven-plugin.version>
         <maven-assembly-plugin.version>2.6</maven-assembly-plugin.version>
