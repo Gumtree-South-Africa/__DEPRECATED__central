@@ -26,11 +26,7 @@ class SharedBrain {
     private final AtomicReference<EventStreamProcessor> processor = new AtomicReference<>();
     private IMap<String, QuotaViolationRecord> violationMemoryMap; // email address => (score, description)
 
-    SharedBrain(
-            String name,
-            HazelcastInstance hazelcastInstance,
-            EventStreamProcessor eventStreamProcessor
-    ) {
+    SharedBrain(String name, HazelcastInstance hazelcastInstance, EventStreamProcessor eventStreamProcessor) {
         communicationBus = hazelcastInstance.getTopic("volumefilter_sender_address_exchange_" + name);
         processor.set(eventStreamProcessor);
 
@@ -41,11 +37,11 @@ class SharedBrain {
             }
         });
 
-        Config config = hazelcastInstance.getConfig();
-        MapConfig violationMemoryMapConfig = config.getMapConfig(VIOLATION_MEMORY_MAP_NAME);
-        violationMemoryMapConfig.setEvictionPolicy(EvictionPolicy.LRU);
-        violationMemoryMapConfig.setMaxSizeConfig(new MaxSizeConfig(VIOLATION_MEMORY_MAX_HEAP_PERCENTAGE, USED_HEAP_PERCENTAGE));
-        config.addMapConfig(violationMemoryMapConfig);
+        MapConfig violationMemoryMapConfig = new MapConfig(VIOLATION_MEMORY_MAP_NAME)
+          .setEvictionPolicy(EvictionPolicy.LRU)
+          .setMaxSizeConfig(new MaxSizeConfig(VIOLATION_MEMORY_MAX_HEAP_PERCENTAGE, USED_HEAP_PERCENTAGE));
+
+        hazelcastInstance.getConfig().addMapConfig(violationMemoryMapConfig);
 
         violationMemoryMap = hazelcastInstance.getMap(VIOLATION_MEMORY_MAP_NAME);
     }

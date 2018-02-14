@@ -107,7 +107,7 @@ public class Application {
         return config;
     }
 
-    @Bean
+    @Bean(destroyMethod = "shutdown")
     public HazelcastInstance hazelcastInstance(Config config) {
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(config);
 

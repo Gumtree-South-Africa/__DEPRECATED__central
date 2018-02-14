@@ -34,14 +34,11 @@ public class SharedBrain {
 
     @PostConstruct
     public void addViolationConfig() {
-        Config config = hazelcastInstance.getConfig();
+        MapConfig violationMemoryMapConfig = new MapConfig(VIOLATION_MEMORY_MAP_NAME)
+          .setEvictionPolicy(EvictionPolicy.LRU)
+          .setMaxSizeConfig(new MaxSizeConfig(VIOLATION_MEMORY_MAX_HEAP_PERCENTAGE, USED_HEAP_PERCENTAGE));
 
-        MapConfig violationMemoryMapConfig = config.getMapConfig(VIOLATION_MEMORY_MAP_NAME);
-
-        violationMemoryMapConfig.setEvictionPolicy(EvictionPolicy.LRU);
-        violationMemoryMapConfig.setMaxSizeConfig(new MaxSizeConfig(VIOLATION_MEMORY_MAX_HEAP_PERCENTAGE, USED_HEAP_PERCENTAGE));
-
-        config.addMapConfig(violationMemoryMapConfig);
+        hazelcastInstance.getConfig().addMapConfig(violationMemoryMapConfig);
 
         violationMemoryMap = hazelcastInstance.getMap(VIOLATION_MEMORY_MAP_NAME);
     }

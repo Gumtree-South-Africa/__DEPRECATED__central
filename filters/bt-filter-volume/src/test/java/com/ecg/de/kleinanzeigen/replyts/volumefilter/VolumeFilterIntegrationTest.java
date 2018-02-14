@@ -20,7 +20,6 @@ public class VolumeFilterIntegrationTest {
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
 
     @Test
-    @Ignore // Ignore this test for now, as Hazelcast instantiation is broken after upgrading to a new version
     public void violatesQuota() throws Exception {
         rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
           "    rules: [\n" +
@@ -45,7 +44,6 @@ public class VolumeFilterIntegrationTest {
     }
 
     @Test
-    @Ignore // Ignore this test for now, as Hazelcast instantiation is broken after upgrading to a new version
     public void skipsQuotaViolation() throws InterruptedException {
         rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
           "    rules: [\n" +
@@ -70,7 +68,6 @@ public class VolumeFilterIntegrationTest {
     }
 
     @Test
-    @Ignore // Ignore this test for now, as Hazelcast instantiation is broken after upgrading to a new version
     public void remembersViolations() throws Exception {
         rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
           "    rules: [\n" +
@@ -111,7 +108,6 @@ public class VolumeFilterIntegrationTest {
     }
 
     @Test
-    @Ignore // Ignore this test for now, as Hazelcast instantiation is broken after upgrading to a new version
     public void ignoresFollowUpEmails() throws Exception {
         rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
           "    rules: [\n" +
