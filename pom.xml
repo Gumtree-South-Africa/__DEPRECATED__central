@@ -574,7 +574,7 @@
         <spring-boot.version>1.4.1.RELEASE</spring-boot.version>
         <spring-cloud-consul.version>1.1.2.RELEASE</spring-cloud-consul.version>
         <spring-data-mongodb.version>1.10.10.RELEASE</spring-data-mongodb.version>
-        <web-push.version>2.0.0</web-push.version>
+        <web-push.version>3.0.2</web-push.version>
         <json-lib.version>2.2.3</json-lib.version>
         <jsonpath-version>2.2.0</jsonpath-version>
         <assertj-core.version>3.6.2</assertj-core.version>
@@ -1520,16 +1520,28 @@
                 <version>${web-push.version}</version>
                 <exclusions>
                     <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpclient</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpcore</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.code.gson</groupId>
+                        <artifactId>gson</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>com.google.guava</groupId>
                         <artifactId>guava</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>org.bouncycastle</groupId>
                         <artifactId>bcprov-jdk15on</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.json</groupId>
-                        <artifactId>json</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
