@@ -1,7 +1,11 @@
 package com.ecg.messagecenter.persistence.block;
 
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
 import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
@@ -18,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.ecg.replyts.core.runtime.util.StreamUtils.toStream;
 
@@ -90,7 +95,7 @@ public class CassandraConversationBlockRepository implements ConversationBlockRe
                 // Compare this modification to the latest modification for this conversation block
 
                 ResultSet latestResult = cassandraSessionForMb.execute(Statements.SELECT_CONVERSATION_BLOCK_LATEST.bind(this, conversationId));
-                Date latest = toStream(latestResult).map(row -> row.getDate(FIELD_MODIFICATION_DATE)).findFirst().get();
+                Date latest = toStream(latestResult).map(row -> row.getDate(FIELD_MODIFICATION_DATE)).filter(Objects::nonNull).findFirst().orElse(null);
 
                 if (latest != null && latest.after(beforeDate)) {
                     // Only delete this _idx entry

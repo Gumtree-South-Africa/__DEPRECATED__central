@@ -8,6 +8,10 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.exceptions.ReadTimeoutException;
+import com.datastax.driver.core.policies.DowngradingConsistencyRetryPolicy;
+import com.datastax.driver.core.policies.FallthroughRetryPolicy;
+import com.datastax.driver.core.policies.LoggingRetryPolicy;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
@@ -23,9 +27,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
-
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +84,12 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @Value("${replyts.cleanup.conversation.streaming.batch.size:3000}")
     private int batchSize;
 
+    @Value("${comaas.cleanup.postbox.fetchSize:5000}")
+    private int fetchSize;
+
+    @Value("${comaas.cleanup.postbox.retryLowerConsistency:false}")
+    private boolean retryCleanupLowerConsistency;
+
     private ThreadPoolExecutor threadPoolExecutor;
 
     @PostConstruct
@@ -123,7 +134,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
                     conversationThreads.add(conversationThread.get());
                     newRepliesCount += unreadCount;
                 }
-            };
+            }
             LOG.trace("Found {} threads ({} unread) for PostBox with email {} in Cassandra", conversationThreads.size(), newRepliesCount, id.asString());
 
             return new PostBox(id.asString(), Optional.of(newRepliesCount), conversationThreads);
@@ -270,7 +281,8 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @Override
     public boolean cleanup(DateTime time) {
 
-        DateTime roundedToHour = time.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC);
+        Date roundedToHour = time.hourOfDay().roundFloorCopy().toDateTime(DateTimeZone.UTC).toDate();
+        String roundedToHourStr = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(roundedToHour);
 
         LOG.info("Cleanup: Deleting conversations for the date {} and rounded hour {}", time, roundedToHour);
 
@@ -279,12 +291,21 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         boolean isFinished = true;
 
         try (Timer.Context ignored = streamConversationThreadModificationsByHourTimer.time()) {
-            Statement bound = Statements.SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE.bind(this, roundedToHour.toDate());
-            ResultSet resultSet = session.execute(bound);
+            Statement bound = Statements.SELECT_CONVERSATION_THREAD_MODIFICATION_IDX_BY_DATE
+                    .bind(this, roundedToHour)
+                    .setRetryPolicy(retryCleanupLowerConsistency ? new LoggingRetryPolicy(DowngradingConsistencyRetryPolicy.INSTANCE) : FallthroughRetryPolicy.INSTANCE)
+                    .setFetchSize(fetchSize);
+            ResultSet resultSet;
+            try {
+                resultSet = session.execute(bound);
+            } catch (ReadTimeoutException rte) {
+                LOG.error("Getting postbox data for '" + roundedToHourStr + "' timed out", rte);
+                return false;
+            }
             Iterator<List<Row>> partitions = Iterators.partition(resultSet.iterator(), batchSize);
 
             try {
-                while(partitions.hasNext()) {
+                while (partitions.hasNext()) {
                     List<Row> rows = partitions.next();
                     resultSet.fetchMoreResults();
                     List<ConversationThreadModificationDate> idxs = rows.stream()
@@ -295,8 +316,8 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
                     cleanUpTasks.add(future);
                 }
-            }
-            catch (RejectedExecutionException rejectedExecutionException) {
+            } catch (RejectedExecutionException rejectedExecutionException) {
+                LOG.warn("Execution was rejected", rejectedExecutionException);
                 isFinished = false;
             }
         }
