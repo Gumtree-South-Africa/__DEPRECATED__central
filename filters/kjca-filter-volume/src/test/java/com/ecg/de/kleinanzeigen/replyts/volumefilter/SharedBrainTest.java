@@ -3,10 +3,7 @@ package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 import com.google.common.collect.ImmutableList;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.MapConfig;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ICompletableFuture;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.ITopic;
+import com.hazelcast.core.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,7 +53,7 @@ public class SharedBrainTest {
 
         eventStreamProcessor = new EventStreamProcessor("testProcessor_" + UUID.randomUUID().toString(),
                 ImmutableList.of(new Quota(1, 1, TimeUnit.SECONDS, 100, 2, TimeUnit.SECONDS)));
-        sharedBrain = new SharedBrain("test", hazelcastInstance, eventStreamProcessor, 0);
+        sharedBrain = new SharedBrain("test", hazelcastInstance, eventStreamProcessor);
     }
 
     @Test
