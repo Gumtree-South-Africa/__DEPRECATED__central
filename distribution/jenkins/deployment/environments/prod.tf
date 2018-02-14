@@ -11,7 +11,7 @@ variable vault_policy { default = "nomad-secret-readonly" }
 variable node_class { default = "services" }
 
 variable api_count { default = 3 }
-variable api_resources_cpu { default = 4400 }
+variable api_resources_cpu { default = 3300 }
 variable api_resources_mem { default = 3096 }
 
 variable filebeat_config {
