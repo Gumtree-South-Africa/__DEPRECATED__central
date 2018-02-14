@@ -9,6 +9,7 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.hazelcast.core.ITopic;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +65,7 @@ public class VolumeFilterClusterTest {
         assertThat(volumeFilter1.doFilter(messageProcessingContext), empty());
         assertThat(volumeFilter2.doFilter(messageProcessingContext), empty());
 
-        verify(sharedBrain, times(2)).markSeen(eq(FROM_MAIL));
+        verify(sharedBrain, times(2)).markSeen(any(ITopic.class), any(EventStreamProcessor.class), eq(FROM_MAIL));
         verify(sharedBrain, times(2)).getViolationRecordFromMemory(eq(FROM_MAIL));
     }
 

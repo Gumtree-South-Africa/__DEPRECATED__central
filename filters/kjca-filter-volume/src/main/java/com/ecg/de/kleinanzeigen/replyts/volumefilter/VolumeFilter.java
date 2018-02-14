@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.hazelcast.core.ITopic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,35 +28,32 @@ import java.util.concurrent.TimeoutException;
  * The filter doesn't execute if configured to ignore follow-ups and the message doesn't contain
  * the X-ADID header (indicates initial reply sent from platform).
  */
-class VolumeFilter extends ActivableFilter {
+public class VolumeFilter extends ActivableFilter {
     private static final Logger LOG = LoggerFactory.getLogger(VolumeFilter.class);
+
     private static final int HAZELCAST_OP_RETRIES = 1;
 
     private final EventStreamProcessor processor;
+
     private final List<Quota> sortedQuotas;
+
     private final SharedBrain sharedBrain;
+
+    private final ITopic<String> topic;
+
     private final boolean ignoreFollowUps;
 
-    VolumeFilter(
-            String filterName,
-            SharedBrain sharedBrain,
-            List<Quota> sortedQuotas,
-            boolean ignoreFollowUps,
-            Activation activation,
-            EventStreamProcessor processor
-    ) {
+    public VolumeFilter(String filterName, SharedBrain sharedBrain, List<Quota> sortedQuotas, boolean ignoreFollowUps, Activation activation, EventStreamProcessor processor) {
         super(activation);
 
-        // Random integer added to processor name, so that it's never reused, and no conflicts arise when
-        // a new instance is created due to a configuration update.
         this.sortedQuotas = sortedQuotas;
         this.ignoreFollowUps = ignoreFollowUps;
         this.sharedBrain = sharedBrain;
+        this.topic = sharedBrain.createTopic(filterName, processor);
         this.processor = processor;
 
         LOG.info("Set up volume filter [{}] with ignoreFollowUps [{}] and quotas [{}]", filterName, ignoreFollowUps, sortedQuotas);
     }
-
 
     @Override
     public List<FilterFeedback> doFilter(MessageProcessingContext messageProcessingContext) {
@@ -65,12 +63,14 @@ class VolumeFilter extends ActivableFilter {
 
         if (ignoreFollowUps && !messageProcessingContext.getMail().containsHeader(Mail.ADID_HEADER)) {
             LOG.trace("Ignoring follow-up from [{}]. Msg id: [{}]", senderMailAddress, message.getId());
+
             return Collections.emptyList();
         }
 
-        sharedBrain.markSeen(senderMailAddress);
+        sharedBrain.markSeen(topic, processor, senderMailAddress);
 
         List<FilterFeedback> feedbacksFromRememberedScore = getRememberedScoreFeedbacks(senderMailAddress);
+
         if (feedbacksFromRememberedScore != null) {
             return feedbacksFromRememberedScore;
         }
@@ -82,12 +82,14 @@ class VolumeFilter extends ActivableFilter {
 
             if (mailsInTimeWindow > q.getAllowance()) {
                 String violationDescription = q.describeViolation(mailsInTimeWindow);
+
                 rememberQuotaViolation(senderMailAddress, q, violationDescription);
+
                 return Collections.singletonList(new FilterFeedback(
-                        q.uihint(),
-                        violationDescription,
-                        q.getScore(),
-                        FilterResultState.OK));
+                  q.uihint(),
+                  violationDescription,
+                  q.getScore(),
+                  FilterResultState.OK));
             }
         }
 
@@ -96,7 +98,9 @@ class VolumeFilter extends ActivableFilter {
 
     private List<FilterFeedback> getRememberedScoreFeedbacks(String senderMailAddress) {
         QuotaViolationRecord violationRecord = null;
+
         RetryCommand<QuotaViolationRecord> getViolationFromMemoryCmd = new RetryCommand<>(HAZELCAST_OP_RETRIES);
+
         try {
             violationRecord = getViolationFromMemoryCmd.run(() -> {
                 try {
@@ -111,25 +115,26 @@ class VolumeFilter extends ActivableFilter {
 
         if (violationRecord != null) {
             return Collections.singletonList(new FilterFeedback(
-                    violationRecord.getDescription(),
-                    "sender previously exceeded quota",
-                    violationRecord.getScore(),
-                    FilterResultState.OK));
+              violationRecord.getDescription(),
+              "sender previously exceeded quota",
+              violationRecord.getScore(),
+              FilterResultState.OK));
         }
+
         return null;
     }
 
     private void rememberQuotaViolation(String senderMailAddress, Quota q, String violationDescription) {
         RetryCommand<Integer> rememberViolationCmd = new RetryCommand<>(HAZELCAST_OP_RETRIES);
+
         try {
             rememberViolationCmd.run(() -> {
                 try {
                     sharedBrain.rememberViolation(
-                            senderMailAddress,
-                            q.getScore(),
-                            violationDescription + " (triggered at " + LocalDateTime.now() + ")",
-                            (int) q.getScoreMemoryDurationUnit().toSeconds(q.getScoreMemoryDurationValue())
-                    );
+                      senderMailAddress,
+                      q.getScore(),
+                      violationDescription + " (triggered at " + LocalDateTime.now() + ")",
+                      (int) q.getScoreMemoryDurationUnit().toSeconds(q.getScoreMemoryDurationValue()));
                 } catch (InterruptedException | ExecutionException | TimeoutException e) {
                     throw new RuntimeException(e);
                 }

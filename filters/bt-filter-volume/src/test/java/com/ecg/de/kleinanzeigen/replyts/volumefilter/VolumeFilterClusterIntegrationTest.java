@@ -94,7 +94,6 @@ public class VolumeFilterClusterIntegrationTest {
     }
 
     @Test
-    @Ignore // Ignore this test for now; can't really instantiate two SharedBrains; should rewrite the tests
     public void twoNodes_differentInstances_separateCalculation() throws Exception {
         volumeFilter1 = new VolumeFilter("vf-test-diffInstances-1", mock(SharedBrain.class), ImmutableList.of(singleMessageQuota), false, Collections.<Integer>emptyList(), Arrays.asList(8));
         volumeFilter2 = new VolumeFilter("vf-test-diffInstances-2", mock(SharedBrain.class), ImmutableList.of(singleMessageQuota), false, Collections.<Integer>emptyList(), Arrays.asList(8));
@@ -104,7 +103,6 @@ public class VolumeFilterClusterIntegrationTest {
     }
 
     @Test
-    @Ignore // Ignore this test for now; can't really instantiate two SharedBrains; should rewrite the tests
     public void twoNodes_sameInstances_combinedCalculation() throws Exception {
         volumeFilter1 = new VolumeFilter("vf-test-sameInstance", mock(SharedBrain.class), ImmutableList.of(singleMessageQuota), false,Collections.<Integer>emptyList(), Arrays.asList(8));
         volumeFilter2 = new VolumeFilter("vf-test-sameInstance", mock(SharedBrain.class), ImmutableList.of(singleMessageQuota), false,Collections.<Integer>emptyList(), Arrays.asList(8));

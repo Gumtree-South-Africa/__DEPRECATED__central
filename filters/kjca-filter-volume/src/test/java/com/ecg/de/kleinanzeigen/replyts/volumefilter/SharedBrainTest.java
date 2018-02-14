@@ -1,16 +1,17 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import com.google.common.collect.ImmutableList;
 import com.hazelcast.config.Config;
-import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.*;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -21,40 +22,16 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = SharedBrainTest.TestContext.class)
 public class SharedBrainTest {
     public static final String MAIL_ADDRESS = "test@example.com";
 
-    @Mock
-    private HazelcastInstance hazelcastInstance;
-
-    @Mock
-    private Config hazelcastConfig;
-
-    @Mock
-    private ITopic communicationBus;
-
-    @Mock
-    private IMap violationMemoryMap;
-
+    @Autowired
     private SharedBrain sharedBrain;
 
-    private EventStreamProcessor eventStreamProcessor;
-
-    @Before
-    public void setUp() throws Exception {
-        MapConfig mapConfig = mock(MapConfig.class);
-
-        when(hazelcastInstance.getTopic(anyString())).thenReturn(communicationBus);
-        when(hazelcastInstance.getConfig()).thenReturn(hazelcastConfig);
-        when(hazelcastConfig.getMapConfig(anyString())).thenReturn(mapConfig);
-
-        when(hazelcastInstance.getMap(anyString())).thenReturn(violationMemoryMap);
-
-        eventStreamProcessor = new EventStreamProcessor("testProcessor_" + UUID.randomUUID().toString(),
-                ImmutableList.of(new Quota(1, 1, TimeUnit.SECONDS, 100, 2, TimeUnit.SECONDS)));
-        sharedBrain = new SharedBrain("test", hazelcastInstance, eventStreamProcessor);
-    }
+    @Autowired
+    private IMap violationMemoryMap;
 
     @Test
     public void remembersViolationsWithinWindow() throws Exception {
@@ -75,5 +52,22 @@ public class SharedBrainTest {
         assertEquals(new QuotaViolationRecord(100, "description"), sharedBrain.getViolationRecordFromMemory(MAIL_ADDRESS));
 
         assertNull(sharedBrain.getViolationRecordFromMemory(MAIL_ADDRESS));
+    }
+
+    @Configuration
+    @Import(SharedBrain.class)
+    static class TestContext {
+        @MockBean
+        private IMap violationMemoryMap;
+
+        @Bean
+        public HazelcastInstance hazelcastInstance(IMap violationMemoryMap) {
+            HazelcastInstance instance = mock(HazelcastInstance.class);
+
+            when(instance.getConfig()).thenReturn(mock(Config.class));
+            when(instance.getMap(anyString())).thenReturn(violationMemoryMap);
+
+            return instance;
+        };
     }
 }
