@@ -35,6 +35,7 @@ export https_proxy=http://proxy.${region}.cloud.ecg.so:3128
 export swift_authentication_url=https://keystone.${region}.cloud.ecg.so/v2.0
 
 /usr/bin/java \
+    -Djava.security.egd=file:/dev/urandom \
     -DlogDir=/tmp \
     -Dtenant=${TENANT} \
     -Dfile.encoding=UTF-8 \
