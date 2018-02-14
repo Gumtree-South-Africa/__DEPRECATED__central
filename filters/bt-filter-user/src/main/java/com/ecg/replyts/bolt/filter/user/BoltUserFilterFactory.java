@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import com.ecg.replyts.core.runtime.ComaasPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,6 +23,9 @@ public class BoltUserFilterFactory implements FilterFactory {
     private static final int DEFAULT_SCORE = 50;
     private static final int NEW_USER_HOURS = 480;
 
+    @Value( "${replyts.user.snapshot.kernel.url:http://kernel.service.consul/api/users/snapshots}" )
+    private String kernelApiUrl;
+
     @Override
     public Filter createPlugin(String instanceName, JsonNode configuration) {
         BoltUserFilterConfig config = buildFilterConfig(configuration);
@@ -30,19 +34,12 @@ public class BoltUserFilterFactory implements FilterFactory {
     }
 
     private BoltUserFilterConfig buildFilterConfig(JsonNode configuration) {
-        JsonNode urlNode =  configuration.get("bolt.kernel.api.url");
-
-        if (urlNode == null || urlNode.textValue().isEmpty()) {
-            LOG.error("Required configuration 'bolt.kernel.api.url' is missing.");
-
-            return null;
-        }
 
         BoltUserFilterConfig config = new BoltUserFilterConfig();
 
-        config.setKernelApiUrl(urlNode.textValue());
+        config.setKernelApiUrl(kernelApiUrl);
 
-        urlNode = configuration.get("block_user_score");
+        JsonNode urlNode = configuration.get("block_user_score");
         int blockUserScore = DEFAULT_SCORE;
         try {
             blockUserScore = Integer.parseInt(urlNode.textValue());
