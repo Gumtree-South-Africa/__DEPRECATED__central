@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Random;
 
@@ -14,6 +15,9 @@ import java.util.Random;
  */
 class VolumeFilterFactory implements FilterFactory {
     private static final String PROVIDER_NAME_PREFIX = "volumefilter_provider_";
+
+    @Value("${hazelcast.timeout.millis:100}")
+    private int hazelcastTimeoutMillis;
 
     private final HazelcastInstance hazelcastInstance;
 
@@ -28,7 +32,7 @@ class VolumeFilterFactory implements FilterFactory {
 
         return new VolumeFilter(
                 filterName,
-                new SharedBrain(filterName, hazelcastInstance, eventStreamProcessor),
+                new SharedBrain(filterName, hazelcastInstance, eventStreamProcessor, hazelcastTimeoutMillis),
                 config.getQuotas(),
                 config.isIgnoreFollowUps(),
                 new Activation(configuration),

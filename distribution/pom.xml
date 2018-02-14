@@ -750,7 +750,7 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>bt-filter-volume</artifactId>
+                    <artifactId>kjca-filter-volume</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
@@ -803,7 +803,7 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>bt-filter-volume</artifactId>
+                    <artifactId>kjca-filter-volume</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
@@ -856,7 +856,7 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>bt-filter-volume</artifactId>
+                    <artifactId>kjca-filter-volume</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
@@ -903,7 +903,7 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>bt-filter-volume</artifactId>
+                    <artifactId>kjca-filter-volume</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>

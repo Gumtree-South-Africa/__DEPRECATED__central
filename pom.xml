@@ -388,10 +388,11 @@
             <modules>
                 <module>coremods/bt-coremod-pushservice</module>
 
+                <module>filters/core-filter-activable</module>
                 <module>filters/bt-filter-user</module>
                 <module>filters/bt-filter-word</module>
                 <module>filters/bt-filter-ip</module>
-                <module>filters/bt-filter-volume</module>
+                <module>filters/kjca-filter-volume</module>
                 <module>filters/bt-filter-identicalcap</module>
                 <module>filters/bt-filter-dedupe</module>
 
@@ -433,10 +434,11 @@
             <modules>
                 <module>coremods/bt-coremod-pushservice</module>
 
+                <module>filters/core-filter-activable</module>
                 <module>filters/bt-filter-user</module>
                 <module>filters/bt-filter-word</module>
                 <module>filters/bt-filter-ip</module>
-                <module>filters/bt-filter-volume</module>
+                <module>filters/kjca-filter-volume</module>
                 <module>filters/bt-filter-identicalcap</module>
                 <module>filters/bt-filter-dedupe</module>
 
@@ -478,10 +480,11 @@
             <modules>
                 <module>coremods/bt-coremod-pushservice</module>
 
+                <module>filters/core-filter-activable</module>
                 <module>filters/bt-filter-user</module>
                 <module>filters/bt-filter-word</module>
                 <module>filters/bt-filter-ip</module>
-                <module>filters/bt-filter-volume</module>
+                <module>filters/kjca-filter-volume</module>
                 <module>filters/bt-filter-identicalcap</module>
                 <module>filters/bt-filter-dedupe</module>
 
@@ -521,10 +524,11 @@
             </distributionManagement>
 
             <modules>
+                <module>filters/core-filter-activable</module>
                 <module>filters/bt-filter-user</module>
                 <module>filters/bt-filter-word</module>
                 <module>filters/bt-filter-ip</module>
-                <module>filters/bt-filter-volume</module>
+                <module>filters/kjca-filter-volume</module>
                 <module>filters/bt-filter-identicalcap</module>
                 <module>filters/bt-filter-dedupe</module>
 

@@ -1,6 +1,5 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import com.hazelcast.config.Config;
 import com.hazelcast.config.EvictionPolicy;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MaxSizeConfig;
@@ -19,14 +18,15 @@ import static com.hazelcast.config.MaxSizeConfig.MaxSizePolicy.USED_HEAP_PERCENT
 class SharedBrain {
 
     private static final String VIOLATION_MEMORY_MAP_NAME = "violationMemoryMap";
-    private static final int HAZELCAST_TIMEOUT_MS = 100;
     public static final int VIOLATION_MEMORY_MAX_HEAP_PERCENTAGE = 20;
 
     private final ITopic<String> communicationBus;
     private final AtomicReference<EventStreamProcessor> processor = new AtomicReference<>();
-    private IMap<String, QuotaViolationRecord> violationMemoryMap; // email address => (score, description)
+    private final IMap<String, QuotaViolationRecord> violationMemoryMap; // email address => (score, description)
+    private final int hazelcastTimeoutMillis;
 
-    SharedBrain(String name, HazelcastInstance hazelcastInstance, EventStreamProcessor eventStreamProcessor) {
+    SharedBrain(String name, HazelcastInstance hazelcastInstance, EventStreamProcessor eventStreamProcessor, int hazelcastTimeoutMillis) {
+        this.hazelcastTimeoutMillis = hazelcastTimeoutMillis;
         communicationBus = hazelcastInstance.getTopic("volumefilter_sender_address_exchange_" + name);
         processor.set(eventStreamProcessor);
 
@@ -38,8 +38,8 @@ class SharedBrain {
         });
 
         MapConfig violationMemoryMapConfig = new MapConfig(VIOLATION_MEMORY_MAP_NAME)
-          .setEvictionPolicy(EvictionPolicy.LRU)
-          .setMaxSizeConfig(new MaxSizeConfig(VIOLATION_MEMORY_MAX_HEAP_PERCENTAGE, USED_HEAP_PERCENTAGE));
+                .setEvictionPolicy(EvictionPolicy.LRU)
+                .setMaxSizeConfig(new MaxSizeConfig(VIOLATION_MEMORY_MAX_HEAP_PERCENTAGE, USED_HEAP_PERCENTAGE));
 
         hazelcastInstance.getConfig().addMapConfig(violationMemoryMapConfig);
 
@@ -57,10 +57,10 @@ class SharedBrain {
                 new QuotaViolationRecord(score, description),
                 ttlInSeconds,
                 TimeUnit.SECONDS
-        ).get(HAZELCAST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        ).get(hazelcastTimeoutMillis, TimeUnit.MILLISECONDS);
     }
 
     public QuotaViolationRecord getViolationRecordFromMemory(String mailAddress) throws InterruptedException, ExecutionException, TimeoutException {
-        return violationMemoryMap.getAsync(mailAddress).get(HAZELCAST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        return violationMemoryMap.getAsync(mailAddress).get(hazelcastTimeoutMillis, TimeUnit.MILLISECONDS);
     }
 }
