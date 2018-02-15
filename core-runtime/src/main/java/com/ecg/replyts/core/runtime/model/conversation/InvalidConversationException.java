@@ -17,8 +17,8 @@ public class InvalidConversationException extends IllegalStateException {
     }
 
     @Override
-    public String toString() {
-        return String.format("Did not find ConversationCreatedEvent among the list of %d events. %s", events.size(), super.toString());
+    public String getMessage() {
+        return String.format("Did not find ConversationCreatedEvent among the list of %d events. %s", events.size(), super.getMessage());
     }
 
     public List<ConversationEvent> getEvents() {
