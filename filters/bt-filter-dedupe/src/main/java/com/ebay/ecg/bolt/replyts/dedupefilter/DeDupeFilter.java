@@ -257,10 +257,29 @@ public class DeDupeFilter implements Filter {
         smp.setOrdering(SearchMessagePayload.ResultOrdering.NEWEST_FIRST);
         smp.setUserRole(SearchMessagePayload.ConcernedUserRole.RECEIVER);
         smp.setUserEmail(receiverMailAddress);
-        smp.setMessageTextKeywords(inMessage);
+        smp.setMessageTextKeywords(escape(inMessage));
         smp.setMessageTextMinimumShouldMatch(minimumShouldMatch);
 
         return smp;
+    }
+
+    public static String escape(String s) {
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+
+            // These characters are part of the query syntax and must be escaped
+            if (c == '\\' || c == '+' || c == '-' || c == '!' || c == '(' || c == ')' || c == ':' ||
+                c == '^' || c == '[' || c == ']' || c == '\"' || c == '{' || c == '}' || c == '~' ||
+                c == '*' || c == '?' || c == '|' || c == '&' || c == '/') {
+                builder.append('\\');
+            }
+
+            builder.append(c);
+        }
+
+        return builder.toString();
     }
 
     public Date getStartTime() {

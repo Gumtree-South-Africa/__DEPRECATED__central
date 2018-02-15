@@ -13,7 +13,6 @@ import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.util.StringUtils;
 
-import static java.util.Optional.ofNullable;
 import static org.elasticsearch.index.query.FilterBuilders.*;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
