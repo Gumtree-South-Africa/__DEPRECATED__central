@@ -22,7 +22,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Collections;
@@ -43,6 +42,26 @@ public class ReplyCountListener implements MessageProcessedListener {
     private Boolean isReplyCountEnabled = false;
 
     private String incrementCountUrl;
+
+    private static String jsonRequest;
+
+    static {
+        try {
+            JSONObject reply = new JSONObject();
+            reply.put("name", "ReplyCount");
+
+            // the empty value property defines an increment of 1
+            reply.put("value", "");
+
+            JSONObject result = new JSONObject();
+            result.put("counters", new JSONArray(Collections.singletonList(reply)));
+
+            jsonRequest = result.toString();
+        }
+        catch (JSONException ex) {
+            throw new RuntimeException("An exception has occurred creating the JSON request for ReplyCountListener.", ex);
+        }
+    }
 
     @Autowired
     public ReplyCountListener(@Value("${reply.count.enabled}") Boolean enableReplyCount, @Value("${bapi.increment.count.url}") String incrementCountUrl) {
@@ -73,7 +92,7 @@ public class ReplyCountListener implements MessageProcessedListener {
             if (isValidInitialRequest(convId,adId,locale)) {
                 incrementReplyCount(adId, locale);
             }else{
-                LOG.info("Ignoring the reply count request for the AdId:{}, Conversation Id:{}, locale:{}, seller id:{}, buyer id:{} and message direction:{}",
+                LOG.debug("Ignoring the reply count request for the AdId:{}, Conversation Id:{}, locale:{}, seller id:{}, buyer id:{} and message direction:{}",
                   adId,convId,locale, conversation.getCustomValues().get("mc-sellerid"), conversation.getCustomValues().get("mc-buyerid"),message.getMessageDirection().name());
             }
         }
@@ -91,26 +110,16 @@ public class ReplyCountListener implements MessageProcessedListener {
             headers.add("X-BOLT-APPS-ID", "BOLT");
             headers.add("X-BOLT-SITE-LOCALE", locale);
 
-            HttpEntity<String> request = new HttpEntity<String>(buildBody(adId), headers);
+            HttpEntity<String> request = new HttpEntity<>(jsonRequest, headers);
 
             URI uri = UriComponentsBuilder.fromHttpUrl(String.format(incrementCountUrl,adId)).build().toUri();
 
             ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, String.class);
 
-            LOG.info("Response code from BAPI for the increment reply count for the AdId:{} is {} ", adId, response.getStatusCode());
+            LOG.debug("Response code from BAPI for the increment reply count for the AdId:{} is {} ", adId, response.getStatusCode());
         } catch (Exception e) {
-            LOG.error("Exception while making the increment reply count for the AdId:{}", adId, e);;
+            LOG.error("Exception while making the increment reply count for the AdId:{}", adId, e);
         }
-    }
-
-    private String buildBody(String adId) throws UnsupportedEncodingException, JSONException {
-        JSONObject reply = new JSONObject("name", new String[] { "ReplyCount "});
-
-        JSONObject result = new JSONObject();
-
-        result.put("counters", new JSONArray(Collections.singletonList(reply)));
-
-        return result.toString();
     }
 
     private HttpClient httpClient() {
