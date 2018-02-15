@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.listeners;
 
+import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.core.encoder.EncoderBase;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
@@ -12,6 +13,7 @@ import org.apache.commons.lang.LocaleUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -26,7 +28,10 @@ import static java.lang.String.format;
 
 @Component
 public class MessageLoggerListener implements MessageProcessedListener {
+    private static final LoggerContext LOGGER_CONTEXT = (LoggerContext) LoggerFactory.getILoggerFactory();
+
     private static final long LOG_VERSION_NUM = 4L;
+
     private static final String DELIMITER = "\u0001";
 
     private RollingFileAppender<String> auditLogAppender;
@@ -41,8 +46,10 @@ public class MessageLoggerListener implements MessageProcessedListener {
 
         TimeBasedRollingPolicy rollingPolicy = new TimeBasedRollingPolicy<>();
 
-        rollingPolicy.setFileNamePattern(format("%s/archived/replyts-audit.log", logDir));
+        rollingPolicy.setFileNamePattern(format("%s/archived/replyts-audit.log.%%d", logDir));
         rollingPolicy.setMaxHistory(7);
+        rollingPolicy.setParent(auditLogAppender);
+        rollingPolicy.setContext(LOGGER_CONTEXT);
 
         rollingPolicy.start();
 
@@ -59,6 +66,8 @@ public class MessageLoggerListener implements MessageProcessedListener {
                 // Do nothing
             }
         });
+
+        auditLogAppender.setContext(LOGGER_CONTEXT);
 
         auditLogAppender.start();
     }
