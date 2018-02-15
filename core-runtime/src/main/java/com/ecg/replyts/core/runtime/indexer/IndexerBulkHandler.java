@@ -70,7 +70,7 @@ public class IndexerBulkHandler {
         }
     }
 
-    public List<Conversation> fetchConversations(Set<String> conversationIds) {
+    private List<Conversation> fetchConversations(Set<String> conversationIds) {
         List<Conversation> conversations = new ArrayList<>();
 
         try (Timer.Context ignore = FETCH_TIMER.time()) {
@@ -86,12 +86,12 @@ public class IndexerBulkHandler {
         }
     }
 
-    public Conversation fetchConversation(String convId) {
+    private Conversation fetchConversation(String convId) {
         try {
             // Might be null for very old conversation that have been removed by the cleanup job while the indexer was running
             return conversationRepository.getById(convId);
         } catch (Exception e) {
-            LOG.error("Indexer could not load conversation '" + convId + "' from repository - skipping it", e);
+            LOG.warn("Indexer could not load conversation '{}' from repository - skipping it", convId, e);
             FAILED_IDX.info(convId);
 
             return null;

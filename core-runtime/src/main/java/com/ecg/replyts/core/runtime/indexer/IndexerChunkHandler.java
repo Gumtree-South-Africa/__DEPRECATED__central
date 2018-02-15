@@ -7,8 +7,6 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.google.common.collect.Lists;
-import org.elasticsearch.action.ListenableActionFuture;
-import org.elasticsearch.action.bulk.BulkResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Component
 public class IndexerChunkHandler {
@@ -25,7 +22,6 @@ public class IndexerChunkHandler {
     private static final Logger FAILED_IDX = LoggerFactory.getLogger("IndexingFailedConversations");
 
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("index-chunk");
-    private static final Timer FETCH_TIMER = TimingReports.newTimer("fetch-chunk");
 
     @Autowired
     private ConversationRepository conversationRepository;
@@ -60,22 +56,7 @@ public class IndexerChunkHandler {
         }
     }
 
-    public List<ListenableActionFuture<BulkResponse>> indexChunkAsync(Set<String> conversationIds) {
-        if (conversationIds.size() > maxChunkSize) {
-            LOG.trace("Partitioning conversation list with {} elements into chunks of size {}", conversationIds.size(), maxChunkSize);
-        }
-
-        List<List<String>> partitions = Lists.partition(new ArrayList<>(conversationIds), maxChunkSize);
-        List<ListenableActionFuture<BulkResponse>> indexTasks = Lists.newArrayListWithExpectedSize(partitions.size());
-
-        for (List<String> partition : partitions) {
-            indexTasks.add(indexChunkPartitionAsync(partition));
-        }
-
-        return indexTasks;
-    }
-
-    public List<Conversation> fetchConversations(List<String> conversationIds) {
+    private List<Conversation> fetchConversations(List<String> conversationIds) {
         List<Conversation> conversations = new ArrayList<>();
 
         for (String conversationId : conversationIds) {
@@ -87,7 +68,7 @@ public class IndexerChunkHandler {
                     conversations.add(conversation);
                 }
             } catch (Exception e) {
-                LOG.error("Indexer could not load conversation '{}' from repository - skipping it", conversationId, e);
+                LOG.warn("Indexer could not load conversation '{}' from repository - skipping it", conversationId, e);
                 FAILED_IDX.info(conversationId);
             }
         }
@@ -97,17 +78,5 @@ public class IndexerChunkHandler {
         }
 
         return conversations;
-    }
-
-    private ListenableActionFuture<BulkResponse> indexChunkPartitionAsync(List<String> conversationIds) {
-        try (Timer.Context ignore = FETCH_TIMER.time()) {
-            List<Conversation> conversations = fetchConversations(conversationIds);
-
-            if (conversations.size() != conversationIds.size()) {
-                LOG.warn("At least some conversation IDs were not found in the database, {} conversations expected, but only {} retrieved", conversationIds.size(), conversations.size());
-            }
-
-            return indexer.updateSearchAsync(conversations, false);
-        }
     }
 }
