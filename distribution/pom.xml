@@ -881,6 +881,12 @@
                     <artifactId>bt-filter-dedupe</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+ 
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-messagecenter</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
