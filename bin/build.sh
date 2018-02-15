@@ -84,7 +84,9 @@ function parseCmd() {
         fatal "Must specify a tenant if you want to run Comaas"
     fi
 
-    [ $(uname) == "Linux" ] && log "Building on host $(hostname -A)"
+    if [ $(uname) == "Linux" ]; then
+        echo "Building on host $(hostname -A)"
+    fi
 }
 
 function main() {
