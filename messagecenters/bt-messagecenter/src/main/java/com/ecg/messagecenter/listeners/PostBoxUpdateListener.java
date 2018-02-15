@@ -39,6 +39,8 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     @Autowired
     private AdImageLookup adImageLookup;
 
+    private UserNotificationRules userNotificationRules = new UserNotificationRules();
+
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
         if (conversation.getState() == ConversationState.DEAD_ON_ARRIVAL) {
@@ -62,11 +64,11 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             }
 
             if (message.getState() == MessageState.SENT || message.getMessageDirection() == MessageDirection.BUYER_TO_SELLER) {
-            	updateMessageCenter(conversation.getBuyerId(), conversation, message, UserNotificationRules.buyerShouldBeNotified(message));
+            	updateMessageCenter(conversation.getBuyerId(), conversation, message, userNotificationRules.buyerShouldBeNotified(message));
             }
             
             if (message.getState() == MessageState.SENT || message.getMessageDirection() == MessageDirection.SELLER_TO_BUYER) {
-            	updateMessageCenter(conversation.getSellerId(), conversation, message, UserNotificationRules.sellerShouldBeNotified(message));
+            	updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message));
             }
 
             PROCESSING_SUCCESS.inc();

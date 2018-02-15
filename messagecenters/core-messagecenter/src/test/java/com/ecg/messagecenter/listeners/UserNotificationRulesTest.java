@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.listeners;
 
-import com.ecg.messagecenter.listeners.UserNotificationRules;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
