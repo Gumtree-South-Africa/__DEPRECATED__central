@@ -189,84 +189,6 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
     }
 }
 
-Closure wrapWithStepDefinition(
-        final String tenant, final String version, final String environmentShort,
-        final String dc, final String stageName, final boolean force, final Integer nrOfInstances) {
-    return {
-        stage(stageName) {
-            node("$environmentShort && $dc") {
-                boolean skip = false
-
-                if (force) {
-                    echo "Force deployment, not checking existing version. Note that deploy.py or levant may still not upgrade for same version."
-                } else {
-                    try {
-                        String currentlyDeployedVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
-                        echo "currentlyDeployedVersion == newVersion : $currentlyDeployedVersion == $version"
-                        if (currentlyDeployedVersion == version) {
-                            echo "Current Comaas $tenant version $currentlyDeployedVersion is up to date, nothing to update (desired version: $version)"
-                            currentBuild.result = 'SUCCESS'
-                            skip = true
-                            return
-                        }
-                    } catch (ex) {
-                        deploymentFailed(tenant, version, dc, environmentShort, ex)
-                    } finally {
-                        if (skip) {
-                            cleanWs notFailBuild: true
-                        }
-                    }
-                }
-
-                if (!skip) {
-                    try {
-                        echo "About to deploy Comaas version $version to $environmentShort in $dc for $tenant"
-                        notifyAboutPendingUpgrade(tenant, version, dc, environmentShort)
-
-                        if (!commonFunctions.isVersionPresentInSwift(tenant, version)) {
-                            error("Version $version for tenant $tenant was not found in Swift")
-                        }
-
-                        // To be used in a later commit, when we'll implement Docker image deployment
-                        // loginToDocker()
-                        // check if available in docker registry
-                        // https://docs.docker.com/registry/spec/auth/token/#requesting-a-token
-                        // https://docs.docker.com/registry/spec/api/
-
-                        final String artifact = downloadVersionFromSwift(tenant, version)
-                        loadPropsIntoConsul(tenant, version, environmentShort)
-                        deployToEnv(tenant, artifact, environmentShort, version, dc, nrOfInstances)
-
-                        final String graphitePayload = commonFunctions.createGraphitePayload('succeeded', commonFunctions.getAlias(tenant), "$version deployed")
-                        sendGraphiteMetric(dc, environmentShort, graphitePayload)
-
-                        final String activeDcSlack = activeDcSlackString(tenant, dc, environmentShort)
-                        final String slackMessage = "Comaas version `$version` for `$tenant` successfully deployed to " +
-                                "`$environmentShort` in `$dc` ${activeDcSlack} with ${nrOfInstances} API nodes"
-                        sendToSlack('#00FF00', tenant, slackMessage, environmentShort)
-                    } catch (ex) {
-                        deploymentFailed(tenant, version, dc, environmentShort, ex)
-                    } finally {
-                        cleanWs notFailBuild: true
-                    }
-                }
-                if (env."SKIP_$tenant" != 'true') {
-                    try {
-                        echo "Running smoke tests for $PROVIDED_TENANT against $PROVIDED_DC $PROVIDED_ENV"
-                        build job: 'smoke-tests', parameters: [
-                                string(name: 'PROVIDED_TENANT', value: "$PROVIDED_TENANT"),
-                                string(name: 'PROVIDED_ENV', value: "$PROVIDED_ENV"),
-                                string(name: 'PROVIDED_DC', value: "$PROVIDED_DC")
-                        ], wait: false
-                    } finally {
-                        cleanWs notFailBuild: true
-                    }
-                }
-            }
-        }
-    }
-}
-
 static boolean useLpVersionForProd(final String versionToDeploy, final String environmentShort) {
     return versionToDeploy == '' && environmentShort == 'prod'
 }
@@ -278,20 +200,7 @@ node(PROVIDED_ENV) {
 
     configFile = readYaml file: "distribution/jenkins/deployment/configuration.yaml"
 
-    String[] tenants
-
-    if (PROVIDED_ENV == 'lp') {
-        configFile = readYaml file: "distribution/jenkins/deployment/lp/configuration.yaml"
-
-        if (PROVIDED_TENANT == 'all-enabled') {
-            tenants = commonFunctions.activeTenants(configFile.tenants.disabled as List)
-        } else {
-            tenants = [PROVIDED_TENANT]
-        }
-    } else {
-        tenants = [PROVIDED_TENANT]
-    }
-
+    final String tenant = PROVIDED_TENANT
     final String environmentShort = PROVIDED_ENV
     String versionToDeploy = PROVIDED_VERSION.trim()
     String dc = PROVIDED_DC
@@ -299,34 +208,89 @@ node(PROVIDED_ENV) {
 
     if (useLpVersionForProd(versionToDeploy, environmentShort)) {
         // If the version is empty, deploy the version that's live on lp to prod
-        versionToDeploy = commonFunctions.getCurrentlyDeployedVersion(tenants[0], 'ams1', 'lp')
+        versionToDeploy = commonFunctions.getCurrentlyDeployedVersion(tenant, 'ams1', 'lp')
     }
 
     if (environmentShort == "prod") {
-        // This implies only a single tenant is selected, see checkInputParameters(), but let's make sure
-        if (tenants.length != 1) {
-            error("You cannot use active/passive dc when deploying to multiple tenants")
-        }
-
         switch (dc) {
             case "active":
-                dc = commonFunctions.getActiveDC(tenants[0], "prod")
+                dc = commonFunctions.getActiveDC(tenant, "prod")
                 break
             case "passive":
-                dc = commonFunctions.getPassiveDcProd(tenants[0])
+                dc = commonFunctions.getPassiveDcProd(tenant)
                 break
         }
     }
 
     currentBuild.description = "$PROVIDED_TENANT/$dc/$versionToDeploy"
 
-    buildSteps = ["failFast": false]
-    buildSteps += tenants.collectEntries { tenant ->
-        String n = "$tenant-deployment"
-        Integer nrOfInstances = environmentShort == 'lp' ? 3 : configFile.instances[tenant] as Integer
-        return [(n): wrapWithStepDefinition(tenant, versionToDeploy, environmentShort, dc, "Deploy $tenant", force, nrOfInstances)]
+    Integer nrOfInstances = environmentShort == 'lp' ? 2 : configFile.instances[tenant] as Integer
+
+    stage("Deploying") {
+        node("$environmentShort && $dc") {
+            boolean skip = false
+
+            if (force) {
+                echo "Force deployment, not checking existing version. Note that deploy.py or levant may still not upgrade for same version."
+            } else {
+                try {
+                    String currentlyDeployedVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
+                    echo "currentlyDeployedVersion == newVersion : $currentlyDeployedVersion == $versionToDeploy"
+                    if (currentlyDeployedVersion == versionToDeploy) {
+                        echo "Current Comaas $tenant version $currentlyDeployedVersion is up to date, nothing to update (desired version: $versionToDeploy)"
+                        currentBuild.result = 'SUCCESS'
+                        skip = true
+                        return
+                    }
+                } catch (ex) {
+                    deploymentFailed(tenant, versionToDeploy, dc, environmentShort, ex)
+                } finally {
+                    if (skip) {
+                        cleanWs notFailBuild: true
+                    }
+                }
+            }
+
+            if (!skip) {
+                try {
+                    echo "About to deploy Comaas version $versionToDeploy to $environmentShort in $dc for $tenant"
+                    notifyAboutPendingUpgrade(tenant, versionToDeploy, dc, environmentShort)
+
+                    if (!commonFunctions.isVersionPresentInSwift(tenant, versionToDeploy)) {
+                        error("Version $versionToDeploy for tenant $tenant was not found in Swift")
+                    }
+
+                    final String artifact = downloadVersionFromSwift(tenant, versionToDeploy)
+                    loadPropsIntoConsul(tenant, versionToDeploy, environmentShort)
+                    deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstances)
+
+                    final String graphitePayload = commonFunctions.createGraphitePayload('succeeded', commonFunctions.getAlias(tenant), "$versionToDeploy deployed")
+                    sendGraphiteMetric(dc, environmentShort, graphitePayload)
+
+                    final String activeDcSlack = activeDcSlackString(tenant, dc, environmentShort)
+                    final String slackMessage = "Comaas version `$versionToDeploy` for `$tenant` successfully deployed to " +
+                            "`$environmentShort` in `$dc` ${activeDcSlack} with ${nrOfInstances} API nodes"
+                    sendToSlack('#00FF00', tenant, slackMessage, environmentShort)
+                } catch (ex) {
+                    deploymentFailed(tenant, versionToDeploy, dc, environmentShort, ex)
+                } finally {
+                    cleanWs notFailBuild: true
+                }
+            }
+            if (env."SKIP_$tenant" != 'true') {
+                try {
+                    echo "Running smoke tests for $PROVIDED_TENANT against $PROVIDED_DC $PROVIDED_ENV"
+                    build job: 'smoke-tests', parameters: [
+                            string(name: 'PROVIDED_TENANT', value: "$PROVIDED_TENANT"),
+                            string(name: 'PROVIDED_ENV', value: "$PROVIDED_ENV"),
+                            string(name: 'PROVIDED_DC', value: "$PROVIDED_DC")
+                    ], wait: false
+                } finally {
+                    cleanWs notFailBuild: true
+                }
+            }
+        }
     }
-    parallel buildSteps
 
     if (currentBuild.result == 'FAILURE') {
         currentBuild.result = 'UNSTABLE'
