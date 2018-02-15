@@ -40,11 +40,11 @@ public interface CassandraPostBoxRepository {
      *
      * @param userId             id of postbox
      * @param conversationId     id of conversation
-     * @param messageIdCursorOpt message id cursor optional, used in cursor-based pagination of messages
+     * @param messageIdCursor message id cursor, used in cursor-based pagination of messages, can be nullable
      * @param messagesLimit      maximum number of returned messages
      * @return absent if the conversation does not exist, else returns the conversation, the unread messages count and a paginated list of its messages
      */
-    Optional<ConversationThread> getConversationWithMessages(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit);
+    Optional<ConversationThread> getConversationWithMessages(String userId, String conversationId, String messageIdCursor, int messagesLimit);
 
     /**
      * @param userId id of user
@@ -113,13 +113,20 @@ public interface CassandraPostBoxRepository {
     void addSystemMessage(String userId, String conversationId, String adId, Message message);
 
     /**
-     * Change conversation visibilities for a postbox.
+     * Change conversation visibilities for a postbox to ARCHIVED.
      *
      * @param userId               id of postbox containing the conversations
      * @param adConversationIdsMap map of ad id to conversation id
-     * @param visibility           the new visibility
      */
-    void changeConversationVisibilities(String userId, Map<String, String> adConversationIdsMap, Visibility visibility);
+    void archiveConversations(String userId, Map<String, String> adConversationIdsMap);
+
+    /**
+     * Change conversation visibilities for a postbox to ACTIVE.
+     *
+     * @param userId               id of postbox containing the conversations
+     * @param adConversationIdsMap map of ad id to conversation id
+     */
+    void activateConversations(String userId, Map<String, String> adConversationIdsMap);
 
     void deleteConversation(String userId, String conversationId, String adId);
 

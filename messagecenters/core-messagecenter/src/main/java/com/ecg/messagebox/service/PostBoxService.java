@@ -17,21 +17,23 @@ public interface PostBoxService {
                            boolean isNewReply,
                            String cleanMsgText);
 
-    Optional<ConversationThread> getConversation(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit);
+    Optional<ConversationThread> getConversation(String userId, String conversationId, String messageIdCursor, int messagesLimit);
 
-    Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit);
+    Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, String messageIdCursorOpt, int messagesLimit);
 
     PostBox markConversationsAsRead(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit);
 
     PostBox getConversations(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit);
 
-    PostBox changeConversationVisibilities(String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis, int conversationsOffset, int conversationsLimit);
+    PostBox archiveConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit);
+
+    PostBox activateConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit);
 
     UserUnreadCounts getUnreadCounts(String userId);
 
     void deleteConversation(String userId, String conversationId, String adId);
 
-    List<String> resolveConversationIdByUserIdAndAdId(String userId, String adId, int resultsLimit);
+    List<String> getConversationsById(String userId, String adId, int resultsLimit);
 
     Optional<String> createEmptyConversation(EmptyConversationRequest emptyConversation);
 

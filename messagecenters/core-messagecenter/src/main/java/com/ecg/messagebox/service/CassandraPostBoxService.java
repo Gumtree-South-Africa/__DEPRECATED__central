@@ -116,18 +116,16 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public Optional<ConversationThread> getConversation(String userId, String
-            conversationId, Optional<String> messageIdCursorOpt, int messagesLimit) {
+    public Optional<ConversationThread> getConversation(String userId, String conversationId, String messageIdCursor, int messagesLimit) {
         try (Timer.Context ignored = getConversationTimer.time()) {
-            return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursorOpt, messagesLimit);
+            return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursor, messagesLimit);
         }
     }
 
     @Override
-    public Optional<ConversationThread> markConversationAsRead(String userId, String conversationId,
-                                                               Optional<String> messageIdCursorOpt, int messagesLimit) {
+    public Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, String messageIdCursor, int messagesLimit) {
         try (Timer.Context ignored = markConversationAsReadTimer.time()) {
-            return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursorOpt, messagesLimit).map(conversation -> {
+            return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursor, messagesLimit).map(conversation -> {
                 List<Participant> participants = conversation.getParticipants();
                 String otherParticipantUserId = participants.get(0).getUserId().equals(userId)? participants.get(1).getUserId() : participants.get(0).getUserId();
                 postBoxRepository.resetConversationUnreadCount(userId, otherParticipantUserId, conversationId, conversation.getAdId());
@@ -158,13 +156,20 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public PostBox changeConversationVisibilities(
-            String userId, List<String> conversationIds, Visibility newVis, Visibility returnVis, int conversationsOffset, int conversationsLimit
-    ) {
+    public PostBox archiveConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) {
         try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
             Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
-            postBoxRepository.changeConversationVisibilities(userId, conversationAdIdsMap, newVis);
-            return postBoxRepository.getPostBox(userId, returnVis, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
+            postBoxRepository.archiveConversations(userId, conversationAdIdsMap);
+            return postBoxRepository.getPostBox(userId, Visibility.ACTIVE, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
+        }
+    }
+
+    @Override
+    public PostBox activateConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) {
+        try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
+            Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
+            postBoxRepository.activateConversations(userId, conversationAdIdsMap);
+            return postBoxRepository.getPostBox(userId, Visibility.ARCHIVED, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
         }
     }
 
@@ -182,9 +187,8 @@ public class CassandraPostBoxService implements PostBoxService {
         }
     }
 
-
     @Override
-    public List<String> resolveConversationIdByUserIdAndAdId(String userId, String adId, int amountLimit) {
+    public List<String> getConversationsById(String userId, String adId, int amountLimit) {
         try (Timer.Context ignored = resolveConversationIdByUserIdAndAdId.time()) {
             return postBoxRepository.resolveConversationIdsByUserIdAndAdId(userId, adId, amountLimit);
         }
@@ -228,14 +232,11 @@ public class CassandraPostBoxService implements PostBoxService {
     public void createSystemMessage(String userId, String conversationId, String adId, String text, String customData, boolean sendPush) {
         try (Timer.Context ignored = createSystemMessage.time()) {
             UUID messageId = UUIDs.timeBased();
-
             Message systemMessage = new Message(messageId, text, SYSTEM_MESSAGE_USER_ID, MessageType.SYSTEM_MESSAGE, customData);
-
             postBoxRepository.addSystemMessage(userId, conversationId, adId, systemMessage);
 
             if(sendPush) {
                 Conversation conv = conversationRepository.getById(conversationId);
-
                 messageAddedEventProcessor.publishMessageAddedEvent(conv, messageId.toString(), text, postBoxRepository.getUserUnreadCounts(userId));
             }
         }

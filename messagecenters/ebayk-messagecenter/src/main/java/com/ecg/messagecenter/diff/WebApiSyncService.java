@@ -262,7 +262,7 @@ public class WebApiSyncService {
                 CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
                         .supplyAsync(() -> conversationExists(email, conversationId), newExecutor)
                         .thenApply(convId -> getUserId(email, convId))
-                        .thenApply(userId -> postBoxService.getConversation(userId, conversationId, Optional.empty(), messagesLimit))
+                        .thenApply(userId -> postBoxService.getConversation(userId, conversationId, null, messagesLimit))
                         .exceptionally(handleOpt(newModelFailureCounter, "New GetConversation Failed - email: " + email));
 
                 CompletableFuture<Optional<PostBoxSingleConversationThreadResponse>> oldModelFuture = CompletableFuture
@@ -295,7 +295,7 @@ public class WebApiSyncService {
             CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
                     .supplyAsync(() -> conversationExists(email, conversationId), newExecutor)
                     .thenApply(convId -> getUserId(email, convId))
-                    .thenApply(userId -> postBoxService.markConversationAsRead(userId, conversationId, Optional.empty(), messagesLimit))
+                    .thenApply(userId -> postBoxService.markConversationAsRead(userId, conversationId, null, messagesLimit))
                     .exceptionally(handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
 
             CompletableFuture<Optional<PostBoxSingleConversationThreadResponse>> oldModelFuture = CompletableFuture
@@ -314,8 +314,7 @@ public class WebApiSyncService {
     }
 
     private PostBox deleteConversationV2(String userId, List<String> conversationIds) {
-        return postBoxService.changeConversationVisibilities(userId, conversationIds,
-                Visibility.ARCHIVED, Visibility.ACTIVE, 0, messagesLimit);
+        return postBoxService.archiveConversations(userId, conversationIds, 0, messagesLimit);
     }
 
     /**

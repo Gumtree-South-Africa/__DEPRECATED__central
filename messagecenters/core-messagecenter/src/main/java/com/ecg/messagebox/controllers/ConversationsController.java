@@ -73,8 +73,11 @@ public class ConversationsController {
             Visibility newVisibility = Visibility.valueOf(visibility.toUpperCase());
             switch (action) {
                 case "change-visibility":
-                    Visibility toggledVisibility = Visibility.ARCHIVED.equals(newVisibility) ? Visibility.ACTIVE : Visibility.ARCHIVED;
-                    postBox = postBoxService.changeConversationVisibilities(userId, Arrays.asList(conversationIds), newVisibility, toggledVisibility, offset, limit);
+                    if (newVisibility == Visibility.ACTIVE) {
+                        postBox = postBoxService.activateConversations(userId, Arrays.asList(conversationIds), offset, limit);
+                    } else {
+                        postBox = postBoxService.archiveConversations(userId, Arrays.asList(conversationIds), offset, limit);
+                    }
                     break;
                 default:
                     postBox = null;
@@ -93,7 +96,7 @@ public class ConversationsController {
 
         try (Timer.Context ignored = getConversationIdsByAdId.time()) {
             List<String> resolvedConversationIds = postBoxService
-                    .resolveConversationIdByUserIdAndAdId(userId, adId, limit);
+                    .getConversationsById(userId, adId, limit);
             return ResponseObject.of(resolvedConversationIds);
         }
     }

@@ -28,8 +28,7 @@ public class DefaultResponseDataService implements ResponseDataService {
     private final UserIdentifierService userIdentifierService;
 
     @Autowired
-    public DefaultResponseDataService(ResponseDataRepository responseDataRepository,
-                                      UserIdentifierService userIdentifierService) {
+    public DefaultResponseDataService(ResponseDataRepository responseDataRepository, UserIdentifierService userIdentifierService) {
         this.responseDataRepository = responseDataRepository;
         this.userIdentifierService = userIdentifierService;
     }
@@ -37,7 +36,6 @@ public class DefaultResponseDataService implements ResponseDataService {
     @Override
     public List<ResponseData> getResponseData(String userId) {
         try (Timer.Context ignored = getResponseDataTimer.time()) {
-
             return responseDataRepository.getResponseData(userId);
         }
     }

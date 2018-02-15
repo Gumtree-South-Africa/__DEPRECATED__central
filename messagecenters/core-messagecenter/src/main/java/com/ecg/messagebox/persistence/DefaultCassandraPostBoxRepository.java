@@ -140,7 +140,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public Optional<ConversationThread> getConversationWithMessages(String userId, String conversationId, Optional<String> messageIdCursorOpt, int messagesLimit) {
+    public Optional<ConversationThread> getConversationWithMessages(String userId, String conversationId, String messageIdCursor, int messagesLimit) {
         LOG.trace("Retrieving conversationThread for conversationId {}, userId {}", conversationId, userId);
         try (Timer.Context ignored = getConversationWithMessagesTimer.time()) {
             Row row = session.execute(Statements.SELECT_CONVERSATION.bind(this, userId, conversationId)).one();
@@ -152,7 +152,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                     conversation.addNumUnreadMessages(participant.getUserId(), unreadMessagesCount);
                 }
 
-                List<Message> messages = getConversationMessages(userId, conversationId, messageIdCursorOpt, messagesLimit);
+                List<Message> messages = getConversationMessages(userId, conversationId, messageIdCursor, messagesLimit);
                 conversation.addMessages(messages);
 
                 return of(conversation);
@@ -163,12 +163,12 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         }
     }
 
-    public List<Message> getConversationMessages(String userId, String conversationId, Optional<String> cursorOpt, int limit) {
+    List<Message> getConversationMessages(String userId, String conversationId, String messageIdCursor, int limit) {
         if (limit < 1) {
             return Collections.emptyList();
         }
         try (Timer.Context ignored = getConversationMessagesTimer.time()) {
-            ResultSet resultSet = cursorOpt
+            ResultSet resultSet = Optional.ofNullable(messageIdCursor)
                     .map(cursor -> session.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITH_CURSOR.bind(this, userId, conversationId, UUID.fromString(cursor), limit)))
                     .orElse(session.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR.bind(this, userId, conversationId, limit)));
 
@@ -362,7 +362,16 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public void changeConversationVisibilities(String userId, Map<String, String> conversationAdIdsMap, Visibility visibility) {
+    public void archiveConversations(String userId, Map<String, String> conversationAdIdsMap) {
+        internalConversationsVisibility(userId, conversationAdIdsMap, Visibility.ARCHIVED);
+    }
+
+    @Override
+    public void activateConversations(String userId, Map<String, String> conversationAdIdsMap) {
+        internalConversationsVisibility(userId, conversationAdIdsMap, Visibility.ACTIVE);
+    }
+
+    private void internalConversationsVisibility(String userId, Map<String, String> conversationAdIdsMap, Visibility visibility) {
         try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
             BatchStatement batch = new BatchStatement();
             conversationAdIdsMap.forEach((conversationId, adId) -> {

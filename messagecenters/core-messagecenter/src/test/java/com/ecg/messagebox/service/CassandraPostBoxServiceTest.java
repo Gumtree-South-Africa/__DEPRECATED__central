@@ -48,25 +48,25 @@ import static org.mockito.Mockito.*;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = CassandraPostBoxServiceTest.TestContext.class)
 @TestPropertySource(properties = {
-  "message.normalization.pattern.0=\\n.*(a|b)-.*?@mail.marktplaats.nl.*\\n",
-  "message.normalization.pattern.1=(Aan|To)\\s?:.*?@.*?",
-  "message.normalization.pattern.2=(Subject|Onderwerp)\\s?:.*?",
-  "message.normalization.pattern.3=\\w*(?<!=[?=\\n])(Date|Datum)\\s?:.*?",
-  "message.normalization.pattern.4=\\n.*<[^<>\\s]+@gmail.[^<>\\s]+>.*\\n",
-  "message.normalization.pattern.5=\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan) *: *(?:</b>)? *<a[^>]+href=\"mailto:[^\">]+@[^\">]+\"[^>]*>[^<]*</a",
-  "message.normalization.pattern.6=\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan) *: *(?:</b>)? *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",
-  "message.normalization.pattern.7=<span[^>]*>(From|To|Sender|Receiver|Van|Aan) *: *</span *>[^<>]*(?:<[:a-z]+[^>]*>){0,2}[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>){0,2}",
-  "message.normalization.pattern.8=<b><span[^>]*>(From|To|Sender|Receiver|Van|Aan) *: *</span *></b> *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",
-  "message.normalization.pattern.9=<span[^>]*><b>(From|To|Sender|Receiver|Van|Aan) *: *</b></span *> *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",
-  "message.normalization.pattern.10=\\b(From|To|Sender|Receiver|Van|Aan) *: *(<|&lt;)?[^<>\\s]+@[^<>\\s]+(>|&gt;)?",
-  "message.normalization.pattern.11=\\b(From|To|Sender|Receiver|Van|Aan) *: *([^<>\\s]+ +){1,6}(<|&lt;)?[^<>\\s]+@[^<>\\s]+((<|&lt;)[^<>\\s]+@[^<>\\s]+(>|&gt;))?(>|&gt;)?",
-  "message.normalization.pattern.12=\\b(From|To|Sender|Receiver|Van|Aan) *: *([^<>\\s]+ +){0,5}([^<>\\s]+)(<|&lt;)?[^<>\\s]+@[^<>\\s]+(>|&gt;)?",
-  "message.normalization.pattern.13=Op.{10,25}schreef[^<]{5,60}<a[^>]+href=\"mailto:[^\">]+@[^\">]+\"[^>]*>[^<]*</a",
-  "message.normalization.pattern.14=Op.{10,25}schreef[^<]{5,60}(<|&lt;)?\\s*[^<>\\s]+@[^<>\\s]+(>|&gt;)?",
-  "message.normalization.pattern.15=Am [0-9][0-9][0-9]?[0-9]?[./-].* schrieb.*",
-  "message.normalization.pattern.16=On [0-9][0-9][0-9]?[0-9]?[./-].* wrote.*",
-  "message.normalization.pattern.17=[0-9][0-9][0-9]?[0-9]?[./-].*buyer-.*@mail.mobile.de",
-  "message.normalization.pattern.18=[0-9][0-9][0-9]?[0-9]?[./-].*seller-.*@mail.mobile.de"
+        "message.normalization.pattern.0=\\n.*(a|b)-.*?@mail.marktplaats.nl.*\\n",
+        "message.normalization.pattern.1=(Aan|To)\\s?:.*?@.*?",
+        "message.normalization.pattern.2=(Subject|Onderwerp)\\s?:.*?",
+        "message.normalization.pattern.3=\\w*(?<!=[?=\\n])(Date|Datum)\\s?:.*?",
+        "message.normalization.pattern.4=\\n.*<[^<>\\s]+@gmail.[^<>\\s]+>.*\\n",
+        "message.normalization.pattern.5=\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan) *: *(?:</b>)? *<a[^>]+href=\"mailto:[^\">]+@[^\">]+\"[^>]*>[^<]*</a",
+        "message.normalization.pattern.6=\\b(?:<b>)?(From|To|Sender|Receiver|Van|Aan) *: *(?:</b>)? *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",
+        "message.normalization.pattern.7=<span[^>]*>(From|To|Sender|Receiver|Van|Aan) *: *</span *>[^<>]*(?:<[:a-z]+[^>]*>){0,2}[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>){0,2}",
+        "message.normalization.pattern.8=<b><span[^>]*>(From|To|Sender|Receiver|Van|Aan) *: *</span *></b> *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",
+        "message.normalization.pattern.9=<span[^>]*><b>(From|To|Sender|Receiver|Van|Aan) *: *</b></span *> *(?:<[:a-z]+[^>]*>)?[^<>\\s]+@[^<>\\s]+(?:</[:a-z]+>)?",
+        "message.normalization.pattern.10=\\b(From|To|Sender|Receiver|Van|Aan) *: *(<|&lt;)?[^<>\\s]+@[^<>\\s]+(>|&gt;)?",
+        "message.normalization.pattern.11=\\b(From|To|Sender|Receiver|Van|Aan) *: *([^<>\\s]+ +){1,6}(<|&lt;)?[^<>\\s]+@[^<>\\s]+((<|&lt;)[^<>\\s]+@[^<>\\s]+(>|&gt;))?(>|&gt;)?",
+        "message.normalization.pattern.12=\\b(From|To|Sender|Receiver|Van|Aan) *: *([^<>\\s]+ +){0,5}([^<>\\s]+)(<|&lt;)?[^<>\\s]+@[^<>\\s]+(>|&gt;)?",
+        "message.normalization.pattern.13=Op.{10,25}schreef[^<]{5,60}<a[^>]+href=\"mailto:[^\">]+@[^\">]+\"[^>]*>[^<]*</a",
+        "message.normalization.pattern.14=Op.{10,25}schreef[^<]{5,60}(<|&lt;)?\\s*[^<>\\s]+@[^<>\\s]+(>|&gt;)?",
+        "message.normalization.pattern.15=Am [0-9][0-9][0-9]?[0-9]?[./-].* schrieb.*",
+        "message.normalization.pattern.16=On [0-9][0-9][0-9]?[0-9]?[./-].* wrote.*",
+        "message.normalization.pattern.17=[0-9][0-9][0-9]?[0-9]?[./-].*buyer-.*@mail.mobile.de",
+        "message.normalization.pattern.18=[0-9][0-9][0-9]?[0-9]?[./-].*seller-.*@mail.mobile.de"
 })
 public class CassandraPostBoxServiceTest {
     private static final String USER_ID_1 = "1";
@@ -284,40 +284,40 @@ public class CassandraPostBoxServiceTest {
     }
 
     @Test
-    public void getConversation(){
+    public void getConversation() {
         ConversationThread expectedConversationThread = newConversationThread(CONVERSATION_ID_1);
-        when(postBoxRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT)).thenReturn(Optional.of(expectedConversationThread));
-        Optional<ConversationThread> conversationThread = service.getConversation(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT);
+        when(postBoxRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, CURSOR, MESSAGE_LIMIT)).thenReturn(Optional.of(expectedConversationThread));
+        Optional<ConversationThread> conversationThread = service.getConversation(USER_ID_1, CONVERSATION_ID_1, CURSOR, MESSAGE_LIMIT);
 
         Assert.assertEquals(expectedConversationThread, conversationThread.get());
     }
 
 
     @Test
-    public void markConversationAsRead(){
-        ConversationThread repoConversationThread = newConversationThread(CONVERSATION_ID_1).addNumUnreadMessages(USER_ID_1,5);
-        when(postBoxRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT)).thenReturn(Optional.of(repoConversationThread));
+    public void markConversationAsRead() {
+        ConversationThread repoConversationThread = newConversationThread(CONVERSATION_ID_1).addNumUnreadMessages(USER_ID_1, 5);
+        when(postBoxRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, CURSOR, MESSAGE_LIMIT)).thenReturn(Optional.of(repoConversationThread));
 
-        Optional<ConversationThread> conversationThread = service.markConversationAsRead(USER_ID_1, CONVERSATION_ID_1, Optional.of(CURSOR), MESSAGE_LIMIT);
+        Optional<ConversationThread> conversationThread = service.markConversationAsRead(USER_ID_1, CONVERSATION_ID_1, CURSOR, MESSAGE_LIMIT);
 
-        ConversationThread expectedConversationThread = repoConversationThread.addNumUnreadMessages(USER_ID_1,0);
+        ConversationThread expectedConversationThread = repoConversationThread.addNumUnreadMessages(USER_ID_1, 0);
 
         verify(postBoxRepo).resetConversationUnreadCount(USER_ID_1, USER_ID_2, CONVERSATION_ID_1, AD_ID_1);
         Assert.assertEquals(expectedConversationThread, conversationThread.get());
     }
 
     @Test
-    public void getConversations(){
+    public void getConversations() {
         PostBox expectedPostBox = newPostBox();
         when(postBoxRepo.getPostBox(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT)).thenReturn(expectedPostBox);
-        PostBox postBox = service.getConversations(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET , CONVERSATION_LIMIT);
+        PostBox postBox = service.getConversations(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT);
 
         Assert.assertEquals(expectedPostBox, postBox);
     }
 
     @Test
-    public void changeConversationVisibilities(){
-        List<String> conversationIds =  Arrays.asList(CONVERSATION_ID_1, CONVERSATION_ID_2);
+    public void archiveConversation() {
+        List<String> conversationIds = Arrays.asList(CONVERSATION_ID_1, CONVERSATION_ID_2);
         Map<String, String> conversationAdIdsMap = new HashMap<>();
         conversationAdIdsMap.put(CONVERSATION_ID_1, AD_ID_1);
         conversationAdIdsMap.put(CONVERSATION_ID_2, AD_ID_2);
@@ -328,14 +328,34 @@ public class CassandraPostBoxServiceTest {
         when(postBoxRepo.getPostBox(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT)).thenReturn(postBox);
         when(postBox.removeConversations(conversationIds)).thenReturn(expectedPostBox);
 
-        PostBox returnedPostBox = service.changeConversationVisibilities(USER_ID_1, conversationIds, Visibility.ARCHIVED, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT);
+        PostBox returnedPostBox = service.archiveConversations(USER_ID_1, conversationIds, CONVERSATION_OFFSET, CONVERSATION_LIMIT);
 
-        verify(postBoxRepo).changeConversationVisibilities(USER_ID_1, conversationAdIdsMap, Visibility.ARCHIVED);
+        verify(postBoxRepo).archiveConversations(USER_ID_1, conversationAdIdsMap);
         Assert.assertEquals(expectedPostBox, returnedPostBox);
     }
 
     @Test
-    public void getUnreadCounts(){
+    public void activateConversation() {
+        List<String> conversationIds = Arrays.asList(CONVERSATION_ID_1, CONVERSATION_ID_2);
+        Map<String, String> conversationAdIdsMap = new HashMap<>();
+        conversationAdIdsMap.put(CONVERSATION_ID_1, AD_ID_1);
+        conversationAdIdsMap.put(CONVERSATION_ID_2, AD_ID_2);
+
+        PostBox expectedPostBox = newPostBox();
+
+        when(postBoxRepo.getConversationAdIdsMap(USER_ID_1, conversationIds)).thenReturn(conversationAdIdsMap);
+        when(postBoxRepo.getPostBox(USER_ID_1, Visibility.ARCHIVED, CONVERSATION_OFFSET, CONVERSATION_LIMIT)).thenReturn(postBox);
+        when(postBox.removeConversations(conversationIds)).thenReturn(expectedPostBox);
+
+        PostBox returnedPostBox = service.activateConversations(USER_ID_1, conversationIds, CONVERSATION_OFFSET, CONVERSATION_LIMIT);
+
+        verify(postBoxRepo).activateConversations(USER_ID_1, conversationAdIdsMap);
+        Assert.assertEquals(expectedPostBox, returnedPostBox);
+    }
+
+
+    @Test
+    public void getUnreadCounts() {
         UserUnreadCounts expectedUserUnreadCounts = new UserUnreadCounts(USER_ID_1, 3, 5);
         when(postBoxRepo.getUserUnreadCounts(USER_ID_1)).thenReturn(expectedUserUnreadCounts);
 
@@ -345,7 +365,7 @@ public class CassandraPostBoxServiceTest {
     }
 
     @Test
-    public void deleteConversation(){
+    public void deleteConversation() {
         service.deleteConversation(USER_ID_1, CONVERSATION_ID_1, AD_ID_1);
 
         verify(postBoxRepo).deleteConversation(USER_ID_1, CONVERSATION_ID_1, AD_ID_1);
@@ -467,7 +487,7 @@ public class CassandraPostBoxServiceTest {
                 .build();
     }
 
-    private ConversationThread newConversationThread(String conversationId){
+    private ConversationThread newConversationThread(String conversationId) {
         return new ConversationThread(
                 conversationId,
                 AD_ID_1,
@@ -481,7 +501,7 @@ public class CassandraPostBoxServiceTest {
         );
     }
 
-    private PostBox newPostBox(){
+    private PostBox newPostBox() {
         return new PostBox(
                 USER_ID_1,
                 Arrays.asList(newConversationThread(CONVERSATION_ID_1), newConversationThread(CONVERSATION_ID_2)),
@@ -491,6 +511,7 @@ public class CassandraPostBoxServiceTest {
     }
 
     @Configuration
-    @Import({ MessagesResponseFactory.class, MessagePreProcessor.class })
-    static class TestContext { }
+    @Import({MessagesResponseFactory.class, MessagePreProcessor.class})
+    static class TestContext {
+    }
 }

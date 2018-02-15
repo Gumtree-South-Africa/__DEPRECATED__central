@@ -5,7 +5,6 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
@@ -179,7 +178,7 @@ public class WebApiSyncService {
             if (diffEnabled) {
                 CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
                         .supplyAsync(() -> getUserId(email, Collections.singletonList(conversationId)), newExecutor)
-                        .thenApply(userId -> postBoxService.getConversation(userId, conversationId, Optional.empty(), messagesLimit))
+                        .thenApply(userId -> postBoxService.getConversation(userId, conversationId, null, messagesLimit))
                         .exceptionally(handleOpt(newModelFailureCounter, "New GetConversation Failed - email: " + email));
 
                 CompletableFuture<Optional<PostBoxSingleConversationThreadResponse>> oldModelFuture = CompletableFuture
@@ -212,7 +211,7 @@ public class WebApiSyncService {
             CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
                     .supplyAsync(() -> conversationExists(email, conversationId), newExecutor)
                     .thenApply(conversationIds -> getUserId(email, conversationIds))
-                    .thenApply(userId -> postBoxService.markConversationAsRead(userId, conversationId, Optional.empty(), messagesLimit))
+                    .thenApply(userId -> postBoxService.markConversationAsRead(userId, conversationId, null, messagesLimit))
                     .exceptionally(handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
 
             CompletableFuture<Optional<PostBoxSingleConversationThreadResponse>> oldModelFuture = CompletableFuture
@@ -254,8 +253,7 @@ public class WebApiSyncService {
     }
 
     private PostBox deleteConversationV2(String userId, String conversationId) {
-        return postBoxService.changeConversationVisibilities(userId, Collections.singletonList(conversationId),
-                Visibility.ARCHIVED, Visibility.ACTIVE, 0, messagesLimit);
+        return postBoxService.archiveConversations(userId, Collections.singletonList(conversationId), 0, messagesLimit);
     }
 
     /**

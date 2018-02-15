@@ -2,18 +2,19 @@ package com.ecg.messagebox.controllers.requests;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.validator.constraints.NotEmpty;
+
 import javax.validation.constraints.NotNull;
 
-@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SystemMessagePayload {
-    @NotNull
+
+    @NotNull(message = "System message text cannot be null")
     private String text;
 
-    @NotNull
+    @NotNull(message = "System message custom data cannot be null")
     private String customData;
 
-    @NotNull
-    @NotEmpty
+    @NotEmpty(message = "System message Ad ID cannot be empty")
     private String adId;
 
     private boolean sendPush = false;

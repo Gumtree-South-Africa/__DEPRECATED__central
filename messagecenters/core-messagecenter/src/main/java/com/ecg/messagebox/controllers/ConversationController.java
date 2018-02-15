@@ -39,13 +39,13 @@ public class ConversationController {
     public ResponseEntity<ResponseObject<?>> getConversation(
             @PathVariable("userId") String userId,
             @PathVariable("conversationId") String conversationId,
-            @RequestParam(name = "cursor", required = false) Optional<String> messageIdCursorOpt,
+            @RequestParam(name = "cursor", required = false) String messageIdCursor,
             @RequestParam(name = "limit", defaultValue = "500") int limit) {
 
         LOG.trace("Retrieving conversation with conversationID: {}, userId: {}", conversationId, userId);
         try (Timer.Context ignored = getConversationTimer.time()) {
             Optional<ConversationResponse> conversationResponse = postBoxService
-                    .getConversation(userId, conversationId, messageIdCursorOpt, limit)
+                    .getConversation(userId, conversationId, messageIdCursor, limit)
                     .map(ConversationResponseConverter::toConversationResponseWithMessages);
             if (!conversationResponse.isPresent()) {
                 LOG.trace("Conversation not found with conversationID: {}, userId: {}", conversationId, userId);
@@ -59,7 +59,7 @@ public class ConversationController {
             @PathVariable("userId") String userId,
             @PathVariable("conversationId") String conversationId,
             @RequestParam("action") String action,
-            @RequestParam(name = "cursor", required = false) Optional<String> messageIdCursorOpt,
+            @RequestParam(name = "cursor", required = false) String messageIdCursorOpt,
             @RequestParam(name = "limit", defaultValue = "500") int limit) {
 
         switch (action) {
