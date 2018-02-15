@@ -45,7 +45,7 @@ Closure wrapWithStepDefinition(final String tenantLong, final String environment
                     echo "--->>> Exception: $ex"
                     String exMessage = ex.getMessage()
                     String slackMessage
-                    slackMessage = "Smoke tests against Comaas `$tenantLong $environmentShort $dc` failed with `$exMessage`"
+                    slackMessage = "Smoke tests against Comaas `$tenantLong $environmentShort $dc` failed with `$exMessage` (<${BUILD_URL}|Build>)"
                     if (environmentShort == "prod") {
                         commonFunctions.sendSlackNotification('#FF0000', tenantLong, slackMessage)
                     } else {

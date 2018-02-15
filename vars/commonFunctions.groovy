@@ -378,7 +378,7 @@ Closure wrapWithStepDefinition(param, closure, String commit, String stageName, 
                         exMessage = ex.getMessage()
                         slackMessage = """
                             |Stage `$stageName` produced `$exMessage`
-                            |Builder - `$env.NODE_NAME`, (<$env.RUN_DISPLAY_URL|Build>)
+                            |Builder - `$env.NODE_NAME`, (<$BUILD_URL|Build>)
                         """.stripMargin()
                         sendToSlackJenkinsChannel("#FF0000", "$slackMessage")
                     }

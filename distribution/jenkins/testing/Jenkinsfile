@@ -62,7 +62,7 @@ void setEnvVars(configFile) {
 
 node('qa') {
     checkout scm
-    
+
     configFile = readYaml file: "distribution/jenkins/testing/configuration.yaml"
 
     setEnvVars(configFile)
@@ -86,5 +86,5 @@ node('qa') {
 
     parallel buildSteps
 
-    commonFunctions.sendToSlackJenkinsChannel('#00FF00', "Testing <${ghprbPullLink}|pull request ${ghprbPullId}> succeeded (<${env.RUN_DISPLAY_URL}|Build>)")
+    commonFunctions.sendToSlackJenkinsChannel('#00FF00', "Testing <${ghprbPullLink}|pull request ${ghprbPullId}> succeeded (<${BUILD_URL}|Build>)")
 }
