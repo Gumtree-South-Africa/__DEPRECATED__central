@@ -12,12 +12,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
+
 @RunWith(MockitoJUnitRunner.class)
-public class AnonymizerTest {
+public class BoltAnonymizerTest {
     @Mock
     private MultiTennantMailCloakingService mailCloakingService;
 
@@ -30,11 +33,13 @@ public class AnonymizerTest {
     @Mock
     private Conversation conversation;
 
-    private Anonymizer anonymizer;
+    private BoltAnonymizer anonymizer;
 
     @Before
     public void setUp() {
-        anonymizer = new Anonymizer(mailCloakingService);
+        anonymizer = new BoltAnonymizer(mailCloakingService);
+
+        ReflectionTestUtils.setField(anonymizer, "defaultFromDisplay", "User via Gumtree");
 
         when(context.getConversation()).thenReturn(conversation);
 
@@ -50,9 +55,13 @@ public class AnonymizerTest {
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
+        when(context.getMail()).thenReturn(outgoingMail);
+        when(context.getMail().getCustomHeaders()).thenReturn(new HashMap<String, String>());
+
         anonymizer.postProcess(context);
 
-        verify(outgoingMail).setFrom(new MailAddress("buyer.cloaked@ebay.com"));
+        verify(outgoingMail).setTo(new MailAddress("seller@domain.tld"));
+        verify(outgoingMail).setFrom(new MailAddress("User via Gumtree <buyer.cloaked@ebay.com>"));
     }
 
     @Test
@@ -60,9 +69,13 @@ public class AnonymizerTest {
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
         when(context.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
 
+        when(context.getMail()).thenReturn(outgoingMail);
+        when(context.getMail().getCustomHeaders()).thenReturn(new HashMap<String, String>());
+
         anonymizer.postProcess(context);
 
-        verify(outgoingMail).setFrom(new MailAddress("seller.cloaked@ebay.com"));
+        verify(outgoingMail).setTo(new MailAddress("buyer@domain.tld"));
+        verify(outgoingMail).setFrom(new MailAddress("User via Gumtree <seller.cloaked@ebay.com>"));
     }
 
     @Test
@@ -70,8 +83,12 @@ public class AnonymizerTest {
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
+        when(context.getMail()).thenReturn(outgoingMail);
+        when(context.getMail().getCustomHeaders()).thenReturn(new HashMap<String, String>());
+
         anonymizer.postProcess(context);
 
-        verify(outgoingMail).setFrom(new MailAddress("buyer.cloaked@ebay.com"));
+        verify(outgoingMail).setTo(new MailAddress("seller@domain.tld"));
+        verify(outgoingMail).setFrom(new MailAddress("User via Gumtree <buyer.cloaked@ebay.com>"));
     }
 }

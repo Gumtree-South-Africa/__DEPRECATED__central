@@ -42,6 +42,21 @@ public class HtmlRemoverTest {
     }
 
     @Test
+    public void testSpaceWithSpanWithoutFixEnabled() throws Exception {
+        String resp = new HtmlRemover("<body>Hello <span rowtxt=\"rowmessage\">World</span>").getPlaintext();
+        Assert.assertEquals("Hello World", resp);
+    }
+
+    @Test
+    public void testSpaceWithSpanWithFixEnabled() throws Exception {
+        HtmlRemover.IS_SPAN_FIX_ENABLED = true;
+        String resp = new HtmlRemover("<body>Hello <span rowtxt=\"rowmessage\">World</span>").getPlaintext();
+        HtmlRemover.IS_SPAN_FIX_ENABLED = false;
+
+        Assert.assertEquals("Hello <span rowtxt=\"rowmessage\">World</span>", resp);
+    }
+
+    @Test
     public void testLineBreaks() throws HtmlCleanupException {
         String resp = new HtmlRemover("hello<br/>world").getPlaintext();
         Assert.assertEquals("hello\nworld", resp);

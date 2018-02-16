@@ -737,6 +737,11 @@
                     <artifactId>bt-coremod-pushservice</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-coremod-overrides</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
@@ -796,6 +801,11 @@
                     <artifactId>bt-coremod-pushservice</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-coremod-overrides</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
@@ -853,6 +863,11 @@
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>bt-coremod-pushservice</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-coremod-overrides</artifactId>
                     <version>${project.version}</version>
                 </dependency>
 
@@ -915,6 +930,12 @@
             </properties>
 
             <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>bt-coremod-overrides</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>bt-filter-user</artifactId>

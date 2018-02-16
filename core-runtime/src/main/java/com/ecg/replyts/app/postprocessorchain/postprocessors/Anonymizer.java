@@ -10,15 +10,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * Anonymizes the 'From' address.
- */
 @Component
 public class Anonymizer implements PostProcessor {
-
     private static final Logger LOG = LoggerFactory.getLogger(Anonymizer.class);
 
-    private final MailCloakingService mailCloakingService;
+    protected MailCloakingService mailCloakingService;
 
     @Autowired
     public Anonymizer(MultiTennantMailCloakingService mailCloakingService) {
@@ -28,7 +24,9 @@ public class Anonymizer implements PostProcessor {
     @Override
     public void postProcess(MessageProcessingContext context) {
         MailAddress newFrom = mailCloakingService.createdCloakedMailAddress(context.getMessageDirection().getFromRole(), context.getConversation());
+
         context.getOutgoingMail().setFrom(newFrom);
+
         LOG.debug("Anonymizing Sender of Outgoing mail: {}", newFrom);
     }
 

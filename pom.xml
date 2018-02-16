@@ -388,6 +388,7 @@
 
             <modules>
                 <module>coremods/bt-coremod-pushservice</module>
+                <module>coremods/bt-coremod-overrides</module>
 
                 <module>filters/bt-filter-user</module>
                 <module>filters/bt-filter-word</module>
@@ -433,6 +434,7 @@
 
             <modules>
                 <module>coremods/bt-coremod-pushservice</module>
+                <module>coremods/bt-coremod-overrides</module>
 
                 <module>filters/bt-filter-user</module>
                 <module>filters/bt-filter-word</module>
@@ -478,6 +480,7 @@
 
             <modules>
                 <module>coremods/bt-coremod-pushservice</module>
+                <module>coremods/bt-coremod-overrides</module>
 
                 <module>filters/bt-filter-user</module>
                 <module>filters/bt-filter-word</module>
@@ -522,6 +525,8 @@
             </distributionManagement>
 
             <modules>
+                <module>coremods/bt-coremod-overrides</module>
+
                 <module>filters/bt-filter-user</module>
                 <module>filters/bt-filter-word</module>
                 <module>filters/bt-filter-ip</module>
