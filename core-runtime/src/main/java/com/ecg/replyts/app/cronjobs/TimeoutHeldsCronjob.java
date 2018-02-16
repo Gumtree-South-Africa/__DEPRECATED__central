@@ -23,7 +23,7 @@ public class TimeoutHeldsCronjob implements CronJobExecutor {
     private final String cronJobExpression;
 
     @Autowired
-    public TimeoutHeldsCronjob(Timeframe workingSlot, MessageSender messageSender,
+    public TimeoutHeldsCronjob(@Qualifier("timeoutHeldsCronJobTimeframe") Timeframe workingSlot, MessageSender messageSender,
                                @Value("${cronjob.sendHeld.expression:0 0/30 * * * ? *}") String cronJobExpression) {
         this.workingSlot = workingSlot;
         this.messageSender = messageSender;
