@@ -72,6 +72,28 @@ public class ConversationsResourceTest extends AbstractTest {
     }
 
     @Test
+    public void getOneArchivedConversationPostbox() throws Exception {
+        UserUnreadCounts unreadCounts = new UserUnreadCounts(USER_BUYER_ID, 0, 0);
+        PostBox postBox = new PostBox(USER_BUYER_ID, Collections.singletonList(conversationThread()), unreadCounts, 1);
+
+        when(postBoxService.getConversations(USER_BUYER_ID, Visibility.ARCHIVED, 0, 50))
+                .thenReturn(postBox);
+
+        mvc.perform(get("/users/" + USER_BUYER_ID + "/conversations/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("visibility", "archived"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("userId", is(USER_BUYER_ID)))
+                .andExpect(jsonPath("offset", is(0)))
+                .andExpect(jsonPath("limit", is(50)))
+                .andExpect(jsonPath("totalCount", is(1)))
+                .andExpect(jsonPath("$.conversations", hasSize(1)))
+                .andExpect(jsonPath("unreadMessagesCount", is(0)))
+                .andExpect(jsonPath("conversationsWithUnreadMessagesCount", is(0)));
+    }
+
+    @Test
     public void getMultiConversationsPostbox() throws Exception {
         UserUnreadCounts unreadCounts = new UserUnreadCounts(USER_BUYER_ID, 0, 0);
         PostBox postBox = new PostBox(USER_BUYER_ID, Arrays.asList(conversationThread(), conversationThread()), unreadCounts, 2);

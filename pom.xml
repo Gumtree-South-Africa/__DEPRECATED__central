@@ -610,6 +610,7 @@
         <java-uuid-generator-version>3.1.3</java-uuid-generator-version>
         <hazelcast-consul-discovery-spi-version>1.0-RC7</hazelcast-consul-discovery-spi-version>
         <retrofit2-version>2.1.0</retrofit2-version>
+        <springfox-swagger.version>2.8.0</springfox-swagger.version>
 
         <appassembler-maven-plugin.version>1.10</appassembler-maven-plugin.version>
         <maven-assembly-plugin.version>2.6</maven-assembly-plugin.version>
@@ -2182,6 +2183,30 @@
                         <artifactId>jackson-mapper-asl</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-swagger2</artifactId>
+                <version>${springfox-swagger.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>spring-aop</artifactId>
+                        <groupId>org.springframework</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>classmate</artifactId>
+                        <groupId>com.fasterxml</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>guava</artifactId>
+                        <groupId>com.google.guava</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-swagger-ui</artifactId>
+                <version>${springfox-swagger.version}</version>
             </dependency>
 
             <!-- testing -->

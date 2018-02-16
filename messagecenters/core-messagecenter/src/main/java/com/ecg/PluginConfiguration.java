@@ -13,9 +13,8 @@ import org.springframework.context.annotation.FilterType;
 @ComaasPlugin
 @Configuration
 public class PluginConfiguration {
-    protected static final String V2_AND_UPGRADE_TENANTS = "#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde' || ('${replyts.tenant}' == 'gtuk' && '${webapi.sync.uk.enabled}' == 'true') || ('${replyts.tenant}' == 'ebayk' && '${webapi.sync.ek.enabled}' == 'true')}";
-    protected static final String ONLY_V2_TENANTS = "#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde'}";
-    protected static final String ONLY_V1_TENANTS = "#{'${replyts.tenant}' != 'mp' && '${replyts.tenant}' != 'mde'}";
+    static final String V2_AND_UPGRADE_TENANTS = "#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde' || ('${replyts.tenant}' == 'gtuk' && '${webapi.sync.uk.enabled}' == 'true') || ('${replyts.tenant}' == 'ebayk' && '${webapi.sync.ek.enabled}' == 'true')}";
+    static final String ONLY_V1_TENANTS = "#{'${replyts.tenant}' != 'mp' && '${replyts.tenant}' != 'mde'}";
 
     @Configuration
     @ComponentScan(value = "com.ecg.messagebox", excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = { "com.ecg.messagebox.resources.*", "com.ecg.messagebox.controllers.*" }))
@@ -28,7 +27,7 @@ public class PluginConfiguration {
     }
 
     @Bean
-    @ConditionalOnExpression(ONLY_V2_TENANTS)
+    @ConditionalOnExpression(V2_AND_UPGRADE_TENANTS)
     public SpringContextProvider newV2ContextProvider(ApplicationContext context) {
         return new SpringContextProvider("/msgbox", WebConfiguration.class, context);
     }

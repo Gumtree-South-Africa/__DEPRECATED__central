@@ -1,9 +1,14 @@
 package com.ecg.messagebox.resources;
 
 import com.codahale.metrics.Timer;
+import com.ecg.messagebox.controllers.responses.ConversationsResponse;
 import com.ecg.messagebox.controllers.responses.UnreadCountsResponse;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,8 +28,11 @@ public class UnreadCountsResource {
         this.postBoxService = postBoxService;
     }
 
+    @ApiOperation(value = "Get unread counts", notes = "Get a number of unread messages and conversations belonging to a specified user")
+    @ApiResponses(@ApiResponse(code = 200, message = "Success", response = UnreadCountsResponse.class))
     @GetMapping("/users/{userId}/unread-counts")
-    public UnreadCountsResponse getUnreadCounts(@PathVariable("userId") String userId) {
+    public UnreadCountsResponse getUnreadCounts(
+            @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId) {
         try (Timer.Context ignored = GET_UNREAD_COUNTS_TIMER.time()) {
             UserUnreadCounts unreadCounts = postBoxService.getUnreadCounts(userId);
             return toUnreadCountsResponse(unreadCounts);

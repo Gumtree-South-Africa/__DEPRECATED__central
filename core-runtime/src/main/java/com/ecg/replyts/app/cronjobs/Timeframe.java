@@ -11,7 +11,7 @@ import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-@Component
+@Component("timeoutHeldsCronJobTimeframe")
 public class Timeframe {
     @Value("${cronjob.sendHeld.csWorkingHoursStart:0}")
     private int csWorkingHoursStart;
