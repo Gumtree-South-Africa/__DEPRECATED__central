@@ -13,7 +13,8 @@ public enum MessageType {
     BID("bid"),
     CHAT("chat"),
     EMAIL("email"),
-    SYSTEM_MESSAGE("systemMessage");
+    SYSTEM_MESSAGE("systemMessage"),
+    PARTNER("partner");
 
     private String value;
 

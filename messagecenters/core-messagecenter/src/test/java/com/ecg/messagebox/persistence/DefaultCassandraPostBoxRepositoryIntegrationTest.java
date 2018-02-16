@@ -310,7 +310,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
          * When an empty conversation is created
          * Then a conversation with no messages is returned
          */
-        String newConversationId = guid();
+        String newConversationId = Guids.next();
 
         String resultConversationId = conversationsRepo.createEmptyConversationProjection(EmptyConversationFixture.validEmptyConversationRequest(ADID, UID1, UID2), newConversationId, UID1);
 
@@ -377,10 +377,5 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         messages.subList(1, messages.size()).forEach(message -> conversationsRepo.addMessage(userId2, convId, adId, message, false));
 
         return conversation;
-    }
-
-    private String guid() {
-        Guids guids = new Guids();
-        return guids.nextGuid();
     }
 }

@@ -63,9 +63,6 @@ public class RobotService {
     private SearchService searchService;
 
     @Autowired
-    private Guids guids;
-
-    @Autowired
     private ConversationEventListeners conversationEventListeners;
 
     @Autowired(required = false)
@@ -140,7 +137,7 @@ public class RobotService {
     }
 
     private void updateConversation(MutableConversation conversation, MessagePayload payload) throws IOException, MimeException {
-        final String messageId = guids.nextGuid();
+        final String messageId = Guids.next();
         Mails mails = new Mails();
 
         LOGGER.debug("Begin adding Message ID: " + messageId + " to conversation " + conversation.getId());

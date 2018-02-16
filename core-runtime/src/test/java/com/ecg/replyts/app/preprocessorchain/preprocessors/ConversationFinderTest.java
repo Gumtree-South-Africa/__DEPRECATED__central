@@ -39,9 +39,6 @@ public class ConversationFinderTest {
     private ExistingConversationLoader existingConversationLoader;
 
     @Mock
-    private Guids guids;
-
-    @Mock
     private MutableMail mail;
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
@@ -135,8 +132,6 @@ public class ConversationFinderTest {
 
     @Test
     public void addsMessageWhenValidReply() {
-        when(guids.nextGuid()).thenReturn("aaa");
-
         when(mail.getFrom()).thenReturn("buyer.123@host.com");
         when(mail.getDeliveredTo()).thenReturn("somebody@ebay.com");
         when(mail.getLastReferencedMessageId()).thenReturn(Optional.empty());

@@ -266,6 +266,7 @@
                 <module>postprocessors/mde-postprocessor-donotanonymize</module>
                 <module>postprocessors/mde-postprocessor-mailalias</module>
 
+                <module>listeners/ecg-message-synchronizer</module>
                 <module>listeners/mde-listener-pushnotification</module>
                 <module>listeners/mde-listener-dealerratinginvite</module>
             </modules>

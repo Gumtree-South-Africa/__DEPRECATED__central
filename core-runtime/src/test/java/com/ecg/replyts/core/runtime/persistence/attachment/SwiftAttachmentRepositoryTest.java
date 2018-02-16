@@ -40,9 +40,6 @@ public class SwiftAttachmentRepositoryTest {
     @Autowired
     private SwiftAttachmentRepository swiftAttachmentRepository;
 
-    @Autowired
-    private Guids guids;
-
     @Test(timeout = 20000L)
     public void testHashMessageIntoIds() {
         try (InputStream is = getClass().getResourceAsStream("/riak_ids.txt")) {
@@ -63,7 +60,7 @@ public class SwiftAttachmentRepositoryTest {
             }
             // Generate some message ids
             for (int i = 0; i < 100; i++) {
-                String messageId = guids.nextGuid();
+                String messageId = Guids.next();
                 counter++;
                 String container = swiftAttachmentRepository.getContainer(messageId);
                 values.put(container, messageId);
@@ -110,11 +107,6 @@ public class SwiftAttachmentRepositoryTest {
         @Bean
         SwiftAttachmentRepository swiftAttachmentRepository() {
             return new SwiftAttachmentRepository();
-        }
-
-        @Bean
-        Guids guids() {
-            return new Guids();
         }
     }
 }

@@ -1,9 +1,8 @@
 package com.ecg.replyts.core.runtime.cluster;
 
-import com.ecg.replyts.core.api.util.UnsignedLong;
 import com.ecg.replyts.core.api.util.Clock;
 import com.ecg.replyts.core.api.util.CurrentClock;
-import org.springframework.stereotype.Component;
+import com.ecg.replyts.core.api.util.UnsignedLong;
 
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.atomic.AtomicLong;
@@ -11,12 +10,12 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Generates globally unique ids, regarding server startup local increment + time + process-id.
  */
-@Component
 public class Guids {
+
     private final String initialPart;
     private final AtomicLong id;
 
-    public Guids() {
+    private Guids() {
         this(0, new CurrentClock(), new JvmIdentifier());
     }
 
@@ -25,7 +24,15 @@ public class Guids {
         this.id = new AtomicLong(initialValue);
     }
 
-    public String nextGuid() {
+    public static Guids instance() {
+        return GuidsHolder.INSTANCE;
+    }
+
+    public static String next() {
+        return GuidsHolder.INSTANCE.nextGuid();
+    }
+
+    String nextGuid() {
         return UnsignedLong.fromLong(id.incrementAndGet()).toBase30() + initialPart;
     }
 
@@ -43,5 +50,9 @@ public class Guids {
         public String getId() {
             return id;
         }
+    }
+
+    private static class GuidsHolder {
+        private static final Guids INSTANCE = new Guids();
     }
 }

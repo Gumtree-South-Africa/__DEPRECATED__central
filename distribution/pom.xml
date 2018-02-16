@@ -514,6 +514,11 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
+                    <artifactId>ecg-message-synchronizer</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
                     <artifactId>mde-postprocessor-sms</artifactId>
                     <version>${project.version}</version>
                 </dependency>

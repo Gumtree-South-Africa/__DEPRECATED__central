@@ -47,7 +47,6 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("processing-total");
 
-    private final Guids guids;
     private final List<MessageProcessedListener> messageProcessedListeners = new ArrayList<>();
     private final ProcessingFlow processingFlow;
     private final ProcessingFinalizer persister;
@@ -55,12 +54,11 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     private final Meter contentLengthMeter;
 
     @Autowired
-    public DefaultMessageProcessingCoordinator(Guids guids,
+    public DefaultMessageProcessingCoordinator(
             @Autowired(required = false) Collection<MessageProcessedListener> messageProcessedListeners,
             ProcessingFlow processingFlow,
             ProcessingFinalizer persister,
             ProcessingContextFactory processingContextFactory) {
-        this.guids = checkNotNull(guids, "guids");
         if (messageProcessedListeners != null) {
             this.messageProcessedListeners.addAll(messageProcessedListeners);
         }
@@ -92,7 +90,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 return Optional.empty();
             }
 
-            MessageProcessingContext context = processingContextFactory.newContext(mail.get(), guids.nextGuid());
+            MessageProcessingContext context = processingContextFactory.newContext(mail.get(), Guids.next());
             setMDC(context);
             LOG.debug("Received Message", keyValue("contentLength", bytes.length));
             contentLengthMeter.mark(bytes.length);
@@ -129,7 +127,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
             return Optional.of(mail);
         } catch (ParsingException parsingException) {
-            final String messageId = guids.nextGuid();
+            final String messageId = Guids.next();
             LOG.warn("Could not parse mail with id {}", messageId, parsingException);
             handleTermination(Termination.unparseable(parsingException), messageId, Optional.empty(), Optional.empty(), incomingMailContents);
             throw parsingException;
@@ -158,7 +156,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         checkNotNull(messageBytes);
 
         DefaultMutableConversation c = conversation.orElseGet(() ->
-                processingContextFactory.deadConversationForMessageIdConversationId(messageId, guids.nextGuid(), mail));
+                processingContextFactory.deadConversationForMessageIdConversationId(messageId, Guids.next(), mail));
 
         persister.persistAndIndex(c, messageId, messageBytes, Optional.empty(), termination);
 

@@ -5,7 +5,6 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.Termination;
-import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
@@ -14,6 +13,7 @@ import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConve
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -37,12 +37,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
@@ -54,9 +49,6 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 public class MessageProcessingCoordinatorTest {
     @MockBean
     private ProcessingFinalizer persister;
-
-    @MockBean
-    private Guids guids;
 
     @MockBean
     private Mail mail;
@@ -77,9 +69,6 @@ public class MessageProcessingCoordinatorTest {
     private MessageProcessedListener individualMessageProcessedListener;
 
     @Autowired
-    private List<MessageProcessedListener> messageProcessedListeners;
-
-    @Autowired
     private DefaultMutableConversation deadConversation;
 
     @Autowired
@@ -93,7 +82,6 @@ public class MessageProcessingCoordinatorTest {
     public void setUp() throws Exception {
         mockStatic(Mails.class);
 
-        when(guids.nextGuid()).thenReturn("1", "2", "3", "4", "5", "6", "7");
         when(Mails.readMail(any(byte[].class))).thenReturn(mail);
         when(mail.getDeliveredTo()).thenReturn("foo@bar.com");
         when(Mails.writeToBuffer(any(Mail.class))).thenReturn(SENT_MAIL);
@@ -115,7 +103,7 @@ public class MessageProcessingCoordinatorTest {
             coordinator.accept(is);
         });
 
-        verify(persister).persistAndIndex(deadConversation, "1", "foo".getBytes(), Optional.empty(), Termination.unparseable(exception));
+        verify(persister).persistAndIndex(eq(deadConversation), anyString(), eq("foo".getBytes()), eq(Optional.empty()), eq(Termination.unparseable(exception)));
     }
 
     @Test

@@ -10,19 +10,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class NewConversationService {
 
-    private final Guids guids;
     private final UniqueConversationSecret uniqueConversationSecret;
     private final MutableConversationRepository mutableConversationRepository;
 
     @Autowired
-    public NewConversationService(Guids guids, UniqueConversationSecret uniqueConversationSecret, MutableConversationRepository mutableConversationRepository) {
-        this.guids = guids;
+    public NewConversationService(UniqueConversationSecret uniqueConversationSecret, MutableConversationRepository mutableConversationRepository) {
         this.uniqueConversationSecret = uniqueConversationSecret;
         this.mutableConversationRepository = mutableConversationRepository;
     }
@@ -41,11 +40,11 @@ public class NewConversationService {
                 customValues
         );
 
-        mutableConversationRepository.commit(convId, Arrays.asList(conversationCreatedEvent));
+        mutableConversationRepository.commit(convId, Collections.singletonList(conversationCreatedEvent));
     }
 
     public String nextGuid() {
-        return guids.nextGuid();
+        return Guids.next();
     }
     
     public String nextSecret() {

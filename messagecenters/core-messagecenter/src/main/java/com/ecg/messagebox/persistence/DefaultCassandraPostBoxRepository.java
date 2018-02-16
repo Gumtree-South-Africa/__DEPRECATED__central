@@ -3,6 +3,7 @@ package com.ecg.messagebox.persistence;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
+import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.persistence.model.ConversationIndex;
@@ -454,12 +455,26 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         }
     }
 
+    @Override
+    public void createPartnerConversation(PartnerMessagePayload payload, Message message, String conversationId, String userId, boolean incrementUnreadCount) {
+        try (Timer.Context ignored = createEmptyConversationTimer.time()) {
+            createConversation(
+                    conversationId,
+                    userId,
+                    payload.getAdId(),
+                    Arrays.asList(payload.getBuyer(), payload.getSeller()),
+                    message,
+                    new ConversationMetadata(DateTime.now(), payload.getSubject(), payload.getAdTitle(), null),
+                    incrementUnreadCount,
+                    true);
+        }
+    }
+
     private void createConversation(String conversationId, String senderId, String adId, List<Participant> participants, Message message, ConversationMetadata metadata, boolean incrementUnreadCount) {
         createConversation(conversationId, senderId, adId, participants, message, metadata, incrementUnreadCount, true);
     }
 
     private void createConversation(String conversationId, String senderId, String adId, List<Participant> participants, Message message, ConversationMetadata metadata, boolean incrementUnreadCount, boolean insertMessage) {
-
         String participantsJson = JsonConverter.toParticipantsJson(senderId, conversationId, participants);
         String messageJson = JsonConverter.toMessageJson(senderId, conversationId, message);
         String metadataJson = JsonConverter.toConversationMetadataJson(senderId, conversationId, metadata);

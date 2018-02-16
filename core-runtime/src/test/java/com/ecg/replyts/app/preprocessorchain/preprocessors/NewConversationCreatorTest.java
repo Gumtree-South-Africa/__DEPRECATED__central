@@ -23,9 +23,6 @@ public class NewConversationCreatorTest {
     @Mock
     private MutableMail mail;
 
-    @Mock
-    private Guids guids;
-
     private MessageProcessingContext context;
     @Mock
     private NewConversationCreator creator;
@@ -39,11 +36,10 @@ public class NewConversationCreatorTest {
     @Before
     public void setUp() throws Exception {
         when(convSecret.nextSecret()).thenReturn("secretofbuyer", "secretofseller");
-        when(guids.nextGuid()).thenReturn("foobar@foobar");
         when(mail.getAdId()).thenReturn("332211");
 
         context = new MessageProcessingContext(mail, "1", processingTimeGuard);
-        creator = new NewConversationCreator(guids, convSecret);
+        creator = new NewConversationCreator(convSecret);
     }
 
     @After
@@ -72,7 +68,7 @@ public class NewConversationCreatorTest {
         assertThat(context.getMessageDirection()).isEqualTo(MessageDirection.BUYER_TO_SELLER);
         assertThat(context.getConversation().getBuyerSecret()).isEqualTo("secretofbuyer");
         assertThat(context.getConversation().getSellerSecret()).isEqualTo("secretofseller");
-        assertThat(MDC.get(CONVERSATION_ID)).isEqualTo("foobar@foobar");
+        assertThat(MDC.get(CONVERSATION_ID)).isNotBlank();
         assertThat(MDC.get(MAIL_FROM)).isEqualTo("from@host.com");
         assertThat(MDC.get(MAIL_TO)).isEqualTo("to@host.com");
         assertThat(MDC.get(MAIL_DIRECTION)).isEqualTo("BUYER_TO_SELLER");

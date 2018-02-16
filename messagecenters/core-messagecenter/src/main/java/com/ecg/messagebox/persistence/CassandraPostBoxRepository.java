@@ -1,6 +1,7 @@
 package com.ecg.messagebox.persistence;
 
 import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
+import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.model.*;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 
@@ -105,10 +106,10 @@ public interface CassandraPostBoxRepository {
     /**
      * Adds system message to an existing conversation.
      *
-     * @param userId               identifier of user that this conversation belongs to
-     * @param conversationId       id of the conversation to add the message to
-     * @param adId                 advertisement id
-     * @param message              the new message to be added
+     * @param userId         identifier of user that this conversation belongs to
+     * @param conversationId id of the conversation to add the message to
+     * @param adId           advertisement id
+     * @param message        the new message to be added
      */
     void addSystemMessage(String userId, String conversationId, String adId, Message message);
 
@@ -136,19 +137,32 @@ public interface CassandraPostBoxRepository {
 
     /**
      * Resolves conversation IDs by user id and ad id.
+     *
      * @param userId User ID.
-     * @param adId ad ID
-     * @param limit max amount of results
+     * @param adId   ad ID
+     * @param limit  max amount of results
      * @return all conversation IDs for given user limited to given limit amount.
      */
     List<String> resolveConversationIdsByUserIdAndAdId(String userId, String adId, int limit);
 
     /**
      * Creates an empty conversation and returns a conversationId
+     *
      * @param emptyConversationRequest
      * @param newConversationId
      * @param userId
      * @return
      */
     String createEmptyConversationProjection(EmptyConversationRequest emptyConversationRequest, String newConversationId, String userId);
+
+    /**
+     * Stores a new partner's conversation and increases a unread count's if the user is recipient of the incoming message.
+     *
+     * @param partnerPayload       partner entity to store in MessageBox data structure.
+     * @param message              partner message payload.
+     * @param conversationId       ID of a new conversation.
+     * @param userId               user ID of the owner of new conversation.
+     * @param incrementUnreadCount flag if we want to increase a number of unread messages along with stored conversation for this user.
+     */
+    void createPartnerConversation(PartnerMessagePayload partnerPayload, Message message, String conversationId, String userId, boolean incrementUnreadCount);
 }

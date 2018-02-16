@@ -13,6 +13,7 @@ public class ReplyTsIntegrationTestRuleHelper {
     public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
         Properties properties = new Properties();
 
+        properties.put("message.synchronizer.enabled", "true");
         properties.put("replyts.tenant", "mp");
         properties.put("hazelcast.password", "123");
         properties.put("hazelcast.port.increment", "true");

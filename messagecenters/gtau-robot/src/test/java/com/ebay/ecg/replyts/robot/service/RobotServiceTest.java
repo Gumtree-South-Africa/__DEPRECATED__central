@@ -10,7 +10,6 @@ import com.ecg.replyts.core.api.model.conversation.command.NewConversationComman
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.processing.ModerationService;
-import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.google.common.collect.Maps;
@@ -26,7 +25,6 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -34,9 +32,6 @@ public class RobotServiceTest {
 
     @Mock
     private MutableConversationRepository conversationRepository;
-
-    @Mock
-    private Guids guids;
 
     @Mock
     private HeldMailRepository heldMailRepository;
@@ -112,7 +107,6 @@ public class RobotServiceTest {
     @Test
     public void addMessageToConversationStoresMail() throws Exception {
         String convId = "convId";
-        String msgId = "msgId";
         MessagePayload payload = new MessagePayload() {{
             setMessage("msg");
             setMessageDirection(MessageDirection.BUYER_TO_SELLER.name());
@@ -120,10 +114,7 @@ public class RobotServiceTest {
         DefaultMutableConversation conversation = DefaultMutableConversation.create(new NewConversationCommand(convId, "1", "buyer@example.com", "seller@example.com", "sec1", "sec2", new DateTime(), ConversationState.ACTIVE, Maps.newHashMap()));
 
         when(conversationRepository.getById(convId)).thenReturn(conversation);
-        when(guids.nextGuid()).thenReturn(msgId);
-
         robotService.addMessageToConversation(convId, payload);
-
-        verify(heldMailRepository).write(eq(msgId), any(byte[].class));
+        verify(heldMailRepository).write(anyString(), any(byte[].class));
     }
 }

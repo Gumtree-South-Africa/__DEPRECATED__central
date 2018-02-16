@@ -25,18 +25,15 @@ class NewConversationCreator {
 
     private static final Counter CREATE_COUNTER = TimingReports.newCounter("conversationCreate");
 
-    private final Guids guids;
-
     private final UniqueConversationSecret uniqueConversationSecret;
 
     @Autowired
-    NewConversationCreator(Guids guids, UniqueConversationSecret uniqueConversationSecret) {
-        this.guids = guids;
+    NewConversationCreator(UniqueConversationSecret uniqueConversationSecret) {
         this.uniqueConversationSecret = uniqueConversationSecret;
     }
 
     public void setupNewConversation(MessageProcessingContext context) {
-        String newConversationId = guids.nextGuid();
+        String newConversationId = Guids.next();
         ConversationStartInfo info = new ConversationStartInfo(context);
 
         String buyerSecret = uniqueConversationSecret.nextSecret();
