@@ -28,7 +28,7 @@ public class PluginConfiguration {
     }
 
     @Bean
-    @ConditionalOnExpression(ONLY_V2_TENANTS)
+    @ConditionalOnExpression(V2_AND_UPGRADE_TENANTS)
     public SpringContextProvider newV2ContextProvider(ApplicationContext context) {
         return new SpringContextProvider("/msgbox", WebConfiguration.class, context);
     }
