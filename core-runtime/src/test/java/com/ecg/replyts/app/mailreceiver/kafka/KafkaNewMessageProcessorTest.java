@@ -25,8 +25,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
 
-import static com.ecg.replyts.app.mailreceiver.kafka.RetryableMessageComparisonUtil.compareInstantsWithoutMillis;
-import static com.ecg.replyts.app.mailreceiver.kafka.RetryableMessageComparisonUtil.compareMessages;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -91,7 +89,8 @@ public class KafkaNewMessageProcessorTest {
     }
 
     private RetryableMessage setUpTest(final int triedCount) throws IOException {
-        RetryableMessage wanted = new RetryableMessage(Instant.now(), Instant.now(), PAYLOAD, triedCount, CORRELATION_ID);
+        Instant now = Instant.now();
+        RetryableMessage wanted = new RetryableMessage(now, now, PAYLOAD, triedCount, CORRELATION_ID);
         when(queueService.deserialize(any())).thenReturn(wanted);
         ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         sendIncomingMessage(mapper.writeValueAsBytes(wanted));
@@ -99,6 +98,7 @@ public class KafkaNewMessageProcessorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void unparseableMessageWritesToUnparseableTopic() throws Exception {
         when(messageProcessingCoordinator.accept(any())).thenThrow(ParsingException.class);
         final RetryableMessage wanted = setUpTest(0);
@@ -110,10 +110,11 @@ public class KafkaNewMessageProcessorTest {
         verify(queueService).deserialize(any());
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_UNPARSEABLE);
 
-        compareMessages(wanted, retryableMessageCaptor.getValue());
+        assertThat(retryableMessageCaptor.getValue()).isEqualToComparingFieldByField(wanted);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void failedMessageWritesToAbandonedTopicIfTooManyRetries() throws Exception {
         when(messageProcessingCoordinator.accept(any())).thenThrow(IOException.class);
         final RetryableMessage wanted = setUpTest(MAX_RETRIES);
@@ -125,10 +126,11 @@ public class KafkaNewMessageProcessorTest {
         verify(queueService).deserialize(any());
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_ABANDONED);
 
-        compareMessages(wanted, retryableMessageCaptor.getValue());
+        assertThat(retryableMessageCaptor.getValue()).isEqualToComparingFieldByField(wanted);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void failedMessageWritesToRetryTopicIfRetryCountAllows() throws Exception {
         when(messageProcessingCoordinator.accept(any())).thenThrow(IOException.class);
         final RetryableMessage wanted = setUpTest(2);
@@ -142,14 +144,15 @@ public class KafkaNewMessageProcessorTest {
 
         RetryableMessage actualRetryableMessage = retryableMessageCaptor.getValue();
         assertThat(actualRetryableMessage.getTriedCount()).isEqualTo(wanted.getTriedCount() + 1);
-        compareInstantsWithoutMillis(wanted.getNextConsumptionTime().plus(RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, ChronoUnit.MINUTES), actualRetryableMessage.getNextConsumptionTime());
-
+        assertThat(actualRetryableMessage.getNextConsumptionTime())
+                .isEqualTo(wanted.getNextConsumptionTime().plus(RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, ChronoUnit.MINUTES));
         assertThat(actualRetryableMessage.getCorrelationId()).isEqualTo(wanted.getCorrelationId());
         assertThat(actualRetryableMessage.getPayload()).isEqualTo(wanted.getPayload());
         assertThat(actualRetryableMessage.getMessageReceivedTime()).isEqualTo(wanted.getMessageReceivedTime());
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void undeserializableMessageWritesToFailedTopic() throws Exception {
         when(queueService.deserialize(any())).thenThrow(IOException.class);
         sendIncomingMessage(PAYLOAD);

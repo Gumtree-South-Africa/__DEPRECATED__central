@@ -14,19 +14,18 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 @NotThreadSafe
 abstract class KafkaMessageProcessor implements MessageProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaMessageProcessor.class);
 
-    private final static long KAFKA_POLL_TIMEOUT_MS = 1000;
+    private static final long KAFKA_POLL_TIMEOUT_MS = 1000;
     private final int retryOnFailedMessagePeriodMinutes;
 
     private final QueueService queueService;
 
-    final private KafkaMessageConsumerFactory kafkaMessageConsumerFactory;
+    private final KafkaMessageConsumerFactory kafkaMessageConsumerFactory;
 
     final String shortTenant;
 
@@ -113,7 +112,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
         try {
             RetryableMessage retriedMessage = new RetryableMessage(
                     retryableMessage.getMessageReceivedTime(),
-                    Instant.now().plus(retryOnFailedMessagePeriodMinutes, ChronoUnit.MINUTES),
+                    retryableMessage.getNextConsumptionTime().plus(retryOnFailedMessagePeriodMinutes, ChronoUnit.MINUTES),
                     retryableMessage.getPayload(),
                     retryableMessage.getTriedCount() + 1,
                     retryableMessage.getCorrelationId());
@@ -144,7 +143,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     }
 
     // Don't know what to do... Put it in the failed queue! Most likely unparseable json
-    void failMessage(final byte[] payload, final Exception e) {
+    private void failMessage(final byte[] payload, final Exception e) {
         LOG.error("Could not handle message, writing raw value to failed topic", e);
         queueService.publish(KafkaTopicService.getTopicFailed(shortTenant), payload);
     }

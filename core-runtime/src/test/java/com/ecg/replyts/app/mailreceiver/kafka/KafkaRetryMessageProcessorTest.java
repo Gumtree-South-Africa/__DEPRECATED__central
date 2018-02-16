@@ -1,6 +1,5 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
-import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.ecg.replyts.core.runtime.persistence.kafka.RetryableMessage;
@@ -24,7 +23,6 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 
-import static com.ecg.replyts.app.mailreceiver.kafka.RetryableMessageComparisonUtil.compareMessages;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -34,20 +32,16 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class KafkaRetryMessageProcessorTest {
+
     private static final String SHORT_TENANT = "mp";
-    private static final String TOPIC_UNPARSEABLE = KafkaTopicService.getTopicUnparseable(SHORT_TENANT);
     private static final String TOPIC_RETRY = KafkaTopicService.getTopicRetry(SHORT_TENANT);
-    private static final String TOPIC_ABANDONED = KafkaTopicService.getTopicAbandoned(SHORT_TENANT);
     private static final String TOPIC_FAILED = KafkaTopicService.getTopicFailed(SHORT_TENANT);
     private static final String TOPIC_INCOMING = KafkaTopicService.getTopicIncoming(SHORT_TENANT);
     private static final String CORRELATION_ID = "corr";
     private static final byte[] PAYLOAD = "some payload".getBytes();
-    public static final int RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES = 5;
+    private static final int RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES = 5;
 
     private KafkaRetryMessageProcessor kafkaRetryMessageProcessor;
-
-    @Mock
-    private MessageProcessingCoordinator messageProcessingCoordinator;
 
     @Mock
     private QueueService queueService;
@@ -74,7 +68,6 @@ public class KafkaRetryMessageProcessorTest {
     public void setUp() throws Exception {
         HashMap<TopicPartition, Long> beginningOffsets = new HashMap<>();
         beginningOffsets.put(new TopicPartition(TOPIC_RETRY, 0), 0L);
-//        beginningOffsets.put(new TopicPartition(topicService.getTopicRetry(), 0), 0L);
 
         consumer = new MockConsumer<>(OffsetResetStrategy.EARLIEST);
         consumer.updateBeginningOffsets(beginningOffsets);
@@ -96,6 +89,7 @@ public class KafkaRetryMessageProcessorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void undeserializableMessageWritesToFailedTopic() throws Exception {
         setUpTest(99);
         when(queueService.deserialize(any())).thenThrow(IOException.class);
@@ -120,6 +114,6 @@ public class KafkaRetryMessageProcessorTest {
         verify(queueService).deserialize(any());
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_INCOMING);
 
-        compareMessages(wanted, retryableMessageCaptor.getValue());
+        assertThat(retryableMessageCaptor.getValue()).isEqualToComparingFieldByField(wanted);
     }
 }
