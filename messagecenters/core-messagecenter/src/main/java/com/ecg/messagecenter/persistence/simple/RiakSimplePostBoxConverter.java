@@ -22,7 +22,7 @@ public class RiakSimplePostBoxConverter implements Converter<PostBox> {
     @Autowired
     private AbstractJsonToPostBoxConverter toPostBox;
 
-    @Value("${persistence.simple.bucket.name.prefix:}" + DefaultRiakSimplePostBoxRepository.POST_BOX)
+    @Value("${persistence.riak.bucket.name.prefix:}" + DefaultRiakSimplePostBoxRepository.POST_BOX)
     private String bucketName;
 
     @Override

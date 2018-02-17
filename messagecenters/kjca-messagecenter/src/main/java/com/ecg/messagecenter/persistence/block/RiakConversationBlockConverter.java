@@ -20,7 +20,7 @@ public class RiakConversationBlockConverter implements Converter<ConversationBlo
     private String bucketName;
 
     @Autowired
-    public void setBucketName(@Value("${persistence.simple.bucket.name.prefix:}") String bucketPrefix) {
+    public void setBucketName(@Value("${persistence.riak.bucket.name.prefix:}") String bucketPrefix) {
         bucketName = bucketPrefix + RiakConversationBlockRepository.BUCKET_NAME;
     }
 

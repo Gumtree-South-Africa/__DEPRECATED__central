@@ -42,7 +42,7 @@ public class RiakConversationBlockRepository implements ConversationBlockReposit
     @Autowired
     private IRiakClient riakClient;
 
-    @Value("${persistence.simple.bucket.name.prefix:}")
+    @Value("${persistence.riak.bucket.name.prefix:}")
     private String bucketPrefix;
 
     private Bucket bucket;

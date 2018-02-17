@@ -47,7 +47,7 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
     @Autowired
     private ConflictResolver<PostBox> resolver;
 
-    @Value("${persistence.simple.bucket.name.prefix:}" + POST_BOX)
+    @Value("${persistence.riak.bucket.name.prefix:}" + POST_BOX)
     private String bucketName;
 
     protected Bucket postBoxBucket;

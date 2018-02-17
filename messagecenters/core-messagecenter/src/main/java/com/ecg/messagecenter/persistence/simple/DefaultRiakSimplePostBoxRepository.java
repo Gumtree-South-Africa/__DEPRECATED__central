@@ -53,7 +53,7 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
     @Autowired
     private IRiakClient riakClient;
 
-    @Value("${persistence.simple.bucket.name.prefix:}" + POST_BOX)
+    @Value("${persistence.riak.bucket.name.prefix:}" + POST_BOX)
     private String bucketName;
 
     protected Bucket postBoxBucket;
