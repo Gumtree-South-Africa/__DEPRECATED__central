@@ -1,6 +1,5 @@
 package com.ecg.messagebox.persistence;
 
-import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.model.*;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
@@ -144,16 +143,6 @@ public interface CassandraPostBoxRepository {
      * @return all conversation IDs for given user limited to given limit amount.
      */
     List<String> resolveConversationIdsByUserIdAndAdId(String userId, String adId, int limit);
-
-    /**
-     * Creates an empty conversation and returns a conversationId
-     *
-     * @param emptyConversationRequest
-     * @param newConversationId
-     * @param userId
-     * @return
-     */
-    String createEmptyConversationProjection(EmptyConversationRequest emptyConversationRequest, String newConversationId, String userId);
 
     /**
      * Stores a new partner's conversation and increases a unread count's if the user is recipient of the incoming message.

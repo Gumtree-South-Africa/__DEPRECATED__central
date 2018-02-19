@@ -5,9 +5,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
-import com.ecg.messagebox.util.EmptyConversationFixture;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
-import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
@@ -301,42 +299,6 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         ConversationModification lastConversationModification = conversationsRepo.getLastConversationModification(UID1, CID);
 
         assertEquals(c1.getLatestMessage().getId(), lastConversationModification.getMessageId());
-    }
-
-    @Test
-    public void createEmptyConversationAndThenInsertAMessage() throws Exception {
-
-        /*
-         * When an empty conversation is created
-         * Then a conversation with no messages is returned
-         */
-        String newConversationId = Guids.next();
-
-        String resultConversationId = conversationsRepo.createEmptyConversationProjection(EmptyConversationFixture.validEmptyConversationRequest(ADID, UID1, UID2), newConversationId, UID1);
-
-        assertEquals("creation should be successful", newConversationId, resultConversationId);
-
-        List<String> conversationIds = conversationsRepo.resolveConversationIdsByUserIdAndAdId(UID1, ADID, 1);
-
-        assertTrue("New empty conversation should exists in list", conversationIds.contains(resultConversationId));
-
-        Optional<ConversationThread> conversationThread = conversationsRepo.getConversationWithMessages(UID1, resultConversationId, timeBased().toString(), MSGS_LIMIT);
-
-        assertTrue("conversation thread should be present", conversationThread.isPresent());
-        assertEquals("conversation thread messages should be empty", 0, conversationThread.get().getMessages().size());
-
-        /*
-         * Given an empty conversation
-         * When a new message is added to an empty conversation
-         * Then a message is added to conversation
-         */
-        insertConversationWithMessages(UID1, UID2, resultConversationId, ADID, 1, null);
-
-        conversationThread = conversationsRepo.getConversationWithMessages(UID1, resultConversationId, timeBased().toString(), MSGS_LIMIT);
-
-        assertTrue("conversation thread should be present", conversationThread.isPresent());
-        assertEquals("conversation thread should have 1 message", 1, conversationThread.get().getMessages().size());
-
     }
 
     private ConversationThread insertConversationWithMessages(String userId1, String userId2,

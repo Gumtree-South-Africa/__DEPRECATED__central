@@ -2,7 +2,6 @@ package com.ecg.messagebox.persistence;
 
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
-import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.model.Message;
@@ -51,7 +50,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final Timer getConversationUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCount");
     private final Timer getLastConversationModificationTimer = newTimer("cassandra.postBoxRepo.v2.getLastConversationModificationTimer");
     private final Timer resolveConversationIdsByUserIdAndAdId = newTimer("cassandra.postBoxRepo.v2.resolveConversationIdsByUserIdAndAdId");
-    private final Timer createEmptyConversationTimer = newTimer("cassandra.postBoxRepo.v2.createEmptyConversationProjection");
+    private final Timer createPartnerConversation = newTimer("cassandra.postBoxRepo.v2.createPartnerConversation");
 
     private final Session session;
     private final ConsistencyLevel readConsistency;
@@ -435,29 +434,8 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     @Override
-    public String createEmptyConversationProjection(EmptyConversationRequest emptyConversation, String newConversationId, String userId) {
-
-        String imageUrl = emptyConversation.getCustomValues().get("imageUrl");
-        try (Timer.Context ignored = createEmptyConversationTimer.time()) {
-
-            createConversation(
-                    newConversationId,
-                    userId,
-                    emptyConversation.getAdId(),
-                    new ArrayList<>(emptyConversation.getParticipants().values()),
-                    emptyConversation.getMessage(),
-                    new ConversationMetadata(DateTime.now(), emptyConversation.getEmailSubject(), emptyConversation.getAdTitle(), imageUrl),
-                    false,
-                    false
-            );
-
-            return newConversationId;
-        }
-    }
-
-    @Override
     public void createPartnerConversation(PartnerMessagePayload payload, Message message, String conversationId, String userId, boolean incrementUnreadCount) {
-        try (Timer.Context ignored = createEmptyConversationTimer.time()) {
+        try (Timer.Context ignored = createPartnerConversation.time()) {
             createConversation(
                     conversationId,
                     userId,

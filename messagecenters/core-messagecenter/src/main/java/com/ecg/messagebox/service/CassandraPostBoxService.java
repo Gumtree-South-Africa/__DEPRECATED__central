@@ -3,19 +3,16 @@ package com.ecg.messagebox.service;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
+import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
-import com.ecg.replyts.core.runtime.service.NewConversationService;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +24,6 @@ import static com.ecg.messagebox.model.ParticipantRole.SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 import static org.joda.time.DateTime.now;
 
 @Component
@@ -35,7 +31,6 @@ public class CassandraPostBoxService implements PostBoxService {
     private final CassandraPostBoxRepository postBoxRepository;
     private final UserIdentifierService userIdentifierService;
     private final ResponseDataService responseDataService;
-    private final NewConversationService newConversationService;
     private final MessageAddedEventProcessor messageAddedEventProcessor;
     private final ConversationRepository conversationRepository;
 
@@ -47,7 +42,7 @@ public class CassandraPostBoxService implements PostBoxService {
     private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
     private final Timer deleteConversationsTimer = newTimer("postBoxService.v2.deleteConversation");
     private final Timer resolveConversationIdByUserIdAndAdId = newTimer("postBoxService.v2.resolveConversationIdsByUserIdAndAdId");
-    private final Timer createEmptyConversation = newTimer("postBoxService.v2.createEmptyConversationProjection");
+    private final Timer storePartnerMessage = newTimer("postBoxService.v2.storePartnerMessage");
     private final Timer createSystemMessage = newTimer("postBoxService.v2.createSystemMessage");
 
     private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
@@ -59,14 +54,12 @@ public class CassandraPostBoxService implements PostBoxService {
             CassandraPostBoxRepository postBoxRepository,
             UserIdentifierService userIdentifierService,
             ResponseDataService responseDataService,
-            NewConversationService newConversationService,
             MessageAddedEventProcessor messageAddedEventProcessor,
             ConversationRepository conversationRepository
     ) {
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.responseDataService = responseDataService;
-        this.newConversationService = newConversationService;
         this.messageAddedEventProcessor = messageAddedEventProcessor;
         this.conversationRepository = conversationRepository;
     }
@@ -198,49 +191,15 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public Optional<String> createEmptyConversation(EmptyConversationRequest emptyConversationRequest) {
-        try (Timer.Context ignored = createEmptyConversation.time()) {
-
-            Map<ParticipantRole, Participant> participantMap = emptyConversationRequest.getParticipants();
-
-            Optional<Participant> buyer = getParticipant(participantMap, BUYER);
-            Optional<Participant> seller = getParticipant(participantMap, SELLER);
-
-            if (buyer.isPresent() && seller.isPresent()) {
-                String newConversationId = newConversationService.nextGuid();
-                MessageDirection messageDirection = getMessageDirection(buyer.get(), seller.get(), emptyConversationRequest.getSenderId());
-                setMDCContext(newConversationId, buyer.get(), seller.get(), messageDirection);
-
-                postBoxRepository.createEmptyConversationProjection(emptyConversationRequest, newConversationId, buyer.get().getUserId());
-                postBoxRepository.createEmptyConversationProjection(emptyConversationRequest, newConversationId, seller.get().getUserId());
-
-                newConversationService.commitConversation(
-                        newConversationId,
-                        emptyConversationRequest.getAdId(),
-                        buyer.get().getEmail(),
-                        seller.get().getEmail(),
-                        ConversationState.ACTIVE,
-                        emptyConversationRequest.getCustomValues()
-                );
-
-                return Optional.of(newConversationId);
-
-            } else {
-                return Optional.empty();
-            }
-        }
-    }
-
-    @Override
     public Optional<String> storePartnerMessage(PartnerMessagePayload payload) {
-        try (Timer.Context ignored = createEmptyConversation.time()) {
+        try (Timer.Context ignored = storePartnerMessage.time()) {
             Participant buyer = payload.getBuyer();
             Participant seller = payload.getSeller();
 
             List<String> conversationIds = getConversationsById(buyer.getUserId(), payload.getAdId(), 1);
             boolean createNewConversation = conversationIds.isEmpty();
             String conversationId = conversationIds.stream().findAny()
-                    .orElse(newConversationService.nextGuid());
+                    .orElse(Guids.next());
 
             MessageDirection messageDirection = getMessageDirection(buyer, seller, payload.getSenderUserId());
             boolean increaseBuyerUnreadCount = messageDirection == MessageDirection.SELLER_TO_BUYER;
@@ -312,10 +271,6 @@ public class CassandraPostBoxService implements PostBoxService {
         return rtsConversation.getCustomValues().get(customValueKey);
     }
 
-    private Optional<Participant> getParticipant(Map<ParticipantRole, Participant> participantsMap, ParticipantRole participantRole) {
-        return participantsMap.containsKey(participantRole) ? Optional.of(participantsMap.get(participantRole)) : Optional.empty();
-    }
-
     private MessageDirection getMessageDirection(Participant buyer, Participant seller, String senderId) {
         if (Objects.equals(buyer.getUserId(), senderId)) {
             return MessageDirection.BUYER_TO_SELLER;
@@ -324,18 +279,5 @@ public class CassandraPostBoxService implements PostBoxService {
         }
 
         throw new IllegalArgumentException("Sender User ID does not fit to any participant.");
-    }
-
-    private static void setMDCContext(String conversationId, Participant buyer, Participant seller, MessageDirection messageDirection) {
-        MDC.put(CONVERSATION_ID, conversationId);
-        MDC.put(MAIL_DIRECTION, messageDirection.name());
-
-        if (messageDirection == BUYER_TO_SELLER) {
-            MDC.put(MAIL_FROM, buyer.getEmail());
-            MDC.put(MAIL_TO, seller.getEmail());
-        } else {
-            MDC.put(MAIL_FROM, seller.getEmail());
-            MDC.put(MAIL_TO, buyer.getEmail());
-        }
     }
 }

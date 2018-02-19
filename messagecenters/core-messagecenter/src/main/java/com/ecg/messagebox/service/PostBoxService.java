@@ -1,6 +1,5 @@
 package com.ecg.messagebox.service;
 
-import com.ecg.messagebox.controllers.requests.EmptyConversationRequest;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
@@ -35,8 +34,6 @@ public interface PostBoxService {
     void deleteConversation(String userId, String conversationId, String adId);
 
     List<String> getConversationsById(String userId, String adId, int resultsLimit);
-
-    Optional<String> createEmptyConversation(EmptyConversationRequest emptyConversation);
 
     Optional<String> storePartnerMessage(PartnerMessagePayload payload);
 
