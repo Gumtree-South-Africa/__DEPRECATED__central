@@ -139,7 +139,7 @@ void loadPropsIntoConsul(final String tenant, final String version, final String
     }
 }
 
-void deployToEnv(final String tenant, final String artifact, final String environment, final String version, final String dc, final Integer nrOfInstances) {
+void deployToEnv(final String tenant, final String artifact, final String environment, final String version, final String dc, final Integer nrOfInstances, final boolean live) {
     ansiColor('xterm') {
         sh "PYTHONWARNINGS='ignore' deploy.py --config /etc/comaas/comaas-${tenant}.yaml --logdir ~ --component $artifact"
     }
@@ -157,7 +157,7 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
     withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
                       usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
         nomadFile = "core-api.nomad"
-        if (tenant == "gtuk" || environment == "lp") {
+        if (live || environment == "lp") {
             nomadFile = "core-api_ACTIVE.nomad"
         }
 
@@ -224,7 +224,10 @@ node(PROVIDED_ENV) {
 
     currentBuild.description = "$PROVIDED_TENANT/$dc/$versionToDeploy"
 
-    Integer nrOfInstances = environmentShort == 'lp' ? 2 : configFile.instances[tenant] as Integer
+    Integer nrOfInstances = environmentShort == 'lp' ? configFile.instances.lp : configFile.instances.prod[tenant] as Integer
+
+    // enable urlprefixes for this tenant, which means API traffic in production will go to the Nomad nodes
+    final boolean live = configFile.tenants.live.contains(tenant)
 
     stage("Deploying") {
         node("$environmentShort && $dc") {
@@ -262,7 +265,7 @@ node(PROVIDED_ENV) {
 
                     final String artifact = downloadVersionFromSwift(tenant, versionToDeploy)
                     loadPropsIntoConsul(tenant, versionToDeploy, environmentShort)
-                    deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstances)
+                    deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstances, live)
 
                     final String graphitePayload = commonFunctions.createGraphitePayload('succeeded', commonFunctions.getAlias(tenant), "$versionToDeploy deployed")
                     sendGraphiteMetric(dc, environmentShort, graphitePayload)
