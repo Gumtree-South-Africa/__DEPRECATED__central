@@ -2,8 +2,7 @@ package com.ecg.replyts2.mailpublisher.kafka;
 
 import com.ecg.replyts.core.runtime.listener.KafkaMailPublisher;
 import com.ecg.replyts.core.runtime.listener.MailPublisher;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -12,7 +11,13 @@ import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
 import java.util.Properties;
+
+import static org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 
 @Configuration
 public class KafkaMailPublisherConfig {
@@ -21,7 +26,7 @@ public class KafkaMailPublisherConfig {
     private String kafkaBrokers;
     @Value("${mailpublisher.kafka.topic:coremail}")
     private String kafkaTopic;
-    private Producer<String, byte[]> producer;
+    private KafkaProducer<String, byte[]> producer;
 
     @PostConstruct
     @Conditional(KafkaMailPublisherConditional.class)
@@ -29,12 +34,12 @@ public class KafkaMailPublisherConfig {
         Assert.hasLength(kafkaBrokers);
 
         Properties props = new Properties();
-        props.put("metadata.broker.list", kafkaBrokers);
-        props.put("key.serializer.class", "kafka.serializer.StringEncoder");
-        props.put("request.required.acks", "1");
+        props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);
+        props.put(KEY_SERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.StringSerializer.class.getName());
+        props.put(VALUE_SERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.ByteArraySerializer.class.getName());
+        props.put(ACKS_CONFIG, "1");
 
-        ProducerConfig config = new ProducerConfig(props);
-        producer = new Producer<>(config);
+        producer = new KafkaProducer<>(props);
     }
 
     @Bean

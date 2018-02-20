@@ -1,22 +1,31 @@
 package com.ecg.replyts2.eventpublisher.kafka;
 
-import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.app.eventpublisher.EventConverter;
 import com.ecg.replyts.app.eventpublisher.EventPublisher;
 import com.ecg.replyts.app.eventpublisher.MessageReceivedListener;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.ProducerConfig;
+import com.ecg.replyts.core.api.model.MailCloakingService;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
 import java.util.Properties;
+
+import static org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 
 /**
  * Conditionally configure event publishing to Kafka.
@@ -50,7 +59,7 @@ public class KafkaEventPublisherConfig {
     @Autowired
     private MailCloakingService mailCloakingService;
 
-    private Producer<String, byte[]> producer;
+    private KafkaProducer<String, byte[]> producer;
 
     @PostConstruct
     @Conditional(KafkaEnabledConditional.class)
@@ -62,12 +71,12 @@ public class KafkaEventPublisherConfig {
         Assert.hasLength(kafkaBrokers);
 
         Properties props = new Properties();
-        props.put("metadata.broker.list", kafkaBrokers);
-        props.put("key.serializer.class", "kafka.serializer.StringEncoder");
-        props.put("request.required.acks", "1");
+        props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);
+        props.put(KEY_SERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.StringSerializer.class.getName());
+        props.put(VALUE_SERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.ByteArraySerializer.class.getName());
+        props.put(ACKS_CONFIG, "1");
 
-        ProducerConfig config = new ProducerConfig(props);
-        producer = new Producer<>(config);
+        producer = new KafkaProducer<>(props);
     }
 
     @Bean

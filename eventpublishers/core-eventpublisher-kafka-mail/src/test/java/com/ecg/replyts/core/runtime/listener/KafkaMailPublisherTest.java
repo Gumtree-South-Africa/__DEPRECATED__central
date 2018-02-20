@@ -2,8 +2,8 @@ package com.ecg.replyts.core.runtime.listener;
 
 import com.ecg.replyts.core.runtime.persistence.mail.StoredMail;
 import com.google.common.io.ByteStreams;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,7 +14,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -30,9 +33,9 @@ public class KafkaMailPublisherTest {
     private MailPublisher mailPublisher;
 
     @Mock
-    private Producer<String, byte[]> producer;
+    private KafkaProducer<String, byte[]> producer;
     @Captor
-    private ArgumentCaptor<KeyedMessage<String, byte[]>> producedMessagesCaptor;
+    private ArgumentCaptor<ProducerRecord<String, byte[]>> producedMessagesCaptor;
 
     @Before
     public void setUp() throws Exception {
@@ -46,11 +49,11 @@ public class KafkaMailPublisherTest {
 
         mailPublisher.publishMail("key1", data1, Optional.of(data2));
         verify(producer).send(producedMessagesCaptor.capture());
-        KeyedMessage<String, byte[]> m = producedMessagesCaptor.getValue();
+        ProducerRecord<String, byte[]> m = producedMessagesCaptor.getValue();
         assertThat(m.topic(), is("test.core.mail"));
-        assertThat(m.partitionKey(), is("key1"));
-        assertEqualZipEntries(uncompress(m.message()), uncompress(new StoredMail(data1, Optional.of(data2)).compress()));
-        StoredMail sm = extract(m.message());
+        assertThat(m.key(), is("key1"));
+        assertEqualZipEntries(uncompress(m.value()), uncompress(new StoredMail(data1, Optional.of(data2)).compress()));
+        StoredMail sm = extract(m.value());
         assertThat(sm.getInboundContents(), is(data1));
         assertThat(sm.getOutboundContents().orElse(null), is(data2));
     }

@@ -1,8 +1,8 @@
 package com.ecg.replyts2.eventpublisher.kafka;
 
 import com.ecg.replyts.app.eventpublisher.EventPublisher.Event;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +17,7 @@ import java.util.List;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsSame.sameInstance;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -28,9 +29,9 @@ public class KafkaEventPublisherTest {
     private KafkaEventPublisher eventPublisher;
 
     @Mock
-    private Producer<String, byte[]> producer;
+    private KafkaProducer<String, byte[]> producer;
     @Captor
-    private ArgumentCaptor<List<KeyedMessage<String, byte[]>>> producedMessagesCaptor;
+    private ArgumentCaptor<ProducerRecord<String, byte[]>> producedMessagesCaptor;
 
     @Before
     public void setUp() throws Exception {
@@ -46,15 +47,15 @@ public class KafkaEventPublisherTest {
 
         eventPublisher.publishConversationEvents(events);
 
-        verify(producer).send(producedMessagesCaptor.capture());
-        List<KeyedMessage<String, byte[]>> producedMessages = producedMessagesCaptor.getValue();
+        verify(producer, times(2)).send(producedMessagesCaptor.capture());
+        List<ProducerRecord<String, byte[]>> producedMessages = producedMessagesCaptor.getAllValues();
         assertThat(producedMessages.size(), is(2));
         assertThat(producedMessages.get(0).topic(), is("topic1"));
-        assertThat(producedMessages.get(0).partitionKey(), is("p1"));
-        assertThat(producedMessages.get(0).message(), sameInstance(data1));
+        assertThat(producedMessages.get(0).key(), is("p1"));
+        assertThat(producedMessages.get(0).value(), sameInstance(data1));
         assertThat(producedMessages.get(1).topic(), is("topic1"));
-        assertThat(producedMessages.get(1).partitionKey(), is("p2"));
-        assertThat(producedMessages.get(1).message(), sameInstance(data2));
+        assertThat(producedMessages.get(1).key(), is("p2"));
+        assertThat(producedMessages.get(1).value(), sameInstance(data2));
     }
 
     @Test
@@ -66,14 +67,14 @@ public class KafkaEventPublisherTest {
 
         eventPublisher.publishUserEvents(events);
 
-        verify(producer).send(producedMessagesCaptor.capture());
-        List<KeyedMessage<String, byte[]>> producedMessages = producedMessagesCaptor.getValue();
+        verify(producer, times(2)).send(producedMessagesCaptor.capture());
+        List<ProducerRecord<String, byte[]>> producedMessages = producedMessagesCaptor.getAllValues();
         assertThat(producedMessages.size(), is(2));
         assertThat(producedMessages.get(0).topic(), is("topic2"));
-        assertThat(producedMessages.get(0).partitionKey(), is("p1"));
-        assertThat(producedMessages.get(0).message(), sameInstance(data1));
+        assertThat(producedMessages.get(0).key(), is("p1"));
+        assertThat(producedMessages.get(0).value(), sameInstance(data1));
         assertThat(producedMessages.get(1).topic(), is("topic2"));
-        assertThat(producedMessages.get(1).partitionKey(), is("p2"));
-        assertThat(producedMessages.get(1).message(), sameInstance(data2));
+        assertThat(producedMessages.get(1).key(), is("p2"));
+        assertThat(producedMessages.get(1).value(), sameInstance(data2));
     }
 }
