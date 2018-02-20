@@ -34,11 +34,6 @@
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
-            <artifactId>mp-filter-knowngood</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ecg.comaas</groupId>
             <artifactId>mp-preprocessor-emailoptout</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -8,21 +8,15 @@ import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.marktplaats.filter.bankaccount.BankAccountFilterFactory;
-import nl.marktplaats.filter.knowngood.KnownGoodFilterFactory;
 import nl.marktplaats.filter.volume.VolumeFilterFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.function.Supplier;
@@ -76,14 +70,6 @@ public class ReceiverTestsSetup {
                         PluginState.ENABLED,
                         1,
                         JsonObjects.parse("{'held':50, 'blocked':100}")));
-
-        // Configure known good filter
-        replyTsConfigClient.putConfiguration(
-                new Configuration(
-                        new Configuration.ConfigurationId(KnownGoodFilterFactory.class.getName(), "instance-0"),
-                        PluginState.ENABLED,
-                        1,
-                        new ObjectMapper().createObjectNode()));
 
         // Configure bank account filter
         replyTsConfigClient.putConfiguration(

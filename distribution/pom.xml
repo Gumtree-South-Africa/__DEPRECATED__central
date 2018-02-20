@@ -273,11 +273,6 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>mp-filter-knowngood</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>mp-postprocessor-anonymizebody</artifactId>
                     <version>${project.version}</version>
                 </dependency>

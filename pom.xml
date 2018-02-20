@@ -177,7 +177,6 @@
 
             <modules>
                 <module>filters/mp-filter-bankaccount</module>
-                <module>filters/mp-filter-knowngood</module>
                 <module>filters/mp-filter-volume</module>
 
                 <module>preprocessors/mp-preprocessor-emailoptout</module>
