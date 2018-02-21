@@ -48,7 +48,7 @@ static String createVersionString(String buildNr) {
 }
 
 node('qa') {
-    final String remote = "https://github.corp.ebay.com/ecg-comaas/central.git"
+    final String remote = "git@github.corp.ebay.com:ecg-comaas/central.git"
     setEnvVars()
 
     PROVIDED_VERSION = PROVIDED_VERSION.trim()
@@ -64,7 +64,10 @@ node('qa') {
         gitHash = commonFunctions.getMasterSha()
 
         echo "Checking if commit $gitHash already has a version tag"
+
+        // TODO: use checkout scm instead
         commonFunctions.checkoutComaasCentralRepo(gitHash, remote)
+
         version = sh(
                 script: "cd ecg-comaas-central; git show-ref --dereference --tags | grep \"^$gitHash\" | sort | head -1 | sed -e 's~.* refs/tags/~~' -e 's/\\^{}//'",
                 returnStdout: true
