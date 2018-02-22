@@ -55,7 +55,7 @@ startComaasForTenant = { tenant ->
     }
 }
 
-void setEnvVars(configFile) {
+void setEnvVars() {
     env.MAVEN_HOME = "/usr/share/apache-maven"
     env.PATH = "$env.MAVEN_HOME/bin:$env.PATH"
 }
@@ -65,23 +65,23 @@ node('qa') {
 
     configFile = readYaml file: "distribution/jenkins/testing/configuration.yaml"
 
-    setEnvVars(configFile)
+    setEnvVars()
 
     tenants = commonFunctions.activeTenants(configFile.tenants.disabled as List)
 
     buildSteps = ["failFast": false]
 
-    buildSteps += ["core-tests": commonFunctions.wrapWithStepDefinition(null, runCoreTests, ghprbActualCommit as String, "Core tests", ghprbAuthorRepoGitUrl as String)]
+    buildSteps += ["core-tests": commonFunctions.wrapWithStepDefinition(null, runCoreTests, ghprbActualCommit as String, "Core tests")]
     buildSteps += [1, 2].collectEntries { testParam ->
-        [((String) "integration-tests-$testParam"): commonFunctions.wrapWithStepDefinition(testParam, runIntegrationTests, ghprbActualCommit as String, "Integration tests (part $testParam)", ghprbAuthorRepoGitUrl as String)]
+        [((String) "integration-tests-$testParam"): commonFunctions.wrapWithStepDefinition(testParam, runIntegrationTests, ghprbActualCommit as String, "Integration tests (part $testParam)")]
     }
     buildSteps += tenants.collectEntries { tenant ->
-        [((String) "$tenant-tests"): commonFunctions.wrapWithStepDefinition(tenant, runTenantTests, ghprbActualCommit as String, "Tests for $tenant", ghprbAuthorRepoGitUrl as String)]
+        [((String) "$tenant-tests"): commonFunctions.wrapWithStepDefinition(tenant, runTenantTests, ghprbActualCommit as String, "Tests for $tenant")]
     }
 
     wiringTenants = commonFunctions.activeTenants(configFile.tenants.wiring_disabled as List)
     buildSteps += wiringTenants.collectEntries { tenant ->
-        [((String) "$tenant-start-comaas"): commonFunctions.wrapWithStepDefinition(tenant, startComaasForTenant, ghprbActualCommit as String, "Start Comaas for $tenant", ghprbAuthorRepoGitUrl as String)]
+        [((String) "$tenant-start-comaas"): commonFunctions.wrapWithStepDefinition(tenant, startComaasForTenant, ghprbActualCommit as String, "Start Comaas for $tenant")]
     }
 
     parallel buildSteps

@@ -32,20 +32,20 @@ static String getAlias(String longName) {
     return tenantAliases().get(longName)
 }
 
-def checkoutGithubRepo(final String branch, final String relativeDir, final String remote) {
-    echo "Checking out repository branch $branch relativeDir $relativeDir remote $remote"
+def checkoutGithubRepo(final String branch, final String relativeDir) {
+    echo "Checking out repository branch $branch relativeDir $relativeDir"
     checkout([
             $class                           : 'GitSCM',
             branches                         : [[name: branch]],
             doGenerateSubmoduleConfigurations: false,
             extensions                       : [[$class: 'RelativeTargetDirectory', relativeTargetDir: relativeDir]],
             submoduleCfg                     : [],
-            userRemoteConfigs                : [[credentialsId: 'GITHUB', url: remote]]
+            userRemoteConfigs                : [[credentialsId: 'GITHUB', url: 'git@github.corp.ebay.com:ecg-comaas/central.git']]
     ])
 }
 
-def checkoutComaasCentralRepo(String gitHash, String remote) {
-    checkoutGithubRepo(gitHash, "ecg-comaas-central", remote)
+def checkoutComaasCentralRepo(String gitHash) {
+    checkoutGithubRepo(gitHash, "ecg-comaas-central")
 
     setGitCommitInfo("ecg-comaas-central")
 }
@@ -359,12 +359,12 @@ String getGitHashForTag(String tag) {
     return env.TEMP
 }
 
-Closure wrapWithStepDefinition(param, closure, String commit, String stageName, String remote) {
+Closure wrapWithStepDefinition(param, closure, String commit, String stageName) {
     return {
         stage("$stageName") {
             node('qa') {
                 try {
-                    checkoutComaasCentralRepo(commit, remote)
+                    checkoutComaasCentralRepo(commit)
                     loginToDocker()
 
                     if (param == null) {
@@ -385,13 +385,13 @@ Closure wrapWithStepDefinition(param, closure, String commit, String stageName, 
                     error "Stage $stageName failed with $exMessage"
                 } finally {
                     step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true])
-                    publishHTML (target: [
-                            allowMissing: true,
+                    publishHTML(target: [
+                            allowMissing         : true,
                             alwaysLinkToLastBuild: false,
-                            keepAll: true,
-                            reportDir: 'coverage',
-                            reportFiles: 'index.html',
-                            reportName: "Junit Report"
+                            keepAll              : true,
+                            reportDir            : 'coverage',
+                            reportFiles          : 'index.html',
+                            reportName           : "Junit Report"
                     ])
                     cleanWs notFailBuild: true
                 }

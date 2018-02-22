@@ -98,7 +98,7 @@ node('qa') {
     buildSteps = ["failFast": false]
     buildSteps += tenants.collectEntries { tenant ->
         String stageName = "Package artifact for $tenant"
-        [((String) "package-$tenant"): commonFunctions.wrapWithStepDefinition([tenant, version], distribute, gitHash, stageName, remote)]
+        [((String) "package-$tenant"): commonFunctions.wrapWithStepDefinition([tenant, version], distribute, gitHash, stageName)]
     }
     parallel buildSteps
 
