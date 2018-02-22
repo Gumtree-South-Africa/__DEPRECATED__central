@@ -65,7 +65,7 @@ node('qa') {
 
         echo "Checking if commit $gitHash already has a version tag"
 
-        commonFunctions.checkoutComaasCentralRepo(gitHash, remote)
+        commonFunctions.checkoutComaasCentralRepo(gitHash)
 
         version = sh(
                 script: "cd ecg-comaas-central; git show-ref --dereference --tags | grep \"^$gitHash\" | sort | head -1 | sed -e 's~.* refs/tags/~~' -e 's/\\^{}//'",
