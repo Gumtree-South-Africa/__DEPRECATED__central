@@ -95,6 +95,54 @@ node(PROVIDED_ENV) {
             ansiColor('xterm') {
                 sh "PYTHONWARNINGS='ignore' servicecontrol.py --logdir ~ --config /etc/comaas/comaas-${tenant}.yaml --restartservice comaas-${tenant}"
             }
+
+            final String tenantShort = tenantAliases().get(tenant)
+
+            // There are 4 availability zones (called DC in Nomad), and we want to be able to both spread more or less evenly
+            // over zones, and have the allocation space to reschedule enough instances when a zone goes down. This is a best
+            // effort effort:
+            final Integer nrOfInstancesPerZone = nrOfInstances.intdiv(4) + 1
+
+            // Is this really necessary? Can we pass the files to the builder instead?
+            checkout scm
+
+            withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
+                              usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
+                nomadFile = "core-api.nomad"
+                if (live || environment == "lp") {
+                    nomadFile = "core-api_ACTIVE.nomad"
+                }
+
+                final String deployDate = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"))
+
+                sh "levant render " +
+                        "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
+                        "-var='version=${version}' " +
+                        "-var='docker_password=${DOCKER_PASS}' " +
+                        "-var='tenant=${tenant}' " +
+                        "-var='tenant_short=${tenantShort}' " +
+                        "-var='environment=${environment}' " +
+                        "-var='region=${dc}' " +
+                        "-var='api_count=${nrOfInstances}' " +
+                        "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
+                        "-var='deploy_date=${deployDate}' " +
+                        "distribution/jenkins/deployment/${nomadFile}"
+                sh "levant deploy " +
+                        "-log-level=debug " +
+                        "-force-count=true " +
+                        "-address='http://http.nomad.service.consul:4646' " +
+                        "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
+                        "-var='version=${version}' " +
+                        "-var='docker_password=${DOCKER_PASS}' " +
+                        "-var='tenant=${tenant}' " +
+                        "-var='tenant_short=${tenantShort}' " +
+                        "-var='environment=${environment}' " +
+                        "-var='region=${dc}' " +
+                        "-var='api_count=${nrOfInstances}' " +
+                        "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
+                        "-var='deploy_date=${deployDate}' " +
+                        "distribution/jenkins/deployment/${nomadFile}"
+            }
         }
     }
 }
