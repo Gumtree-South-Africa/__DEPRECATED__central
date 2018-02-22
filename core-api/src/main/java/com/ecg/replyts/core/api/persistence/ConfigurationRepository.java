@@ -36,7 +36,6 @@ public interface ConfigurationRepository {
      */
     default ObjectNode getConfigurationsAsJson() {
         ArrayNode arrayNode = JsonObjects.newJsonArray();
-        // TODO: Order by priority
         for (PluginConfiguration pluginConfiguration : getConfigurations()) {
             JsonObjects.Builder config = JsonObjects.builder()
                     .attr("pluginFactory", pluginConfiguration.getId().getPluginFactory())

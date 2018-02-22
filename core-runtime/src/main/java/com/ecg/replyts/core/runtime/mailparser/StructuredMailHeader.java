@@ -190,7 +190,6 @@ class StructuredMailHeader {
             }
         }
         return builder.build();
-        // TODO: add unit test to see if this works!
     }
 
 

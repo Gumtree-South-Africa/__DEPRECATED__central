@@ -31,7 +31,6 @@ public class ResponsivenessKafkaSink implements ResponsivenessSink {
     @Override
     public void storeRecord(String writerId, ResponsivenessRecord record) {
         // skipping writerId, it is not needed for Kafka
-        // FIXME Must check the result before considering something is done
         responsivenessKafkaProducer.getProducer().send(new ProducerRecord<>(queueTopic, record), (recordMetadata, e) -> {
             if (e != null) {
                 LOG.error("Error storing responsiveness record {} with writerId {}", record, writerId, e);

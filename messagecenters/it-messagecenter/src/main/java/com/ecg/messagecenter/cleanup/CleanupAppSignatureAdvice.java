@@ -9,7 +9,6 @@ public class CleanupAppSignatureAdvice extends AbstractCleanupAdvice {
     private static final Pattern SEPARATOR = Pattern.compile("^--$");
 
     private static final List<Pattern> SIGNATURES = Arrays.asList(
-                    // @TODO: Import Patterns from CleanSignatureLinesAdvice
                     Pattern.compile("^Sent from Mail.Ru app for iOS$", Pattern.CASE_INSENSITIVE),
                     Pattern.compile("^Inviato da Libero Mail per Android$",
                                     Pattern.CASE_INSENSITIVE),

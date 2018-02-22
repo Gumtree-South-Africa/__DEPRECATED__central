@@ -214,7 +214,6 @@ public class GumtreeUrlFilter implements com.ecg.replyts.core.api.pluginconfigur
         if (messageContext.getMessage().getHeaders().containsKey(GumtreeCustomHeaders.SELLER_IS_PRO.getHeaderValue())) {
             return "true".equals(messageContext.getMessage().getHeaders().get(GumtreeCustomHeaders.SELLER_IS_PRO.getHeaderValue()));
         } else {
-            //TODO delete when seller_good header is removed
             return PRO_USER_HEADER_VALUE.equals(getSellerGoodHeaderValue(messageContext));
         }
     }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -27,9 +28,7 @@ public class ConversationEventListeners {
 
     @PostConstruct
     public void sortListeners() {
-        // TODO: We should annotate each ConversationEventListener with @Order(n) so that we can skip this altogether
-
-        Collections.sort(this.listeners, (l1, l2) -> l1.getOrder() - l2.getOrder());
+        this.listeners.sort(Comparator.comparingInt(ConversationEventListener::getOrder));
     }
 
     public void processEventListeners(ImmutableConversation conversation, List<ConversationEvent> conversationEvents) {

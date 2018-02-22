@@ -48,9 +48,6 @@ public class AdInfoLookup {
     }
 
     private HttpRequest buildRequest(Long adId) throws UnsupportedEncodingException {
-        //TODO how to get pictures and title only
-        //HttpGet get = new HttpGet("/api/ads/" + adId + ".json?_in=pictures");
-
         return new HttpGet("/api/ads/" + adId + ".json");
     }
 

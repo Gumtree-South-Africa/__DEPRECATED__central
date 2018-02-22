@@ -125,8 +125,6 @@ public class PostBoxListItemResponse {
         return ResponseUtil.getName(messages, direction);
     }
 
-    // old style lookup when we didn't have a complete search aggregate on the list-view
-    // todo: marked on calendar around June we deprecated this and throw it out (work with '...' placeholders if not data available)
     @Deprecated public static Optional<PostBoxListItemResponse> createNonAggregateListViewItem(
                     String email, boolean isUnread, Conversation conversationRts) {
         PostBoxListItemResponse response = new PostBoxListItemResponse();

@@ -54,12 +54,10 @@ public class VolumeFilter implements Filter {
     }
 
     private static String toUiHint(VolumeRule vr, String userId) {
-        //TODO: convert to string concat
         return String.format("%s>%s mails/%s %s +%s", userId, vr.getMaxCount(), vr.getTimeSpan(), vr.getTimeUnit(), vr.getScore());
     }
 
     private static String toDescription(VolumeRule vr, String userId) {
-        //TODO: convert to string concat
         return String.format("%s sent more than %s mails the last %s %s", userId, vr.getMaxCount(), vr.getTimeSpan(), vr.getTimeUnit());
     }
 

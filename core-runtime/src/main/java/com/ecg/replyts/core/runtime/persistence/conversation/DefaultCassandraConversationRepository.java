@@ -158,7 +158,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         }
     }
 
-    // https://jira.corp.ebay.com/browse/COMAAS-645 TODO only need data and conversationId here
+    // TODO COMAAS-645 only need data and conversationId here
     // TO BE DELETED WHEN ALL TENANTS ARE ON THE NEW INDEX
     @Override
     public Stream<ConversationEventIdx> streamConversationEventIdxsByHour(DateTime date) {

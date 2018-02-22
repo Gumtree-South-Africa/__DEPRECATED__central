@@ -64,7 +64,7 @@ public class AutogateAwareMailDeliveryServiceIntegrationTest {
         MimeMessage mail = rule.waitForMail();
         verify(0, getRequestedFor(urlMatching("/?(.*)")));
     }
-    //FIXME
+
     @Ignore
     public void redirectsMailsToAutogate() throws Exception {
         stubFor(post(urlMatching("/?(.*)")).willReturn(aResponse().withStatus(200)));

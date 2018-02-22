@@ -162,7 +162,6 @@ public class RobotService {
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
 
-        // TODO Review - Do we need to store attachments here
         if (mailRepository != null) {
             mailRepository.persistMail(messageId, mails.writeToBuffer(aRobotMail(conversation, payload)), Optional.empty());
         }

@@ -228,9 +228,6 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
          return streamPostBoxIds(fromDate, toDate).collect(Collectors.toList());
     }
 
-    /**
-     * TODO: keep the same functionalitu in Riak during a migration.
-     */
     @Override
     public int unreadCountInConversation(PostBoxId id, String conversationId) {
         return 1;

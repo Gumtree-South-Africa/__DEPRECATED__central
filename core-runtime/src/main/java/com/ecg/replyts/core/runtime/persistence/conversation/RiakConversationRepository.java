@@ -101,7 +101,6 @@ public class RiakConversationRepository implements MutableConversationRepository
         }
         try {
             TimeUnit.SECONDS.sleep(1);
-            // TODO: Add metrics counter here!
             return conversationSecretBucket.findConversationId(secret);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

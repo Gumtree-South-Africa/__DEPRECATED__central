@@ -123,7 +123,6 @@ public class MessageProcessingContext {
 
             // Current stored e-mail in conversation events is overridden by a new email from SMTP TO header
             if (overrideRecipientPredicate.test(toRecipient, storedRecipient)) {
-                // TODO: Remove the statement later on
                 LOG.debug("Recipient of Outgoing mail overridden: {}", toRecipient);
                 return toRecipient;
             }

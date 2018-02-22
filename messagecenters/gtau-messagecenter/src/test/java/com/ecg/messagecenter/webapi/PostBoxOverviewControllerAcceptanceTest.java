@@ -146,7 +146,7 @@ public class PostBoxOverviewControllerAcceptanceTest {
         RestAssured.given()
                 .expect()
                 .statusCode(200)
-                .body("body.numUnread", equalTo(1)) //TODO: There must be still one unread message in the conversation, defect!
+                .body("body.numUnread", equalTo(1))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/buyer2@buyer.com?robotEnabled=false");
     }
 
@@ -243,7 +243,7 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .statusCode(200)
                 .body("body.numUnread", equalTo(1))
                 .body("body.conversations.size()", equalTo(1))
-                .body("body.conversations[0].unread", equalTo(true)) //TODO users would still get the robot message counter
+                .body("body.conversations[0].unread", equalTo(true))
                 .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer."))
                 .body("body.conversations[0].buyerAnonymousEmail", containsString(robotMail.getConversation().getBuyerSecret()))
                 .body("body.conversations[0].sellerAnonymousEmail", containsString(robotMail.getConversation().getSellerSecret()))

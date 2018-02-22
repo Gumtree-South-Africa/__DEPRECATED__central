@@ -28,11 +28,9 @@ public class HeaderInjectorPostprocessor implements PostProcessor {
     public void postProcess(MessageProcessingContext context) {
         LOG.trace("Going to inject: {}", config.getHeadersToInject());
         try {
-            //TODO not sure if this must be custom headers or all headers
             Map<String,String> headers = context.getMail().getUniqueHeaders();
             LOG.trace("Got headers: {}", headers.keySet());
             for (String header : config.getHeadersToInject()) {
-                // TODO headers are shown in CamelCase
                 String headerValue = headers.get(header);
                 if (headerValue != null) {
                     try {

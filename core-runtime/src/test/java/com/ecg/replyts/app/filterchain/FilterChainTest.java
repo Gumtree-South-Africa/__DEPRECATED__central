@@ -53,8 +53,6 @@ import static org.mockito.Mockito.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Import({ FilterChain.class, FilterListProcessor.class })
 public class FilterChainTest {
-    // TODO: test enabled filters that give evaluation feedback
-
     private static final String CONVERSATION_ID = "MY_CONVERSATION";
     private static final String MESSAGE_ID = "MY_MESSAGE";
 

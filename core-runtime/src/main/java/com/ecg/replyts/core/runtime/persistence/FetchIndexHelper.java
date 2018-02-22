@@ -13,8 +13,6 @@ import static com.ecg.replyts.core.runtime.persistence.TimestampIndexValue.times
 public abstract class FetchIndexHelper {
     public static List<IndexEntry> fetchResult(FetchIndex<Number> fetchIndex, DateTime time, int maxResults) throws RiakException {
         Preconditions.checkNotNull(fetchIndex, time);
-        // FIXME: The getAll() call put all results into one list. When the amount of data is quite big, it might be possible that we run out of memory!
-        // Instead of getAll(), the iterator should be used!
         return fetchIndex
                 .from(0)
                 .maxResults(maxResults) // Can only be used with executeStreaming! Actually, maxResults means the page size the Riak client will load.

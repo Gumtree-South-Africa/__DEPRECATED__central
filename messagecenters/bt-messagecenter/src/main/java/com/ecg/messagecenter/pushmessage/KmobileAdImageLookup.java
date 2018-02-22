@@ -54,7 +54,6 @@ public class KmobileAdImageLookup extends AdImageLookup {
         HttpGet get = new HttpGet("/api/ads/" + adId + ".json?_in=pictures");
 
         // auth-setting via header much easier as doing yucky handling basic auth aspect in http-client builder
-        // todo: currently 'mweb' api-user is used, change this to 'kcron' after api has new user 'kcron' deployed
         get.setHeader("Authorization", "Basic bXdlYjp0aGlmZ3IzNHQ=");
         return get;
     }

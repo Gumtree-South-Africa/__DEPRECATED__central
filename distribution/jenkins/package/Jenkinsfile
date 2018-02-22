@@ -65,7 +65,6 @@ node('qa') {
 
         echo "Checking if commit $gitHash already has a version tag"
 
-        // TODO: use checkout scm instead
         commonFunctions.checkoutComaasCentralRepo(gitHash, remote)
 
         version = sh(

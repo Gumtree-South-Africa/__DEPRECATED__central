@@ -60,9 +60,6 @@ abstract public class ConversationRepositoryIntegrationTestBase<R extends Mutabl
 
     protected abstract R createConversationRepository();
 
-    // TODO: test ConversationRepository.listConversationsModifiedBetween.
-    // TODO: test ConversationRepository.findExistingConversationFor.
-
     @Test
     public void persistsDeadOnArrivalConversationsWithoutSecrets() {
         NewConversationCommand newConversation = aNewDeadConversationCommand("99998888").build();
@@ -99,7 +96,6 @@ abstract public class ConversationRepositoryIntegrationTestBase<R extends Mutabl
         assertThat(m.getHeaders().get("To"), is("9y3k9x6cvm8dp@platform.ebay.com"));
         assertThat(m.getFilterResultState(), is(FilterResultState.HELD));
         assertThat(m.getHumanResultState(), is(ModerationResultState.BAD));
-        // TODO: assertThat(m.getState(), is(MessageState.BAD));
         assertThat(m.getLastModifiedAt().toDateTime(DateTimeZone.UTC), is(new DateTime(2012, 2, 10, 10, 30, 0).toDateTime(DateTimeZone.UTC)));
     }
 

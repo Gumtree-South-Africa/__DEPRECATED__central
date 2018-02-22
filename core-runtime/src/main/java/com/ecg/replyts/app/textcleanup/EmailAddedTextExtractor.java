@@ -13,7 +13,6 @@ import java.util.Optional;
  * previous message.
  * In case there is no previous message, the whole message is considered
  * added.
- * TODO: compare against email platform template for new messages.
  */
 public final class EmailAddedTextExtractor {
 

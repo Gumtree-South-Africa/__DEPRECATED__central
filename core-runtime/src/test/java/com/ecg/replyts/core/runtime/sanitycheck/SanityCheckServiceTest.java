@@ -16,17 +16,14 @@ public class SanityCheckServiceTest {
 
     private Check mockCheck = new Check() {
         public String getSubCategory() {
-            // TODO Auto-generated method stub
             return "m";
         }
 
         public String getName() {
-            // TODO Auto-generated method stub
             return "Mock";
         }
 
         public String getCategory() {
-            // TODO Auto-generated method stub
             return "o";
         }
 

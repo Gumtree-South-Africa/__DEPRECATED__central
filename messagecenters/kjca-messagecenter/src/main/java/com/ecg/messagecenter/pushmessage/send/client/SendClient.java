@@ -25,7 +25,6 @@ public class SendClient {
     private static final String ACTION_SEND_MESSAGE = "send.client.send-message";
     private static final String ACTION_HAS_SUBSCRIPTION = "send.client.check-subscription";
 
-    //TODO will need to hook this in once we have some real traffic.
     private final int hystrixTimeout;
     private final HttpClient httpClient;
     private final HttpHost httpHost;

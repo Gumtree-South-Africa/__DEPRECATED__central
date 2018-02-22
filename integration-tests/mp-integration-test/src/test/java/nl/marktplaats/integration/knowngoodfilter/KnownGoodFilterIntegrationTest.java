@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 
 public class KnownGoodFilterIntegrationTest extends ReceiverTestsSetup {
 
-    // DISABLED because volume filter is still WIP, TODO: enable after volume filter is available
     @Test(groups = { "receiverTests" }, enabled = false)
     public void rtsBlocksMessagesAfterReachingVolumeThresholdForRegularUser() throws Exception {
         // Volume filter allows up to 10 mails per 10 minutes.

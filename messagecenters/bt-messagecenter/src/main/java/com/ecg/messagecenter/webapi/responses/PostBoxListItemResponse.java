@@ -64,10 +64,6 @@ public class PostBoxListItemResponse {
           Collections.emptyList(),null);
     }
 
-    // Old style lookup when we didn't have a complete search aggregate on the list-view
-    //
-    // TODO: Deprecated around June; throw it out and replace to work with '...' placeholders if no data available
-
     @Deprecated
     public static Optional<PostBoxListItemResponse> createNonAggregateListViewItem(String email, ConversationThread conversationThread, Conversation conversationRts) {
         PostBoxListItemResponse response = new PostBoxListItemResponse();

@@ -149,7 +149,6 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
         }
     }
 
-    //TODO delete when buyer/seller_good headers are removed
     private boolean isAccountHolder(boolean checkBuyer, Map<String, String> headers) {
         String knownGoodHeader = checkBuyer
                 ? GumtreeCustomHeaders.BUYER_GOOD.getHeaderValue()

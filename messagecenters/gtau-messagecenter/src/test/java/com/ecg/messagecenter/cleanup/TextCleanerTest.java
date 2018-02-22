@@ -42,10 +42,6 @@ public class TextCleanerTest {
             }
         });
 
-        //TODO: Fix the email file loader for Jenkins
-//        if(texts == null)
-//            return;
-
         for(File text : texts) {
             expected.put(fileName(text.getName()), IOUtils.toString(new FileInputStream(text)));
         }
