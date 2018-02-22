@@ -14,6 +14,7 @@ import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
+import com.google.common.base.Stopwatch;
 import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static com.codahale.metrics.MetricRegistry.name;
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_ORIGINAL_FROM;
@@ -79,12 +81,12 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
      */
     @Override
     public final Optional<String> accept(@WillNotClose InputStream input) throws IOException, ParsingException {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         try (Timer.Context ignored = OVERALL_TIMER.time()) {
             byte[] bytes = ByteStreams.toByteArray(input);
-            LOG.trace("Received new message. Size {} bytes", bytes.length);
+            LOG.debug("Message received", keyValue("contentLength", bytes.length));
 
             Optional<Mail> mail = parseMail(bytes);
-
             if (!mail.isPresent()) {
                 // Return here, if unparseable, message is persisted in parse mail.
                 return Optional.empty();
@@ -92,7 +94,6 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), Guids.next());
             setMDC(context);
-            LOG.debug("Received Message", keyValue("contentLength", bytes.length));
             contentLengthMeter.mark(bytes.length);
 
             processingFlow.inputForPreProcessor(context);
@@ -108,6 +109,9 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 handleSuccess(context, bytes);
             }
             return Optional.of(context.getMessageId());
+        }
+        finally {
+            LOG.debug("Message processed", keyValue("processingTime", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
         }
     }
 
@@ -135,8 +139,6 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     }
 
     private void handleSuccess(MessageProcessingContext context, byte[] messageBytes) {
-        LOG.debug("Message successfully sent.");
-
         byte[] outgoing = Mails.writeToBuffer(context.getOutgoingMail());
 
         persister.persistAndIndex(
