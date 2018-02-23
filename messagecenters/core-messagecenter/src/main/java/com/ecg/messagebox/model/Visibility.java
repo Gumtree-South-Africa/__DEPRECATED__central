@@ -1,5 +1,7 @@
 package com.ecg.messagebox.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +22,11 @@ public enum Visibility {
 
     Visibility(int code) {
         this.code = code;
+    }
+
+    @JsonValue
+    public String getValue() {
+        return this.name().toLowerCase();
     }
 
     public int getCode() {

@@ -5,7 +5,10 @@ import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagebox.service.ResponseDataService;
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
@@ -13,6 +16,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.mockito.Mockito.mock;
 
@@ -29,6 +33,17 @@ public abstract class AbstractTest {
     static final String MESSAGE_TEXT = "MESSAGE TEXT";
     static final String AD_ID = "AD_ID";
     static final String CUSTOM_DATA = "CUSTOM_DATA";
+
+    @Autowired
+    protected PostBoxService postBoxService;
+
+    @Autowired
+    protected ResponseDataService responseDataService;
+
+    @Before
+    public void setUp() {
+        Mockito.reset(postBoxService, responseDataService);
+    }
 
     public static class Configuration {
 
@@ -53,6 +68,7 @@ public abstract class AbstractTest {
         ConversationThread conversation = new ConversationThread(CONVERSATION_ID, AD_ID, USER_BUYER_ID, Visibility.ACTIVE, MessageNotification.RECEIVE, Arrays.asList(buyer, seller), message, metadata);
         conversation.addNumUnreadMessages(USER_BUYER_ID, 0);
         conversation.addNumUnreadMessages(USER_SELLER_ID, 0);
+        conversation.addMessages(Collections.singletonList(message));
         return conversation;
     }
 }

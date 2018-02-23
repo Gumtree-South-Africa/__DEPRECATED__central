@@ -2,8 +2,8 @@ package com.ecg.messagebox.resources;
 
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
-import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -25,9 +25,6 @@ public class ConversationsResourceTest extends AbstractTest {
 
     @Autowired
     private MockMvc mvc;
-
-    @Autowired
-    private PostBoxService postBoxService;
 
     @Test
     public void getEmptyPostbox() throws Exception {
@@ -123,7 +120,7 @@ public class ConversationsResourceTest extends AbstractTest {
                 .thenReturn(postBox);
 
         mvc.perform(put("/users/" + USER_BUYER_ID + "/conversations/archive")
-                .param("ids", CONVERSATION_ID)
+                .content("[\"" + CONVERSATION_ID + "\"]")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -144,22 +141,13 @@ public class ConversationsResourceTest extends AbstractTest {
         when(postBoxService.archiveConversations(USER_BUYER_ID, Arrays.asList("conversation-1", "conversation-2"), 0, 50))
                 .thenReturn(postBox);
 
-        mvc.perform(put("/users/" + USER_BUYER_ID + "/conversations/archive")
-                .param("ids", "conversation-1", "conversation-2")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void commaSeparatedArchiveConversation() throws Exception {
-        UserUnreadCounts unreadCounts = new UserUnreadCounts(USER_BUYER_ID, 0, 0);
-        PostBox postBox = new PostBox(USER_BUYER_ID, Arrays.asList(conversationThread(), conversationThread()), unreadCounts, 2);
-
-        when(postBoxService.archiveConversations(USER_BUYER_ID, Arrays.asList("conversation-1", "conversation-2"), 0, 50))
-                .thenReturn(postBox);
+        String body = ObjectMapperConfigurer.arrayBuilder()
+                .add("conversation-1")
+                .add("conversation-2")
+                .toString();
 
         mvc.perform(put("/users/" + USER_BUYER_ID + "/conversations/archive")
-                .param("ids", "conversation-1,conversation-2")
+                .content(body)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
@@ -173,7 +161,7 @@ public class ConversationsResourceTest extends AbstractTest {
                 .thenReturn(postBox);
 
         mvc.perform(put("/users/" + USER_BUYER_ID + "/conversations/activate")
-                .param("ids", CONVERSATION_ID)
+                .content("[\"" + CONVERSATION_ID + "\"]")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -194,8 +182,13 @@ public class ConversationsResourceTest extends AbstractTest {
         when(postBoxService.activateConversations(USER_BUYER_ID, Arrays.asList("conversation-1", "conversation-2"), 0, 50))
                 .thenReturn(postBox);
 
+        String body = ObjectMapperConfigurer.arrayBuilder()
+                .add("conversation-1")
+                .add("conversation-2")
+                .toString();
+
         mvc.perform(put("/users/" + USER_BUYER_ID + "/conversations/activate")
-                .param("ids", "conversation-1", "conversation-2")
+                .content(body)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }

@@ -1,6 +1,5 @@
 package com.ecg.messagebox.resources;
 
-import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import org.junit.Test;
@@ -19,9 +18,6 @@ public class UnreadCountsResourceTest extends AbstractTest {
 
     @Autowired
     private MockMvc mvc;
-
-    @Autowired
-    private PostBoxService postBoxService;
 
     @Test
     public void emptyUnreadCounts() throws Exception {

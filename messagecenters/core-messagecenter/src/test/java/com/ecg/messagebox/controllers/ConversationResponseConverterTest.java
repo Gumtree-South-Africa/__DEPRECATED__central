@@ -1,7 +1,6 @@
 package com.ecg.messagebox.controllers;
 
 import com.ecg.messagebox.controllers.responses.ConversationResponse;
-import com.ecg.messagebox.controllers.ConversationResponseConverter;
 import com.ecg.messagebox.controllers.responses.MessageResponse;
 import com.ecg.messagebox.controllers.responses.ParticipantResponse;
 import com.ecg.messagebox.model.*;

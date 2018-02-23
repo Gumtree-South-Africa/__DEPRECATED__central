@@ -10,10 +10,7 @@ import java.util.stream.Collectors;
 
 public enum ParticipantRole {
 
-    BUYER("buyer"),
-    SELLER("seller");
-
-    private String value;
+    BUYER, SELLER;
 
     private static final Map<String, ParticipantRole> lookup = new HashMap<>();
 
@@ -22,13 +19,9 @@ public enum ParticipantRole {
             lookup.put(v.getValue(), v);
     }
 
-    ParticipantRole(String value) {
-        this.value = value;
-    }
-
     @JsonValue
     public String getValue() {
-        return value;
+        return this.name().toLowerCase();
     }
 
     public static ParticipantRole get(String value) {

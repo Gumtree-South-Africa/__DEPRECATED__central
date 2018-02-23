@@ -2,9 +2,8 @@ package com.ecg.messagebox.resources;
 
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.resources.exceptions.NotFoundException;
-import com.ecg.messagebox.resources.responses.ValidationError;
-import com.ecg.messagebox.resources.responses.ValidationErrorBuilder;
-import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
+import com.ecg.messagebox.resources.responses.ErrorResponse;
+import com.ecg.messagebox.resources.responses.ErrorResponseBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,25 +22,36 @@ public class MessageBoxAdvice extends ResponseEntityExceptionHandler {
 
     @InitBinder
     public void initBinderInternal(WebDataBinder binder) {
-        binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
         binder.registerCustomEditor(Visibility.class, new VisibilityEditor());
     }
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Void> handleEntityNotFoundException() {
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(NotFoundException ex) {
+        ErrorResponse error = ErrorResponseBuilder.fromNotFoundException(ex);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+        ErrorResponse error = ErrorResponseBuilder.fromException(ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        return super.handleExceptionInternal(ex, body, headers, status, request);
     }
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        ValidationError error = ValidationErrorBuilder.fromBinding(ex.getBindingResult());
-        return super.handleExceptionInternal(ex, error, headers, status, request);
+        ErrorResponse error = ErrorResponseBuilder.fromBinding(ex.getBindingResult());
+        return ResponseEntity.badRequest().body(error);
     }
 
     private static class VisibilityEditor extends PropertyEditorSupport {
 
         @Override
-        public void setAsText(final String text){
+        public void setAsText(final String text) {
             setValue(Visibility.valueOf(text.toUpperCase()));
         }
     }

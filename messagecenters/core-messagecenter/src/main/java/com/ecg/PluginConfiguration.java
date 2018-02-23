@@ -17,7 +17,7 @@ public class PluginConfiguration {
     static final String ONLY_V1_TENANTS = "#{'${replyts.tenant}' != 'mp' && '${replyts.tenant}' != 'mde'}";
 
     @Configuration
-    @ComponentScan(value = "com.ecg.messagebox", excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = { "com.ecg.messagebox.resources.*", "com.ecg.messagebox.controllers.*" }))
+    @ComponentScan(value = "com.ecg.messagebox", excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.ecg.messagebox.resources.*", "com.ecg.messagebox.controllers.*"}))
     @ConditionalOnExpression(V2_AND_UPGRADE_TENANTS)
     public static class MessageBoxServices {
         @Bean

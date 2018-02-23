@@ -1,14 +1,12 @@
 package com.ecg;
 
-import com.ecg.replyts.core.webapi.util.JsonNodeMessageConverter;
-import com.ecg.replyts.core.webapi.util.MappingJackson2HttpMessageConverter;
+import com.ecg.messagebox.util.SwaggerCustomModelPropertyBuilderPlugin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
@@ -21,8 +19,6 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger.web.UiConfigurationBuilder;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
-
-import java.util.List;
 
 @Configuration
 @Import(WebConfiguration.SwaggerConfiguration.class)
@@ -38,12 +34,6 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
         RequestMappingHandlerMapping mapping = super.requestMappingHandlerMapping();
         mapping.setAlwaysUseFullPath(true);
         return mapping;
-    }
-
-    @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(new MappingJackson2HttpMessageConverter());
-        converters.add(new JsonNodeMessageConverter());
     }
 
     @Override
@@ -92,7 +82,16 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
             return new ApiInfoBuilder()
                     .description("Comaas MessageBox (WebAPI v2)")
                     .title("MessageBox")
+                    .version("v2")
                     .build();
+        }
+
+        /**
+         * Hide 'allowEmptyValue' when field annotated with @ApiModelProperty (no officially supported)
+         */
+        @Bean
+        public SwaggerCustomModelPropertyBuilderPlugin swaggerCustomModelPropertyBuilderPlugin() {
+            return new SwaggerCustomModelPropertyBuilderPlugin();
         }
     }
 }

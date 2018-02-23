@@ -1,23 +1,33 @@
 package com.ecg.messagebox.resources.responses;
 
 import com.ecg.messagebox.model.MessageType;
-import com.ecg.messagecenter.util.MessageCenterUtils;
+import com.ecg.messagebox.model.ResponseData;
+import com.ecg.messagebox.util.TimeFormatUtils;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import io.swagger.annotations.ApiModelProperty;
+import org.joda.time.DateTime;
 
 public class ResponseDataResponse {
 
+    @ApiModelProperty(required = true)
     private final String userId;
+    @ApiModelProperty(required = true)
     private final String conversationId;
+    @ApiModelProperty(required = true)
     private final int responseSpeed;
-    private final String conversationCreationDate;
+    @ApiModelProperty(required = true, example = TimeFormatUtils.DATE_FORMAT_STR_ISO8601_Z)
+    @JsonSerialize(using = TimeFormatUtils.DateTimeSerializer.class)
+    private final DateTime conversationCreationDate;
+    @ApiModelProperty(required = true)
     private final MessageType conversationType;
 
-    public ResponseDataResponse(com.ecg.messagebox.model.ResponseData persistenceResponseData) {
+    public ResponseDataResponse(ResponseData persistenceResponseData) {
         this.userId = persistenceResponseData.getUserId();
         this.conversationId = persistenceResponseData.getConversationId();
         this.responseSpeed = persistenceResponseData.getResponseSpeed();
-        this.conversationCreationDate = MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(persistenceResponseData.getConversationCreationDate());
+        this.conversationCreationDate = persistenceResponseData.getConversationCreationDate();
         this.conversationType = persistenceResponseData.getConversationType();
     }
 
@@ -33,7 +43,7 @@ public class ResponseDataResponse {
         return responseSpeed;
     }
 
-    public String getConversationCreationDate() {
+    public DateTime getConversationCreationDate() {
         return conversationCreationDate;
     }
 

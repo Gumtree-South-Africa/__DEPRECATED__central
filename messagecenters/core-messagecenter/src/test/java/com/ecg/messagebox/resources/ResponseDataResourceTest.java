@@ -3,8 +3,9 @@ package com.ecg.messagebox.resources;
 import com.ecg.messagebox.model.AggregatedResponseData;
 import com.ecg.messagebox.model.MessageType;
 import com.ecg.messagebox.model.ResponseData;
-import com.ecg.messagebox.service.ResponseDataService;
+import com.ecg.messagebox.util.TimeFormatUtils;
 import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -27,9 +28,6 @@ public class ResponseDataResourceTest extends AbstractTest {
 
     @Autowired
     private MockMvc mvc;
-
-    @Autowired
-    private ResponseDataService responseDataService;
 
     @Test
     public void emptyResponseData() throws Exception {
@@ -56,7 +54,7 @@ public class ResponseDataResourceTest extends AbstractTest {
                 .put("userId", USER_ID)
                 .put("conversationId", CONVERSATION_ID)
                 .put("responseSpeed", 15)
-                .put("conversationCreationDate", now.toString())
+                .put("conversationCreationDate", TimeFormatUtils.format(now))
                 .put("conversationType", "chat");
 
         String response = ObjectMapperConfigurer.getObjectMapper()
@@ -86,7 +84,7 @@ public class ResponseDataResourceTest extends AbstractTest {
                 .put("userId", USER_ID)
                 .put("conversationId", CONVERSATION_ID)
                 .put("responseSpeed", 15)
-                .put("conversationCreationDate", now.toString())
+                .put("conversationCreationDate", TimeFormatUtils.format(now))
                 .put("conversationType", "chat");
 
         ObjectNode object2 = ObjectMapperConfigurer.getObjectMapper()
@@ -94,7 +92,7 @@ public class ResponseDataResourceTest extends AbstractTest {
                 .put("userId", USER_ID)
                 .put("conversationId", CONVERSATION_ID)
                 .put("responseSpeed", -1)
-                .put("conversationCreationDate", now.toString())
+                .put("conversationCreationDate", TimeFormatUtils.format(now))
                 .put("conversationType", "chat");
 
         String response = ObjectMapperConfigurer.getObjectMapper()
@@ -136,8 +134,13 @@ public class ResponseDataResourceTest extends AbstractTest {
         when(responseDataService.getAggregatedResponseData(USER_ID))
                 .thenReturn(Optional.empty());
 
+        JsonNode response = ObjectMapperConfigurer.objectBuilder()
+                .put("errorType", "EntityNotFound")
+                .put("errorMessage", "AggregationResponseData not found for userID: USER_ID");
+
         mvc.perform(get("/users/" + USER_ID + "/aggregated-response-data")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(content().json(response.toString()));
     }
 }
