@@ -49,7 +49,7 @@ public class ElasticSearchIndexer implements Indexer {
         healthCheck.reportFull(Status.OK, Message.shortInfo(startMsg));
 
         try {
-            doIndexFromDate(startTimeForFullIndex(), IndexingMode.FULL);
+            doIndexFromDate(startTimeForFullIndex(), DateTime.now(), IndexingMode.FULL);
 
             String endMsg = "Full Indexing finished at " + new DateTime().withZone(UTC);
             LOG.debug(endMsg);
@@ -69,7 +69,7 @@ public class ElasticSearchIndexer implements Indexer {
         try {
             DateTime dateFrom = Optional.ofNullable(indexerClockRepository.get()).orElse(startTimeForFullIndex());
 
-            doIndexFromDate(dateFrom, IndexingMode.DELTA);
+            doIndexFromDate(dateFrom, DateTime.now(), IndexingMode.DELTA);
 
             String endMsg = "Delta Indexing finished at " + new DateTime().withZone(UTC);
             LOG.debug(endMsg);
@@ -82,11 +82,16 @@ public class ElasticSearchIndexer implements Indexer {
 
     @Override
     public void indexSince(DateTime since) {
-        doIndexFromDate(since, IndexingMode.FULL);
+        doIndexFromDate(since, DateTime.now(), IndexingMode.FULL);
     }
 
-    private void doIndexFromDate(DateTime dateFrom, IndexingMode mode) {
-        ExclusiveLauncherRunnable indexLauncher = new ExclusiveLauncherRunnable(mode, dateFrom, indexerClockRepository, indexingJournals, indexerAction);
+    @Override
+    public void indexSince(DateTime since, DateTime to) {
+        doIndexFromDate(since, to, IndexingMode.FULL);
+    }
+
+    private void doIndexFromDate(DateTime dateFrom, DateTime dateTo, IndexingMode mode) {
+        ExclusiveLauncherRunnable indexLauncher = new ExclusiveLauncherRunnable(mode, dateFrom, dateTo, indexerClockRepository, indexingJournals, indexerAction);
         boolean jobExecuted = singleRunGuard.runExclusivelyOrSkip(mode, indexLauncher);
 
         if (!jobExecuted && mode == IndexingMode.FULL) {

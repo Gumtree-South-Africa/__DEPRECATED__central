@@ -11,5 +11,7 @@ public interface Indexer {
 
     void indexSince(DateTime since);
 
+    void indexSince(DateTime since, DateTime to);
+
     List<IndexerStatus> getStatus();
 }

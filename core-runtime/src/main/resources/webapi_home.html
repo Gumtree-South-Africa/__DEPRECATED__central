@@ -14,6 +14,34 @@
     </style>
 </head>
 <body>
+<ul>
+    <li><a href="startFullIndex">Build Full Index</a></li>
+    <li><a href="startDeltaIndex">Build Delta Index</a></li>
+    <li><a href="startDeltaIndex">Build Delta Index</a></li>
+    <li>
+        <form action="/startIndexSince" method="GET">index since (yyyy-mm-ddThh:mm:ss e.g. 2013-01-29T23:55:55):
+            <input type="text" name="since" placeholder="yyyy-mm-ddThh:mm:ss"/>
+            <button type="submit">Start</button>
+        </form>
+    </li>
+    <li>
+        <form action="/startIndexSinceTo" method="GET">index since - to (yyyy-mm-ddThh:mm:ss e.g. 2013-01-29T23:55:55 -
+            2013-02-01T01:00:00):
+            <input type="text" name="since" placeholder="yyyy-mm-ddThh:mm:ss"/> - <input type="text" name="to"
+                                                                                         placeholder="yyyy-mm-ddThh:mm:ss"/>
+            <button type="submit">Start</button>
+        </form>
+    </li>
+    <li>
+        <form action="/indexConversations" method="POST">White space, comma or newline separated list of conversation IDs<br/>
+            <textarea rows="5" cols="100" required="true" name="conversationList" placeholder=""></textarea><br/>
+            <button type="submit">Start Indexing Conversations</button>
+        </form>
+    </li>
+    <li><a href="statusIndex">Show Index Status</a></li>
+    <li><a href="statusCrons">Show Cronjob Execution Status</a></li>
+    <li><a href="health">Show Health Status</a></li>
+</ul>
 <strong>
 <pre>
    __________  __  ___            _____
@@ -24,25 +52,8 @@
 
 </pre>
 </strong>
-<hr/>
 COMaaS Management Console
-<ul>
-    <li><a href="startFullIndex">Build Full Index</a></li>
-    <li><a href="startDeltaIndex">Build Delta Index</a></li>
-    <li>
-        <form action="/startIndexSince" method="GET">index since (yyyy-mm-ddThh:mm:ss e.g. 2013-01-29T23:55:55):
-            <input type="text" name="since" placeholder="yyyy-mm-ddThh:mm:ss"/>
-            <button type="submit">Start</button>
-        </form>
-        <form action="/indexConversations" method="POST">White space, comma or newline separated list of conversation IDs<br/>
-            <textarea rows="5" cols="100" required="true" name="conversationList" placeholder=""></textarea><br/>
-            <button type="submit">Start Indexing Conversations</button>
-        </form>
-    </li>
-    <li><a href="statusIndex">Show Index Status</a></li>
-    <li><a href="statusCrons">Show Cronjob Execution Status</a></li>
-    <li><a href="health">Show Health Status</a></li>
-</ul>
+<hr/>
 <h3>Migration (conditional on persistance.strategy.startsWith('Hybrid')</h3>
 <h4>Core conversations</h4>
 <p>At present only one request from the below can be run at one time, excluding the status call. Be ware that some conversations/postboxes outside of the given time slice will also be migrated thanks for peculiar riak behaviour.</p>
