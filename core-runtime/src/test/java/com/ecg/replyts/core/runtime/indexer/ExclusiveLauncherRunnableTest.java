@@ -62,6 +62,6 @@ public class ExclusiveLauncherRunnableTest {
     }
 
     private void run(IndexingMode indexingMode) {
-        new ExclusiveLauncherRunnable(indexingMode, DateTime.now().minusDays(1), indexerClockRepository, indexingJournals, indexerAction).run();
+        new ExclusiveLauncherRunnable(indexingMode, DateTime.now().minusDays(1), DateTime.now(), indexerClockRepository, indexingJournals, indexerAction).run();
     }
 }

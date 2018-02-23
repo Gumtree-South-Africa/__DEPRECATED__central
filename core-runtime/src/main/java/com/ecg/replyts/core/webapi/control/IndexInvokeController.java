@@ -98,6 +98,16 @@ class IndexInvokeController {
         return "Rebuilding index since " + sinceDate;
     }
 
+    @RequestMapping("/startIndexSinceTo")
+    @ResponseBody
+    public String invokeDeltaIndexTo(String since, String to) {
+        final DateTime sinceDate = DateTime.parse(since);
+        final DateTime toDate = DateTime.parse(to);
+        LOG.info("Invoke Partial Full Index - since {} to - {}", sinceDate, to);
+        executorService.execute(setTaskFields(() -> indexer.indexSince(sinceDate, toDate), "IndexInvokeController-indexSinceTo"));
+        return "Rebuilding index since " + sinceDate + " to " + toDate;
+    }
+
     @RequestMapping(value = "/statusIndex", produces = "application/json")
     @ResponseBody
     public String statusIndex() {
