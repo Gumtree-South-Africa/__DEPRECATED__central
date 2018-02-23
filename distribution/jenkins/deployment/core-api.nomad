@@ -69,8 +69,7 @@ job "[[ .tenant ]]-core-api" {
         name = "comaas-core-[[ .tenant ]]"
         port = "http"
         tags = [
-//          "urlprefix-[[ .tenant_short ]].[[ .environment ]].comaas.cloud/",
-//          "urlprefix-[[ .region ]].[[ .tenant_short ]].[[ .environment ]].comaas.cloud/",
+          "version-[[.version]]"
         ]
         check {
           type     = "http"
