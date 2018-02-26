@@ -6,6 +6,7 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.google.common.collect.Iterables;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -108,6 +109,8 @@ public class BulkIndexer {
         for (Conversation conversation : conversations) {
             updateIndex(conversation);
         }
+        Conversation lastProcessedConversation = Iterables.getLast(conversations);
+        LOG.info("Last processed conversation - {}, lastModifiedAt - {}", lastProcessedConversation.getLastModifiedAt());
     }
 
     public void updateIndex(Conversation conversation) {

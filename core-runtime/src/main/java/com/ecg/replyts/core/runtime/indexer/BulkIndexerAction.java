@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -100,7 +99,7 @@ public class BulkIndexerAction implements IndexerAction {
 
         try {
             indexerBulkHandler.flush();
-        }  catch (Exception e) {
+        } catch (Exception e) {
             LOG.error("Indexing failed with exception", e);
         }
 

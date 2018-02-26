@@ -51,7 +51,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PreDestroy;
-
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -79,11 +78,18 @@ public class CassandraPersistenceConfiguration {
     private ConversationResumer resumer;
 
     @Value("${persistence.cassandra.conversations.fetch.size:100}")
-    private int conversationEventsFetchLimit;
+    private int conversationEventsFetchSize;
+
+    @Value("${persistence.cassandra.conversations.modified.between.fetch.size:5000}")
+    private int conversationsModifiedBetweenFetchSize;
+
+    @Value("${persistence.cassandra.conversations.modified.between.lower.consistency.retry:false}")
+    private boolean conversationsModifiedBetweenLowerConsistencyRetry;
 
     @Bean
     public ConversationRepository conversationRepository(Session cassandraSessionForCore) {
-        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, conversationEventsFetchLimit);
+        return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency,
+                resumer, conversationEventsFetchSize, conversationsModifiedBetweenFetchSize, conversationsModifiedBetweenLowerConsistencyRetry);
     }
 
     @Bean

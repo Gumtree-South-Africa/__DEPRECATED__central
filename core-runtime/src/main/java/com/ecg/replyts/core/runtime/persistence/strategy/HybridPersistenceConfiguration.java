@@ -10,7 +10,10 @@ import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.RiakIndexerClockRepository;
-import com.ecg.replyts.core.runtime.persistence.*;
+import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
+import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
+import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
+import com.ecg.replyts.core.runtime.persistence.HybridMigrationClusterState;
 import com.ecg.replyts.core.runtime.persistence.clock.CassandraCronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
 import com.ecg.replyts.core.runtime.persistence.config.CassandraConfigurationRepository;
@@ -74,6 +77,12 @@ public class HybridPersistenceConfiguration {
     @Value("${persistence.cassandra.conversations.fetch.size:100}")
     private int conversationEventsFetchLimit;
 
+    @Value("${persistence.cassandra.conversations.modified.between.fetch.size:5000}")
+    private int conversationsModifiedBetweenFetchSize;
+
+    @Value("${persistence.cassandra.conversations.modified.between.lower.consistency.retry:false}")
+    private boolean conversationsModifiedBetweenLowerConsistencyRetry;
+
     private DefaultCassandraConversationRepository cassandraConversationRepository;
 
     @Bean
@@ -89,7 +98,7 @@ public class HybridPersistenceConfiguration {
     @Primary
     public HybridConversationRepository conversationRepository(@Qualifier("cassandraSessionForCore") Session cassandraSession, HybridMigrationClusterState migrationState) {
         cassandraConversationRepository = new DefaultCassandraConversationRepository(cassandraSession, cassandraReadConsistency, cassandraWriteConsistency, resumer,
-                conversationEventsFetchLimit);
+                conversationEventsFetchLimit, conversationsModifiedBetweenFetchSize, conversationsModifiedBetweenLowerConsistencyRetry);
 
         RiakConversationRepository riakRepository = new RiakConversationRepository(riakClient, bucketNamePrefix, allowSiblings, lastWriteWins);
 

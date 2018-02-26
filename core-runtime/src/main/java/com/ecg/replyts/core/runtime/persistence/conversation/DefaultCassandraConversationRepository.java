@@ -2,13 +2,26 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.policies.DowngradingConsistencyRetryPolicy;
+import com.datastax.driver.core.policies.FallthroughRetryPolicy;
+import com.datastax.driver.core.policies.LoggingRetryPolicy;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
-import com.ecg.replyts.core.api.model.conversation.event.*;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIndex;
+import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
@@ -23,7 +36,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,19 +83,25 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
 
     private final ConversationResumer resumer;
 
-    private final int conversationEventsFetchLimit;
+    private final int conversationEventsFetchSize;
+    private final int conversationsModifiedBetweenFetchSize;
+    private final boolean conversationsModifiedBetweenLowerConsistencyRetry;
 
     public DefaultCassandraConversationRepository(Session session, ConsistencyLevel readConsistency,
                                                   ConsistencyLevel writeConsistency, ConversationResumer resumer,
-                                                  int conversationEventsFetchLimit) {
-        checkArgument(conversationEventsFetchLimit > 0, "conversationEventsFetchLimit must be a strictly positive number");
+                                                  int conversationEventsFetchSize, int conversationsModifiedBetweenFetchSize,
+                                                  boolean conversationsModifiedBetweenLowerConsistencyRetry) {
+        checkArgument(conversationEventsFetchSize > 0, "conversationEventsFetchSize must be a strictly positive number");
+        checkArgument(conversationsModifiedBetweenFetchSize > 0, "conversationsModifiedBetweenFetchSize must be a strictly positive number");
 
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
         this.preparedStatements = StatementsBase.prepare(Statements.class, session);
         this.resumer = resumer;
-        this.conversationEventsFetchLimit = conversationEventsFetchLimit;
+        this.conversationEventsFetchSize = conversationEventsFetchSize;
+        this.conversationsModifiedBetweenFetchSize = conversationsModifiedBetweenFetchSize;
+        this.conversationsModifiedBetweenLowerConsistencyRetry = conversationsModifiedBetweenLowerConsistencyRetry;
     }
 
     @Override
@@ -95,7 +119,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
 
     List<ConversationEvent> getConversationEvents(String conversationId) {
         Statement statement = Statements.SELECT_FROM_CONVERSATION_EVENTS.bind(this, conversationId)
-                .setFetchSize(conversationEventsFetchLimit);
+                .setFetchSize(conversationEventsFetchSize);
         ResultSet resultset = session.execute(statement);
         return toStream(resultset)
                 .map(this::rowToConversationEvent)
@@ -152,7 +176,12 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     @Override
     public Stream<String> streamConversationsModifiedBetween(DateTime start, DateTime end) {
         try (Timer.Context ignored = streamConversationsModifiedBetweenTimer.time()) {
-            Statement bound = Statements.SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN.bind(this, start.toDate(), end.toDate());
+            Statement bound = Statements.SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN
+                    .bind(this, start.toDate(), end.toDate())
+                    .setRetryPolicy(conversationsModifiedBetweenLowerConsistencyRetry
+                            ? new LoggingRetryPolicy(DowngradingConsistencyRetryPolicy.INSTANCE)
+                            : FallthroughRetryPolicy.INSTANCE)
+                    .setFetchSize(conversationsModifiedBetweenFetchSize);
             ResultSet resultset = session.execute(bound);
             return toStream(resultset).map(row -> row.getString(FIELD_CONVERSATION_ID));
         }

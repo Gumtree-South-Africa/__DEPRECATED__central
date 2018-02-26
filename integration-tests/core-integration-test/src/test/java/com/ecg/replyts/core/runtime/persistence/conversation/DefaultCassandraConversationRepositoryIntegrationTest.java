@@ -4,8 +4,17 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.IdBasedConversationResumer;
-import com.ecg.replyts.core.api.model.conversation.*;
-import com.ecg.replyts.core.api.model.conversation.command.*;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
+import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder;
+import com.ecg.replyts.core.api.model.conversation.command.ConversationCommand;
+import com.ecg.replyts.core.api.model.conversation.command.ConversationDeletedCommand;
+import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
+import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
@@ -19,10 +28,18 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
 import static org.joda.time.DateTime.now;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 public class DefaultCassandraConversationRepositoryIntegrationTest extends ConversationRepositoryIntegrationTestBase<DefaultCassandraConversationRepository> {
@@ -42,7 +59,7 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
 
         ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierConfiguration().createUserIdentifierService());
 
-        DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, resumer, 100);
+        DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, resumer, 100, 5000, false);
 
         return myRepo;
     }

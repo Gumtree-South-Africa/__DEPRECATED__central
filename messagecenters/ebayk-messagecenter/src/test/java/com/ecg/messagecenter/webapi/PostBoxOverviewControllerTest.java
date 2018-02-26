@@ -40,7 +40,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ecg.messagecenter.webapi.PostBoxResponseAssertions.*;
+import static com.ecg.messagecenter.webapi.PostBoxResponseAssertions.assertConversationsOrder;
+import static com.ecg.messagecenter.webapi.PostBoxResponseAssertions.assertConversationsOriginalOrder;
+import static com.ecg.messagecenter.webapi.PostBoxResponseAssertions.assertConversationsSize;
+import static com.ecg.messagecenter.webapi.PostBoxResponseAssertions.assertDetailConversation;
+import static com.ecg.messagecenter.webapi.PostBoxResponseAssertions.assertProcessingStatusOk;
+import static com.ecg.messagecenter.webapi.PostBoxResponseAssertions.assertUnreadMessages;
 import static org.joda.time.DateTime.now;
 
 @RunWith(SpringRunner.class)
@@ -335,7 +340,7 @@ public class PostBoxOverviewControllerTest {
             ConversationResumer resumer = new IdBasedConversationResumer();
             ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierConfiguration().createUserIdentifierService());
 
-            return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, 100);
+            return new DefaultCassandraConversationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency, resumer, 100, 5000, false);
         }
     }
 }
