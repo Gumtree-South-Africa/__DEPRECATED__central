@@ -53,7 +53,7 @@ public class HtmlRemoverTest {
         String resp = new HtmlRemover("<body>Hello <span rowtxt=\"rowmessage\">World</span>").getPlaintext();
         HtmlRemover.IS_SPAN_FIX_ENABLED = false;
 
-        Assert.assertEquals("Hello <span rowtxt=\"rowmessage\">World</span>", resp);
+        Assert.assertEquals("World", resp);
     }
 
     @Test

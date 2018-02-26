@@ -12,6 +12,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class HtmlRemover {
@@ -83,6 +84,14 @@ public class HtmlRemover {
 
         output = MULTI_OCCURANCE_PATTERN.matcher(output).replaceAll(" ");
         output = TOO_MANY_BLANK_LINES_PATTERN.matcher(output).replaceAll("\n\n");
+
+        if (IS_SPAN_FIX_ENABLED) {
+            Matcher matcher = Pattern.compile("<span rowtxt=\"rowmessage\">(.*?)</span>").matcher(output);
+
+            if (matcher.find()) {
+                return matcher.group(1).trim();
+            }
+        }
 
         return output.trim();
     }
