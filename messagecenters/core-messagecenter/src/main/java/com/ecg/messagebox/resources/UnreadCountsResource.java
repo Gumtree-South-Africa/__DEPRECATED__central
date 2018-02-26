@@ -32,7 +32,7 @@ public class UnreadCountsResource {
     @ApiOperation(
             value = "Get unread counts",
             notes = "Get a number of unread messages and conversations belonging to a specified user",
-            nickname = "getAggregatedResponseData",
+            nickname = "getUnreadCounts",
             tags = "Conversations")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Success", response = UnreadCountsResponse.class),
