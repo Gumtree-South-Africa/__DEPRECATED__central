@@ -45,7 +45,7 @@ public class PushServiceConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "pushservice.enabled", havingValue = "true")
-    public PushService pushServicePushService(@Value("${pushservice.host:#{null}}") String host, @Value("${pushservice.port:#{null}}") int port) {
+    public PushService pushServicePushService(@Value("${pushservice.host:#{null}}") String host, @Value("${pushservice.port:#{null}}") Integer port) {
         LOG.info("Bolt push service enabled. Host: {} / Port: {}", host, port);
 
         return new BoltPushService(host, port);
