@@ -2,7 +2,6 @@ package com.ecg.replyts.core.runtime.identifier;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class UserIdentifierServiceByUserIdHeaders implements UserIdentifierService {
-    private static final Logger LOG = LoggerFactory.getLogger(ClusterModeManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UserIdentifierServiceByUserIdHeaders.class);
 
     private final String buyerUserIdName;
 

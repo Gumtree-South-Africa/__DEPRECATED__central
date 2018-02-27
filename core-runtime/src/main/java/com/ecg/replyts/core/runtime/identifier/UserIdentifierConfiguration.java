@@ -35,6 +35,11 @@ public class UserIdentifierConfiguration {
             LOG.info("Tenant {} use UserIdentifierServiceByMailAddress", tenant);
 
             return new UserIdentifierServiceByMailAddress();
+
+        } else if (userIdentifierType == UserIdentifierType.BY_UK_USER_ID) {
+            LOG.info("Tenant {} use UkUserIdentifierServiceByUserIdHeaders", tenant);
+
+            return new UkUserIdentifierServiceByUserIdHeaders(buyerUserIdName, sellerUserIdName);
         } else {
             LOG.info("Tenant {} use UserIdentifierServiceByUserIdHeaders", tenant);
 

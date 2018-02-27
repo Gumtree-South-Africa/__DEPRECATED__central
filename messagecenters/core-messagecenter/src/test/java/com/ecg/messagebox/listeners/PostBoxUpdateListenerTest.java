@@ -17,6 +17,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Optional;
+
 import static com.ecg.replyts.core.api.model.conversation.ConversationState.*;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
@@ -74,25 +76,26 @@ public class PostBoxUpdateListenerTest {
                 .withMessageDirection(MessageDirection.BUYER_TO_SELLER)
                 .withReceivedAt(now(UTC))
                 .withLastModifiedAt(now(UTC));
-
-        when(userIdentifierServiceMock.getUserIdentificationOfConversation(any(), eq(ConversationRole.Buyer)))
-                .thenReturn(of(BUYER_USER_ID));
-        when(userIdentifierServiceMock.getUserIdentificationOfConversation(any(), eq(ConversationRole.Seller)))
-                .thenReturn(of(SELLER_USER_ID));
     }
 
     @Test
     public void validConvAndMsgFromBuyer_processed() {
         Conversation conversation = convBuilder.build();
         Message message = msgBuilder.build();
-        when(messagesResponseFactory.getCleanedMessage(conversation, message)).thenReturn("clean message");
+
+        when(userIdentifierServiceMock.getBuyerUserId(conversation))
+                .thenReturn(of(BUYER_USER_ID));
+        when(userIdentifierServiceMock.getSellerUserId(conversation))
+                .thenReturn(of(SELLER_USER_ID));
+        when(messagesResponseFactory.getCleanedMessage(conversation, message))
+                .thenReturn("clean message");
 
         listener.messageProcessed(conversation, message);
 
         verify(blockUserRepository).areUsersBlocked(BUYER_USER_ID, SELLER_USER_ID);
         verify(messageAddedEventProcessor).publishMessageAddedEvent(conversation, message, "clean message", null);
-        verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Buyer);
-        verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Seller);
+        verify(userIdentifierServiceMock).getBuyerUserId(conversation);
+        verify(userIdentifierServiceMock).getSellerUserId(conversation);
         verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false, "clean message");
         verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, true, "clean message");
     }
@@ -101,13 +104,19 @@ public class PostBoxUpdateListenerTest {
     public void doNothingIfUserIsBlocked_notProcessed() {
         Conversation conversation = convBuilder.build();
         Message message = msgBuilder.build();
-        when(blockUserRepository.areUsersBlocked(BUYER_USER_ID, SELLER_USER_ID)).thenReturn(true);
+
+        when(userIdentifierServiceMock.getBuyerUserId(conversation))
+                .thenReturn(of(BUYER_USER_ID));
+        when(userIdentifierServiceMock.getSellerUserId(conversation))
+                .thenReturn(of(SELLER_USER_ID));
+        when(blockUserRepository.areUsersBlocked(BUYER_USER_ID, SELLER_USER_ID))
+                .thenReturn(true);
 
         listener.messageProcessed(conversation, message);
 
 
-        verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Buyer);
-        verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Seller);
+        verify(userIdentifierServiceMock).getBuyerUserId(conversation);
+        verify(userIdentifierServiceMock).getSellerUserId(conversation);
         verifyNoMoreInteractions(userIdentifierServiceMock, delegatorMock);
     }
 
@@ -116,10 +125,15 @@ public class PostBoxUpdateListenerTest {
         Conversation conversation = convBuilder.build();
         Message message = msgBuilder.withMessageDirection(SELLER_TO_BUYER).build();
 
+        when(userIdentifierServiceMock.getBuyerUserId(conversation))
+                .thenReturn(of(BUYER_USER_ID));
+        when(userIdentifierServiceMock.getSellerUserId(conversation))
+                .thenReturn(of(SELLER_USER_ID));
+
         listener.messageProcessed(conversation, message);
 
-        verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Buyer);
-        verify(userIdentifierServiceMock).getUserIdentificationOfConversation(conversation, ConversationRole.Seller);
+        verify(userIdentifierServiceMock).getBuyerUserId(conversation);
+        verify(userIdentifierServiceMock).getSellerUserId(conversation);
         verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, true, null);
         verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, false, null);
     }
@@ -149,6 +163,11 @@ public class PostBoxUpdateListenerTest {
         Conversation conversation = convBuilder.withState(CLOSED).build();
         Message message = msgBuilder.withMessageDirection(BUYER_TO_SELLER).build();
 
+        when(userIdentifierServiceMock.getBuyerUserId(conversation))
+                .thenReturn(of(BUYER_USER_ID));
+        when(userIdentifierServiceMock.getSellerUserId(conversation))
+                .thenReturn(of(SELLER_USER_ID));
+
         listener.messageProcessed(conversation, message);
 
         verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false, null);
@@ -160,8 +179,10 @@ public class PostBoxUpdateListenerTest {
         Conversation conversation = convBuilder.build();
         Message message = msgBuilder.build();
 
-        when(userIdentifierServiceMock.getUserIdentificationOfConversation(any(), eq(ConversationRole.Buyer)))
+        when(userIdentifierServiceMock.getBuyerUserId(conversation))
                 .thenReturn(empty());
+        when(userIdentifierServiceMock.getSellerUserId(conversation))
+                .thenReturn(Optional.of("SELLER_ID"));
 
         listener.messageProcessed(conversation, message);
 
@@ -173,7 +194,9 @@ public class PostBoxUpdateListenerTest {
         Conversation conversation = convBuilder.build();
         Message message = msgBuilder.build();
 
-        when(userIdentifierServiceMock.getUserIdentificationOfConversation(any(), eq(ConversationRole.Seller)))
+        when(userIdentifierServiceMock.getBuyerUserId(conversation))
+                .thenReturn(Optional.of("BUYER_ID"));
+        when(userIdentifierServiceMock.getSellerUserId(conversation))
                 .thenReturn(empty());
 
         listener.messageProcessed(conversation, message);
@@ -186,6 +209,11 @@ public class PostBoxUpdateListenerTest {
         Conversation conversation = convBuilder.build();
         Message message = msgBuilder.withState(IGNORED).build();
 
+        when(userIdentifierServiceMock.getBuyerUserId(conversation))
+                .thenReturn(empty());
+        when(userIdentifierServiceMock.getSellerUserId(conversation))
+                .thenReturn(empty());
+
         listener.messageProcessed(conversation, message);
 
         verifyZeroInteractions(delegatorMock);
@@ -195,6 +223,11 @@ public class PostBoxUpdateListenerTest {
     public void blockedOwnMessage_processed() {
         Conversation conversation = convBuilder.build();
         Message message = msgBuilder.withState(MessageState.BLOCKED).withMessageDirection(BUYER_TO_SELLER).build();
+
+        when(userIdentifierServiceMock.getBuyerUserId(conversation))
+                .thenReturn(Optional.of(BUYER_USER_ID));
+        when(userIdentifierServiceMock.getSellerUserId(conversation))
+                .thenReturn(Optional.of(SELLER_USER_ID));
 
         listener.messageProcessed(conversation, message);
 
@@ -206,6 +239,11 @@ public class PostBoxUpdateListenerTest {
     public void exceptionDuringProcessing_propagate() {
         Conversation conversation = convBuilder.build();
         Message message = msgBuilder.withState(MessageState.BLOCKED).build();
+
+        when(userIdentifierServiceMock.getBuyerUserId(conversation))
+                .thenReturn(of(BUYER_USER_ID));
+        when(userIdentifierServiceMock.getSellerUserId(conversation))
+                .thenReturn(of(SELLER_USER_ID));
 
         doThrow(new RuntimeException("~expected exception~"))
                 .when(delegatorMock)
