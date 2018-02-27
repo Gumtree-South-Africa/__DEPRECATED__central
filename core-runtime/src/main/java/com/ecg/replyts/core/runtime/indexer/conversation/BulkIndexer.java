@@ -110,7 +110,8 @@ public class BulkIndexer {
             updateIndex(conversation);
         }
         Conversation lastProcessedConversation = Iterables.getLast(conversations);
-        LOG.info("Last processed conversation - {}, lastModifiedAt - {}", lastProcessedConversation.getLastModifiedAt());
+        LOG.info("Last processed conversation - {}, createdAt - {}, lastModifiedAt - {}",
+                lastProcessedConversation.getId(), lastProcessedConversation.getCreatedAt(), lastProcessedConversation.getLastModifiedAt());
     }
 
     public void updateIndex(Conversation conversation) {
@@ -134,23 +135,22 @@ public class BulkIndexer {
 
     }
 
-    public void flush()  {
+    public void flush() {
         bulkProcessor.flush();
     }
 
     /**
-     *
      * @return Returns: true if all bulk requests completed and false if the waiting time elapsed before all the bulk requests completed
      */
     @PreDestroy
-    public boolean awaitClose()  {
-       try {
-           return bulkProcessor.awaitClose(4, TimeUnit.SECONDS);
-       } catch(InterruptedException ie) {
-           LOG.warn("The ES Bulk process has been interrupted");
-           Thread.currentThread().interrupt();
-           return false;
-       }
+    public boolean awaitClose() {
+        try {
+            return bulkProcessor.awaitClose(4, TimeUnit.SECONDS);
+        } catch (InterruptedException ie) {
+            LOG.warn("The ES Bulk process has been interrupted");
+            Thread.currentThread().interrupt();
+            return false;
+        }
     }
 
 }
