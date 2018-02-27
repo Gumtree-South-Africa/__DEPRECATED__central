@@ -19,6 +19,7 @@ public class HtmlRemover {
     private static final Logger LOG = LoggerFactory.getLogger(HtmlRemover.class);
 
     public static volatile boolean IS_SPAN_FIX_ENABLED = false;
+    private static Pattern SPAN_PATTERN = Pattern.compile("<span rowtxt=\"rowmessage\">(.*?)</span>", Pattern.DOTALL);
 
     private enum TagType {
         Remove, Inline, Block
@@ -86,8 +87,7 @@ public class HtmlRemover {
         output = TOO_MANY_BLANK_LINES_PATTERN.matcher(output).replaceAll("\n\n");
 
         if (IS_SPAN_FIX_ENABLED) {
-            Matcher matcher = Pattern.compile("<span rowtxt=\"rowmessage\">(.*?)</span>").matcher(output);
-
+            Matcher matcher = SPAN_PATTERN.matcher(output);
             if (matcher.find()) {
                 return matcher.group(1).trim();
             }

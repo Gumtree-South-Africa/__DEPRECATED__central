@@ -57,6 +57,15 @@ public class HtmlRemoverTest {
     }
 
     @Test
+    public void testNewLineWithinSpanTag() throws Exception {
+        HtmlRemover.IS_SPAN_FIX_ENABLED = true;
+        String resp = new HtmlRemover("<body>This is a <span rowtxt=\"rowmessage\">multi\nline\nmessage</span>").getPlaintext();
+        HtmlRemover.IS_SPAN_FIX_ENABLED = false;
+
+        Assert.assertEquals("multi line message", resp);
+    }
+
+    @Test
     public void testLineBreaks() throws HtmlCleanupException {
         String resp = new HtmlRemover("hello<br/>world").getPlaintext();
         Assert.assertEquals("hello\nworld", resp);
