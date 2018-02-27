@@ -14,6 +14,7 @@ import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -110,8 +111,19 @@ public class BulkIndexer {
             updateIndex(conversation);
         }
         Conversation lastProcessedConversation = Iterables.getLast(conversations);
-        LOG.info("Last processed conversation - {}, createdAt - {}, lastModifiedAt - {}",
-                lastProcessedConversation.getId(), lastProcessedConversation.getCreatedAt(), lastProcessedConversation.getLastModifiedAt());
+        LOG.info("Last processed conversation - {}, conversationModifiedDateTime - {}",
+                lastProcessedConversation.getId(), getConversationModifiedDateTime(lastProcessedConversation.getMessages()));
+    }
+
+    private DateTime getConversationModifiedDateTime(List<Message> messages) {
+        DateTime modifiedDateTime = null;
+        for (Message message : messages) {
+            DateTime modifiedAt = message.getLastModifiedAt();
+            if (modifiedDateTime == null || modifiedDateTime.isBefore(modifiedAt)) {
+                modifiedDateTime = modifiedAt;
+            }
+        }
+        return modifiedDateTime;
     }
 
     public void updateIndex(Conversation conversation) {
