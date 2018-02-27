@@ -142,7 +142,6 @@ public class ConfigCrudController {
         for (JsonNode node : body) {
             assertArrayElement(node, "pluginFactory", TextNode.class);
             assertArrayElement(node, "instanceId", TextNode.class);
-            assertArrayElement(node, "configuration", ObjectNode.class);
 
             String pluginFactory = node.get("pluginFactory").textValue();
             String instanceId = node.get("instanceId").textValue();
