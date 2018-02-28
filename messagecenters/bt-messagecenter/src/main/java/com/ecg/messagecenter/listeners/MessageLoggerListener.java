@@ -1,9 +1,9 @@
 package com.ecg.messagecenter.listeners;
 
+import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.core.encoder.EncoderBase;
-import ch.qos.logback.core.rolling.RollingFileAppender;
-import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
+import net.logstash.logback.appender.LogstashSocketAppender;
+
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -19,57 +19,35 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Map;
 
-import static java.lang.String.format;
+import static ch.qos.logback.classic.Level.DEBUG;
 
 @Component
 public class MessageLoggerListener implements MessageProcessedListener {
-    private static final LoggerContext LOGGER_CONTEXT = (LoggerContext) LoggerFactory.getILoggerFactory();
 
     private static final long LOG_VERSION_NUM = 4L;
 
     private static final String DELIMITER = "\u0001";
 
-    private RollingFileAppender<String> auditLogAppender;
+    private Logger logger;
 
     // XXX: Until we move to writing directly to Flume, we'll circumvent the logging system by calling the appender directly
 
     @Autowired
-    public MessageLoggerListener(@Value("${logDir:.}") String logDir) {
-        auditLogAppender = new RollingFileAppender<>();
+    public MessageLoggerListener(@Value("${bolt.logstash.hostname}") String host,
+            @Value("${bolt.logstash.port}") int port) {
+        final LogstashSocketAppender appender = new LogstashSocketAppender();
+        appender.setHost(host);
+        appender.setPort(port);
+        appender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
+        appender.start();
 
-        auditLogAppender.setFile(format("%s/replyts-audit.log", logDir));
-
-        TimeBasedRollingPolicy rollingPolicy = new TimeBasedRollingPolicy<>();
-
-        rollingPolicy.setFileNamePattern(format("%s/archived/replyts-audit.log.%%d", logDir));
-        rollingPolicy.setMaxHistory(7);
-        rollingPolicy.setParent(auditLogAppender);
-        rollingPolicy.setContext(LOGGER_CONTEXT);
-
-        rollingPolicy.start();
-
-        auditLogAppender.setRollingPolicy(rollingPolicy);
-
-        auditLogAppender.setEncoder(new EncoderBase<String>() {
-            @Override
-            public void doEncode(String message) throws IOException {
-                this.outputStream.write(format("%s\n", message).getBytes(StandardCharsets.UTF_8));
-            }
-
-            @Override
-            public void close() throws IOException {
-                // Do nothing
-            }
-        });
-
-        auditLogAppender.setContext(LOGGER_CONTEXT);
-
-        auditLogAppender.start();
+        logger = (Logger) LoggerFactory.getLogger(getClass());
+        logger.addAppender(appender);
+        logger.setLevel(DEBUG);
+        logger.setAdditive(false);
     }
 
     @Override
@@ -140,7 +118,7 @@ public class MessageLoggerListener implements MessageProcessedListener {
 
         String auditLine = logBuf.toString().replaceAll("(\\t|\\n|\\r)", " ");
 
-        auditLogAppender.doAppend(auditLine);
+        logger.debug(auditLine);
     }
 
     private String normalize(String value) {
