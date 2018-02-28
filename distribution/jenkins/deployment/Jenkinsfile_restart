@@ -127,7 +127,7 @@ node(PROVIDED_ENV) {
                         "-var='region=${dc}' " +
                         "-var='api_count=3' " +
                         "-var='api_count_per_zone=1' " +
-                        "-var='deploy_jenkins_job=${deployJenkinsJob}' " +
+                        "-var='deploy_jenkins_job_nr=${deployJenkinsJob}' " +
                         "distribution/jenkins/deployment/${nomadFile}"
             }
         }
