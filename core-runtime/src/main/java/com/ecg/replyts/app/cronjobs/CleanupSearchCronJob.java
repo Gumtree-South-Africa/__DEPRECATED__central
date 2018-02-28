@@ -11,15 +11,13 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
-import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinutes;
-
 @Component
 @ConditionalOnProperty(name = "replyts2.cronjob.cleanupSearch.enabled", havingValue = "true")
 public class CleanupSearchCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CleanupSearchCronJob.class);
 
-    @Value("${replyts2.cronjob.cleanupSearch.minuteInterval:30}")
-    private int minuteInterval;
+    @Value("${replyts2.cronjob.cleanupSearch.schedule.expression:0 0 0 * * ?}")
+    private String cronJobExpression;
 
     private final CleanupConfiguration config;
 
@@ -51,6 +49,6 @@ public class CleanupSearchCronJob implements CronJobExecutor {
 
     @Override
     public String getPreferredCronExpression() {
-        return everyNMinutes(minuteInterval);
+        return cronJobExpression;
     }
 }

@@ -13,6 +13,7 @@ import com.google.common.base.Preconditions;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -23,8 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 
 import static com.ecg.replyts.app.search.elasticsearch.SearchTransformer.translate;
 import static java.lang.String.format;
+import static org.elasticsearch.index.query.FilterBuilders.notFilter;
+import static org.elasticsearch.index.query.QueryBuilders.filtered;
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 
 @Component
@@ -138,6 +141,17 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
                         rangeQuery("lastModified")
                                 .from(from)
                                 .to(to))
+                .execute()
+                .actionGet();
+
+        client.prepareDeleteByQuery(indexName)
+                .setTypes(TYPE_NAME)
+                .setQuery(
+                        filtered(
+                                rangeQuery("receivedDate")
+                                        .from(from)
+                                        .to(to),
+                                notFilter(FilterBuilders.existsFilter("lastModified"))))
                 .execute()
                 .actionGet();
     }
