@@ -65,7 +65,7 @@ This will call exec:java through the 'verify' phase in the distribution module. 
 
 ### Testing that your setup works
 
-1. Place a raw email in the `/tmp/mailreceiver` on your local machine. Example email:
+1. Place a raw email in the `/tmp/mailreceiver` (file should start with `pre_`) on your local machine. Example email:
 ```
 From:acharton@ebay-kleinanzeigen.de
 Delivered-To: receiver@host.com
