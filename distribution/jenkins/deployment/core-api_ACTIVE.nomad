@@ -14,7 +14,7 @@ job "[[ .tenant ]]-core-api" {
     wanted_instances = [[.api_count]]
     docker_image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
     wanted_instances_per_zone = "[[.api_count_per_zone]]"
-    deploy_date = "[[.deploy_date]]"
+    deploy_jenkins_job = "[[.deploy_jenkins_job]]"
   }
 
   update {
