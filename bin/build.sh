@@ -85,7 +85,7 @@ function parseCmd() {
     fi
 
     if [ $(uname) == "Linux" ]; then
-        echo "Building on host $(hostname -A)"
+        log "Building on host $(hostname -A)"
     fi
 }
 
