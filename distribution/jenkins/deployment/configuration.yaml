@@ -14,4 +14,5 @@ instances:
     mx: 3
     za: 3
 tenants:
-  live: [gtuk]
+  live: [gtuk,ar,sg,mx,za]
+
