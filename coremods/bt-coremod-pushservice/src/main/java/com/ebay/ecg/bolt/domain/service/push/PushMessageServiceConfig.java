@@ -22,9 +22,9 @@ public class PushMessageServiceConfig {
 
     @Autowired
     public PushMessageServiceConfig(
-      @Value("${gcm.host}") String gcmHost,
-      @Value("${gcm.apiKey}") String gcmApiKey,
-      @Value("${gcm.searchalerts.priority}") String searchAlertsPriority,
+      @Value("${gcm.host:}") String gcmHost,
+      @Value("${gcm.apiKey:}") String gcmApiKey,
+      @Value("${gcm.searchalerts.priority:}") String searchAlertsPriority,
       @Value("${mdns.host}") String mdnsHost,
       @Value("${mdns.authHeader}") String mdnsAuthHeader,
       @Value("${mdns.provider}") String mdnsProvider) {

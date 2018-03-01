@@ -9,12 +9,11 @@ import com.ebay.ecg.bolt.platform.module.push.persistence.entity.PushRegistratio
 import com.ebay.ecg.bolt.platform.module.push.persistence.entity.PwaDetails;
 import com.ebay.ecg.bolt.platform.module.push.persistence.repository.PushServiceRepository;
 import com.ebay.ecg.bolt.platform.shared.entity.common.LocaleEntity;
+import com.ecg.replyts.core.runtime.util.HttpClientFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
@@ -56,26 +55,30 @@ public class PushDomainService {
     @Value("${saved.search.msg.notification.title}")
     private String savedSearchMessageTitle;
 
-    private HttpClient gcmHttpClient = buildSystemAwareHttpClient();
+    @Value("${gcm.proxy.host:}")
+    private String proxyHost;
 
-    private HttpClient pwaHttpClient = buildSystemAwareHttpClient();
+    @Value("${gcm.proxy.port:}")
+    private Integer proxyPort;
 
     @PostConstruct
-    public void addSecurityProvider(){
+    public void addSecurityProvider() {
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             LOG.debug("Adding BC Security Provider");
 
             Security.addProvider(new BouncyCastleProvider());
         }
     }
-    
+
     public Result sendPushMessage(final PushProvider pushProvider, final PushMessagePayload payload, final String deviceToken, PWAInfo pwaInfo) {
         try {
             LOG.debug("PushServiceProvider sending: {}", payload);
 
             PushRequester pushRequester = pushMessageServiceConfig.findPushRequester(pushProvider);
 
-            HttpClient httpClient = pushProvider.name().equalsIgnoreCase("gcm") ? gcmHttpClient : pwaHttpClient;
+            HttpClient httpClient = pushProvider.name().equalsIgnoreCase("gcm") ?
+                    buildSystemAwareHttpClientWithProxy(proxyHost, proxyPort) :
+                    buildSystemAwareHttpClient();
 
             HttpResponse response = pushRequester.sendPush(httpClient, payload, deviceToken, getNotificationTitle(payload), pwaInfo);
 
@@ -87,14 +90,15 @@ public class PushDomainService {
         }
     }
 
-    private Result handleResponse(HttpResponse response, PushProvider pushProvider, PushMessagePayload payload, String deviceToken, PWAInfo pwaInfo) throws IOException{
+
+    private Result handleResponse(HttpResponse response, PushProvider pushProvider, PushMessagePayload payload, String deviceToken, PWAInfo pwaInfo) throws IOException {
         int code = response.getStatusLine().getStatusCode();
 
         if (pushProvider.equals(PushProvider.gcm)) {
             LOG.info("GCMPushService response: {}", code);
         } else if (pushProvider.equals(PushProvider.mdns)) {
             LOG.info("MDNSPushService response: {}", code);
-        } else if(pushProvider.equals(PushProvider.pwa)) {
+        } else if (pushProvider.equals(PushProvider.pwa)) {
             LOG.info("PWA response for the end point {} is {}", pwaInfo.getEndPoint(), code);
         }
 
@@ -133,10 +137,10 @@ public class PushDomainService {
 
         List<PushRegistration> pushRegistrations = getPushRegistrations(receiverdId, payload.getActivity(), appType, localeEntity);
 
-        if (CollectionUtils.isNotEmpty(pushRegistrations) ) {
+        if (CollectionUtils.isNotEmpty(pushRegistrations)) {
             LOG.debug("Found {} registrations for {}", pushRegistrations.size(), receiverdId);
 
-            return pushRegistrations.parallelStream().map(s -> processPushRegistration(s,payload)).findFirst().orElseThrow(RuntimeException::new);
+            return pushRegistrations.stream().map(registration -> processPushRegistration(registration, payload)).findFirst().orElseThrow((() -> new RuntimeException("No PushNotification results for " + receiverdId)));
         } else {
             LOG.debug("No registration found for {}", receiverdId);
 
@@ -144,7 +148,7 @@ public class PushDomainService {
         }
     }
 
-    private List<Result> processPushRegistration(PushRegistration pushRegistration,final PushMessagePayload payload){
+    private List<Result> processPushRegistration(PushRegistration pushRegistration, final PushMessagePayload payload) {
         try {
             PushProvider pushProvider = PushProvider.valueOf(pushRegistration.getPushProvider().toString());
 
@@ -154,7 +158,7 @@ public class PushDomainService {
             List<String> deviceTokens = pushRegistration.getDeviceTokens();
 
             if (CollectionUtils.isNotEmpty(deviceTokens)) {
-                results.addAll(deviceTokens.stream().map(s -> sendPushMessage(pushProvider,payload,s,null)).collect(toList()));
+                results.addAll(deviceTokens.stream().map(s -> sendPushMessage(pushProvider, payload, s, null)).collect(toList()));
             }
 
             List<PwaDetails> pwaDetails = pushRegistration.getPwaDetails();
@@ -187,12 +191,27 @@ public class PushDomainService {
     }
 
     private static HttpClient buildSystemAwareHttpClient() {
-        return HttpClients.custom()
-          .setDefaultRequestConfig(RequestConfig.custom()
-            .setConnectTimeout(HTTP_CONNECTION_TIMEOUT)
-            .setSocketTimeout(HTTP_SO_TIMEOUT).build())
-          .setMaxConnPerRoute(HTTP_MAX_CONNECTIONS)
-          .setMaxConnTotal(HTTP_MAX_CONNECTIONS * 2)
-          .useSystemProperties().build();
+        return HttpClientFactory.createCloseableHttpClient(
+                HTTP_CONNECTION_TIMEOUT,
+                HTTP_CONNECTION_TIMEOUT,
+                HTTP_SO_TIMEOUT,
+                HTTP_MAX_CONNECTIONS,
+                HTTP_MAX_CONNECTIONS * 2);
+    }
+
+    private static HttpClient buildSystemAwareHttpClientWithProxy(String proxyHost, Integer proxyPort) {
+
+        if (proxyHost == null || proxyPort == null) {
+            throw new RuntimeException("The properties comaas.proxy.host and comaas.proxy.port must be set in order to have push notifications for this tenant. Shutting down.");
+        }
+
+        return HttpClientFactory.createCloseableHttpClientWithProxy(
+                HTTP_CONNECTION_TIMEOUT,
+                HTTP_CONNECTION_TIMEOUT,
+                HTTP_SO_TIMEOUT,
+                HTTP_MAX_CONNECTIONS,
+                HTTP_MAX_CONNECTIONS * 2,
+                proxyHost,
+                proxyPort);
     }
 }
