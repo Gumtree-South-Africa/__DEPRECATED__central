@@ -8,7 +8,10 @@ import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.core.runtime.TimingReports;
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,15 +24,24 @@ import javax.validation.Valid;
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ConversationResource {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationResource.class);
+
     private final Timer getConversationTimer = TimingReports.newTimer("webapi.get-conversation");
     private final Timer markConversationAsReadTimer = TimingReports.newTimer("webapi.mark-conversation-as-read");
     private final Timer postSystemMessage = TimingReports.newTimer("webapi.post-system-message");
 
     private final PostBoxService postBoxService;
 
+    @Autowired(required = false)
+    private WebApiSyncV2Service webApiSyncV2Service;
+
     @Autowired
-    public ConversationResource(PostBoxService postBoxService) {
+    public ConversationResource(PostBoxService postBoxService, @Value("${webapi.sync.v2.enabled:false}") boolean syncEnabled) {
         this.postBoxService = postBoxService;
+
+        if (syncEnabled) {
+            LOG.info(this.getClass().getSimpleName() + " runs in SyncMode");
+        }
     }
 
     @ApiOperation(value = "Get a single conversation", notes = "Retrieve a single conversation along with messages", nickname = "getConversation", tags = "Conversations")
@@ -71,10 +83,22 @@ public class ConversationResource {
             @ApiParam(value = "Number of messages returned in a response") @RequestParam(name = "limit", defaultValue = "500") int limit) {
 
         try (Timer.Context ignored = markConversationAsReadTimer.time()) {
-            return postBoxService
-                    .markConversationAsRead(userId, conversationId, messageIdCursor, limit)
-                    .map(ConversationResponseConverter::toConversationResponseWithMessages)
-                    .orElseThrow(() -> new NotFoundException("EntityNotFound", String.format("Conversation not found for ID: %s", conversationId)));
+            if (webApiSyncV2Service == null) {
+                return postBoxService
+                        .markConversationAsRead(userId, conversationId, messageIdCursor, limit)
+                        .map(ConversationResponseConverter::toConversationResponseWithMessages)
+                        .orElseThrow(() -> new NotFoundException("EntityNotFound", String.format("Conversation not found for ID: %s", conversationId)));
+            } else {
+                /*
+                 * PB: Only for migration to V2 then delete this code.
+                 * - This method is mutator and we have to sync calls from to v2 -> v1
+                 * to provide tenants some way how to revert migration and go back to v1
+                 * otherwise V1 won't contain changes made in V2.
+                 */
+                return webApiSyncV2Service.markConversationAsRead(userId, conversationId, messageIdCursor, limit)
+                        .map(ConversationResponseConverter::toConversationResponseWithMessages)
+                        .orElseThrow(() -> new NotFoundException("EntityNotFound", String.format("Conversation not found for ID: %s", conversationId)));
+            }
         }
     }
 

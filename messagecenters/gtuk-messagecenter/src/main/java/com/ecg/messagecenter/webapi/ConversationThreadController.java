@@ -83,8 +83,6 @@ public class ConversationThreadController {
             response = webapiSyncService.readConversation(email, conversationId);
         } else {
             response = conversationService.readConversation(email, conversationId);
-            // Change also in MessageBox
-
         }
 
         return response.map(ResponseObject::of)

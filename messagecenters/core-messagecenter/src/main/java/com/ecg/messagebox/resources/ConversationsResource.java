@@ -8,7 +8,10 @@ import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.core.runtime.TimingReports;
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,15 +23,24 @@ import java.util.stream.Collectors;
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ConversationsResource {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationsResource.class);
+
     private final Timer getConversationsTimer = TimingReports.newTimer("webapi.get-conversations");
     private final Timer executeActionsTimer = TimingReports.newTimer("webapi.execute-actions");
     private final Timer getConversationIdsByAdId = TimingReports.newTimer("webapi.get-conversation-ids-by-adid");
 
     private final PostBoxService postBoxService;
 
+    @Autowired(required = false)
+    private WebApiSyncV2Service webApiSyncV2Service;
+
     @Autowired
-    public ConversationsResource(PostBoxService postBoxService) {
+    public ConversationsResource(PostBoxService postBoxService, @Value("${webapi.sync.v2.enabled:false}") boolean syncEnabled) {
         this.postBoxService = postBoxService;
+
+        if (syncEnabled) {
+            LOG.info(this.getClass().getSimpleName() + " runs in SyncMode");
+        }
     }
 
     @ApiOperation(
@@ -70,8 +82,19 @@ public class ConversationsResource {
             @ApiParam(value = "List of configuration ids", required = true) @RequestBody List<String> conversationIds) {
 
         try (Timer.Context ignored = executeActionsTimer.time()) {
-            PostBox postBox = postBoxService.archiveConversations(userId, conversationIds, offset, limit);
-            return toConversationsResponse(postBox, offset, limit);
+            if (webApiSyncV2Service == null) {
+                PostBox postBox = postBoxService.archiveConversations(userId, conversationIds, offset, limit);
+                return toConversationsResponse(postBox, offset, limit);
+            } else {
+                /*
+                 * PB: Only for migration to V2 then delete this code.
+                 * - This method is mutator and we have to sync calls from to v2 -> v1
+                 * to provide tenants some way how to revert migration and go back to v1
+                 * otherwise V1 won't contain changes made in V2.
+                 */
+                PostBox postBox = webApiSyncV2Service.archiveConversations(userId, conversationIds, offset, limit);
+                return toConversationsResponse(postBox, offset, limit);
+            }
         }
     }
 
