@@ -36,9 +36,6 @@ public class HealthController {
     @Value("${replyts.tenant:unknown}")
     private String tenant;
 
-    @Value("${spring.cloud.config.discovery.enabled:false}")
-    private boolean isDiscoveryEnabled;
-
     @Value("${persistence.strategy:unknown}")
     private String conversationRepositorySource;
 
@@ -73,7 +70,7 @@ public class HealthController {
     private Client searchClient = null;
 
     @RequestMapping(method = RequestMethod.GET)
-    public Health get() throws Exception {
+    public Health get() {
         return new Health();
     }
 
@@ -91,10 +88,6 @@ public class HealthController {
 
         public String getTenant() {
             return tenant;
-        }
-
-        public Boolean isDiscoveryEnabled() {
-            return isDiscoveryEnabled;
         }
 
         public String getConversationRepositorySource() {
@@ -129,7 +122,7 @@ public class HealthController {
             return searchClusterName;
         }
 
-        public String getSearchClusterVersion() throws InterruptedException {
+        public String getSearchClusterVersion() {
             return searchClusterVersion;
         }
 

@@ -13,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.bus.BusAutoConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -60,7 +58,6 @@ public class HealthControllerTest {
           .expect()
           .statusCode(200)
           .body("version", equalTo(HealthController.class.getPackage().getImplementationVersion()))
-          .body("discoveryEnabled", equalTo(true))
           .body("cassandraHosts[0]", equalTo("fuzzy-cats"))
           .body("hostname", not(equalTo(null)))
           .when()
