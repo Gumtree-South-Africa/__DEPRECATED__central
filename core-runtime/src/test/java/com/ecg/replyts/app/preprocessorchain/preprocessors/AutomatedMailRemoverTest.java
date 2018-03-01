@@ -13,7 +13,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.io.File;
 import java.io.FileInputStream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AutomatedMailRemoverTest {
@@ -46,7 +48,7 @@ public class AutomatedMailRemoverTest {
     private void check(File f, boolean mustBeBlocked) throws Exception {
 
         try (FileInputStream fin = new FileInputStream(f)) {
-            MessageProcessingContext ctx = new MessageProcessingContext(new Mails().readMail(ByteStreams.toByteArray(fin)), "1", processingTimeGuard);
+            MessageProcessingContext ctx = new MessageProcessingContext(Mails.readMail(ByteStreams.toByteArray(fin)), "1", processingTimeGuard);
 
             mailRemover.preProcess(ctx);
 

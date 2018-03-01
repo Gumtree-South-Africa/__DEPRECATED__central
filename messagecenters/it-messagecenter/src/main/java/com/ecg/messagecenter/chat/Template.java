@@ -11,18 +11,14 @@ import org.thymeleaf.templateresolver.TemplateResolver;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Created by jaludden on 21/12/15.
- */
 @Component
 public class Template {
 
     private String siteUrl;
     private String cdnUrl;
 
-    @Autowired public Template(@Value("${site.baseurl:https://kijiji.it}") String siteUrl,
-                    @Value("${site.cdnurl:https://static.annuncicdn.it/it/images/}")
-                    String cdnUrl) {
+    @Autowired
+    public Template(@Value("${site.baseurl:https://kijiji.it}") String siteUrl, @Value("${site.cdnurl:https://static.annuncicdn.it/it/images/}") String cdnUrl) {
         this.siteUrl = siteUrl;
         this.cdnUrl = cdnUrl;
     }

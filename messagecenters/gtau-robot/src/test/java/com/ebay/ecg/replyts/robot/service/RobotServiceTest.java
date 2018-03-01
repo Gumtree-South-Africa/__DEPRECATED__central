@@ -1,7 +1,9 @@
 package com.ebay.ecg.replyts.robot.service;
 
+import com.ebay.ecg.australia.events.entity.Entities;
 import com.ebay.ecg.replyts.robot.api.requests.payload.MessagePayload;
 import com.ebay.ecg.replyts.robot.api.requests.payload.MessageSender;
+import com.ebay.ecg.replyts.robot.api.requests.payload.RichMessage;
 import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
@@ -20,12 +22,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RobotServiceTest {
@@ -47,71 +52,78 @@ public class RobotServiceTest {
 
     @Test
     public void testHeadersAreSetCorrectlyForNoLinkMessage() throws Exception {
-        MessagePayload payload = new MessagePayload();
-        payload.setMessage("This is the simple message");
-
-        MessagePayload.RichMessage message = new MessagePayload.RichMessage();
-        message.setRichMessageText("This is a rich message");
-        payload.setRichTextMessage(message);
+        MessagePayload payload = new MessagePayload(
+                "This is the simple message",
+                MessageDirection.UNKNOWN,
+                null,
+                null,
+                new RichMessage("This is a rich message", null)
+        );
 
         Conversation conversation = mock(Conversation.class);
         when(conversation.getAdId()).thenReturn("AD-ID");
         when(conversation.getSellerId()).thenReturn("seller@seller.com");
         when(conversation.getBuyerId()).thenReturn("buyer@buyer.com");
 
-        Mail mail = robotService.aRobotMail(conversation, payload);
+        Mail mail = ContentUtils.buildMail(conversation, payload).get();
 
-        assertEquals("AD-ID", mail.getAdId());
-        assertEquals("GTAU", mail.getUniqueHeader("X-Robot"));
-        assertEquals("noreply@gumtree.com.au", mail.getUniqueHeader("From"));
-        assertEquals("AD-ID", mail.getUniqueHeader("X-ADID"));
-        assertEquals("gumbot", mail.getUniqueHeader("X-Reply-Channel"));
-        assertEquals("null", mail.getUniqueHeader("X-Message-Links"));
-        assertEquals("This is a rich message", mail.getUniqueHeader("X-RichText-Message"));
-        assertEquals("[]", mail.getUniqueHeader("X-RichText-Links"));
-        assertNull(mail.getUniqueHeader("X-Message-Sender"));
-
+        assertThat(mail.getAdId()).isEqualTo("AD-ID");
+        assertThat(mail.getUniqueHeader("X-Robot")).isEqualTo("GTAU");
+        assertThat(mail.getUniqueHeader("From")).isEqualTo("noreply@gumtree.com.au");
+        assertThat(mail.getUniqueHeader("X-ADID")).isEqualTo("AD-ID");
+        assertThat(mail.getUniqueHeader("X-Reply-Channel")).isEqualTo("gumbot");
+        assertThat(mail.getUniqueHeader("X-Message-Links")).isEqualTo("[]");
+        assertThat(mail.getUniqueHeader("X-RichText-Message")).isEqualTo("This is a rich message");
+        assertThat(mail.getUniqueHeader("X-RichText-Links")).isEqualTo("[]");
+        assertThat(mail.getUniqueHeader("X-Message-Sender")).isNull();
     }
 
     @Test
     public void testHeadersAreSetCorrectlyForMessageWithSender() throws Exception {
-        MessagePayload payload = new MessagePayload();
-        payload.setMessage("This is the simple message");
-        payload.setLinks(Collections.singletonList(new MessagePayload.Link("http://localhost", "EXTERNAL", 4, 5)));
+        Entities.MessageLinkInfo messageLinkInfo = Entities.MessageLinkInfo.newBuilder()
+                .setUrl("http://localhost")
+                .setType(Entities.MessageLinkType.EXTERNAL)
+                .setBeginIndex(4)
+                .setEndIndex(5)
+                .build();
 
-        MessageSender sender = new MessageSender();
-        sender.setName("The name");
-        sender.addSenderIcon("test", "http://test");
-        sender.addSenderIcon("test2", "http://test2");
-        payload.setSender(sender);
+        Entities.MessageSenderIcon icon1 = Entities.MessageSenderIcon.newBuilder().setName("test").setSource("http://test").build();
+        Entities.MessageSenderIcon icon2 = Entities.MessageSenderIcon.newBuilder().setName("test2").setSource("http://test2").build();
 
+        MessagePayload payload = new MessagePayload(
+                "This is the simple message",
+                MessageDirection.UNKNOWN,
+                Collections.singletonList(messageLinkInfo),
+                new MessageSender("The name", Arrays.asList(icon1, icon2)),
+                null
+        );
 
         Conversation conversation = mock(Conversation.class);
         when(conversation.getAdId()).thenReturn("AD-ID");
         when(conversation.getSellerId()).thenReturn("seller@seller.com");
         when(conversation.getBuyerId()).thenReturn("buyer@buyer.com");
 
-        Mail mail = robotService.aRobotMail(conversation, payload);
+        Mail mail = ContentUtils.buildMail(conversation, payload).get();
 
-        assertEquals("AD-ID", mail.getAdId());
-        assertEquals("GTAU", mail.getUniqueHeader("X-Robot"));
-        assertEquals("noreply@gumtree.com.au", mail.getUniqueHeader("From"));
-        assertEquals("AD-ID", mail.getUniqueHeader("X-ADID"));
-        assertEquals("gumbot", mail.getUniqueHeader("X-Reply-Channel"));
-        assertEquals("[{\"end\":5,\"start\":4,\"type\":\"EXTERNAL\",\"url\":\"http://localhost\"}]", mail.getUniqueHeader("X-Message-Links"));
-        assertNull(mail.getUniqueHeader("X-RichText-Message"));
-        assertNull(mail.getUniqueHeader("X-RichText-Links"));
-        assertEquals("{\"name\":\"The name\",\"senderIcons\":[{\"name\":\"test\",\"url\":\"http://test\"},{\"name\":\"test2\",\"url\":\"http://test2\"}]}", mail.getUniqueHeader("X-Message-Sender"));
+        assertThat(mail.getAdId()).isEqualTo("AD-ID");
+        assertThat(mail.getUniqueHeader("X-Robot")).isEqualTo("GTAU");
+        assertThat(mail.getUniqueHeader("From")).isEqualTo("noreply@gumtree.com.au");
+        assertThat(mail.getUniqueHeader("X-ADID")).isEqualTo("AD-ID");
+        assertThat(mail.getUniqueHeader("X-Reply-Channel")).isEqualTo("gumbot");
+        assertThat(mail.getUniqueHeader("X-Message-Links"))
+                .isEqualTo("[{\"end\":5,\"start\":4,\"type\":\"EXTERNAL\",\"url\":\"http://localhost\"}]");
+        assertThat(mail.getUniqueHeader("X-RichText-Message")).isNull();
+        assertThat(mail.getUniqueHeader("X-RichText-Links")).isNull();
+        assertThat(mail.getUniqueHeader("X-Message-Sender"))
+                .isEqualTo("{\"name\":\"The name\",\"senderIcons\":[{\"name\":\"test\",\"url\":\"http://test\"},{\"name\":\"test2\",\"url\":\"http://test2\"}]}");
     }
 
     @Test
     public void addMessageToConversationStoresMail() throws Exception {
         String convId = "convId";
-        MessagePayload payload = new MessagePayload() {{
-            setMessage("msg");
-            setMessageDirection(MessageDirection.BUYER_TO_SELLER.name());
-        }};
-        DefaultMutableConversation conversation = DefaultMutableConversation.create(new NewConversationCommand(convId, "1", "buyer@example.com", "seller@example.com", "sec1", "sec2", new DateTime(), ConversationState.ACTIVE, Maps.newHashMap()));
+        MessagePayload payload = new MessagePayload("msg", MessageDirection.BUYER_TO_SELLER, null, null, null);
+        DefaultMutableConversation conversation = DefaultMutableConversation.create(
+                new NewConversationCommand(convId, "1", "buyer@example.com", "seller@example.com", "sec1", "sec2", new DateTime(), ConversationState.ACTIVE, Maps.newHashMap()));
 
         when(conversationRepository.getById(convId)).thenReturn(conversation);
         robotService.addMessageToConversation(convId, payload);

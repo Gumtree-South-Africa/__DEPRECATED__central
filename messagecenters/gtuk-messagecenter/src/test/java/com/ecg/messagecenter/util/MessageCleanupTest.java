@@ -11,7 +11,12 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,8 +28,7 @@ public class MessageCleanupTest {
 
     public Mail readMail(String conversationId, String messageId) throws IOException, ParsingException {
         InputStream fin = getClass().getResourceAsStream("/corpus/" + conversationId + "/" + messageId);
-        Mail mail = new Mails().readMail(ByteStreams.toByteArray(fin));
-        return mail;
+        return Mails.readMail(ByteStreams.toByteArray(fin));
     }
 
     public Map readConversation(String conversationId) throws IOException {

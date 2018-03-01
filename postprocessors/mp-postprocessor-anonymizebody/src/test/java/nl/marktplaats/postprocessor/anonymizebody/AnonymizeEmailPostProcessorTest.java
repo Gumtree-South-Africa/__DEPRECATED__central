@@ -593,10 +593,9 @@ public class AnonymizeEmailPostProcessorTest {
         InputStream eml = getClass().getResourceAsStream("/new-lines-in-encoded-form.eml");
         InputStream expectedEml = getClass().getResourceAsStream("/new-lines-in-encoded-form-replaced.eml");
 
-        Mails parser = new Mails();
-        MutableMail mail = parser.readMail(ByteStreams.toByteArray(eml)).makeMutableCopy();
+        MutableMail mail = Mails.readMail(ByteStreams.toByteArray(eml)).makeMutableCopy();
 
-        Mail expectedMail = parser.readMail(ByteStreams.toByteArray(expectedEml));
+        Mail expectedMail = Mails.readMail(ByteStreams.toByteArray(expectedEml));
 
         // call method under test
         MessageProcessingContext messageProcessingContext = prepareContext(conversation, message, mail);

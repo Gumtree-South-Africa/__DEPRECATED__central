@@ -1,6 +1,5 @@
 package com.ebay.ecg.replyts.robot.api;
 
-import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.Application;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
@@ -21,17 +20,14 @@ import static org.hamcrest.Matchers.equalTo;
 public class MessageControllerAcceptanceTest {
 
     private final Properties properties = new Properties() {{
-        put("persistence.strategy", "riak");
+        put("replyts.tenant", "gtau");
     }};
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(properties, null, 20, ES_ENABLED);
-
-    private static RabbitMQRunner rmq = new RabbitMQRunner();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(properties, ES_ENABLED);
 
     @BeforeClass
     public static void setup() {
-        rmq.start();
         System.setProperty("rabbitmq.host", "localhost");
         System.setProperty("rabbitmq.username", "guest");
         System.setProperty("rabbitmq.password", "guest");
@@ -39,75 +35,6 @@ public class MessageControllerAcceptanceTest {
         System.setProperty("rabbitmq.endpoint", "gtau");
         System.setProperty("rabbitmq.connectionTimeout", "1000");
         System.setProperty("rabbitmq.port", "5672");
-    }
-
-    @Test
-    public void postMessageToConversation() throws Exception {
-        String seller = "seller1@seller.com";
-        String buyer = "buyer1@seller.com";
-        String ad = "11111";
-
-        Conversation conversation = rule.deliver(
-                aNewMail()
-                        .from(buyer)
-                        .to(seller)
-                        .adId(ad)
-                        .plainBody("First contact from buyer.")
-        ).getConversation();
-
-        rule.waitForMail();
-
-        RestAssured.given()
-                .expect()
-                .statusCode(200)
-                .when()
-                .request()
-                .body("{\"message\":\"Hello World!\",\"messageDirection\":\"SELLER_TO_BUYER\"}")
-                .header("Content-Type", "application/json")
-                .post("http://localhost:" + rule.getHttpPort() + "/gtau-robot/conversations/" + conversation.getId());
-
-
-
-        rule.waitForMail();
-    }
-
-    @Test
-    public void postMessageToConversationsForAd() throws Exception {
-        String seller = "seller2@seller.com";
-        String buyer1 = "buyer21@buyer.com";
-        String buyer2 = "buyer22@buyer.com";
-        String ad = "11112";
-
-        rule.deliver(
-                aNewMail()
-                        .from(buyer1)
-                        .to(seller)
-                        .adId(ad)
-                        .plainBody("First contact from buyer1.")
-        );
-
-        rule.waitForMail();
-
-        rule.deliver(
-                aNewMail()
-                        .from(buyer2)
-                        .to(seller)
-                        .adId(ad)
-                        .plainBody("First contact from buyer2.")
-        );
-
-        rule.waitForMail();
-
-        RestAssured.given()
-                .expect()
-                .statusCode(200)
-                .and()
-                .body("body.status", equalTo("OK"))
-                .when()
-                .request()
-                .body("{\"message\":\"Hi there!\",\"messageDirection\":\"SELLER_TO_BUYER\"}")
-                .header("Content-Type", "application/json")
-                .post("http://localhost:" + rule.getHttpPort() + format("/gtau-robot/users/%s/ads/%s",seller,ad));
     }
 
     @Test

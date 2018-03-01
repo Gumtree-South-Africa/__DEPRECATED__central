@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.subethamail.wiser.WiserMessage;
 
 import javax.mail.internet.MimeMessage;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -114,6 +113,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     public ReplyTsIntegrationTestRule(Properties properties, Class<?>... configuration) {
         this(properties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, configuration, "cassandra_schema.cql");
+    }
+
+    public ReplyTsIntegrationTestRule(Properties properties, boolean esEnabled) {
+        this(properties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, esEnabled, new Class[0], "cassandra_schema.cql");
     }
 
     /**

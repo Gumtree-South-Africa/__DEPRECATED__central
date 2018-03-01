@@ -3,6 +3,7 @@ package com.ebay.ecg.replyts.robot.handler;
 import com.ebay.ecg.australia.events.command.robot.RobotCommands;
 import com.ebay.ecg.australia.events.entity.Entities;
 import com.ebay.ecg.australia.events.origin.OriginDefinition;
+import com.ebay.ecg.replyts.robot.api.requests.payload.Link;
 import com.ebay.ecg.replyts.robot.api.requests.payload.MessagePayload;
 import com.ebay.ecg.replyts.robot.service.RobotService;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -11,7 +12,9 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by gafabic on 6/6/16.
@@ -48,7 +51,7 @@ public class RabbitMQConsumerTest {
 
         MessagePayload payload = payloadCaptor.getValue();
         assertEquals("This is a simple Gumbot Message", payload.getMessage());
-        assertEquals(MessageDirection.BUYER_TO_SELLER, payload.getMessageDirectionEnum());
+        assertEquals(MessageDirection.BUYER_TO_SELLER, payload.getMessageDirection());
         assertTrue(payload.getLinks().isEmpty());
         assertNull(payload.getSender());
         assertNull(payload.getRichTextMessage());
@@ -77,11 +80,11 @@ public class RabbitMQConsumerTest {
 
         MessagePayload payload = payloadCaptor.getValue();
         assertEquals("This is a simple Gumbot Message with links", payload.getMessage());
-        assertEquals(MessageDirection.SELLER_TO_BUYER, payload.getMessageDirectionEnum());
+        assertEquals(MessageDirection.SELLER_TO_BUYER, payload.getMessageDirection());
 
         assertEquals(2, payload.getLinks().size());
-        verifyLink(2, 5, "EXTERNAL", "http://localhost", payload.getLinks().get(0));
-        verifyLink(10, 12, "EXTERNAL", "http://localhost-2", payload.getLinks().get(1));
+        verifyLink(2, 5, "http://localhost", payload.getLinks().get(0));
+        verifyLink(10, 12, "http://localhost-2", payload.getLinks().get(1));
 
         assertNull(payload.getSender());
         assertNull(payload.getRichTextMessage());
@@ -112,7 +115,7 @@ public class RabbitMQConsumerTest {
 
         MessagePayload payload = payloadCaptor.getValue();
         assertEquals("This is a simple Gumbot Message with Sender", payload.getMessage());
-        assertEquals(MessageDirection.BUYER_TO_SELLER, payload.getMessageDirectionEnum());
+        assertEquals(MessageDirection.BUYER_TO_SELLER, payload.getMessageDirection());
 
         assertTrue(payload.getLinks().isEmpty());
 
@@ -151,17 +154,17 @@ public class RabbitMQConsumerTest {
 
         MessagePayload payload = payloadCaptor.getValue();
         assertEquals("This is a simple Gumbot Message with links", payload.getMessage());
-        assertEquals(MessageDirection.SELLER_TO_BUYER, payload.getMessageDirectionEnum());
+        assertEquals(MessageDirection.SELLER_TO_BUYER, payload.getMessageDirection());
 
         assertEquals(2, payload.getLinks().size());
-        verifyLink(2, 5, "EXTERNAL", "http://localhost", payload.getLinks().get(0));
-        verifyLink(10, 12, "EXTERNAL", "http://localhost-2", payload.getLinks().get(1));
+        verifyLink(2, 5, "http://localhost", payload.getLinks().get(0));
+        verifyLink(10, 12, "http://localhost-2", payload.getLinks().get(1));
 
         assertNull(payload.getSender());
 
         assertEquals("This is the rich text version of the message", payload.getRichTextMessage().getRichMessageText());
         assertEquals(1, payload.getRichTextMessage().getLinks().size());
-        verifyLink(2, 5, "EXTERNAL", "http://localhost-3", payload.getRichTextMessage().getLinks().get(0));
+        verifyLink(2, 5, "http://localhost-3", payload.getRichTextMessage().getLinks().get(0));
     }
 
     private OriginDefinition.Origin createDefaultOrigin() {
@@ -182,10 +185,10 @@ public class RabbitMQConsumerTest {
                 .setUrl(url);
     }
 
-    private void verifyLink(int start, int end, String type, String url, MessagePayload.Link link) {
+    private void verifyLink(int start, int end, String url, Link link) {
         assertEquals(start, link.getStart());
         assertEquals(end, link.getEnd());
-        assertEquals(type, link.getType());
+        assertEquals("EXTERNAL", link.getType());
         assertEquals(url, link.getUrl());
     }
 }

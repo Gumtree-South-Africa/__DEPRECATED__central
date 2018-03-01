@@ -20,11 +20,11 @@ public final class ResponseObject<RESPONSE_TYPE> {
     }
 
     public static <R> ResponseObject<R> of(R response) {
-        return new ResponseObject<R>(response);
+        return new ResponseObject<>(response);
     }
 
     public static ResponseObject<Void> of(RequestState state, String message) {
-        ResponseObject<Void> res = new ResponseObject<Void>(null);
+        ResponseObject<Void> res = new ResponseObject<>(null);
         res.setStatus(state, message);
         return res;
     }

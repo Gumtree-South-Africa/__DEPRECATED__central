@@ -6,12 +6,9 @@ import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.util.List;
 import java.util.Map;
 
@@ -19,21 +16,6 @@ import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class MessageTextHandlerTest {
-    private static final Logger LOG = LoggerFactory.getLogger(MessageTextHandlerTest.class);
-
-    public static class EmailTestCase {
-        String expected;
-        String actual;
-
-        EmailTestCase(String expected, String actual) {
-            this.expected = expected;
-            this.actual = actual;
-        }
-
-        public static EmailTestCase aTestCase(String expected, String actual) {
-            return new EmailTestCase(expected, actual);
-        }
-    }
 
     @Test
     public void testValidMails() throws Exception {
@@ -43,20 +25,8 @@ public class MessageTextHandlerTest {
         long start, end, duration;
         String fileName, result;
 
-        File[] mails = mailFolder.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith("eml");
-            }
-
-
-        });
-        File[] texts = mailFolder.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith("txt");
-            }
-        });
+        File[] mails = mailFolder.listFiles((dir, name) -> name.endsWith("eml"));
+        File[] texts = mailFolder.listFiles((dir, name) -> name.endsWith("txt"));
         for (File text : texts) {
             expected.put(fileName(text.getName()), IOUtils.toString(new FileInputStream(text)));
         }
@@ -65,7 +35,7 @@ public class MessageTextHandlerTest {
             fin = new FileInputStream(f);
             fileName = fileName(f.getName());
             try {
-                List<String> parts = new Mails().readMail(ByteStreams.toByteArray(fin)).getPlaintextParts();
+                List<String> parts = Mails.readMail(ByteStreams.toByteArray(fin)).getPlaintextParts();
                 start = System.currentTimeMillis();
                 result = MessageTextHandler.remove(parts.get(0));
                 end = System.currentTimeMillis();

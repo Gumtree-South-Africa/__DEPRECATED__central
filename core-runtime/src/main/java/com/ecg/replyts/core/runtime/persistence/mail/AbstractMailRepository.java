@@ -44,7 +44,7 @@ public abstract class AbstractMailRepository implements MailRepository {
     @Override
     public Mail readInboundMailParsed(String messageId) {
         try {
-            return new Mails().readMail(readInboundMail(messageId));
+            return Mails.readMail(readInboundMail(messageId));
         } catch (ParsingException e) {
             throw new RuntimeException(e);
         }
@@ -53,7 +53,7 @@ public abstract class AbstractMailRepository implements MailRepository {
     @Override
     public Mail readOutboundMailParsed(String messageId) {
         try {
-            return new Mails().readMail(readOutboundMail(messageId));
+            return Mails.readMail(readOutboundMail(messageId));
         } catch (ParsingException e) {
             throw new RuntimeException(e);
         }

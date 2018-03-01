@@ -45,7 +45,7 @@ public class TextCleanerTest {
             fin = new FileInputStream(f);
             fileName = fileName(f.getName());
             try {
-                Mail mail = new Mails().readMail(ByteStreams.toByteArray(fin));
+                Mail mail = Mails.readMail(ByteStreams.toByteArray(fin));
                 Map<String, String> headers = mail.getUniqueHeaders();
                 List<String> parts = mail.getPlaintextParts();
                 start = System.currentTimeMillis();

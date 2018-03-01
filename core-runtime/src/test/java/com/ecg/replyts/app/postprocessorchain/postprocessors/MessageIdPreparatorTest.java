@@ -24,8 +24,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.endsWith;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageIdPreparatorTest {
@@ -58,7 +63,7 @@ public class MessageIdPreparatorTest {
                 "1", "3:3", MessageState.SENT, MessageDirection.BUYER_TO_SELLER, new DateTime(), "<DEF@abc.com>", "2:2", msg3Headers, emptyList(), emptyList()));
 
         // The third message is coming in from the seller to the buyer.
-        Mail mail = new Mails().readMail(ByteStreams.toByteArray(getClass().getResourceAsStream("MessageIdPreparatorTest-mail.eml")));
+        Mail mail = Mails.readMail(ByteStreams.toByteArray(getClass().getResourceAsStream("MessageIdPreparatorTest-mail.eml")));
 
         // Preparing the third message.
         MessageProcessingContext context = new MessageProcessingContext(mail, "3:3", processingTimeGuard);
@@ -93,7 +98,7 @@ public class MessageIdPreparatorTest {
                 "1", "2:2", MessageState.SENT, MessageDirection.SELLER_TO_BUYER, new DateTime().minusHours(1), "<STU@xyz.com>", null, msg2Headers, emptyList(), emptyList()));
 
         // The second message
-        Mail mail = new Mails().readMail(ByteStreams.toByteArray(getClass().getResourceAsStream("MessageIdPreparatorTest-mail.eml")));
+        Mail mail = Mails.readMail(ByteStreams.toByteArray(getClass().getResourceAsStream("MessageIdPreparatorTest-mail.eml")));
 
         // Preparing the second message.
         MessageProcessingContext context = new MessageProcessingContext(mail, "2:2", processingTimeGuard);

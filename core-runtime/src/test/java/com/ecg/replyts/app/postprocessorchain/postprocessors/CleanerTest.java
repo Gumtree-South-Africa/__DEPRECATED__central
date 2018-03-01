@@ -25,7 +25,7 @@ public class CleanerTest {
 
     @Test
     public void unnecessaryHeadersAreRemovedOthersRetained() throws Exception {
-        Mail mail = new Mails().readMail(ByteStreams.toByteArray(getClass().getResourceAsStream("CleanerTest-mail.eml")));
+        Mail mail = Mails.readMail(ByteStreams.toByteArray(getClass().getResourceAsStream("CleanerTest-mail.eml")));
 
         List<String> headersToRemove = Arrays.asList(
                 "X-Ms-Exchange-Organization-Authsource",

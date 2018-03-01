@@ -1,27 +1,22 @@
 package com.ebay.ecg.replyts.robot.api.requests.payload;
 
-import java.util.List;
+import java.util.Set;
 
-/**
- * Created by maotero on 15/09/2015.
- */
-public class GetConversationsResponsePayload {
-    private String adId;
-    private List<String> conversationIds;
+public final class GetConversationsResponsePayload {
+
+    private final String adId;
+    private final Set<String> conversationIds;
+
+    public GetConversationsResponsePayload(String adId, Set<String> conversationIds) {
+        this.adId = adId;
+        this.conversationIds = conversationIds;
+    }
 
     public String getAdId() {
         return adId;
     }
 
-    public void setAdId(String adId) {
-        this.adId = adId;
-    }
-
-    public List<String> getConversationIds() {
+    public Set<String> getConversationIds() {
         return conversationIds;
-    }
-
-    public void setConversationIds(List<String> conversationIds) {
-        this.conversationIds = conversationIds;
     }
 }

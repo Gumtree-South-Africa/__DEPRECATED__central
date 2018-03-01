@@ -6,17 +6,14 @@ import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 
@@ -24,41 +21,31 @@ public class TextCleanerTest {
     @Test
     public void cleanupText() throws Exception {
         File mailFolder = new File(getClass().getResource("mailReceived").getFile());
-        Map<String,String> expected = Maps.newHashMap();
+        Map<String, String> expected = Maps.newHashMap();
         FileInputStream fin;
-        long start,end,duration;
-        String fileName,result;
+        long start, end, duration;
+        String fileName, result;
 
-        File[] mails = mailFolder.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith("eml");
-            }
-        });
-        File[] texts = mailFolder.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith("txt");
-            }
-        });
+        File[] mails = mailFolder.listFiles((dir, name) -> name.endsWith("eml"));
+        File[] texts = mailFolder.listFiles((dir, name) -> name.endsWith("txt"));
 
-        for(File text : texts) {
+        for (File text : texts) {
             expected.put(fileName(text.getName()), IOUtils.toString(new FileInputStream(text)));
         }
 
-        for(File f : mails) {
+        for (File f : mails) {
             fin = new FileInputStream(f);
             fileName = fileName(f.getName());
             try {
-                Mail mail = new Mails().readMail(ByteStreams.toByteArray(fin));
-                Map<String,String> headers = mail.getUniqueHeaders();
+                Mail mail = Mails.readMail(ByteStreams.toByteArray(fin));
+                Map<String, String> headers = mail.getUniqueHeaders();
                 List<String> parts = mail.getPlaintextParts();
                 start = System.currentTimeMillis();
                 result = TextCleaner.cleanupText(parts.get(0));
                 end = System.currentTimeMillis();
                 duration = end - start;
-                assertTrue("Long running regex, Length: " + result.length() + " Time: " + duration + " File:[" + fileName + "]", duration < 30*10);
-                if(expected.containsKey(fileName)) {
+                assertTrue("Long running regex, Length: " + result.length() + " Time: " + duration + " File:[" + fileName + "]", duration < 30 * 10);
+                if (expected.containsKey(fileName)) {
                     assertEqualsIgnoreLineEnding("File '" + f.getAbsolutePath() + "'", expected.get(fileName), result);
                 }
             } catch (Exception e) {
@@ -70,7 +57,7 @@ public class TextCleanerTest {
     }
 
     @Test
-    public void cleanupMarkupCodesInMessage(){
+    public void cleanupMarkupCodesInMessage() {
         String result = TextCleaner.cleanupText("blockquote, div.yahoo_quoted margin-left: 0 !important; " +
                 "border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white " +
                 "!important; Hi Rodney. I collected the mirror but I just noticed when i got home and tried to adjust " +
@@ -108,6 +95,6 @@ public class TextCleanerTest {
     }
 
     private String fileName(String fileName) {
-    return fileName.replaceAll("\\..*","");
-}
+        return fileName.replaceAll("\\..*", "");
+    }
 }
