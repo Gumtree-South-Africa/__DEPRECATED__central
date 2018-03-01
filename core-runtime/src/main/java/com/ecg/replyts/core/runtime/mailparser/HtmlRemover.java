@@ -200,7 +200,12 @@ public class HtmlRemover {
                   .replace(TAB_CHAR, ' ');
 
                 output = MULTI_OCCURANCE_PATTERN.matcher(output).replaceAll(" ");
-                output = NEW_LINE_PATTERN.matcher(output).replaceAll(" ");
+
+                // Bolt uses the <span> tag for storing the message of the user and since it needs multilines
+                // to be kept, we remove the newlines only if not bolt. Ref: BOLT-36519
+                if (!IS_SPAN_FIX_ENABLED) {
+                    output = NEW_LINE_PATTERN.matcher(output).replaceAll(" ");
+                }
 
                 // Check for the case where a space has been put between two inline elements
                 if (!lastClosedIsBlock && !output.startsWith(" ")) {

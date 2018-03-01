@@ -62,7 +62,7 @@ public class HtmlRemoverTest {
         String resp = new HtmlRemover("<body>This is a <span rowtxt=\"rowmessage\">multi\nline\nmessage</span>").getPlaintext();
         HtmlRemover.IS_SPAN_FIX_ENABLED = false;
 
-        Assert.assertEquals("multi line message", resp);
+        Assert.assertEquals("multi\nline\nmessage", resp);
     }
 
     @Test
