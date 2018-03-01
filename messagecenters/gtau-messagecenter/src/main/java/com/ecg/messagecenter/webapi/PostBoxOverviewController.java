@@ -6,8 +6,6 @@ import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.util.ConversationThreadEnricher;
-import com.ecg.messagecenter.webapi.requests.MessageCenterDeletePostBoxConversationCommandNew;
-import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
@@ -15,29 +13,30 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 
-@Controller
+@RestController
+@RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class PostBoxOverviewController {
+
     private static final Timer API_POSTBOX_BY_EMAIL = TimingReports.newTimer("webapi-postbox-by-email");
     private static final Timer API_POSTBOX_CONVERSATION_DELETE_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-delete");
-
     private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX = TimingReports.newHistogram("webapi-postbox-num-conversations-of-postbox");
 
     private final SimplePostBoxRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
 
     @Autowired
-    public PostBoxOverviewController(
-            ConversationRepository conversationRepository,
-            SimplePostBoxRepository postBoxRepository,
-            ConversationThreadEnricher conversationThreadEnricher) {
+    public PostBoxOverviewController(ConversationRepository conversationRepository, SimplePostBoxRepository postBoxRepository, ConversationThreadEnricher conversationThreadEnricher) {
         this.postBoxRepository = postBoxRepository;
         this.responseBuilder = new PostBoxResponseBuilder(conversationRepository, conversationThreadEnricher);
     }
@@ -47,54 +46,37 @@ public class PostBoxOverviewController {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
     }
 
-    @RequestMapping(value = MessageCenterGetPostBoxCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
-    @ResponseBody
-    ResponseObject<PostBoxResponse> getPostBoxByEmail(
+    @GetMapping("/postboxes/{email:.+}")
+    public ResponseObject<PostBoxResponse> getPostBoxByEmail(
             @PathVariable String email,
             @RequestParam(value = "newCounterMode", defaultValue = "false") boolean newCounterMode,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
-            @RequestParam(value = "robotEnabled", defaultValue = "true", required = false) boolean robotEnabled,
-            HttpServletRequest request) {
-
-        Timer.Context timerContext = API_POSTBOX_BY_EMAIL.time();
-
-        try {
+            @RequestParam(value = "robotEnabled", defaultValue = "true", required = false) boolean robotEnabled
+    ) {
+        try (Timer.Context ignored = API_POSTBOX_BY_EMAIL.time()) {
             PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
             API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
 
-            if (markAsRead(request)) {
-                postBox.resetReplies();
-                postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
-            }
-
             if (robotEnabled) {
                 return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
             } else {
-                return responseBuilder.buildPostBoxResponseRobotExcluded(email, size, page, postBox, newCounterMode);
+                return responseBuilder.buildPostBoxResponseRobotExcluded(email, size, page, postBox);
             }
-
-        } finally {
-            timerContext.stop();
         }
     }
 
-    @RequestMapping(value = MessageCenterDeletePostBoxConversationCommandNew.MAPPING,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.DELETE)
-    @ResponseBody
-    ResponseObject<PostBoxResponse> removePostBoxConversationByEmailAndBulkConversationIds(
+    @DeleteMapping("/postboxes/{email}/conversations")
+    public ResponseObject<PostBoxResponse> removePostBoxConversationByEmailAndBulkConversationIds(
             @PathVariable("email") String email,
             @RequestParam(value = "ids", defaultValue = "") String[] ids,
             @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
-            @RequestParam(value = "size", defaultValue = "50", required = false) Integer size) {
-        Timer.Context timerContext = API_POSTBOX_CONVERSATION_DELETE_BY_ID.time();
-
-        try {
+            @RequestParam(value = "size", defaultValue = "50", required = false) Integer size
+    ) {
+        try (Timer.Context ignored = API_POSTBOX_CONVERSATION_DELETE_BY_ID.time()) {
             PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-
             for (String id : ids) {
                 postBox.removeConversation(id);
             }
@@ -102,13 +84,6 @@ public class PostBoxOverviewController {
             postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
 
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
-
-        } finally {
-            timerContext.stop();
         }
-    }
-
-    private boolean markAsRead(HttpServletRequest request) {
-        return request.getMethod().equals(RequestMethod.PUT.name());
     }
 }

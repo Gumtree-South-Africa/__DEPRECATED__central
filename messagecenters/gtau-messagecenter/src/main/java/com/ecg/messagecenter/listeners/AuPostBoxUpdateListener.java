@@ -25,8 +25,8 @@ import org.springframework.stereotype.Component;
 import static com.ecg.messagecenter.util.MessageType.isAutogate;
 
 @Component
-public class PostBoxUpdateListener implements MessageProcessedListener {
-    private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
+public class AuPostBoxUpdateListener implements MessageProcessedListener {
+    private static final Logger LOG = LoggerFactory.getLogger(AuPostBoxUpdateListener.class);
 
     private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
@@ -41,18 +41,18 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final AdInfoLookup adInfoLookup;
 
     @Autowired
-    public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
-                                 @Value("${push-mobile.enabled:true}") boolean pushEnabled,
-                                 @Value("${push-mobile.host:}") String pushHost,
-                                 @Value("${api.image.lookup.enabled:false}") Boolean apiEnabled,
-                                 @Value("${api.host:api.gumtree.com.au}") String apiHost,
-                                 @Value("${api.port:80}") Integer apiPort,
-                                 @Value("${api.connectionTimeout:1500}") Integer connectionTimeout,
-                                 @Value("${api.connectionManagerTimeout:1500}") Integer connectionManagerTimeout,
-                                 @Value("${api.socketTimeout:4000}") Integer socketTimeout,
-                                 @Value("${api.maxConnectionsPerHost:40}") Integer maxConnectionsPerHost,
-                                 @Value("${api.maxConnectionsPerHost:40}") Integer maxTotalConnections,
-                                 KmobilePushService kmobilePushService) {
+    public AuPostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
+                                   @Value("${push-mobile.enabled:true}") boolean pushEnabled,
+                                   @Value("${push-mobile.host:}") String pushHost,
+                                   @Value("${api.image.lookup.enabled:false}") Boolean apiEnabled,
+                                   @Value("${api.host:api.gumtree.com.au}") String apiHost,
+                                   @Value("${api.port:80}") Integer apiPort,
+                                   @Value("${api.connectionTimeout:1500}") Integer connectionTimeout,
+                                   @Value("${api.connectionManagerTimeout:1500}") Integer connectionManagerTimeout,
+                                   @Value("${api.socketTimeout:4000}") Integer socketTimeout,
+                                   @Value("${api.maxConnectionsPerHost:40}") Integer maxConnectionsPerHost,
+                                   @Value("${api.maxConnectionsPerHost:40}") Integer maxTotalConnections,
+                                   KmobilePushService kmobilePushService) {
         this.postBoxInitializer = postBoxInitializer;
 
         if (apiEnabled) {

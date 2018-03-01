@@ -7,32 +7,40 @@ import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
-import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.joda.time.DateTime.now;
 
-@Controller
+@RestController
+@RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ConversationThreadController {
-    private static final Timer API_POSTBOX_CONVERSATION_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-by-id");
+
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationThreadController.class);
+    private static final Timer POSTBOX_CONVERSATION_GET = TimingReports.newTimer("webapi-postbox-conversation-by-id");
+    private static final Timer POSTBOX_CONVERSATION_MARK_READ = TimingReports.newTimer("webapi-postbox-conversation-mark-read");
     private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
 
     @Autowired
@@ -46,59 +54,74 @@ public class ConversationThreadController {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
     }
 
-    @RequestMapping(value = MessageCenterGetPostBoxConversationCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
-    @ResponseBody
-    ResponseObject<?> getPostBoxConversationByEmailAndConversationId(
+    @GetMapping("/postboxes/{email}/conversations/{conversationId}")
+    public ResponseObject getPostBoxConversation(
             @PathVariable("email") String email,
             @PathVariable("conversationId") String conversationId,
             @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
-            @RequestParam(value ="robotEnabled", defaultValue = "true", required = false) boolean robotEnabled,
-            HttpServletRequest request,
-            HttpServletResponse response) {
+            @RequestParam(value = "robotEnabled", defaultValue = "true", required = false) boolean robotEnabled,
+            HttpServletResponse response
+    ) {
 
-        Timer.Context timerContext = API_POSTBOX_CONVERSATION_BY_ID.time();
-
-        try {
+        try (Timer.Context ignored = POSTBOX_CONVERSATION_GET.time()) {
             PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
-            Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
+            Optional conversationThreadRequested = postBox.lookupConversation(conversationId);
             if (!conversationThreadRequested.isPresent()) {
-                return entityNotFound(response);
+                return entityNotFound(response, conversationId);
             }
 
-            boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
-            if(needToMarkAsRead) {
+            if (newCounterMode) {
+                return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response, robotEnabled);
+            } else {
+                long numUnread = postBox.getUnreadConversationsCapped().size();
+                return lookupConversation(numUnread, email, conversationId, response, robotEnabled);
+            }
+        }
+    }
+
+    @PutMapping("/postboxes/{email}/conversations/{conversationId}")
+    public ResponseObject markReadPostBoxConversation(
+            @PathVariable("email") String email,
+            @PathVariable("conversationId") String conversationId,
+            @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
+            @RequestParam(value = "robotEnabled", defaultValue = "true", required = false) boolean robotEnabled,
+            HttpServletResponse response
+    ) {
+        try (Timer.Context ignored = POSTBOX_CONVERSATION_MARK_READ.time()) {
+            PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+
+            Optional conversationThreadRequested = postBox.lookupConversation(conversationId);
+            if (!conversationThreadRequested.isPresent()) {
+                return entityNotFound(response, conversationId);
+            }
+
+            ConversationThread conversationThread = (ConversationThread) conversationThreadRequested.get();
+            boolean needToMarkAsRead = conversationThread.isContainsUnreadMessages();
+            if (needToMarkAsRead) {
+                LOG.debug("Marking conversation with ID {} as read", conversationId);
                 int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
                 postBox.decrementNewReplies(unreadMessages);
-                postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
+                postBoxRepository.markConversationAsRead(postBox, conversationThread);
             }
 
-            if(newCounterMode) {
-                if(needToMarkAsRead) {
+            if (newCounterMode) {
+                if (needToMarkAsRead) {
                     markConversationAsRead(email, conversationId, postBox);
                 }
                 return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response, robotEnabled);
             } else {
-                long numUnread;
-                if (needToMarkAsRead) {
-                    numUnread = markConversationAsRead(email, conversationId, postBox);
-                } else {
-                    numUnread = postBox.getUnreadConversationsCapped().size();
-                }
+                long numUnread = needToMarkAsRead ? markConversationAsRead(email, conversationId, postBox) : postBox.getUnreadConversationsCapped().size();
                 return lookupConversation(numUnread, email, conversationId, response, robotEnabled);
             }
-
-        } finally {
-            timerContext.stop();
         }
     }
 
-    private ResponseObject<?> lookupConversation(long numUnread, String email, String conversationId, HttpServletResponse response, boolean robotEnabled) {
+    private ResponseObject lookupConversation(long numUnread, String email, String conversationId, HttpServletResponse response, boolean robotEnabled) {
         Conversation conversation = conversationRepository.getById(conversationId);
         // can only happen if both buckets diverge
         if (conversation == null) {
-            return entityNotFound(response);
+            return entityNotFound(response, conversationId);
         }
 
         Optional<PostBoxSingleConversationThreadResponse> created = PostBoxSingleConversationThreadResponse.create(numUnread, email, conversation, robotEnabled);
@@ -106,9 +129,8 @@ public class ConversationThreadController {
             API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
             return ResponseObject.of(created.get());
         } else {
-            return entityNotFound(response);
+            return entityNotFound(response, conversationId);
         }
-
     }
 
     private long markConversationAsRead(String email, String conversationId, PostBox<ConversationThread> postBox) {
@@ -147,9 +169,8 @@ public class ConversationThreadController {
             }
         }
 
-        long numUnreadCounter;
-
         //optimization to not cause too many write actions (potential for conflicts)
+        long numUnreadCounter;
         if (needsUpdate) {
             PostBox<AbstractConversationThread> postBoxToUpdate = new PostBox(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate);
             postBoxRepository.markConversationAsRead(postBoxToUpdate, updatedConversation);
@@ -161,12 +182,9 @@ public class ConversationThreadController {
         return numUnreadCounter;
     }
 
-    private ResponseObject<?> entityNotFound(HttpServletResponse response) {
+    private static ResponseObject<?> entityNotFound(HttpServletResponse response, String conversationId) {
+        LOG.debug("Conversation with ID {} was not found", conversationId);
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         return ResponseObject.of(RequestState.ENTITY_NOT_FOUND);
-    }
-
-    private boolean markAsRead(HttpServletRequest request) {
-        return request.getMethod().equals(RequestMethod.PUT.name());
     }
 }
