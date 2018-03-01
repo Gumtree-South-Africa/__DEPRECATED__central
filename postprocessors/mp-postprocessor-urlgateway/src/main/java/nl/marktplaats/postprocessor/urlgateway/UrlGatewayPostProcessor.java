@@ -1,6 +1,6 @@
 package nl.marktplaats.postprocessor.urlgateway;
 
-import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.app.postprocessorchain.ContentOverridingPostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.MediaTypeHelper;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
@@ -17,9 +17,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-public class UrlGatewayPostProcessor implements PostProcessor {
+public class UrlGatewayPostProcessor implements ContentOverridingPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(UrlGatewayPostProcessor.class);
+
+    private static final PlainTextMailPartUrlGatewayRewriter PLAIN_TEXT_REWRITER = new PlainTextMailPartUrlGatewayRewriter();
+    private static final HtmlMailPartUrlGatewayRewriter HTML_REWRITER = new HtmlMailPartUrlGatewayRewriter();
 
     private GatewaySwitcher gatewaySwitcher;
 
@@ -47,8 +50,8 @@ public class UrlGatewayPostProcessor implements PostProcessor {
                 MediaType mediaType = typedContent.getMediaType();
 
                 UrlGatewayRewriter urlGatewayRewriter = MediaTypeHelper.isHtmlCompatibleType(mediaType)
-                        ? new HtmlMailPartUrlGatewayRewriter()
-                        : new PlainTextMailPartUrlGatewayRewriter();
+                        ? HTML_REWRITER
+                        : PLAIN_TEXT_REWRITER;
 
                 String existingContent = typedContent.getContent();
                 String newContent = urlGatewayRewriter.rewriteUrls(existingContent, gatewaySwitcher);
@@ -61,5 +64,10 @@ public class UrlGatewayPostProcessor implements PostProcessor {
     @Override
     public int getOrder() {
         return 300;
+    }
+
+    @Override
+    public String overrideContent(String content) {
+        return PLAIN_TEXT_REWRITER.rewriteUrls(content, gatewaySwitcher);
     }
 }

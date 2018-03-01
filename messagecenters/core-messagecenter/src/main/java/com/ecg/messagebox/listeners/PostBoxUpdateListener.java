@@ -6,8 +6,8 @@ import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagebox.util.MessagesResponseFactory;
 import com.ecg.messagecenter.listeners.UserNotificationRules;
+import com.ecg.replyts.app.postprocessorchain.ContentOverridingPostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
@@ -48,15 +50,18 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final MessageAddedEventProcessor messageAddedEventProcessor;
     private final BlockUserRepository blockUserRepository;
     private final MessagesResponseFactory messagesResponseFactory;
+    private final List<ContentOverridingPostProcessor> contentOverridingPostProcessors;
 
     @Autowired
     public PostBoxUpdateListener(PostBoxService postBoxService,
                                  UserIdentifierService userIdentifierService,
                                  MessageAddedEventProcessor messageAddedEventProcessor,
                                  BlockUserRepository blockUserRepository,
-                                 MessagesResponseFactory messagesResponseFactory) {
+                                 MessagesResponseFactory messagesResponseFactory,
+                                 Optional<List<ContentOverridingPostProcessor>> contentOverridingPostProcessors) {
         this.postBoxService = postBoxService;
         this.userIdentifierService = userIdentifierService;
+        this.contentOverridingPostProcessors = contentOverridingPostProcessors.orElseGet(ArrayList::new);
         this.userNotificationRules = new UserNotificationRules();
         this.messageAddedEventProcessor = messageAddedEventProcessor;
         this.blockUserRepository = blockUserRepository;
@@ -87,7 +92,11 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             final String msgReceiverUserId = msg.getMessageDirection() == BUYER_TO_SELLER ? sellerUserId : buyerUserId;
 
             if (!isDirectionBlocked(msgSenderUserId, msgReceiverUserId) && msg.getState() != IGNORED ) {
-                final String cleanMsg = messagesResponseFactory.getCleanedMessage(conv, msg);
+                String cleanMsg = messagesResponseFactory.getCleanedMessage(conv, msg);
+
+                for (ContentOverridingPostProcessor contentOverridingPostProcessor : contentOverridingPostProcessors) {
+                    cleanMsg = contentOverridingPostProcessor.overrideContent(cleanMsg);
+                }
 
                 // update buyer and seller projections
                 updateUserProjection(conv, msg, msgSenderUserId, buyerUserId,

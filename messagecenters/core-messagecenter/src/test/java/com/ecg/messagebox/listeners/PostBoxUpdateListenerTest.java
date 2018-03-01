@@ -3,7 +3,11 @@ package com.ecg.messagebox.listeners;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagebox.util.MessagesResponseFactory;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.app.postprocessorchain.ContentOverridingPostProcessor;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
@@ -17,9 +21,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Optional;
 
-import static com.ecg.replyts.core.api.model.conversation.ConversationState.*;
+import static com.ecg.replyts.core.api.model.conversation.ConversationState.ACTIVE;
+import static com.ecg.replyts.core.api.model.conversation.ConversationState.CLOSED;
+import static com.ecg.replyts.core.api.model.conversation.ConversationState.DEAD_ON_ARRIVAL;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.IGNORED;
@@ -28,9 +35,12 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.joda.time.DateTime.now;
 import static org.joda.time.DateTimeZone.UTC;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PostBoxUpdateListenerTest {
@@ -49,6 +59,9 @@ public class PostBoxUpdateListenerTest {
     @Mock
     MessageAddedEventProcessor messageAddedEventProcessor;
 
+    @Mock
+    ContentOverridingPostProcessor contentOverridingPostProcessor;
+
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -63,7 +76,7 @@ public class PostBoxUpdateListenerTest {
     @Before
     public void setup() {
         listener = new PostBoxUpdateListener(delegatorMock, userIdentifierServiceMock, messageAddedEventProcessor,
-                blockUserRepository, messagesResponseFactory);
+                blockUserRepository, messagesResponseFactory, Optional.of(Arrays.asList(contentOverridingPostProcessor)));
 
         convBuilder = ImmutableConversation.Builder
                 .aConversation()
@@ -89,6 +102,8 @@ public class PostBoxUpdateListenerTest {
                 .thenReturn(of(SELLER_USER_ID));
         when(messagesResponseFactory.getCleanedMessage(conversation, message))
                 .thenReturn("clean message");
+        when(contentOverridingPostProcessor.overrideContent("clean message"))
+                .thenReturn("clean message");
 
         listener.messageProcessed(conversation, message);
 
@@ -98,6 +113,7 @@ public class PostBoxUpdateListenerTest {
         verify(userIdentifierServiceMock).getSellerUserId(conversation);
         verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false, "clean message");
         verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, true, "clean message");
+        verify(contentOverridingPostProcessor).overrideContent("clean message");
     }
 
     @Test
