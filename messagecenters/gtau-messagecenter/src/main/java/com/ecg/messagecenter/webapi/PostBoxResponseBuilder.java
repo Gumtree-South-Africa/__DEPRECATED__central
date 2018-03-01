@@ -54,7 +54,7 @@ public class PostBoxResponseBuilder {
         return ResponseObject.of(postBoxResponse);
     }
 
-    ResponseObject<PostBoxResponse> buildPostBoxResponseRobotExcluded(String email, int size, int page, PostBox postBox, boolean newCounterMode) {
+    ResponseObject<PostBoxResponse> buildPostBoxResponseRobotExcluded(String email, int size, int page, PostBox postBox) {
         PostBoxResponse postBoxResponse = new PostBoxResponse();
 
         List<ConversationThread> conversationThreads = postBox.getConversationThreads();
