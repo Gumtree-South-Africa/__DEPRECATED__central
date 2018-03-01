@@ -1,5 +1,4 @@
 #!/usr/bin/env groovy
-
 static def tenantAliases() {
     [
             'mp'   : 'mp',
@@ -54,6 +53,33 @@ String getActiveDC(String tenantLongName, String env) {
     return dc
 }
 
+String getMetaInformation(final String what, final String tenantLongName) {
+    return sh(
+            script: "curl -sL http://http.nomad.service.consul:4646/v1/job/${tenantLongName}-core-api | jq -r .Meta.${what}",
+            returnStdout: true
+    ).trim()
+}
+
+String getOriginalDeployNr(final String tenantLongName) {
+    return getMetaInformation("deploy_jenkins_job_nr", tenantLongName)
+}
+
+String getOriginalVersion(final String tenantLongName) {
+    return getMetaInformation("version", tenantLongName)
+}
+
+String getOriginalWantedInstances(final String tenantLongName) {
+    return getMetaInformation("wanted_instances", tenantLongName)
+}
+
+String getOriginalWantedInstancesPerZone(final String tenantLongName) {
+    return getMetaInformation("wanted_instances_per_zone", tenantLongName)
+}
+
+String getOriginalRestartJenkinsJobNr(final String tenantLongName) {
+    return getMetaInformation("restart_jenkins_job_nr", tenantLongName)
+}
+
 node(PROVIDED_ENV) {
     checkInputParameters(PROVIDED_ENV, PROVIDED_DC, PROVIDED_TENANT)
 
@@ -90,6 +116,13 @@ node(PROVIDED_ENV) {
         input message: "Restarting Comaas for tenant: ${tenant} in " + (isActiveDC ? "ACTIVE " : "") + "dc: ${dc} on env: ${environment}. Are you sure?"
     }
 
+    final String originalDeployJenkinsJobNr = getOriginalDeployNr(tenant)
+    final String version = getOriginalVersion(tenant)
+    final String wantedInstances = getOriginalWantedInstances(tenant)
+    final String wantedInstancesPerZone = getOriginalWantedInstancesPerZone(tenant)
+    final String originalJenkinsRestartJobNr = getOriginalRestartJenkinsJobNr(tenant)
+    final String restartJenkinsJob = originalJenkinsRestartJobNr == "none" ? env.BUILD_NUMBER : originalJenkinsRestartJobNr + "," + env.BUILD_NUMBER
+
     stage("Restarting Comaas") {
         node("$environment && $dc") {
             ansiColor('xterm') {
@@ -107,27 +140,25 @@ node(PROVIDED_ENV) {
                               usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
                 final boolean live = configFile.tenants.live.contains(tenant)
 
-                nomadFile = "core-api.nomad"
+                def nomadFile = "core-api.nomad"
                 if (live || environment == "lp") {
                     nomadFile = "core-api_ACTIVE.nomad"
                 }
 
-                final String deployJenkinsJob = env.BUILD_NUMBER
-
-                // Note absence of force-count and api_count=3 (which will not be enforced)
-                sh "levant deploy " +
-                        "-log-level=debug " +
-                        "-address='http://http.nomad.service.consul:4646' " +
-                        "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
+                final String vars = "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
                         "-var='version=${version}' " +
                         "-var='docker_password=${DOCKER_PASS}' " +
                         "-var='tenant=${tenant}' " +
                         "-var='tenant_short=${tenantShort}' " +
                         "-var='environment=${environment}' " +
                         "-var='region=${dc}' " +
-                        "-var='api_count=3' " +
-                        "-var='api_count_per_zone=1' " +
-                        "-var='deploy_jenkins_job_nr=${deployJenkinsJob}' " +
+                        "-var='api_count=${wantedInstances}' " +
+                        "-var='api_count_per_zone=${wantedInstancesPerZone}' " +
+                        "-var='deploy_jenkins_job_nr=${originalDeployJenkinsJobNr}' " +
+                        "-var='restart_jenkins_job_nr=${restartJenkinsJob}' "
+
+                sh "levant render ${vars} distribution/jenkins/deployment/${nomadFile}"
+                sh "levant deploy -log-level=debug -address='http://http.nomad.service.consul:4646' ${vars} " +
                         "distribution/jenkins/deployment/${nomadFile}"
             }
         }

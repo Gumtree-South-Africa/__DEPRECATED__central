@@ -15,6 +15,8 @@ job "[[ .tenant ]]-core-api" {
     docker_image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
     wanted_instances_per_zone = "[[.api_count_per_zone]]"
     deploy_jenkins_job_nr = "[[.deploy_jenkins_job_nr]]"
+    restart_jenkins_job_nr = "[[.restart_jenkins_job_nr]]"
+    version = "[[.version]]"
   }
 
   update {

@@ -162,33 +162,19 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
         }
 
         final String deployJenkinsJob = env.BUILD_NUMBER
+        final String vars = "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
+                "-var='version=${version}' " +
+                "-var='docker_password=${DOCKER_PASS}' " +
+                "-var='tenant=${tenant}' " +
+                "-var='tenant_short=${tenantShort}' " +
+                "-var='environment=${environment}' " +
+                "-var='region=${dc}' " +
+                "-var='api_count=${nrOfInstances}' " +
+                "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
+                "-var='deploy_jenkins_job_nr=${deployJenkinsJob}' "
 
-        sh "levant render " +
-                "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
-                "-var='version=${version}' " +
-                "-var='docker_password=${DOCKER_PASS}' " +
-                "-var='tenant=${tenant}' " +
-                "-var='tenant_short=${tenantShort}' " +
-                "-var='environment=${environment}' " +
-                "-var='region=${dc}' " +
-                "-var='api_count=${nrOfInstances}' " +
-                "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
-                "-var='deploy_jenkins_job_nr=${deployJenkinsJob}' " +
-                "distribution/jenkins/deployment/${nomadFile}"
-        sh "levant deploy " +
-                "-log-level=debug " +
-                "-force-count=true " +
-                "-address='http://http.nomad.service.consul:4646' " +
-                "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
-                "-var='version=${version}' " +
-                "-var='docker_password=${DOCKER_PASS}' " +
-                "-var='tenant=${tenant}' " +
-                "-var='tenant_short=${tenantShort}' " +
-                "-var='environment=${environment}' " +
-                "-var='region=${dc}' " +
-                "-var='api_count=${nrOfInstances}' " +
-                "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
-                "-var='deploy_jenkins_job_nr=${deployJenkinsJob}' " +
+        sh "levant render ${vars} distribution/jenkins/deployment/${nomadFile}"
+        sh "levant deploy -log-level=debug -address='http://http.nomad.service.consul:4646' -force-count=true ${vars} " +
                 "distribution/jenkins/deployment/${nomadFile}"
     }
 }

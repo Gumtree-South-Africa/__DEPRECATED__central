@@ -14,6 +14,8 @@ variable api_count { default = 3 }
 variable api_resources_cpu { default = 3300 }
 variable api_resources_mem { default = 3096 }
 
+variable restart_jenkins_job_nr { default = "none" }
+
 variable filebeat_config {
     type = "string"
     default = <<EOF
