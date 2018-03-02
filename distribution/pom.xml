@@ -905,12 +905,6 @@
 
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>bt-messagecenter</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>core-resultinspector-threshold</artifactId>
                     <version>${project.version}</version>
                 </dependency>
