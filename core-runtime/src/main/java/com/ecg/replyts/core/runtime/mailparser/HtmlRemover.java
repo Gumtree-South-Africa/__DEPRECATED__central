@@ -18,13 +18,17 @@ import java.util.regex.Pattern;
 public class HtmlRemover {
     private static final Logger LOG = LoggerFactory.getLogger(HtmlRemover.class);
 
-    public static volatile boolean IS_SPAN_FIX_ENABLED = false;
-    private static Pattern SPAN_PATTERN = Pattern.compile("<span rowtxt=\"rowmessage\">(.*?)</span>", Pattern.DOTALL);
+    // Bolt related fix. Bolt is actually storing the message sent by the user into a <span rowtxt="rowmessage"> tag and
+    // they expect messages sent by comaas to contain that tag, even after stripping all the HTML from the message. So this
+    // value is used to differentiate the behaviour of the HtmlRemover when used by Bolt and when used by all the other tenants.
+    public static volatile boolean IS_BOLT_SPAN_FIX_ENABLED = false;
+
+    private static final String SPAN_FIX_ATTRIBUTE_NAME = "rowtxt";
+    private static Pattern SPAN_PATTERN = Pattern.compile("<span " + SPAN_FIX_ATTRIBUTE_NAME + "=\"rowmessage\">(.*?)</span>", Pattern.DOTALL);
 
     private enum TagType {
         Remove, Inline, Block
     }
-
     private static final char NBSP_CHAR = (char) 160;
     private static final char TAB_CHAR = '\t';
 
@@ -32,7 +36,6 @@ public class HtmlRemover {
     private static final String SPAN_TAG = "span";
     private static final String PARAGRAPH_TAG = "p";
 
-    private static final String SPAN_FIX_ATTRIBUTE_NAME = "rowtxt";
 
     private static final String[] TAGS_TO_STRIP = new String[] {
       "script", "object",
@@ -86,7 +89,7 @@ public class HtmlRemover {
         output = MULTI_OCCURANCE_PATTERN.matcher(output).replaceAll(" ");
         output = TOO_MANY_BLANK_LINES_PATTERN.matcher(output).replaceAll("\n\n");
 
-        if (IS_SPAN_FIX_ENABLED) {
+        if (IS_BOLT_SPAN_FIX_ENABLED) {
             Matcher matcher = SPAN_PATTERN.matcher(output);
             if (matcher.find()) {
                 return matcher.group(1).trim();
@@ -106,8 +109,6 @@ public class HtmlRemover {
             String lastChar = elementBuffer.length() > 0 ? elementBuffer.substring(elementBuffer.length() - 1) : null;
 
             flushBuffer();
-
-            fixableSpanIsFound = false;
 
             switch (getType(qName)) {
                 case Remove:
@@ -131,7 +132,7 @@ public class HtmlRemover {
                         buffer.append(" ");
                     }
 
-                    if (IS_SPAN_FIX_ENABLED
+                    if (IS_BOLT_SPAN_FIX_ENABLED
                         && qName.equalsIgnoreCase(SPAN_TAG)
                         && attributes != null
                         && attributes.getLength() > 0
@@ -144,8 +145,6 @@ public class HtmlRemover {
                           .append("=\"")
                           .append(attributes.getValue(0))
                           .append("\">");
-
-                        fixableSpanIsFound = true;
                     }
 
                     break;
@@ -174,7 +173,7 @@ public class HtmlRemover {
 
                     break;
                 case Inline:
-                    if (IS_SPAN_FIX_ENABLED && qName.equalsIgnoreCase(SPAN_TAG) && fixableSpanIsFound) {
+                    if (IS_BOLT_SPAN_FIX_ENABLED && qName.equalsIgnoreCase(SPAN_TAG)) {
                         LOG.debug("Found the span end tag; storing it in the plain text");
 
                         buffer.append("</span>");
@@ -203,7 +202,7 @@ public class HtmlRemover {
 
                 // Bolt uses the <span> tag for storing the message of the user and since it needs multilines
                 // to be kept, we remove the newlines only if not bolt. Ref: BOLT-36519
-                if (!IS_SPAN_FIX_ENABLED) {
+                if (!IS_BOLT_SPAN_FIX_ENABLED) {
                     output = NEW_LINE_PATTERN.matcher(output).replaceAll(" ");
                 }
 

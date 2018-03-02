@@ -49,18 +49,41 @@ public class HtmlRemoverTest {
 
     @Test
     public void testSpaceWithSpanWithFixEnabled() throws Exception {
-        HtmlRemover.IS_SPAN_FIX_ENABLED = true;
+        HtmlRemover.IS_BOLT_SPAN_FIX_ENABLED = true;
         String resp = new HtmlRemover("<body>Hello <span rowtxt=\"rowmessage\">World</span>").getPlaintext();
-        HtmlRemover.IS_SPAN_FIX_ENABLED = false;
+        HtmlRemover.IS_BOLT_SPAN_FIX_ENABLED = false;
 
         Assert.assertEquals("World", resp);
     }
 
     @Test
     public void testNewLineWithinSpanTag() throws Exception {
-        HtmlRemover.IS_SPAN_FIX_ENABLED = true;
+        HtmlRemover.IS_BOLT_SPAN_FIX_ENABLED = true;
         String resp = new HtmlRemover("<body>This is a <span rowtxt=\"rowmessage\">multi\nline\nmessage</span>").getPlaintext();
-        HtmlRemover.IS_SPAN_FIX_ENABLED = false;
+        HtmlRemover.IS_BOLT_SPAN_FIX_ENABLED = false;
+
+        Assert.assertEquals("multi\nline\nmessage", resp);
+    }
+
+    @Test
+    public void testMultipleSpanTags() throws Exception {
+        HtmlRemover.IS_BOLT_SPAN_FIX_ENABLED = false;
+        String html = "<body>This <span>is</span> a <span rowtxt=\"rowmessage\">message</span></body>";
+        String resp = new HtmlRemover(html).getPlaintext();
+        Assert.assertEquals("This is a message", resp);
+
+        HtmlRemover.IS_BOLT_SPAN_FIX_ENABLED = true;
+        resp = new HtmlRemover(html).getPlaintext();
+        Assert.assertEquals("message", resp);
+
+        HtmlRemover.IS_BOLT_SPAN_FIX_ENABLED = false;
+    }
+
+    @Test
+    public void testBrWithinSpanTag() throws Exception {
+        HtmlRemover.IS_BOLT_SPAN_FIX_ENABLED = true;
+        String resp = new HtmlRemover("<body>This is a <span rowtxt=\"rowmessage\">multi<br/>line<br/>message</span></body>").getPlaintext();
+        HtmlRemover.IS_BOLT_SPAN_FIX_ENABLED = false;
 
         Assert.assertEquals("multi\nline\nmessage", resp);
     }

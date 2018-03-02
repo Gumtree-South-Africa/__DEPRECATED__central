@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class BoltOverridesConfiguration {
     static {
-        HtmlRemover.IS_SPAN_FIX_ENABLED = true;
+        HtmlRemover.IS_BOLT_SPAN_FIX_ENABLED = true;
     }
 
     @Primary
