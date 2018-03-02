@@ -57,6 +57,9 @@ public class BulkIndexerAction implements IndexerAction {
     @Value("${replyts.indexer.streaming.timeout.sec:600}")
     private int taskCompletionTimeoutSec;
 
+    @Value("${replyts.indexer.streaming.sleep.ms:0}")
+    private long sleepMs;
+
     private final AtomicLong taskCounter = new AtomicLong(0);
 
     private final AtomicInteger completedBatches = new AtomicInteger(0);
@@ -131,6 +134,13 @@ public class BulkIndexerAction implements IndexerAction {
     private void indexAsync(Set<String> uniqueIds) {
         try (Timer.Context ignore = BATCH_INDEX_TIMER.time()) {
             indexerBulkHandler.indexChunk(uniqueIds);
+        }
+        if (sleepMs > 0) {
+            try {
+                Thread.sleep(sleepMs);
+            } catch (InterruptedException e) {
+                LOG.info("Indexing thread has been interrupted");
+            }
         }
     }
 }
