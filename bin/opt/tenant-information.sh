@@ -38,7 +38,7 @@ from_json () {
 }
 
 if [ $# == 0 ]; then
-    tenants="ar ek au uk it ca mo mp mx sg za"
+    tenants="ar au ca ek it mo mp mx sg uk za"
 else
     tenants="${@}"
 fi
