@@ -1,4 +1,4 @@
-package com.ecg.messagebox.util;
+package com.ecg.messagebox.util.messages;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import static com.ecg.messagebox.util.MessageBodyExtractor.MARKER;
+import static com.ecg.messagebox.util.messages.DefaultMessagesResponseFactory.MARKER;
 
 public class MessageBodyExtractorTest {
 
@@ -17,7 +17,7 @@ public class MessageBodyExtractorTest {
     public void basicTextTest() {
 
         String msg = String.format("header%sbody%sfooter", MARKER, MARKER);
-        String result = MessageBodyExtractor.extractBodyMarkedByNonPrintableChars(msg);
+        String result = DefaultMessagesResponseFactory.extractBodyMarkedByNonPrintableChars(msg);
         Assert.assertTrue(result.equals("body"));
     }
 
@@ -25,7 +25,7 @@ public class MessageBodyExtractorTest {
     public void multilineTextTest() {
 
         String msg = String.format("header%sbo\ndy%sfooter", MARKER, MARKER);
-        String result = MessageBodyExtractor.extractBodyMarkedByNonPrintableChars(msg);
+        String result = DefaultMessagesResponseFactory.extractBodyMarkedByNonPrintableChars(msg);
         Assert.assertTrue(result.equals("bo\ndy"));
     }
 
@@ -33,7 +33,7 @@ public class MessageBodyExtractorTest {
     public void realTextTest() throws IOException {
 
         String msg = loadFileAsString("/com/ecg/messagecenter/util/contactMessage.txt");
-        String result = MessageBodyExtractor.extractBodyMarkedByNonPrintableChars(msg);
+        String result = DefaultMessagesResponseFactory.extractBodyMarkedByNonPrintableChars(msg);
 
         String expected = loadFileAsString("/com/ecg/messagecenter/util/contactMessageTrimmed.txt");
         Assert.assertTrue(result.equals(expected));

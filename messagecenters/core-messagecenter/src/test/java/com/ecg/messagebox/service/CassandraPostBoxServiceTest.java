@@ -5,7 +5,7 @@ import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.util.MessagePreProcessor;
-import com.ecg.messagebox.util.MessagesResponseFactory;
+import com.ecg.messagebox.util.messages.DefaultMessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
@@ -109,7 +109,7 @@ public class CassandraPostBoxServiceTest {
     private MutableConversation conversation;
 
     @Autowired
-    private MessagesResponseFactory messagesResponseFactory;
+    private DefaultMessagesResponseFactory messagesResponseFactory;
 
     private CassandraPostBoxService service;
 
@@ -466,7 +466,7 @@ public class CassandraPostBoxServiceTest {
     }
 
     @Configuration
-    @Import({MessagesResponseFactory.class, MessagePreProcessor.class})
+    @Import({DefaultMessagesResponseFactory.class, MessagePreProcessor.class})
     static class TestContext {
     }
 }

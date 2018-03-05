@@ -2,7 +2,7 @@ package com.ecg.messagebox.listeners;
 
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.service.PostBoxService;
-import com.ecg.messagebox.util.MessagesResponseFactory;
+import com.ecg.messagebox.util.messages.MessagesResponseFactory;
 import com.ecg.replyts.app.postprocessorchain.ContentOverridingPostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
