@@ -183,7 +183,7 @@ static boolean useLpVersionForProd(final String versionToDeploy, final String en
     return versionToDeploy == '' && environmentShort == 'prod'
 }
 
-node("$PROVIDED_ENV && $PROVIDED_DC") {
+node("master") {
     checkout scm
 
     checkInputParameters(PROVIDED_VERSION, PROVIDED_ENV, PROVIDED_DC, PROVIDED_TENANT)
@@ -220,65 +220,67 @@ node("$PROVIDED_ENV && $PROVIDED_DC") {
     final boolean live = configFile.tenants.live.contains(tenant)
 
     stage("Deploying") {
-        boolean skip = false
+        node("$environmentShort && $dc") {
+            boolean skip = false
 
-        if (force) {
-            echo "Force deployment, not checking existing version. Note that deploy.py or levant may still not upgrade for same version."
-        } else {
-            try {
-                String currentlyDeployedVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
-                echo "currentlyDeployedVersion == newVersion : $currentlyDeployedVersion == $versionToDeploy"
-                if (currentlyDeployedVersion == versionToDeploy) {
-                    echo "Current Comaas $tenant version $currentlyDeployedVersion is up to date, nothing to update (desired version: $versionToDeploy)"
-                    currentBuild.result = 'SUCCESS'
-                    skip = true
-                    return
+            if (force) {
+                echo "Force deployment, not checking existing version. Note that deploy.py or levant may still not upgrade for same version."
+            } else {
+                try {
+                    String currentlyDeployedVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
+                    echo "currentlyDeployedVersion == newVersion : $currentlyDeployedVersion == $versionToDeploy"
+                    if (currentlyDeployedVersion == versionToDeploy) {
+                        echo "Current Comaas $tenant version $currentlyDeployedVersion is up to date, nothing to update (desired version: $versionToDeploy)"
+                        currentBuild.result = 'SUCCESS'
+                        skip = true
+                        return
+                    }
+                } catch (ex) {
+                    deploymentFailed(tenant, versionToDeploy, dc, environmentShort, ex)
+                } finally {
+                    if (skip) {
+                        cleanWs notFailBuild: true
+                    }
                 }
-            } catch (ex) {
-                deploymentFailed(tenant, versionToDeploy, dc, environmentShort, ex)
-            } finally {
-                if (skip) {
+            }
+
+            if (!skip) {
+                try {
+                    echo "About to deploy Comaas version $versionToDeploy to $environmentShort in $dc for $tenant"
+                    notifyAboutPendingUpgrade(tenant, versionToDeploy, dc, environmentShort)
+
+                    if (!commonFunctions.isVersionPresentInSwift(tenant, versionToDeploy)) {
+                        error("Version $versionToDeploy for tenant $tenant was not found in Swift")
+                    }
+
+                    final String artifact = downloadVersionFromSwift(tenant, versionToDeploy)
+                    loadPropsIntoConsul(tenant, versionToDeploy, environmentShort)
+                    deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstances, live)
+
+                    final String graphitePayload = commonFunctions.createGraphitePayload('succeeded', commonFunctions.getAlias(tenant), "$versionToDeploy deployed")
+                    sendGraphiteMetric(dc, environmentShort, graphitePayload)
+
+                    final String activeDcSlack = activeDcSlackString(tenant, dc, environmentShort)
+                    final String slackMessage = "Comaas version `$versionToDeploy` for `$tenant` successfully deployed to " +
+                            "`$environmentShort` in `$dc` ${activeDcSlack} with ${nrOfInstances} API nodes"
+                    sendToSlack('#00FF00', tenant, slackMessage, environmentShort)
+                } catch (ex) {
+                    deploymentFailed(tenant, versionToDeploy, dc, environmentShort, ex)
+                } finally {
                     cleanWs notFailBuild: true
                 }
             }
-        }
-
-        if (!skip) {
-            try {
-                echo "About to deploy Comaas version $versionToDeploy to $environmentShort in $dc for $tenant"
-                notifyAboutPendingUpgrade(tenant, versionToDeploy, dc, environmentShort)
-
-                if (!commonFunctions.isVersionPresentInSwift(tenant, versionToDeploy)) {
-                    error("Version $versionToDeploy for tenant $tenant was not found in Swift")
+            if (env."SKIP_$tenant" != 'true') {
+                try {
+                    echo "Running smoke tests for $PROVIDED_TENANT against $PROVIDED_DC $PROVIDED_ENV"
+                    build job: 'smoke-tests', parameters: [
+                            string(name: 'PROVIDED_TENANT', value: "$PROVIDED_TENANT"),
+                            string(name: 'PROVIDED_ENV', value: "$PROVIDED_ENV"),
+                            string(name: 'PROVIDED_DC', value: "$PROVIDED_DC")
+                    ], wait: false
+                } finally {
+                    cleanWs notFailBuild: true
                 }
-
-                final String artifact = downloadVersionFromSwift(tenant, versionToDeploy)
-                loadPropsIntoConsul(tenant, versionToDeploy, environmentShort)
-                deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstances, live)
-
-                final String graphitePayload = commonFunctions.createGraphitePayload('succeeded', commonFunctions.getAlias(tenant), "$versionToDeploy deployed")
-                sendGraphiteMetric(dc, environmentShort, graphitePayload)
-
-                final String activeDcSlack = activeDcSlackString(tenant, dc, environmentShort)
-                final String slackMessage = "Comaas version `$versionToDeploy` for `$tenant` successfully deployed to " +
-                        "`$environmentShort` in `$dc` ${activeDcSlack} with ${nrOfInstances} API nodes"
-                sendToSlack('#00FF00', tenant, slackMessage, environmentShort)
-            } catch (ex) {
-                deploymentFailed(tenant, versionToDeploy, dc, environmentShort, ex)
-            } finally {
-                cleanWs notFailBuild: true
-            }
-        }
-        if (env."SKIP_$tenant" != 'true') {
-            try {
-                echo "Running smoke tests for $PROVIDED_TENANT against $PROVIDED_DC $PROVIDED_ENV"
-                build job: 'smoke-tests', parameters: [
-                        string(name: 'PROVIDED_TENANT', value: "$PROVIDED_TENANT"),
-                        string(name: 'PROVIDED_ENV', value: "$PROVIDED_ENV"),
-                        string(name: 'PROVIDED_DC', value: "$PROVIDED_DC")
-                ], wait: false
-            } finally {
-                cleanWs notFailBuild: true
             }
         }
     }
