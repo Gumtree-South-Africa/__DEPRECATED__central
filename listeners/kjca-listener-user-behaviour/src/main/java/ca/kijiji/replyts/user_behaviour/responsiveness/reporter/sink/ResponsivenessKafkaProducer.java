@@ -19,7 +19,7 @@ import static org.apache.kafka.clients.producer.ProducerConfig.*;
 @ConditionalOnBean(UserResponsivenessListener.class)
 public class ResponsivenessKafkaProducer {
 
-    @Value("${queue.kafka.endpoint:localhost:9092}")
+    @Value("${kafka.core.servers:localhost:9092}")
     private String servers;
 
     @Value("${user-behaviour.responsiveness.queue.compressionType:none}")

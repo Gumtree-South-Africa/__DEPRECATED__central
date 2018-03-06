@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.context.embedded.EmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
@@ -29,7 +29,6 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MapPropertySource;
 
 import javax.annotation.PostConstruct;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,7 +48,6 @@ public class CloudConfiguration {
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
       "persistence.cassandra.core.endpoint", "cassandra",
       "persistence.cassandra.mb.endpoint", "cassandra",
-      "queue.kafka.endpoint", "kafkacore",
       "kafka.core.servers", "kafkacore",
       "search.es.endpoints", "elasticsearch"
     );
