@@ -3,6 +3,7 @@ package com.ecg.messagecenter.pushmessage;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
+import com.ecg.replyts.core.runtime.util.HttpClientFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -32,9 +33,9 @@ public class InfoPoolPushService extends PushService {
     private final String username = "kpi_api1";
     private final String password = "12asDeA$";
 
-    public InfoPoolPushService(String pushHost) {
-        this.httpClient = HttpClientBuilder.buildHttpClient(4000, 4000, 8000, 40, 40);
-        this.authClient = HttpClientBuilder.buildHttpClient(4000, 4000, 8000, 40, 40);
+    public InfoPoolPushService(String pushHost, String proxyHost, Integer proxyPort) {
+        this.httpClient = HttpClientFactory.createCloseableHttpClientWithProxy(4000, 4000, 8000, 40, 40, proxyHost, proxyPort);
+        this.authClient = HttpClientFactory.createCloseableHttpClientWithProxy(4000, 4000, 8000, 40, 40, proxyHost, proxyPort);
         this.pushHost = new HttpHost(pushHost);
     }
 

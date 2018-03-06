@@ -13,7 +13,14 @@ import org.springframework.context.annotation.Configuration;
 public class PushServiceConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(PushServiceConfiguration.class);
 
-    private static final String PUSH_SERVICE_INFOPOOL_HOST = "app.gumtree.sg";
+    @Value("${infopool.host:}")
+    private String infopoolHost;
+
+    @Value("${infopool.proxy.host:}")
+    private String proxyHost;
+
+    @Value("${infopool.proxy.port:}")
+    private Integer proxyPort;
 
     @Bean
     @ConditionalOnProperty(value = "push-mobile.enabled", havingValue = "true")
@@ -54,8 +61,7 @@ public class PushServiceConfiguration {
     @Bean
     @ConditionalOnExpression("#{'${push-mobile.enabled:false}' == 'false' && '${mdns.enabled:false}' == 'false' && '${pushservice.enabled:false}' == 'false'}")
     public PushService infoPoolPushService() {
-        LOG.info("Info pool push service enabled. Host: {}", PUSH_SERVICE_INFOPOOL_HOST);
-
-        return new InfoPoolPushService(PUSH_SERVICE_INFOPOOL_HOST);
+        LOG.info("Info pool push service enabled. Host: {}", infopoolHost);
+        return new InfoPoolPushService(infopoolHost, proxyHost, proxyPort);
     }
 }
