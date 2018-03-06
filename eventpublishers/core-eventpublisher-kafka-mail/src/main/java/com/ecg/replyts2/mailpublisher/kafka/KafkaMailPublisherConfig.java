@@ -7,13 +7,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
 import java.util.Properties;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
@@ -21,8 +20,7 @@ import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_
 
 @Configuration
 public class KafkaMailPublisherConfig {
-
-    @Value("${mailpublisher.kafka.broker.list:localhost:9092}")
+    @Value("${mailpublisher.kafka.broker.list:#{null}}")
     private String kafkaBrokers;
     @Value("${mailpublisher.kafka.topic:coremail}")
     private String kafkaTopic;
@@ -31,7 +29,7 @@ public class KafkaMailPublisherConfig {
     @PostConstruct
     @Conditional(KafkaMailPublisherConditional.class)
     private void createKafkaProducer() {
-        Assert.hasLength(kafkaBrokers);
+        checkNotNull(kafkaBrokers);
 
         Properties props = new Properties();
         props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);

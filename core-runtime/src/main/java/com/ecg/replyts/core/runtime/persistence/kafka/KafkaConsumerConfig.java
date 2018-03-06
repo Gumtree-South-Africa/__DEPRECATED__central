@@ -22,7 +22,7 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 @Scope("prototype")
 public class KafkaConsumerConfig<K, V> {
 
-    @Value("${kafka.core.servers:localhost:9092}")
+    @Value("${kafka.core.servers:#{null}}")
     private String servers;
 
     @Value("${kafka.attachment.client_group_id:consumer}")

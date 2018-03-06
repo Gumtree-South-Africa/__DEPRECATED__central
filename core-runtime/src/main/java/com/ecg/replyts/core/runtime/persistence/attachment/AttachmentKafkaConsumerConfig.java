@@ -13,7 +13,7 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 
 public class AttachmentKafkaConsumerConfig<K, V> {
 
-    @Value("${kafka.core.servers:localhost:9092}")
+    @Value("${kafka.core.servers:#{null}}")
     private String servers;
 
     @Value("${kafka.attachment.topic:attachments}")
