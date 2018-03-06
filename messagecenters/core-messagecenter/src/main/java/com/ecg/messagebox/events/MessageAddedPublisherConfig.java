@@ -6,17 +6,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.Properties;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 @Configuration
 @ConditionalOnProperty(value = "replyts.message-added-events.publisher.enabled", havingValue = "true")
 public class MessageAddedPublisherConfig {
-
-    @Value("${replyts.kafka.broker.list:localhost:9092}")
+    @Value("${replyts.kafka.broker.list:#{null}}")
     private String kafkaBrokers;
     @Value("${replyts.message-added-events.kafka.topic:message-added-events}")
     private String topic;
@@ -25,7 +25,7 @@ public class MessageAddedPublisherConfig {
 
     @PostConstruct
     private void createKafkaProducer() {
-        Assert.hasLength(kafkaBrokers);
+        checkNotNull(kafkaBrokers);
 
         Properties props = new Properties();
         props.put("bootstrap.servers", kafkaBrokers);
