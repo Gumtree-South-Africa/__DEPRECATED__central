@@ -33,7 +33,7 @@ function parseCmd() {
 
 function findOpenPort() {
     for i in $(seq 1 ${ATTEMPTS}); do
-        local PORT=$((9000 + RANDOM % 999))
+        local PORT=$((10000 + RANDOM % 999))
 
         set +o errexit
         lsof -ni:${PORT} 2>&1 >/dev/null;
