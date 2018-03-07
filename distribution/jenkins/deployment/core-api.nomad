@@ -123,7 +123,7 @@ EOH
       }
 
       resources {
-        cpu = 50
+        cpu = 100
         memory = 64
         network {
           mbits = 1
