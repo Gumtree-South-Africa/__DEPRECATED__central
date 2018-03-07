@@ -11,8 +11,8 @@ import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.core.api.util.JsonObjects.Builder;
 import com.ecg.replyts.core.api.webapi.commands.SearchMessageCommand;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
-import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.ecg.replyts.integration.test.filter.SubjectKeywordFilterFactory;
 import com.jayway.restassured.RestAssured;
@@ -24,7 +24,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,7 +32,9 @@ import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePay
 import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload.ResultOrdering.OLDEST_FIRST;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.jayway.restassured.path.json.JsonPath.from;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -67,7 +68,7 @@ public class SearchServiceTest {
     }
 
     @Test
-    public void checkSearchByAdId() throws IOException, InterruptedException {
+    public void checkSearchByAdId() {
         //send a mail
         rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
@@ -92,7 +93,7 @@ public class SearchServiceTest {
     }
 
     @Test
-    public void checkSearchByConversationCustomValue() throws InterruptedException {
+    public void checkSearchByConversationCustomValue() {
         //send a mail
         rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
@@ -149,7 +150,7 @@ public class SearchServiceTest {
     }
 
     @Test
-    public void checkSearchByFilterInstance() throws Exception {
+    public void checkSearchByFilterInstance() {
         //send a mail
         String instanceName = "subjectKeywordFilterFactory_" + uuid;
         ConfigurationId filterConfigId =
@@ -178,7 +179,7 @@ public class SearchServiceTest {
     }
 
     @Test
-    public void checkSearchByFilterName() throws Exception {
+    public void checkSearchByFilterName() {
         //send a mail
         UUID uuid = UUID.randomUUID();
         String instanceName = "subjectKeywordFilterFactory";

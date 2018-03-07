@@ -22,6 +22,7 @@ public class UserResponsivenessDITest extends TestBaseSpringContext {
 
     @Test
     public void whenResponsivenessEnabled_shouldLoadBeans() {
+        setProperty("kafka.core.servers", "localhost:9092");
         setProperty(USER_RESPONSIVENESS_ENABLED_PROP, Boolean.TRUE.toString());
         initContext();
 

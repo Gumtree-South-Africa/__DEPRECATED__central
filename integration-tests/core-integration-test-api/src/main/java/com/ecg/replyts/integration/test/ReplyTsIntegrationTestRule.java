@@ -142,6 +142,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         testProperties.put("search.es.enabled", esEnabled);
         testProperties.put("replyts2-messagecenter-plugin.pushmobile.url", "UNSET_PROPERTY");
         testProperties.put("replyts2-messagecenter-plugin.api.host", "UNSET_PROPERTY");
+        testProperties.put("kafka.core.servers", "localhost:9092");
 
         LOG.debug("Running tests with ES enabled: " + esEnabled);
 

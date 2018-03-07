@@ -23,7 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = ResponsivenessKafkaSinkE2ETest.TestConfig.class)
 @TestPropertySource(properties = {
         "user-behaviour.responsiveness.enabled=true",
-        "user-behaviour.responsiveness.sink=queue"
+        "user-behaviour.responsiveness.sink=queue",
+        "kafka.core.servers=localhost:9092",
 })
 public class ResponsivenessKafkaSinkE2ETest {
 

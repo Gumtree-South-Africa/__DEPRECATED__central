@@ -25,7 +25,7 @@ public abstract class TestBaseSpringContext {
     private static final String CURRENT_PACKAGE = "ca.kijiji.replyts.user_behaviour.responsiveness";
     protected static final String USER_RESPONSIVENESS_ENABLED_PROP = "user-behaviour.responsiveness.enabled";
 
-    protected ConfigurableEnvironment environment;
+    private ConfigurableEnvironment environment;
     protected ConfigurableApplicationContext context;
 
     @Before
@@ -53,7 +53,7 @@ public abstract class TestBaseSpringContext {
                 .run();
     }
 
-    protected List<String> getResponsivenessBeansInScope() {
+    List<String> getResponsivenessBeansInScope() {
         return Arrays.stream(context.getBeanDefinitionNames())
                 .map(beanName -> context.getBean(beanName).getClass().getName())
                 .filter(beanClassName -> beanClassName.startsWith(CURRENT_PACKAGE))

@@ -9,11 +9,13 @@ import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.Properties;
 
-import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 
 public class AttachmentKafkaConsumerConfig<K, V> {
-
-    @Value("${kafka.core.servers:localhost:9092}")
+    @Value("${kafka.core.servers:#{null}}")
     private String servers;
 
     @Value("${kafka.attachment.topic:attachments}")
@@ -57,6 +59,5 @@ public class AttachmentKafkaConsumerConfig<K, V> {
     public void close() {
         consumer.close();
     }
-
 
 }

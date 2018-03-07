@@ -44,7 +44,7 @@ public final class ReplytsRunner {
 
     private MailInterceptor mailInterceptor;
 
-    protected ReplytsRunner(Properties testProperties, String configResourcePrefix, Class<?>[] configurations) {
+    ReplytsRunner(Properties testProperties, String configResourcePrefix, Class<?>[] configurations) {
         wiser.start();
 
         try {

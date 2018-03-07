@@ -17,6 +17,7 @@ public class ResponsivenessSinkTest extends TestBaseSpringContext {
     public void setUp() {
         super.setUp();
         setProperty(USER_RESPONSIVENESS_ENABLED_PROP, Boolean.TRUE.toString());
+        setProperty("kafka.core.servers", "localhost:9092");
     }
 
     @Test

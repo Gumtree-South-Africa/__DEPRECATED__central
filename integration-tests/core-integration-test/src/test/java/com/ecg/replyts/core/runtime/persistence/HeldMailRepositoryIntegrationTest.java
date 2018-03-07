@@ -7,16 +7,16 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.core.api.webapi.commands.ModerateMessageCommand;
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.stereotype.Component;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
+import javax.annotation.Nonnull;
+import java.util.Collections;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -27,7 +27,7 @@ public class HeldMailRepositoryIntegrationTest {
     public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule();
 
     @Test
-    public void testChangeState() throws UnsupportedEncodingException {
+    public void testChangeState() {
         // Mark all incoming messages as HELD
 
         testRule.registerConfig(AlwaysHoldIntegrationFilterFactory.class, JsonObjects.builder().build());
@@ -60,9 +60,10 @@ public class HeldMailRepositoryIntegrationTest {
 
     @Component
     public static class AlwaysHoldIntegrationFilterFactory implements FilterFactory {
+        @Nonnull
         @Override
         public Filter createPlugin(String instanceName, JsonNode configuration) {
-            return context -> Arrays.asList(new FilterFeedback("Foo", "Bar", 0, FilterResultState.HELD));
+            return context -> Collections.singletonList(new FilterFeedback("Foo", "Bar", 0, FilterResultState.HELD));
         }
     }
 }

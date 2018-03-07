@@ -11,7 +11,7 @@ public class BlockUserControllerAcceptanceTest {
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
     @Test
-    public void blockUser() throws Exception {
+    public void blockUser() {
         RestAssured
                 .expect()
                 .statusCode(200)
@@ -19,7 +19,7 @@ public class BlockUserControllerAcceptanceTest {
     }
 
     @Test
-    public void blockSameUserTwice() throws Exception {
+    public void blockSameUserTwice() {
         RestAssured.post("http://localhost:" + rule.getHttpPort() + "/screeningv2/block-users/u54231/u12562");
 
         RestAssured
@@ -30,7 +30,7 @@ public class BlockUserControllerAcceptanceTest {
 
 
     @Test
-    public void unblockUser() throws Exception {
+    public void unblockUser() {
         RestAssured.post("http://localhost:" + rule.getHttpPort() + "/screeningv2/block-users/u54231/u12562");
 
         RestAssured
@@ -40,7 +40,7 @@ public class BlockUserControllerAcceptanceTest {
     }
 
     @Test
-    public void unblockNotBlockedUser() throws Exception {
+    public void unblockNotBlockedUser() {
         RestAssured
                 .expect()
                 .statusCode(200)
