@@ -36,7 +36,7 @@ function findOpenPort() {
         local PORT=$((10000 + RANDOM % 999))
 
         set +o errexit
-        lsof -ni:${PORT} 2>&1 >/dev/null;
+        echo -ne "\035" | telnet 127.0.0.1 ${PORT} > /dev/null 2>&1;
         local ec=$?
         set -o errexit
 
