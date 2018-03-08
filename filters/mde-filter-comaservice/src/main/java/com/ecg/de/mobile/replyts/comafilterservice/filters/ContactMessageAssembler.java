@@ -1,9 +1,11 @@
 package com.ecg.de.mobile.replyts.comafilterservice.filters;
 
 import com.ecg.de.mobile.replyts.comafilterservice.FilterService;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 
 import java.util.Date;
+import java.util.Objects;
 
 import static com.ecg.de.mobile.replyts.comafilterservice.FilterService.CUSTOM_HEADER_FROM_USERID;
 import static java.util.Optional.ofNullable;
@@ -22,11 +24,11 @@ public class ContactMessageAssembler {
         message.setBuyerMailAddress(context.getConversation()
                 .getUserIdFor(context.getMessageDirection().getFromRole()));
 
-        Date messageCreatedTime = ofNullable(context.getMail().getSentDate()).orElse(new Date());
+        Date messageCreatedTime = context.getMail().map(Mail::getSentDate).filter(Objects::nonNull).orElse(new Date());
         message.setMessageCreatedTime(messageCreatedTime);
 
-        if (context.getMail().getPlaintextParts().size() > 0) {
-            message.setMessage(context.getMail().getPlaintextParts().get(0));
+        if (context.getMail().get().getPlaintextParts().size() > 0) {
+            message.setMessage(context.getMail().get().getPlaintextParts().get(0));
         }
 
         String sellerType = getSellerType(context);

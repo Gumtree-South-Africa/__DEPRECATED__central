@@ -50,7 +50,7 @@ class Wordfilter implements Filter {
     }
 
     private String getProcessText(MessageProcessingContext messageProcessingContext) {
-        return messageProcessingContext.getMail().getSubject()
+        return messageProcessingContext.getMail().get().getSubject()
                 + " " + messageProcessingContext.getMessage().getPlainTextBody();
     }
 

@@ -1,6 +1,7 @@
 package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.userstate;
 
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableMap;
@@ -16,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
+import java.util.Optional;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
@@ -36,12 +38,15 @@ public class UserStateFilterTest {
     private User userFromService;
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private MessageProcessingContext mpc;
+    @Mock
+    private Mail mail;
     private UserStateFilter userStateFilter;
 
     @Before
     public void setUp() throws Exception {
         when(userProfileService.getUser(anyString())).thenReturn(userFromService);
-        when(mpc.getMail().getFrom()).thenReturn("sender@test.de");
+        when(mpc.getMail()).thenReturn(Optional.of(mail));
+        when(mail.getFrom()).thenReturn("sender@test.de");
         userStateFilter = new UserStateFilter(ImmutableMap.of("UNKNOWN", 0, "CONFIRMED", -50, "SUSPENDED", 100), userProfileService);
     }
 

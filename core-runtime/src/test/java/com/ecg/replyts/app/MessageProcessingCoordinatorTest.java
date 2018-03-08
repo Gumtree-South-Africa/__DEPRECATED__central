@@ -2,7 +2,7 @@ package com.ecg.replyts.app;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.model.mail.MailAddress;
+import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.Termination;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
@@ -13,7 +13,8 @@ import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConve
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -34,10 +35,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
@@ -47,11 +55,15 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 @PrepareForTest(Mails.class)
 @PowerMockIgnore("javax.management.*")
 public class MessageProcessingCoordinatorTest {
+
     @MockBean
     private ProcessingFinalizer persister;
 
     @MockBean
     private Mail mail;
+
+    @MockBean
+    private MutableMail mutableMail;
 
     @MockBean
     private ProcessingFlow flow;
@@ -61,6 +73,12 @@ public class MessageProcessingCoordinatorTest {
 
     @MockBean
     private MessageProcessingContext context;
+
+    @Captor
+    private ArgumentCaptor<Optional<byte[]>> receivedBytesCaptor;
+
+    @Captor
+    private ArgumentCaptor<Optional<byte[]>> sentBytesCaptor;
 
     @Autowired
     private DefaultMutableConversation conversation;
@@ -74,9 +92,11 @@ public class MessageProcessingCoordinatorTest {
     @Autowired
     private MessageProcessingCoordinator coordinator;
 
-    private final InputStream is = new ByteArrayInputStream("foo".getBytes());
+    private static final byte[] RECEIVED_BYTES = "foo".getBytes();
 
-    private final static byte[] SENT_MAIL = "bar".getBytes();
+    private final InputStream is = new ByteArrayInputStream(RECEIVED_BYTES);
+
+    private final static byte[] SENT_BYTES = "bar".getBytes();
 
     @Before
     public void setUp() throws Exception {
@@ -84,14 +104,16 @@ public class MessageProcessingCoordinatorTest {
 
         when(Mails.readMail(any(byte[].class))).thenReturn(mail);
         when(mail.getDeliveredTo()).thenReturn("foo@bar.com");
-        when(Mails.writeToBuffer(any(Mail.class))).thenReturn(SENT_MAIL);
+        when(Mails.writeToBuffer(any(Mail.class))).thenReturn(SENT_BYTES);
         when(conversation.getImmutableConversation()).thenReturn(conversation);
         when(processingContextFactory.newContext(any(Mail.class), anyString())).thenReturn(context);
         when(context.getMessageId()).thenReturn("1");
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(processingContextFactory.deadConversationForMessageIdConversationId(anyString(), anyString(), any(Optional.class))).thenReturn(deadConversation);
         when(context.getConversation()).thenReturn(conversation);
-        when(context.getOriginalTo()).thenReturn(new MailAddress("originalTo"));
-        when(context.getOriginalFrom()).thenReturn(new MailAddress("originalFrom"));
+        when(mail.getDeliveredTo()).thenReturn("originalTo");
+        when(mail.getFrom()).thenReturn("originalFrom");
+        when(context.getOutgoingMail()).thenReturn(mutableMail);
     }
 
     @Test
@@ -103,7 +125,8 @@ public class MessageProcessingCoordinatorTest {
             coordinator.accept(is);
         });
 
-        verify(persister).persistAndIndex(eq(deadConversation), anyString(), eq("foo".getBytes()), eq(Optional.empty()), eq(Termination.unparseable(exception)));
+        verify(persister).persistAndIndex(eq(deadConversation), anyString(), receivedBytesCaptor.capture(), eq(Optional.empty()), eq(Termination.unparseable(exception)));
+        assertThat(receivedBytesCaptor.getValue().get()).isEqualTo(RECEIVED_BYTES);
     }
 
     @Test
@@ -127,14 +150,18 @@ public class MessageProcessingCoordinatorTest {
     public void persistsUnassignableMailAsOrphaned() throws Exception {
         terminateWith(MessageState.ORPHANED, this, "orphaned", false);
         coordinator.accept(is);
-        verify(persister).persistAndIndex(deadConversation, "1", "foo".getBytes(), Optional.empty(), new Termination(MessageState.ORPHANED, MessageProcessingCoordinatorTest.class, "orphaned"));
+        verify(persister).persistAndIndex(eq(deadConversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(new Termination(MessageState.ORPHANED, MessageProcessingCoordinatorTest.class, "orphaned")));
+        assertThat(receivedBytesCaptor.getValue()).contains(RECEIVED_BYTES);
+        assertThat(sentBytesCaptor.getValue()).isEmpty();
     }
 
     @Test
     public void persistsTerminatedMail() throws Exception {
         terminateWith(MessageState.BLOCKED, this, "blocked", true);
         coordinator.accept(is);
-        verify(persister).persistAndIndex(conversation, "1", "foo".getBytes(), Optional.empty(), new Termination(MessageState.BLOCKED, MessageProcessingCoordinatorTest.class, "blocked"));
+        verify(persister).persistAndIndex(eq(conversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(new Termination(MessageState.BLOCKED, MessageProcessingCoordinatorTest.class, "blocked")));
+        assertThat(receivedBytesCaptor.getValue()).contains(RECEIVED_BYTES);
+        assertThat(sentBytesCaptor.getValue()).isEmpty();
     }
 
     @Test
@@ -144,7 +171,9 @@ public class MessageProcessingCoordinatorTest {
         when(context.mutableConversation()).thenReturn(conversation);
 
         coordinator.accept(is);
-        verify(persister).persistAndIndex(conversation, "1", "foo".getBytes(), Optional.of(SENT_MAIL), Termination.sent());
+        verify(persister).persistAndIndex(eq(conversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(Termination.sent()));
+        assertThat(receivedBytesCaptor.getValue()).contains(RECEIVED_BYTES);
+        assertThat(sentBytesCaptor.getValue()).contains(SENT_BYTES);
     }
 
     @Test(expected = Exception.class)

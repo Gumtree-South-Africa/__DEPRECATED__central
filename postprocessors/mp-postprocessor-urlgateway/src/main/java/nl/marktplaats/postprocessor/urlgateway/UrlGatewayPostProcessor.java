@@ -1,5 +1,6 @@
 package nl.marktplaats.postprocessor.urlgateway;
 
+import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.app.postprocessorchain.ContentOverridingPostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.MediaTypeHelper;
@@ -17,7 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-public class UrlGatewayPostProcessor implements ContentOverridingPostProcessor {
+// TODO akobiakov: this thing should actually work with post message api messages as well.
+public class UrlGatewayPostProcessor implements EmailPostProcessor, ContentOverridingPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(UrlGatewayPostProcessor.class);
 

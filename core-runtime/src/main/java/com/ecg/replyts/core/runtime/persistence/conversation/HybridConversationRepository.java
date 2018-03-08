@@ -16,7 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.replay;
@@ -145,8 +149,8 @@ public class HybridConversationRepository implements MutableConversationReposito
     }
 
     @Override
-    public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
-        Optional<Conversation> conversation = cassandraConversationRepository.findExistingConversationFor(key);
+    public Optional<MutableConversation> findExistingConversationFor(ConversationIndexKey key) {
+        Optional<MutableConversation> conversation = cassandraConversationRepository.findExistingConversationFor(key);
 
         if (!conversation.isPresent()) {
             conversation = riakConversationRepository.findExistingConversationFor(key);

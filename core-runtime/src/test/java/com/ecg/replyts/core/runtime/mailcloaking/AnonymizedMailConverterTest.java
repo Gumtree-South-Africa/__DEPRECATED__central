@@ -10,7 +10,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.*;
+import java.util.Optional;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -72,7 +76,7 @@ public class AnonymizedMailConverterTest {
         anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS, false);
         when(context.getConversation()).thenReturn(conversation);
         when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("1234");
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         MailAddress expected = new MailAddress("Buyer-1234@ebay.com");
         assertEquals(expected, anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer));
     }
@@ -82,7 +86,7 @@ public class AnonymizedMailConverterTest {
         when(context.getConversation()).thenReturn(conversation);
         when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("1234");
         MailAddress expected = new MailAddress("Buyer-1234@ebay.com");
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         assertEquals(expected, anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer));
     }
 

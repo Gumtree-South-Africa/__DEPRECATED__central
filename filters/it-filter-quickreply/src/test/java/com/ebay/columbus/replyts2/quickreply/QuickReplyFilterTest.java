@@ -17,6 +17,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 
@@ -39,7 +40,7 @@ import static org.mockito.Mockito.when;
                     new HeaderEntry("X-CUST-QUICK_REPLY_HEADER_2", 1000);
 
     @Before public void setUp() throws Exception {
-        when(messageProcessingContext.getMail()).thenReturn(mail);
+        when(messageProcessingContext.getMail()).thenReturn(Optional.of(mail));
 
         Map<String, String> quickReplyCustomHeadersMap = Maps.newHashMap();
         quickReplyCustomHeadersMap

@@ -48,7 +48,7 @@ public class Addresser implements PostProcessor {
     @Override
     public void postProcess(MessageProcessingContext context) {
         Conversation convo = context.getConversation();
-        Mail incomingMail = context.getMail();
+        Mail incomingMail = context.getMail().get();
         MutableMail outgoingMail = context.getOutgoingMail();
         String locale = incomingMail.getUniqueHeader(HEADER_LOCALE);
         MailAddress newTo = new MailAddress(convo.getUserIdFor(context.getMessageDirection().getToRole()));
@@ -66,7 +66,7 @@ public class Addresser implements PostProcessor {
         } else {
             fromAddress = new MailAddress(convo.getUserIdFor(context.getMessageDirection().getFromRole()));
             mailbox = createPlainMailbox(locale, fromName, fromAddress);
-            outgoingMail.addHeader("Reply-To", fromAddress.getAddress()); // doesn't include name for backwards-compatibility
+            outgoingMail.addHeader(Mail.REPLY_TO, fromAddress.getAddress()); // doesn't include name for backwards-compatibility
         }
 
         String encodedFromAddress = AddressFormatter.DEFAULT.encode(mailbox);

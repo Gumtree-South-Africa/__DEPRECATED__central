@@ -40,7 +40,7 @@ public class GumtreeUserFlaggedFilter implements com.ecg.replyts.core.api.plugin
             if (sellerFlagged != null || buyerFlagged != null) {
                 String shortDescription = "Message blocked due to flag by " + (sellerFlagged != null ? "seller" : "buyer");
                 String description = GumtreeFilterUtil.longDescription(this.getClass(), pluginConfig.getInstanceId(), filterConfig.getVersion(), shortDescription);
-                reasons.add(new FilterFeedback(messageContext.getMail().getFrom(), description, 0, FilterResultState.DROPPED));
+                reasons.add(new FilterFeedback(messageContext.getMail().get().getFrom(), description, 0, FilterResultState.DROPPED));
             }
 
             return reasons;

@@ -34,7 +34,6 @@ import java.util.Set;
 @Component("automatedMailRemover")
 public class AutomatedMailRemover implements PreProcessor {
 
-
     private static final Logger LOG = LoggerFactory.getLogger(AutomatedMailRemover.class);
 
     // NOTE: "auto_reply" is NOT ignored
@@ -54,9 +53,13 @@ public class AutomatedMailRemover implements PreProcessor {
 
     @Override
     public void preProcess(MessageProcessingContext context) {
+        if (!context.getMail().isPresent()) {
+            return;
+        }
+
         LOG.trace("Checking if message {} is automated reply", context.getMessageId());
 
-        Mail mail = context.getMail();
+        Mail mail = context.getMail().get();
 
         boolean isAcceptableMail = checkReturnPath(mail, context) && // NOSONAR
                 checkFromMailerDaemon(mail, context) &&

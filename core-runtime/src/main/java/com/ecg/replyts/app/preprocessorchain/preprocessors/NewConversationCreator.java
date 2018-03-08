@@ -3,6 +3,7 @@ package com.ecg.replyts.app.preprocessorchain.preprocessors;
 import com.codahale.metrics.Counter;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.cluster.Guids;
@@ -13,13 +14,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewConversationCommand;
 
 /**
  * Set up a new conversation for an initial contact mail.
  */
 @Component
-class NewConversationCreator {
+public class NewConversationCreator {
 
     private static final Logger LOG = LoggerFactory.getLogger(NewConversationCreator.class);
 
@@ -33,27 +36,33 @@ class NewConversationCreator {
     }
 
     public void setupNewConversation(MessageProcessingContext context) {
-        String newConversationId = Guids.next();
-        ConversationStartInfo info = new ConversationStartInfo(context);
+        Mail mail = context.getMail().get();
 
+        String buyer = Optional.ofNullable(mail.getReplyTo()).orElse(mail.getFrom());
         String buyerSecret = uniqueConversationSecret.nextSecret();
+
+        String seller = mail.getDeliveredTo();
         String sellerSecret = uniqueConversationSecret.nextSecret();
 
-        NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(newConversationId).
-                withAdId(info.adId()).
-                withBuyer(info.buyer().getAddress(), buyerSecret).
-                withSeller(info.seller().getAddress(), sellerSecret).
-                withCustomValues(info.customHeaders()).
+        NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(Guids.next()).
+                withAdId(mail.getAdId()).
+                withBuyer(buyer, buyerSecret).
+                withSeller(seller, sellerSecret).
+                withCustomValues(mail.getCustomHeaders()).
                 build();
 
-        DefaultMutableConversation newConversation = DefaultMutableConversation.create(newConversationBuilderCommand);
-        context.setConversation(newConversation);
+        DefaultMutableConversation conversation = DefaultMutableConversation.create(newConversationBuilderCommand);
+        context.setConversation(conversation);
         context.setMessageDirection(MessageDirection.BUYER_TO_SELLER);
 
         MDCConstants.setContextFields(context);
 
-        LOG.debug("New Conversation created with Buyer({}, secret: {}) and Seller({}. secret: {})", info.buyer().getAddress(), buyerSecret, info.seller().getAddress(), sellerSecret);
+        LOG.debug(
+            "New Conversation created with Buyer({}, secret: {}) and Seller({}. secret: {})",
+            buyer,
+            buyerSecret,
+            seller,
+            sellerSecret);
         CREATE_COUNTER.inc();
     }
-
 }

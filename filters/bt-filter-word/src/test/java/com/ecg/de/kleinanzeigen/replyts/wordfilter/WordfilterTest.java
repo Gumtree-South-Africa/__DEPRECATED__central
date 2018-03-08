@@ -1,6 +1,10 @@
 package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.ImmutableProcessingFeedback;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -50,7 +54,7 @@ public class WordfilterTest {
         when(mpc.getMessage()).thenReturn(msg);
         when(msg.getPlainTextBody()).thenReturn("Foobar FooString FooBooh Doh!");
         when(mpc.getConversation()).thenReturn(conversation);
-        when(mpc.getMail()).thenReturn(mail);
+        when(mpc.getMail()).thenReturn(Optional.of(mail));
         when(conversation.getId()).thenReturn("cid");
         // Checkout there is a flag for supporting only partial diff in WordFilter.class
         when(msg.getPlainTextBodyDiff(any(Conversation.class))).thenReturn("Foobar FooString FooBooh Doh!");

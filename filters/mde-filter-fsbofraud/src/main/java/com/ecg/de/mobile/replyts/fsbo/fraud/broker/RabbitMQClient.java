@@ -1,19 +1,6 @@
 package com.ecg.de.mobile.replyts.fsbo.fraud.broker;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.mail.MessagingException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import com.ecg.replyts.core.api.model.mail.Mail;
-
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.gson.Gson;
 import com.rabbitmq.client.AMQP;
@@ -21,14 +8,25 @@ import com.rabbitmq.client.Address;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.mail.MessagingException;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @Component
 public class RabbitMQClient implements MessageBrokerClient {
-	
+
 	private final static String EXCHANGE_NAME = "coma.reply.message";
-	
-	private static final Pattern IPADDRESS4_PATTERN = 
+
+	private static final Pattern IPADDRESS4_PATTERN =
 			Pattern.compile("(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -50,19 +48,20 @@ public class RabbitMQClient implements MessageBrokerClient {
 	public void messageSend(MessageProcessingContext messageProcessingContext, long adId) {
 		logger.info("messageSend {} ", adId);
 		try {
-			
+
 			if(isSellerMail(messageProcessingContext)
                     && senderAndReceiverEmailDiffer(messageProcessingContext)) {
-				MessageSentEvent messageSentEvent = new MessageSentEvent.Builder().adId(adId)
+				Mail mail = messageProcessingContext.getMail().get();
+                MessageSentEvent messageSentEvent = new MessageSentEvent.Builder().adId(adId)
 																				  .text(messageProcessingContext.getMessage().getPlainTextBody())
-																				  .senderEmailAddress(messageProcessingContext.getOriginalFrom().getAddress())
+																				  .senderEmailAddress(mail.getFrom())
 																				  .senderRole("SELLER")
 																				  .mailerInfo(messageProcessingContext.getMessage().getHeaders().get("X-Mailer"))
-																				  .assertedSenderIpAddress(findSenderIp(messageProcessingContext.getMail()))
+																				  .assertedSenderIpAddress(findSenderIp(mail))
 																				  .get();
-				
+
 				logger.debug("messageSentEvent {} ", messageSentEvent);
-				Channel channel = getChannel();			
+				Channel channel = getChannel();
 				channel.basicPublish(EXCHANGE_NAME, "", null , gson.toJson(messageSentEvent).getBytes());
 			}
 		} catch (Exception e) {
@@ -72,9 +71,9 @@ public class RabbitMQClient implements MessageBrokerClient {
 	}
 
 	private static boolean senderAndReceiverEmailDiffer(MessageProcessingContext messageProcessingContext){
-		return !messageProcessingContext.getOriginalFrom().getAddress().equalsIgnoreCase(messageProcessingContext.getOriginalTo().getAddress());
+		return !messageProcessingContext.getMail().get().getFrom().equalsIgnoreCase(messageProcessingContext.getMail().get().getDeliveredTo());
 	}
-	
+
 	private static boolean isSellerMail(MessageProcessingContext messageProcessingContext){
 		return "SELLER_TO_BUYER".equals(messageProcessingContext.getMessageDirection().name());
 	}
@@ -85,25 +84,25 @@ public class RabbitMQClient implements MessageBrokerClient {
 		if(mail.containsHeader("Received")){
 			List<String> received = mail.getDecodedHeaders().get("Received");
 
-			
+
 			String ip = findSenderIp(received.get(received.size()-1));
 			if (ip.equals("127.0.0.1") && received.size() > 1) {
 				ip = findSenderIp(received.get(received.size()-2));
 			}
-			
+
 			return ip;
 		}
-		
+
 		if(mail.containsHeader("X-Originating-IP")){
 			return findIPPattern(mail.getDecodedHeaders().get("X-Originating-IP").get(0));
 		}
-		
+
 		if(mail.containsHeader("X-AOL-IP")){
 			return findIPPattern(mail.getDecodedHeaders().get("X-AOL-IP").get(0));
 		}
 		return null;
 	}
-	
+
 	private String findIPPattern(String ipString){
 
 		Matcher matcher = IPADDRESS4_PATTERN.matcher(ipString);
@@ -115,40 +114,40 @@ public class RabbitMQClient implements MessageBrokerClient {
 		        }
 	}
 	private String findSenderIp(String firstReceived) throws MessagingException {
-		
+
 		logger.info("Received: {}", firstReceived);
-		
+
 		// from xxx[xxx.xxx.xxx] by yyy[yyy.yyy.yyy]
-		
+
 		int endOfFrom = firstReceived.indexOf(" by ");
 		if (endOfFrom > 0) {
 			String from = firstReceived.substring(0, endOfFrom);
-			
+
 			int startPos = from.lastIndexOf("[");
 			if (startPos >= 0) {
 				int endPos = from.indexOf("]", startPos);
 				if (endPos >= 0) {
 					String ip = from.substring(startPos+1, endPos);
-					
+
 					return ip.trim();
 				}
 			}
 		}
-		
+
 		return "unknown";
-		
+
 	}
-	
+
 	private synchronized Channel getChannel() throws IOException {
 		if (channel == null) {
 			Connection connection = connectionFactory.newConnection(brokerHosts);
 		    channel = connection.createChannel();
 		    channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
 		}
-		
+
 		return channel;
 	}
-	
+
 	private synchronized void disconnect() {
 		if (channel != null) {
 			try {

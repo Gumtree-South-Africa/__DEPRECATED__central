@@ -1,7 +1,14 @@
 package com.ecg.de.mobile.replyts.demand;
 
-import static com.ecg.de.mobile.replyts.demand.EmailAddressExctractor.extractFromSmptHeader;
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import de.mobile.analytics.domain.CommonEventData;
+import de.mobile.analytics.domain.Event;
+import de.mobile.analytics.domain.contact.EmailContactEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Optional;
 import java.util.concurrent.Executors;
@@ -11,16 +18,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-
-import de.mobile.analytics.domain.CommonEventData;
-import de.mobile.analytics.domain.Event;
-import de.mobile.analytics.domain.contact.EmailContactEvent;
+import static com.ecg.de.mobile.replyts.demand.EmailAddressExctractor.extractFromSmptHeader;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class BehaviorTrackingHandler {
     private static final Logger logger = LoggerFactory.getLogger(BehaviorTrackingHandler.class);
@@ -72,13 +71,14 @@ public class BehaviorTrackingHandler {
                 .txId(getTrackingHeaderFromMessage("Txid", message))
                 .userAgent(getTrackingHeaderFromMessage("Useragent", message))
                 .build();
+        Mail mail = context.getMail().get();
         EmailContactEvent event = EmailContactEvent.builder()
                 .adId(Utils.adIdStringToAdId(context.getConversation().getAdId()))
-                .content(context.getMail().getPlaintextParts().stream().collect(Collectors.joining("\n-------------------------------------------------\n")))
-                .subject(context.getMail().getSubject())
-                .senderMailAddress(context.getOriginalFrom().getAddress())
-                .receiverMailAddress(context.getOriginalTo().getAddress())
-                .replyToMailAddress(extractFromSmptHeader(context.getMail().getUniqueHeader("Reply-To"))) // none anonymized!
+                .content(mail.getPlaintextParts().stream().collect(Collectors.joining("\n-------------------------------------------------\n")))
+                .subject(mail.getSubject())
+                .senderMailAddress(mail.getFrom())
+                .receiverMailAddress(mail.getDeliveredTo())
+                .replyToMailAddress(extractFromSmptHeader(mail.getUniqueHeader("Reply-To"))) // none anonymized!
                 .buildWithCommonEventData(commonEventData);
         return event;
     }

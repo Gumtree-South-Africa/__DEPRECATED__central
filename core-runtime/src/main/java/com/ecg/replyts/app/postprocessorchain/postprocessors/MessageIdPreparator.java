@@ -1,6 +1,6 @@
 package com.ecg.replyts.app.postprocessorchain.postprocessors;
 
-import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -13,7 +13,7 @@ import static com.ecg.replyts.core.api.model.mail.Mail.*;
 import static java.lang.String.format;
 
 @Component("messageIdPreparator")
-public class MessageIdPreparator implements PostProcessor {
+public class MessageIdPreparator implements EmailPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageIdPreparator.class);
 

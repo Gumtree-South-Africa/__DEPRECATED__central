@@ -15,8 +15,11 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Map;
+import java.util.Optional;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AddresserTest {
@@ -58,7 +61,7 @@ public class AddresserTest {
     @Test
     public void englishLocale_b2s_fromNameMissing_headersSet_anonymized() throws Exception {
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
         when(incomingMail.getUniqueHeader(Addresser.HEADER_LOCALE)).thenReturn("en_CA");
         when(incomingMail.getUniqueHeader(Addresser.HEADER_FROM_NAME)).thenReturn(null);
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
@@ -73,7 +76,7 @@ public class AddresserTest {
     @Test
     public void frenchLocale_b2s_fromNameMissing_headersSet_anonymized() throws Exception {
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
         when(incomingMail.getUniqueHeader(Addresser.HEADER_LOCALE)).thenReturn("fr_CA");
         when(incomingMail.getUniqueHeader(Addresser.HEADER_FROM_NAME)).thenReturn(null);
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
@@ -88,7 +91,7 @@ public class AddresserTest {
     @Test
     public void fromNameSet_headersSet_anonymized() throws Exception {
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
         when(incomingMail.getUniqueHeader(Addresser.HEADER_FROM_NAME)).thenReturn("Mr. Smiley Face \uD83D\uDE00");
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
 
@@ -103,7 +106,7 @@ public class AddresserTest {
     public void invalidEmail_throwsException() throws Exception {
         when(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation)).thenReturn(new MailAddress("something@weird@com"));
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
         when(incomingMail.getUniqueHeader(Addresser.HEADER_LOCALE)).thenReturn("en_CA");
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
 
@@ -113,7 +116,7 @@ public class AddresserTest {
     @Test
     public void s2b_fromNameMissing_headersSet_anonymized() throws Exception {
         when(context.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
 
         addresser.postProcess(context);
@@ -126,7 +129,7 @@ public class AddresserTest {
     @Test
     public void s2b_fromNameSet_headersSet_anonymized() throws Exception {
         when(context.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
         when(incomingMail.getFromName()).thenReturn("Seller Name");
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
 
@@ -141,7 +144,7 @@ public class AddresserTest {
     public void englishLocale_doNotAnonymize_fromNameMissing_headersSet() throws Exception {
         when(conversation.getCustomValues()).thenReturn(ImmutableMap.of("anonymize", "false"));
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
         when(incomingMail.getUniqueHeader(Addresser.HEADER_LOCALE)).thenReturn("en_CA");
         when(incomingMail.getUniqueHeader(Addresser.HEADER_FROM_NAME)).thenReturn(null);
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
@@ -158,7 +161,7 @@ public class AddresserTest {
     public void frenchLocale_doNotAnonymize_fromNameMissing_headersSet() throws Exception {
         when(conversation.getCustomValues()).thenReturn(ImmutableMap.of("anonymize", "false"));
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
         when(incomingMail.getUniqueHeader(Addresser.HEADER_LOCALE)).thenReturn("fr_CA");
         when(incomingMail.getUniqueHeader(Addresser.HEADER_FROM_NAME)).thenReturn(null);
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
@@ -175,7 +178,7 @@ public class AddresserTest {
     public void english_doNotAnonymize_fromNameSet_headersSet() throws Exception {
         when(conversation.getCustomValues()).thenReturn(ImmutableMap.of("anonymize", "false"));
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
         when(incomingMail.getUniqueHeader(Addresser.HEADER_LOCALE)).thenReturn("en_CA");
         when(incomingMail.getUniqueHeader(Addresser.HEADER_FROM_NAME)).thenReturn("sender");
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
@@ -191,7 +194,7 @@ public class AddresserTest {
     @Test
     public void conversationAnonymized_followUpMsgWithDoNotAnonymizeFlag_ignoredAndAnonymized() throws Exception {
         when(context.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
         when(incomingMail.getUniqueHeader(Addresser.HEADER_LOCALE)).thenReturn("en_CA");
         when(incomingMail.getUniqueHeader(Addresser.HEADER_FROM_NAME)).thenReturn("seller");
         when(incomingMail.getUniqueHeader(Addresser.HEADER_ANONYMIZE)).thenReturn("false");
@@ -208,7 +211,7 @@ public class AddresserTest {
     public void conversationDoesntHaveAnonFlag_anonymized() throws Exception {
         when(conversation.getCustomValues()).thenReturn(ImmutableMap.of());
         when(context.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
         when(incomingMail.getUniqueHeader(Addresser.HEADER_LOCALE)).thenReturn("en_CA");
         when(incomingMail.getUniqueHeader(Addresser.HEADER_FROM_NAME)).thenReturn("seller");
         when(context.getOutgoingMail()).thenReturn(outgoingMail);

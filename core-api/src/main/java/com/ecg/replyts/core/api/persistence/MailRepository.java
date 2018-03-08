@@ -4,13 +4,16 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import org.joda.time.DateTime;
 
 import javax.annotation.Nonnull;
+
 import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
  * Persists mails that belong to messages. Mails are actual E-Mail files without any further attached semantical
  * meaning.
+ * @deprecated Riak only
  */
+@Deprecated
 public interface MailRepository {
 
     /**

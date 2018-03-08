@@ -8,27 +8,26 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Optional;
 
-public class UserIdentifierServiceByUserIdHeaders implements UserIdentifierService {
-    private static final Logger LOG = LoggerFactory.getLogger(UserIdentifierServiceByUserIdHeaders.class);
+public class UserIdentifierServiceByUserId implements UserIdentifierService {
+    private static final Logger LOG = LoggerFactory.getLogger(UserIdentifierServiceByUserId.class);
 
     private final String buyerUserIdName;
 
     private final String sellerUserIdName;
 
-    public UserIdentifierServiceByUserIdHeaders(String buyerUserIdName, String sellerUserIdName) {
+    public UserIdentifierServiceByUserId(String buyerUserIdName, String sellerUserIdName) {
         this.buyerUserIdName = buyerUserIdName;
         this.sellerUserIdName = sellerUserIdName;
         LOG.info("buyerUserIdName is [{}] sellerUserIdName is [{}]", this.buyerUserIdName, this.sellerUserIdName);
     }
 
-    public UserIdentifierServiceByUserIdHeaders() {
+    public UserIdentifierServiceByUserId() {
         this(DEFAULT_BUYER_USER_ID_NAME, DEFAULT_SELLER_USER_ID_NAME);
     }
 
     @Override
     public Optional<String> getUserIdentificationOfConversation(Conversation conversation, ConversationRole role) {
-        String customValueName = role == ConversationRole.Buyer ? getBuyerUserIdName() : getSellerUserIdName();
-        return Optional.ofNullable(conversation.getCustomValues().get(customValueName));
+        return role == ConversationRole.Buyer ? getBuyerUserId(conversation) : getSellerUserId(conversation);
     }
 
     @Override

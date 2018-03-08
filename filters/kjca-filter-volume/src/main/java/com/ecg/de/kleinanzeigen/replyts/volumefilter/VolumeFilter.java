@@ -5,7 +5,6 @@ import ca.kijiji.replyts.Activation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.hazelcast.core.ITopic;
@@ -61,7 +60,7 @@ public class VolumeFilter extends ActivableFilter {
         ConversationRole fromRole = message.getMessageDirection().getFromRole();
         String senderMailAddress = messageProcessingContext.getConversation().getUserId(fromRole);
 
-        if (ignoreFollowUps && !messageProcessingContext.getMail().containsHeader(Mail.ADID_HEADER)) {
+        if (ignoreFollowUps && messageProcessingContext.getConversation().getMessages().size() != 1) {
             LOG.trace("Ignoring follow-up from [{}]. Msg id: [{}]", senderMailAddress, message.getId());
 
             return Collections.emptyList();

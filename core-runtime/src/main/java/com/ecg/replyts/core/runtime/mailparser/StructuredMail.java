@@ -35,26 +35,26 @@ public class StructuredMail implements Mail {
     public static final LastReferenceMessageIdExtractor LAST_REFERENCE_MESSAGE_ID_EXTRACTOR = new LastReferenceMessageIdExtractor();
     public static final ContentTypeBoundaryFix CONTENT_TYPE_BOUNDARY_FIX = new ContentTypeBoundaryFix();
 
-    private final Message mail;
+    private final Message message;
 
     private final StructuredMailHeader mailHeader;
     private final MailBodyVisitingClient mailBodyVisitingClient;
 
-    public StructuredMail(Message mail) {
-        this.mail = mail;
-        if (mail.isMultipart()) {
+    public StructuredMail(Message message) {
+        this.message = message;
+        if (message.isMultipart()) {
             // Some webmail clients generate the Content-Transfer-Encoding field wrong in multiparts.
             // we need to fix this, otherwise Mime4J will not be able to generate the outbound
             // mails correctly.
-            CONTENT_TRANSFER_ENCODING_MULTIPART_FIX.applyIfNecessary(mail);
+            CONTENT_TRANSFER_ENCODING_MULTIPART_FIX.applyIfNecessary(message);
 
             // Outlook for Mac includes the sender's mangled (but readable) email address
             // in the multi-part boundary name. Rewrite the boundary name every time.
-            CONTENT_TYPE_BOUNDARY_FIX.applyIfNecessary(mail);
+            CONTENT_TYPE_BOUNDARY_FIX.applyIfNecessary(message);
         }
-        mailBodyVisitingClient = new MailBodyVisitingClient(mail);
+        mailBodyVisitingClient = new MailBodyVisitingClient(message);
 
-        mailHeader = new StructuredMailHeader(mail);
+        mailHeader = new StructuredMailHeader(message);
     }
 
     StructuredMailHeader getMailHeader() {
@@ -66,7 +66,7 @@ public class StructuredMail implements Mail {
     }
 
     Message getOriginalMessage() {
-        return mail;
+        return message;
     }
 
     public static Mail parseMail(InputStream i) throws ParsingException {
@@ -159,17 +159,17 @@ public class StructuredMail implements Mail {
 
     @Override
     public String getSubject() {
-        return mail.getSubject();
+        return message.getSubject();
     }
 
     @Override
     public Date getSentDate() {
-        return mail.getDate();
+        return message.getDate();
     }
 
     @Override
     public String getMessageId() {
-        return mail.getMessageId();
+        return message.getMessageId();
     }
 
     @Override
@@ -184,7 +184,7 @@ public class StructuredMail implements Mail {
 
     @Override
     public boolean isMultiPart() {
-        return mail.isMultipart();
+        return message.isMultipart();
     }
 
     @Override
@@ -221,12 +221,12 @@ public class StructuredMail implements Mail {
 
     @Override
     public MutableMail makeMutableCopy() {
-        return new StructuredMutableMail(new StructuredMail(copy(mail)));
+        return new StructuredMutableMail(new StructuredMail(copy(message)));
     }
 
     @Override
     public void writeTo(OutputStream outputStream) throws IOException {
-        write(mail, outputStream);
+        write(message, outputStream);
     }
 
     @Override
@@ -271,13 +271,13 @@ public class StructuredMail implements Mail {
                 };
             }
         }
-        throw new IllegalArgumentException(format("No such attachment found with file name '%s' for message '%s'", filename, mail.getMessageId()));
+        throw new IllegalArgumentException(format("No such attachment found with file name '%s' for message '%s'", filename, message.getMessageId()));
     }
 
     @Override
     public String toString() {
         return "StructuredMail{" +
-                "mail=" + mail +
+                "mail=" + message +
                 ", mailHeader=" + mailHeader +
                 ", mailBodyVisitingClient=" + mailBodyVisitingClient +
                 '}';

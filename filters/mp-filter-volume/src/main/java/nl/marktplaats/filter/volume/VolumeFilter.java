@@ -12,6 +12,7 @@ import nl.marktplaats.filter.volume.persistence.VolumeFilterEventRepository;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class VolumeFilter implements Filter {
 
@@ -34,7 +35,6 @@ public class VolumeFilter implements Filter {
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
         Conversation conv = context.getConversation();
-        Mail mail = context.getMail();
         Message message = context.getMessage();
 
         if (isFirstMailInConversation(conv, message) && !isBid(conv)) {
@@ -44,9 +44,16 @@ public class VolumeFilter implements Filter {
             for (VolumeRule rule : sortedRules) {
                 int sentActually = volumeFilterEventRepository.count(userId, (int) rule.getTimeUnit().toSeconds(rule.getTimeSpan()));
                 if (rule.getMaxCount() < sentActually) {
-                    String uiHint = toUiHint(rule, mail.getFrom());
-                    String description = toDescription(rule, mail.getFrom());
-                    return Collections.singletonList(new FilterFeedback(uiHint, description, rule.getScore(), FilterResultState.OK));
+                    Optional<Mail> mail = context.getMail();
+                    if (mail.isPresent()) {
+                        String uiHint = toUiHint(rule, mail.get().getFrom());
+                        String description = toDescription(rule, mail.get().getFrom());
+                        return Collections.singletonList(new FilterFeedback(uiHint, description, rule.getScore(), FilterResultState.OK));
+                    } else {
+                        String uiHint = toUiHint(rule, userId);
+                        String description = toDescription(rule, userId);
+                        return Collections.singletonList(new FilterFeedback(uiHint, description, rule.getScore(), FilterResultState.OK));
+                    }
                 }
             }
         }

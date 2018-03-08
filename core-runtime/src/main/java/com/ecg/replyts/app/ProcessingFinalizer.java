@@ -10,9 +10,9 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.listener.MailPublisher;
+import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
-import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -71,7 +72,7 @@ public class ProcessingFinalizer {
     @Value("${persistence.strategy:unknown}")
     private String persistenceStrategy;
 
-    public void persistAndIndex(DefaultMutableConversation conversation, String messageId, byte[] incomingMailContent, Optional<byte[]> outgoingMailContent, Termination termination) {
+    public void persistAndIndex(DefaultMutableConversation conversation, String messageId, Optional<byte[]> incomingMailContent, Optional<byte[]> outgoingMailContent, Termination termination) {
         checkNotNull(termination);
         checkNotNull(conversation);
 
@@ -104,13 +105,19 @@ public class ProcessingFinalizer {
         }
     }
 
-    private void processEmail(String messageId, byte[] incomingMailContent, Optional<byte[]> outgoingMailContent) {
+    private void processEmail(String messageId, Optional<byte[]> incomingMailContent, Optional<byte[]> outgoingMailContent) {
+        if (!incomingMailContent.isPresent()) {
+            return;
+        }
+
+        byte[] mailData = incomingMailContent.get();
+
         if (mailRepository != null) {
-            mailRepository.persistMail(messageId, incomingMailContent, outgoingMailContent);
+            mailRepository.persistMail(messageId, mailData, outgoingMailContent);
         }
 
         if (attachmentRepository != null) {
-            Mail parsedMail = attachmentRepository.hasAttachments(messageId, incomingMailContent);
+            Mail parsedMail = attachmentRepository.hasAttachments(messageId, mailData);
             if (parsedMail != null) {
 
                 // This stores incoming mail attachments only
@@ -119,7 +126,7 @@ public class ProcessingFinalizer {
         }
 
         if (mailPublisher != null) {
-            mailPublisher.publishMail(messageId, incomingMailContent, outgoingMailContent);
+            mailPublisher.publishMail(messageId, mailData, outgoingMailContent);
         }
     }
 

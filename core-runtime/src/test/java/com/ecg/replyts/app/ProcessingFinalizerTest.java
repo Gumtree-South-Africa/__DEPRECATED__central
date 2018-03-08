@@ -26,7 +26,9 @@ import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -69,20 +71,20 @@ public class ProcessingFinalizerTest {
 
     @Test
     public void alwaysTerminatesMessageWhenCompleted() {
-        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.empty(), termination);
+        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.empty(), termination);
         verify(conv).applyCommand(any(MessageTerminatedCommand.class));
     }
 
     @Test
     public void persistsOutgoingMailIfAvailable() {
-        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.of("outgoing".getBytes()), termination);
+        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination);
 
         verify(mailRepository).persistMail(anyString(), any(byte[].class), any(Optional.class));
     }
 
     @Test
     public void persistsData() {
-        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.of("outgoing".getBytes()), termination);
+        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination);
 
         verify(conv).commit(conversationRepository, conversationEventListeners);
 
@@ -95,7 +97,7 @@ public class ProcessingFinalizerTest {
     public void skipsUpdatingForNonCassandraIfConversationSizeExceedsConstraint() {
         when(conv.getMessages()).thenReturn(Arrays.asList(new Message[ProcessingFinalizer.MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION + 1]));
 
-        messagePersister.persistAndIndex(conv, "1", "incoming".getBytes(), Optional.of("outgoing".getBytes()), termination);
+        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination);
 
         verify(conv, never()).commit(conversationRepository, conversationEventListeners);
 

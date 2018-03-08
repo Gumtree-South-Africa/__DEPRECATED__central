@@ -61,18 +61,19 @@ public class FilterService implements Filter {
     }
 
     private Collection<String> applyFiltersToMessage(MessageProcessingContext messageContext) {
+        String adId = messageContext.getConversation().getAdId();
         // do not check messages coming from dealers
         if (isDealerBuyer(messageContext)) {
-            LOG.trace("Do not use filter service on mail to adid {}: buyer is dealer.", messageContext.getMail().getAdId());
+            LOG.trace("Do not use filter service on mail to adid {}: buyer is dealer.", adId);
             return Collections.emptySet();
         }
 
         try {
             if (isConversationMessage(messageContext)) {
-                LOG.trace("Filter service for conversation on ADID={}", messageContext.getMail().getAdId());
+                LOG.trace("Filter service for conversation on ADID={}", adId);
                 return comaFilterService.getFilterResultsForConversation(contactMessageAssembler.getContactMessage(messageContext));
             } else {
-                LOG.trace("Filter service for message on ADID={}", messageContext.getMail().getAdId());
+                LOG.trace("Filter service for message on ADID={}", adId);
                 return comaFilterService.getFilterResultsForMessage(contactMessageAssembler.getContactMessage(messageContext));
             }
 

@@ -128,6 +128,8 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     public ReplyTsIntegrationTestRule(
             Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, boolean esEnabled, Class[] configuration, String... cqlFilePaths
     ) {
+        System.setProperty("logging.service.structured.logging", "false");
+
         this.deliveryTimeoutSeconds = deliveryTimeoutSeconds;
         this.cqlFilePaths = cqlFilePaths;
 

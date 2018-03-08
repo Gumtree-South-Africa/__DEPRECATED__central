@@ -13,10 +13,10 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class UserIdentifierServiceByUserIdHeadersTest {
+public class UserIdentifierServiceByUserIdTest {
 
     private Conversation conversation = mock(Conversation.class);
-    private UserIdentifierService userIdentifierService = new UserIdentifierServiceByUserIdHeaders();
+    private UserIdentifierService userIdentifierService = new UserIdentifierServiceByUserId();
 
     @Test
     public void testGetBuyerUserIdFromHeaders() throws Exception {

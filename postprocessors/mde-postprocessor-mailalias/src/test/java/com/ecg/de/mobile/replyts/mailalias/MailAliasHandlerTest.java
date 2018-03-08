@@ -1,38 +1,42 @@
 package com.ecg.de.mobile.replyts.mailalias;
 
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-/**
- * User: beckart
- */
+@RunWith(MockitoJUnitRunner.class)
 public class MailAliasHandlerTest {
 
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private MessageProcessingContext msgContext;
-    private Map<String, String> headers;
+    @Mock
+    private Mail mail;
 
     @Before
     public void setUp() throws Exception {
-        headers = new HashMap<String, String>();
-        msgContext = mock(MessageProcessingContext.class, RETURNS_DEEP_STUBS);
+        when(msgContext.getMail()).thenReturn(Optional.of(mail));
     }
 
     @Test
     public void setAliasIfExists() {
 
-        when(msgContext.getMail().getFromName()).thenReturn("Buyer Name");
+        when(mail.getFromName()).thenReturn("Buyer Name");
         when(msgContext.getOutgoingMail().getFrom()).thenReturn("buyer@mobile.de");
 
         new MailAliasHandler(msgContext).handle();
@@ -48,7 +52,7 @@ public class MailAliasHandlerTest {
     @Test
     public void aliasIsMissing() {
 
-        when(msgContext.getMail().getFromName()).thenReturn(null);
+        when(mail.getFromName()).thenReturn(null);
 
         new MailAliasHandler(msgContext).handle();
 

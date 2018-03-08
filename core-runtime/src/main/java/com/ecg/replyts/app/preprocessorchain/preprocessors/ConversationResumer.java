@@ -29,16 +29,17 @@ public abstract class ConversationResumer {
     }
 
     protected boolean tryResume(ConversationRepository repository, MessageProcessingContext context, MessageDirection direction, ConversationIndexKey key) {
-        Optional<Conversation> existingConversation = repository.findExistingConversationFor(key);
+        Optional<MutableConversation> existingConversation = repository.findExistingConversationFor(key);
 
         if (existingConversation.isPresent()) {
-            context.setConversation((MutableConversation) existingConversation.get());
+            Conversation conversation = existingConversation.get();
+            context.setConversation((MutableConversation) conversation);
             context.setMessageDirection(direction);
             addNewCustomValuesToConversation(context);
 
             MDCConstants.setContextFields(context);
 
-            LOG.debug("Attaching message to existing conversation '{}': buyerId, sellerId and adId match ({}).", existingConversation.get().getId(), direction);
+            LOG.debug("Attaching message to existing conversation '{}': buyerId, sellerId and adId match ({}).", conversation.getId(), direction);
             return true;
         }
 
@@ -50,7 +51,7 @@ public abstract class ConversationResumer {
         // I do not want to allow overriding of new values, but adding new custom values does make sense...
 
         Map<String, String> existingCustomValues = context.getConversation().getCustomValues();
-        for (Map.Entry<String, String> customHeadersInNewMail : context.getMail().getCustomHeaders().entrySet()) {
+        for (Map.Entry<String, String> customHeadersInNewMail : context.getMail().get().getCustomHeaders().entrySet()) {
             if (!existingCustomValues.containsKey(customHeadersInNewMail.getKey())) {
                 context.addCommand(new AddCustomValueCommand(context.getConversation().getId(), customHeadersInNewMail.getKey(), customHeadersInNewMail.getValue()));
                 LOG.trace("starter mail had a new custom value - adding this to the conversation: {}={}", customHeadersInNewMail.getKey(), customHeadersInNewMail.getValue());

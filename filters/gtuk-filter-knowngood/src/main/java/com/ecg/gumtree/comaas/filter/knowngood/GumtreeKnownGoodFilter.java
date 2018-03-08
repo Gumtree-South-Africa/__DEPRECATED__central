@@ -47,7 +47,7 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
             Boolean knownGood = isKnownGood(messageContext);
 
             if (knownGood) {
-                Mail mail = messageContext.getMail();
+                Mail mail = messageContext.getMail().get();
                 LOG.trace("Sender '{}' is known good", mail.getFrom());
 
                 String description = longDescription(this.getClass(), pluginConfig.getInstanceId(), filterConfig.getVersion(), MESSAGE);

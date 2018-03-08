@@ -38,10 +38,10 @@ public class OpenImmoDeanonymizerListener implements PostProcessor {
     }
 
     private boolean mailToOpenImmoAd(MessageProcessingContext context) {
-        if (context.getMail().getUniqueHeader(AD_API_USER_ID) == null) {
+        if (context.getMail().get().getUniqueHeader(AD_API_USER_ID) == null) {
             return false;
         }
-        return Range.closed(20000, 200000).contains(Integer.parseInt(context.getMail().getUniqueHeader(AD_API_USER_ID)));
+        return Range.closed(20000, 200000).contains(Integer.parseInt(context.getMail().get().getUniqueHeader(AD_API_USER_ID)));
     }
 
     @Override

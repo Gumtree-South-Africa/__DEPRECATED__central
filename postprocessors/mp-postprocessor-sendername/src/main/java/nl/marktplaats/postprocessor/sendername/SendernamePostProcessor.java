@@ -1,6 +1,6 @@
 package nl.marktplaats.postprocessor.sendername;
 
-import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -29,7 +29,8 @@ import java.io.UnsupportedEncodingException;
  *
  * @author Erik van Oosten
  */
-public class SendernamePostProcessor implements PostProcessor {
+// TODO akobiakov and this one as well
+public class SendernamePostProcessor implements EmailPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(SendernamePostProcessor.class);
 

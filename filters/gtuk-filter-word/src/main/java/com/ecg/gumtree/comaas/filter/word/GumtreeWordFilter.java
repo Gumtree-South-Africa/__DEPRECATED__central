@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
+import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.hasExemptedCategory;
+import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.longDescription;
+import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.resultFilterResultMap;
 
 public class GumtreeWordFilter implements com.ecg.replyts.core.api.pluginconfiguration.filter.Filter {
     private static final String KEY_STRIPPED_MAILS = GumtreeWordFilter.class.getName() + ":STRIPPED-MAILS";
@@ -73,7 +75,7 @@ public class GumtreeWordFilter implements com.ecg.replyts.core.api.pluginconfigu
             return (List<String>) textsPlain;
         } else {
             List<String> ptParts = new ArrayList<>();
-            List<TypedContent<String>> contents = context.getMail().getTextParts(false);
+            List<TypedContent<String>> contents = context.getMail().get().getTextParts(false);
 
             for (TypedContent<String> content : contents) {
                 ptParts.add(content.getContent());

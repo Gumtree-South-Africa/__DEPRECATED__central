@@ -15,4 +15,7 @@ public interface PostProcessor extends Ordered {
      */
     void postProcess(MessageProcessingContext context);
 
+    default boolean isApplicable(MessageProcessingContext context) {
+        return true;
+    }
 }

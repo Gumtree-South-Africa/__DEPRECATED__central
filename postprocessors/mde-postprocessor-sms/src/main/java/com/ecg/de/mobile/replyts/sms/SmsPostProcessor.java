@@ -1,11 +1,13 @@
 package com.ecg.de.mobile.replyts.sms;
 
+import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.ecg.replyts.app.postprocessorchain.PostProcessor;
-import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.springframework.util.StringUtils;
+
+import java.util.Date;
 
 public class SmsPostProcessor implements PostProcessor {
 
@@ -26,7 +28,8 @@ public class SmsPostProcessor implements PostProcessor {
 
     @Override
     public void postProcess(MessageProcessingContext messageContext) {
-        ContactMessage contactMessage = ContactMessageAssembler.assemble(messageContext.getConversation().getBuyerId(), messageContext.getMail().getSentDate(), messageContext.getMessage().getHeaders());
+        Date sentDate = messageContext.getMail().map(Mail::getSentDate).orElse(null);
+        ContactMessage contactMessage = ContactMessageAssembler.assemble(messageContext.getConversation().getBuyerId(), sentDate, messageContext.getMessage().getHeaders());
 
         LOG.trace("SmsPostProcessor contactMessage {}", contactMessage);
         boolean result = sendSms(contactMessage);

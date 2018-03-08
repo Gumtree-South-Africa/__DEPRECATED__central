@@ -191,6 +191,4 @@ class StructuredMailHeader {
         }
         return builder.build();
     }
-
-
 }

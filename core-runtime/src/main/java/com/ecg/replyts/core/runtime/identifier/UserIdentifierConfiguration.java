@@ -43,7 +43,7 @@ public class UserIdentifierConfiguration {
         } else {
             LOG.info("Tenant {} use UserIdentifierServiceByUserIdHeaders", tenant);
 
-            return new UserIdentifierServiceByUserIdHeaders(buyerUserIdName, sellerUserIdName);
+            return new UserIdentifierServiceByUserId(buyerUserIdName, sellerUserIdName);
         }
     }
 }

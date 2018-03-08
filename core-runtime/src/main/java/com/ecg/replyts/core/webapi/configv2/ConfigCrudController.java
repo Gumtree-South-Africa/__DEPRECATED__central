@@ -15,7 +15,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -26,7 +30,7 @@ import static java.lang.String.format;
 
 /**
  * Handles reading and manipulating configuration of plugins. Configurations are read from database. <b>If you are not
- * familiar with the Plugin Configuration system, please get infomration about this first.</b><br/>
+ * familiar with the Plugin Configuration system, please get information about this first.</b><br/>
  * Supported Operations are:
  * <p/>
  * <h1>Read</h1>
@@ -142,7 +146,6 @@ public class ConfigCrudController {
         for (JsonNode node : body) {
             assertArrayElement(node, "pluginFactory", TextNode.class);
             assertArrayElement(node, "instanceId", TextNode.class);
-            assertArrayElement(node, "configuration", ObjectNode.class);
 
             String pluginFactory = node.get("pluginFactory").textValue();
             String instanceId = node.get("instanceId").textValue();

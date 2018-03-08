@@ -1,6 +1,6 @@
 package nl.marktplaats.postprocessor.messagingurl;
 
-import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class MessagingUrlPostProcessor implements PostProcessor {
+// TODO akobiakov this should probably also be not email specific
+public class MessagingUrlPostProcessor implements EmailPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessagingUrlPostProcessor.class);
 

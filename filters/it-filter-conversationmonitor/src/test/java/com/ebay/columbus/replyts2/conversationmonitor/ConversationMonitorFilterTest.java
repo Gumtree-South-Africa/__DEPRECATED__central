@@ -15,8 +15,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
                     Lists.newArrayList(Character.toString((char) UNICODE_REPLACEMENT_CHAR));
 
     @Before public void setUp() throws Exception {
-        when(messageProcessingContext.getMail()).thenReturn(mail);
+        when(messageProcessingContext.getMail()).thenReturn(Optional.of(mail));
         when(messageProcessingContext.getConversation()).thenReturn(conversation);
         when(conversation.getId()).thenReturn("1");
         when(conversation.getMessages()).thenReturn(Lists.newArrayList(message));

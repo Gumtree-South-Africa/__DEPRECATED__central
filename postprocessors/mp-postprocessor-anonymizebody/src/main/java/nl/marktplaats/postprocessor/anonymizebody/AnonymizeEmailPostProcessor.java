@@ -1,6 +1,6 @@
 package nl.marktplaats.postprocessor.anonymizebody;
 
-import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -20,7 +20,7 @@ import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class AnonymizeEmailPostProcessor implements PostProcessor {
+public class AnonymizeEmailPostProcessor implements EmailPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(AnonymizeEmailPostProcessor.class);
     private final String[] platformDomains;

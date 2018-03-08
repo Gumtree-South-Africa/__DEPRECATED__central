@@ -31,7 +31,7 @@ public class CountryBlockedFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
-        String ipAddress = context.getMail().getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
+        String ipAddress = context.getMail().get().getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName());
 
         if (StringUtils.isBlank(ipAddress)) {
             LOG.debug("IP Address is empty -- not scoring");

@@ -1,5 +1,6 @@
 package com.ecg.de.mobile.replyts.deanonymize;
 
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
@@ -7,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import javax.mail.internet.InternetAddress;
+
 import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 
@@ -26,7 +28,11 @@ class MailDoNotAnonymizeHandler {
     }
 
     private boolean doNotAnonymize() {
-        Optional<String> doNotAnonymizeHeader = Optional.ofNullable(messageProcessingContext.getMail().getUniqueHeader(X_DO_NOT_ANONYMIZE));
+        Optional<Mail> mail = messageProcessingContext.getMail();
+        if (!mail.isPresent()) {
+            return false;
+        }
+        Optional<String> doNotAnonymizeHeader = Optional.ofNullable(mail.get().getUniqueHeader(X_DO_NOT_ANONYMIZE));
         return doNotAnonymizeHeader.isPresent() && doNotAnonymizeHeader.get().trim().toLowerCase().equals(password.toLowerCase());
     }
 
@@ -47,8 +53,9 @@ class MailDoNotAnonymizeHandler {
     }
 
     private MailAddress preserveOriginalFrom() throws UnsupportedEncodingException {
-        MailAddress fromMailAddress = messageProcessingContext.getOriginalFrom();
-        Optional<String> aliasName = Optional.ofNullable(messageProcessingContext.getMail().getFromName());
+        Mail mail = messageProcessingContext.getMail().get();
+        MailAddress fromMailAddress = new MailAddress(mail.getFrom());
+        Optional<String> aliasName = Optional.ofNullable(mail.getFromName());
         MailAddress mailAddress;
 
         if(aliasName.isPresent() && StringUtils.hasText(aliasName.get())) {
@@ -62,7 +69,7 @@ class MailDoNotAnonymizeHandler {
     }
 
     private void preserveReplyTo() {
-        String replyTo = messageProcessingContext.getMail().getUniqueHeader("Reply-To");
+        String replyTo = messageProcessingContext.getMail().get().getUniqueHeader("Reply-To");
 
         if(StringUtils.hasText(replyTo)) {
             messageProcessingContext.getOutgoingMail().addHeader("Reply-To", replyTo);

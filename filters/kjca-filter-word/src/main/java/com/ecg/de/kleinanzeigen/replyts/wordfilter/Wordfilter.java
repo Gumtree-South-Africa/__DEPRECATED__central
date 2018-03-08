@@ -11,7 +11,11 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,7 +82,7 @@ class Wordfilter extends ActivableFilter {
     }
 
     private String getProcessText(MessageProcessingContext messageProcessingContext) {
-        return messageProcessingContext.getMail().getSubject()
+        return messageProcessingContext.getMail().get().getSubject()
                 + " " + messageProcessingContext.getMessage().getPlainTextBody();
     }
 

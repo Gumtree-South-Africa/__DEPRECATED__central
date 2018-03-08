@@ -7,7 +7,12 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
-import com.hazelcast.config.*;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.GroupConfig;
+import com.hazelcast.config.JoinConfig;
+import com.hazelcast.config.MulticastConfig;
+import com.hazelcast.config.NetworkConfig;
+import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -21,6 +26,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -51,13 +57,13 @@ public class VolumeFilterClusterIntegrationTest {
 
     @Mock
     private Conversation conversation;
-    
+
     @Mock
     private Map<String, String> customValues;
 
     @Mock
     private Map<String, String> customHeaders;
-    
+
     @Before
     public void setUp() throws Exception {
         // localhost hazelcast config without multicast, but with an explicit cluster name to avoid conflicts in case of parallel execution
@@ -80,10 +86,10 @@ public class VolumeFilterClusterIntegrationTest {
         when(conversation.getUserId(ConversationRole.Buyer)).thenReturn("from@example.com");
         when(conversation.getCustomValues()).thenReturn(customValues);
         when(customValues.get("conversation_id")).thenReturn("1234567890");
-        
-        when(messageProcessingContext.getMail()).thenReturn(mail);
+
+        when(messageProcessingContext.getMail()).thenReturn(Optional.of(mail));
         when(mail.getCustomHeaders()).thenReturn(customHeaders);
-        when(customHeaders.get("conversation_id")).thenReturn("1234567890"); 
+        when(customHeaders.get("conversation_id")).thenReturn("1234567890");
         when(customHeaders.get("categoryid")).thenReturn("8");
     }
 

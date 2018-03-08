@@ -38,14 +38,14 @@ class EmailAddressFilter implements Filter {
     }
 
     private void findInSubject(MessageProcessingContext context, Set<String> matchedNumbers) {
-        String subject = Optional.ofNullable(context.getMail().getSubject()).orElse("");
+        String subject = Optional.ofNullable(context.getMail().get().getSubject()).orElse("");
         Set<String> matched = new EmailAddressMatcher(config.getBlockedEmailAddresses()).matches(subject);
         matchedNumbers.addAll(matched);
     }
 
     private void findInTextParts(MessageProcessingContext context, Set<String> matchedNumbers) {
         // read text parts instead of plainText parts. Include html link mailto:
-        List<TypedContent<String>> plainTextParts = context.getMail().getTextParts(true);
+        List<TypedContent<String>> plainTextParts = context.getMail().get().getTextParts(true);
         for (TypedContent<String> part : plainTextParts) {
             Set<String> matched = new EmailAddressMatcher(config.getBlockedEmailAddresses()).matches(part.getContent());
             matchedNumbers.addAll(matched);

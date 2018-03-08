@@ -15,9 +15,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +48,7 @@ public class EchelonFilterTest {
         when(mpc.getMessage()).thenReturn(msg);
         when(msg.getPlainTextBody()).thenReturn("Hello Echelon!");
         when(mpc.getConversation()).thenReturn(conversation);
-        when(mpc.getMail()).thenReturn(mail);
+        when(mpc.getMail()).thenReturn(Optional.of(mail));
         when(conversation.getId()).thenReturn("cid");
         when(mail.getSubject()).thenReturn("this is the subject");
     }
@@ -61,7 +61,7 @@ public class EchelonFilterTest {
 
     @Test
     public void capturesFirstMessageOnly() {
-        List<Message> messages = new ArrayList<Message>();
+        List<Message> messages = new ArrayList<>();
         when(mpc.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
         messages.add(msg);
         messages.add(mock(Message.class));

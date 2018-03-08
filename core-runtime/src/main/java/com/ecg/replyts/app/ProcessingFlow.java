@@ -5,6 +5,7 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.app.filterchain.FilterChain;
 import com.ecg.replyts.app.postprocessorchain.PostProcessorChain;
 import com.ecg.replyts.app.preprocessorchain.PreProcessorManager;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.MessageFixer;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -111,7 +112,8 @@ class ProcessingFlow {
             doTimedSend(context);
             LOG.info("Successful recovery.");
         } catch (MailDeliveryException deliveryException) {
-            String msg = String.format("Failed to process mail '%s' from '%s' to '%s'", context.getMessageId(), context.getOriginalFrom(), context.getOriginalTo());
+            Mail mail = context.getMail().get();
+            String msg = String.format("Failed to process mail '%s' from '%s' to '%s'", context.getMessageId(), mail.getFrom(), mail.getDeliveredTo());
             throw new RuntimeException(msg, deliveryException);
         }
     }

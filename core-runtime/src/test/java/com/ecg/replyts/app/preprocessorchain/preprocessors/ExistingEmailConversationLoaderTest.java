@@ -25,7 +25,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ExistingConversationLoaderTest {
+public class ExistingEmailConversationLoaderTest {
     @Mock
     private MultiTennantMailCloakingService mailCloakingService;
 
@@ -41,13 +41,13 @@ public class ExistingConversationLoaderTest {
     @Mock
     private ProcessingTimeGuard processingTimeGuard;
 
-    private ExistingConversationLoader existingConversationLoader;
+    private ExistingEmailConversationLoader existingEmailConversationLoader;
 
     private MessageProcessingContext context;
 
     @Before
     public void setUp() {
-        existingConversationLoader = new ExistingConversationLoader(mailCloakingService);
+        existingEmailConversationLoader = new ExistingEmailConversationLoader(mailCloakingService);
         when(mail.getDeliveredTo()).thenReturn("to@host.com");
         when(mail.getFrom()).thenReturn("from@host.com");
         context = spy(new MessageProcessingContext(mail, "1", processingTimeGuard));
@@ -64,7 +64,7 @@ public class ExistingConversationLoaderTest {
         doReturn(new MailAddress("to@host.com")).when(context).getRecipient();
         doReturn(MessageDirection.BUYER_TO_SELLER).when(context).getMessageDirection();
 
-        existingConversationLoader.loadExistingConversation(context);
+        existingEmailConversationLoader.loadExistingConversation(context);
 
         assertEquals(conversation, context.mutableConversation());
     }
@@ -73,7 +73,7 @@ public class ExistingConversationLoaderTest {
     public void terminatesWhenConversationNotLoaded() {
         when(mailCloakingService.resolveUser(any(MailAddress.class))).thenReturn(Optional.empty());
 
-        existingConversationLoader.loadExistingConversation(context);
+        existingEmailConversationLoader.loadExistingConversation(context);
 
         verify(context).terminateProcessing(eq(MessageState.ORPHANED), any(), anyString());
 

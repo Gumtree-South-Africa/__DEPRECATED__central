@@ -2,6 +2,7 @@ package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.userstate;
 
 import com.ebay.marketplace.user.v1.services.UserEnum;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * User: acharton
@@ -34,7 +36,11 @@ class UserStateFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
-        String sender = messageProcessingContext.getMail().getFrom();
+        Optional<Mail> mail = messageProcessingContext.getMail();
+        if (!mail.isPresent()) {
+            return Collections.emptyList();
+        }
+        String sender = mail.get().getFrom();
         try {
             User userFromService = userProfileService.getUser(sender);
 

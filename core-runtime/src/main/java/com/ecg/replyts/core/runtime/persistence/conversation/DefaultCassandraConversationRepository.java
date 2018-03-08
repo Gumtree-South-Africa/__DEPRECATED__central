@@ -245,7 +245,7 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     }
 
     @Override
-    public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
+    public Optional<MutableConversation> findExistingConversationFor(ConversationIndexKey key) {
         try (Timer.Context ignored = findByIndexKeyTimer.time()) {
             Statement bound = Statements.SELECT_WHERE_COMPOUND_KEY.bind(this, key.serialize());
             ResultSet resultset = session.execute(bound);

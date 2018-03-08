@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.mail.internet.InternetAddress;
+
 import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 
@@ -26,7 +27,7 @@ class MailAliasHandler {
 
     public void handle() {
         try {
-            Optional<String> aliasName = Optional.ofNullable(messageProcessingContext.getMail().getFromName());
+            Optional<String> aliasName = Optional.ofNullable(messageProcessingContext.getMail().get().getFromName());
 
             if (aliasName.isPresent()) {
                 String senderMail = messageProcessingContext.getOutgoingMail().getFrom();

@@ -30,6 +30,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.FilterResultState.OK;
 import static org.hamcrest.CoreMatchers.is;
@@ -96,7 +97,7 @@ public class HideEmailHandlerTest {
                 .withSeller(SELLER_EMAIL, SELLER_SECRET)
                 .withMessages(ImmutableList.of(messageBuilder.build()));
 
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
 
         when(messageBodyAnonymizerConfig.getRevealEmailHeader()).thenReturn(CLOAKEMAIL_HEADER);
         when(messageBodyAnonymizerConfig.getRevealEmailValue()).thenReturn(CLOAKEMAIL_VALUE);

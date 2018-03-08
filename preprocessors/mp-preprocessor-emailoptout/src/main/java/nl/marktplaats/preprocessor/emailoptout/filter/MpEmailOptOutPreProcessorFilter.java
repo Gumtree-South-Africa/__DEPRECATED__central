@@ -14,5 +14,7 @@ public class MpEmailOptOutPreProcessorFilter implements EmailOptOutPreProcessorF
     public boolean filter(MessageProcessingContext context) {
         Conversation c = context.getConversation();
         return c.getAdId().startsWith("k");
+
+        // TODO akobiakov: MP sync
     }
 }

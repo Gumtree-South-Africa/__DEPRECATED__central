@@ -5,8 +5,10 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
+import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.jayway.awaitility.core.ConditionTimeoutException;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -17,7 +19,13 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 
-import java.util.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -111,29 +119,37 @@ public class MailInterceptor implements BeanPostProcessor {
     }
 
     private MessageProcessingCoordinator wrapMessageProcessingCoordinator(MessageProcessingCoordinator realCoordinator) {
-        return input -> {
-            Optional<String> messageId = realCoordinator.accept(input);
-            messageId.ifPresent(this::markMessageAsProcessed);
-            return messageId;
+        return new MessageProcessingCoordinator() {
+            @Override
+            public Optional<String> accept(InputStream input) throws IOException, ParsingException {
+                Optional<String> messageId = realCoordinator.accept(input);
+                messageId.ifPresent(this::markMessageAsProcessed);
+                return messageId;
+            }
+
+            @Override
+            public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context) {
+                return realCoordinator.handleContext(bytes, context);
+            }
+
+            private void markMessageAsProcessed(String messageId) {
+                int newCount = processedMessagesCount.incrementAndGet();
+                LOG.info("Number of messages processed so far: {}", newCount);
+                notifyMessageProcessed(messageId);
+            }
         };
     }
 
-    private void markMessageAsProcessed(String messageId) {
-        int newCount = processedMessagesCount.incrementAndGet();
-        LOG.info("Number of messages processed so far: {}", newCount);
-        notifyMessageProcessed(messageId);
-    }
-
     private void notifyMessageProcessed(String messageId) {
-            ProcessedMail mail = interceptedMails.get(messageId);
-            if (mail == null) {
-                LOG.warn("No mail with messageId={} was found", messageId);
-            } else {
-                String uniqueMessageKey = mail.getMessage().getHeaders()
-                        .get(MailBuilder.UNIQUE_IDENTIFIER_HEADER);
-                LOG.info("Marking uniqueKey={} as processed", uniqueMessageKey);
-                uniqueKeyToProcessedEmail.put(uniqueMessageKey, mail);
-            }
+        ProcessedMail mail = interceptedMails.get(messageId);
+        if (mail == null) {
+            LOG.warn("No mail with messageId={} was found", messageId);
+        } else {
+            String uniqueMessageKey = mail.getMessage().getHeaders()
+                    .get(MailBuilder.UNIQUE_IDENTIFIER_HEADER);
+            LOG.info("Marking uniqueKey={} as processed", uniqueMessageKey);
+            uniqueKeyToProcessedEmail.put(uniqueMessageKey, mail);
+        }
     }
 
     /**

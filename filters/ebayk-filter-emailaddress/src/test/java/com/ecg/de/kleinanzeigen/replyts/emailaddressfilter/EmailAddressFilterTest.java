@@ -4,7 +4,6 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +12,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.mail.internet.AddressException;
+
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
@@ -46,7 +47,7 @@ public class EmailAddressFilterTest {
     @Test
     public void ignoreDuplicateFindings() throws AddressException {
         when(config.getBlockedEmailAddresses()).thenReturn(addressList("foo@bar.com"));
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(part.getContent()).thenReturn("foo@bar.com");
         when(mail.getTextParts(true)).thenReturn(asList(part, part));
 
@@ -62,7 +63,7 @@ public class EmailAddressFilterTest {
     @Test
     public void findInSubject() throws AddressException {
         when(config.getBlockedEmailAddresses()).thenReturn(addressList("foo@bar.com"));
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(part.getContent()).thenReturn("text");
         when(mail.getSubject()).thenReturn("My email: foo@bar.com");
 
@@ -74,7 +75,7 @@ public class EmailAddressFilterTest {
     @Test
     public void detectMixedCase() throws AddressException {
         when(config.getBlockedEmailAddresses()).thenReturn(addressList("marc.schnabel@freenet.de"));
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(mail.getTextParts(true)).thenReturn(singletonList(part));
         when(part.getContent()).thenReturn("        Marc.Schnabel@freenet.de");
         when(mail.getSubject()).thenReturn("test");
@@ -87,7 +88,7 @@ public class EmailAddressFilterTest {
     @Test
     public void ignoreNullSubject() throws AddressException {
         when(config.getBlockedEmailAddresses()).thenReturn(addressList("foo@bar.com"));
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(part.getContent()).thenReturn("text");
         when(mail.getSubject()).thenReturn(null);
 
@@ -100,7 +101,7 @@ public class EmailAddressFilterTest {
     public void matchBlockedEmailAddress() throws AddressException {
         when(config.getBlockedEmailAddresses()).thenReturn(addressList("foo@bar.com"));
         when(config.getScore()).thenReturn(100);
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(mail.getTextParts(true)).thenReturn(singletonList(part));
         when(part.getContent()).thenReturn("foo@bar.com");
 

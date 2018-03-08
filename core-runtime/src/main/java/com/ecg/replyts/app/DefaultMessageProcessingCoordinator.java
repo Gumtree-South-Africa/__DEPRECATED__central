@@ -95,30 +95,11 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), Guids.next());
             setMDC(context);
             contentLengthMeter.mark(bytes.length);
-
-            processingFlow.inputForPreProcessor(context);
-
-            if (context.isTerminated()) {
-                handleTermination(
-                        context.getTermination(),
-                        context.getMessageId(),
-                        Optional.ofNullable(context.getMail()),
-                        Optional.ofNullable(((DefaultMutableConversation) context.mutableConversation())),
-                        bytes);
-            } else {
-                handleSuccess(context, bytes);
-            }
-            return Optional.of(context.getMessageId());
+            return Optional.of(handleContext(Optional.of(bytes), context));
         }
         finally {
             LOG.debug("Message processed", keyValue("processingTime", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
         }
-    }
-
-    private void setMDC(MessageProcessingContext context) {
-        MDC.put(MESSAGE_ID, context.getMessageId());
-        MDC.put(MAIL_ORIGINAL_FROM, context.getOriginalFrom().getAddress());
-        MDC.put(MAIL_ORIGINAL_TO, context.getOriginalTo().getAddress());
     }
 
     private Optional<Mail> parseMail(byte[] incomingMailContents) throws ParsingException {
@@ -133,26 +114,54 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         } catch (ParsingException parsingException) {
             final String messageId = Guids.next();
             LOG.warn("Could not parse mail with id {}", messageId, parsingException);
-            handleTermination(Termination.unparseable(parsingException), messageId, Optional.empty(), Optional.empty(), incomingMailContents);
+            handleTermination(Termination.unparseable(parsingException), messageId, Optional.empty(), Optional.empty(), Optional.of(incomingMailContents));
             throw parsingException;
         }
     }
 
-    private void handleSuccess(MessageProcessingContext context, byte[] messageBytes) {
-        byte[] outgoing = Mails.writeToBuffer(context.getOutgoingMail());
+    @Override
+    public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context) {
+        setMDC(context);
+
+        processingFlow.inputForPreProcessor(context);
+
+        if (context.isTerminated()) {
+            handleTermination(
+                    context.getTermination(),
+                    context.getMessageId(),
+                    context.getMail(),
+                    Optional.ofNullable(((DefaultMutableConversation) context.mutableConversation())),
+                    bytes);
+        } else {
+            handleSuccess(context, bytes);
+        }
+        return context.getMessageId();
+    }
+
+    private void setMDC(MessageProcessingContext context) {
+        MDC.put(MESSAGE_ID, context.getMessageId());
+        Optional<Mail> mail = context.getMail();
+        if (mail.isPresent()) {
+            MDC.put(MAIL_ORIGINAL_FROM, mail.get().getFrom());
+            MDC.put(MAIL_ORIGINAL_TO, mail.get().getDeliveredTo());
+        }
+    }
+
+    private void handleSuccess(MessageProcessingContext context, Optional<byte[]> messageBytes) {
+        byte[] outgoing = context.getOutgoingMail() != null ? Mails.writeToBuffer(context.getOutgoingMail()) : null;
 
         persister.persistAndIndex(
                 ((DefaultMutableConversation) context.mutableConversation()),
                 context.getMessageId(),
                 messageBytes,
-                Optional.of(outgoing),
+                Optional.ofNullable(outgoing),
                 Termination.sent());
 
         onMessageProcessed(context.getConversation(), context.getMessage());
     }
 
     private void handleTermination(Termination termination, String messageId, Optional<Mail> mail,
-                                   Optional<DefaultMutableConversation> conversation, byte[] messageBytes) {
+                                   Optional<DefaultMutableConversation> conversation, Optional<byte[]> messageBytes) {
         checkNotNull(termination);
         checkNotNull(messageId);
         checkNotNull(messageBytes);

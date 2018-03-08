@@ -1,23 +1,17 @@
 package com.ecg.replyts.app.postprocessorchain.postprocessors;
 
-import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.Range;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class PatternBasedObfuscater implements PostProcessor {
+class PatternBasedObfuscater implements EmailPostProcessor {
 
     private List<Pattern> patterns = new ArrayList<Pattern>();
     private final RangeComparator rangeComparator = new RangeComparator();

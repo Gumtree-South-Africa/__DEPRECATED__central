@@ -22,7 +22,7 @@ class BankAccountFilter implements Filter {
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
 
-        for (String plaintextPart : context.getMail().getPlaintextParts()) {
+        for (String plaintextPart : context.getMail().get().getPlaintextParts()) {
             NumberStream numberStream = new NumberStreamExtractor(10, plaintextPart).extractStream();
 
             for (BankAccountConfiguration account : config.getFraudulentBankAccounts()) {

@@ -25,10 +25,12 @@ public class SubjectKeywordFilterFactory implements FilterFactory {
 
         @Override
         public List<FilterFeedback> filter(MessageProcessingContext context) {
-            String subject = context.getMail().getSubject();
-            List<FilterFeedback> result = new ArrayList<FilterFeedback>();
-            appendPFWhenStateInSubject(result, subject, DROPPED);
-            appendPFWhenStateInSubject(result, subject, HELD);
+            List<FilterFeedback> result = new ArrayList<>();
+            if (context.getMail().isPresent()) {
+                String subject = context.getMail().get().getSubject();
+                appendPFWhenStateInSubject(result, subject, DROPPED);
+                appendPFWhenStateInSubject(result, subject, HELD);
+            }
             return result;
         }
 

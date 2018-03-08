@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -52,7 +53,7 @@ public class PhoneNumberFilterTest {
     @Test
     public void ignoreDuplicateFindings() {
         when(config.getFraudulentPhoneNumbers()).thenReturn(ImmutableSet.of(new PhoneNumberConfiguration("0123", "123")));
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(mail.getPlaintextParts()).thenReturn(asList("test 123 sdf", "sdfsf 123 gdfg"));
 
         when(extractor.extractStream(anyString())).thenReturn(stream);
@@ -66,7 +67,7 @@ public class PhoneNumberFilterTest {
     @Test
     public void findInSubject() {
         when(config.getFraudulentPhoneNumbers()).thenReturn(ImmutableSet.of(new PhoneNumberConfiguration("0123", "123")));
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(mail.getSubject()).thenReturn("tel:123");
 
         when(extractor.extractStream("tel:123")).thenReturn(stream);
@@ -80,7 +81,7 @@ public class PhoneNumberFilterTest {
     @Test
     public void ignoreNullSubject() {
         when(config.getFraudulentPhoneNumbers()).thenReturn(ImmutableSet.of(new PhoneNumberConfiguration("0123", "123")));
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(mail.getSubject()).thenReturn(null);
         when(extractor.extractStream(anyString())).thenReturn(stream);
 
@@ -94,7 +95,7 @@ public class PhoneNumberFilterTest {
     public void filterFeedbackContainsFilterConfigurationValues() {
         when(config.getFraudulentPhoneNumbers()).thenReturn(ImmutableSet.of(new PhoneNumberConfiguration("+491234567890", "1234567890")));
         when(config.getScore()).thenReturn(100);
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(mail.getPlaintextParts()).thenReturn(singletonList("test 123 sdf"));
 
         when(extractor.extractStream(anyString())).thenReturn(stream);

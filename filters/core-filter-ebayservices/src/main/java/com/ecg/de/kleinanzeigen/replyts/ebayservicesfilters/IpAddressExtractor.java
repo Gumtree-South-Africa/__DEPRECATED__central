@@ -13,12 +13,12 @@ public class IpAddressExtractor {
 
     public Optional<String> retrieveIpAddress(MessageProcessingContext mpc) {
         return isFirstMessage(mpc) && containsIpV4(mpc) ?
-                Optional.of(mpc.getMail().getUniqueHeader(IP_ADDR_HEADER)) :
+                Optional.of(mpc.getMail().get().getUniqueHeader(IP_ADDR_HEADER)) :
                 Optional.empty();
     }
 
     private boolean containsIpV4(MessageProcessingContext mpc) {
-        String ipAddressHeader = mpc.getMail().getUniqueHeader(IP_ADDR_HEADER);
+        String ipAddressHeader = mpc.getMail().get().getUniqueHeader(IP_ADDR_HEADER);
         if(ipAddressHeader == null) {
             return false;
         }

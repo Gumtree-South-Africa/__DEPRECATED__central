@@ -1,7 +1,13 @@
 package com.ecg.de.mobile.replyts.demand.usertracking;
 
-import static com.ecg.de.mobile.replyts.demand.EmailAddressExctractor.extractFromSmptHeader;
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.ecg.de.mobile.replyts.demand.Utils;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Optional;
 import java.util.concurrent.Executors;
@@ -11,14 +17,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-
-import com.ecg.de.mobile.replyts.demand.Utils;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import static com.ecg.de.mobile.replyts.demand.EmailAddressExctractor.extractFromSmptHeader;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 
 public class UserTrackingHandler {
@@ -66,14 +66,15 @@ public class UserTrackingHandler {
         Long adVersion = asLong(getCustomVariableFromMessageOrContext("ad_version", context));
         Long sellerId = asLong(getCustomVariableFromMessageOrContext("seller_customer_id", context));
 
+        Mail mail = context.getMail().get();
         EmailMessage msg = EmailMessage.builder()
                 .ad(AdRef.of(adId, adVersion, sellerId))
                 .ip(getTrackingHeaderFromMessage("Ip", message))
-                .plainText(context.getMail().getPlaintextParts().stream().collect(Collectors.joining("\n-------------------------------------------------\n")))
-                .subject(context.getMail().getSubject())
-                .senderMailAddress(context.getOriginalFrom().getAddress())
-                .receiverMailAddress(context.getOriginalTo().getAddress())
-                .replyToMailAddress(extractFromSmptHeader(context.getMail().getUniqueHeader("Reply-To"))) // none anonymized!
+                .plainText(mail.getPlaintextParts().stream().collect(Collectors.joining("\n-------------------------------------------------\n")))
+                .subject(mail.getSubject())
+                .senderMailAddress(mail.getFrom())
+                .receiverMailAddress(mail.getDeliveredTo())
+                .replyToMailAddress(extractFromSmptHeader(mail.getUniqueHeader("Reply-To"))) // none anonymized!
                 .build();
 
         ClientInfo ci = ClientInfo.builder()

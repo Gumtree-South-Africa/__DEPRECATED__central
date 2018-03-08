@@ -13,7 +13,7 @@ import java.util.Optional;
  * Reason:
  * - Old anonymous messages (conversations that contain SELLER_ID but does not contain BUYER_ID, use email in this case)
  */
-public class UkUserIdentifierServiceByUserIdHeaders extends UserIdentifierServiceByUserIdHeaders {
+public class UkUserIdentifierServiceByUserIdHeaders extends UserIdentifierServiceByUserId {
     private static final Logger LOG = LoggerFactory.getLogger(UkUserIdentifierServiceByUserIdHeaders.class);
 
     public UkUserIdentifierServiceByUserIdHeaders(String buyerUserIdName, String sellerUserIdName) {

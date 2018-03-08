@@ -33,7 +33,7 @@ public class NewReplierFilter extends ActivableFilter {
 
     @Override
     protected List<FilterFeedback> doFilter(MessageProcessingContext context) {
-        String from = context.getMail().getFrom();
+        String from = context.getMail().get().getFrom();
         if (StringUtils.isBlank(from)) {
             LOG.warn("No e-mail provided for context {}", context.toString());
         } else if (StringUtils.isNotBlank(from) && checkIfEmailNewInLeGrid(from)) {

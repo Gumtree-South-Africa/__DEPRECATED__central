@@ -1,6 +1,11 @@
 package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.ImmutableProcessingFeedback;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -15,13 +20,16 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WordfilterTest {
@@ -52,7 +60,7 @@ public class WordfilterTest {
         when(context.getMessage()).thenReturn(msg);
         when(msg.getPlainTextBody()).thenReturn("Foobar FooString FooBooh Doh!");
         when(context.getConversation()).thenReturn(conversation);
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(conversation.getId()).thenReturn("cid");
         // Checkout there is a flag for supporting only partial diff in WordFilter.class
         when(msg.getPlainTextBodyDiff(any(Conversation.class))).thenReturn("Foobar FooString FooBooh Doh!");

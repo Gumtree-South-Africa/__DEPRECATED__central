@@ -51,7 +51,7 @@ class PhoneNumberFilter implements Filter {
     }
 
     private void findInSubject(MessageProcessingContext context, Set<PhoneNumberConfiguration> matchedNumbers) {
-        String subject = Optional.ofNullable(context.getMail().getSubject()).orElse("");
+        String subject = Optional.ofNullable(context.getMail().get().getSubject()).orElse("");
         NumberStream numberStream = plainTextExtractor.extractStream(subject);
         findInNumberStream(matchedNumbers, numberStream);
     }
@@ -59,7 +59,7 @@ class PhoneNumberFilter implements Filter {
 
     private void findInHtmlLinks(MessageProcessingContext context, Set<PhoneNumberConfiguration> matchedNumbers) {
         // Read text parts instead of plainTextParts() to find hidden phone numbers in html links: <a href="tel:0151..">
-        List<TypedContent<String>> textParts = context.getMail().getTextParts(true);
+        List<TypedContent<String>> textParts = context.getMail().get().getTextParts(true);
         for (TypedContent<String> textPart : textParts) {
             NumberStream numberStream = htmlLinkExtractor.extractStream(textPart);
             findInNumberStream(matchedNumbers, numberStream);
@@ -68,7 +68,7 @@ class PhoneNumberFilter implements Filter {
 
     private void findInPlainTextParts(MessageProcessingContext context, Set<PhoneNumberConfiguration> matchedNumbers) {
         // true -> include text attachments. Some mails only contains text attachment as content.
-        List<String> plainTextParts = context.getMail().getPlaintextParts();
+        List<String> plainTextParts = context.getMail().get().getPlaintextParts();
         for (String part : plainTextParts) {
             NumberStream numberStream = plainTextExtractor.extractStream(part);
             findInNumberStream(matchedNumbers, numberStream);

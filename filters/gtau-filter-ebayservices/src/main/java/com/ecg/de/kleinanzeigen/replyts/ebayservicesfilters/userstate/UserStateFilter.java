@@ -34,7 +34,7 @@ class UserStateFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
-        String sender = messageProcessingContext.getMail().getFrom();
+        String sender = messageProcessingContext.getMail().get().getFrom();
         try {
             MemberBadgeDataType badgeData = userService.getMemberBadgeData(sender);
 

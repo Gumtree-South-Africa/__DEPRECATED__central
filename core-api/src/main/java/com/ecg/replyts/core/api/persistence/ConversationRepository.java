@@ -55,5 +55,5 @@ public interface ConversationRepository {
     /**
      * tries to find one single conversation that is between a buyer, a seller and about a specific ad id. (there could be more conversations, but only one is returned
      */
-    Optional<Conversation> findExistingConversationFor(ConversationIndexKey key);
+    Optional<MutableConversation> findExistingConversationFor(ConversationIndexKey key);
 }

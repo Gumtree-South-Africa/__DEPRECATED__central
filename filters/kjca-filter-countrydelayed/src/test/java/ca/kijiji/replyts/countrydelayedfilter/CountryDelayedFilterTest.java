@@ -13,6 +13,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static ca.kijiji.replyts.BoxHeaders.SENDER_IP_ADDRESS;
 import static ca.kijiji.replyts.countrydelayedfilter.CountryDelayedFilter.IS_COUNTRY_DELAYED_KEY;
@@ -40,7 +41,7 @@ public class CountryDelayedFilterTest {
     @Before
     public void setUp() {
         objectUnderTest = new CountryDelayedFilter(SCORE, tnsApiClientMock);
-        when(messageContextMock.getMail()).thenReturn(mailMock);
+        when(messageContextMock.getMail()).thenReturn(Optional.of(mailMock));
     }
 
     @Test

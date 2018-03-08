@@ -11,8 +11,6 @@ import java.util.UUID;
 @Threads(100)
 public class XidFactoryBenchmark {
 
-    private static final Guids GUIDS = new Guids();
-
     @Benchmark
     public String xidFactory() {
         return XidFactory.nextXid();
@@ -30,6 +28,6 @@ public class XidFactoryBenchmark {
 
     @Benchmark
     public String guids() {
-        return GUIDS.nextGuid();
+        return Guids.next();
     }
 }

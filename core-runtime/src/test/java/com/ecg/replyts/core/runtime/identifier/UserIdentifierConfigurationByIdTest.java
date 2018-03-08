@@ -24,7 +24,7 @@ public class UserIdentifierConfigurationByIdTest {
 
     @Test
     public void testCreateUserIdentifierServiceByUserIdHeadersMp() throws Exception {
-        assertThat(identifierService, instanceOf(UserIdentifierServiceByUserIdHeaders.class));
+        assertThat(identifierService, instanceOf(UserIdentifierServiceByUserId.class));
     }
 
     @Configuration

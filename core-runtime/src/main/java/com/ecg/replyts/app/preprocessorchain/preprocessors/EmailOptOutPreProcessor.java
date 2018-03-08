@@ -34,15 +34,19 @@ public class EmailOptOutPreProcessor implements PreProcessor {
             return;
         }
 
-        Conversation c = context.getConversation();
-        MessageDirection toRole = context.getMessageDirection();
-        ConversationRole role = toRole.getToRole();
+        if (context.getMail().isPresent()) {
+            Conversation c = context.getConversation();
+            MessageDirection toRole = context.getMessageDirection();
+            ConversationRole role = toRole.getToRole();
 
-        userIdService.getUserIdentificationOfConversation(c, role).ifPresent(userId -> {
-            if (!emailOptOutRepo.isEmailTurnedOn(userId)) {
-                context.skipDeliveryChannel(DELIVERY_CHANNEL_MAIL);
-            }
-        });
+            userIdService.getUserIdentificationOfConversation(c, role).ifPresent(userId -> {
+                if (!emailOptOutRepo.isEmailTurnedOn(userId)) {
+                    context.skipDeliveryChannel(DELIVERY_CHANNEL_MAIL);
+                }
+            });
+        } else {
+            context.skipDeliveryChannel(DELIVERY_CHANNEL_MAIL);
+        }
     }
 
     @Override

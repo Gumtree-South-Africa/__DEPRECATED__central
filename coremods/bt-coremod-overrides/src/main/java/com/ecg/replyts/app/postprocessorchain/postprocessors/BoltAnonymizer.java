@@ -1,20 +1,21 @@
 package com.ecg.replyts.app.postprocessorchain.postprocessors;
 
-import java.io.UnsupportedEncodingException;
-
-import javax.mail.internet.MimeUtility;
-
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.mail.MailAddress;
+import com.ecg.replyts.core.api.model.mail.MutableMail;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.mail.MailAddress;
-import com.ecg.replyts.core.api.model.mail.MutableMail;
-import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import javax.mail.internet.MimeUtility;
+
+import java.io.UnsupportedEncodingException;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.lang.String.format;
 
@@ -35,27 +36,10 @@ public class BoltAnonymizer extends Anonymizer {
         Conversation c = context.getConversation();
 
         MailAddress newTo = new MailAddress(c.getUserIdFor(context.getMessageDirection().getToRole()));
-        MailAddress newFrom = mailCloakingService.createdCloakedMailAddress(context.getMessageDirection().getFromRole(), context.getConversation());
-        
-        // BOLT-20980 (From the incoming messages from BOLT)
-        String buyerName = context.getMail().getCustomHeaders().get("buyer-name") != null
-          ? context.getMail().getCustomHeaders().get("buyer-name") : null;
+        MailAddress newFrom = getMailCloakingService().createdCloakedMailAddress(context.getMessageDirection().getFromRole(), context.getConversation());
 
-        // BOLT-20980 (From the reply message)
-        if (buyerName == null) {
-            buyerName = context.getConversation().getCustomValues().get("buyer-name") != null
-              ? context.getConversation().getCustomValues().get("buyer-name") : null;
-        }
-
-        // BOLT-20980 (From the incoming messages from BOLT)
-        String sellerName = context.getMail().getCustomHeaders().get("seller-name") != null
-          ? context.getMail().getCustomHeaders().get("seller-name") : null;
-
-        // BOLT-20980 (From the reply message)
-        if (sellerName == null) {
-            sellerName = context.getConversation().getCustomValues().get("seller-name") != null
-              ? context.getConversation().getCustomValues().get("seller-name") : null;
-        }
+        String buyerName = getName("buyer-name", context);
+        String sellerName = getName("seller-name", context);
 
         String fromUserName = context.getMessageDirection() == MessageDirection.BUYER_TO_SELLER ? buyerName : sellerName;
 
@@ -86,14 +70,23 @@ public class BoltAnonymizer extends Anonymizer {
 
             newFrom = new MailAddress(String.format(fromTemplate, defaultFromDisplay, newFrom.getAddress()));
         }
-        
+
         LOG.debug("Modified cloaked Mail Address is {}", newFrom.getAddress());
-        
+
         MutableMail outgoingMail = context.getOutgoingMail();
 
         outgoingMail.setTo(newTo);
         outgoingMail.setFrom(newFrom);
 
         LOG.debug("Anonymizing Outgoing mail. Set From: {}, To: {}", newFrom, newTo);
+    }
+
+    private String getName(String key, MessageProcessingContext context) {
+        // BOLT-20980 From the incoming messages from BOLT, name is taken from customHeaders, from the reply message name is taken from customValues
+
+        Map<String, String> customHeaders = context.getMail().get().getCustomHeaders();
+        Map<String, String> customValues = context.getConversation().getCustomValues();
+
+        return Optional.ofNullable(customHeaders.get(key)).orElse(customValues.get(key));
     }
 }

@@ -1,6 +1,10 @@
 package nl.marktplaats.filter.volume;
 
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -13,13 +17,18 @@ import org.mockito.InOrder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class VolumeFilterTest {
     private static final String BUYER_ID = "buyer@mail.com";
@@ -118,7 +127,7 @@ public class VolumeFilterTest {
         MessageProcessingContext messageProcessingContext = mock(MessageProcessingContext.class);
         when(messageProcessingContext.getConversation()).thenReturn(conversation);
         when(messageProcessingContext.getMessage()).thenReturn(message);
-        when(messageProcessingContext.getMail()).thenReturn(mail);
+        when(messageProcessingContext.getMail()).thenReturn(Optional.of(mail));
         return messageProcessingContext;
     }
 }

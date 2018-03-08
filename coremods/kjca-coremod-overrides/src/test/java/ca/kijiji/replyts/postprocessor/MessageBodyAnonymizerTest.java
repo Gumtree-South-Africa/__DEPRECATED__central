@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.FilterResultState.OK;
 import static org.hamcrest.CoreMatchers.is;
@@ -83,7 +84,7 @@ public class MessageBodyAnonymizerTest {
                 .withMessages(
                         ImmutableList.of(messageBuilder.build()));
 
-        when(context.getMail()).thenReturn(incomingMail);
+        when(context.getMail()).thenReturn(Optional.of(incomingMail));
 
         messageBodyAnonymizer = new MessageBodyAnonymizer(textAnonymizer);
     }

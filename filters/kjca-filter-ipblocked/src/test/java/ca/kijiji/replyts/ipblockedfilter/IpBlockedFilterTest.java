@@ -13,6 +13,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static ca.kijiji.replyts.BoxHeaders.SENDER_IP_ADDRESS;
 import static ca.kijiji.replyts.ipblockedfilter.IpBlockedFilter.IS_BLOCKED_KEY;
@@ -40,7 +41,7 @@ public class IpBlockedFilterTest {
     @Before
     public void setUp() {
         objectUnderTest = new IpBlockedFilter(SCORE, tnsApiClientMock);
-        when(messageContextMock.getMail()).thenReturn(mailMock);
+        when(messageContextMock.getMail()).thenReturn(Optional.of(mailMock));
     }
 
     @Test

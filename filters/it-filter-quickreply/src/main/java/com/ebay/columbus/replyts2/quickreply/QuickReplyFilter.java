@@ -34,7 +34,7 @@ public class QuickReplyFilter implements Filter {
             return Collections.emptyList();
         }
 
-        Map<String, String> customHeaders = context.getMail().getCustomHeaders();
+        Map<String, String> customHeaders = context.getMail().get().getCustomHeaders();
         if (customHeaders.isEmpty()) {
             return Collections.emptyList();
         }
@@ -63,5 +63,4 @@ public class QuickReplyFilter implements Filter {
     private boolean isFirstMessage(Conversation conversation) {
         return conversation.getMessages().size() == 1;
     }
-
 }

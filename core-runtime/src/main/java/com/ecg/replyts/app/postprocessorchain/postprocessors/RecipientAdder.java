@@ -1,6 +1,6 @@
 package com.ecg.replyts.app.postprocessorchain.postprocessors;
 
-import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * Set 'To' address.
  */
 @Component
-public class RecipientAdder implements PostProcessor {
+public class RecipientAdder implements EmailPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(RecipientAdder.class);
 

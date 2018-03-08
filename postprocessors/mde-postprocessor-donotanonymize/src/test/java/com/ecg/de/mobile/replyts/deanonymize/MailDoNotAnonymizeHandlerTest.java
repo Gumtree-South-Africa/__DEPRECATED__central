@@ -1,40 +1,43 @@
 package com.ecg.de.mobile.replyts.deanonymize;
 
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
+import java.util.Optional;
+
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-/**
- * User: beckart
- */
+@RunWith(MockitoJUnitRunner.class)
 public class MailDoNotAnonymizeHandlerTest {
 
     public static final String X_DO_NOT_ANONYMIZE = "X-DO-NOT-ANONYMIZE";
 
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private MessageProcessingContext msgContext;
-
+    @Mock
+    private Mail mail;
 
     @Before
     public void setUp() throws Exception {
-        msgContext = mock(MessageProcessingContext.class, RETURNS_DEEP_STUBS);
+        when(msgContext.getMail()).thenReturn(Optional.of(mail));
     }
-
 
     @Test
     public void shallNotAnonymize() {
 
-        when(msgContext.getMail().getUniqueHeader(X_DO_NOT_ANONYMIZE)).thenReturn("fooBar");
+        when(mail.getUniqueHeader(X_DO_NOT_ANONYMIZE)).thenReturn("fooBar");
 
         MailAddress originalFrom = new MailAddress("Benjamin <foobar>");
-        when(msgContext.getOriginalFrom()).thenReturn(originalFrom);
+        when(mail.getFrom()).thenReturn(originalFrom.getAddress());
 
         new MailDoNotAnonymizeHandler(msgContext, "foobar").handle();
 
@@ -44,10 +47,10 @@ public class MailDoNotAnonymizeHandlerTest {
     @Test
     public void shallAnonymizeNoHeader() {
 
-        when(msgContext.getMail().getUniqueHeader(X_DO_NOT_ANONYMIZE)).thenReturn(null);
+        when(mail.getUniqueHeader(X_DO_NOT_ANONYMIZE)).thenReturn(null);
 
         MailAddress originalFrom = new MailAddress("Benjamin <foobar>");
-        when(msgContext.getOriginalFrom()).thenReturn(originalFrom);
+        when(mail.getFrom()).thenReturn(originalFrom.getAddress());
 
         new MailDoNotAnonymizeHandler(msgContext, "foobar").handle();
 
@@ -57,14 +60,12 @@ public class MailDoNotAnonymizeHandlerTest {
     @Test
     public void shallAnonymizeWrongPassword() {
 
-        when(msgContext.getMail().getUniqueHeader(X_DO_NOT_ANONYMIZE)).thenReturn("bar bar");
+        when(mail.getUniqueHeader(X_DO_NOT_ANONYMIZE)).thenReturn("bar bar");
 
         MailAddress originalFrom = new MailAddress("Benjamin <foobar>");
-        when(msgContext.getOriginalFrom()).thenReturn(originalFrom);
+        when(mail.getFrom()).thenReturn(originalFrom.getAddress());
 
-        when(msgContext.getMail().getUniqueHeader("Reply-To")).thenReturn("inReplyTo@example.com");
-
-
+        when(mail.getUniqueHeader("Reply-To")).thenReturn("inReplyTo@example.com");
 
         new MailDoNotAnonymizeHandler(msgContext, "foobar").handle();
 
@@ -75,11 +76,11 @@ public class MailDoNotAnonymizeHandlerTest {
     @Test
     public void preserveReplyToIfNotToAnonymize() {
 
-        when(msgContext.getMail().getUniqueHeader(X_DO_NOT_ANONYMIZE)).thenReturn("fooBar");
+        when(mail.getUniqueHeader(X_DO_NOT_ANONYMIZE)).thenReturn("fooBar");
 
         MailAddress originalFrom = new MailAddress("Benjamin <foobar>");
-        when(msgContext.getOriginalFrom()).thenReturn(originalFrom);
-        when(msgContext.getMail().getUniqueHeader("Reply-To")).thenReturn("inReplyTo@example.com");
+        when(mail.getFrom()).thenReturn(originalFrom.getAddress());
+        when(mail.getUniqueHeader("Reply-To")).thenReturn("inReplyTo@example.com");
 
         new MailDoNotAnonymizeHandler(msgContext, "foobar").handle();
 
@@ -90,11 +91,11 @@ public class MailDoNotAnonymizeHandlerTest {
     @Test
     public void preserveReplyToIfNotToAnonymizeWithPersonal() {
 
-        when(msgContext.getMail().getUniqueHeader(X_DO_NOT_ANONYMIZE)).thenReturn("fooBar");
+        when(mail.getUniqueHeader(X_DO_NOT_ANONYMIZE)).thenReturn("fooBar");
 
         MailAddress originalFrom = new MailAddress("Benjamin <foobar>");
-        when(msgContext.getOriginalFrom()).thenReturn(originalFrom);
-        when(msgContext.getMail().getUniqueHeader("Reply-To")).thenReturn("ReplyTo <inReplyTo@example.com>");
+        when(mail.getFrom()).thenReturn(originalFrom.getAddress());
+        when(mail.getUniqueHeader("Reply-To")).thenReturn("ReplyTo <inReplyTo@example.com>");
 
         new MailDoNotAnonymizeHandler(msgContext, "foobar").handle();
 

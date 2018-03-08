@@ -28,7 +28,7 @@ public class HeaderInjectorPostprocessor implements PostProcessor {
     public void postProcess(MessageProcessingContext context) {
         LOG.trace("Going to inject: {}", config.getHeadersToInject());
         try {
-            Map<String,String> headers = context.getMail().getUniqueHeaders();
+            Map<String,String> headers = context.getMail().get().getUniqueHeaders();
             LOG.trace("Got headers: {}", headers.keySet());
             for (String header : config.getHeadersToInject()) {
                 String headerValue = headers.get(header);

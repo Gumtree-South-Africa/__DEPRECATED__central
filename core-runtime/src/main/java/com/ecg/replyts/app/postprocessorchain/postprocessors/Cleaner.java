@@ -1,22 +1,17 @@
 package com.ecg.replyts.app.postprocessorchain.postprocessors;
 
-import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Removes most email headers except those that are needed to maintain mail integrity.
  */
 @Component
-public class Cleaner implements PostProcessor {
+public class Cleaner implements EmailPostProcessor {
     public static final Set<String> HEADERS_TO_KEEP = new HashSet<String>(Arrays.asList(
             "Subject", "Date", "Content-Type", "Content-ID",
             "Content-Disposition", "Content-Transfer-Encoding", "MIME-Version",

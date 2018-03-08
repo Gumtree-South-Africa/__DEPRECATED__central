@@ -25,10 +25,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.CONVERSATION_ID;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_DIRECTION;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_FROM;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_TO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConversationResumerTest {
@@ -52,7 +58,7 @@ public class ConversationResumerTest {
 
     @Before
     public void setUp() {
-        when(context.getMail()).thenReturn(mail);
+        when(context.getMail()).thenReturn(Optional.of(mail));
         when(context.getConversation()).thenReturn(conv);
         when(context.getSender()).thenReturn(new MailAddress("buyer@host.com"));
         when(context.getRecipient()).thenReturn(new MailAddress("seller@host.com"));

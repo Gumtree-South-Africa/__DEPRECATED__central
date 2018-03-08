@@ -181,7 +181,7 @@ public class RiakConversationRepository implements MutableConversationRepository
     }
 
     @Override
-    public Optional<Conversation> findExistingConversationFor(ConversationIndexKey key) {
+    public Optional<MutableConversation> findExistingConversationFor(ConversationIndexKey key) {
         return conversationIndexBucket.findConversationId(key).map(this::getById);
     }
 }

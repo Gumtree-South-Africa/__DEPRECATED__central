@@ -69,7 +69,7 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
     private FilterFeedback getFilterFeedbackSenderOnBlackList(MessageProcessingContext messageContext) {
         Message message = messageContext.getMessage();
         Conversation conversation = messageContext.getConversation();
-        Mail mail = messageContext.getMail();
+        Mail mail = messageContext.getMail().get();
         String ipAddress = message.getHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
 
         // check for account holder

@@ -14,10 +14,11 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.HashMap;
+import java.util.Optional;
+
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BoltAnonymizerTest {
@@ -55,8 +56,8 @@ public class BoltAnonymizerTest {
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
-        when(context.getMail()).thenReturn(outgoingMail);
-        when(context.getMail().getCustomHeaders()).thenReturn(new HashMap<String, String>());
+        when(context.getMail()).thenReturn(Optional.of(outgoingMail));
+        when(outgoingMail.getCustomHeaders()).thenReturn(new HashMap<String, String>());
 
         anonymizer.postProcess(context);
 
@@ -69,8 +70,8 @@ public class BoltAnonymizerTest {
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
         when(context.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
 
-        when(context.getMail()).thenReturn(outgoingMail);
-        when(context.getMail().getCustomHeaders()).thenReturn(new HashMap<String, String>());
+        when(context.getMail()).thenReturn(Optional.of(outgoingMail));
+        when(outgoingMail.getCustomHeaders()).thenReturn(new HashMap<String, String>());
 
         anonymizer.postProcess(context);
 
@@ -83,8 +84,8 @@ public class BoltAnonymizerTest {
         when(context.getOutgoingMail()).thenReturn(outgoingMail);
         when(context.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
-        when(context.getMail()).thenReturn(outgoingMail);
-        when(context.getMail().getCustomHeaders()).thenReturn(new HashMap<String, String>());
+        when(context.getMail()).thenReturn(Optional.of(outgoingMail));
+        when(outgoingMail.getCustomHeaders()).thenReturn(new HashMap<String, String>());
 
         anonymizer.postProcess(context);
 

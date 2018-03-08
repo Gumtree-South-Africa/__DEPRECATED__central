@@ -1,16 +1,26 @@
 package com.ecg.replyts.core.api.processing;
 
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
@@ -25,34 +35,31 @@ public class MessageProcessingContext {
      */
     public static final String DELIVERY_CHANNEL_MAIL = "email";
 
-    private final Mail mail;
+    private final Optional<Mail> mail;
     private final String messageId;
     private final MutableMail outgoingMail;
     private final BiPredicate<MailAddress, MailAddress> overrideRecipientPredicate;
-
-    private Termination termination = null;
-
-    private MessageDirection messageDirection;
-
-    private MutableConversation conversation;
-
-    private final Set<String> skipDeliveryChannels = new HashSet<>();
-
     private final ProcessingTimeGuard processingTimeGuard;
 
+    private final Set<String> skipDeliveryChannels = new HashSet<>();
     private final Map<String, Object> filterContext = new HashMap<>();
 
+    private Termination termination = null;
+    private MessageDirection messageDirection;
+    private MutableConversation conversation;
+
+    @VisibleForTesting
     public MessageProcessingContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard) {
         this(mail, messageId, processingTimeGuard, (toRecipient, storeRecipient)  -> false);
     }
 
-    public MessageProcessingContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard, BiPredicate<MailAddress, MailAddress> overrideRecipientPredicate) {
+    public MessageProcessingContext(Mail incomingMail, String messageId, ProcessingTimeGuard processingTimeGuard, BiPredicate<MailAddress, MailAddress> overrideRecipientPredicate) {
         checkNotNull(processingTimeGuard);
 
-        this.mail = mail;
+        this.mail = Optional.ofNullable(incomingMail);
+        this.outgoingMail = mail.isPresent() ? mail.get().makeMutableCopy() : null;
         this.messageId = messageId;
         this.processingTimeGuard = processingTimeGuard;
-        this.outgoingMail = mail.makeMutableCopy();
         this.overrideRecipientPredicate = overrideRecipientPredicate;
     }
 
@@ -63,7 +70,7 @@ public class MessageProcessingContext {
     /**
      * @return a reference to the original mail that was received by ReplyTS. This mail is immutable.
      */
-    public Mail getMail() {
+    public Optional<Mail> getMail() {
         return mail;
     }
 
@@ -91,20 +98,6 @@ public class MessageProcessingContext {
     }
 
     /**
-     * @return mail address of the From field - <strong>this does not necessarily need to be the sender</strong> (could also be something like noreply@yourplatform.com for conversation starter mails).
-     */
-    public MailAddress getOriginalFrom() {
-        return new MailAddress(mail.getFrom());
-    }
-
-    /**
-     * @return mail address of the recipient from the mail's TO field. this either is the real recipient in conversation starter mails, or a cloaked recipient for all follow up mails.
-     */
-    public MailAddress getOriginalTo() {
-        return new MailAddress(mail.getDeliveredTo());
-    }
-
-    /**
      * @return real sender of the current email processing, a value is not available sooner than the conversation is created or fetched.
      */
     public MailAddress getSender() {
@@ -116,15 +109,18 @@ public class MessageProcessingContext {
      */
     public MailAddress getRecipient() {
         MailAddress storedRecipient = getMailStoredMember(MessageDirection::getToRole);
-        String toRecipientAddress = getMail().getDeliveredTo();
 
-        if (StringUtils.isNotBlank(toRecipientAddress)) {
-            MailAddress toRecipient = new MailAddress(toRecipientAddress);
+        if (mail.isPresent()) {
+            String toRecipientAddress = mail.get().getDeliveredTo();
 
-            // Current stored e-mail in conversation events is overridden by a new email from SMTP TO header
-            if (overrideRecipientPredicate.test(toRecipient, storedRecipient)) {
-                LOG.debug("Recipient of Outgoing mail overridden: {}", toRecipient);
-                return toRecipient;
+            if (StringUtils.isNotBlank(toRecipientAddress)) {
+                MailAddress toRecipient = new MailAddress(toRecipientAddress);
+
+                // Current stored e-mail in conversation events is overridden by a new email from SMTP TO header
+                if (overrideRecipientPredicate.test(toRecipient, storedRecipient)) {
+                    LOG.debug("Recipient of Outgoing mail overridden: {}", toRecipient);
+                    return toRecipient;
+                }
             }
         }
 
@@ -217,25 +213,6 @@ public class MessageProcessingContext {
      */
     public boolean isSkipDeliveryChannel(String deliveryChannel) {
         return this.skipDeliveryChannels.contains(deliveryChannel);
-    }
-
-    /**
-     * @return the message id of the message the current message is a response to, or null when not found
-     */
-    public String getInResponseToMessageId() {
-        Optional<String> lastReferencesMessageId = mail.getLastReferencedMessageId();
-        if (lastReferencesMessageId.isPresent()) {
-            String lastRef = lastReferencesMessageId.get();
-            List<Message> messages = conversation.getMessages();
-            // Iterate in reverse for that odd case that messages have duplicate Message-ID's.
-            for (ListIterator<Message> iter = messages.listIterator(messages.size()); iter.hasPrevious(); ) {
-                Message message = iter.previous();
-                if (lastRef.equals(message.getId())) {
-                    return message.getId();
-                }
-            }
-        }
-        return null;
     }
 
     /**

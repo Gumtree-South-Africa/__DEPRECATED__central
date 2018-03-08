@@ -40,7 +40,7 @@ public class GumtreeWatchlistFilter implements com.ecg.replyts.core.api.pluginco
             }
 
             List<FilterFeedback> reasons = new ArrayList<>();
-            Mail mail = messageContext.getMail();
+            Mail mail = messageContext.getMail().get();
             String ipAddress = messageContext.getMessage().getHeaders()
                     .get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
             String emailDomain = StringUtils.substringAfter(mail.getFrom(), "@");
