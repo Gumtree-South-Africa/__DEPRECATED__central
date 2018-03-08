@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-public class MultiTennantMailCloakingService implements MailCloakingService {
+public class MultiTenantMailCloakingService implements MailCloakingService {
     @Autowired
     private ConversationRepository conversationRepository;
 

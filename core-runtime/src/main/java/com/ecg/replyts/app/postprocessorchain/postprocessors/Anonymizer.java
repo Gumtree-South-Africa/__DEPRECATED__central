@@ -4,7 +4,7 @@ import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
+import com.ecg.replyts.core.runtime.mailcloaking.MultiTenantMailCloakingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ public class Anonymizer implements EmailPostProcessor {
     private final MailCloakingService mailCloakingService;
 
     @Autowired
-    public Anonymizer(MultiTennantMailCloakingService mailCloakingService) {
+    public Anonymizer(MultiTenantMailCloakingService mailCloakingService) {
         this.mailCloakingService = mailCloakingService;
     }
 

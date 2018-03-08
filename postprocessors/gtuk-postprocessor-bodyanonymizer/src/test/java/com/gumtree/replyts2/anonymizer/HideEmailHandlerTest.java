@@ -10,7 +10,7 @@ import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
+import com.ecg.replyts.core.runtime.mailcloaking.MultiTenantMailCloakingService;
 import com.ecg.replyts.core.runtime.mailparser.StringTypedContentMime4J;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
@@ -62,7 +62,7 @@ public class HideEmailHandlerTest {
     private MutableMail outgoingMail;
 
     @Mock
-    private MultiTennantMailCloakingService mailCloakingService;
+    private MultiTenantMailCloakingService mailCloakingService;
 
     @Mock
     private MutableMail incomingMail;

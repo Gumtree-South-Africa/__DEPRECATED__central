@@ -5,7 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
+import com.ecg.replyts.core.runtime.mailcloaking.MultiTenantMailCloakingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +25,7 @@ public class BoltAnonymizer extends Anonymizer {
     @Value("${mail.from.default.display}")
     private String defaultFromDisplay;
 
-    public BoltAnonymizer(MultiTennantMailCloakingService mailCloakingService) {
+    public BoltAnonymizer(MultiTenantMailCloakingService mailCloakingService) {
         super(mailCloakingService);
     }
 

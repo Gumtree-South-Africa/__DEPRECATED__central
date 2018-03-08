@@ -19,7 +19,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MultiTennantMailCloakingServiceTest {
+public class MultiTenantMailCloakingServiceTest {
     @Mock
     private AnonymizedMailConverter anonymizedMailConverter;
 
@@ -33,7 +33,7 @@ public class MultiTennantMailCloakingServiceTest {
     private MessageProcessingContext context;
 
     @InjectMocks
-    private MultiTennantMailCloakingService mailCloakingService;
+    private MultiTenantMailCloakingService mailCloakingService;
 
     @Before
     public void setUp() {

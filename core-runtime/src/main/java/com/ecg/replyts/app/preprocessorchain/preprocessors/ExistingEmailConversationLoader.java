@@ -12,7 +12,7 @@ import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
-import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
+import com.ecg.replyts.core.runtime.mailcloaking.MultiTenantMailCloakingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ public class ExistingEmailConversationLoader {
     private final MailCloakingService mailCloakingService;
 
     @Autowired
-    ExistingEmailConversationLoader(MultiTennantMailCloakingService mailCloakingService) {
+    ExistingEmailConversationLoader(MultiTenantMailCloakingService mailCloakingService) {
         this.mailCloakingService = mailCloakingService;
     }
 

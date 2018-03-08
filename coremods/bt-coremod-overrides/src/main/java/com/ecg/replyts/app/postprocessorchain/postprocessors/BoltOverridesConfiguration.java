@@ -1,6 +1,6 @@
 package com.ecg.replyts.app.postprocessorchain.postprocessors;
 
-import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
+import com.ecg.replyts.core.runtime.mailcloaking.MultiTenantMailCloakingService;
 import com.ecg.replyts.core.runtime.mailparser.HtmlRemover;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +16,7 @@ public class BoltOverridesConfiguration {
 
     @Primary
     @Bean
-    public Anonymizer anonymizer(MultiTennantMailCloakingService mailCloakingService) {
+    public Anonymizer anonymizer(MultiTenantMailCloakingService mailCloakingService) {
         return new BoltAnonymizer(mailCloakingService);
     }
 }

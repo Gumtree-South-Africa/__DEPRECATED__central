@@ -6,7 +6,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
+import com.ecg.replyts.core.runtime.mailcloaking.MultiTenantMailCloakingService;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class AddresserTest {
     private MessageProcessingContext context;
 
     @Mock
-    private MultiTennantMailCloakingService mailCloakingService;
+    private MultiTenantMailCloakingService mailCloakingService;
 
     @Mock
     private MutableMail incomingMail;

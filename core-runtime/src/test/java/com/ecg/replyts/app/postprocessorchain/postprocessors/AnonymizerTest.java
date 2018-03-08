@@ -6,7 +6,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.mailcloaking.MultiTennantMailCloakingService;
+import com.ecg.replyts.core.runtime.mailcloaking.MultiTenantMailCloakingService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class AnonymizerTest {
     @Mock
-    private MultiTennantMailCloakingService mailCloakingService;
+    private MultiTenantMailCloakingService mailCloakingService;
 
     @Mock
     private MessageProcessingContext context;
