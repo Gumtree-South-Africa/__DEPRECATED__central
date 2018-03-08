@@ -1,7 +1,7 @@
 package nl.marktplaats.postprocessor.urlgateway;
 
-import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.app.postprocessorchain.ContentOverridingPostProcessor;
+import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.MediaTypeHelper;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
@@ -70,6 +70,8 @@ public class UrlGatewayPostProcessor implements EmailPostProcessor, ContentOverr
 
     @Override
     public String overrideContent(String content) {
-        return PLAIN_TEXT_REWRITER.rewriteUrls(content, gatewaySwitcher);
+        // COMAAS-893 Disabled for now, MP is trying to figure out how this needs to be solved.
+        return content;
+        // return PLAIN_TEXT_REWRITER.rewriteUrls(content, gatewaySwitcher);
     }
 }
