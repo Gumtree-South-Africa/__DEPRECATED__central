@@ -1,5 +1,6 @@
 package com.ecg.replyts.core.webapi.control;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.client.Client;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashSet;
@@ -74,6 +76,7 @@ public class HealthController {
         return new Health();
     }
 
+    @JsonPropertyOrder(value = { "version", "tenant", "instanceName", "hostname"}, alphabetic = true)
     class Health {
         private Health() {
         }
