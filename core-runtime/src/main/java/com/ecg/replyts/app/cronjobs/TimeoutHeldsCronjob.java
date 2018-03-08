@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 @Component
-@ConditionalOnExpression("#{'${cronjob.sendHeld.timeout.runIn}' == '${region}'}")
+// This cron job should run in the _active_ DC
+@ConditionalOnExpression("#{'${cronjob.sendHeld.timeout.enabled:false}' == 'true' && '${active.dc}' == '${region}'}")
 public class TimeoutHeldsCronjob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(TimeoutHeldsCronjob.class);
 

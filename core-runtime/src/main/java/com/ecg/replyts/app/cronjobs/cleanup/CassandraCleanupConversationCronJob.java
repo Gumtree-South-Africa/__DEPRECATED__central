@@ -46,7 +46,7 @@ import static com.ecg.replyts.core.runtime.TimingReports.newGauge;
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnExpression("#{'${replyts2.cleanup.conversation.enabled}' == '${region}' && '${persistence.strategy}' == 'cassandra'}")
+@ConditionalOnExpression("#{'${cronjob.cleanup.conversation.enabled:false}' == 'true' && '${active.dc}' != '${region}' && '${persistence.strategy}' == 'cassandra'}")
 public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraCleanupConversationCronJob.class);
 

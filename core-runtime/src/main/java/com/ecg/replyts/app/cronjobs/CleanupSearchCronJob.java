@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 
 @Component
-@ConditionalOnProperty(name = "replyts2.cronjob.cleanupSearch.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "cronjob.cleanupSearch.enabled", havingValue = "true")
 public class CleanupSearchCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CleanupSearchCronJob.class);
 

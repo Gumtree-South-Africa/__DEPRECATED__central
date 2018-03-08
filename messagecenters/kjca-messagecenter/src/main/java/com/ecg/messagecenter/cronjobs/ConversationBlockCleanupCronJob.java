@@ -21,7 +21,7 @@ import static org.joda.time.DateTime.now;
  * however.
  */
 @Component
-@ConditionalOnExpression("#{'${replyts2.cleanup.conversationblock.enabled}' == '${region}'}")
+@ConditionalOnExpression("#{'${replyts2.cleanup.conversationblock.enabled:false}' == 'true' && '${active.dc}' != '${region}' && '${persistence.strategy}' == 'cassandra'}")
 public class ConversationBlockCleanupCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationBlockCleanupCronJob.class);
 

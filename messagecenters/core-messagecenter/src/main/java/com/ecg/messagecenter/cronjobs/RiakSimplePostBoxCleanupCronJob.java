@@ -14,7 +14,7 @@ import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinu
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnExpression("#{'${replyts2.cleanup.postboxes.enabled}' == '${region}' && ('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))}")
+@ConditionalOnExpression("#{'${cronjob.cleanup.postboxes.enabled:false}' == 'true' && '${active.dc}' != '${region}' && ('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))}")
 public class RiakSimplePostBoxCleanupCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(RiakSimplePostBoxCleanupCronJob.class);
 

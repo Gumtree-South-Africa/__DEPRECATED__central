@@ -24,7 +24,7 @@ import static com.ecg.replyts.core.runtime.persistence.FetchIndexHelper.logInter
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnExpression("#{'${replyts2.cleanup.conversation.enabled}' == '${region}' && ('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))}")
+@ConditionalOnExpression("#{'${cronjob.cleanup.conversation.enabled:false}' == 'true' && '${active.dc}' != '${region}' && ('${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid'))}")
 public class RiakCleanupConversationCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(RiakCleanupConversationCronJob.class);
 
