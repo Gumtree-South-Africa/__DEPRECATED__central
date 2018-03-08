@@ -48,7 +48,7 @@ public class CloudConfiguration {
     private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
       "persistence.cassandra.core.endpoint", "cassandra",
       "persistence.cassandra.mb.endpoint", "cassandra",
-      "kafka.core.servers", "kafkacore",
+            "kafka.core.servers", "kafkacore2",
       "search.es.endpoints", "elasticsearch"
     );
 
