@@ -50,7 +50,7 @@ public class Application {
     @Bean
     public Config hazelcastConfiguration(
             @Value("${replyts.tenant}") String tenant,
-            @Value("${hazelcast.discovery.enabled:${service.discovery.enabled:true}}") boolean discoveryEnabled,
+            @Value("${hazelcast.discovery.enabled:true}") boolean discoveryEnabled,
             @Value("${service.discovery.hostname:localhost}") String discoveryHostname,
             @Value("${service.discovery.port:8500}") int discoveryPort,
             @Value("${hazelcast.password}") String hazelcastPassword,

@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 @EnableDiscoveryClient
 @EnableAutoConfiguration(exclude = { BusAutoConfiguration.class, DataSourceAutoConfiguration.class, MongoDataAutoConfiguration.class, MongoRepositoriesAutoConfiguration.class })
 @Import(ConsulConfigBootstrapConfiguration.class)
-@ConditionalOnExpression("#{'${service.discovery.enabled:true}' == 'true'}")
 public class CloudConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CloudConfiguration.class);
 

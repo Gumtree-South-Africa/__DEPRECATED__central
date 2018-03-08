@@ -47,9 +47,7 @@ import static org.mockito.Mockito.*;
 @ContextConfiguration(classes = CloudConfigurationTest.ParentTestContext.class)
 @TestPropertySource(properties = {
   "confDir = classpath:conf",
-
   "replyts.tenant = ebayk",
-  "service.discovery.enabled = true",
   "spring.cloud.consul.enabled = false" // Override Spring Cloud Consul initialization with mock beans
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)

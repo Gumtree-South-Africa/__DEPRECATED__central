@@ -73,8 +73,6 @@ public final class ReplytsRunner {
             properties.put("node.run.cronjobs", "false");
             properties.put("cluster.jmx.enabled", "false");
 
-            properties.put("service.discovery.enabled", "false");
-
             context.getEnvironment().getPropertySources().addFirst(new PropertiesPropertySource("test", properties));
 
             if (testProperties != null) {
