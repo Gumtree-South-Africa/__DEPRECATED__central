@@ -159,7 +159,10 @@ public class CloudConfiguration {
             }
 
             if (instances.size() > 0) {
-                LOG.info("Auto-discovered {} {} instance(s) - adding property {}", instances.size(), service, property);
+                LOG.info("Auto-discovered {} {} instance(s) - adding property {} v {}", instances.size(), service, property);
+                for (String instance : instances) {
+                    LOG.info("Auto-discovered {} instance {} ", service, instance);
+                }
 
                 gatheredProperties.put(property, instances.stream().collect(Collectors.joining(",")));
             } else {
