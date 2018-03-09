@@ -15,15 +15,12 @@ static def tenantAliases() {
     ]
 }
 
-def checkInputParameters(providedEnv, providedDc, providedTenant) {
+def checkInputParameters(providedDc, providedTenant) {
     if (providedDc == "-") {
         error("Please provide a DC")
     }
     if (providedTenant == "-") {
         error("Please provide a tenant")
-    }
-    if (providedDc != 'ams1' && providedEnv == 'lp') {
-        error("The lp environment is only available in the ams1 dc.")
     }
 }
 
@@ -81,7 +78,7 @@ String getOriginalRestartJenkinsJobNr(final String tenantLongName) {
 }
 
 node("master") {
-    checkInputParameters(PROVIDED_ENV, PROVIDED_DC, PROVIDED_TENANT)
+    checkInputParameters(PROVIDED_DC, PROVIDED_TENANT)
 
     final String environment = PROVIDED_ENV
     String dc = PROVIDED_DC
@@ -108,6 +105,7 @@ node("master") {
     } else {
         // Must be LP environment
         description += "-"
+        dc = "ams1"
     }
 
     currentBuild.description = description
@@ -116,15 +114,15 @@ node("master") {
         input message: "Restarting Comaas for tenant: ${tenant} in " + (isActiveDC ? "ACTIVE " : "") + "dc: ${dc} on env: ${environment}. Are you sure?"
     }
 
-    final String originalDeployJenkinsJobNr = getOriginalDeployNr(tenant)
-    final String version = getOriginalVersion(tenant)
-    final String wantedInstances = getOriginalWantedInstances(tenant)
-    final String wantedInstancesPerZone = getOriginalWantedInstancesPerZone(tenant)
-    final String originalJenkinsRestartJobNr = getOriginalRestartJenkinsJobNr(tenant)
-    final String restartJenkinsJob = originalJenkinsRestartJobNr == "none" ? env.BUILD_NUMBER : originalJenkinsRestartJobNr + "," + env.BUILD_NUMBER
-
     stage("Restarting Comaas") {
         node("$environment && $dc") {
+            final String originalDeployJenkinsJobNr = getOriginalDeployNr(tenant)
+            final String version = getOriginalVersion(tenant)
+            final String wantedInstances = getOriginalWantedInstances(tenant)
+            final String wantedInstancesPerZone = getOriginalWantedInstancesPerZone(tenant)
+            final String originalJenkinsRestartJobNr = getOriginalRestartJenkinsJobNr(tenant)
+            final String restartJenkinsJob = originalJenkinsRestartJobNr == "none" ? env.BUILD_NUMBER : originalJenkinsRestartJobNr + "," + env.BUILD_NUMBER
+
             ansiColor('xterm') {
                 sh "PYTHONWARNINGS='ignore' servicecontrol.py --logdir ~ --config /etc/comaas/comaas-${tenant}.yaml --restartservice comaas-${tenant}"
             }
