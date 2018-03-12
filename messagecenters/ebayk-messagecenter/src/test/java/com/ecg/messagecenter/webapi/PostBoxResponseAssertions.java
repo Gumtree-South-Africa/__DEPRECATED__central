@@ -1,17 +1,23 @@
 package com.ecg.messagecenter.webapi;
 
 import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
-import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.envelope.ProcessingStatus;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
+import com.ecg.sync.PostBoxResponse;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.*;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.AD_ID;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.BUYER_ID;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.BUYER_NAME;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.DETAILED_CONVERSATION;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.NOW;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.SELLER_ID;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.SELLER_NAME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
