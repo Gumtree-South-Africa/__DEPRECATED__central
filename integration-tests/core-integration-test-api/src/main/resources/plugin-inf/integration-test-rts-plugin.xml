@@ -21,5 +21,7 @@
 
     <bean class="com.ecg.replyts.integration.elasticsearch.EmbeddedElasticSearchClientConfiguration"/>
 
+    <bean class="com.ecg.replyts.integration.hazelcast.EmbeddedHazelcastConfiguration"/>
+
     <bean class="com.ecg.replyts.integration.AlwaysHappyClusterMonitor"/>
 </beans>
