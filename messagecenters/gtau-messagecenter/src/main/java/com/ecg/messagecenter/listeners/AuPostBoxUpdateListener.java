@@ -90,19 +90,14 @@ public class AuPostBoxUpdateListener implements MessageProcessedListener {
         try {
 
             if (conversation.getSellerId() == null || conversation.getBuyerId() == null) {
-                LOG.info(
-                        String.format(
-                                "No seller or buyer email available for conversation #%s and conv-state %s and message #%s",
-                                conversation.getId(),
-                                conversation.getState(),
-                                message.getId()));
+                LOG.info("No seller or buyer email available for conversation #{} and conv-state {} and message #{}",
+                        conversation.getId(), conversation.getState(), message.getId());
                 return;
             }
 
             // We don't broadcast robot messages, to do so UserNotificationRules needs to change
             if (MessageType.isRobot(message)) {
-                if (message.getMessageDirection().equals(MessageDirection.BUYER_TO_SELLER)) {
-                    if (!message.getPlainTextBody().contains(INITIAL_CONVERSATION_MESSAGE))
+                if (message.getMessageDirection().equals(MessageDirection.BUYER_TO_SELLER) && !message.getPlainTextBody().contains(INITIAL_CONVERSATION_MESSAGE)) {
                         updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message));
                 }
                 if (message.getMessageDirection().equals(MessageDirection.SELLER_TO_BUYER)) {

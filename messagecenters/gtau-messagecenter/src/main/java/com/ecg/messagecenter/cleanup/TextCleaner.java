@@ -1,8 +1,11 @@
 package com.ecg.messagecenter.cleanup;
 
-public class TextCleaner {
+public final class TextCleaner {
 
     private static final String MARKUP_HINT = "!important;";
+
+    private TextCleaner() {
+    }
 
     public static String cleanupText(String originalText) {
         Text text = new Text(originalText);

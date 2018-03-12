@@ -1,18 +1,19 @@
-package com.ecg.messagecenter.webapi.responses;
+package com.ecg.sync;
 
-import com.ecg.gumtree.replyts2.common.message.MessageCenterUtils;
+import com.ecg.messagecenter.util.MessageCenterUtils;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PostBoxResponse {
+public class PostBoxResponse<T> {
+
     private Integer numUnread;
     private DateTime lastModified;
-    private Meta meta;
-    private List<PostBoxListItemResponse> conversations = new ArrayList<PostBoxListItemResponse>();
+    private Meta _meta;
+    private List<T> conversations = new ArrayList<>();
 
-    public PostBoxResponse addItem(PostBoxListItemResponse conversationListItem) {
+    public PostBoxResponse addItem(T conversationListItem) {
         conversations.add(conversationListItem);
         return this;
     }
@@ -28,14 +29,14 @@ public class PostBoxResponse {
     }
 
     public PostBoxResponse meta(int numFound, int currentPage, int pageSize) {
-        meta = new Meta();
-        meta.numFound = numFound;
-        meta.pageSize = pageSize;
-        meta.pageNum = currentPage;
+        _meta = new Meta();
+        _meta.numFound = numFound;
+        _meta.pageSize = pageSize;
+        _meta.pageNum = currentPage;
         return this;
     }
 
-    public List<PostBoxListItemResponse> getConversations() {
+    public List<T> getConversations() {
         return conversations;
     }
 
@@ -47,9 +48,9 @@ public class PostBoxResponse {
         return MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(lastModified);
     }
 
+    // NOTE: method name required for _meta to be returned in the JSON response.
     public Meta get_meta() {
-        // NOTE: method name required for _meta to be returned in the JSON response.
-        return meta;
+        return _meta;
     }
 
     class Meta {

@@ -2,6 +2,7 @@ package com.ecg.messagecenter.webapi;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
+import com.ecg.messagecenter.diff.WebApiSyncService;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
@@ -16,6 +17,7 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.WebDataBinder;
@@ -43,11 +45,26 @@ public class ConversationThreadController {
     private static final Timer POSTBOX_CONVERSATION_MARK_READ = TimingReports.newTimer("webapi-postbox-conversation-mark-read");
     private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
 
-    @Autowired
-    private SimplePostBoxRepository postBoxRepository;
+    private final SimplePostBoxRepository postBoxRepository;
+    private final ConversationRepository conversationRepository;
+    private final boolean syncEnabled;
+    private final boolean diffEnabled;
+
+    @Autowired(required = false)
+    private WebApiSyncService webapiSyncService;
 
     @Autowired
-    private ConversationRepository conversationRepository;
+    public ConversationThreadController(
+            SimplePostBoxRepository postBoxRepository,
+            ConversationRepository conversationRepository,
+            @Value("${webapi.sync.au.enabled:false}") boolean syncEnabled,
+            @Value("${webapi.diff.au.enabled:false}") boolean diffEnabled
+    ) {
+        this.postBoxRepository = postBoxRepository;
+        this.conversationRepository = conversationRepository;
+        this.syncEnabled = syncEnabled;
+        this.diffEnabled = diffEnabled;
+    }
 
     @InitBinder
     public void initBinderInternal(WebDataBinder binder) {
@@ -64,6 +81,7 @@ public class ConversationThreadController {
     ) {
 
         try (Timer.Context ignored = POSTBOX_CONVERSATION_GET.time()) {
+            ResponseObject responseObject;
             PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
             Optional conversationThreadRequested = postBox.lookupConversation(conversationId);
@@ -72,11 +90,17 @@ public class ConversationThreadController {
             }
 
             if (newCounterMode) {
-                return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response, robotEnabled);
+                responseObject = lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response, robotEnabled);
             } else {
                 long numUnread = postBox.getUnreadConversationsCapped().size();
-                return lookupConversation(numUnread, email, conversationId, response, robotEnabled);
+                responseObject = lookupConversation(numUnread, email, conversationId, response, robotEnabled);
             }
+
+            if (syncEnabled && diffEnabled && responseObject.getBody() instanceof PostBoxSingleConversationThreadResponse) {
+                webapiSyncService.logDiffOnConversationGet(email, conversationId, (PostBoxSingleConversationThreadResponse) responseObject.getBody());
+            }
+
+            return responseObject;
         }
     }
 
@@ -89,6 +113,7 @@ public class ConversationThreadController {
             HttpServletResponse response
     ) {
         try (Timer.Context ignored = POSTBOX_CONVERSATION_MARK_READ.time()) {
+            ResponseObject responseObject;
             PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
             Optional conversationThreadRequested = postBox.lookupConversation(conversationId);
@@ -109,11 +134,17 @@ public class ConversationThreadController {
                 if (needToMarkAsRead) {
                     markConversationAsRead(email, conversationId, postBox);
                 }
-                return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response, robotEnabled);
+                responseObject = lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response, robotEnabled);
             } else {
                 long numUnread = needToMarkAsRead ? markConversationAsRead(email, conversationId, postBox) : postBox.getUnreadConversationsCapped().size();
-                return lookupConversation(numUnread, email, conversationId, response, robotEnabled);
+                responseObject = lookupConversation(numUnread, email, conversationId, response, robotEnabled);
             }
+
+            if (syncEnabled && responseObject.getBody() instanceof PostBoxSingleConversationThreadResponse) {
+                webapiSyncService.readConversation(email, conversationId, (PostBoxSingleConversationThreadResponse) responseObject.getBody());
+            }
+
+            return responseObject;
         }
     }
 

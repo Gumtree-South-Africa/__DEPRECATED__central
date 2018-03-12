@@ -5,20 +5,21 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * User: maldana
- * Date: 26.09.13
- * Time: 14:00
- *
- * @author maldana@ebay.de
- */
-public class ConversationBoundnessFinder {
+import java.util.Optional;
+
+public final class ConversationBoundnessFinder {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationBoundnessFinder.class);
+
+    private ConversationBoundnessFinder() {
+    }
 
     public static MailTypeRts boundnessForRole(ConversationRole role, String direction) {
         return boundnessForRole(role, MessageDirection.valueOf(direction));
     }
-
 
     public static MailTypeRts boundnessForRole(ConversationRole role, MessageDirection direction) {
 
@@ -35,16 +36,19 @@ public class ConversationBoundnessFinder {
             return MailTypeRts.INBOUND;
 
         throw new IllegalStateException("Unknown combination");
-
     }
 
     public static ConversationRole lookupUsersRole(String email, Conversation conv) {
-        // toLowerCase() because emails are case insensitive
-        return conv.getBuyerId().toLowerCase().equals(email.toLowerCase()) ? ConversationRole.Buyer : ConversationRole.Seller;
+        return conv.getBuyerId().equalsIgnoreCase(email) ? ConversationRole.Buyer : ConversationRole.Seller;
     }
 
     public static ConversationRole lookupUsersRole(String email, AbstractConversationThread conv) {
-        // toLowerCase() because emails are case insensitive
-        return conv.getBuyerId().get().toLowerCase().equals(email.toLowerCase()) ? ConversationRole.Buyer : ConversationRole.Seller;
+        Optional<String> buyerIdOptional = conv.getBuyerId();
+        if (buyerIdOptional.isPresent()) {
+            return buyerIdOptional.get().equalsIgnoreCase(email) ? ConversationRole.Buyer : ConversationRole.Seller;
+        }
+
+        LOG.warn("No buyer ID for conversation {}", conv.getConversationId());
+        return null;
     }
 }

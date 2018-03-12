@@ -4,10 +4,10 @@ import com.codahale.metrics.Counter;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
-import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.sync.PostBoxResponse;
 
 import java.util.List;
 import java.util.Optional;

@@ -4,7 +4,6 @@ import com.ecg.messagecenter.persistence.simple.AbstractSimplePostBoxInitializer
 import com.ecg.messagecenter.util.ConversationThreadEnricher;
 import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.messagecenter.util.MessageType;
-import com.ecg.messagecenter.util.MessagesDiffer;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -21,10 +20,13 @@ import static org.joda.time.DateTime.now;
  */
 @Component
 public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<ConversationThread> {
-    private MessagesResponseFactory messageResponseFactory = new MessagesResponseFactory(new MessagesDiffer());
+
+    private final ConversationThreadEnricher conversationThreadEnricher;
 
     @Autowired
-    private ConversationThreadEnricher conversationThreadEnricher;
+    public SimplePostBoxInitializer(ConversationThreadEnricher conversationThreadEnricher) {
+        this.conversationThreadEnricher = conversationThreadEnricher;
+    }
 
     @Override
     protected boolean filter(String email, Conversation conversation) {
@@ -33,7 +35,7 @@ public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<C
 
     @Override
     public Optional<String> extractPreviewLastMessage(Conversation conversation, String email) {
-        return messageResponseFactory.latestMessage(email, conversation)
+        return MessagesResponseFactory.latestMessage(email, conversation)
                 .map(message -> MessageCenterUtils.truncateText(message.getTextShortTrimmed(), maxChars));
     }
 
@@ -59,6 +61,6 @@ public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<C
                         Optional.empty(),
                         Optional.empty(),
                         Optional.empty()),
-                Optional.ofNullable(conversation));
+                conversation);
     }
 }
