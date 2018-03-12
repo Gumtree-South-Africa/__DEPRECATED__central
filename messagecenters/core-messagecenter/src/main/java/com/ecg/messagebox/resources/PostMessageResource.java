@@ -1,9 +1,11 @@
-package com.ecg.messagebox.controllers;
+package com.ecg.messagebox.resources;
 
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.controllers.requests.CreateConversationRequest;
 import com.ecg.messagebox.controllers.requests.PostMessageRequest;
 import com.ecg.messagebox.controllers.responses.CreateConversationResponse;
+import com.ecg.messagebox.resources.exceptions.ClientException;
+import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
@@ -19,7 +21,12 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,11 +42,11 @@ import java.util.Set;
 
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewConversationCommand;
-import static com.google.common.base.Preconditions.checkArgument;
 
 @RestController
+@Api(tags = "Conversations")
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-public class PostMessageController {
+public class PostMessageResource {
 
     private final Timer createConversationTimer = TimingReports.newTimer("webapi.create-conversation");
     private final Timer postMessageTimer = TimingReports.newTimer("webapi.post-message");
@@ -51,7 +58,7 @@ public class PostMessageController {
     private final UniqueConversationSecret uniqueConversationSecret;
 
     @Autowired
-    public PostMessageController(
+    public PostMessageResource(
             ProcessingContextFactory processingContextFactory,
             MessageProcessingCoordinator messageProcessingCoordinator,
             MutableConversationRepository conversationRepository,
@@ -64,14 +71,27 @@ public class PostMessageController {
         this.uniqueConversationSecret = uniqueConversationSecret;
     }
 
-    @PostMapping("/whatever/users/{userId}/ads/{adId}/conversations")
+    @ApiOperation(
+        value = "Create a conversation",
+        notes = "Create a conversation between participants on an ad",
+        nickname = "createConversation",
+        tags = "Conversations")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Success"),
+            @ApiResponse(code = 500, message = "Internal Error", response = ErrorResponse.class)
+    })
+    @PostMapping("/users/{userId}/ads/{adId}/conversations")
     public CreateConversationResponse createConversation(
             @PathVariable("userId") String userId,
             @PathVariable("adId") String adId,
             @RequestBody CreateConversationRequest createConversationRequest) {
         Set<String> participantIds = createConversationRequest.participantIds;
-        checkArgument(participantIds.size() == 2 && participantIds.contains(userId),
-                "creating conversations with more than 2 participants is currently not allowed");
+        if (createConversationRequest.participantIds.size() != 2) {
+            throw new ClientException(HttpStatus.BAD_REQUEST, "Conversation should have two participants");
+        }
+        if (!participantIds.contains(userId)) {
+            throw new ClientException(HttpStatus.BAD_REQUEST, "User is not a participant");
+        }
         try (Timer.Context ignored = createConversationTimer.time()) {
 
             String buyerId = userId;
@@ -82,15 +102,15 @@ public class PostMessageController {
                 return new CreateConversationResponse(true, existingConversation.get().getId());
             }
 
-            HashMap<String, String> customHeaders = new HashMap<>();
-            customHeaders.put(userIdentifierService.getBuyerUserIdName(), buyerId);
-            customHeaders.put(userIdentifierService.getSellerUserIdName(), sellerId);
+            HashMap<String, String> customValues = new HashMap<>();
+            customValues.put(userIdentifierService.getBuyerUserIdName(), buyerId);
+            customValues.put(userIdentifierService.getSellerUserIdName(), sellerId);
 
             NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(Guids.next()).
                     withAdId(adId).
                     withBuyer(buyerId, uniqueConversationSecret.nextSecret()).
                     withSeller(sellerId, uniqueConversationSecret.nextSecret()).
-                    withCustomValues(customHeaders).
+                    withCustomValues(customValues).
                     build();
 
             ConversationCreatedEvent conversationCreatedEvent = new ConversationCreatedEvent(newConversationBuilderCommand);
@@ -102,7 +122,17 @@ public class PostMessageController {
         }
     }
 
-    @PostMapping("/whatever/users/{userId}/conversations/{conversationId}")
+    @ApiOperation(
+        value = "Post a message",
+        notes = "Post a message to an existing conversation",
+        nickname = "postMessage",
+        tags = "Conversations")
+    @ApiResponses({
+        @ApiResponse(code = 200, message = "Success"),
+        @ApiResponse(code = 404, message = "Conversation Not Found", response = ErrorResponse.class),
+        @ApiResponse(code = 500, message = "Internal Error", response = ErrorResponse.class)
+    })
+    @PostMapping("/users/{userId}/conversations/{conversationId}")
     public ResponseObject<?> postMessage(
             @PathVariable("userId") String userId,
             @PathVariable("conversationId") String conversationId,
@@ -111,6 +141,10 @@ public class PostMessageController {
 
             MutableConversation conversation = conversationRepository.getById(conversationId);
 
+            if (conversation == null) {
+                throw new ClientException(HttpStatus.NOT_FOUND, String.format("Conversation not found for ID: %s", conversationId));
+            }
+
             MessageProcessingContext context = processingContextFactory.newContext(null, Guids.next());
             context.setConversation(conversation);
             if (userId.equals(conversation.getSellerId())) {
@@ -118,8 +152,7 @@ public class PostMessageController {
             } else if (userId.equals(conversation.getBuyerId())) {
                 context.setMessageDirection(MessageDirection.BUYER_TO_SELLER);
             } else {
-                // TODO ctagliola: UserId not a participants, what to do?
-                context.setMessageDirection(MessageDirection.SYSTEM_MESSAGE);
+                throw new ClientException(HttpStatus.BAD_REQUEST, "User is not a participant");
             }
 
             AddMessageCommand addMessageCommand =

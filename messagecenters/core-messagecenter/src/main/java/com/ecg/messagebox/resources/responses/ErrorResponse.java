@@ -1,64 +1,69 @@
 package com.ecg.messagebox.resources.responses;
 
+import com.ecg.replyts.core.Application;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import io.swagger.annotations.ApiModelProperty;
+import org.slf4j.MDC;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ErrorResponse {
 
     @ApiModelProperty(required = true)
-    private final String errorType;
+    private final String application;
     @ApiModelProperty(required = true)
-    private final String errorMessage;
+    private final String message;
+    @ApiModelProperty(required = true)
+    private final String revision;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @ApiModelProperty
     private List<String> errors = new ArrayList<>();
+    @ApiModelProperty
+    private String details;
+    @ApiModelProperty
+    private Map<String, String> fields = new LinkedHashMap<>();
 
-    public ErrorResponse(String errorType, String errorMessage) {
-        this.errorType = errorType;
-        this.errorMessage = errorMessage;
+    public ErrorResponse(String message) {
+        this.message = message;
+        this.application = Application.class.getPackage().getImplementationTitle();
+        this.revision = Application.class.getPackage().getImplementationVersion();
+        this.fields = MDC.getCopyOfContextMap();
     }
 
-    public void addValidationError(String error) {
-        errors.add(error);
+    public String getMessage() {
+        return message;
+    }
+
+    public String getApplication() {
+        return application;
+    }
+
+    public String getRevision() {
+        return revision;
+    }
+
+    @JsonAnyGetter
+    public Map<String, String> getFields() {
+        return fields;
+    }
+
+    public String getDetails() {
+        return details;
     }
 
     public List<String> getErrors() {
         return errors;
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
+    public void addValidationError(String error) {
+        errors.add(error);
     }
 
-    public String getErrorType() {
-        return errorType;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ErrorResponse that = (ErrorResponse) o;
-        return Objects.equal(errors, that.errors) &&
-                Objects.equal(errorMessage, that.errorMessage) &&
-                Objects.equal(errorType, that.errorType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(errors, errorMessage, errorType);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("errors", errors)
-                .add("errorMessage", errorMessage)
-                .add("errorType", errorType)
-                .toString();
+    public void setDetails(String details) {
+        this.details = details;
     }
 }

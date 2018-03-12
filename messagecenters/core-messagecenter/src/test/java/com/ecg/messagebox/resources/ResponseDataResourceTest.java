@@ -135,8 +135,7 @@ public class ResponseDataResourceTest extends AbstractTest {
                 .thenReturn(Optional.empty());
 
         JsonNode response = ObjectMapperConfigurer.objectBuilder()
-                .put("errorType", "EntityNotFound")
-                .put("errorMessage", "AggregationResponseData not found for userID: USER_ID");
+                .put("message", "AggregationResponseData not found for userID: USER_ID");
 
         mvc.perform(get("/users/" + USER_ID + "/aggregated-response-data")
                 .contentType(MediaType.APPLICATION_JSON))

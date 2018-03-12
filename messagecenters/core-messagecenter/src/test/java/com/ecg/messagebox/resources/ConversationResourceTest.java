@@ -11,11 +11,17 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.anything;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ConversationResource.class)
 public class ConversationResourceTest extends AbstractTest {
@@ -65,8 +71,7 @@ public class ConversationResourceTest extends AbstractTest {
                 .thenReturn(Optional.empty());
 
         JsonNode response = ObjectMapperConfigurer.objectBuilder()
-                .put("errorType", "EntityNotFound")
-                .put("errorMessage", "Conversation not found for ID: NOT_EXIST");
+                .put("message", "Conversation not found for ID: NOT_EXIST");
 
         mvc.perform(get("/users/" + USER_BUYER_ID + "/conversations/NOT_EXIST")
                 .contentType(MediaType.APPLICATION_JSON))
@@ -116,8 +121,7 @@ public class ConversationResourceTest extends AbstractTest {
                 .thenReturn(Optional.empty());
 
         JsonNode response = ObjectMapperConfigurer.objectBuilder()
-                .put("errorType", "EntityNotFound")
-                .put("errorMessage", "Conversation not found for ID: NOT_EXIST");
+                .put("message", "Conversation not found for ID: NOT_EXIST");
 
         mvc.perform(put("/users/" + USER_BUYER_ID + "/conversations/NOT_EXIST/read")
                 .contentType(MediaType.APPLICATION_JSON))

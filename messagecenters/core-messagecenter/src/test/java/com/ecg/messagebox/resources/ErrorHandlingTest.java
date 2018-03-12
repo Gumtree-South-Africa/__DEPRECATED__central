@@ -28,8 +28,7 @@ public class ErrorHandlingTest extends AbstractTest {
                 .thenThrow(new RuntimeException("Something happened"));
 
         JsonNode response = ObjectMapperConfigurer.objectBuilder()
-                .put("errorType", "UnknownError")
-                .put("errorMessage", "Something happened");
+                .put("message", "java.lang.RuntimeException: Something happened");
 
         mvc.perform(get("/users/" + USER_ID + "/ads/" + AD_ID + "/conversations/ids"))
                 .andExpect(status().isInternalServerError())
@@ -42,8 +41,7 @@ public class ErrorHandlingTest extends AbstractTest {
                 .add("System message Ad ID cannot be empty");
 
         JsonNode response = ObjectMapperConfigurer.objectBuilder()
-                .put("errorType", "ValidationError")
-                .put("errorMessage", "Validation failed. 1 error(s)")
+                .put("message", "Validation failed. 1 error(s)")
                 .set("errors", errors);
 
         ObjectNode payload = ObjectMapperConfigurer.objectBuilder()

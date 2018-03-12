@@ -1,9 +1,22 @@
 package com.ecg.messagebox.resources;
 
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.messagebox.model.*;
+import com.ecg.messagebox.model.ConversationMetadata;
+import com.ecg.messagebox.model.ConversationThread;
+import com.ecg.messagebox.model.Message;
+import com.ecg.messagebox.model.MessageNotification;
+import com.ecg.messagebox.model.MessageType;
+import com.ecg.messagebox.model.Participant;
+import com.ecg.messagebox.model.ParticipantRole;
+import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagebox.service.ResponseDataService;
+import com.ecg.replyts.app.MessageProcessingCoordinator;
+import com.ecg.replyts.app.ProcessingContextFactory;
+import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
+import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
+import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -55,6 +68,36 @@ public abstract class AbstractTest {
         @Bean
         ResponseDataService responseDataService() {
             return mock(ResponseDataService.class);
+        }
+
+        @Bean
+        ProcessingContextFactory processingContextFactory() {
+            return mock(ProcessingContextFactory.class);
+        }
+
+        @Bean
+        AnonymizedMailConverter anonymizedMailConverter() {
+            return mock(AnonymizedMailConverter.class);
+        }
+
+        @Bean
+        MessageProcessingCoordinator messageProcessingCoordinator() {
+            return mock(MessageProcessingCoordinator.class);
+        }
+
+        @Bean
+        MutableConversationRepository mutableConversationRepository() {
+            return mock(MutableConversationRepository.class);
+        }
+
+        @Bean
+        UserIdentifierService userIdentifierService() {
+            return mock(UserIdentifierService.class);
+        }
+
+        @Bean
+        UniqueConversationSecret uniqueConversationSecret() {
+            return mock(UniqueConversationSecret.class);
         }
     }
 

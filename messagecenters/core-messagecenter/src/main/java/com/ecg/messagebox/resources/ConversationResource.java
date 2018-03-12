@@ -1,21 +1,31 @@
 package com.ecg.messagebox.resources;
 
 import com.codahale.metrics.Timer;
-import com.ecg.messagebox.resources.exceptions.NotFoundException;
+import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.requests.SystemMessagePayload;
 import com.ecg.messagebox.resources.responses.ConversationResponse;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.core.runtime.TimingReports;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
@@ -51,7 +61,7 @@ public class ConversationResource {
     @ApiOperation(value = "Get a single conversation", notes = "Retrieve a single conversation along with messages", nickname = "getConversation", tags = "Conversations")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Success", response = ConversationResponse.class),
-            @ApiResponse(code = 404, message = "Conversation Not Found"),
+            @ApiResponse(code = 404, message = "Conversation Not Found", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Internal Error", response = ErrorResponse.class)
     })
     @GetMapping("/users/{userId}/conversations/{conversationId}")
@@ -65,7 +75,7 @@ public class ConversationResource {
             return postBoxService
                     .getConversation(userId, conversationId, messageIdCursor, limit)
                     .map(ConversationResponseConverter::toConversationResponseWithMessages)
-                    .orElseThrow(() -> new NotFoundException("EntityNotFound", String.format("Conversation not found for ID: %s", conversationId)));
+                    .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("Conversation not found for ID: %s", conversationId)));
         }
     }
 
@@ -91,7 +101,7 @@ public class ConversationResource {
                 return postBoxService
                         .markConversationAsRead(userId, conversationId, messageIdCursor, limit)
                         .map(ConversationResponseConverter::toConversationResponseWithMessages)
-                        .orElseThrow(() -> new NotFoundException("EntityNotFound", String.format("Conversation not found for ID: %s", conversationId)));
+                        .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("Conversation not found for ID: %s", conversationId)));
             } else {
                 /*
                  * TODO PB: Only for migration to V2 then delete this code.
@@ -101,7 +111,7 @@ public class ConversationResource {
                  */
                 return webApiSyncV2Service.markConversationAsRead(userId, conversationId, messageIdCursor, limit)
                         .map(ConversationResponseConverter::toConversationResponseWithMessages)
-                        .orElseThrow(() -> new NotFoundException("EntityNotFound", String.format("Conversation not found for ID: %s", conversationId)));
+                        .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("Conversation not found for ID: %s", conversationId)));
             }
         }
     }

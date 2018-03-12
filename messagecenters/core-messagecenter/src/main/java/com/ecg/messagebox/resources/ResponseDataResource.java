@@ -1,14 +1,19 @@
 package com.ecg.messagebox.resources;
 
 import com.codahale.metrics.Timer;
-import com.ecg.messagebox.resources.exceptions.NotFoundException;
+import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.responses.AggregatedResponseDataResponse;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.resources.responses.ResponseDataResponse;
 import com.ecg.messagebox.service.ResponseDataService;
 import com.ecg.replyts.core.runtime.TimingReports;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -67,7 +72,7 @@ public class ResponseDataResource {
         try (Timer.Context ignored = getAggregatedResponseDataTimer.time()) {
             return responseDataService.getAggregatedResponseData(userId)
                     .map(data -> new AggregatedResponseDataResponse(data.getSpeed(), data.getRate()))
-                    .orElseThrow(() -> new NotFoundException("EntityNotFound", String.format("AggregationResponseData not found for userID: %s", userId)));
+                    .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("AggregationResponseData not found for userID: %s", userId)));
         }
     }
 }
