@@ -4,6 +4,7 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
@@ -11,6 +12,8 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.search.RtsSearchResponse;
 import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
+import com.ecg.replyts.core.runtime.mailparser.StructuredMail;
+import org.apache.james.mime4j.message.DefaultMessageBuilder;
 import org.elasticsearch.common.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,12 +24,14 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.lang.String.format;
 
 public class DeDupeFilter implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(DeDupeFilter.class);
+    private static final StructuredMail emptyMail = new StructuredMail(new DefaultMessageBuilder().newMessage());
 
     private SearchService searchService;
 
@@ -43,19 +48,17 @@ public class DeDupeFilter implements Filter {
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         Message message = messageProcessingContext.getMessage();
+        Conversation conversation = messageProcessingContext.getConversation();
 
         ConversationRole fromRole = message.getMessageDirection().getFromRole();
-        String senderMailAddress = messageProcessingContext.getConversation().getUserId(fromRole);
+        String senderMailAddress = conversation.getUserId(fromRole);
 
         ConversationRole toRole = message.getMessageDirection().getToRole();
-        String receiverMailAddress = messageProcessingContext.getConversation().getUserId(toRole);
+        String receiverMailAddress = conversation.getUserId(toRole);
 
-        String conversation_id = messageProcessingContext.getMail().get().getCustomHeaders().get("conversation_id") != null
-          ? messageProcessingContext.getMail().get().getCustomHeaders().get("conversation_id") : null;
-
+        String conversation_id = messageProcessingContext.getMail().orElse(emptyMail).getCustomHeaders().get("conversation_id");
         if (conversation_id == null) {
-            conversation_id = messageProcessingContext.getConversation().getCustomValues().get("conversation_id") != null
-              ? messageProcessingContext.getConversation().getCustomValues().get("conversation_id") : null;
+            conversation_id = conversation.getCustomValues().get("conversation_id");
         }
 
         LOG.debug("Conversation id from the incoming message is {}", conversation_id);
@@ -86,17 +89,17 @@ public class DeDupeFilter implements Filter {
             RtsSearchResponse response = searchService.search(generateSearchPayLoad(receiverMailAddress, inMessage, filterConfig.getMinShouldMatch()));
 
             long matchesFound = response.getResult().stream()
-              .map(this::retrieveMessage)
-              .flatMap(x -> x.entrySet().stream())
-              .filter(e -> {
-                  String rtsMsgAdId = e.getValue().getHeaders().get("X-Cust-Reply-Adid");
-                  String rtsMsgIp = e.getValue().getHeaders().get("X-Cust-Ip");
+                    .map(this::retrieveMessage)
+                    .flatMap(x -> x.entrySet().stream())
+                    .filter(e -> {
+                        String rtsMsgAdId = e.getValue().getHeaders().get("X-Cust-Reply-Adid");
+                        String rtsMsgIp = e.getValue().getHeaders().get("X-Cust-Ip");
 
-                  return adId.equalsIgnoreCase(rtsMsgAdId) && ipAddr.equalsIgnoreCase(rtsMsgIp) && !isExceptCategory(getRtsMsgCatTree(e.getKey()));
-              })
-              .peek(e -> LOG.debug("Matching Message found {}", e.getValue().getPlainTextBody()))
-              .limit(filterConfig.getMatchCount())
-              .count();
+                        return adId.equalsIgnoreCase(rtsMsgAdId) && ipAddr.equalsIgnoreCase(rtsMsgIp) && !isExceptCategory(getRtsMsgCatTree(e.getKey()));
+                    })
+                    .peek(e -> LOG.debug("Matching Message found {}", e.getValue().getPlainTextBody()))
+                    .limit(filterConfig.getMatchCount())
+                    .count();
 
             if (matchesFound == filterConfig.getMatchCount()) {
                 LOG.debug("Scoring the message [{}] as it meets the rule condition", filterConfig.getScore());
@@ -153,44 +156,33 @@ public class DeDupeFilter implements Filter {
     }
 
     private Set<String> getInMsgCatTree(MessageProcessingContext messageProcessingContext) {
-        String category_id = messageProcessingContext.getMail().get().getCustomHeaders().get("categoryid") != null
-          ? messageProcessingContext.getMail().get().getCustomHeaders().get("categoryid") : null;
 
+        Optional<Mail> mail = messageProcessingContext.getMail();
+        Map<String, String> conversationCustomValues = messageProcessingContext.getConversation().getCustomValues();
+
+        String category_id = mail.orElse(emptyMail).getCustomHeaders().get("categoryid");
         if (category_id == null) {
-            category_id = messageProcessingContext.getConversation().getCustomValues().get("categoryid") != null
-              ? messageProcessingContext.getConversation().getCustomValues().get("categoryid") : null;
+            category_id = conversationCustomValues.get("categoryid");
         }
 
-        String l1_category_id = messageProcessingContext.getMail().get().getCustomHeaders().get("l1-categoryid") != null
-          ? messageProcessingContext.getMail().get().getCustomHeaders().get("l1-categoryid") : null;
-
+        String l1_category_id = mail.orElse(emptyMail).getCustomHeaders().get("l1-categoryid");
         if (l1_category_id == null) {
-            l1_category_id = messageProcessingContext.getConversation().getCustomValues().get("l1-categoryid") != null
-              ? messageProcessingContext.getConversation().getCustomValues().get("l1-categoryid") : null;
+            l1_category_id = conversationCustomValues.get("l1-categoryid");
         }
 
-        String l2_category_id = messageProcessingContext.getMail().get().getCustomHeaders().get("l2-categoryid") != null
-          ? messageProcessingContext.getMail().get().getCustomHeaders().get("l2-categoryid") : null;
-
+        String l2_category_id = mail.orElse(emptyMail).getCustomHeaders().get("l2-categoryid");
         if (l2_category_id == null) {
-            l2_category_id = messageProcessingContext.getConversation().getCustomValues().get("l2-categoryid") != null
-              ? messageProcessingContext.getConversation().getCustomValues().get("categoryid") : null;
+            l2_category_id = conversationCustomValues.get("l2-categoryid") != null ? conversationCustomValues.get("categoryid") : null;
         }
 
-        String l3_category_id = messageProcessingContext.getMail().get().getCustomHeaders().get("l3-categoryid") != null
-          ? messageProcessingContext.getMail().get().getCustomHeaders().get("l3-categoryid") : null;
-
+        String l3_category_id = mail.orElse(emptyMail).getCustomHeaders().get("l3-categoryid");
         if (l3_category_id == null) {
-            l3_category_id = messageProcessingContext.getConversation().getCustomValues().get("l3-categoryid") != null
-              ? messageProcessingContext.getConversation().getCustomValues().get("categoryid") : null;
+            l3_category_id = conversationCustomValues.get("l3-categoryid") != null ? conversationCustomValues.get("categoryid") : null;
         }
 
-        String l4_category_id = messageProcessingContext.getMail().get().getCustomHeaders().get("l4-categoryid") != null
-          ? messageProcessingContext.getMail().get().getCustomHeaders().get("l4-categoryid") : null;
-
+        String l4_category_id = mail.orElse(emptyMail).getCustomHeaders().get("l4-categoryid");
         if (l4_category_id == null) {
-            l4_category_id = messageProcessingContext.getConversation().getCustomValues().get("l4-categoryid") != null
-              ? messageProcessingContext.getConversation().getCustomValues().get("l4-categoryid") : null;
+            l4_category_id = conversationCustomValues.get("l4-categoryid");
         }
 
         Set<String> categorySet = new HashSet<>();
@@ -234,10 +226,10 @@ public class DeDupeFilter implements Filter {
         }
 
         return categorySet.stream()
-          .filter(c -> filterConfig.getCategories().contains(Integer.parseInt(c)))
-          .peek(c -> LOG.debug("category id [{}] found in the allowed category list", c))
-          .findFirst()
-          .isPresent();
+                .filter(c -> filterConfig.getCategories().contains(Integer.parseInt(c)))
+                .peek(c -> LOG.debug("category id [{}] found in the allowed category list", c))
+                .findFirst()
+                .isPresent();
     }
 
     public boolean isExceptCategory(Set<String> categorySet) {
@@ -246,10 +238,10 @@ public class DeDupeFilter implements Filter {
         }
 
         return categorySet.stream()
-          .filter(c -> filterConfig.getExceptCategories().contains(Integer.parseInt(c)))
-          .peek(c -> LOG.debug("category id [{}] found in the except category list", c))
-          .findFirst()
-          .isPresent();
+                .filter(c -> filterConfig.getExceptCategories().contains(Integer.parseInt(c)))
+                .peek(c -> LOG.debug("category id [{}] found in the except category list", c))
+                .findFirst()
+                .isPresent();
     }
 
     private SearchMessagePayload generateSearchPayLoad(String receiverMailAddress, String inMessage, String minimumShouldMatch) {
@@ -268,7 +260,7 @@ public class DeDupeFilter implements Filter {
         return smp;
     }
 
-    public static String escape(String s) {
+    public String escape(String s) {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < s.length(); i++) {

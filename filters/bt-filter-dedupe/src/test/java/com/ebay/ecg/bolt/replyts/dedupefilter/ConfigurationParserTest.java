@@ -56,7 +56,7 @@ public class ConfigurationParserTest {
     }
 
     @Test
-    public void extractsFilterConfigDataWithoutCatagories() throws Exception {
+    public void extractsFilterConfigDataWithoutCategories() throws Exception {
         ObjectNode rulesNode = JsonObjects.builder().attr("minimumShouldMatch", "80%").attr("lookupInterval", "1")
           .attr("lookupIntervalTimeUnit", "HOURS").attr("score", "200").attr("matchCount", 3).build();
 

@@ -10,6 +10,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.ecg.replyts.core.api.search.SearchService;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -57,6 +58,14 @@ public class DeDupeFilterTest {
         DeDupeFilter dedupeFilter = new DeDupeFilter(searchService, conversationRepository, config);
 
         assertTrue(dedupeFilter.isExceptCategory(Collections.singleton("4")));
+    }
+
+    @Test
+    public void testEscapeCharacters() {
+        String test = "This is a test string with not escaped chars < > _ % $ # @ ± § ; , . \n \t and with escaped chars \\ + - ! ( ) : ^ [ ] \" { } ~ * ? | & / ";
+        String escaped = new DeDupeFilter(searchService, conversationRepository, config).escape(test);
+        String expected = "This is a test string with not escaped chars < > _ % $ # @ ± § ; , . \n \t and with escaped chars \\\\ \\+ \\- \\! \\( \\) \\: \\^ \\[ \\] \\\" \\{ \\} \\~ \\* \\? \\| \\& \\/ ";
+        assertEquals(expected, escaped);
     }
 
 //    @Rule
