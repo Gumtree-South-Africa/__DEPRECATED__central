@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
@@ -51,7 +50,7 @@ public class MessagesResponseFactoryTest {
     public void cleanOnlyOnFirstMessage() {
         addMessage("firstMessage", BUYER_TO_SELLER);
 
-        List<MessageResponse> transformedMessages = createMessagesList();
+        List<MessageResponse> transformedMessages = MessagesResponseFactory.create(BUYER, conv, messages).get();
 
         assertEquals(1, transformedMessages.size());
     }
@@ -61,7 +60,7 @@ public class MessagesResponseFactoryTest {
         addMessage("firstMessage", BUYER_TO_SELLER);
         addMessage("secondMessage", BUYER_TO_SELLER, "api_16");
 
-        List<MessageResponse> transformedMessages = createMessagesList();
+        List<MessageResponse> transformedMessages = MessagesResponseFactory.create(BUYER, conv, messages).get();
 
         assertEquals(2, transformedMessages.size());
         assertEquals("secondMessage", transformedMessages.get(1).getTextShort());
@@ -72,7 +71,7 @@ public class MessagesResponseFactoryTest {
         addMessage("firstMessage", BUYER_TO_SELLER);
         addMessage("secondMessage", BUYER_TO_SELLER, "desktop");
 
-        List<MessageResponse> transformedMessages = createMessagesList();
+        List<MessageResponse> transformedMessages = MessagesResponseFactory.create(BUYER, conv, messages).get();
 
         assertEquals(2, transformedMessages.size());
         assertEquals("secondMessage", transformedMessages.get(1).getTextShort());
@@ -84,7 +83,7 @@ public class MessagesResponseFactoryTest {
         addMessage("secondMessage", SELLER_TO_BUYER);
         customValues.put(BUYER_PHONE_FIELD, PHONE_NUMBER);
 
-        List<MessageResponse> transformedMessages = createMessagesList();
+        List<MessageResponse> transformedMessages = MessagesResponseFactory.create(BUYER, conv, messages).get();
 
         assertTrue(transformedMessages.get(0).getTextShort().contains(PHONE_NUMBER));
         assertFalse(transformedMessages.get(1).getTextShort().contains(PHONE_NUMBER));
@@ -96,7 +95,7 @@ public class MessagesResponseFactoryTest {
         addMessage("secondMessage", SELLER_TO_BUYER);
         customValues.put(BUYER_PHONE_FIELD, null);
 
-        List<MessageResponse> transformedMessages = createMessagesList();
+        List<MessageResponse> transformedMessages = MessagesResponseFactory.create(BUYER, conv, messages).get();
 
         assertFalse(transformedMessages.get(0).getTextShort().contains(PHONE_NUMBER));
         assertFalse(transformedMessages.get(1).getTextShort().contains(PHONE_NUMBER));
@@ -107,7 +106,7 @@ public class MessagesResponseFactoryTest {
         addMessage("firstMessage", BUYER_TO_SELLER);
         addMessage("secondMessage", SELLER_TO_BUYER);
 
-        List<MessageResponse> response = createMessagesList(BUYER);
+        List<MessageResponse> response = MessagesResponseFactory.create(BUYER, conv, messages).get();
 
         assertEquals(2, response.size());
     }
@@ -117,7 +116,7 @@ public class MessagesResponseFactoryTest {
         addMessage("firstMessage", MessageState.HELD, BUYER_TO_SELLER);
         addMessage("secondMessage", MessageState.HELD, SELLER_TO_BUYER, "desktop");
 
-        List<MessageResponse> response = createMessagesList(SELLER);
+        List<MessageResponse> response = MessagesResponseFactory.create(SELLER, conv, messages).get();
 
         assertEquals(1, response.size());
     }
@@ -128,7 +127,7 @@ public class MessagesResponseFactoryTest {
         addMessage("secondMessage", MessageState.SENT, SELLER_TO_BUYER, "desktop");
         addMessage("thirdMessage", MessageState.HELD, BUYER_TO_SELLER, "desktop");
 
-        List<MessageResponse> response = createMessagesList(SELLER);
+        List<MessageResponse> response = MessagesResponseFactory.create(SELLER, conv, messages).get();
 
         assertEquals(2, response.size());
     }
@@ -140,7 +139,7 @@ public class MessagesResponseFactoryTest {
         addMessage("thirdMessage", MessageState.HELD, BUYER_TO_SELLER, "desktop");
         addMessage("forthMessage", MessageState.DISCARDED, SELLER_TO_BUYER, "desktop");
 
-        List<MessageResponse> response = createMessagesList(BUYER);
+        List<MessageResponse> response = MessagesResponseFactory.create(BUYER, conv, messages).get();
 
         assertEquals(3, response.size());
     }
@@ -150,7 +149,7 @@ public class MessagesResponseFactoryTest {
         addMessage("firstMessage", SELLER_TO_BUYER);
         addMessage("secondMessage", MessageState.HELD, SELLER_TO_BUYER, "desktop");
 
-        List<MessageResponse> response = createMessagesList(SELLER);
+        List<MessageResponse> response = MessagesResponseFactory.create(SELLER, conv, messages).get();
 
         assertEquals(2, response.size());
     }
@@ -161,7 +160,7 @@ public class MessagesResponseFactoryTest {
         addMessage("secondMessage", MessageState.HELD, BUYER_TO_SELLER, "api_12");
         addMessage("thirdMessage", MessageState.DISCARDED, BUYER_TO_SELLER, "api_12");
 
-        List<MessageResponse> response = createMessagesList(BUYER);
+        List<MessageResponse> response = MessagesResponseFactory.create(BUYER, conv, messages).get();
 
         assertEquals(3, response.size());
     }
@@ -171,7 +170,7 @@ public class MessagesResponseFactoryTest {
         addMessage("firstMessage", BUYER_TO_SELLER);
         addMessage("secondMessage", MessageState.IGNORED, BUYER_TO_SELLER, "desktop");
 
-        List<MessageResponse> response = createMessagesList(BUYER);
+        List<MessageResponse> response = MessagesResponseFactory.create(BUYER, conv, messages).get();
 
         assertEquals(1, response.size());
     }
@@ -199,7 +198,7 @@ public class MessagesResponseFactoryTest {
         addMessage("firstMessage", MessageState.SENT, BUYER_TO_SELLER, "desktop");
         addMessage("secondMessage", MessageState.SENT, SELLER_TO_BUYER, "desktop");
 
-        List<MessageResponse> response = createMessagesList();
+        List<MessageResponse> response = MessagesResponseFactory.create(BUYER, conv, messages).get();
 
         assertEquals("buyer@buyer.de", response.get(response.size() - 2).getSenderEmail());
         assertEquals("seller@seller.de", response.get(response.size() - 1).getSenderEmail());
@@ -241,23 +240,6 @@ public class MessagesResponseFactoryTest {
             when(message.getHeaders()).thenReturn(map);
         }
 
-        addMessage(message);
-    }
-
-
-    private List<MessageResponse> createMessagesList() {
-        return create(BUYER, conv, messages).get();
-    }
-
-    private List<MessageResponse> createMessagesList(String email) {
-        return create(email, conv, messages).get();
-    }
-
-    private void addMessage(Message firstMessage) {
-        messages.add(firstMessage);
-    }
-
-    private static Optional<List<MessageResponse>> create(String email, Conversation conv, List<Message> messageRts) {
-        return MessagesResponseFactory.create(email, conv, messageRts, true);
+        messages.add(message);
     }
 }

@@ -111,22 +111,5 @@ public class ConversationThreadControllerAcceptanceTest {
                 .body("body.messages[3].textShort", equalTo("re-reply for buyer."))
                 .body("body.messages[3].boundness", equalTo("OUTBOUND"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/buyer4@buyer.com/conversations/" + conversationId);
-
-        // Exclude Robot Messages
-        RestAssured.given()
-                .expect()
-                .statusCode(200)
-                .body("body.id", equalTo(conversationId))
-                .body("body.adId", equalTo("232323"))
-                .body("body.messages.size()", equalTo(3))
-                .body("body.messages[0].textShort", equalTo("First contact from buyer."))
-                .body("body.messages[0].boundness", equalTo("OUTBOUND"))
-                .body("body.messages[1].textShort", equalTo("reply by seller"))
-                .body("body.messages[1].boundness", equalTo("INBOUND"))
-                //.body("body.messages[2].textShort", equalTo("A message from Gumtree Robot."))
-                //.body("body.messages[2].boundness", equalTo("INBOUND"))
-                .body("body.messages[2].textShort", equalTo("re-reply for buyer."))
-                .body("body.messages[2].boundness", equalTo("OUTBOUND"))
-                .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/buyer4@buyer.com/conversations/" + conversationId + "?robotEnabled=false");
     }
 }

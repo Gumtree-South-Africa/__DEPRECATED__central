@@ -82,20 +82,13 @@ public class PostBoxOverviewController {
             @PathVariable String email,
             @RequestParam(value = "newCounterMode", defaultValue = "false") boolean newCounterMode,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size,
-            @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
-            @RequestParam(value = "robotEnabled", defaultValue = "true", required = false) boolean robotEnabled
+            @RequestParam(value = "page", defaultValue = "0", required = false) Integer page
     ) {
         try (Timer.Context ignored = API_POSTBOX_BY_EMAIL.time()) {
-
-            ResponseObject<PostBoxResponse> postBoxResponse;
             PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
             API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
 
-            if (robotEnabled) {
-                postBoxResponse = responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
-            } else {
-                postBoxResponse = responseBuilder.buildPostBoxResponseRobotExcluded(email, size, page, postBox);
-            }
+            ResponseObject<PostBoxResponse> postBoxResponse = responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
 
             if (syncEnabled && diffEnabled) {
                 webApiSyncService.logDiffOnPostBoxGet(email, page, size, postBoxResponse.getBody());

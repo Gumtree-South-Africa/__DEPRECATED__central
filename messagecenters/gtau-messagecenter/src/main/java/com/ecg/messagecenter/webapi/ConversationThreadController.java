@@ -76,7 +76,6 @@ public class ConversationThreadController {
             @PathVariable("email") String email,
             @PathVariable("conversationId") String conversationId,
             @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
-            @RequestParam(value = "robotEnabled", defaultValue = "true", required = false) boolean robotEnabled,
             HttpServletResponse response
     ) {
 
@@ -90,10 +89,10 @@ public class ConversationThreadController {
             }
 
             if (newCounterMode) {
-                responseObject = lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response, robotEnabled);
+                responseObject = lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response);
             } else {
                 long numUnread = postBox.getUnreadConversationsCapped().size();
-                responseObject = lookupConversation(numUnread, email, conversationId, response, robotEnabled);
+                responseObject = lookupConversation(numUnread, email, conversationId, response);
             }
 
             if (syncEnabled && diffEnabled && responseObject.getBody() instanceof PostBoxSingleConversationThreadResponse) {
@@ -109,7 +108,6 @@ public class ConversationThreadController {
             @PathVariable("email") String email,
             @PathVariable("conversationId") String conversationId,
             @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
-            @RequestParam(value = "robotEnabled", defaultValue = "true", required = false) boolean robotEnabled,
             HttpServletResponse response
     ) {
         try (Timer.Context ignored = POSTBOX_CONVERSATION_MARK_READ.time()) {
@@ -134,10 +132,10 @@ public class ConversationThreadController {
                 if (needToMarkAsRead) {
                     markConversationAsRead(email, conversationId, postBox);
                 }
-                responseObject = lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response, robotEnabled);
+                responseObject = lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response);
             } else {
                 long numUnread = needToMarkAsRead ? markConversationAsRead(email, conversationId, postBox) : postBox.getUnreadConversationsCapped().size();
-                responseObject = lookupConversation(numUnread, email, conversationId, response, robotEnabled);
+                responseObject = lookupConversation(numUnread, email, conversationId, response);
             }
 
             if (syncEnabled && responseObject.getBody() instanceof PostBoxSingleConversationThreadResponse) {
@@ -148,14 +146,14 @@ public class ConversationThreadController {
         }
     }
 
-    private ResponseObject lookupConversation(long numUnread, String email, String conversationId, HttpServletResponse response, boolean robotEnabled) {
+    private ResponseObject lookupConversation(long numUnread, String email, String conversationId, HttpServletResponse response) {
         Conversation conversation = conversationRepository.getById(conversationId);
         // can only happen if both buckets diverge
         if (conversation == null) {
             return entityNotFound(response, conversationId);
         }
 
-        Optional<PostBoxSingleConversationThreadResponse> created = PostBoxSingleConversationThreadResponse.create(numUnread, email, conversation, robotEnabled);
+        Optional<PostBoxSingleConversationThreadResponse> created = PostBoxSingleConversationThreadResponse.create(numUnread, email, conversation);
         if (created.isPresent()) {
             API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
             return ResponseObject.of(created.get());

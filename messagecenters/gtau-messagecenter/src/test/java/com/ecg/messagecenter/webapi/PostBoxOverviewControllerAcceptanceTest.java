@@ -106,18 +106,6 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations[0].status", equalTo(processedMail.getConversation().getState().name()))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller11@seller.com");
 
-        RestAssured.given()
-                .expect()
-                .statusCode(200)
-                .body("body.numUnread", equalTo(1))
-                .body("body.conversations.size()", equalTo(1))
-                .body("body.conversations[0].unread", equalTo(true))
-                .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer.")).log().body()
-                .body("body.conversations[0].buyerAnonymousEmail", equalTo(processedMail.getOutboundMail().getFrom()))
-                .body("body.conversations[0].sellerAnonymousEmail", containsString(processedMail.getConversation().getSellerSecret()))
-                .body("body.conversations[0].status", equalTo(processedMail.getConversation().getState().name()))
-                .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller11@seller.com?robotEnabled=false");
-
         ProcessedMail robotMail = testRule.deliver(
                 aNewMail()
                         .from("seller11@buyer.com")
@@ -129,7 +117,6 @@ public class PostBoxOverviewControllerAcceptanceTest {
         testRule.waitForMail();
 
         // Seller View
-
         RestAssured.given()
                 .expect()
                 .statusCode(200)
@@ -142,21 +129,7 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations[0].status", equalTo(robotMail.getConversation().getState().name()))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller11@seller.com");
 
-        // Called by API
-        RestAssured.given()
-                .expect()
-                .statusCode(200)
-                .body("body.numUnread", equalTo(1))
-                .body("body.conversations.size()", equalTo(1))
-                .body("body.conversations[0].unread", equalTo(true))
-                .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer."))
-                .body("body.conversations[0].buyerAnonymousEmail", containsString(robotMail.getConversation().getBuyerSecret()))
-                .body("body.conversations[0].sellerAnonymousEmail", containsString(robotMail.getConversation().getSellerSecret()))
-                .body("body.conversations[0].status", equalTo(robotMail.getConversation().getState().name()))
-                .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/seller11@seller.com?robotEnabled=false");
-
         // Buyer View
-
         RestAssured.given()
                 .expect()
                 .statusCode(200)
@@ -168,18 +141,6 @@ public class PostBoxOverviewControllerAcceptanceTest {
                 .body("body.conversations[0].sellerAnonymousEmail", containsString(robotMail.getConversation().getSellerSecret()))
                 .body("body.conversations[0].status", equalTo(robotMail.getConversation().getState().name()))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/buyer11@buyer.com");
-
-        RestAssured.given()
-                .expect()
-                .statusCode(200)
-                .body("body.numUnread", equalTo(1))
-                .body("body.conversations.size()", equalTo(1))
-                .body("body.conversations[0].unread", equalTo(true))
-                .body("body.conversations[0].textShortTrimmed", equalTo("First contact from buyer."))
-                .body("body.conversations[0].buyerAnonymousEmail", containsString(robotMail.getConversation().getBuyerSecret()))
-                .body("body.conversations[0].sellerAnonymousEmail", containsString(robotMail.getConversation().getSellerSecret()))
-                .body("body.conversations[0].status", equalTo(robotMail.getConversation().getState().name()))
-                .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/buyer11@buyer.com?robotEnabled=false");
     }
 
     @Test

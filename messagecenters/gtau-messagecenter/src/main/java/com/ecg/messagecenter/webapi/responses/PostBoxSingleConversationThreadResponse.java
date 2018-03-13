@@ -25,10 +25,6 @@ public class PostBoxSingleConversationThreadResponse {
     }
 
     public static Optional<PostBoxSingleConversationThreadResponse> create(long numUnread, String email, Conversation conversationRts) {
-        return create(numUnread, email, conversationRts, true);
-    }
-
-    public static Optional<PostBoxSingleConversationThreadResponse> create(long numUnread, String email, Conversation conversationRts, boolean robotEnabled) {
         PostBoxSingleConversationThreadResponse response = new PostBoxSingleConversationThreadResponse();
         response.id = conversationRts.getId();
         response.role = ConversationBoundnessFinder.lookupUsersRole(email, conversationRts);
@@ -39,7 +35,7 @@ public class PostBoxSingleConversationThreadResponse {
         response.buyerEmail = conversationRts.getBuyerId();
         response.sellerEmail = conversationRts.getSellerId();
 
-        Optional<List<MessageResponse>> builtResponse = MessagesResponseFactory.create(email, conversationRts, conversationRts.getMessages(), robotEnabled);
+        Optional<List<MessageResponse>> builtResponse = MessagesResponseFactory.create(email, conversationRts, conversationRts.getMessages());
         if (builtResponse.isPresent()) {
             response.messages = builtResponse.get();
             return Optional.of(response);

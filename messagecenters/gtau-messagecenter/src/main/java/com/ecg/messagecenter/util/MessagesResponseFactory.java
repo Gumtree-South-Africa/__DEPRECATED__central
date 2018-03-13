@@ -33,7 +33,7 @@ public final class MessagesResponseFactory {
 
     public static Optional<MessageResponse> latestMessage(String email, Conversation conv) {
         ConversationRole role = ConversationBoundnessFinder.lookupUsersRole(email, conv);
-        List<Message> filtered = filterMessages(conv.getMessages(), conv, email, role, true);
+        List<Message> filtered = filterMessages(conv.getMessages(), conv, email, role);
 
         if (filtered.isEmpty()) {
             return Optional.empty();
@@ -58,9 +58,9 @@ public final class MessagesResponseFactory {
         return transformedMessages.isEmpty() ? Optional.empty() : Optional.of(Iterables.getLast(transformedMessages));
     }
 
-    public static Optional<List<MessageResponse>> create(String email, Conversation conv, List<Message> messageRts, boolean robotEnabled) {
+    public static Optional<List<MessageResponse>> create(String email, Conversation conv, List<Message> messageRts) {
         ConversationRole role = ConversationBoundnessFinder.lookupUsersRole(email, conv);
-        List<Message> filtered = filterMessages(messageRts, conv, email, role, robotEnabled);
+        List<Message> filtered = filterMessages(messageRts, conv, email, role);
 
         if (filtered.isEmpty()) {
             return Optional.empty();
@@ -74,26 +74,20 @@ public final class MessagesResponseFactory {
         return transformedMessages.isEmpty() ? Optional.empty() : Optional.of(transformedMessages);
     }
 
-    private static List<Message> filterMessages(List<Message> messageRts, Conversation conv, String email, ConversationRole role, boolean robotEnabled) {
+    private static List<Message> filterMessages(List<Message> messageRts, Conversation conv, String email, ConversationRole role) {
         return messageRts.stream()
-                .filter(message -> message.getState() != MessageState.IGNORED && shouldBeIncluded(message, conv, email, role, robotEnabled))
+                .filter(message -> message.getState() != MessageState.IGNORED && shouldBeIncluded(message, conv, email, role))
                 .collect(Collectors.toList());
     }
 
-    private static boolean shouldBeIncluded(Message messageRts, Conversation conversationRts, String email, ConversationRole role, boolean robotEnabled) {
-        return (messageRts.getState() == MessageState.SENT || isOwnMessage(email, conversationRts, messageRts)) && includeRobotMessage(messageRts, role, robotEnabled);
+    private static boolean shouldBeIncluded(Message messageRts, Conversation conversationRts, String email, ConversationRole role) {
+        return (messageRts.getState() == MessageState.SENT || isOwnMessage(email, conversationRts, messageRts)) && includeRobotMessage(messageRts, role);
     }
 
-    private static boolean includeRobotMessage(Message messageRts, ConversationRole role, boolean robotEnabled) {
-        if (robotEnabled) {
-            if (MessageType.isRobot(messageRts) && messageRts.getMessageDirection().equals(MessageDirection.SELLER_TO_BUYER) && role.equals(ConversationRole.Seller)) {
-                return false;
-            }
-            if (MessageType.isRobot(messageRts) && messageRts.getMessageDirection().equals(MessageDirection.BUYER_TO_SELLER) && role.equals(ConversationRole.Buyer)) {
-                return false;
-            }
-        } else {
-            if (MessageType.isRobot(messageRts)) {
+    private static boolean includeRobotMessage(Message messageRts, ConversationRole role) {
+        if (MessageType.isRobot(messageRts)) {
+            if ((messageRts.getMessageDirection().equals(MessageDirection.SELLER_TO_BUYER) && role.equals(ConversationRole.Seller))
+                    || (messageRts.getMessageDirection().equals(MessageDirection.BUYER_TO_SELLER) && role.equals(ConversationRole.Buyer))) {
                 return false;
             }
         }
