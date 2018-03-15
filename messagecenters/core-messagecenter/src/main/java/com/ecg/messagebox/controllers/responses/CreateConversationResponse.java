@@ -1,7 +1,13 @@
 package com.ecg.messagebox.controllers.responses;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class CreateConversationResponse {
+
+    @ApiModelProperty(required = true)
     private final boolean isExisting;
+
+    @ApiModelProperty(required = true)
     private final String conversationId;
 
     public CreateConversationResponse(boolean isExisting, String conversationId) {

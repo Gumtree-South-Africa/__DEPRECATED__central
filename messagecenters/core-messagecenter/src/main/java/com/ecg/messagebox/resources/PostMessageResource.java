@@ -19,10 +19,7 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -69,9 +66,9 @@ public class PostMessageResource {
     })
     @PostMapping("/users/{userId}/ads/{adId}/conversations")
     public CreateConversationResponse createConversation(
-            @PathVariable("userId") String userId,
-            @PathVariable("adId") String adId,
-            @RequestBody CreateConversationRequest createConversationRequest) {
+            @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
+            @ApiParam(value = "AD ID", required = true) @PathVariable("adId") String adId,
+            @ApiParam(value = "Conversation payload", required = true) @RequestBody CreateConversationRequest createConversationRequest) {
         Set<String> participantIds = createConversationRequest.participantIds;
         if (createConversationRequest.participantIds.size() != 2) {
             throw new ClientException(HttpStatus.BAD_REQUEST, "Conversation should have two participants");
@@ -119,9 +116,9 @@ public class PostMessageResource {
     })
     @PostMapping("/users/{userId}/conversations/{conversationId}")
     public PostMessageResponse postMessage(
-            @PathVariable("userId") String userId,
-            @PathVariable("conversationId") String conversationId,
-            @RequestBody PostMessageRequest postMessageRequest) {
+            @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
+            @ApiParam(value = "Conversation ID", required = true) @PathVariable("conversationId") String conversationId,
+            @ApiParam(value = "Message payload", required = true) @RequestBody PostMessageRequest postMessageRequest) {
 
         MutableConversation conversation = conversationRepository.getById(conversationId);
 
