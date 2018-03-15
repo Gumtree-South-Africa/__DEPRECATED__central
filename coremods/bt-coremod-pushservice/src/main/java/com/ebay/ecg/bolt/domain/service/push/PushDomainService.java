@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.ebay.ecg.bolt.api.server.push.model.PushProvider.gcm;
+import static com.ebay.ecg.bolt.api.server.push.model.PushProvider.pwa;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
@@ -76,7 +78,8 @@ public class PushDomainService {
 
             PushRequester pushRequester = pushMessageServiceConfig.findPushRequester(pushProvider);
 
-            HttpClient httpClient = pushProvider.name().equalsIgnoreCase("gcm") ?
+            // GCM and PWA use googleapis as an external provider which is only reachable via a proxy
+            HttpClient httpClient = pushProvider == gcm || pushProvider == pwa ?
                     buildSystemAwareHttpClientWithProxy(proxyHost, proxyPort) :
                     buildSystemAwareHttpClient();
 
@@ -94,12 +97,16 @@ public class PushDomainService {
     private Result handleResponse(HttpResponse response, PushProvider pushProvider, PushMessagePayload payload, String deviceToken, PWAInfo pwaInfo) throws IOException {
         int code = response.getStatusLine().getStatusCode();
 
-        if (pushProvider.equals(PushProvider.gcm)) {
-            LOG.info("GCMPushService response: {}", code);
-        } else if (pushProvider.equals(PushProvider.mdns)) {
-            LOG.info("MDNSPushService response: {}", code);
-        } else if (pushProvider.equals(PushProvider.pwa)) {
-            LOG.info("PWA response for the end point {} is {}", pwaInfo.getEndPoint(), code);
+        switch (pushProvider) {
+            case gcm:
+                LOG.debug("GCMPushService response: {}", code);
+                break;
+            case mdns:
+                LOG.debug("MDNSPushService response: {}", code);
+                break;
+            case pwa:
+                LOG.debug("PWA response for the end point {} is {}", pwaInfo.getEndPoint(), code);
+                break;
         }
 
         HttpEntity entity = response.getEntity();
@@ -169,7 +176,7 @@ public class PushDomainService {
 
                     LOG.debug("Calling PWA push message for {}", pwaDetail.getEndPoint());
 
-                    results.add(sendPushMessage(PushProvider.pwa, payload, null, pwaInfo));
+                    results.add(sendPushMessage(pwa, payload, null, pwaInfo));
                 }
             }
 
