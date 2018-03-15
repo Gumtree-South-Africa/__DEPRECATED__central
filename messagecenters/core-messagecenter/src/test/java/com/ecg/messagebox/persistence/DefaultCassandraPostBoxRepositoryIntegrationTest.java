@@ -52,7 +52,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        conversationsRepo = new DefaultCassandraPostBoxRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE);
+        conversationsRepo = new DefaultCassandraPostBoxRepository(new CassandraTemplate(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE));
     }
 
     @After

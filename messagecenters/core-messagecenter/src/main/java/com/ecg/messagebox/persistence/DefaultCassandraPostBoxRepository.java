@@ -1,20 +1,20 @@
 package com.ecg.messagebox.persistence;
 
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Statement;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.model.*;
-import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.persistence.model.ConversationIndex;
 import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
 import com.ecg.messagebox.persistence.model.UnreadCounts;
 import com.ecg.messagebox.util.StreamUtils;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
-import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -31,28 +31,17 @@ import static java.util.stream.Collectors.toList;
 public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultCassandraPostBoxRepository.class);
 
-    private final Session session;
-    private final ConsistencyLevel readConsistency;
-    private final ConsistencyLevel writeConsistency;
-
-    private Map<Statements, PreparedStatement> preparedStatements;
+    private final CassandraTemplate cassandraTemplate;
 
     @Autowired
-    public DefaultCassandraPostBoxRepository(
-            @Qualifier("cassandraSessionForMb") Session session,
-            @Qualifier("cassandraReadConsistency") ConsistencyLevel readConsistency,
-            @Qualifier("cassandraWriteConsistency") ConsistencyLevel writeConsistency) {
-
-        this.session = session;
-        this.readConsistency = readConsistency;
-        this.writeConsistency = writeConsistency;
-        this.preparedStatements = Statements.prepare(session);
+    public DefaultCassandraPostBoxRepository(CassandraTemplate cassandraTemplate) {
+        this.cassandraTemplate = cassandraTemplate;
     }
 
     @Override
     public PostBox getPostBox(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit) {
         PaginatedConversationIds paginatedConversationIds = getPaginatedConversationIds(userId, visibility, conversationsOffset, conversationsLimit);
-        ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATIONS.bind(this, userId, paginatedConversationIds.getConversationIds()));
+        ResultSet resultSet = cassandraTemplate.execute(Statements.SELECT_CONVERSATIONS, userId, paginatedConversationIds.getConversationIds());
 
         Map<String, UnreadCounts> conversationUnreadCountsMap = getConversationUnreadCountMap(userId);
         List<ConversationThread> conversations = StreamUtils.toStream(resultSet)
@@ -78,7 +67,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     public PaginatedConversationIds getPaginatedConversationIds(String userId, Visibility visibility, int offset, int limit) {
-        ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATION_INDICES.bind(this, userId));
+        ResultSet resultSet = cassandraTemplate.execute(Statements.SELECT_CONVERSATION_INDICES, userId);
 
         List<String> allConversationIds = StreamUtils.toStream(resultSet)
                 .map(row -> new ConversationIndex(row.getString("convid"), row.getString("adid"), get(row.getInt("vis")), row.getUUID("latestmsgid")))
@@ -96,7 +85,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     private Map<String, UnreadCounts> getConversationUnreadCountMap(String userId) {
-        ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATIONS_UNREAD_COUNTS.bind(this, userId));
+        ResultSet resultSet = cassandraTemplate.execute(Statements.SELECT_CONVERSATIONS_UNREAD_COUNTS, userId);
         return StreamUtils.toStream(resultSet)
                 .collect(Collectors.toMap(
                         row -> row.getString("convid"),
@@ -106,14 +95,14 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Override
     public Optional<MessageNotification> getConversationMessageNotification(String userId, String conversationId) {
-        Row row = session.execute(Statements.SELECT_CONVERSATION_MESSAGE_NOTIFICATION.bind(this, userId, conversationId)).one();
+        Row row = cassandraTemplate.execute(Statements.SELECT_CONVERSATION_MESSAGE_NOTIFICATION, userId, conversationId).one();
         return row != null ? of(MessageNotification.get(row.getInt("ntfynew"))) : empty();
     }
 
     @Override
     public Optional<ConversationThread> getConversationWithMessages(String userId, String conversationId, String messageIdCursor, int messagesLimit) {
         LOG.trace("Retrieving conversationThread for conversationId {}, userId {}", conversationId, userId);
-        Row row = session.execute(Statements.SELECT_CONVERSATION.bind(this, userId, conversationId)).one();
+        Row row = cassandraTemplate.execute(Statements.SELECT_CONVERSATION, userId, conversationId).one();
         if (row != null) {
             ConversationThread conversation = createConversation(userId, row);
 
@@ -137,8 +126,8 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
             return Collections.emptyList();
         }
         ResultSet resultSet = Optional.ofNullable(messageIdCursor)
-                .map(cursor -> session.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITH_CURSOR.bind(this, userId, conversationId, UUID.fromString(cursor), limit)))
-                .orElse(session.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR.bind(this, userId, conversationId, limit)));
+                .map(cursor -> cassandraTemplate.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITH_CURSOR, userId, conversationId, UUID.fromString(cursor), limit))
+                .orElse(cassandraTemplate.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR, userId, conversationId, limit));
 
         return StreamUtils.toStream(resultSet)
                 .map(row -> {
@@ -167,7 +156,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Override
     public UserUnreadCounts getUserUnreadCounts(String userId) {
-        ResultSet result = session.execute(Statements.SELECT_USER_UNREAD_COUNTS.bind(this, userId));
+        ResultSet result = cassandraTemplate.execute(Statements.SELECT_USER_UNREAD_COUNTS, userId);
         List<Integer> conversationUnreadCounts = StreamUtils.toStream(result)
                 .map(row -> row.getInt("unread"))
                 .collect(toList());
@@ -197,26 +186,23 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Override
     public int getConversationUnreadCount(String userId, String conversationId) {
-        Row unreadCountResult = session.execute(Statements.SELECT_CONVERSATION_UNREAD_COUNT.bind(this, userId, conversationId)).one();
+        Row unreadCountResult = cassandraTemplate.execute(Statements.SELECT_CONVERSATION_UNREAD_COUNT, userId, conversationId).one();
         return unreadCountResult == null ? 0 : unreadCountResult.getInt("unread");
     }
 
     @Override
     public int getConversationOtherParticipantUnreadCount(String userId, String conversationId) {
-        Row unreadCountResult = session.execute(Statements.SELECT_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, userId, conversationId)).one();
+        Row unreadCountResult = cassandraTemplate.execute(Statements.SELECT_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT, userId, conversationId).one();
         return unreadCountResult == null ? 0 : unreadCountResult.getInt("unreadother");
     }
 
     @Override
     public void resetConversationUnreadCount(String userId, String otherParticipantUserId, String conversationId, String adId) {
         BatchStatement batch = new BatchStatement();
-
-        batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, conversationId));
-        batch.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, 0, otherParticipantUserId, conversationId));
-        batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, adId, conversationId));
-
-        batch.setConsistencyLevel(getWriteConsistency());
-        session.execute(batch);
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_UNREAD_COUNT, 0, userId, conversationId));
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT, 0, otherParticipantUserId, conversationId));
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT, 0, userId, adId, conversationId));
+        cassandraTemplate.execute(batch);
     }
 
     @Override
@@ -225,18 +211,17 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         for (ConversationThread conversation : postBox.getConversations()) {
             if (conversation.getNumUnreadMessages(postBox.getUserId()) > 0) {
-                batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, postBox.getUserId(), conversation.getId()));
-                batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, postBox.getUserId(), conversation.getAdId(), conversation.getId()));
+                batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_UNREAD_COUNT, 0, postBox.getUserId(), conversation.getId()));
+                batch.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT, 0, postBox.getUserId(), conversation.getAdId(), conversation.getId()));
 
                 List<Participant> participants = conversation.getParticipants();
                 String otherParticipantUserId = participants.get(0).getUserId().equals(postBox.getUserId()) ? participants.get(1).getUserId() : participants.get(0).getUserId();
-                batch.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, 0, otherParticipantUserId, conversation.getId()));
+                batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT, 0, otherParticipantUserId, conversation.getId()));
             }
         }
 
         if (!batch.getStatements().isEmpty()) {
-            batch.setConsistencyLevel(getWriteConsistency());
-            session.execute(batch);
+            cassandraTemplate.execute(batch);
         }
     }
 
@@ -251,11 +236,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         BatchStatement batch = new BatchStatement();
 
-        batch.add(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE.bind(this, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
         newMessageCqlStatements(userId, conversationId, adId, message, incrementUnreadCount).forEach(batch::add);
-
-        batch.setConsistencyLevel(getWriteConsistency());
-        session.execute(batch);
+        cassandraTemplate.execute(batch);
     }
 
     @Override
@@ -264,11 +247,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         BatchStatement batch = new BatchStatement();
 
-        batch.add(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE.bind(this, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
         newSystemMessageCqlStatements(userId, conversationId, adId, message).forEach(batch::add);
-
-        batch.setConsistencyLevel(getWriteConsistency());
-        session.execute(batch);
+        cassandraTemplate.execute(batch);
     }
 
     private List<Statement> newMessageCqlStatements(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount) {
@@ -277,37 +258,37 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     private List<Statement> newMessageCqlStatements(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount, boolean insertMessage) {
         List<Statement> statements = new ArrayList<>();
-        statements.add(Statements.UPDATE_AD_CONVERSATION_INDEX.bind(this, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
+        statements.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_INDEX, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
 
         if (insertMessage) {
             String messageMetadata = JsonConverter.toMessageMetadataJson(userId, conversationId, message);
-            statements.add(Statements.INSERT_MESSAGE.bind(this, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
+            statements.add(cassandraTemplate.bind(Statements.INSERT_MESSAGE, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
         }
 
         if (incrementUnreadCount) {
             int newUnreadCount = getConversationUnreadCount(userId, conversationId) + 1;
             int newOtherParticipantUnreadCount = getConversationOtherParticipantUnreadCount(message.getSenderUserId(), conversationId) + 1;
-            statements.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, newUnreadCount, userId, conversationId));
-            statements.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, newOtherParticipantUnreadCount, message.getSenderUserId(), conversationId));
-            statements.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, newUnreadCount, userId, adId, conversationId));
+            statements.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_UNREAD_COUNT, newUnreadCount, userId, conversationId));
+            statements.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT, newOtherParticipantUnreadCount, message.getSenderUserId(), conversationId));
+            statements.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT, newUnreadCount, userId, adId, conversationId));
         }
 
-        statements.add(Statements.INSERT_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, conversationId, message.getId(), adId));
+        statements.add(cassandraTemplate.bind(Statements.INSERT_AD_CONVERSATION_MODIFICATION_IDX, userId, conversationId, message.getId(), adId));
 
         return statements;
     }
 
     private List<Statement> newSystemMessageCqlStatements(String userId, String conversationId, String adId, Message message) {
         List<Statement> statements = new ArrayList<>();
-        statements.add(Statements.UPDATE_AD_CONVERSATION_INDEX.bind(this, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
+        statements.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_INDEX, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
         String messageMetadata = JsonConverter.toMessageMetadataJson(userId, conversationId, message);
-        statements.add(Statements.INSERT_MESSAGE.bind(this, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
+        statements.add(cassandraTemplate.bind(Statements.INSERT_MESSAGE, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
 
         int newUnreadCount = getConversationUnreadCount(userId, conversationId) + 1;
-        statements.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, newUnreadCount, userId, conversationId));
-        statements.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, newUnreadCount, userId, adId, conversationId));
+        statements.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_UNREAD_COUNT, newUnreadCount, userId, conversationId));
+        statements.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT, newUnreadCount, userId, adId, conversationId));
 
-        statements.add(Statements.INSERT_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, conversationId, message.getId(), adId));
+        statements.add(cassandraTemplate.bind(Statements.INSERT_AD_CONVERSATION_MODIFICATION_IDX, userId, conversationId, message.getId(), adId));
 
         return statements;
     }
@@ -325,38 +306,36 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private void internalConversationsVisibility(String userId, Map<String, String> conversationAdIdsMap, Visibility visibility) {
         BatchStatement batch = new BatchStatement();
         conversationAdIdsMap.forEach((conversationId, adId) -> {
-            batch.add(Statements.CHANGE_CONVERSATION_VISIBILITY.bind(this, visibility.getCode(), userId, conversationId));
-            batch.add(Statements.CHANGE_CONVERSATION_IDX_VISIBILITY.bind(this, visibility.getCode(), userId, adId, conversationId));
-            batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, conversationId));
-            batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, adId, conversationId));
+            batch.add(cassandraTemplate.bind(Statements.CHANGE_CONVERSATION_VISIBILITY, visibility.getCode(), userId, conversationId));
+            batch.add(cassandraTemplate.bind(Statements.CHANGE_CONVERSATION_IDX_VISIBILITY, visibility.getCode(), userId, adId, conversationId));
+            batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_UNREAD_COUNT, 0, userId, conversationId));
+            batch.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT, 0, userId, adId, conversationId));
         });
-        batch.setConsistencyLevel(getWriteConsistency());
-        session.execute(batch);
+        cassandraTemplate.execute(batch);
     }
 
     @Override
     public void deleteConversation(String userId, String conversationId, String adId) {
         BatchStatement batch = new BatchStatement();
-        batch.add(Statements.DELETE_CONVERSATION.bind(this, userId, conversationId));
-        batch.add(Statements.DELETE_AD_CONVERSATION_INDEX.bind(this, userId, adId, conversationId));
-        batch.add(Statements.DELETE_CONVERSATION_UNREAD_COUNT.bind(this, userId, conversationId));
-        batch.add(Statements.DELETE_AD_CONVERSATION_UNREAD_COUNT.bind(this, userId, adId, conversationId));
-        batch.add(Statements.DELETE_CONVERSATION_MESSAGES.bind(this, userId, conversationId));
-        batch.add(Statements.DELETE_AD_CONVERSATION_MODIFICATION_IDXS.bind(this, userId, conversationId));
-        batch.setConsistencyLevel(getWriteConsistency());
-        session.execute(batch);
+        batch.add(cassandraTemplate.bind(Statements.DELETE_CONVERSATION, userId, conversationId));
+        batch.add(cassandraTemplate.bind(Statements.DELETE_AD_CONVERSATION_INDEX, userId, adId, conversationId));
+        batch.add(cassandraTemplate.bind(Statements.DELETE_CONVERSATION_UNREAD_COUNT, userId, conversationId));
+        batch.add(cassandraTemplate.bind(Statements.DELETE_AD_CONVERSATION_UNREAD_COUNT, userId, adId, conversationId));
+        batch.add(cassandraTemplate.bind(Statements.DELETE_CONVERSATION_MESSAGES, userId, conversationId));
+        batch.add(cassandraTemplate.bind(Statements.DELETE_AD_CONVERSATION_MODIFICATION_IDXS, userId, conversationId));
+        cassandraTemplate.execute(batch);
     }
 
     @Override
     public Map<String, String> getConversationAdIdsMap(String userId, List<String> conversationIds) {
-        ResultSet resultSet = session.execute(Statements.SELECT_AD_IDS.bind(this, userId, conversationIds));
+        ResultSet resultSet = cassandraTemplate.execute(cassandraTemplate.bind(Statements.SELECT_AD_IDS, userId, conversationIds));
         return StreamUtils.toStream(resultSet)
                 .collect(Collectors.toMap(row -> row.getString("convid"), row -> row.getString("adid")));
     }
 
     @Override
     public ConversationModification getLastConversationModification(String userId, String convId) {
-        Row row = session.execute(Statements.SELECT_LATEST_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, convId)).one();
+        Row row = cassandraTemplate.execute(cassandraTemplate.bind(Statements.SELECT_LATEST_AD_CONVERSATION_MODIFICATION_IDX, userId, convId)).one();
         if (row == null) {
             return null;
         }
@@ -369,7 +348,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     public List<String> resolveConversationIdsByUserIdAndAdId(String userId, String adId, int limit) {
-        ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATION_IDS_BY_USER_ID_AND_AD_ID.bind(this, userId, adId, limit));
+        ResultSet resultSet = cassandraTemplate.execute(cassandraTemplate.bind(Statements.SELECT_CONVERSATION_IDS_BY_USER_ID_AND_AD_ID, userId, adId, limit));
         return StreamUtils
                 .toStream(resultSet)
                 .map(row -> row.getString("convid"))
@@ -400,105 +379,9 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
         BatchStatement batch = new BatchStatement();
 
-        batch.add(Statements.UPDATE_CONVERSATION.bind(this, adId, Visibility.ACTIVE.getCode(), MessageNotification.RECEIVE.getCode(),
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION, adId, Visibility.ACTIVE.getCode(), MessageNotification.RECEIVE.getCode(),
                 participantsJson, messageJson, metadataJson, senderId, conversationId));
         newMessageCqlStatements(senderId, conversationId, adId, message, incrementUnreadCount, insertMessage).forEach(batch::add);
-
-        batch.setConsistencyLevel(getWriteConsistency());
-        session.execute(batch);
-    }
-
-    public ConsistencyLevel getReadConsistency() {
-        return readConsistency;
-    }
-
-    public ConsistencyLevel getWriteConsistency() {
-        return writeConsistency;
-    }
-
-    enum Statements {
-        // select the user's unread counts
-        SELECT_USER_UNREAD_COUNTS("SELECT unread FROM mb_conversation_unread_counts WHERE usrid = ?"),
-
-        // select the ad's unread counts
-        SELECT_AD_UNREAD_COUNT("SELECT unread FROM mb_ad_conversation_unread_counts WHERE usrid = ? and adid = ?"),
-
-        // select the user's conversations
-        SELECT_CONVERSATION_INDICES("SELECT convid, adid, vis, latestmsgid FROM mb_ad_conversation_idx WHERE usrid = ?"),
-        SELECT_AD_CONVERSATION_INDICES("SELECT convid, vis, latestmsgid FROM mb_ad_conversation_idx WHERE usrId = ? AND adid = ?"),
-        SELECT_CONVERSATIONS("SELECT convid, vis, ntfynew, participants, adid, latestmsg, metadata FROM mb_conversations WHERE usrid = ? AND convid IN ?"),
-        SELECT_CONVERSATIONS_UNREAD_COUNTS("SELECT convid, unread, unreadother FROM mb_conversation_unread_counts WHERE usrid = ?"),
-
-        SELECT_AD_IDS("SELECT convid, adid FROM mb_conversations WHERE usrid = ? AND convid IN ?"),
-
-        // select single conversation + messages
-        SELECT_CONVERSATION("SELECT convid, adid, vis, ntfynew, participants, latestmsg, metadata FROM mb_conversations WHERE usrid = ? AND convid = ?"),
-        SELECT_CONVERSATION_MESSAGE_NOTIFICATION("SELECT ntfynew FROM mb_conversations WHERE usrid = ? AND convid = ?"),
-        SELECT_CONVERSATION_UNREAD_COUNT("SELECT unread FROM mb_conversation_unread_counts WHERE usrid = ? AND convid = ?"),
-        SELECT_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT("SELECT unreadother FROM mb_conversation_unread_counts WHERE usrid = ? AND convid = ?"),
-        SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR("SELECT msgid, type, metadata FROM mb_messages WHERE usrid = ? AND convid = ? LIMIT ?"),
-        SELECT_CONVERSATION_MESSAGES_WITH_CURSOR("SELECT msgid, type, metadata FROM mb_messages WHERE usrid = ? AND convid = ? AND msgid < ? LIMIT ?"),
-        SELECT_CONVERSATION_IDS_BY_USER_ID_AND_AD_ID("SELECT convid from mb_ad_conversation_idx WHERE usrid = ? AND adid = ? LIMIT ?"),
-        SELECT_CONVERSATION_AD_ID("SELECT adid FROM mb_conversations WHERE usrid = ? AND convid = ?"),
-
-        // update a single conversation when a new message comes in
-        UPDATE_CONVERSATION_UNREAD_COUNT("UPDATE mb_conversation_unread_counts SET unread = ? WHERE usrid = ? AND convid = ?", true),
-        UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT("UPDATE mb_conversation_unread_counts SET unreadother = ? WHERE usrid = ? AND convid = ?", true),
-        UPDATE_AD_CONVERSATION_UNREAD_COUNT("UPDATE mb_ad_conversation_unread_counts SET unread = ? WHERE usrid = ? AND adid = ? AND convid = ?", true),
-
-        UPDATE_AD_CONVERSATION_INDEX("UPDATE mb_ad_conversation_idx SET vis = ?, latestmsgid = ? WHERE usrid = ? AND adid = ? AND convid = ?", true),
-        UPDATE_CONVERSATION_LATEST_MESSAGE("UPDATE mb_conversations SET vis = ?, latestmsg = ? WHERE usrid = ? AND convid = ?", true),
-        UPDATE_CONVERSATION("UPDATE mb_conversations SET adid = ?, vis = ?, ntfynew = ?, participants = ?, latestmsg = ?, metadata = ? WHERE usrid = ? AND convid = ?", true),
-        INSERT_MESSAGE("INSERT INTO mb_messages (usrid, convid, msgid, type, metadata) VALUES (?, ?, ?, ?, ?)", true),
-
-        CHANGE_CONVERSATION_VISIBILITY("UPDATE mb_conversations SET vis = ? WHERE usrid = ? AND convid = ?", true),
-        CHANGE_CONVERSATION_IDX_VISIBILITY("UPDATE mb_ad_conversation_idx SET vis = ? WHERE usrid = ? AND adid = ? AND convid = ?", true),
-
-        // cleanup of old messages and conversations
-        INSERT_AD_CONVERSATION_MODIFICATION_IDX("INSERT INTO mb_ad_conversation_modification_idx (usrid, convid, msgid, adid) VALUES (?, ?, ?, ?)", true),
-
-        SELECT_AD_CONVERSATION_MODIFICATION_IDXS("SELECT adid, msgid FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ?"),
-        SELECT_LATEST_AD_CONVERSATION_MODIFICATION_IDX("SELECT adid, msgid FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ? LIMIT 1"),
-
-        DELETE_CONVERSATION_UNREAD_COUNT("DELETE FROM mb_conversation_unread_counts WHERE usrid = ? AND convid = ?", true),
-        DELETE_AD_CONVERSATION_UNREAD_COUNT("DELETE FROM mb_ad_conversation_unread_counts WHERE usrid = ? AND adid = ? AND convid = ?", true),
-        DELETE_AD_CONVERSATION_INDEX("DELETE FROM mb_ad_conversation_idx WHERE usrid = ? AND adid = ? AND convid = ?", true),
-        DELETE_CONVERSATION("DELETE FROM mb_conversations WHERE usrid = ? AND convid = ?", true),
-        DELETE_CONVERSATION_MESSAGES("DELETE FROM mb_messages WHERE usrid = ? AND convid = ?", true),
-
-        DELETE_AD_CONVERSATION_MODIFICATION_IDX("DELETE FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ? AND msgid = ?", true),
-        DELETE_AD_CONVERSATION_MODIFICATION_IDXS("DELETE FROM mb_ad_conversation_modification_idx WHERE usrid = ? AND convid = ?", true);
-
-        private final String cql;
-        private final boolean modifying;
-
-        Statements(String cql) {
-            this(cql, false);
-        }
-
-        Statements(String cql, boolean modifying) {
-            this.cql = cql;
-            this.modifying = modifying;
-        }
-
-        public static Map<Statements, PreparedStatement> prepare(Session session) {
-            Map<Statements, PreparedStatement> statements = new EnumMap<>(Statements.class);
-            for (Statements statement : values()) {
-                statements.put(statement, session.prepare(statement.cql));
-            }
-            return ImmutableMap.copyOf(statements);
-        }
-
-        public Statement bind(DefaultCassandraPostBoxRepository repository, Object... values) {
-            return repository.preparedStatements
-                    .get(this)
-                    .bind(values)
-                    .setConsistencyLevel(getConsistencyLevel(repository))
-                    .setIdempotent(!modifying);
-        }
-
-        private ConsistencyLevel getConsistencyLevel(DefaultCassandraPostBoxRepository repository) {
-            return modifying ? repository.getWriteConsistency() : repository.getReadConsistency();
-        }
+        cassandraTemplate.execute(batch);
     }
 }

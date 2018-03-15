@@ -35,7 +35,7 @@ public class DefaultResponseDataRepositoryIntegrationTest {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        responseDataRepository = new DefaultResponseDataRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, 30, 100);
+        responseDataRepository = new DefaultResponseDataRepository(new CassandraTemplate(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE), 30, 100);
     }
 
     @After
