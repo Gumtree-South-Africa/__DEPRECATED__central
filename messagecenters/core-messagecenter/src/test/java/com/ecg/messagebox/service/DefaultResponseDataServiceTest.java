@@ -3,7 +3,6 @@ package com.ecg.messagebox.service;
 import com.ecg.messagebox.model.MessageType;
 import com.ecg.messagebox.persistence.ResponseDataRepository;
 import com.ecg.messagebox.model.ResponseData;
-import com.ecg.messagebox.model.AggregatedResponseData;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import org.joda.time.DateTime;
@@ -15,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.Builder.aConversation;
@@ -36,11 +34,11 @@ public class DefaultResponseDataServiceTest {
     @Mock private ResponseDataRepository responseDataRepository;
     @Mock private UserIdentifierService userIdentifierService;
 
-    private ResponseDataService service;
+    private ResponseDataCalculator service;
 
     @Before
     public void setup() {
-        service = new DefaultResponseDataService(responseDataRepository, userIdentifierService);
+        service = new ResponseDataCalculator(responseDataRepository, userIdentifierService);
     }
 
     @Test
@@ -54,7 +52,7 @@ public class DefaultResponseDataServiceTest {
                 .withState(ConversationState.ACTIVE).withMessages(singletonList(rtsMsg)).withSeller(USER_ID_1, USER_ID_1).build();
         when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(of(USER_ID_1));
 
-        service.calculateResponseData(USER_ID_1, rtsConversation, rtsMsg);
+        service.storeResponseData(USER_ID_1, rtsConversation, rtsMsg);
 
         ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, MessageType.ASQ, -1);
         verify(responseDataRepository).addOrUpdateResponseDataAsync(responseData);
@@ -71,7 +69,7 @@ public class DefaultResponseDataServiceTest {
                 .withState(ConversationState.ACTIVE).withMessages(Arrays.asList(firstRtsMessage, secondRtsMessage)).withSeller(USER_ID_1, USER_ID_1).build();
         when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(of(USER_ID_1));
 
-        service.calculateResponseData(USER_ID_1, rtsConversation, secondRtsMessage);
+        service.storeResponseData(USER_ID_1, rtsConversation, secondRtsMessage);
 
         ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, MessageType.ASQ, 10);
         verify(responseDataRepository).addOrUpdateResponseDataAsync(responseData);
@@ -91,7 +89,7 @@ public class DefaultResponseDataServiceTest {
                 .withMessages(Arrays.asList(firstRtsMessage, secondRtsMessage, thirdRtsMessage)).build();
         when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(of(USER_ID_1));
 
-        service.calculateResponseData(USER_ID_1, rtsConversation, thirdRtsMessage);
+        service.storeResponseData(USER_ID_1, rtsConversation, thirdRtsMessage);
 
         ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, MessageType.ASQ, 10);
         verify(responseDataRepository, never()).addOrUpdateResponseDataAsync(responseData);
@@ -108,7 +106,7 @@ public class DefaultResponseDataServiceTest {
                 .withState(ConversationState.ACTIVE).withMessages(singletonList(firstRtsMessage)).withSeller(USER_ID_1, USER_ID_1).build();
         when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(of(USER_ID_1));
 
-        service.calculateResponseData(USER_ID_1, rtsConversation, firstRtsMessage);
+        service.storeResponseData(USER_ID_1, rtsConversation, firstRtsMessage);
 
         ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, MessageType.ASQ, -1);
         verify(responseDataRepository, never()).addOrUpdateResponseDataAsync(responseData);
@@ -125,25 +123,10 @@ public class DefaultResponseDataServiceTest {
                 .withSeller(USER_ID_2, USER_ID_2).withBuyer(USER_ID_1, USER_ID_1).build();
         when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(of(USER_ID_2));
 
-        service.calculateResponseData(USER_ID_1, rtsConversation, firstRtsMessage);
+        service.storeResponseData(USER_ID_1, rtsConversation, firstRtsMessage);
 
         ResponseData responseData = new ResponseData(USER_ID_1, CONVERSATION_ID, creationDateTime, MessageType.ASQ, -1);
         verify(responseDataRepository, never()).addOrUpdateResponseDataAsync(responseData);
-    }
-
-    @Test
-    public void shouldCallRepositoryToGetResponseData() {
-        service.getResponseData(USER_ID_1);
-
-        verify(responseDataRepository).getResponseData(USER_ID_1);
-    }
-
-    @Test
-    public void aggregatedResponseDataShouldGetListFromRepoAndCalculateAggregatedValue() {
-        Optional<AggregatedResponseData> responseData = service.getAggregatedResponseData(USER_ID_1);
-        verify(responseDataRepository).getResponseData(USER_ID_1);
-
-        assertEquals(Optional.empty(), responseData);
     }
 
     private Message newMessage(String id, MessageDirection direction, MessageState state, String subject) {

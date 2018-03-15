@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
@@ -98,7 +97,7 @@ public class CassandraPostBoxServiceTest {
     @Mock
     private BlockUserRepository blockUserRepo;
     @Mock
-    private ResponseDataService responseDataService;
+    private ResponseDataCalculator responseDataCalculator;
     @Mock
     private PostBox postBox;
     @Mock
@@ -108,9 +107,6 @@ public class CassandraPostBoxServiceTest {
     @Mock
     private MutableConversation conversation;
 
-    @Autowired
-    private DefaultMessagesResponseFactory messagesResponseFactory;
-
     private CassandraPostBoxService service;
 
     @Before
@@ -118,7 +114,7 @@ public class CassandraPostBoxServiceTest {
         MockitoAnnotations.initMocks(this);
         DateTimeUtils.setCurrentMillisFixed(now().getMillis());
         service = new CassandraPostBoxService(postBoxRepo, userIdentifierService,
-                responseDataService, messageAddedEventProcessor, conversationRepo);
+                responseDataCalculator, messageAddedEventProcessor, conversationRepo);
         when(userIdentifierService.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierService.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(blockUserRepo.areUsersBlocked(any(), any())).thenReturn(false);
@@ -160,7 +156,7 @@ public class CassandraPostBoxServiceTest {
         Assert.assertEquals(messageIdDate.monthOfYear(), currentTime.monthOfYear());
         Assert.assertEquals(messageIdDate.year(), currentTime.year());
 
-        verify(responseDataService).calculateResponseData(USER_ID_1, conversation, rtsMsg2);
+        verify(responseDataCalculator).storeResponseData(USER_ID_1, conversation, rtsMsg2);
     }
 
     @Test

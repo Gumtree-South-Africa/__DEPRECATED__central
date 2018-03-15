@@ -22,11 +22,15 @@ import static com.ecg.messagebox.model.ParticipantRole.SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static org.joda.time.DateTime.now;
 
+/**
+ * TODO: PB: Remove one line methods and remove spaghetti code. Remove dependency on CORE
+ * After MessageBox upgrade is done.
+ */
 @Component
 public class CassandraPostBoxService implements PostBoxService {
     private final CassandraPostBoxRepository postBoxRepository;
     private final UserIdentifierService userIdentifierService;
-    private final ResponseDataService responseDataService;
+    private final ResponseDataCalculator responseDataCalculator;
     private final MessageAddedEventProcessor messageAddedEventProcessor;
     private final ConversationRepository conversationRepository;
 
@@ -36,13 +40,13 @@ public class CassandraPostBoxService implements PostBoxService {
     public CassandraPostBoxService(
             CassandraPostBoxRepository postBoxRepository,
             UserIdentifierService userIdentifierService,
-            ResponseDataService responseDataService,
+            ResponseDataCalculator responseDataCalculator,
             MessageAddedEventProcessor messageAddedEventProcessor,
             ConversationRepository conversationRepository) {
 
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
-        this.responseDataService = responseDataService;
+        this.responseDataCalculator = responseDataCalculator;
         this.messageAddedEventProcessor = messageAddedEventProcessor;
         this.conversationRepository = conversationRepository;
     }
@@ -88,7 +92,7 @@ public class CassandraPostBoxService implements PostBoxService {
             postBoxRepository.createConversation(userId, newConversation, newMessage, isNewReply);
         }
 
-        responseDataService.calculateResponseData(userId, rtsConversation, rtsMessage);
+        responseDataCalculator.storeResponseData(userId, rtsConversation, rtsMessage);
     }
 
     @Override
@@ -164,7 +168,7 @@ public class CassandraPostBoxService implements PostBoxService {
 
         MessageDirection messageDirection = getMessageDirection(buyer, seller, payload.getSenderUserId());
         boolean increaseBuyerUnreadCount = messageDirection == MessageDirection.SELLER_TO_BUYER;
-        boolean increaseSellerUnreadCount = messageDirection == MessageDirection.BUYER_TO_SELLER;
+        boolean increaseSellerUnreadCount = messageDirection == BUYER_TO_SELLER;
         if (createNewConversation) {
             postBoxRepository.createPartnerConversation(payload, createMessage(payload), conversationId, buyer.getUserId(), increaseBuyerUnreadCount);
             postBoxRepository.createPartnerConversation(payload, createMessage(payload), conversationId, seller.getUserId(), increaseSellerUnreadCount);
@@ -187,10 +191,14 @@ public class CassandraPostBoxService implements PostBoxService {
         postBoxRepository.addSystemMessage(userId, conversationId, adId, systemMessage);
 
         if (sendPush) {
+            /*
+             * TODO: PB: Dependency to CORE, must be removed!
+             */
             Conversation conv = conversationRepository.getById(conversationId);
             messageAddedEventProcessor.publishMessageAddedEvent(conv, messageId.toString(), text, postBoxRepository.getUserUnreadCounts(userId));
         }
     }
+
 
     private List<Participant> getParticipants(Conversation rtsConversation) {
         List<Participant> participants = new ArrayList<>();
@@ -231,7 +239,7 @@ public class CassandraPostBoxService implements PostBoxService {
 
     private MessageDirection getMessageDirection(Participant buyer, Participant seller, String senderId) {
         if (Objects.equals(buyer.getUserId(), senderId)) {
-            return MessageDirection.BUYER_TO_SELLER;
+            return BUYER_TO_SELLER;
         } else if (Objects.equals(seller.getUserId(), senderId)) {
             return MessageDirection.SELLER_TO_BUYER;
         }

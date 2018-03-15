@@ -1,22 +1,71 @@
 package com.ecg.messagebox.service;
 
-import com.ecg.messagebox.model.ResponseData;
 import com.ecg.messagebox.model.AggregatedResponseData;
+import com.ecg.messagebox.model.MessageType;
+import com.ecg.messagebox.model.ResponseData;
+import com.ecg.messagebox.persistence.ResponseDataRepository;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import org.joda.time.DateTime;
-import static com.ecg.messagebox.model.MessageType.*;
+import org.joda.time.Minutes;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-class ResponseDataCalculator {
+import static com.ecg.messagebox.model.MessageType.BID;
+
+@Component
+public class ResponseDataCalculator {
 
     private static final AggregatedResponseData DEFAULT_TOTAL_RESPONSE_DATA = new AggregatedResponseData(-1, 0);
     static final int MIN_NR_OF_CONVERSATIONS_FOR_RESPONSE_DATA = 10;
     static final int DAYS = 2;
 
-    static Optional<AggregatedResponseData> calculate(final List<ResponseData> responseDataList) {
+    private static final String X_MESSAGE_TYPE = "X-Message-Type";
+
+    private final ResponseDataRepository responseDataRepository;
+    private final UserIdentifierService userIdentifierService;
+
+    @Autowired
+    public ResponseDataCalculator(ResponseDataRepository responseDataRepository, UserIdentifierService userIdentifierService) {
+        this.responseDataRepository = responseDataRepository;
+        this.userIdentifierService = userIdentifierService;
+    }
+
+    /**
+     * TODO: PB: Test this feature. Does this computation belong to MessageBox or Core? If MB remove CORE dependencies.
+     */
+    public void storeResponseData(String userId, Conversation rtsConversation, Message rtsNewMessage) {
+        // BR: only for sellers
+        boolean isSeller = userIdentifierService.getSellerUserId(rtsConversation).map(userId::equals).orElse(false);
+        if (isSeller) {
+            // BR: only for conversations initiated by buyer
+            if (rtsConversation.getMessages().size() == 1 && MessageDirection.BUYER_TO_SELLER == rtsNewMessage.getMessageDirection()) {
+                ResponseData initialResponseData = new ResponseData(userId, rtsConversation.getId(), rtsConversation.getCreatedAt(),
+                        MessageType.getWithEmailAsDefault(rtsNewMessage.getHeaders().get(X_MESSAGE_TYPE)));
+                responseDataRepository.addOrUpdateResponseDataAsync(initialResponseData);
+            } else if (rtsConversation.getMessages().size() > 1 && MessageDirection.BUYER_TO_SELLER == rtsConversation.getMessages().get(0).getMessageDirection()) {
+                // BR: only consider the first response from seller
+                java.util.Optional<com.ecg.replyts.core.api.model.conversation.Message> firstSellerToBuyerMessage = rtsConversation.getMessages().stream()
+                        .filter(message -> MessageDirection.SELLER_TO_BUYER == message.getMessageDirection()).findFirst();
+                if (firstSellerToBuyerMessage.isPresent() && firstSellerToBuyerMessage.get().getId().equals(rtsNewMessage.getId())) {
+                    int responseSpeed = Minutes.minutesBetween(rtsConversation.getCreatedAt(), rtsNewMessage.getReceivedAt()).getMinutes();
+                    // Only the response speed value is different from the initially created response data. The conversation type is the type of the first message.
+                    ResponseData updatedResponseData = new ResponseData(userId, rtsConversation.getId(), rtsConversation.getCreatedAt(),
+                            MessageType.getWithEmailAsDefault(rtsConversation.getMessages().get(0).getHeaders().get(X_MESSAGE_TYPE)), responseSpeed);
+                    responseDataRepository.addOrUpdateResponseDataAsync(updatedResponseData);
+                }
+            }
+        }
+    }
+
+    public static Optional<AggregatedResponseData> calculate(final List<ResponseData> responseDataList) {
         final List<ResponseData> validForCalculationDatas = filterOnlyResponseDatasForCalculation(responseDataList);
         if (validForCalculationDatas.size() < MIN_NR_OF_CONVERSATIONS_FOR_RESPONSE_DATA) {
             return Optional.empty();
@@ -55,5 +104,4 @@ class ResponseDataCalculator {
         // Do not take into account bid conversations and conversations that were created and not answered in the last 2 days
         return rd -> rd.getConversationType() != BID && !(rd.getResponseSpeed() < 0  && rd.getConversationCreationDate().isAfter(twoDaysAgo));
     }
-
 }

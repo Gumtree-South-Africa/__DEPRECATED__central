@@ -9,8 +9,8 @@ import com.ecg.messagebox.model.MessageType;
 import com.ecg.messagebox.model.Participant;
 import com.ecg.messagebox.model.ParticipantRole;
 import com.ecg.messagebox.model.Visibility;
+import com.ecg.messagebox.persistence.ResponseDataRepository;
 import com.ecg.messagebox.service.PostBoxService;
-import com.ecg.messagebox.service.ResponseDataService;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
@@ -51,11 +51,11 @@ public abstract class AbstractTest {
     protected PostBoxService postBoxService;
 
     @Autowired
-    protected ResponseDataService responseDataService;
+    protected ResponseDataRepository responseDataRepository;
 
     @Before
     public void setUp() {
-        Mockito.reset(postBoxService, responseDataService);
+        Mockito.reset(postBoxService, responseDataRepository);
     }
 
     public static class Configuration {
@@ -66,8 +66,8 @@ public abstract class AbstractTest {
         }
 
         @Bean
-        ResponseDataService responseDataService() {
-            return mock(ResponseDataService.class);
+        ResponseDataRepository responseDataService() {
+            return mock(ResponseDataRepository.class);
         }
 
         @Bean

@@ -1,6 +1,5 @@
 package com.ecg.messagebox.resources;
 
-import com.ecg.messagebox.model.AggregatedResponseData;
 import com.ecg.messagebox.model.MessageType;
 import com.ecg.messagebox.model.ResponseData;
 import com.ecg.messagebox.util.TimeFormatUtils;
@@ -16,7 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
+import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,7 +30,7 @@ public class ResponseDataResourceTest extends AbstractTest {
 
     @Test
     public void emptyResponseData() throws Exception {
-        when(responseDataService.getResponseData(USER_ID))
+        when(responseDataRepository.getResponseData(USER_ID))
                 .thenReturn(Collections.emptyList());
 
         mvc.perform(get("/users/" + USER_ID + "/response-data")
@@ -46,7 +45,7 @@ public class ResponseDataResourceTest extends AbstractTest {
         DateTime now = DateTime.now();
         ResponseData responseData = new ResponseData(USER_ID, CONVERSATION_ID, now, MessageType.CHAT, 15);
 
-        when(responseDataService.getResponseData(USER_ID))
+        when(responseDataRepository.getResponseData(USER_ID))
                 .thenReturn(Collections.singletonList(responseData));
 
         ObjectNode object = ObjectMapperConfigurer.getObjectMapper()
@@ -76,7 +75,7 @@ public class ResponseDataResourceTest extends AbstractTest {
         ResponseData responseData = new ResponseData(USER_ID, CONVERSATION_ID, now, MessageType.CHAT, 15);
         ResponseData responseData2 = new ResponseData(USER_ID, CONVERSATION_ID, now, MessageType.CHAT);
 
-        when(responseDataService.getResponseData(USER_ID))
+        when(responseDataRepository.getResponseData(USER_ID))
                 .thenReturn(Arrays.asList(responseData, responseData2));
 
         ObjectNode object = ObjectMapperConfigurer.getObjectMapper()
@@ -111,15 +110,26 @@ public class ResponseDataResourceTest extends AbstractTest {
 
     @Test
     public void aggregatedResponseData() throws Exception {
-        AggregatedResponseData responseData = new AggregatedResponseData(1, 2);
+        ResponseData responseData1 = new ResponseData(USER_ID, "conversation-1", DateTime.now(), MessageType.CHAT, 3);
+        ResponseData responseData2 = new ResponseData(USER_ID, "conversation-2", DateTime.now(), MessageType.CHAT, 1);
+        ResponseData responseData3 = new ResponseData(USER_ID, "conversation-3", DateTime.now(), MessageType.CHAT, 3);
+        ResponseData responseData4 = new ResponseData(USER_ID, "conversation-4", DateTime.now(), MessageType.CHAT, 1);
+        ResponseData responseData5 = new ResponseData(USER_ID, "conversation-5", DateTime.now(), MessageType.CHAT, 3);
+        ResponseData responseData6 = new ResponseData(USER_ID, "conversation-6", DateTime.now(), MessageType.CHAT, 1);
+        ResponseData responseData7 = new ResponseData(USER_ID, "conversation-7", DateTime.now(), MessageType.CHAT, 3);
+        ResponseData responseData8 = new ResponseData(USER_ID, "conversation-8", DateTime.now(), MessageType.CHAT, 1);
+        ResponseData responseData9 = new ResponseData(USER_ID, "conversation-9", DateTime.now(), MessageType.CHAT, 3);
+        ResponseData responseData10 = new ResponseData(USER_ID, "conversation-10", DateTime.now(), MessageType.CHAT, 1);
+        ResponseData responseData11 = new ResponseData(USER_ID, "conversation-11", new DateTime(0), MessageType.CHAT, -1);
+        List<ResponseData> responseData = Arrays.asList(responseData1, responseData2, responseData3, responseData4, responseData5,
+                responseData6, responseData7, responseData8, responseData9, responseData10, responseData11);
 
-        when(responseDataService.getAggregatedResponseData(USER_ID))
-                .thenReturn(Optional.of(responseData));
+        when(responseDataRepository.getResponseData(USER_ID)).thenReturn(responseData);
 
         String response = ObjectMapperConfigurer.getObjectMapper()
                 .createObjectNode()
-                .put("speed", 1)
-                .put("rate", 2)
+                .put("speed", 3)
+                .put("rate", 90)
                 .toString();
 
         mvc.perform(get("/users/" + USER_ID + "/aggregated-response-data")
@@ -131,8 +141,8 @@ public class ResponseDataResourceTest extends AbstractTest {
 
     @Test
     public void aggregatedResponseDataNotFound() throws Exception {
-        when(responseDataService.getAggregatedResponseData(USER_ID))
-                .thenReturn(Optional.empty());
+        when(responseDataRepository.getResponseData(USER_ID))
+                .thenReturn(Collections.emptyList());
 
         JsonNode response = ObjectMapperConfigurer.objectBuilder()
                 .put("message", "AggregationResponseData not found for userID: USER_ID");

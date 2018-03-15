@@ -4,7 +4,8 @@ import com.codahale.metrics.Timer;
 import com.ecg.messagebox.controllers.responses.ResponseDataResponse;
 import com.ecg.messagebox.model.AggregatedResponseData;
 import com.ecg.messagebox.model.ResponseData;
-import com.ecg.messagebox.service.ResponseDataService;
+import com.ecg.messagebox.persistence.ResponseDataRepository;
+import com.ecg.messagebox.service.ResponseDataCalculator;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -25,17 +26,17 @@ public class ResponseDataController {
     private final Timer getResponseDataTimer = TimingReports.newTimer("webapi.get-response-data");
     private final Timer getAggregatedResponseDataTimer = TimingReports.newTimer("webapi.get-aggregated-response-data");
 
-    private final ResponseDataService responseDataService;
+    private final ResponseDataRepository responseDataRepository;
 
     @Autowired
-    public ResponseDataController(ResponseDataService responseDataService) {
-        this.responseDataService = responseDataService;
+    public ResponseDataController(ResponseDataRepository responseDataRepository) {
+        this.responseDataRepository = responseDataRepository;
     }
 
     @GetMapping("/users/{userId}/response-data")
     public ResponseObject<ResponseDataResponse> getResponseData(@PathVariable String userId) {
         try (Timer.Context ignored = getResponseDataTimer.time()) {
-            List<ResponseData> responseDataList = responseDataService.getResponseData(userId);
+            List<ResponseData> responseDataList = responseDataRepository.getResponseData(userId);
             return ResponseObject.of(new ResponseDataResponse(responseDataList));
         }
     }
@@ -43,7 +44,7 @@ public class ResponseDataController {
     @GetMapping("/users/{userId}/aggregated-response-data")
     public ResponseObject<?> getAggregatedResponseData(@PathVariable String userId) {
         try (Timer.Context ignored = getAggregatedResponseDataTimer.time()) {
-            Optional<AggregatedResponseData> responseData = responseDataService.getAggregatedResponseData(userId);
+            Optional<AggregatedResponseData> responseData = ResponseDataCalculator.calculate(responseDataRepository.getResponseData(userId));
             return ResponseObject.of(responseData.isPresent() ? responseData.get() : RequestState.ENTITY_NOT_FOUND);
         }
     }

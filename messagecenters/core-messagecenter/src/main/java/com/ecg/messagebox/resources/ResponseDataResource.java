@@ -1,10 +1,11 @@
 package com.ecg.messagebox.resources;
 
+import com.ecg.messagebox.persistence.ResponseDataRepository;
 import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.responses.AggregatedResponseDataResponse;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.resources.responses.ResponseDataResponse;
-import com.ecg.messagebox.service.ResponseDataService;
+import com.ecg.messagebox.service.ResponseDataCalculator;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,11 +23,11 @@ import java.util.stream.Collectors;
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ResponseDataResource {
 
-    private final ResponseDataService responseDataService;
+    private final ResponseDataRepository responseDataRepository;
 
     @Autowired
-    public ResponseDataResource(ResponseDataService responseDataService) {
-        this.responseDataService = responseDataService;
+    public ResponseDataResource(ResponseDataRepository responseDataRepository) {
+        this.responseDataRepository = responseDataRepository;
     }
 
     @ApiOperation(
@@ -41,7 +42,7 @@ public class ResponseDataResource {
     @GetMapping("/users/{userId}/response-data")
     public List<ResponseDataResponse> getResponseData(
             @ApiParam(value = "User ID", required = true) @PathVariable String userId) {
-        return responseDataService.getResponseData(userId).stream()
+        return responseDataRepository.getResponseData(userId).stream()
                 .map(ResponseDataResponse::new)
                 .collect(Collectors.toList());
     }
@@ -58,7 +59,7 @@ public class ResponseDataResource {
     @GetMapping("/users/{userId}/aggregated-response-data")
     public AggregatedResponseDataResponse getAggregatedResponseData(
             @ApiParam(value = "User ID", required = true) @PathVariable String userId) {
-        return responseDataService.getAggregatedResponseData(userId)
+        return ResponseDataCalculator.calculate(responseDataRepository.getResponseData(userId))
                 .map(data -> new AggregatedResponseDataResponse(data.getSpeed(), data.getRate()))
                 .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("AggregationResponseData not found for userID: %s", userId)));
     }
