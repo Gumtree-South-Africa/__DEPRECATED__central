@@ -1,12 +1,10 @@
 package com.ecg.messagebox.resources;
 
-import com.codahale.metrics.Timer;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.resources.responses.ConversationsResponse;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.service.PostBoxService;
-import com.ecg.replyts.core.runtime.TimingReports;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +22,6 @@ import java.util.stream.Collectors;
 public class ConversationsResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConversationsResource.class);
-
-    private final Timer getConversationsTimer = TimingReports.newTimer("webapi.get-conversations");
-    private final Timer executeActionsTimer = TimingReports.newTimer("webapi.execute-actions");
-    private final Timer getConversationIdsByAdId = TimingReports.newTimer("webapi.get-conversation-ids-by-adid");
 
     private final PostBoxService postBoxService;
 
@@ -62,10 +56,8 @@ public class ConversationsResource {
             @ApiParam("Number of conversations returned in the response") @RequestParam(name = "limit", defaultValue = "50") int limit,
             @ApiParam("Type of the conversations returned in the response") @RequestParam(name = "visibility", defaultValue = "active") Visibility visibility) {
 
-        try (Timer.Context ignored = getConversationsTimer.time()) {
-            PostBox conversations = postBoxService.getConversations(userId, visibility, offset, limit);
-            return toConversationsResponse(conversations, offset, limit);
-        }
+        PostBox conversations = postBoxService.getConversations(userId, visibility, offset, limit);
+        return toConversationsResponse(conversations, offset, limit);
     }
 
     @ApiOperation(
@@ -84,20 +76,18 @@ public class ConversationsResource {
             @ApiParam("Type of the conversations returned in the response") @RequestParam(name = "limit", defaultValue = "50") int limit,
             @ApiParam(value = "List of configuration ids", required = true) @RequestBody List<String> conversationIds) {
 
-        try (Timer.Context ignored = executeActionsTimer.time()) {
-            if (webApiSyncV2Service == null) {
-                PostBox postBox = postBoxService.archiveConversations(userId, conversationIds, offset, limit);
-                return toConversationsResponse(postBox, offset, limit);
-            } else {
-                /*
-                 * TODO PB: Only for migration to V2 then delete this code.
-                 * - This method is mutator and we have to sync calls from to v2 -> v1
-                 * to provide tenants some way how to revert migration and go back to v1
-                 * otherwise V1 won't contain changes made in V2.
-                 */
-                PostBox postBox = webApiSyncV2Service.archiveConversations(userId, conversationIds, offset, limit);
-                return toConversationsResponse(postBox, offset, limit);
-            }
+        if (webApiSyncV2Service == null) {
+            PostBox postBox = postBoxService.archiveConversations(userId, conversationIds, offset, limit);
+            return toConversationsResponse(postBox, offset, limit);
+        } else {
+            /*
+             * TODO PB: Only for migration to V2 then delete this code.
+             * - This method is mutator and we have to sync calls from to v2 -> v1
+             * to provide tenants some way how to revert migration and go back to v1
+             * otherwise V1 won't contain changes made in V2.
+             */
+            PostBox postBox = webApiSyncV2Service.archiveConversations(userId, conversationIds, offset, limit);
+            return toConversationsResponse(postBox, offset, limit);
         }
     }
 
@@ -117,10 +107,8 @@ public class ConversationsResource {
             @ApiParam("Type of the conversations returned in the response") @RequestParam(name = "limit", defaultValue = "50") int limit,
             @ApiParam(value = "List of configuration ids", required = true) @RequestBody List<String> conversationIds) {
 
-        try (Timer.Context ignored = executeActionsTimer.time()) {
-            PostBox postBox = postBoxService.activateConversations(userId, conversationIds, offset, limit);
-            return toConversationsResponse(postBox, offset, limit);
-        }
+        PostBox postBox = postBoxService.activateConversations(userId, conversationIds, offset, limit);
+        return toConversationsResponse(postBox, offset, limit);
     }
 
     @ApiOperation(
@@ -138,9 +126,7 @@ public class ConversationsResource {
             @ApiParam(value = "AD ID", required = true) @PathVariable("adId") String adId,
             @ApiParam("Maximum number of IDs returned in a response") @RequestParam(name = "limit", defaultValue = "500") int limit) {
 
-        try (Timer.Context ignored = getConversationIdsByAdId.time()) {
-            return postBoxService.getConversationsById(userId, adId, limit);
-        }
+        return postBoxService.getConversationsById(userId, adId, limit);
     }
 
     private static ConversationsResponse toConversationsResponse(PostBox postBox, int offset, int limit) {

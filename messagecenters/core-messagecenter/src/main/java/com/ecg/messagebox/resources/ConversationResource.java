@@ -1,31 +1,18 @@
 package com.ecg.messagebox.resources;
 
-import com.codahale.metrics.Timer;
 import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.requests.SystemMessagePayload;
 import com.ecg.messagebox.resources.responses.ConversationResponse;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.service.PostBoxService;
-import com.ecg.replyts.core.runtime.TimingReports;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
@@ -36,10 +23,6 @@ import javax.validation.Valid;
 public class ConversationResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConversationResource.class);
-
-    private final Timer getConversationTimer = TimingReports.newTimer("webapi.get-conversation");
-    private final Timer markConversationAsReadTimer = TimingReports.newTimer("webapi.mark-conversation-as-read");
-    private final Timer postSystemMessage = TimingReports.newTimer("webapi.post-system-message");
 
     private final PostBoxService postBoxService;
 
@@ -71,12 +54,10 @@ public class ConversationResource {
             @ApiParam(value = "ID of the first message returned in a response") @RequestParam(name = "cursor", required = false) String messageIdCursor,
             @ApiParam(value = "Number of messages returned in a response") @RequestParam(name = "limit", defaultValue = "500") int limit) {
 
-        try (Timer.Context ignored = getConversationTimer.time()) {
-            return postBoxService
-                    .getConversation(userId, conversationId, messageIdCursor, limit)
-                    .map(ConversationResponseConverter::toConversationResponseWithMessages)
-                    .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("Conversation not found for ID: %s", conversationId)));
-        }
+        return postBoxService
+                .getConversation(userId, conversationId, messageIdCursor, limit)
+                .map(ConversationResponseConverter::toConversationResponseWithMessages)
+                .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("Conversation not found for ID: %s", conversationId)));
     }
 
     @ApiOperation(
@@ -96,23 +77,21 @@ public class ConversationResource {
             @ApiParam(value = "ID of the first message returned in a response") @RequestParam(name = "cursor", required = false) String messageIdCursor,
             @ApiParam(value = "Number of messages returned in a response") @RequestParam(name = "limit", defaultValue = "500") int limit) {
 
-        try (Timer.Context ignored = markConversationAsReadTimer.time()) {
-            if (webApiSyncV2Service == null) {
-                return postBoxService
-                        .markConversationAsRead(userId, conversationId, messageIdCursor, limit)
-                        .map(ConversationResponseConverter::toConversationResponseWithMessages)
-                        .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("Conversation not found for ID: %s", conversationId)));
-            } else {
-                /*
-                 * TODO PB: Only for migration to V2 then delete this code.
-                 * - This method is mutator and we have to sync calls from to v2 -> v1
-                 * to provide tenants some way how to revert migration and go back to v1
-                 * otherwise V1 won't contain changes made in V2.
-                 */
-                return webApiSyncV2Service.markConversationAsRead(userId, conversationId, messageIdCursor, limit)
-                        .map(ConversationResponseConverter::toConversationResponseWithMessages)
-                        .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("Conversation not found for ID: %s", conversationId)));
-            }
+        if (webApiSyncV2Service == null) {
+            return postBoxService
+                    .markConversationAsRead(userId, conversationId, messageIdCursor, limit)
+                    .map(ConversationResponseConverter::toConversationResponseWithMessages)
+                    .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("Conversation not found for ID: %s", conversationId)));
+        } else {
+            /*
+             * TODO PB: Only for migration to V2 then delete this code.
+             * - This method is mutator and we have to sync calls from to v2 -> v1
+             * to provide tenants some way how to revert migration and go back to v1
+             * otherwise V1 won't contain changes made in V2.
+             */
+            return webApiSyncV2Service.markConversationAsRead(userId, conversationId, messageIdCursor, limit)
+                    .map(ConversationResponseConverter::toConversationResponseWithMessages)
+                    .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("Conversation not found for ID: %s", conversationId)));
         }
     }
 
@@ -131,9 +110,7 @@ public class ConversationResource {
             @ApiParam(value = "Conversation ID", required = true) @PathVariable("conversationId") String conversationId,
             @ApiParam(value = "System message payload", required = true) @Valid @RequestBody SystemMessagePayload payload) {
 
-        try (Timer.Context ignored = postSystemMessage.time()) {
-            postBoxService.createSystemMessage(userId, conversationId, payload.getAdId(), payload.getText(), payload.getCustomData(), payload.isSendPush());
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-        }
+        postBoxService.createSystemMessage(userId, conversationId, payload.getAdId(), payload.getText(), payload.getCustomData(), payload.isSendPush());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

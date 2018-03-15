@@ -1,6 +1,5 @@
 package com.ecg.messagebox.persistence;
 
-import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.model.*;
@@ -24,7 +23,6 @@ import java.util.stream.Collectors;
 import static com.datastax.driver.core.utils.UUIDs.unixTimestamp;
 import static com.ecg.messagebox.model.Visibility.get;
 import static com.ecg.messagebox.util.uuid.UUIDComparator.staticCompare;
-import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
@@ -32,25 +30,6 @@ import static java.util.stream.Collectors.toList;
 @Component
 public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultCassandraPostBoxRepository.class);
-
-    private final Timer getPaginatedConversationIdsTimer = newTimer("cassandra.postBoxRepo.v2.getPaginatedConversationIds");
-    private final Timer getPostBoxTimer = newTimer("cassandra.postBoxRepo.v2.getPostBox");
-    private final Timer getConversationMessageNotificationTimer = newTimer("cassandra.postBoxRepo.v2.getConversationMessageNotification");
-    private final Timer getConversationWithMessagesTimer = newTimer("cassandra.postBoxRepo.v2.getConversationWithMessages");
-    private final Timer getConversationMessagesTimer = newTimer("cassandra.postBoxRepo.v2.getConversationMessages");
-    private final Timer createConversationTimer = newTimer("cassandra.postBoxRepo.v2.createConversation");
-    private final Timer addMessageTimer = newTimer("cassandra.postBoxRepo.v2.addMessage");
-    private final Timer addSystemMessageTimer = newTimer("cassandra.postBoxRepo.v2.addSystemMessage");
-    private final Timer getConversationAdIdsMapTimer = newTimer("cassandra.postBoxRepo.v2.getConversationAdIdsMap");
-    private final Timer resetConversationUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.resetConversationUnreadCount");
-    private final Timer resetConversationsUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.resetConversationsUnreadCount");
-    private final Timer changeConversationVisibilitiesTimer = newTimer("cassandra.postBoxRepo.v2.changeConversationVisibilities");
-    private final Timer getUserUnreadCountsTimer = newTimer("cassandra.postBoxRepo.v2.getUserUnreadCounts");
-    private final Timer getConversationUnreadCountMapTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCountMap");
-    private final Timer getConversationUnreadCountTimer = newTimer("cassandra.postBoxRepo.v2.getConversationUnreadCount");
-    private final Timer getLastConversationModificationTimer = newTimer("cassandra.postBoxRepo.v2.getLastConversationModificationTimer");
-    private final Timer resolveConversationIdsByUserIdAndAdId = newTimer("cassandra.postBoxRepo.v2.resolveConversationIdsByUserIdAndAdId");
-    private final Timer createPartnerConversation = newTimer("cassandra.postBoxRepo.v2.createPartnerConversation");
 
     private final Session session;
     private final ConsistencyLevel readConsistency;
@@ -72,94 +51,84 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Override
     public PostBox getPostBox(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit) {
-        try (Timer.Context ignored = getPostBoxTimer.time()) {
-            PaginatedConversationIds paginatedConversationIds = getPaginatedConversationIds(userId, visibility, conversationsOffset, conversationsLimit);
-            ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATIONS.bind(this, userId, paginatedConversationIds.getConversationIds()));
+        PaginatedConversationIds paginatedConversationIds = getPaginatedConversationIds(userId, visibility, conversationsOffset, conversationsLimit);
+        ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATIONS.bind(this, userId, paginatedConversationIds.getConversationIds()));
 
-            Map<String, UnreadCounts> conversationUnreadCountsMap = getConversationUnreadCountMap(userId);
-            List<ConversationThread> conversations = StreamUtils.toStream(resultSet)
-                    .map(row -> {
-                        ConversationThread conversation = createConversation(userId, row);
-                        for (Participant participant : conversation.getParticipants()) {
-                            if (userId.equals(participant.getUserId())) {
-                                conversation.addNumUnreadMessages(userId, conversationUnreadCountsMap.getOrDefault(row.getString("convid"),
-                                        new UnreadCounts(0, 0)).getUserUnreadCounts());
-                            } else {
-                                conversation.addNumUnreadMessages(participant.getUserId(), conversationUnreadCountsMap.getOrDefault(row.getString("convid"),
-                                        new UnreadCounts(0, 0)).getOtherParticipantUnreadCount());
-                            }
+        Map<String, UnreadCounts> conversationUnreadCountsMap = getConversationUnreadCountMap(userId);
+        List<ConversationThread> conversations = StreamUtils.toStream(resultSet)
+                .map(row -> {
+                    ConversationThread conversation = createConversation(userId, row);
+                    for (Participant participant : conversation.getParticipants()) {
+                        if (userId.equals(participant.getUserId())) {
+                            conversation.addNumUnreadMessages(userId, conversationUnreadCountsMap.getOrDefault(row.getString("convid"),
+                                    new UnreadCounts(0, 0)).getUserUnreadCounts());
+                        } else {
+                            conversation.addNumUnreadMessages(participant.getUserId(), conversationUnreadCountsMap.getOrDefault(row.getString("convid"),
+                                    new UnreadCounts(0, 0)).getOtherParticipantUnreadCount());
                         }
-                        return conversation;
-                    }).sorted((c1, c2) -> staticCompare(c2.getLatestMessage().getId(), c1.getLatestMessage().getId()))
-                    .collect(toList());
+                    }
+                    return conversation;
+                }).sorted((c1, c2) -> staticCompare(c2.getLatestMessage().getId(), c1.getLatestMessage().getId()))
+                .collect(toList());
 
-            UserUnreadCounts userUnreadCounts = createUserUnreadCounts(userId, conversationUnreadCountsMap.values().stream()
-                    .map(UnreadCounts::getUserUnreadCounts).collect(toList()));
+        UserUnreadCounts userUnreadCounts = createUserUnreadCounts(userId, conversationUnreadCountsMap.values().stream()
+                .map(UnreadCounts::getUserUnreadCounts).collect(toList()));
 
-            return new PostBox(userId, conversations, userUnreadCounts, paginatedConversationIds.getConversationsTotalCount());
-        }
+        return new PostBox(userId, conversations, userUnreadCounts, paginatedConversationIds.getConversationsTotalCount());
     }
 
     public PaginatedConversationIds getPaginatedConversationIds(String userId, Visibility visibility, int offset, int limit) {
-        try (Timer.Context ignored = getPaginatedConversationIdsTimer.time()) {
-            ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATION_INDICES.bind(this, userId));
+        ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATION_INDICES.bind(this, userId));
 
-            List<String> allConversationIds = StreamUtils.toStream(resultSet)
-                    .map(row -> new ConversationIndex(row.getString("convid"), row.getString("adid"), get(row.getInt("vis")), row.getUUID("latestmsgid")))
-                    .filter(ci -> ci.getVisibility() == visibility)
-                    .sorted((ci1, ci2) -> staticCompare(ci2.getLatestMessageId(), ci1.getLatestMessageId()))
-                    .map(ConversationIndex::getConversationId)
-                    .collect(toList());
+        List<String> allConversationIds = StreamUtils.toStream(resultSet)
+                .map(row -> new ConversationIndex(row.getString("convid"), row.getString("adid"), get(row.getInt("vis")), row.getUUID("latestmsgid")))
+                .filter(ci -> ci.getVisibility() == visibility)
+                .sorted((ci1, ci2) -> staticCompare(ci2.getLatestMessageId(), ci1.getLatestMessageId()))
+                .map(ConversationIndex::getConversationId)
+                .collect(toList());
 
-            List<String> paginatedConversationIds = allConversationIds.stream()
-                    .skip(offset * limit)
-                    .limit(limit)
-                    .collect(toList());
+        List<String> paginatedConversationIds = allConversationIds.stream()
+                .skip(offset * limit)
+                .limit(limit)
+                .collect(toList());
 
-            return new PaginatedConversationIds(paginatedConversationIds, allConversationIds.size());
-        }
+        return new PaginatedConversationIds(paginatedConversationIds, allConversationIds.size());
     }
 
     private Map<String, UnreadCounts> getConversationUnreadCountMap(String userId) {
-        try (Timer.Context ignored = getConversationUnreadCountMapTimer.time()) {
-            ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATIONS_UNREAD_COUNTS.bind(this, userId));
-            return StreamUtils.toStream(resultSet)
-                    .collect(Collectors.toMap(
-                            row -> row.getString("convid"),
-                            row -> new UnreadCounts(row.getInt("unread"), row.getInt("unreadother")))
-                    );
-        }
+        ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATIONS_UNREAD_COUNTS.bind(this, userId));
+        return StreamUtils.toStream(resultSet)
+                .collect(Collectors.toMap(
+                        row -> row.getString("convid"),
+                        row -> new UnreadCounts(row.getInt("unread"), row.getInt("unreadother")))
+                );
     }
 
     @Override
     public Optional<MessageNotification> getConversationMessageNotification(String userId, String conversationId) {
-        try (Timer.Context ignored = getConversationMessageNotificationTimer.time()) {
-            Row row = session.execute(Statements.SELECT_CONVERSATION_MESSAGE_NOTIFICATION.bind(this, userId, conversationId)).one();
-            return row != null ? of(MessageNotification.get(row.getInt("ntfynew"))) : empty();
-        }
+        Row row = session.execute(Statements.SELECT_CONVERSATION_MESSAGE_NOTIFICATION.bind(this, userId, conversationId)).one();
+        return row != null ? of(MessageNotification.get(row.getInt("ntfynew"))) : empty();
     }
 
     @Override
     public Optional<ConversationThread> getConversationWithMessages(String userId, String conversationId, String messageIdCursor, int messagesLimit) {
         LOG.trace("Retrieving conversationThread for conversationId {}, userId {}", conversationId, userId);
-        try (Timer.Context ignored = getConversationWithMessagesTimer.time()) {
-            Row row = session.execute(Statements.SELECT_CONVERSATION.bind(this, userId, conversationId)).one();
-            if (row != null) {
-                ConversationThread conversation = createConversation(userId, row);
+        Row row = session.execute(Statements.SELECT_CONVERSATION.bind(this, userId, conversationId)).one();
+        if (row != null) {
+            ConversationThread conversation = createConversation(userId, row);
 
-                for (Participant participant : conversation.getParticipants()) {
-                    int unreadMessagesCount = getConversationUnreadCount(participant.getUserId(), conversationId);
-                    conversation.addNumUnreadMessages(participant.getUserId(), unreadMessagesCount);
-                }
-
-                List<Message> messages = getConversationMessages(userId, conversationId, messageIdCursor, messagesLimit);
-                conversation.addMessages(messages);
-
-                return of(conversation);
-            } else {
-                LOG.trace("Could not get conversationThread for conversationId {}, userId {}", conversationId, userId);
-                return empty();
+            for (Participant participant : conversation.getParticipants()) {
+                int unreadMessagesCount = getConversationUnreadCount(participant.getUserId(), conversationId);
+                conversation.addNumUnreadMessages(participant.getUserId(), unreadMessagesCount);
             }
+
+            List<Message> messages = getConversationMessages(userId, conversationId, messageIdCursor, messagesLimit);
+            conversation.addMessages(messages);
+
+            return of(conversation);
+        } else {
+            LOG.trace("Could not get conversationThread for conversationId {}, userId {}", conversationId, userId);
+            return empty();
         }
     }
 
@@ -167,22 +136,20 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         if (limit < 1) {
             return Collections.emptyList();
         }
-        try (Timer.Context ignored = getConversationMessagesTimer.time()) {
-            ResultSet resultSet = Optional.ofNullable(messageIdCursor)
-                    .map(cursor -> session.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITH_CURSOR.bind(this, userId, conversationId, UUID.fromString(cursor), limit)))
-                    .orElse(session.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR.bind(this, userId, conversationId, limit)));
+        ResultSet resultSet = Optional.ofNullable(messageIdCursor)
+                .map(cursor -> session.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITH_CURSOR.bind(this, userId, conversationId, UUID.fromString(cursor), limit)))
+                .orElse(session.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR.bind(this, userId, conversationId, limit)));
 
-            return StreamUtils.toStream(resultSet)
-                    .map(row -> {
-                        UUID messageId = row.getUUID("msgid");
-                        MessageMetadata metadata = JsonConverter.fromMessageMetadataJson(userId, conversationId, messageId.toString(), row.getString("metadata"));
-                        return new Message(row.getUUID("msgid"),
-                                MessageType.get(row.getString("type")),
-                                metadata);
-                    })
-                    .sorted((m1, m2) -> staticCompare(m1.getId(), m2.getId()))
-                    .collect(toList());
-        }
+        return StreamUtils.toStream(resultSet)
+                .map(row -> {
+                    UUID messageId = row.getUUID("msgid");
+                    MessageMetadata metadata = JsonConverter.fromMessageMetadataJson(userId, conversationId, messageId.toString(), row.getString("metadata"));
+                    return new Message(row.getUUID("msgid"),
+                            MessageType.get(row.getString("type")),
+                            metadata);
+                })
+                .sorted((m1, m2) -> staticCompare(m1.getId(), m2.getId()))
+                .collect(toList());
     }
 
     private ConversationThread createConversation(String userId, Row row) {
@@ -200,13 +167,11 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Override
     public UserUnreadCounts getUserUnreadCounts(String userId) {
-        try (Timer.Context ignored = getUserUnreadCountsTimer.time()) {
-            ResultSet result = session.execute(Statements.SELECT_USER_UNREAD_COUNTS.bind(this, userId));
-            List<Integer> conversationUnreadCounts = StreamUtils.toStream(result)
-                    .map(row -> row.getInt("unread"))
-                    .collect(toList());
-            return createUserUnreadCounts(userId, conversationUnreadCounts);
-        }
+        ResultSet result = session.execute(Statements.SELECT_USER_UNREAD_COUNTS.bind(this, userId));
+        List<Integer> conversationUnreadCounts = StreamUtils.toStream(result)
+                .map(row -> row.getInt("unread"))
+                .collect(toList());
+        return createUserUnreadCounts(userId, conversationUnreadCounts);
     }
 
     private UserUnreadCounts createUserUnreadCounts(String userId, Collection<Integer> conversationUnreadCounts) {
@@ -232,92 +197,78 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Override
     public int getConversationUnreadCount(String userId, String conversationId) {
-        try (Timer.Context ignored = getConversationUnreadCountTimer.time()) {
-            Row unreadCountResult = session.execute(Statements.SELECT_CONVERSATION_UNREAD_COUNT.bind(this, userId, conversationId)).one();
-            return unreadCountResult == null ? 0 : unreadCountResult.getInt("unread");
-        }
+        Row unreadCountResult = session.execute(Statements.SELECT_CONVERSATION_UNREAD_COUNT.bind(this, userId, conversationId)).one();
+        return unreadCountResult == null ? 0 : unreadCountResult.getInt("unread");
     }
 
     @Override
     public int getConversationOtherParticipantUnreadCount(String userId, String conversationId) {
-        try (Timer.Context ignored = getConversationUnreadCountTimer.time()) {
-            Row unreadCountResult = session.execute(Statements.SELECT_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, userId, conversationId)).one();
-            return unreadCountResult == null ? 0 : unreadCountResult.getInt("unreadother");
-        }
+        Row unreadCountResult = session.execute(Statements.SELECT_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, userId, conversationId)).one();
+        return unreadCountResult == null ? 0 : unreadCountResult.getInt("unreadother");
     }
 
     @Override
     public void resetConversationUnreadCount(String userId, String otherParticipantUserId, String conversationId, String adId) {
-        try (Timer.Context ignored = resetConversationUnreadCountTimer.time()) {
-            BatchStatement batch = new BatchStatement();
+        BatchStatement batch = new BatchStatement();
 
-            batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, conversationId));
-            batch.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, 0, otherParticipantUserId, conversationId));
-            batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, adId, conversationId));
+        batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, conversationId));
+        batch.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, 0, otherParticipantUserId, conversationId));
+        batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, adId, conversationId));
 
-            batch.setConsistencyLevel(getWriteConsistency());
-            session.execute(batch);
-        }
+        batch.setConsistencyLevel(getWriteConsistency());
+        session.execute(batch);
     }
 
     @Override
     public void resetConversationsUnreadCount(PostBox postBox) {
-        try (Timer.Context ignored = resetConversationsUnreadCountTimer.time()) {
-            BatchStatement batch = new BatchStatement();
+        BatchStatement batch = new BatchStatement();
 
-            for (ConversationThread conversation : postBox.getConversations()) {
-                if (conversation.getNumUnreadMessages(postBox.getUserId()) > 0) {
-                    batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, postBox.getUserId(), conversation.getId()));
-                    batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, postBox.getUserId(), conversation.getAdId(), conversation.getId()));
+        for (ConversationThread conversation : postBox.getConversations()) {
+            if (conversation.getNumUnreadMessages(postBox.getUserId()) > 0) {
+                batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, postBox.getUserId(), conversation.getId()));
+                batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, postBox.getUserId(), conversation.getAdId(), conversation.getId()));
 
-                    List<Participant> participants = conversation.getParticipants();
-                    String otherParticipantUserId = participants.get(0).getUserId().equals(postBox.getUserId()) ? participants.get(1).getUserId() : participants.get(0).getUserId();
-                    batch.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, 0, otherParticipantUserId, conversation.getId()));
-                }
+                List<Participant> participants = conversation.getParticipants();
+                String otherParticipantUserId = participants.get(0).getUserId().equals(postBox.getUserId()) ? participants.get(1).getUserId() : participants.get(0).getUserId();
+                batch.add(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT.bind(this, 0, otherParticipantUserId, conversation.getId()));
             }
+        }
 
-            if (!batch.getStatements().isEmpty()) {
-                batch.setConsistencyLevel(getWriteConsistency());
-                session.execute(batch);
-            }
+        if (!batch.getStatements().isEmpty()) {
+            batch.setConsistencyLevel(getWriteConsistency());
+            session.execute(batch);
         }
     }
 
     @Override
     public void createConversation(String userId, ConversationThread conversation, Message message, boolean incrementUnreadCount) {
-        try (Timer.Context ignored = createConversationTimer.time()) {
-            createConversation(conversation.getId(), userId, conversation.getAdId(), conversation.getParticipants(), message, conversation.getMetadata(), incrementUnreadCount);
-        }
+        createConversation(conversation.getId(), userId, conversation.getAdId(), conversation.getParticipants(), message, conversation.getMetadata(), incrementUnreadCount);
     }
 
     @Override
     public void addMessage(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount) {
-        try (Timer.Context ignored = addMessageTimer.time()) {
-            String messageJson = JsonConverter.toMessageJson(userId, conversationId, message);
+        String messageJson = JsonConverter.toMessageJson(userId, conversationId, message);
 
-            BatchStatement batch = new BatchStatement();
+        BatchStatement batch = new BatchStatement();
 
-            batch.add(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE.bind(this, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
-            newMessageCqlStatements(userId, conversationId, adId, message, incrementUnreadCount).forEach(batch::add);
+        batch.add(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE.bind(this, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
+        newMessageCqlStatements(userId, conversationId, adId, message, incrementUnreadCount).forEach(batch::add);
 
-            batch.setConsistencyLevel(getWriteConsistency());
-            session.execute(batch);
-        }
+        batch.setConsistencyLevel(getWriteConsistency());
+        session.execute(batch);
     }
 
     @Override
     public void addSystemMessage(String userId, String conversationId, String adId, Message message) {
-        try (Timer.Context ignored = addSystemMessageTimer.time()) {
-            String messageJson = JsonConverter.toMessageJson(userId, conversationId, message);
+        String messageJson = JsonConverter.toMessageJson(userId, conversationId, message);
 
-            BatchStatement batch = new BatchStatement();
+        BatchStatement batch = new BatchStatement();
 
-            batch.add(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE.bind(this, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
-            newSystemMessageCqlStatements(userId, conversationId, adId, message).forEach(batch::add);
+        batch.add(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE.bind(this, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
+        newSystemMessageCqlStatements(userId, conversationId, adId, message).forEach(batch::add);
 
-            batch.setConsistencyLevel(getWriteConsistency());
-            session.execute(batch);
-        }
+        batch.setConsistencyLevel(getWriteConsistency());
+        session.execute(batch);
     }
 
     private List<Statement> newMessageCqlStatements(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount) {
@@ -372,17 +323,15 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     }
 
     private void internalConversationsVisibility(String userId, Map<String, String> conversationAdIdsMap, Visibility visibility) {
-        try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
-            BatchStatement batch = new BatchStatement();
-            conversationAdIdsMap.forEach((conversationId, adId) -> {
-                batch.add(Statements.CHANGE_CONVERSATION_VISIBILITY.bind(this, visibility.getCode(), userId, conversationId));
-                batch.add(Statements.CHANGE_CONVERSATION_IDX_VISIBILITY.bind(this, visibility.getCode(), userId, adId, conversationId));
-                batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, conversationId));
-                batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, adId, conversationId));
-            });
-            batch.setConsistencyLevel(getWriteConsistency());
-            session.execute(batch);
-        }
+        BatchStatement batch = new BatchStatement();
+        conversationAdIdsMap.forEach((conversationId, adId) -> {
+            batch.add(Statements.CHANGE_CONVERSATION_VISIBILITY.bind(this, visibility.getCode(), userId, conversationId));
+            batch.add(Statements.CHANGE_CONVERSATION_IDX_VISIBILITY.bind(this, visibility.getCode(), userId, adId, conversationId));
+            batch.add(Statements.UPDATE_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, conversationId));
+            batch.add(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT.bind(this, 0, userId, adId, conversationId));
+        });
+        batch.setConsistencyLevel(getWriteConsistency());
+        session.execute(batch);
     }
 
     @Override
@@ -400,52 +349,44 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Override
     public Map<String, String> getConversationAdIdsMap(String userId, List<String> conversationIds) {
-        try (Timer.Context ignored = getConversationAdIdsMapTimer.time()) {
-            ResultSet resultSet = session.execute(Statements.SELECT_AD_IDS.bind(this, userId, conversationIds));
-            return StreamUtils.toStream(resultSet)
-                    .collect(Collectors.toMap(row -> row.getString("convid"), row -> row.getString("adid")));
-        }
+        ResultSet resultSet = session.execute(Statements.SELECT_AD_IDS.bind(this, userId, conversationIds));
+        return StreamUtils.toStream(resultSet)
+                .collect(Collectors.toMap(row -> row.getString("convid"), row -> row.getString("adid")));
     }
 
     @Override
     public ConversationModification getLastConversationModification(String userId, String convId) {
-        try (Timer.Context ignored = getLastConversationModificationTimer.time()) {
-            Row row = session.execute(Statements.SELECT_LATEST_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, convId)).one();
-            if (row == null) {
-                return null;
-            }
-
-            String adId = row.getString("adid");
-            UUID msgId = row.getUUID("msgid");
-            DateTime lastModifiedDate = new DateTime(unixTimestamp(msgId));
-
-            return new ConversationModification(userId, convId, adId, msgId, lastModifiedDate);
+        Row row = session.execute(Statements.SELECT_LATEST_AD_CONVERSATION_MODIFICATION_IDX.bind(this, userId, convId)).one();
+        if (row == null) {
+            return null;
         }
+
+        String adId = row.getString("adid");
+        UUID msgId = row.getUUID("msgid");
+        DateTime lastModifiedDate = new DateTime(unixTimestamp(msgId));
+
+        return new ConversationModification(userId, convId, adId, msgId, lastModifiedDate);
     }
 
     public List<String> resolveConversationIdsByUserIdAndAdId(String userId, String adId, int limit) {
-        try (Timer.Context ignored = resolveConversationIdsByUserIdAndAdId.time()) {
-            ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATION_IDS_BY_USER_ID_AND_AD_ID.bind(this, userId, adId, limit));
-            return StreamUtils
-                    .toStream(resultSet)
-                    .map(row -> row.getString("convid"))
-                    .collect(toList());
-        }
+        ResultSet resultSet = session.execute(Statements.SELECT_CONVERSATION_IDS_BY_USER_ID_AND_AD_ID.bind(this, userId, adId, limit));
+        return StreamUtils
+                .toStream(resultSet)
+                .map(row -> row.getString("convid"))
+                .collect(toList());
     }
 
     @Override
     public void createPartnerConversation(PartnerMessagePayload payload, Message message, String conversationId, String userId, boolean incrementUnreadCount) {
-        try (Timer.Context ignored = createPartnerConversation.time()) {
-            createConversation(
-                    conversationId,
-                    userId,
-                    payload.getAdId(),
-                    Arrays.asList(payload.getBuyer(), payload.getSeller()),
-                    message,
-                    new ConversationMetadata(DateTime.now(), payload.getSubject(), payload.getAdTitle(), null),
-                    incrementUnreadCount,
-                    true);
-        }
+        createConversation(
+                conversationId,
+                userId,
+                payload.getAdId(),
+                Arrays.asList(payload.getBuyer(), payload.getSeller()),
+                message,
+                new ConversationMetadata(DateTime.now(), payload.getSubject(), payload.getAdTitle(), null),
+                incrementUnreadCount,
+                true);
     }
 
     private void createConversation(String conversationId, String senderId, String adId, List<Participant> participants, Message message, ConversationMetadata metadata, boolean incrementUnreadCount) {

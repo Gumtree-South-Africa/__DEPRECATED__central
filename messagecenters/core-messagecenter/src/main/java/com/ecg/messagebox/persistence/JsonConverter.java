@@ -13,13 +13,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
-public class JsonConverter {
+class JsonConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JsonConverter.class);
 
     private static final ObjectMapper OBJECT_MAPPER = ObjectMapperConfigurer.getObjectMapper();
 
-    public static String toParticipantsJson(String userId, String conversationId, List<Participant> participants) {
+    static String toParticipantsJson(String userId, String conversationId, List<Participant> participants) {
         try {
             return OBJECT_MAPPER.writeValueAsString(participants);
         } catch (JsonProcessingException e) {
@@ -29,7 +29,7 @@ public class JsonConverter {
         }
     }
 
-    public static List<Participant> fromParticipantsJson(String userId, String conversationId, String jsonValue) {
+    static List<Participant> fromParticipantsJson(String userId, String conversationId, String jsonValue) {
         try {
             return OBJECT_MAPPER.readValue(jsonValue,
                     OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, Participant.class));
@@ -40,7 +40,7 @@ public class JsonConverter {
         }
     }
 
-    public static String toMessageJson(String userId, String conversationId, Message message) {
+    static String toMessageJson(String userId, String conversationId, Message message) {
         try {
             return OBJECT_MAPPER.writeValueAsString(message);
         } catch (JsonProcessingException e) {
@@ -50,7 +50,7 @@ public class JsonConverter {
         }
     }
 
-    public static Message fromMessageJson(String userId, String conversationId, String jsonValue) {
+    static Message fromMessageJson(String userId, String conversationId, String jsonValue) {
         try {
             return OBJECT_MAPPER.readValue(jsonValue, Message.class);
         } catch (IOException e) {
@@ -60,7 +60,7 @@ public class JsonConverter {
         }
     }
 
-    public static String toMessageMetadataJson(String userId, String conversationId, Message message) {
+    static String toMessageMetadataJson(String userId, String conversationId, Message message) {
         try {
             return OBJECT_MAPPER.writeValueAsString(message.getMetadata());
         } catch (JsonProcessingException e) {
@@ -70,7 +70,7 @@ public class JsonConverter {
         }
     }
 
-    public static MessageMetadata fromMessageMetadataJson(String userId, String conversationId, String messageId, String jsonValue) {
+    static MessageMetadata fromMessageMetadataJson(String userId, String conversationId, String messageId, String jsonValue) {
         try {
             return OBJECT_MAPPER.readValue(jsonValue, MessageMetadata.class);
         } catch (IOException e) {
@@ -80,7 +80,7 @@ public class JsonConverter {
         }
     }
 
-    public static String toConversationMetadataJson(String userId, String conversationId, ConversationMetadata metadata) {
+    static String toConversationMetadataJson(String userId, String conversationId, ConversationMetadata metadata) {
         try {
             return OBJECT_MAPPER.writeValueAsString(metadata);
         } catch (JsonProcessingException e) {
@@ -90,7 +90,7 @@ public class JsonConverter {
         }
     }
 
-    public static ConversationMetadata fromConversationMetadataJson(String userId, String conversationId, String jsonValue) {
+    static ConversationMetadata fromConversationMetadataJson(String userId, String conversationId, String jsonValue) {
         try {
             return OBJECT_MAPPER.readValue(jsonValue, ConversationMetadata.class);
         } catch (IOException e) {

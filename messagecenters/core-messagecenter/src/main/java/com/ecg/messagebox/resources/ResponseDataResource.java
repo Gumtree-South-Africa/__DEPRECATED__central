@@ -1,17 +1,11 @@
 package com.ecg.messagebox.resources;
 
-import com.codahale.metrics.Timer;
 import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.responses.AggregatedResponseDataResponse;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.resources.responses.ResponseDataResponse;
 import com.ecg.messagebox.service.ResponseDataService;
-import com.ecg.replyts.core.runtime.TimingReports;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,9 +21,6 @@ import java.util.stream.Collectors;
 @Api(tags = "Conversations")
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ResponseDataResource {
-
-    private final Timer getResponseDataTimer = TimingReports.newTimer("webapi.get-response-data");
-    private final Timer getAggregatedResponseDataTimer = TimingReports.newTimer("webapi.get-aggregated-response-data");
 
     private final ResponseDataService responseDataService;
 
@@ -50,11 +41,9 @@ public class ResponseDataResource {
     @GetMapping("/users/{userId}/response-data")
     public List<ResponseDataResponse> getResponseData(
             @ApiParam(value = "User ID", required = true) @PathVariable String userId) {
-        try (Timer.Context ignored = getResponseDataTimer.time()) {
-            return responseDataService.getResponseData(userId).stream()
-                    .map(ResponseDataResponse::new)
-                    .collect(Collectors.toList());
-        }
+        return responseDataService.getResponseData(userId).stream()
+                .map(ResponseDataResponse::new)
+                .collect(Collectors.toList());
     }
 
     @ApiOperation(
@@ -69,10 +58,8 @@ public class ResponseDataResource {
     @GetMapping("/users/{userId}/aggregated-response-data")
     public AggregatedResponseDataResponse getAggregatedResponseData(
             @ApiParam(value = "User ID", required = true) @PathVariable String userId) {
-        try (Timer.Context ignored = getAggregatedResponseDataTimer.time()) {
-            return responseDataService.getAggregatedResponseData(userId)
-                    .map(data -> new AggregatedResponseDataResponse(data.getSpeed(), data.getRate()))
-                    .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("AggregationResponseData not found for userID: %s", userId)));
-        }
+        return responseDataService.getAggregatedResponseData(userId)
+                .map(data -> new AggregatedResponseDataResponse(data.getSpeed(), data.getRate()))
+                .orElseThrow(() -> new ClientException(HttpStatus.NOT_FOUND, String.format("AggregationResponseData not found for userID: %s", userId)));
     }
 }

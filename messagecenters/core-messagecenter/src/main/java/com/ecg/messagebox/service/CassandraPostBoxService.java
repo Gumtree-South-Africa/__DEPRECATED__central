@@ -1,7 +1,5 @@
 package com.ecg.messagebox.service;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Timer;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
@@ -22,8 +20,6 @@ import java.util.*;
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
-import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
-import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static org.joda.time.DateTime.now;
 
 @Component
@@ -34,19 +30,6 @@ public class CassandraPostBoxService implements PostBoxService {
     private final MessageAddedEventProcessor messageAddedEventProcessor;
     private final ConversationRepository conversationRepository;
 
-    private final Timer processNewMessageTimer = newTimer("postBoxService.v2.processNewMessage");
-    private final Timer getConversationTimer = newTimer("postBoxService.v2.getConversation");
-    private final Timer markConversationAsReadTimer = newTimer("postBoxService.v2.markConversationAsRead");
-    private final Timer getConversationsTimer = newTimer("postBoxService.v2.getConversations");
-    private final Timer changeConversationVisibilitiesTimer = newTimer("postBoxService.v2.changeConversationVisibilities");
-    private final Timer getUnreadCountsTimer = newTimer("postBoxService.v2.getUnreadCounts");
-    private final Timer deleteConversationsTimer = newTimer("postBoxService.v2.deleteConversation");
-    private final Timer resolveConversationIdByUserIdAndAdId = newTimer("postBoxService.v2.resolveConversationIdsByUserIdAndAdId");
-    private final Timer storePartnerMessage = newTimer("postBoxService.v2.storePartnerMessage");
-    private final Timer createSystemMessage = newTimer("postBoxService.v2.createSystemMessage");
-
-    private final Counter newConversationCounter = newCounter("postBoxService.v2.newConversationCounter");
-
     static final String SYSTEM_MESSAGE_USER_ID = "-1";
 
     @Autowired
@@ -55,8 +38,8 @@ public class CassandraPostBoxService implements PostBoxService {
             UserIdentifierService userIdentifierService,
             ResponseDataService responseDataService,
             MessageAddedEventProcessor messageAddedEventProcessor,
-            ConversationRepository conversationRepository
-    ) {
+            ConversationRepository conversationRepository) {
+
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.responseDataService = responseDataService;
@@ -70,150 +53,127 @@ public class CassandraPostBoxService implements PostBoxService {
                                   com.ecg.replyts.core.api.model.conversation.Conversation rtsConversation,
                                   com.ecg.replyts.core.api.model.conversation.Message rtsMessage,
                                   boolean isNewReply,
-                                  String cleanMessageText
-    ) {
-        try (Timer.Context ignored = processNewMessageTimer.time()) {
-            String senderUserId = getMessageSenderUserId(rtsConversation, rtsMessage);
+                                  String cleanMessageText) {
 
-            String messageTypeStr = rtsMessage.getHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase();
-            MessageType messageType = MessageType.get(messageTypeStr);
-            String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
-            String messageIdStr = rtsMessage.getHeaders().get("X-Message-ID");
-            UUID messageId = messageIdStr != null ? UUID.fromString(messageIdStr) : UUIDs.timeBased();
-            Message newMessage = new Message(messageId, cleanMessageText, senderUserId, messageType, customData);
-            Optional<MessageNotification> messageNotificationOpt = postBoxRepository.getConversationMessageNotification(userId, rtsConversation.getId());
+        String senderUserId = getMessageSenderUserId(rtsConversation, rtsMessage);
 
-            if (messageNotificationOpt.isPresent()) {
-                boolean notifyAboutNewMessage = isNewReply && messageNotificationOpt.get() == MessageNotification.RECEIVE;
-                postBoxRepository.addMessage(userId, rtsConversation.getId(), rtsConversation.getAdId(), newMessage, notifyAboutNewMessage);
-            } else {
-                ConversationThread newConversation = new ConversationThread(
-                        rtsConversation.getId(),
-                        rtsConversation.getAdId(),
-                        userId,
-                        Visibility.ACTIVE,
-                        MessageNotification.RECEIVE,
-                        getParticipants(rtsConversation),
-                        newMessage,
-                        new ConversationMetadata(
-                                now(),
-                                rtsConversation.getMessages().get(0).getHeaders().get("Subject"),
-                                rtsMessage.getHeaders().get("X-Conversation-Title"),
-                                rtsMessage.getHeaders().get("X-Conversation-Image-Url")
-                        )
-                );
+        String messageTypeStr = rtsMessage.getHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase();
+        MessageType messageType = MessageType.get(messageTypeStr);
+        String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
+        String messageIdStr = rtsMessage.getHeaders().get("X-Message-ID");
+        UUID messageId = messageIdStr != null ? UUID.fromString(messageIdStr) : UUIDs.timeBased();
+        Message newMessage = new Message(messageId, cleanMessageText, senderUserId, messageType, customData);
+        Optional<MessageNotification> messageNotificationOpt = postBoxRepository.getConversationMessageNotification(userId, rtsConversation.getId());
 
-                postBoxRepository.createConversation(userId, newConversation, newMessage, isNewReply);
-                newConversationCounter.inc();
-            }
+        if (messageNotificationOpt.isPresent()) {
+            boolean notifyAboutNewMessage = isNewReply && messageNotificationOpt.get() == MessageNotification.RECEIVE;
+            postBoxRepository.addMessage(userId, rtsConversation.getId(), rtsConversation.getAdId(), newMessage, notifyAboutNewMessage);
+        } else {
+            ConversationThread newConversation = new ConversationThread(
+                    rtsConversation.getId(),
+                    rtsConversation.getAdId(),
+                    userId,
+                    Visibility.ACTIVE,
+                    MessageNotification.RECEIVE,
+                    getParticipants(rtsConversation),
+                    newMessage,
+                    new ConversationMetadata(
+                            now(),
+                            rtsConversation.getMessages().get(0).getHeaders().get("Subject"),
+                            rtsMessage.getHeaders().get("X-Conversation-Title"),
+                            rtsMessage.getHeaders().get("X-Conversation-Image-Url")
+                    )
+            );
 
-            responseDataService.calculateResponseData(userId, rtsConversation, rtsMessage);
+            postBoxRepository.createConversation(userId, newConversation, newMessage, isNewReply);
         }
+
+        responseDataService.calculateResponseData(userId, rtsConversation, rtsMessage);
     }
 
     @Override
     public Optional<ConversationThread> getConversation(String userId, String conversationId, String messageIdCursor, int messagesLimit) {
-        try (Timer.Context ignored = getConversationTimer.time()) {
-            return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursor, messagesLimit);
-        }
+        return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursor, messagesLimit);
     }
 
     @Override
     public Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, String messageIdCursor, int messagesLimit) {
-        try (Timer.Context ignored = markConversationAsReadTimer.time()) {
-            return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursor, messagesLimit).map(conversation -> {
-                List<Participant> participants = conversation.getParticipants();
-                String otherParticipantUserId = participants.get(0).getUserId().equals(userId) ? participants.get(1).getUserId() : participants.get(0).getUserId();
-                postBoxRepository.resetConversationUnreadCount(userId, otherParticipantUserId, conversationId, conversation.getAdId());
-                return new ConversationThread(conversation).addNumUnreadMessages(userId, 0);
-            });
-        }
+        return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursor, messagesLimit).map(conversation -> {
+            List<Participant> participants = conversation.getParticipants();
+            String otherParticipantUserId = participants.get(0).getUserId().equals(userId) ? participants.get(1).getUserId() : participants.get(0).getUserId();
+            postBoxRepository.resetConversationUnreadCount(userId, otherParticipantUserId, conversationId, conversation.getAdId());
+            return new ConversationThread(conversation).addNumUnreadMessages(userId, 0);
+        });
     }
 
     @Override
     public PostBox markConversationsAsRead(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit) {
-        try (Timer.Context ignored = markConversationAsReadTimer.time()) {
-            PostBox postBox = postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
-            postBoxRepository.resetConversationsUnreadCount(postBox);
+        PostBox postBox = postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
+        postBoxRepository.resetConversationsUnreadCount(postBox);
 
-            for (ConversationThread conversation : postBox.getConversations()) {
-                conversation.addNumUnreadMessages(userId, 0);
-            }
-
-            return postBox;
+        for (ConversationThread conversation : postBox.getConversations()) {
+            conversation.addNumUnreadMessages(userId, 0);
         }
+
+        return postBox;
     }
 
     @Override
     public PostBox getConversations(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit) {
-        try (Timer.Context ignored = getConversationsTimer.time()) {
-            return postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
-        }
+        return postBoxRepository.getPostBox(userId, visibility, conversationsOffset, conversationsLimit);
     }
 
     @Override
     public PostBox archiveConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) {
-        try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
-            Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
-            postBoxRepository.archiveConversations(userId, conversationAdIdsMap);
-            return postBoxRepository.getPostBox(userId, Visibility.ACTIVE, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
-        }
+        Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
+        postBoxRepository.archiveConversations(userId, conversationAdIdsMap);
+        return postBoxRepository.getPostBox(userId, Visibility.ACTIVE, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
     }
 
     @Override
     public PostBox activateConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) {
-        try (Timer.Context ignored = changeConversationVisibilitiesTimer.time()) {
-            Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
-            postBoxRepository.activateConversations(userId, conversationAdIdsMap);
-            return postBoxRepository.getPostBox(userId, Visibility.ARCHIVED, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
-        }
+        Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
+        postBoxRepository.activateConversations(userId, conversationAdIdsMap);
+        return postBoxRepository.getPostBox(userId, Visibility.ARCHIVED, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
     }
 
     @Override
     public UserUnreadCounts getUnreadCounts(String userId) {
-        try (Timer.Context ignored = getUnreadCountsTimer.time()) {
-            return postBoxRepository.getUserUnreadCounts(userId);
-        }
+        return postBoxRepository.getUserUnreadCounts(userId);
     }
 
     @Override
     public void deleteConversation(String userId, String conversationId, String adId) {
-        try (Timer.Context ignored = deleteConversationsTimer.time()) {
-            postBoxRepository.deleteConversation(userId, conversationId, adId);
-        }
+        postBoxRepository.deleteConversation(userId, conversationId, adId);
     }
 
     @Override
     public List<String> getConversationsById(String userId, String adId, int amountLimit) {
-        try (Timer.Context ignored = resolveConversationIdByUserIdAndAdId.time()) {
-            return postBoxRepository.resolveConversationIdsByUserIdAndAdId(userId, adId, amountLimit);
-        }
+        return postBoxRepository.resolveConversationIdsByUserIdAndAdId(userId, adId, amountLimit);
     }
 
     @Override
     public Optional<String> storePartnerMessage(PartnerMessagePayload payload) {
-        try (Timer.Context ignored = storePartnerMessage.time()) {
-            Participant buyer = payload.getBuyer();
-            Participant seller = payload.getSeller();
+        Participant buyer = payload.getBuyer();
+        Participant seller = payload.getSeller();
 
-            List<String> conversationIds = getConversationsById(buyer.getUserId(), payload.getAdId(), 1);
-            boolean createNewConversation = conversationIds.isEmpty();
-            String conversationId = conversationIds.stream().findAny()
-                    .orElse(Guids.next());
+        List<String> conversationIds = getConversationsById(buyer.getUserId(), payload.getAdId(), 1);
+        boolean createNewConversation = conversationIds.isEmpty();
+        String conversationId = conversationIds.stream().findAny()
+                .orElse(Guids.next());
 
-            MessageDirection messageDirection = getMessageDirection(buyer, seller, payload.getSenderUserId());
-            boolean increaseBuyerUnreadCount = messageDirection == MessageDirection.SELLER_TO_BUYER;
-            boolean increaseSellerUnreadCount = messageDirection == MessageDirection.BUYER_TO_SELLER;
-            if (createNewConversation) {
-                postBoxRepository.createPartnerConversation(payload, createMessage(payload), conversationId, buyer.getUserId(), increaseBuyerUnreadCount);
-                postBoxRepository.createPartnerConversation(payload, createMessage(payload), conversationId, seller.getUserId(), increaseSellerUnreadCount);
-            } else {
-                postBoxRepository.addMessage(buyer.getUserId(), conversationId, payload.getAdId(), createMessage(payload), increaseBuyerUnreadCount);
-                postBoxRepository.addMessage(seller.getUserId(), conversationId, payload.getAdId(), createMessage(payload), increaseSellerUnreadCount);
-            }
-
-            return Optional.of(conversationId);
+        MessageDirection messageDirection = getMessageDirection(buyer, seller, payload.getSenderUserId());
+        boolean increaseBuyerUnreadCount = messageDirection == MessageDirection.SELLER_TO_BUYER;
+        boolean increaseSellerUnreadCount = messageDirection == MessageDirection.BUYER_TO_SELLER;
+        if (createNewConversation) {
+            postBoxRepository.createPartnerConversation(payload, createMessage(payload), conversationId, buyer.getUserId(), increaseBuyerUnreadCount);
+            postBoxRepository.createPartnerConversation(payload, createMessage(payload), conversationId, seller.getUserId(), increaseSellerUnreadCount);
+        } else {
+            postBoxRepository.addMessage(buyer.getUserId(), conversationId, payload.getAdId(), createMessage(payload), increaseBuyerUnreadCount);
+            postBoxRepository.addMessage(seller.getUserId(), conversationId, payload.getAdId(), createMessage(payload), increaseSellerUnreadCount);
         }
+
+        return Optional.of(conversationId);
     }
 
     private static Message createMessage(PartnerMessagePayload payload) {
@@ -222,15 +182,13 @@ public class CassandraPostBoxService implements PostBoxService {
 
     @Override
     public void createSystemMessage(String userId, String conversationId, String adId, String text, String customData, boolean sendPush) {
-        try (Timer.Context ignored = createSystemMessage.time()) {
-            UUID messageId = UUIDs.timeBased();
-            Message systemMessage = new Message(messageId, text, SYSTEM_MESSAGE_USER_ID, MessageType.SYSTEM_MESSAGE, customData);
-            postBoxRepository.addSystemMessage(userId, conversationId, adId, systemMessage);
+        UUID messageId = UUIDs.timeBased();
+        Message systemMessage = new Message(messageId, text, SYSTEM_MESSAGE_USER_ID, MessageType.SYSTEM_MESSAGE, customData);
+        postBoxRepository.addSystemMessage(userId, conversationId, adId, systemMessage);
 
-            if (sendPush) {
-                Conversation conv = conversationRepository.getById(conversationId);
-                messageAddedEventProcessor.publishMessageAddedEvent(conv, messageId.toString(), text, postBoxRepository.getUserUnreadCounts(userId));
-            }
+        if (sendPush) {
+            Conversation conv = conversationRepository.getById(conversationId);
+            messageAddedEventProcessor.publishMessageAddedEvent(conv, messageId.toString(), text, postBoxRepository.getUserUnreadCounts(userId));
         }
     }
 

@@ -1,6 +1,5 @@
 package com.ecg.messagebox.resources;
 
-import com.codahale.metrics.Timer;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.resources.responses.UnreadCountsResponse;
 import com.ecg.messagebox.service.PostBoxService;
@@ -13,14 +12,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
-
 @RestController
 @Api(tags = "Conversations")
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class UnreadCountsResource {
-
-    private static final Timer GET_UNREAD_COUNTS_TIMER = newTimer("webapi.get-unread-counts");
 
     private final PostBoxService postBoxService;
 
@@ -41,10 +36,8 @@ public class UnreadCountsResource {
     @GetMapping("/users/{userId}/unread-counts")
     public UnreadCountsResponse getUnreadCounts(
             @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId) {
-        try (Timer.Context ignored = GET_UNREAD_COUNTS_TIMER.time()) {
-            UserUnreadCounts unreadCounts = postBoxService.getUnreadCounts(userId);
-            return toUnreadCountsResponse(unreadCounts);
-        }
+        UserUnreadCounts unreadCounts = postBoxService.getUnreadCounts(userId);
+        return toUnreadCountsResponse(unreadCounts);
     }
 
     private static UnreadCountsResponse toUnreadCountsResponse(UserUnreadCounts unreadCounts) {

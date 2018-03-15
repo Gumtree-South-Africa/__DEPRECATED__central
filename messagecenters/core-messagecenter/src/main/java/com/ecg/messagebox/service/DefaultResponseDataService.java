@@ -1,10 +1,9 @@
 package com.ecg.messagebox.service;
 
-import com.codahale.metrics.Timer;
-import com.ecg.messagebox.model.MessageType;
-import com.ecg.messagebox.persistence.ResponseDataRepository;
-import com.ecg.messagebox.model.ResponseData;
 import com.ecg.messagebox.model.AggregatedResponseData;
+import com.ecg.messagebox.model.MessageType;
+import com.ecg.messagebox.model.ResponseData;
+import com.ecg.messagebox.persistence.ResponseDataRepository;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -16,13 +15,10 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
-
 @Component
 public class DefaultResponseDataService implements ResponseDataService {
 
     private final ResponseDataRepository responseDataRepository;
-    private final Timer getResponseDataTimer = newTimer("postBoxService.v2.getResponseData");
 
     private static final String X_MESSAGE_TYPE = "X-Message-Type";
     private final UserIdentifierService userIdentifierService;
@@ -35,9 +31,7 @@ public class DefaultResponseDataService implements ResponseDataService {
 
     @Override
     public List<ResponseData> getResponseData(String userId) {
-        try (Timer.Context ignored = getResponseDataTimer.time()) {
-            return responseDataRepository.getResponseData(userId);
-        }
+        return responseDataRepository.getResponseData(userId);
     }
 
     @Override
