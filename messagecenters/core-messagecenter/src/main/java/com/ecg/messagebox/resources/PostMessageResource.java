@@ -6,6 +6,7 @@ import com.ecg.messagebox.controllers.requests.PostMessageRequest;
 import com.ecg.messagebox.controllers.responses.CreateConversationResponse;
 import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
+import com.ecg.messagebox.resources.responses.PostMessageResponse;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
@@ -133,7 +134,7 @@ public class PostMessageResource {
         @ApiResponse(code = 500, message = "Internal Error", response = ErrorResponse.class)
     })
     @PostMapping("/users/{userId}/conversations/{conversationId}")
-    public ResponseObject<?> postMessage(
+    public PostMessageResponse postMessage(
             @PathVariable("userId") String userId,
             @PathVariable("conversationId") String conversationId,
             @RequestBody PostMessageRequest postMessageRequest) {
@@ -168,8 +169,7 @@ public class PostMessageResource {
             context.addCommand(addMessageCommand);
 
             String messageId = messageProcessingCoordinator.handleContext(Optional.empty(), context);
-
-            return ResponseObject.of(messageId);
+            return new PostMessageResponse(messageId);
         }
     }
 }
