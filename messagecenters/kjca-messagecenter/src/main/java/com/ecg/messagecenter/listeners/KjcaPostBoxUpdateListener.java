@@ -27,8 +27,8 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PostBoxUpdateListener implements MessageProcessedListener {
-    private static final Logger LOG = LoggerFactory.getLogger(PostBoxUpdateListener.class);
+public class KjcaPostBoxUpdateListener implements MessageProcessedListener {
+    private static final Logger LOG = LoggerFactory.getLogger(KjcaPostBoxUpdateListener.class);
 
     private static final Timer PROCESSING_TIMER = TimingReports.newTimer("message-box.postBoxUpdateListener.timer");
     private static final Counter PROCESSING_SUCCESS = TimingReports.newCounter("message-box.postBoxUpdateListener.success");
@@ -47,24 +47,24 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final UnreadCountCacher unreadCountCacher;
 
     @Autowired
-    public PostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
-                                 SimplePostBoxRepository postBoxRepository,
-                                 @Value("${push-mobile.enabled:true}") boolean pushEnabled,
-                                 @Value("${capi.scheme:http}") String capiScheme,
-                                 @Value("${capi.host:www.dev.kjdev.ca}") String capiHost,
-                                 @Value("${capi.port:8081}") int capiPort,
-                                 @Value("${capi.username:box}") String capiUsername,
-                                 @Value("${capi.password:box}") String capiPassword,
-                                 @Value("${capi.connectionTimeout:1500}") int connectionTimeout,
-                                 @Value("${capi.connectionManagerTimeout:1500}") int connectionManagerTimeout,
-                                 @Value("${capi.socketTimeout:2500}") int socketTimeout,
-                                 @Value("${capi.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
-                                 @Value("${capi.retryCount:1}") int retryCount,
-                                 @Value("${send.push.percentage:0}") int pushServicePercentage,
-                                 @Qualifier("messageCentreJmsTemplate") JmsTemplate jmsTemplate,
-                                 @Qualifier("sendPushService") PushService sendPushService,
-                                 TextAnonymizer textAnonymizer,
-                                 UnreadCountCacher unreadCountCacher) {
+    public KjcaPostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
+                                     SimplePostBoxRepository postBoxRepository,
+                                     @Value("${push-mobile.enabled:true}") boolean pushEnabled,
+                                     @Value("${capi.scheme:http}") String capiScheme,
+                                     @Value("${capi.host:www.dev.kjdev.ca}") String capiHost,
+                                     @Value("${capi.port:8081}") int capiPort,
+                                     @Value("${capi.username:box}") String capiUsername,
+                                     @Value("${capi.password:box}") String capiPassword,
+                                     @Value("${capi.connectionTimeout:1500}") int connectionTimeout,
+                                     @Value("${capi.connectionManagerTimeout:1500}") int connectionManagerTimeout,
+                                     @Value("${capi.socketTimeout:2500}") int socketTimeout,
+                                     @Value("${capi.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
+                                     @Value("${capi.retryCount:1}") int retryCount,
+                                     @Value("${send.push.percentage:0}") int pushServicePercentage,
+                                     @Qualifier("messageCentreJmsTemplate") JmsTemplate jmsTemplate,
+                                     @Qualifier("sendPushService") PushService sendPushService,
+                                     TextAnonymizer textAnonymizer,
+                                     UnreadCountCacher unreadCountCacher) {
         this.postBoxInitializer = postBoxInitializer;
         this.postBoxRepository = postBoxRepository;
         this.textAnonymizer = textAnonymizer;

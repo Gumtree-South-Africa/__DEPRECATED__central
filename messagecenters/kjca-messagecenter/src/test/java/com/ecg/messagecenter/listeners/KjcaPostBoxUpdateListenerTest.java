@@ -33,8 +33,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PostBoxUpdateListenerTest {
-    private PostBoxUpdateListener listener;
+public class KjcaPostBoxUpdateListenerTest {
+    private KjcaPostBoxUpdateListener listener;
 
     @Mock
     private SimplePostBoxInitializer postBoxInitializer;
@@ -58,7 +58,7 @@ public class PostBoxUpdateListenerTest {
 
     @Before
     public void setUp() throws Exception {
-        listener = new PostBoxUpdateListener(postBoxInitializer, postBoxRepository, false, "http", "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, 0, null, sendPushService, textAnonymizer, unreadCountCacher);
+        listener = new KjcaPostBoxUpdateListener(postBoxInitializer, postBoxRepository, false, "http", "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, 0, null, sendPushService, textAnonymizer, unreadCountCacher);
 
         convoBuilder = ImmutableConversation.Builder
                 .aConversation()
