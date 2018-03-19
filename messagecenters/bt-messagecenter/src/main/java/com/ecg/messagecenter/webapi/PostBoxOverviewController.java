@@ -60,7 +60,7 @@ public class PostBoxOverviewController {
 
             if (markAsRead(request)) {
                 postBox.resetReplies();
-                postBoxRepository.write(postBox);
+                postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
             }
 
             return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
