@@ -1,17 +1,7 @@
 package com.ecg.messagecenter.webapi;
 
-import static org.joda.time.DateTime.now;
-
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -20,6 +10,17 @@ import com.ecg.messagecenter.webapi.requests.MessageCenterClosePostBoxConversati
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.app.ConversationEventListeners;
+import com.ecg.replyts.core.api.model.MailCloakingService;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedCommand;
+import com.ecg.replyts.core.api.webapi.envelope.RequestState;
+import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
+import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
+import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,19 +37,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Timer;
-import com.ecg.replyts.core.api.model.MailCloakingService;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.core.api.model.conversation.ConversationState;
-import com.ecg.replyts.core.api.model.conversation.MutableConversation;
-import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedCommand;
-import com.ecg.replyts.core.api.webapi.envelope.RequestState;
-import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
-import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.joda.time.DateTime.now;
 
 @Controller
 public class ConversationThreadController {
@@ -91,7 +89,7 @@ public class ConversationThreadController {
         if (conversation.getState() == ConversationState.CLOSED) {
             return ResponseObject.of(RequestState.OK);
         }
-        
+
         conversation.applyCommand(new ConversationClosedCommand(conversationId, ConversationRole.getRole(email, conversation), DateTime.now()));
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
@@ -99,13 +97,13 @@ public class ConversationThreadController {
         String buyerEmail = conversation.getSellerId();
         String sellerEmail = conversation.getBuyerId();
         ConversationRole role = conversation.isClosedBy(ConversationRole.Buyer)?ConversationRole.Buyer:ConversationRole.Seller;
-        
+
         updatePostBox(buyerEmail,conversationId,role);
         updatePostBox(sellerEmail,conversationId,role);
 
         return ResponseObject.of(RequestState.OK);
     }
-    
+
     private void updatePostBox(String email, String conversationId, ConversationRole role){
         PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
@@ -117,7 +115,7 @@ public class ConversationThreadController {
             conversationThread.setConversationState(Optional.of(ConversationState.CLOSED));
 
             conversationThread.setCloseBy(Optional.of(role));
-            
+
             postBoxRepository.write(postBox);
         }
     }
@@ -142,10 +140,11 @@ public class ConversationThreadController {
                 postBox.decrementNewReplies(1);
 
                 postBoxRepository.write(postBox);
+                postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
             }
-            
+
             Map<String, String> customValues = conversationThreadRequested.get().getCustomValues().get();
-            
+
             if (newCounterMode) {
                 if (needToMarkAsRead) {
                     markConversationAsRead(email, conversationId, postBox);
@@ -166,8 +165,8 @@ public class ConversationThreadController {
         }
     }
 
-    private ResponseObject<?> lookupConversation(long numUnread, String email, String conversationId, 
-      HttpServletResponse response, Map<String, String> customValues) {
+    private ResponseObject<?> lookupConversation(long numUnread, String email, String conversationId,
+                                                 HttpServletResponse response, Map<String, String> customValues) {
         Conversation conversation = conversationRepository.getById(conversationId);
         if (conversation == null) {
             LOGGER.warn("Inconsistency: Conversation id #{} exists in 'postbox' bucket but not inside 'conversations' bucket", conversationId);
