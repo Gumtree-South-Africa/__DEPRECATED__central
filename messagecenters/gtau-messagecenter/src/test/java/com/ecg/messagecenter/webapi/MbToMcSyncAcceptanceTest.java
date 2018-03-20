@@ -51,20 +51,20 @@ public class MbToMcSyncAcceptanceTest extends SyncTestBase {
 
         testRule.waitForMail();
 
-        RestAssured.put("http://localhost:" + testRule.getHttpPort() + "/msgbox/users/" + CUSTOM_FROM_USER_ID.value + "/conversations/" + conversationId + "/read");
+        RestAssured.put("http://localhost:" + testRule.getHttpPort() + "/msgbox/users/" + CUSTOM_TO_USER_ID.value + "/conversations/" + conversationId + "/read");
 
         RestAssured.given()
                 .expect()
                 .statusCode(200)
                 .body("body.numUnread", equalTo(0))
-                .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/" + FROM.value + "/conversations/" + conversationId)
+                .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/" + TO.value + "/conversations/" + conversationId)
                 .prettyPeek();
 
         RestAssured.given()
                 .expect()
                 .statusCode(200)
                 .body("unreadMessagesCount", equalTo(0))
-                .get("http://localhost:" + testRule.getHttpPort() + "/msgbox/users/" + CUSTOM_FROM_USER_ID.value + "/conversations/" + conversationId)
+                .get("http://localhost:" + testRule.getHttpPort() + "/msgbox/users/" + CUSTOM_TO_USER_ID.value + "/conversations/" + conversationId)
                 .prettyPeek();
     }
 
