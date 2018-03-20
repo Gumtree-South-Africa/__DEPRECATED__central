@@ -221,7 +221,7 @@ public class CassandraPersistenceConfiguration {
             cassandraContactPointsForCore = convertToInetSocketAddressCollection(cassandraEndpointForCore);
         }
 
-        @Value("${persistence.cassandra.mb.endpoint:}")
+        @Value("${persistence.cassandra.mb.endpoint:${persistence.cassandra.core.endpoint}}")
         public void setCassandraEndpointForMb(String cassandraEndpointForMb) {
             cassandraContactPointsForMb = convertToInetSocketAddressCollection(cassandraEndpointForMb);
         }
