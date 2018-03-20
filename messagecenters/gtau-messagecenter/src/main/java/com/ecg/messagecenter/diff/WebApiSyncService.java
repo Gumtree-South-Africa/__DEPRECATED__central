@@ -58,6 +58,9 @@ public class WebApiSyncService {
     // so keeping it until we migrate to the new data model
     private final int messagesLimit;
 
+    @Autowired(required = false)
+    private DiffTool diff;
+
     @Autowired
     public WebApiSyncService(
             CassandraPostBoxService postBoxService,
@@ -102,11 +105,10 @@ public class WebApiSyncService {
                     .exceptionally(postBoxSyncService.handle(oldModelFailureCounter, "Old GetPostBox Failed - email: " + email));
 
             CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
-            // TODO: add diff component
             if (newModelFuture.join().isPresent()) {
-                /*CompletableFuture
+                CompletableFuture
                         .runAsync(() -> diff.postBoxResponseDiff(email, newModelFuture.join().get(), oldModelFuture.join()), diffExecutor)
-                        .exceptionally(postBoxSyncService.handleDiff("Postbox diffing Failed - email: " + email));*/
+                        .exceptionally(postBoxSyncService.handleDiff("Postbox diffing Failed - email: " + email));
             }
         }
     }
@@ -155,14 +157,13 @@ public class WebApiSyncService {
                     .thenApply(userId -> postBoxService.getConversation(userId, conversationId, null, messagesLimit))
                     .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New GetConversation Failed - email: " + email));
 
-            CompletableFuture<PostBoxSingleConversationThreadResponse> oldModelFuture = CompletableFuture.completedFuture(responseObject);
+            CompletableFuture<Optional<PostBoxSingleConversationThreadResponse>> oldModelFuture = CompletableFuture.completedFuture(Optional.of(responseObject));
 
             CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
-            // TODO: add diff component
             if (newModelFuture.join().isPresent()) {
-                /*CompletableFuture
+                CompletableFuture
                         .runAsync(() -> diff.conversationResponseDiff(email, conversationId, newModelFuture.join(), oldModelFuture.join()), diffExecutor)
-                        .exceptionally(postBoxSyncService.handleDiff("Conversation diffing Failed - email: " + email));*/
+                        .exceptionally(postBoxSyncService.handleDiff("Conversation diffing Failed - email: " + email));
             }
         }
     }
@@ -180,14 +181,13 @@ public class WebApiSyncService {
                     .thenApply(userId -> postBoxService.markConversationAsRead(userId, conversationId, null, messagesLimit))
                     .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
 
-            CompletableFuture<PostBoxSingleConversationThreadResponse> oldModelFuture = CompletableFuture.completedFuture(response);
+            CompletableFuture<Optional<PostBoxSingleConversationThreadResponse>> oldModelFuture = CompletableFuture.completedFuture(Optional.of(response));
 
             CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
-            // TODO: add diff component
             if (diffEnabled && newModelFuture.join().isPresent()) {
-                /*CompletableFuture
+                CompletableFuture
                         .runAsync(() -> diff.conversationResponseDiff(email, conversationId, newModelFuture.join(), oldModelFuture.join()), diffExecutor)
-                        .exceptionally(postBoxSyncService.handleDiff("Conversation diffing Failed - email: " + email));*/
+                        .exceptionally(postBoxSyncService.handleDiff("Conversation diffing Failed - email: " + email));
             }
         }
     }
