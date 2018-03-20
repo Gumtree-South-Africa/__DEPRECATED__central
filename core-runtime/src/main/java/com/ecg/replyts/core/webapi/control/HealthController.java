@@ -35,7 +35,7 @@ public class HealthController {
     @Value("${spring.application.name:unknown}")
     private String instanceName;
 
-    @Value("${replyts.tenant:unknown}")
+    @Value("${tenant:unknown}")
     private String tenant;
 
     @Value("${persistence.strategy:unknown}")
@@ -44,11 +44,11 @@ public class HealthController {
     @Value("#{'${persistence.riak.datacenter.primary.hosts:unknown}'.split(',')}")
     private List<String> riakHosts;
 
-    @Value("#{'${persistence.cassandra.core.endpoint:unknown}'.split(',')}")
-    private List<String> cassandraHosts;
+    @Value("${persistence.cassandra.core.endpoint:tenant-${tenant}.cassandra.service.consul:9042}")
+    private String cassandraHost;
 
-    @Value("#{'${search.es.endpoints:unknown}'.split(',')}")
-    private List<String> elasticSearchHosts;
+    @Value("${search.es.endpoints:tenant-${tenant}.elasticsearch.service.consul:9300}")
+    private String elasticSearchHosts;
 
     @Value("${persistence.riak.bucket.name.prefix:}")
     private String riakBucketPrefix;
@@ -97,7 +97,7 @@ public class HealthController {
             return conversationRepositorySource;
         }
 
-        public List<String> getElasticSearchHosts() {
+        public String getElasticSearchHosts() {
             return elasticSearchHosts;
         }
 
@@ -105,8 +105,8 @@ public class HealthController {
             return riakHosts;
         }
 
-        public List<String> getCassandraHosts() {
-            return cassandraHosts;
+        public String getCassandraHosts() {
+            return cassandraHost;
         }
 
         public String getRiakBucketPrefix() {

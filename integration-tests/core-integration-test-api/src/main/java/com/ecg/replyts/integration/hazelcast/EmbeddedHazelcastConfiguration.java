@@ -11,7 +11,7 @@ import static java.lang.String.format;
 public class EmbeddedHazelcastConfiguration {
     @Bean
     public Config hazelcastConfiguration(
-            @Value("${replyts.tenant}") String tenant,
+            @Value("${tenant}") String tenant,
             @Value("${service.discovery.hostname:localhost}") String discoveryHostname,
             @Value("${service.discovery.port:8500}") int discoveryPort,
             @Value("${hazelcast.password}") String hazelcastPassword,

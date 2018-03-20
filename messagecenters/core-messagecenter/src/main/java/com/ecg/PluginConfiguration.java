@@ -13,8 +13,8 @@ import org.springframework.context.annotation.FilterType;
 @ComaasPlugin
 @Configuration
 public class PluginConfiguration {
-    static final String V2_AND_UPGRADE_TENANTS = "#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde' || ('${replyts.tenant}' == 'gtuk' && '${webapi.sync.uk.enabled}' == 'true') || ('${replyts.tenant}' == 'ebayk' && '${webapi.sync.ek.enabled}' == 'true') || ('${replyts.tenant}' == 'gtau' && '${webapi.sync.au.enabled}' == 'true') || ('${replyts.tenant}' == 'kjca' && '${webapi.sync.ca.enabled}' == 'true')}";
-    static final String ONLY_V1_TENANTS = "#{'${replyts.tenant}' != 'mp' && '${replyts.tenant}' != 'mde'}";
+    static final String V2_AND_UPGRADE_TENANTS = "#{'${replyts.tenant}' == 'mp' || '${tenant}' == 'mde' || ('${replyts.tenant}' == 'gtuk' && '${webapi.sync.uk.enabled}' == 'true') || ('${replyts.tenant}' == 'ebayk' && '${webapi.sync.ek.enabled}' == 'true') || ('${replyts.tenant}' == 'gtau' && '${webapi.sync.au.enabled}' == 'true') || ('${replyts.tenant}' == 'kjca' && '${webapi.sync.ca.enabled}' == 'true')}";
+    static final String ONLY_V1_TENANTS = "#{'${replyts.tenant}' != 'mp' && '${tenant}' != 'mde'}";
 
     @Configuration
     @ComponentScan(value = "com.ecg.messagebox", excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.ecg.messagebox.resources.*", "com.ecg.messagebox.controllers.*"}))
@@ -37,7 +37,7 @@ public class PluginConfiguration {
     @ConditionalOnExpression(ONLY_V1_TENANTS)
     public static class MessageCenterServices {
         @Bean
-        public SpringContextProvider v1ContextProvider(@Value("${replyts.tenant}") String tenant, ApplicationContext context) {
+        public SpringContextProvider v1ContextProvider(@Value("${tenant}") String tenant, ApplicationContext context) {
             String tenantPath = "kjca".equals(tenant) ? "/message-center" : "/ebayk-msgcenter";
 
             return new SpringContextProvider(tenantPath, LegacyWebConfiguration.class, context);

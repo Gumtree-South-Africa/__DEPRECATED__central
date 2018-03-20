@@ -24,7 +24,7 @@ public class UserIdentifierConfiguration {
     @Value("${messagebox.userid.by_user_id.customValueNameForSeller:user-id-seller}")
     private String sellerUserIdName;
 
-    @Value("${replyts.tenant:no-tenant}")
+    @Value("${tenant}")
     private String tenant;
 
     @Bean
