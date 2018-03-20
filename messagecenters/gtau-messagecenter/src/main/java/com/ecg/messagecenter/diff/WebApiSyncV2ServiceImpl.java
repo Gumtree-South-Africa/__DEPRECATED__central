@@ -5,6 +5,8 @@ import com.ecg.messagebox.model.Participant;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.resources.WebApiSyncV2Service;
 import com.ecg.messagebox.service.PostBoxService;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.sync.EmailNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,31 +24,29 @@ public class WebApiSyncV2ServiceImpl implements WebApiSyncV2Service {
     private static final Logger LOG = LoggerFactory.getLogger(WebApiSyncV2ServiceImpl.class);
 
     private final PostBoxService postBoxService;
-    private final ConversationService conversationService;
+    private final SimplePostBoxRepository postBoxRepository;
+    private final ConversationThreadService conversationThreadService;
 
     @Autowired
-    public WebApiSyncV2ServiceImpl(PostBoxService postBoxService, ConversationService conversationService) {
+    public WebApiSyncV2ServiceImpl(PostBoxService postBoxService, SimplePostBoxRepository postBoxRepository, ConversationThreadService conversationThreadService) {
         this.postBoxService = postBoxService;
-        this.conversationService = conversationService;
+        this.postBoxRepository = postBoxRepository;
+        this.conversationThreadService = conversationThreadService;
     }
 
     @Override
     public Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, String messageIdCursorOpt, int messagesLimit) {
+
         Optional<ConversationThread> result = postBoxService.markConversationAsRead(userId, conversationId, messageIdCursorOpt, messagesLimit);
-
         if (result.isPresent()) {
-            try {
-                ConversationThread conversationThread = result.get();
-                String email = conversationThread.getParticipants().stream()
-                        .filter(participant -> participant.getUserId().equals(userId))
-                        .map(Participant::getEmail)
-                        .findFirst()
-                        .orElseThrow(() -> new EmailNotFoundException(String.format("Cannot find user email. UserId: %s, ConversationId: %s", userId, conversationId)));
+            ConversationThread conversationThread = result.get();
+            String email = conversationThread.getParticipants().stream()
+                    .filter(participant -> participant.getUserId().equals(userId))
+                    .map(Participant::getEmail)
+                    .findFirst()
+                    .orElseThrow(() -> new EmailNotFoundException(String.format("Cannot find user email. UserId: %s, ConversationId: %s", userId, conversationId)));
 
-                conversationService.readConversation(email, conversationId);
-            } catch (Exception ex) {
-                LOG.error("Synchronization of Reading Messages Failed", ex);
-            }
+            conversationThreadService.markReadPostBoxConversation(email, conversationId, true, null);
         }
 
         return result;
@@ -66,9 +66,13 @@ public class WebApiSyncV2ServiceImpl implements WebApiSyncV2Service {
                             .findFirst()
                             .orElseThrow(() -> new EmailNotFoundException(String.format("Cannot find user email for delete a conversation. UserId: %s", userId)));
 
+                    // MessageCenter part
+                    com.ecg.messagecenter.persistence.simple.PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
                     for (String conversationId : conversationIds) {
-                        conversationService.deleteConversation(email, conversationId);
+                        postBox.removeConversation(conversationId);
                     }
+                    postBoxRepository.deleteConversations(postBox, conversationIds);
+
                 } catch (Exception ex) {
                     LOG.error("Synchronization of Deleting Messages Failed", ex);
                 }

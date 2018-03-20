@@ -1,6 +1,7 @@
 package com.ecg.messagecenter.webapi;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.http.ContentType;
 import org.junit.Test;
 
 import static com.ecg.messagecenter.webapi.SyncTestBase.TestValues.AD_ID;
@@ -11,7 +12,7 @@ import static com.ecg.messagecenter.webapi.SyncTestBase.TestValues.MESSAGE;
 import static com.ecg.messagecenter.webapi.SyncTestBase.TestValues.TO;
 import static org.hamcrest.Matchers.equalTo;
 
-public class McToMbSyncAcceptanceTest extends SyncTestBase {
+public class MbToMcSyncAcceptanceTest extends SyncTestBase {
 
     @Test
     public void bothMcAndMbShouldHaveSameMessage() {
@@ -50,7 +51,7 @@ public class McToMbSyncAcceptanceTest extends SyncTestBase {
 
         testRule.waitForMail();
 
-        RestAssured.put("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/" + FROM.value + "/conversations/" + conversationId);
+        RestAssured.put("http://localhost:" + testRule.getHttpPort() + "/msgbox/users/" + CUSTOM_FROM_USER_ID.value + "/conversations/" + conversationId + "/read");
 
         RestAssured.given()
                 .expect()
@@ -87,8 +88,12 @@ public class McToMbSyncAcceptanceTest extends SyncTestBase {
                 .get("http://localhost:" + testRule.getHttpPort() + "/msgbox/users/" + CUSTOM_FROM_USER_ID.value + "/conversations/" + conversationId)
                 .prettyPeek();
 
-        // Removing conversation through MC API
-        RestAssured.delete("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/" + FROM.value + "/conversations?ids=" + conversationId);
+        // Archiving conversation through MB API
+        RestAssured.given()
+                .body("[\"" + conversationId + "\"]")
+                .contentType(ContentType.JSON)
+                .put("http://localhost:" + testRule.getHttpPort() + "/msgbox/users/" + CUSTOM_FROM_USER_ID.value + "/conversations/archive")
+                .prettyPeek();
 
         // Checking that conversation removed in both MC and MB
         RestAssured.given()
