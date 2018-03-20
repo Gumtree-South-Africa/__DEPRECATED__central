@@ -44,13 +44,6 @@ import java.util.stream.Collectors;
 public class CloudConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CloudConfiguration.class);
 
-    private static final Map<String, String> DISCOVERABLE_SERVICE_PROPERTIES = ImmutableMap.of(
-      "persistence.cassandra.core.endpoint", "cassandra",
-      "persistence.cassandra.mb.endpoint", "cassandra",
-      "kafka.core.servers", "kafkacore",
-      "search.es.endpoints", "elasticsearch"
-    );
-
     @Autowired
     private ConsulLifecycle lifecycle;
 
@@ -59,9 +52,6 @@ public class CloudConfiguration {
 
     @Autowired
     private ConfigurableEnvironment environment;
-
-    @Autowired
-    private DiscoveryClient discoveryClient;
 
     @Autowired
     private LoggingService loggingService;
@@ -103,17 +93,9 @@ public class CloudConfiguration {
         LOG.info("Auto-discovering cloud properties and services");
 
         org.springframework.core.env.PropertySource<?> kvPropertySource = propertySourceLocator.locate(environment);
-        Map<String, Object> discoveredProperties = discoverServices();
-
-        discoveredProperties.forEach((key, value) -> {
-            if (kvPropertySource.containsProperty(key)) {
-                LOG.warn("Auto-discovered service {} already exists in Consul KV store - using value from Consul KV store: {}", key, kvPropertySource.getProperty(key));
-            }
-        });
 
         // Cloud properties take precedence over discovered services
         environment.getPropertySources().addAfter(ComaasPropertySource.NAME, kvPropertySource);
-        environment.getPropertySources().addAfter(kvPropertySource.getName(), new MapPropertySource("discoveredServicesProperties", discoverServices()));
 
         Iterator<org.springframework.core.env.PropertySource<?>> iterator = environment.getPropertySources().iterator();
 
@@ -135,37 +117,4 @@ public class CloudConfiguration {
         effectiveProperties.forEach((key, value) -> LOG.info("Property {} = {}", key, value));
     }
 
-    private Map<String, Object> discoverServices() {
-        Map<String, Object> gatheredProperties = new HashMap<>();
-
-        DISCOVERABLE_SERVICE_PROPERTIES.forEach((property, service) -> {
-            LOG.info("Discovering service {} for property {}", service, property);
-
-            List<ServiceInstance> discoveredInstances = discoveryClient.getInstances(service);
-
-            List<String> instances = discoveredInstances.stream()
-                    .filter(instance -> instance.getMetadata().containsKey("tenant-" + tenant))
-                    .peek(instance -> LOG.debug("Discovered tenant specific service {}", instance))
-                    .map(instance -> instance.getHost() + ":" + instance.getPort())
-                    .collect(Collectors.toList());
-
-            if (instances.size() == 0 && discoveredInstances.size() > 0) {
-                instances = discoveredInstances.stream()
-                        .filter(instance -> instance.getMetadata().keySet().stream().filter(key -> key.startsWith("tenant-")).count() == 0)
-                        .peek(instance -> LOG.debug("Discovered shared service {}", instance))
-                        .map(instance -> instance.getHost() + ":" + instance.getPort())
-                        .collect(Collectors.toList());
-            }
-
-            if (instances.size() > 0) {
-                LOG.info("Auto-discovered {} {} instance(s) - adding property {}", instances.size(), service, property);
-
-                gatheredProperties.put(property, instances.stream().collect(Collectors.joining(",")));
-            } else {
-                LOG.info("Auto-discovered 0 {} instance(s) - not populating property {}", service, property);
-            }
-        });
-
-        return gatheredProperties;
-    }
 }

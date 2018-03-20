@@ -44,7 +44,7 @@ public class HealthController {
     @Value("#{'${persistence.riak.datacenter.primary.hosts:unknown}'.split(',')}")
     private List<String> riakHosts;
 
-    @Value("#{'${persistence.cassandra.core.endpoint:unknown}'.split(',')}")
+    @Value("#{'${persistence.cassandra.core.endpoint:tenant-${tenant}.cassandra.service.consul:9042}'.split(',')}")
     private List<String> cassandraHosts;
 
     @Value("#{'${search.es.endpoints:unknown}'.split(',')}")
