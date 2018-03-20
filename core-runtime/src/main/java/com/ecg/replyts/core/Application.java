@@ -22,6 +22,10 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +57,7 @@ public class Application {
             @Value("${hazelcast.password}") String hazelcastPassword,
             @Value("${hazelcast.ip:#{null}}") String hazelcastIp,
             @Value("${hazelcast.port:5701}") int hazelcastPort,
-            @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement) {
+            @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement) throws SocketException {
         Config config = new Config();
 
         config.getGroupConfig().setName(format("comaas_%s", tenant));
@@ -64,6 +68,7 @@ public class Application {
         config.getProperties().setProperty("hazelcast.logging.type", "slf4j");
         config.getProperties().setProperty("hazelcast.discovery.enabled", "true");
         config.getProperties().setProperty("hazelcast.http.healthcheck.enabled", "true");
+        config.getProperties().setProperty("hazelcast.socket.bind.any", "false");
 
         config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
         config.getNetworkConfig().getJoin().getAwsConfig().setEnabled(false);
@@ -74,12 +79,18 @@ public class Application {
         config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
 
         if (hazelcastIp != null) {
-            LOG.info("hazelcast ip was not null, {}, {}", hazelcastIp, System.getenv("NOMAD_ALLOC_ID"));
-            config.getProperties().setProperty("hazelcast.socket.bind.any", "false");
+            LOG.info("Hazelcast ip was not null, {}, {}", hazelcastIp, System.getenv("NOMAD_ALLOC_ID"));
             config.getNetworkConfig().setPublicAddress(hazelcastIp);
             config.getNetworkConfig().getInterfaces().setEnabled(true).addInterface(hazelcastIp);
         } else {
-            LOG.info("hazelcast ip was null, {}", System.getenv("NOMAD_ALLOC_ID"));
+            LOG.info("Hazelcast ip was null, finding local IP");
+            for (Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces(); networkInterfaces.hasMoreElements(); ) {
+                final NetworkInterface networkInterface = networkInterfaces.nextElement();
+                LOG.info("Remmelt: {}, {}", networkInterface.toString(), networkInterface.getHardwareAddress());
+                for (Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses(); inetAddresses.hasMoreElements(); ) {
+                    LOG.info(" ----- inet {} ", inetAddresses.nextElement());
+                }
+            }
         }
 
         Map<String, Comparable> properties = new HashMap<>();
@@ -103,7 +114,6 @@ public class Application {
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(config);
 
         LOG.info("Hazelcast Cluster Members (name): {}", hazelcastInstance.getConfig().getGroupConfig().getName());
-        LOG.info("Hazelcast Cluster Members (configured): {}", config.getNetworkConfig().getJoin().getTcpIpConfig().getMembers());
         LOG.info("Hazelcast Cluster Members (actually): {}", hazelcastInstance.getCluster().getMembers());
 
         return hazelcastInstance;
