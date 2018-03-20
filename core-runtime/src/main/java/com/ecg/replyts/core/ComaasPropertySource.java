@@ -10,16 +10,16 @@ public class ComaasPropertySource extends MapPropertySource {
     static final String NAME = "comaas_environment";
 
     private static Map<String, Object> getEnvVars() {
+        if (System.getProperty("tenant") == null) {
+            throw new IllegalStateException("Tenant not set. Please start with -Dtenant=<tenant long name>");
+        }
+
         Map<String, Object> properties = new HashMap<>();
 
         putEnvIfNotNull(properties, "COMAAS_HTTP_PORT", "replyts.http.port");
         putEnvIfNotNull(properties, "COMAAS_HAZELCAST_IP", "hazelcast.ip");
         putEnvIfNotNull(properties, "COMAAS_HAZELCAST_PORT", "hazelcast.port");
         putEnvIfNotNull(properties, "COMAAS_RUN_CRON_JOBS", "node.run.cronjobs");
-
-        if (System.getProperty("tenant") == null) {
-            throw new IllegalStateException("Tenant not set. Please start with -Dtenant=<tenant long name>");
-        }
 
         return Collections.unmodifiableMap(properties);
     }

@@ -73,8 +73,12 @@ public class Application {
         config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
 
         if (hazelcastIp != null) {
+            LOG.info("hazelcast ip was not null, {}, {}", hazelcastIp, System.getenv("NOMAD_ALLOC_ID"));
+            config.getProperties().setProperty("hazelcast.socket.bind.any", "false");
             config.getNetworkConfig().setPublicAddress(hazelcastIp);
             config.getNetworkConfig().getInterfaces().setEnabled(true).addInterface(hazelcastIp);
+        } else {
+            LOG.info("hazelcast ip was null, {}", System.getenv("NOMAD_ALLOC_ID"));
         }
 
         Map<String, Comparable> properties = new HashMap<>();
@@ -152,7 +156,7 @@ public class Application {
 
             context.getBean(StartupExperience.class).running(context.getBean(HttpServerFactory.class).getPort());
         } catch (Exception e) {
-            LOG.error("Unable to start COMaaS", e);
+            LOG.error("Unable to start Comaas", e);
         }
     }
 }
