@@ -15,7 +15,7 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 
 public class AttachmentKafkaConsumerConfig<K, V> {
-    @Value("${kafka.core.servers:#{null}}")
+    @Value("${kafka.core.servers:kafkacore.service.consul:9092}")
     private String servers;
 
     @Value("${kafka.attachment.topic:attachments}")
