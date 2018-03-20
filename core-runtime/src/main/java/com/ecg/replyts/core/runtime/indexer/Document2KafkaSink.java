@@ -33,7 +33,7 @@ public class Document2KafkaSink {
     @Qualifier("esSink")
     private KafkaSinkService documentSink;
 
-    @Value("${replyts.tenant}")
+    @Value("${tenant}")
     private String tenant;
 
     @PostConstruct

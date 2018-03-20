@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Profile;
 public class EmbeddedElasticSearchClientConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(EmbeddedElasticSearchClientConfiguration.class);
 
-    @Value("${search.es.endpoints}")
+    @Value("${search.es.endpoints:tenant-${tenant}.elasticsearch.service.consul:9300}")
     private String endpoints;
 
     @Value("${search.es.clustername}")
