@@ -63,6 +63,7 @@ public class Application {
         config.getProperties().setProperty("hazelcast.phone.home.enabled", "false");
         config.getProperties().setProperty("hazelcast.logging.type", "slf4j");
         config.getProperties().setProperty("hazelcast.discovery.enabled", "true");
+        config.getProperties().setProperty("hazelcast.http.healthcheck.enabled", "true");
 
         config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
         config.getNetworkConfig().getJoin().getAwsConfig().setEnabled(false);
