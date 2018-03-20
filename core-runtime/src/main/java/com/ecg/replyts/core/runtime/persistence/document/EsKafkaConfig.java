@@ -19,7 +19,7 @@ public class EsKafkaConfig {
 
     private static final Logger LOG = LoggerFactory.getLogger(EsKafkaConfig.class);
 
-    @Value("${kafka.es.topic:esdocuments_${replyts.tenant.short}}")
+    @Value("${kafka.es.topic:esdocuments_${replyts.tenant.short:${tenant}}}")
     private String topic;
 
     // Send this many messages to broker without waiting for response, increase throughput
@@ -50,5 +50,4 @@ public class EsKafkaConfig {
         LOG.debug("Initialized the Kafka Service for ES bean");
         return new KafkaSinkService(save, attachment_counter, producerConfig.build());
     }
-
 }
