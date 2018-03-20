@@ -130,8 +130,9 @@ void downloadFileFromGithub(final String version, final String tenant, final Str
 void loadPropsIntoConsul(final String tenant, final String version, final String environmentShort) {
     downloadFileFromGithub(version, tenant, environmentShort)
 
+    commonFunctions.loginToDocker()
     final String status = sh(
-            script: "properties-to-consul -file props.properties",
+            script: "docker run --net host --rm --volume ${PWD}/props.properties:/props.properties -w / docker-registry.ecg.so/comaas/properties-to-consul:0.0.6 -tenant $tenant",
             returnStatus: true
     )
     if (status != "0") {

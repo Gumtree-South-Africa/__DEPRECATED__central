@@ -17,9 +17,11 @@ public class ComaasPropertySource extends MapPropertySource {
         putEnvIfNotNull(properties, "COMAAS_HAZELCAST_PORT", "hazelcast.port");
         putEnvIfNotNull(properties, "COMAAS_RUN_CRON_JOBS", "node.run.cronjobs");
 
-        if (System.getProperty("tenant") != null) {
+        if (System.getProperty("tenant") == null) {
+            throw new IllegalStateException("Tenant not set. Please start with -Dtenant=<tenant long name>");
+//        } else {
             // XXX: Once everyone is over to the ecg-salt-comaas PR #108 we can s/replyts\.tenant/tenant/g
-            properties.put("replyts.tenant", System.getProperty("tenant"));
+//            properties.put("replyts.tenant", System.getProperty("tenant"));
         }
 
         return Collections.unmodifiableMap(properties);

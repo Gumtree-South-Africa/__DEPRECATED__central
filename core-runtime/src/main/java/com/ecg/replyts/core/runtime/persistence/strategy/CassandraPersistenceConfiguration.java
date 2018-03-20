@@ -168,22 +168,22 @@ public class CassandraPersistenceConfiguration {
 
         private Collection<InetSocketAddress> cassandraContactPointsForCore;
 
-        @Value("${persistence.cassandra.mb.dc:#{systemEnvironment['region']}}")
+        @Value("${persistence.cassandra.mb.dc:${persistence.cassandra.core.dc:#{systemEnvironment['region']}}}")
         private String cassandraDataCenterForMb;
 
-        @Value("${persistence.cassandra.mb.username:#{null}}")
+        @Value("${persistence.cassandra.mb.username:${persistence.cassandra.core.username:#{null}}}")
         private String cassandraUsernameForMb;
 
-        @Value("${persistence.cassandra.mb.password:#{null}}")
+        @Value("${persistence.cassandra.mb.password:${persistence.cassandra.core.password:#{null}}}")
         private String cassandraPasswordForMb;
 
-        @Value("${persistence.cassandra.mb.keyspace:replyts2}")
+        @Value("${persistence.cassandra.mb.keyspace:${persistence.cassandra.core.keyspace:replyts2}}")
         private String cassandraKeyspaceForMb;
 
-        @Value("${persistence.cassandra.mb.idleTimeoutSeconds:#{null}}")
+        @Value("${persistence.cassandra.mb.idleTimeoutSeconds:${persistence.cassandra.core.idleTimeoutSeconds:#{null}}}")
         private Integer idleTimeoutSecondsForMb;
 
-        @Value("${persistence.cassandra.mb.read.timeout.ms:12000}")
+        @Value("${persistence.cassandra.mb.read.timeout.ms:${persistence.cassandra.core.read.timeout.ms:12000}}")
         private Integer readTimeoutMillisForMb;
 
         @Value("${persistence.cassandra.slowquerylog.threshold.ms:30000}")
@@ -216,12 +216,12 @@ public class CassandraPersistenceConfiguration {
         private Session cassandraSessionForMb;
         private Cluster cassandraClusterForMb;
 
-        @Value("${persistence.cassandra.core.endpoint:}")
+        @Value("${persistence.cassandra.core.endpoint:tenant-${tenant}.cassandra.service.consul:9042}")
         public void setCassandraEndpointForCore(String cassandraEndpointForCore) {
             cassandraContactPointsForCore = convertToInetSocketAddressCollection(cassandraEndpointForCore);
         }
 
-        @Value("${persistence.cassandra.mb.endpoint:}")
+        @Value("${persistence.cassandra.mb.endpoint:${persistence.cassandra.core.endpoint:tenant-${tenant}.cassandra.service.consul:9042}}")
         public void setCassandraEndpointForMb(String cassandraEndpointForMb) {
             cassandraContactPointsForMb = convertToInetSocketAddressCollection(cassandraEndpointForMb);
         }

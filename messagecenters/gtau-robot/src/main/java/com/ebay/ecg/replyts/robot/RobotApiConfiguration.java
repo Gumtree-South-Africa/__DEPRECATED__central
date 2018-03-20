@@ -22,7 +22,7 @@ import java.security.NoSuchAlgorithmException;
 @ComaasPlugin
 @Configuration
 @Import(RobotService.class)
-@ConditionalOnProperty(value = "replyts.tenant", havingValue = "gtau")
+@ConditionalOnProperty(value = "tenant", havingValue = "gtau")
 public class RobotApiConfiguration {
 
     @Value("${rabbitmq.host}")
