@@ -132,7 +132,7 @@ void loadPropsIntoConsul(final String tenant, final String version, final String
 
     commonFunctions.loginToDocker()
     final String status = sh(
-            script: "docker run --net host --rm --volume ${PWD}/props.properties:/props.properties -w / docker-registry.ecg.so/comaas/properties-to-consul:0.0.6 -tenant $tenant",
+            script: "docker run --net host --rm --volume \$(pwd)/props.properties:/props.properties -w / docker-registry.ecg.so/comaas/properties-to-consul:0.0.6 -tenant $tenant",
             returnStatus: true
     )
     if (status != "0") {
