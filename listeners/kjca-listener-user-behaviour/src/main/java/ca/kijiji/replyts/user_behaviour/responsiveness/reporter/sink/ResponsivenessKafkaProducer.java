@@ -19,7 +19,7 @@ import static org.apache.kafka.clients.producer.ProducerConfig.*;
 @ConditionalOnBean(UserResponsivenessListener.class)
 public class ResponsivenessKafkaProducer {
 
-    @Value("${kafka.core.servers:#{null}}")
+    @Value("${kafka.core.servers:kafkacore.service.consul:9092}")
     private String servers;
 
     @Value("${user-behaviour.responsiveness.queue.compressionType:none}")

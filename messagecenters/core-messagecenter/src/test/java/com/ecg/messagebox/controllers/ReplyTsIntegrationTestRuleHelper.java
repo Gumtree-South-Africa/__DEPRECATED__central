@@ -14,7 +14,7 @@ public class ReplyTsIntegrationTestRuleHelper {
         Properties properties = new Properties();
 
         properties.put("message.synchronizer.enabled", "true");
-        properties.put("replyts.tenant", "mp");
+        properties.put("tenant", "mp");
         properties.put("hazelcast.password", "123");
         properties.put("hazelcast.port.increment", "true");
         properties.put("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_USER_ID.toString());

@@ -23,7 +23,7 @@ public class ElasticSearchClientConfiguration {
     private TransportClient client;
 
     @Bean
-    public TransportClient esClient(@Value("${search.es.endpoints}") String endpoints, @Value("${search.es.clustername}") String clusterName) {
+    public TransportClient esClient(@Value("${search.es.endpoints:tenant-${tenant}.elasticsearch.service.consul:9300}") String endpoints, @Value("${search.es.clustername}") String clusterName) {
         LOG.info("Productive ES Node configuration. endpoints: {}, clustername: {}", endpoints, clusterName);
 
         try {
@@ -33,7 +33,7 @@ public class ElasticSearchClientConfiguration {
                 String[] hostPort = endpoint.split(":");
 
                 if (hostPort.length != 2) {
-                    throw new IllegalArgumentException("Please supply the search.es.endpoints property as a comma-separated list of host:port values");
+                    throw new IllegalArgumentException("Please supply the search.es.endpoints property as a host:port string value");
                 }
 
                 client.addTransportAddress(new InetSocketTransportAddress(hostPort[0], Integer.valueOf(hostPort[1])));

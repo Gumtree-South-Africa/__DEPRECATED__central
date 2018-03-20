@@ -24,7 +24,7 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
     @Value("${mailreceiver.retrydelay.minutes:5}")
     private int retryOnFailedMessagePeriodMinutes;
 
-    @Value("${replyts.tenant.short:${replyts.tenant}}")
+    @Value("${replyts.tenant.short:${tenant}}")
     private String shortTenant;
 
     @Value("${kafka.message.processing.enabled:false}")

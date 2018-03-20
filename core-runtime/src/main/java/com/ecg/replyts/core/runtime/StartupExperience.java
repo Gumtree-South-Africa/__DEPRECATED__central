@@ -19,7 +19,7 @@ public class StartupExperience {
         begin = System.currentTimeMillis();
     }
 
-    @Value("${replyts.tenant:unknown}")
+    @Value("${tenant}")
     private String tenant;
 
     public StartupExperience(@Value("${confDir}") String confDir, @Value("${logDir:.}") String logDir) {
