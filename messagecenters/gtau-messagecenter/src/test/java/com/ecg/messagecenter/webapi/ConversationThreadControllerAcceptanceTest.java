@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.equalTo;
  */
 public class ConversationThreadControllerAcceptanceTest {
     private final Properties testProperties = new Properties() {{
-        put("replyts.tenant", "gtau");
+        put("tenant", "gtau");
         put("persistence.strategy", "riak");
     }};
 

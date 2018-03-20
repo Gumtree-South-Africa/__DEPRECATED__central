@@ -13,8 +13,8 @@ import org.springframework.context.annotation.FilterType;
 @ComaasPlugin
 @Configuration
 public class PluginConfiguration {
-    static final String V2_AND_UPGRADE_TENANTS = "#{'${replyts.tenant}' == 'mp' || '${tenant}' == 'mde' || ('${replyts.tenant}' == 'gtuk' && '${webapi.sync.uk.enabled}' == 'true') || ('${replyts.tenant}' == 'ebayk' && '${webapi.sync.ek.enabled}' == 'true') || ('${replyts.tenant}' == 'gtau' && '${webapi.sync.au.enabled}' == 'true') || ('${replyts.tenant}' == 'kjca' && '${webapi.sync.ca.enabled}' == 'true')}";
-    static final String ONLY_V1_TENANTS = "#{'${replyts.tenant}' != 'mp' && '${tenant}' != 'mde'}";
+    static final String V2_AND_UPGRADE_TENANTS = "#{'${tenant}' == 'mp' || '${tenant}' == 'mde' || ('${tenant}' == 'gtuk' && '${webapi.sync.uk.enabled}' == 'true') || ('${tenant}' == 'ebayk' && '${webapi.sync.ek.enabled}' == 'true') || ('${tenant}' == 'gtau' && '${webapi.sync.au.enabled}' == 'true') || ('${tenant}' == 'kjca' && '${webapi.sync.ca.enabled}' == 'true')}";
+    static final String ONLY_V1_TENANTS = "#{'${tenant}' != 'mp' && '${tenant}' != 'mde'}";
 
     @Configuration
     @ComponentScan(value = "com.ecg.messagebox", excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.ecg.messagebox.resources.*", "com.ecg.messagebox.controllers.*"}))

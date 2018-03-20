@@ -22,7 +22,7 @@ public class ConversationThreadControllerIntegrationTest {
             .plainBody("First contact from buyer.");
 
     private final Properties testProperties = new Properties() {{
-        put("replyts.tenant", "kjca");
+        put("tenant", "kjca");
         put("persistence.strategy", "riak");
         put("unread.count.cache.queue", "devull");
     }};

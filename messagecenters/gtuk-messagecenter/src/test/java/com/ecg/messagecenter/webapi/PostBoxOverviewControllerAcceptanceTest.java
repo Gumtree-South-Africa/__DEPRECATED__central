@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.equalTo;
 public class PostBoxOverviewControllerAcceptanceTest {
     @Rule
     public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(new Properties() {{
-        put("replyts.tenant", "gtuk");
+        put("tenant", "gtuk");
         put("persistence.strategy", "riak");
     }}, null, 20, ES_ENABLED);
 

@@ -38,7 +38,7 @@ public class AdConversationRecipientsControllerIntegrationTest {
     public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
         Properties properties = new Properties();
 
-        properties.put("replyts.tenant", "kjca");
+        properties.put("tenant", "kjca");
         properties.put("push-mobile.enabled","false");
         properties.put("persistence.strategy", "riak");
         properties.put("unread.count.cache.queue", "devull");

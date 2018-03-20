@@ -15,7 +15,7 @@ import java.util.Properties;
  */
 public class BaseReplyTsIntegrationTest {
     private final Properties testProperties = new Properties() {{
-        put("replyts.tenant", "it");
+        put("tenant", "it");
         put("persistence.strategy", "riak");
     }};
 

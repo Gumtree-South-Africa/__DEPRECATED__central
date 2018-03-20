@@ -17,10 +17,9 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(name = "ship.documents2kafka.enabled", havingValue = "true")
 public class EsKafkaConfig {
 
-
     private static final Logger LOG = LoggerFactory.getLogger(EsKafkaConfig.class);
 
-    @Value("${kafka.es.topic:esdocuments}")
+    @Value("${kafka.es.topic:esdocuments_${replyts.tenant.short}}")
     private String topic;
 
     // Send this many messages to broker without waiting for response, increase throughput

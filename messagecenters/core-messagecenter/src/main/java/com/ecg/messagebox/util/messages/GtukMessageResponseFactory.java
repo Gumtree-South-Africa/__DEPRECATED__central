@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 @Primary
 @Component
-@ConditionalOnExpression("#{'${replyts.tenant}' == 'gtuk'}")
+@ConditionalOnExpression("#{'${tenant}' == 'gtuk'}")
 public class GtukMessageResponseFactory implements MessagesResponseFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(GtukMessageResponseFactory.class);

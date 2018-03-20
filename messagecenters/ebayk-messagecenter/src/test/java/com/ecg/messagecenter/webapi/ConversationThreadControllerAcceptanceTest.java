@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.*;
 
 public class ConversationThreadControllerAcceptanceTest {
     private final Properties testProperties = new Properties() {{
-        put("replyts.tenant", "ebayk");
+        put("tenant", "ebayk");
         put("persistence.strategy", "riak");
     }};
 
@@ -81,7 +81,7 @@ public class ConversationThreadControllerAcceptanceTest {
                 .body("body.messages.size()", equalTo(3))
                 .body("body.numUnread", equalTo(1))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/buyer3@buyer.com/conversations/" + conversationId);
-        
+
     }
 
 

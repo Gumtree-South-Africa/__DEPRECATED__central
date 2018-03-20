@@ -19,9 +19,6 @@ public class ComaasPropertySource extends MapPropertySource {
 
         if (System.getProperty("tenant") == null) {
             throw new IllegalStateException("Tenant not set. Please start with -Dtenant=<tenant long name>");
-//        } else {
-            // XXX: Once everyone is over to the ecg-salt-comaas PR #108 we can s/replyts\.tenant/tenant/g
-//            properties.put("replyts.tenant", System.getProperty("tenant"));
         }
 
         return Collections.unmodifiableMap(properties);

@@ -79,7 +79,7 @@ public class HealthControllerTest {
 
             properties.load(resource.getInputStream());
 
-            properties.put("replyts.tenant", "doesntmatter");
+            properties.put("tenant", "doesntmatter");
             properties.put("hazelcast.password", "123");
             properties.put("hazelcast.port.increment", "true");
 

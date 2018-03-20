@@ -15,7 +15,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = UserIdentifierConfigurationByIdTest.TestContext.class)
 @TestPropertySource(properties = {
-  "replyts.tenant = mp",
+  "tenant = mp",
   "messagebox.userid.userIdentifierStrategy = BY_USER_ID"
 })
 public class UserIdentifierConfigurationByIdTest {

@@ -74,7 +74,7 @@ public class FilterIntegrationTest {
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(
             new Properties() {{
-                put("replyts.tenant", "gtuk");
+                put("tenant", "gtuk");
             }},
             null, 20, false,
             new Class[]{FilterConfigurationIntegrationTest.class},

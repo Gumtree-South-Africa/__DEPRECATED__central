@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.equalTo;
 public class MessageControllerAcceptanceTest {
 
     private final Properties properties = new Properties() {{
-        put("replyts.tenant", "gtau");
+        put("tenant", "gtau");
     }};
 
     @Rule
