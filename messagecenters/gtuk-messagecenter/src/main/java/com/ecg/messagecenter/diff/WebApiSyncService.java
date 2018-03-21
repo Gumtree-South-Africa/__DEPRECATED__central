@@ -1,31 +1,24 @@
 package com.ecg.messagecenter.diff;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.CassandraPostBoxService;
-import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.PostBoxResponseBuilder;
-import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
-import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.model.ConversationRts;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
-import com.ecg.replyts.core.runtime.workers.InstrumentedCallerRunsPolicy;
-import com.ecg.replyts.core.runtime.workers.InstrumentedExecutorService;
-import org.eclipse.jetty.util.BlockingArrayQueue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ecg.sync.CustomExecutorsFactory;
+import com.ecg.sync.PostBoxDiff;
+import com.ecg.sync.PostBoxResponse;
+import com.ecg.sync.PostBoxSyncService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,21 +26,15 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 
 @Component
 @ConditionalOnProperty(name = "webapi.sync.uk.enabled", havingValue = "true")
 public class WebApiSyncService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebApiSyncService.class);
-    private static final Logger DIFF_LOGGER = LoggerFactory.getLogger("diffLogger");
-    private static final int MAX_CONVERSATIONS_TO_RETRIEVE_PER_USER = 3;
 
     private final Timer getConversationTimer = newTimer("postBoxDelegatorService.getConversation");
     private final Timer markConversationAsReadTimer = newTimer("postBoxDelegatorService.markConversationAsRead");
@@ -56,25 +43,17 @@ public class WebApiSyncService {
 
     private final Counter oldModelFailureCounter = TimingReports.newCounter("webapi.diff.oldModel.failed");
     private final Counter newModelFailureCounter = TimingReports.newCounter("webapi.diff.newModel.failed");
-    private final Counter diffFailureCounter = TimingReports.newCounter("webapi.diff.failed");
 
     private boolean diffEnabled;
 
     @Autowired(required = false)
     private DiffTool diff;
 
-    private final Session session;
     private final ConversationService conversationService;
     private final CassandraPostBoxService postBoxService;
     private final SimplePostBoxRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
-    private final ConversationRepository conversationRepository;
-    private final UserIdentifierService userIdentifierService;
-    private final int corePoolSize;
-    private final int maxPoolSize;
-    private final int diffCorePoolSize;
-    private final int diffMaxPoolSize;
-    private final int diffMaxQueueSize;
+    private final PostBoxSyncService postBoxSyncService;
     private final ExecutorService oldExecutor;
     private final ExecutorService newExecutor;
     private final ExecutorService diffExecutor;
@@ -84,8 +63,6 @@ public class WebApiSyncService {
     // so keeping it until we migrate to the new data model
     private final int messagesLimit;
 
-    private final PreparedStatement conversationStatement;
-
     @Autowired
     public WebApiSyncService(
             ConversationService conversationService,
@@ -93,34 +70,21 @@ public class WebApiSyncService {
             SimplePostBoxRepository postBoxRepository,
             ConversationRepository conversationRepository,
             UserIdentifierService userIdentifierService,
+            CustomExecutorsFactory customExecutorsFactory,
             @Qualifier("cassandraSessionForMb") Session session,
             @Value("${messagebox.messagesLimit:500}") int messagesLimit,
-            @Value("${webapi.diff.executor.corePoolSize:5}") int corePoolSize,
-            @Value("${webapi.diff.executor.maxPoolSize:50}") int maxPoolSize,
-            @Value("${webapi.diff.executor.differ.corePoolSize:5}") int diffCorePoolSize,
-            @Value("${webapi.diff.executor.differ.maxPoolSize:50}") int diffMaxPoolSize,
-            @Value("${webapi.diff.executor.differ.maxQueueSize:500}") int diffMaxQueueSize,
             @Value("${webapi.diff.uk.enabled:false}") boolean diffEnabled) {
 
         this.conversationService = conversationService;
         this.postBoxService = postBoxService;
         this.postBoxRepository = postBoxRepository;
-        this.session = session;
-        this.conversationRepository = conversationRepository;
-        this.userIdentifierService = userIdentifierService;
         this.responseBuilder = new PostBoxResponseBuilder(conversationRepository);
+        this.postBoxSyncService = new PostBoxSyncService(conversationRepository, userIdentifierService, session, postBoxRepository);
         this.messagesLimit = messagesLimit;
-        this.corePoolSize = corePoolSize;
-        this.maxPoolSize = maxPoolSize;
-        this.diffCorePoolSize = diffCorePoolSize;
-        this.diffMaxPoolSize = diffMaxPoolSize;
-        this.diffMaxQueueSize = diffMaxQueueSize;
         this.diffEnabled = diffEnabled;
-        this.oldExecutor = newExecutorService("old-webapi-executor");
-        this.newExecutor = newExecutorService("new-webapi-executor");
-        this.diffExecutor = newExecutorServiceForDiff();
-
-        this.conversationStatement = this.session.prepare("SELECT conversation_id FROM mb_postbox WHERE postbox_id = ? LIMIT 1");
+        this.oldExecutor = customExecutorsFactory.webApiExecutorService("old-webapi-executor");
+        this.newExecutor = customExecutorsFactory.webApiExecutorService("new-webapi-executor");
+        this.diffExecutor = customExecutorsFactory.webApiDiffExecutorService();
     }
 
     /**
@@ -140,24 +104,24 @@ public class WebApiSyncService {
                  * and Warning is logged
                  */
                 CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture
-                        .supplyAsync(() -> getConversationId(email), newExecutor)
-                        .thenApply(convIds -> getUserId(email, convIds))
+                        .supplyAsync(() -> postBoxSyncService.getConversationId(email), newExecutor)
+                        .thenApply(convIds -> postBoxSyncService.getUserId(email, convIds))
                         .thenApply(userId -> Optional.of(postBoxService.getConversations(userId, Visibility.ACTIVE, page * size, size)))
-                        .exceptionally(handleOpt(newModelFailureCounter, "New GetPostBox Failed - email: " + email));
+                        .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New GetPostBox Failed - email: " + email));
 
                 CompletableFuture<PostBoxDiff> oldModelFuture = CompletableFuture
                         .supplyAsync(() -> postBoxRepository.byId(PostBoxId.fromEmail(email)), oldExecutor)
-                        .thenApply(postBox -> PostBoxDiff.of(postBox, responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode)))
-                        .exceptionally(handle(oldModelFailureCounter, "Old GetPostBox Failed - email: " + email));
+                        .thenApply(postBox -> new PostBoxDiff(postBox, responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode)))
+                        .exceptionally(postBoxSyncService.handle(oldModelFailureCounter, "Old GetPostBox Failed - email: " + email));
 
                 CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
                 if (newModelFuture.join().isPresent()) {
                     CompletableFuture
                             .runAsync(() -> diff.postBoxResponseDiff(email, newModelFuture.join().get(), oldModelFuture.join()), diffExecutor)
-                            .exceptionally(handleDiff("Postbox diffing Failed - email: " + email));
+                            .exceptionally(postBoxSyncService.handleDiff("Postbox diffing Failed - email: " + email));
                 }
 
-                response = oldModelFuture.join().postBoxResponse;
+                response = oldModelFuture.join().getPostBoxResponse();
             } else {
                 com.ecg.messagecenter.persistence.simple.PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
                 response = responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
@@ -177,19 +141,19 @@ public class WebApiSyncService {
             Optional<PostBoxSingleConversationThreadResponse> response;
             if (diffEnabled) {
                 CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
-                        .supplyAsync(() -> getUserId(email, Collections.singletonList(conversationId)), newExecutor)
+                        .supplyAsync(() -> postBoxSyncService.getUserId(email, Collections.singletonList(conversationId)), newExecutor)
                         .thenApply(userId -> postBoxService.getConversation(userId, conversationId, null, messagesLimit))
-                        .exceptionally(handleOpt(newModelFailureCounter, "New GetConversation Failed - email: " + email));
+                        .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New GetConversation Failed - email: " + email));
 
                 CompletableFuture<Optional<PostBoxSingleConversationThreadResponse>> oldModelFuture = CompletableFuture
                         .supplyAsync(() -> conversationService.getConversation(email, conversationId), oldExecutor)
-                        .exceptionally(handle(oldModelFailureCounter, "Old GetConversation Failed - email: " + email));
+                        .exceptionally(postBoxSyncService.handle(oldModelFailureCounter, "Old GetConversation Failed - email: " + email));
 
                 CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
                 if (newModelFuture.join().isPresent()) {
                     CompletableFuture
                             .runAsync(() -> diff.conversationResponseDiff(email, conversationId, newModelFuture.join(), oldModelFuture.join()), diffExecutor)
-                            .exceptionally(handleDiff("Conversation diffing Failed - email: " + email));
+                            .exceptionally(postBoxSyncService.handleDiff("Conversation diffing Failed - email: " + email));
                 }
 
                 response = oldModelFuture.join();
@@ -209,20 +173,20 @@ public class WebApiSyncService {
         try (Timer.Context ignored = markConversationAsReadTimer.time()) {
 
             CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
-                    .supplyAsync(() -> conversationExists(email, conversationId), newExecutor)
-                    .thenApply(conversationIds -> getUserId(email, conversationIds))
+                    .supplyAsync(() -> postBoxSyncService.conversationExists(email, conversationId), newExecutor)
+                    .thenApply(conversationIds -> postBoxSyncService.getUserId(email, conversationIds))
                     .thenApply(userId -> postBoxService.markConversationAsRead(userId, conversationId, null, messagesLimit))
-                    .exceptionally(handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
+                    .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
 
             CompletableFuture<Optional<PostBoxSingleConversationThreadResponse>> oldModelFuture = CompletableFuture
                     .supplyAsync(() -> conversationService.readConversation(email, conversationId), oldExecutor)
-                    .exceptionally(handle(oldModelFailureCounter, "Old ReadConversation Failed - email: " + email));
+                    .exceptionally(postBoxSyncService.handle(oldModelFailureCounter, "Old ReadConversation Failed - email: " + email));
 
             CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
             if (diffEnabled && newModelFuture.join().isPresent()) {
                 CompletableFuture
                         .runAsync(() -> diff.conversationResponseDiff(email, conversationId, newModelFuture.join(), oldModelFuture.join()), diffExecutor)
-                        .exceptionally(handleDiff("Conversation diffing Failed - email: " + email));
+                        .exceptionally(postBoxSyncService.handleDiff("Conversation diffing Failed - email: " + email));
             }
 
             return oldModelFuture.join();
@@ -232,152 +196,23 @@ public class WebApiSyncService {
     /**
      * Method is a mutator that means that 'deleteConversation' change an internal state of the conversion. Therefore, MessageBox API must be
      * called even if the diffing is not enable because of changing the internal state.
-     *
+     * <p>
      * Diffing cannot be used because there is not easy way how to get a deleted conversation without deeper changes or an DB additional call.
      */
     public Optional<ConversationRts> deleteConversation(String email, String conversationId) {
         try (Timer.Context ignored = deleteConversationsTimer.time()) {
 
             CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture
-                    .supplyAsync(() -> getUserId(email, Collections.singletonList(conversationId)), newExecutor)
-                    .thenApply(userId -> Optional.of(deleteConversationV2(userId, conversationId)))
-                    .exceptionally(handleOpt(newModelFailureCounter, "New DeleteConversation Failed - email: " + email));
+                    .supplyAsync(() -> postBoxSyncService.getUserId(email, Collections.singletonList(conversationId)), newExecutor)
+                    .thenApply(userId -> Optional.of(postBoxService.archiveConversations(userId, Collections.singletonList(conversationId), 0, messagesLimit)))
+                    .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New DeleteConversation Failed - email: " + email));
 
             CompletableFuture<Optional<ConversationRts>> oldModelFuture = CompletableFuture
                     .supplyAsync(() -> conversationService.deleteConversation(email, conversationId), oldExecutor)
-                    .exceptionally(handle(oldModelFailureCounter, "Old DeleteConversation Failed - email: " + email));
+                    .exceptionally(postBoxSyncService.handle(oldModelFailureCounter, "Old DeleteConversation Failed - email: " + email));
 
             CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
             return oldModelFuture.join();
         }
-    }
-
-    private PostBox deleteConversationV2(String userId, String conversationId) {
-        return postBoxService.archiveConversations(userId, Collections.singletonList(conversationId), 0, messagesLimit);
-    }
-
-    /**
-     * Returns {@link #MAX_CONVERSATIONS_TO_RETRIEVE_PER_USER} latest conversations.
-     *
-     * @param email email which postbox belongs to.
-     * @return latest conversations.
-     */
-    @SuppressWarnings("unchecked")
-    private List<String> getConversationId(String email) {
-        com.ecg.messagecenter.persistence.simple.PostBox<AbstractConversationThread> postbox =
-                (com.ecg.messagecenter.persistence.simple.PostBox<AbstractConversationThread>) postBoxRepository.byId(PostBoxId.fromEmail(email));
-
-        return postbox.getConversationThreads().stream()
-                .map(AbstractConversationThread::getConversationId)
-                .limit(MAX_CONVERSATIONS_TO_RETRIEVE_PER_USER)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Returns conversation ID if conversation exists or {@link Collections#emptyList()}.
-     *
-     * @param email          email which postbox belongs to.
-     * @param conversationId conversation id to check.
-     * @return conversation ID in list if conversation exists.
-     */
-    private List<String> conversationExists(String email, String conversationId) {
-        ResultSet resultSet = session.execute(conversationStatement.bind(email));
-        if (resultSet.iterator().hasNext()) {
-            return Collections.singletonList(conversationId);
-        }
-
-        return Collections.emptyList();
-    }
-
-    /**
-     * Methods takes collection of conversation events and tries to to find 'userId' in it.
-     * Best-case scenario is to use only one call to conversation repository but because ebayk contains multiple conversation which
-     * does not contain any conversation event, we repeat this action several times to be more likely that we find something.
-     *
-     * @param email   email of the client.
-     * @param convIds list of conversation from which 'userId' is going to be retrieved.
-     * @return 'userId' of the client having the provided email.
-     */
-    private String getUserId(String email, List<String> convIds) {
-        if (convIds.isEmpty()) {
-            throw new UserIdNotFoundException("No conversations to process", false);
-        }
-
-        for (String conversationId : convIds) {
-            MutableConversation conversation = conversationRepository.getById(conversationId);
-
-            if (conversation == null) {
-                LOGGER.debug("V2 Migration: Conversation Event not found, e-mail: {}, conversation: {}", email, conversationId);
-                continue;
-            }
-
-            if (email.equalsIgnoreCase(conversation.getBuyerId())) {
-                Optional<String> userId = userIdentifierService.getBuyerUserId(conversation);
-                if (userId.isPresent()) {
-                    return userId.get();
-                }
-
-                LOGGER.debug("V2 Migration: UserId was not found for email: {}, role: buyer, conversation: {}", email, conversationId);
-            } else if (email.equalsIgnoreCase(conversation.getSellerId())) {
-                Optional<String> userId = userIdentifierService.getSellerUserId(conversation);
-                if (userId.isPresent()) {
-                    return userId.get();
-                }
-
-                LOGGER.debug("V2 Migration: UserId was not found for email: {}, role: seller, conversation: {}", email, conversationId);
-            }
-        }
-
-        throw new UserIdNotFoundException("Cannot find 'userId' for email: " + email);
-    }
-
-    private <T> Function<Throwable, Optional<T>> handleOpt(Counter errorCounter, String errorMessage) {
-        return ex -> {
-            if (ex.getCause() instanceof UserIdNotFoundException) {
-                UserIdNotFoundException userEx = (UserIdNotFoundException) ex.getCause();
-                if (userEx.isLoggable()) {
-                    LOGGER.warn("V2 Migration: " + ex.getMessage(), ex.getCause());
-                }
-                return Optional.empty();
-            } else {
-                errorCounter.inc();
-                LOGGER.error(errorMessage, ex);
-                throw new RuntimeException(ex);
-            }
-        };
-    }
-
-    private <T> Function<Throwable, T> handle(Counter errorCounter, String errorMessage) {
-        return ex -> {
-            errorCounter.inc();
-            LOGGER.error(errorMessage, ex);
-            throw new RuntimeException(ex);
-        };
-    }
-
-    private Function<Throwable, Void> handleDiff(String errorMessage) {
-        return ex -> {
-            diffFailureCounter.inc();
-            DIFF_LOGGER.error(errorMessage, ex);
-            return null;
-        };
-    }
-
-    private ExecutorService newExecutorService(String metricsName) {
-        String metricsOwner = "webapi-diff-service";
-        return new InstrumentedExecutorService(
-                new ThreadPoolExecutor(corePoolSize, maxPoolSize, 60L, TimeUnit.SECONDS,
-                        new SynchronousQueue<>(), new InstrumentedCallerRunsPolicy(metricsOwner, metricsName)),
-                metricsOwner,
-                metricsName);
-    }
-
-    private ExecutorService newExecutorServiceForDiff() {
-        BlockingQueue<Runnable> queue = new BlockingArrayQueue<>(diffCorePoolSize, diffCorePoolSize, diffMaxQueueSize);
-        TimingReports.newGauge("webapi.diffExecutor.queueSizeGauge", (Gauge<Integer>) queue::size);
-
-        return new InstrumentedExecutorService(
-                new ThreadPoolExecutor(diffCorePoolSize, diffMaxPoolSize, 60L, TimeUnit.SECONDS, queue),
-                "webapiDiffService", "diffExecutor");
     }
 }

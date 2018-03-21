@@ -5,9 +5,10 @@ import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -20,30 +21,39 @@ import java.util.Optional;
  */
 @Component
 public class ConversationThreadEnricher {
-    private final static Timer READ_TIMER = TimingReports.newTimer("postbox-conversation-enricher-read-timer");
-    private final static Timer WRITE_TIMER = TimingReports.newTimer("postbox-conversation-enricher-write-timer");
+
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationThreadEnricher.class);
+    private static final Timer READ_TIMER = TimingReports.newTimer("postbox-conversation-enricher-read-timer");
+    private static final Timer WRITE_TIMER = TimingReports.newTimer("postbox-conversation-enricher-write-timer");
+
+    private final MailCloakingService mailCloakingService;
+    private final boolean shouldEnrichOnRead;
 
     @Autowired
-    private MailCloakingService mailCloakingService;
+    public ConversationThreadEnricher(
+            MailCloakingService mailCloakingService,
+            @Value("${messages.conversations.enrichment.on.read:false}") boolean shouldEnrichOnRead
+    ) {
+        this.mailCloakingService = mailCloakingService;
+        this.shouldEnrichOnRead = shouldEnrichOnRead;
+    }
 
-    @Autowired
-    private ConversationRepository conversationRepository;
-
-    @Value("${messages.conversations.enrichment.on.read:false}")
-    private boolean shouldEnrichOnRead;
-
-    public ConversationThread enrichOnRead(ConversationThread conversationThread, Optional<Conversation> conversation) {
+    public ConversationThread enrichOnRead(ConversationThread conversationThread, Conversation conversation) {
         if (!shouldEnrichOnRead) {
             return conversationThread;
         }
 
         try (Timer.Context ignored = READ_TIMER.time()) {
+            LOG.debug("Enriching conversation thread with conversation id {} and adId {} on read action",
+                    conversationThread.getConversationId(), conversationThread.getAdId());
             return enrich(conversationThread, conversation);
         }
     }
 
-    public ConversationThread enrichOnWrite(ConversationThread conversationThread, Optional<Conversation> conversation) {
+    public ConversationThread enrichOnWrite(ConversationThread conversationThread, Conversation conversation) {
         try (Timer.Context ignored = WRITE_TIMER.time()) {
+            LOG.debug("Enriching conversation thread with conversation id {} and adId {} on write action",
+                    conversationThread.getConversationId(), conversationThread.getAdId());
             return enrich(conversationThread, conversation);
         }
     }
@@ -55,22 +65,27 @@ public class ConversationThreadEnricher {
      * @param conversationThread {@link ConversationThread} instance to enrich
      * @return {@link ConversationThread} instance enriched
      */
-    private ConversationThread enrich(ConversationThread conversationThread, Optional<Conversation> conversation) {
-        if (conversationThread == null ||
-              (!Strings.isNullOrEmpty(conversationThread.getBuyerAnonymousEmail().orElse(null)) &&
-               !Strings.isNullOrEmpty(conversationThread.getSellerAnonymousEmail().orElse(null)) &&
-               !Strings.isNullOrEmpty(conversationThread.getStatus().orElse(null)))) {
+    private ConversationThread enrich(ConversationThread conversationThread, Conversation conversation) {
+        if (conversation == null) {
+            LOG.warn("No conversation with id {} and adId {} for conversation thread enrichment provided",
+                    conversationThread.getConversationId(), conversationThread.getAdId());
             return conversationThread;
         }
 
-        Conversation conv = conversation.orElseGet(() -> conversationRepository.getById(conversationThread.getConversationId()));
-
-        if (conv != null) {
-            conversationThread.setBuyerAnonymousEmail(Optional.ofNullable(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conv).getAddress()));
-            conversationThread.setSellerAnonymousEmail(Optional.ofNullable(mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conv).getAddress()));
-            conversationThread.setStatus(Optional.ofNullable(conv.getState().name()));
+        if (conversationThread == null || !noBuyerOrSellerOrStatus(conversationThread)) {
+            return conversationThread;
         }
 
+        conversationThread.setBuyerAnonymousEmail(Optional.ofNullable(mailCloakingService.createdCloakedMailAddress(ConversationRole.Buyer, conversation).getAddress()));
+        conversationThread.setSellerAnonymousEmail(Optional.ofNullable(mailCloakingService.createdCloakedMailAddress(ConversationRole.Seller, conversation).getAddress()));
+        conversationThread.setStatus(Optional.ofNullable(conversation.getState().name()));
+
         return conversationThread;
+    }
+
+    private static boolean noBuyerOrSellerOrStatus(ConversationThread conversationThread) {
+        return Strings.isNullOrEmpty(conversationThread.getBuyerAnonymousEmail().orElse(null)) ||
+                Strings.isNullOrEmpty(conversationThread.getSellerAnonymousEmail().orElse(null)) ||
+                Strings.isNullOrEmpty(conversationThread.getStatus().orElse(null));
     }
 }

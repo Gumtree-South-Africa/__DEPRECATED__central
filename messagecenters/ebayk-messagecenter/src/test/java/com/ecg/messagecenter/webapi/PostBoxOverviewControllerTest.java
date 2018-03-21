@@ -8,7 +8,6 @@ import com.ecg.messagecenter.persistence.simple.CassandraSimplePostBoxConfigurat
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
-import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.IdBasedConversationResumer;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
@@ -19,6 +18,7 @@ import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierConfiguration;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultCassandraConversationRepository;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
+import com.ecg.sync.PostBoxResponse;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -274,10 +274,8 @@ public class PostBoxOverviewControllerTest {
     }
 
     private PostBoxListItemResponse getDetailedConversation(String email) {
-        ResponseObject<PostBoxResponse> response = controller.getPostBoxByEmail(email, 50, 0);
-        return response.getBody().getConversations().stream()
-                .filter(c -> DETAILED_CONVERSATION.equals(c.getId()))
-                .findFirst().get();
+        List<PostBoxListItemResponse> conversations = controller.getPostBoxByEmail(email, 50, 0).getBody().getConversations();
+        return conversations.stream().filter(item -> DETAILED_CONVERSATION.equalsIgnoreCase(item.getId())).findFirst().get();
     }
 
     private ConversationThread createConversation(String id, MessageDirection direction) {

@@ -1,7 +1,6 @@
 package com.ecg.messagecenter.webapi.responses;
 
 import com.ecg.messagecenter.util.ConversationBoundnessFinder;
-import com.ecg.messagecenter.util.MessagesDiffer;
 import com.ecg.messagecenter.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
@@ -19,17 +18,13 @@ public class PostBoxSingleConversationThreadResponse {
     private String buyerName;
     private String sellerName;
     private String adId;
-    private List<MessageResponse> messages = new ArrayList<MessageResponse>();
+    private List<MessageResponse> messages = new ArrayList<>();
     private long numUnread;
 
     private PostBoxSingleConversationThreadResponse() {
     }
 
     public static Optional<PostBoxSingleConversationThreadResponse> create(long numUnread, String email, Conversation conversationRts) {
-        return create(numUnread, email, conversationRts, true);
-    }
-
-    public static Optional<PostBoxSingleConversationThreadResponse> create(long numUnread, String email, Conversation conversationRts, boolean robotEnabled) {
         PostBoxSingleConversationThreadResponse response = new PostBoxSingleConversationThreadResponse();
         response.id = conversationRts.getId();
         response.role = ConversationBoundnessFinder.lookupUsersRole(email, conversationRts);
@@ -40,12 +35,11 @@ public class PostBoxSingleConversationThreadResponse {
         response.buyerEmail = conversationRts.getBuyerId();
         response.sellerEmail = conversationRts.getSellerId();
 
-        MessagesResponseFactory messagesFactory = new MessagesResponseFactory(new MessagesDiffer());
-        Optional<List<MessageResponse>> builtResponse = messagesFactory.create(email, conversationRts, conversationRts.getMessages(), robotEnabled);
+        Optional<List<MessageResponse>> builtResponse = MessagesResponseFactory.create(email, conversationRts, conversationRts.getMessages());
         if (builtResponse.isPresent()) {
             response.messages = builtResponse.get();
             return Optional.of(response);
-        }else {
+        } else {
             return Optional.empty();
         }
     }

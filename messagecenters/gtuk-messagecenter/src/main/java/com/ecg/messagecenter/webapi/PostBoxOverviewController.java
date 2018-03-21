@@ -7,10 +7,10 @@ import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxCommand;
-import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.sync.PostBoxResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class PostBoxOverviewController {

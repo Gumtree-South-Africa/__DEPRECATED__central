@@ -7,24 +7,24 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
-
 import java.util.Properties;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.hamcrest.Matchers.equalTo;
 
-/**
- * Created by maotero on 6/10/2015.
- */
 public class ConversationThreadControllerAcceptanceTest {
-    private final Properties testProperties = new Properties() {{
-        put("replyts.tenant", "gtau");
-        put("persistence.strategy", "riak");
-    }};
 
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(
+            new Properties() {{
+                put("replyts.tenant", "gtau");
+                put("webapi.sync.au.enabled", "true");
+                put("persistence.strategy", "cassandra");
+            }},
+            null, 20, ES_ENABLED,
+            new Class[]{ConversationThreadControllerAcceptanceTest.class},
+            "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_messagecenter_schema.cql");
 
     @Test
     public void readMessages() throws Exception {
@@ -65,10 +65,10 @@ public class ConversationThreadControllerAcceptanceTest {
     @Test
     public void testRobotEnabledFlag() throws Exception {
         testRule.deliver(aNewMail()
-                        .from("buyer4@buyer.com")
-                        .to("seller4@seller.com")
-                        .adId("232323")
-                        .plainBody("First contact from buyer.")
+                .from("buyer4@buyer.com")
+                .to("seller4@seller.com")
+                .adId("232323")
+                .plainBody("First contact from buyer.")
         );
         MimeMessage contactMail = testRule.waitForMail();
         String anonymizedBuyer = contactMail.getFrom()[0].toString();
@@ -81,11 +81,11 @@ public class ConversationThreadControllerAcceptanceTest {
         String anonymizedSeller = replyMail.getFrom()[0].toString();
 
         testRule.deliver(aNewMail()
-                        .from("seller4@buyer.com")
-                        .to(anonymizedBuyer)
-                        .adId("232323")
-                        .header(Header.Robot.getValue(), "GTAU")
-                        .plainBody("A message from Gumtree Robot.")
+                .from("seller4@buyer.com")
+                .to(anonymizedBuyer)
+                .adId("232323")
+                .header(Header.Robot.getValue(), "GTAU")
+                .plainBody("A message from Gumtree Robot.")
         );
         testRule.waitForMail();
 
@@ -111,22 +111,5 @@ public class ConversationThreadControllerAcceptanceTest {
                 .body("body.messages[3].textShort", equalTo("re-reply for buyer."))
                 .body("body.messages[3].boundness", equalTo("OUTBOUND"))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/buyer4@buyer.com/conversations/" + conversationId);
-
-        // Exclude Robot Messages
-        RestAssured.given()
-                .expect()
-                .statusCode(200)
-                .body("body.id", equalTo(conversationId))
-                .body("body.adId", equalTo("232323"))
-                .body("body.messages.size()", equalTo(3))
-                .body("body.messages[0].textShort", equalTo("First contact from buyer."))
-                .body("body.messages[0].boundness", equalTo("OUTBOUND"))
-                .body("body.messages[1].textShort", equalTo("reply by seller"))
-                .body("body.messages[1].boundness", equalTo("INBOUND"))
-                //.body("body.messages[2].textShort", equalTo("A message from Gumtree Robot."))
-                //.body("body.messages[2].boundness", equalTo("INBOUND"))
-                .body("body.messages[2].textShort", equalTo("re-reply for buyer."))
-                .body("body.messages[2].boundness", equalTo("OUTBOUND"))
-                .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/buyer4@buyer.com/conversations/" + conversationId + "?robotEnabled=false");
     }
 }

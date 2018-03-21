@@ -56,6 +56,8 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     private static final String FIELD_CONVERSATION_ID = "conversation_id";
     private static final String FIELD_MODIFICATION_DATE = "modification_date";
     private static final String FIELD_ROUNDED_MODIFICATION_DATE = "rounded_modification_date";
+    private static final String FIELD_JSON = "json_value";
+    private static final String FIELD_NUM_UNREAD = "num_unread";
 
     private final Session session;
     private final ConsistencyLevel readConsistency;
@@ -123,8 +125,8 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             ResultSet resultSet = session.execute(Statements.SELECT_POSTBOX.bind(this, id.asString()));
 
             for (Row row : resultSet) {
-                String conversationId = row.getString("conversation_id");
-                String jsonValue = row.getString("json_value");
+                String conversationId = row.getString(FIELD_CONVERSATION_ID);
+                String jsonValue = row.getString(FIELD_JSON);
 
                 int unreadCount = unreadCounts.getOrDefault(conversationId, 0);
 
@@ -154,7 +156,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         ResultSet results = session.execute(Statements.SELECT_POSTBOX_UNREAD_COUNTS_CONVERSATION_IDS.bind(this, id.asString()));
 
         return StreamSupport.stream(results.spliterator(), false)
-                .collect(Collectors.toMap(row -> row.getString("conversation_id"), row -> row.getInt("num_unread")));
+                .collect(Collectors.toMap(row -> row.getString(FIELD_CONVERSATION_ID), row -> row.getInt(FIELD_NUM_UNREAD)));
     }
 
     private Optional<AbstractConversationThread> toConversationThread(PostBoxId id, String conversationId, String jsonValue, int numUnreadMessages) {
@@ -381,7 +383,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
                 return Optional.empty();
             } else {
                 int numUnreadMessages = unreadCountInConversation(id, conversationId);
-                return toConversationThread(id, conversationId, conversationThread.getString("json_value"), numUnreadMessages);
+                return toConversationThread(id, conversationId, conversationThread.getString(FIELD_JSON), numUnreadMessages);
             }
         }
     }
@@ -421,7 +423,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @Override
     public int unreadCountInConversation(PostBoxId id, String conversationId) {
         Row unreadCount = session.execute(Statements.SELECT_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, id.asString(), conversationId)).one();
-        return unreadCount != null ? unreadCount.getInt("num_unread") : 0;
+        return unreadCount != null ? unreadCount.getInt(FIELD_NUM_UNREAD) : 0;
     }
 
     @Override

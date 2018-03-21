@@ -8,6 +8,7 @@ import com.ecg.messagecenter.util.ConversationBoundnessFinder;
 import com.ecg.messagecenter.webapi.responses.PostBoxListItemResponse;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
+import com.ecg.sync.PostBoxDiff;
 import com.google.common.collect.Sets;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -50,17 +51,17 @@ public class PostBoxResponseDiff {
     public void diff(String userId, PostBox newValue, PostBoxDiff oldValue) {
         if (checkUnreadCounts) {
             int numUnreadConversations = newValue.getUnreadCounts().getNumUnreadConversations();
-            if (numUnreadConversations != oldValue.postBoxResponse.getNumUnread()) {
+            if (numUnreadConversations != oldValue.getPostBoxResponse().getNumUnread()) {
                 logDiffForPbResp(userId, "numUnread",
                         Integer.toString(numUnreadConversations),
-                        Integer.toString(oldValue.postBoxResponse.getNumUnread()),
+                        Integer.toString(oldValue.getPostBoxResponse().getNumUnread()),
                         false);
             }
         }
 
         List<com.ecg.messagebox.model.ConversationThread> allNewConversations = newValue.getConversations();
-        List<ConversationThread> allOldConversations = oldValue.postBox.getConversationThreads();
-        List<PostBoxListItemResponse> allOldResponses = oldValue.postBoxResponse.getConversations();
+        List<ConversationThread> allOldConversations = oldValue.getPostBox().getConversationThreads();
+        List<PostBoxListItemResponse> allOldResponses = oldValue.getPostBoxResponse().getConversations();
 
         Set<String> newConvIds = allNewConversations.stream()
                 .map(com.ecg.messagebox.model.ConversationThread::getId)

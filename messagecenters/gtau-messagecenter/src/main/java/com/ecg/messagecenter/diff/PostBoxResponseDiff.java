@@ -27,7 +27,7 @@ import static java.lang.Math.min;
 import static java.util.Optional.ofNullable;
 
 @Component
-@ConditionalOnProperty(name = "webapi.diff.uk.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "webapi.diff.au.enabled", havingValue = "true")
 public class PostBoxResponseDiff {
 
     private static final int MAX_CHARS_TO_COMPARE = 215;
