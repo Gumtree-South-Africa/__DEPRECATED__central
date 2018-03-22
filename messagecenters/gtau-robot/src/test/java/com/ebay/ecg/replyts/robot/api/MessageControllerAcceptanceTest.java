@@ -85,7 +85,6 @@ public class MessageControllerAcceptanceTest {
                 .body("body.conversationIds[0]", equalTo(conv2))
                 .when()
                 .request()
-                .header("Content-Type", "application/json")
                 .get("http://localhost:" + rule.getHttpPort() + format("/gtau-robot/users/%s/ads/%s", seller, adId));
     }
 
@@ -124,7 +123,6 @@ public class MessageControllerAcceptanceTest {
                 .body("body.conversationIds.size()", equalTo(0))
                 .when()
                 .request()
-                .header("Content-Type", "application/json")
                 .get("http://localhost:" + rule.getHttpPort() + format("/gtau-robot/users/%s/ads/%s", seller, adId));
     }
 
@@ -152,7 +150,6 @@ public class MessageControllerAcceptanceTest {
                 .body("body.conversationIds[0]", equalTo(conv))
                 .when()
                 .request()
-                .header("Content-Type", "application/json")
                 .get("http://localhost:" + rule.getHttpPort() + format("/gtau-robot/users/%s/ads/%s", seller, adId));
     }
 }
