@@ -19,6 +19,8 @@ public class ReplyTsIntegrationTestRuleHelper {
         properties.put("hazelcast.port.increment", "true");
         properties.put("messagebox.userid.userIdentifierStrategy", UserIdentifierType.BY_USER_ID.toString());
         properties.put("userIdentifierService", UserIdentifierType.BY_USER_ID.toString());
+        properties.put("active.dc", "localhost");
+        properties.put("region", "localhost");
 
         return properties;
     }).get(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql");

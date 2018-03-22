@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import static java.util.concurrent.TimeUnit.*;
-import static java.util.stream.Collectors.*;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.stream.Collectors.joining;
 
 /**
  * Indexes Conversations/Messages searches.
@@ -48,7 +48,7 @@ public class SearchIndexer {
     @Autowired(required = false)
     private Document2KafkaSink document2KafkaSink;
 
-    @Value("#{'${indexing.2kafka.enabled:false}' == '${region:ams1}' }")
+    @Value("#{'${indexing.2kafka.enabled:false}' == 'true' && '${active.dc}' == '${region}'}")
     private boolean enableIndexing2Kafka;
     
     public SearchIndexer(Client elasticSearchClient, IndexDataBuilder indexDataBuilder) {
