@@ -7,14 +7,17 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 
 import static java.lang.Boolean.FALSE;
@@ -52,12 +55,16 @@ public class HttpEventPublisher implements Runnable {
     }
 
     private void sendHttpCall() {
+        HttpPut request = null;
         try {
-            HttpPut request = prepareHttpCall();
+            request = prepareHttpCall();
             LOG.trace("Sending request to event collector: {}", request);
-            httpClient.execute(request, SuccessStatusCodeResponseHandler.INSTANCE);
+            final Boolean executionWasSuccessful = httpClient.execute(request, SuccessStatusCodeResponseHandler.INSTANCE);
+            if (!executionWasSuccessful) {
+                LOG.warn("Failed to send event to event collector for {}", request.getRequestLine());
+            }
         } catch (IOException e) {
-            LOG.warn("Unable to send tracking events. {}", e);
+            LOG.warn("Failed to send tracking event. {}", Optional.ofNullable(request).map(HttpRequestBase::getRequestLine).orElse(null), e);
         }
     }
 
@@ -79,19 +86,26 @@ public class HttpEventPublisher implements Runnable {
         INSTANCE;
 
         @Override
-        public Boolean handleResponse(HttpResponse response) throws IOException {
-            StatusLine statusLine = response.getStatusLine();
+        public Boolean handleResponse(HttpResponse response) {
+            try {
+                StatusLine statusLine = response.getStatusLine();
 
-            if (statusLine == null) {
-                LOG.warn("Invalid Response statusLine null");
+                if (statusLine == null) {
+                    LOG.warn("Invalid Response statusLine null");
+                    return FALSE;
+                }
+                if (statusLine.getStatusCode() >= 200
+                        && statusLine.getStatusCode() < 300) {
+                    return TRUE;
+                }
+                LOG.warn("Failed response status code {}", statusLine.getStatusCode());
                 return FALSE;
+            } finally {
+                if (response.getEntity() != null) {
+                    EntityUtils.consumeQuietly(response.getEntity());
+                }
             }
-            if (statusLine.getStatusCode() >= 200
-                && statusLine.getStatusCode() < 300) {
-                return TRUE;
-            }
-            LOG.warn("Failed response status code {}", statusLine.getStatusCode());
-            return FALSE;
+
         }
 
     }

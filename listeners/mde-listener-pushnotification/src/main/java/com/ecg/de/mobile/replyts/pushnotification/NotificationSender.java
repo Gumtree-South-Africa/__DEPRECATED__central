@@ -8,6 +8,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HTTP;
@@ -19,10 +20,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 public class NotificationSender {
     private static final Logger LOG = LoggerFactory.getLogger(MdePushNotificationListener.class);
+    private static final String MIME_TYPE_APPLICATION_JSON = ContentType.APPLICATION_JSON.getMimeType();
+    private final static int CUSTOMER_NOT_ELIGIBLE_FOR_PUSH = 404;
 
     @Value("${push.notification.service.url:}")
     private String apiUrl;
@@ -36,21 +40,28 @@ public class NotificationSender {
             return;
         }
 
+        HttpPost request = null;
         try {
-            HttpPost request = post(payload);
+            request = post(payload);
             LOG.trace("Sending request to push notification service: {}", request);
-            httpClient.execute(request, SuccessStatusCodeResponseHandler.INSTANCE);
+            final Boolean executionSuccessful = httpClient.execute(request, SuccessStatusCodeResponseHandler.INSTANCE);
+            if (!executionSuccessful) {
+                LOG.warn("Failed to send request to push notification service for {}", request.getRequestLine());
+            }
         } catch (Exception e) {
-            LOG.error("Unable to send push notification: {}", e.getMessage(), e);
+            LOG.error("Unable to send push notification: {}", Optional.ofNullable(request).map(HttpRequestBase::getRequestLine).orElse(null), e);
         }
     }
 
     private HttpPost post(MdePushMessagePayload payload) throws Exception {
-        String jsonPayload = ObjectMapperConfigurer.getObjectMapper().writeValueAsString(payload);
-        StringEntity params = new StringEntity(jsonPayload, ContentType.APPLICATION_JSON);
         HttpPost post = new HttpPost(apiUrl);
-        post.addHeader(HTTP.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
-        post.setEntity(params);
+        post.addHeader(HTTP.CONTENT_TYPE, MIME_TYPE_APPLICATION_JSON);
+        post.setEntity(
+                new StringEntity(
+                        ObjectMapperConfigurer.getObjectMapper().writeValueAsString(payload),
+                        ContentType.APPLICATION_JSON
+                )
+        );
         return post;
     }
 
@@ -66,11 +77,12 @@ public class NotificationSender {
                     LOG.warn("Invalid Response statusLine null");
                     return false;
                 }
-                if (200 <= statusLine.getStatusCode() && statusLine.getStatusCode() < 400) {
+                final int statusCode = statusLine.getStatusCode();
+                if ((statusCode >= 200 && statusCode < 300) || statusCode == CUSTOMER_NOT_ELIGIBLE_FOR_PUSH) {
                     return true;
                 }
-                LOG.warn("Failed response status code {}, body: {}",
-                        statusLine.getStatusCode(),
+                LOG.warn("Failed to send request to push notification service {}, body: {}",
+                        statusCode,
                         EntityUtils.toString(response.getEntity(), Consts.UTF_8)
                 );
                 return false;
