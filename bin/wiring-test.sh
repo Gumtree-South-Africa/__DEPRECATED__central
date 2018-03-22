@@ -35,6 +35,8 @@ function findOpenPort() {
     for i in $(seq 1 ${ATTEMPTS}); do
         local PORT=$((10000 + RANDOM % 999))
 
+        [ ${PORT} == $1 ] && continue
+
         set +o errexit
         echo -ne "\035" | telnet 127.0.0.1 ${PORT} > /dev/null 2>&1;
         local ec=$?
@@ -54,8 +56,9 @@ function findOpenPort() {
 
 function startComaas() {
     log "Starting Comaas"
-    COMAAS_HTTP_PORT=$(findOpenPort)
-    log "Starting comaas on port $COMAAS_HTTP_PORT"
+    COMAAS_HTTP_PORT=$(findOpenPort 0)
+    COMAAS_HAZELCAST_PORT=$(findOpenPort ${COMAAS_HTTP_PORT})
+    log "Starting comaas on HTTP port ${COMAAS_HTTP_PORT}, Hazelcast port ${COMAAS_HAZELCAST_PORT}"
 
     (cd distribution/target
     tar xfz comaas-${TENANT}_1-SNAPSHOT-comaas.tar.gz
@@ -63,6 +66,8 @@ function startComaas() {
     mkdir -p log
 
     COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} \
+    COMAAS_HAZELCAST_IP=127.0.0.1 \
+    COMAAS_HAZELCAST_PORT=${COMAAS_HAZELCAST_PORT} \
     java \
     -DlogDir=log \
     -Dtenant=${TENANT} \

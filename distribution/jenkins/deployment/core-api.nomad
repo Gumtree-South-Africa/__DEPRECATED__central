@@ -87,6 +87,12 @@ job "[[ .tenant ]]-core-api" {
         tags = [
           "hazelcast"
         ]
+        check {
+          type = "http"
+          path = "/hazelcast/health"
+          interval = "5s"
+          timeout  = "2s"
+        }
       }
 
       resources {

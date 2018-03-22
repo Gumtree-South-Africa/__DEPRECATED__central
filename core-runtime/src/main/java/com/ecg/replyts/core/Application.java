@@ -51,7 +51,7 @@ public class Application {
             @Value("${service.discovery.hostname:localhost}") String discoveryHostname,
             @Value("${service.discovery.port:8500}") int discoveryPort,
             @Value("${hazelcast.password}") String hazelcastPassword,
-            @Value("${hazelcast.ip:#{null}}") String hazelcastIp,
+            @Value("${hazelcast.ip}") String hazelcastIp,
             @Value("${hazelcast.port:5701}") int hazelcastPort,
             @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement) {
         Config config = new Config();
@@ -63,19 +63,18 @@ public class Application {
         config.getProperties().setProperty("hazelcast.phone.home.enabled", "false");
         config.getProperties().setProperty("hazelcast.logging.type", "slf4j");
         config.getProperties().setProperty("hazelcast.discovery.enabled", "true");
+        config.getProperties().setProperty("hazelcast.http.healthcheck.enabled", "true");
+        config.getProperties().setProperty("hazelcast.socket.bind.any", "false");
 
         config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
         config.getNetworkConfig().getJoin().getAwsConfig().setEnabled(false);
+        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
 
         config.getNetworkConfig().setPortAutoIncrement(hazelcastPortIncrement);
         config.getNetworkConfig().setPort(hazelcastPort);
 
-        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
-
-        if (hazelcastIp != null) {
-            config.getNetworkConfig().setPublicAddress(hazelcastIp);
-            config.getNetworkConfig().getInterfaces().setEnabled(true).addInterface(hazelcastIp);
-        }
+        config.getNetworkConfig().setPublicAddress(hazelcastIp);
+        config.getNetworkConfig().getInterfaces().setEnabled(true).addInterface(hazelcastIp);
 
         Map<String, Comparable> properties = new HashMap<>();
         properties.put("consul-host", discoveryHostname);
@@ -98,7 +97,6 @@ public class Application {
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(config);
 
         LOG.info("Hazelcast Cluster Members (name): {}", hazelcastInstance.getConfig().getGroupConfig().getName());
-        LOG.info("Hazelcast Cluster Members (configured): {}", config.getNetworkConfig().getJoin().getTcpIpConfig().getMembers());
         LOG.info("Hazelcast Cluster Members (actually): {}", hazelcastInstance.getCluster().getMembers());
 
         return hazelcastInstance;
@@ -152,7 +150,7 @@ public class Application {
 
             context.getBean(StartupExperience.class).running(context.getBean(HttpServerFactory.class).getPort());
         } catch (Exception e) {
-            LOG.error("Unable to start COMaaS", e);
+            LOG.error("Unable to start Comaas", e);
         }
     }
 }

@@ -188,6 +188,7 @@ function main() {
     fi
 
     export COMAAS_HTTP_PORT=18081
+    export COMAAS_HAZELCAST_IP=127.0.0.1
     CMD="${MVN_CMD} ${MVN_ARGS} ${MVN_TASKS}"
     log "Executing: ${CMD}"
     ${CMD}
