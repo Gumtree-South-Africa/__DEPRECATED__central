@@ -19,4 +19,8 @@ class HomePageController {
             return CharStreams.toString(new InputStreamReader(input, Charsets.UTF_8));
         }
     }
+
+    @RequestMapping("favicon.ico")
+    @ResponseBody
+    public void favicon() {}
 }
