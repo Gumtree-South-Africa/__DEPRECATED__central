@@ -53,7 +53,7 @@ public class HealthControllerTest {
     private Integer httpPort;
 
     @Test
-    public void checkHealthEndpoint() throws Exception {
+    public void checkHealthEndpoint() {
         RestAssured
           .expect()
           .statusCode(200)
@@ -79,7 +79,9 @@ public class HealthControllerTest {
 
             properties.load(resource.getInputStream());
 
-            properties.put("replyts.tenant", "doesntmatter");
+            properties.put("tenant", "doesntmatter");
+//            properties.put("replyts.tenant", "doesntmatter");
+            properties.put("hazelcast.ip", "127.0.0.1");
             properties.put("hazelcast.password", "123");
             properties.put("hazelcast.port.increment", "true");
 

@@ -139,6 +139,9 @@ public class CassandraPersistenceConfiguration {
         // host name to metric name map
         private final ConcurrentMap<String, String> hostMetricsNames = new ConcurrentHashMap<>();
 
+        @Value("${persistence.cassandra.jobs.idleTimeoutSeconds:#{null}}")
+        private Integer idleTimeoutSecondsForJobs;
+
         @Value("${persistence.cassandra.consistency.read:LOCAL_QUORUM}")
         private ConsistencyLevel cassandraReadConsistency;
 
@@ -160,15 +163,10 @@ public class CassandraPersistenceConfiguration {
         @Value("${persistence.cassandra.core.idleTimeoutSeconds:#{null}}")
         private Integer idleTimeoutSecondsForCore;
 
-        @Value("${persistence.cassandra.jobs.idleTimeoutSeconds:#{null}}")
-        private Integer idleTimeoutSecondsForJobs;
-
         @Value("${persistence.cassandra.core.read.timeout.ms:12000}")
         private Integer readTimeoutMillisForCore;
 
-        private Collection<InetSocketAddress> cassandraContactPointsForCore;
-
-        @Value("${persistence.cassandra.mb.dc:#{systemEnvironment['region']}}")
+        @Value("${persistence.cassandra.mb.dc:${persistence.cassandra.core.dc:#{systemEnvironment['region']}}}")
         private String cassandraDataCenterForMb;
 
         @Value("${persistence.cassandra.mb.username:#{null}}")
@@ -207,6 +205,7 @@ public class CassandraPersistenceConfiguration {
         @Value("${persistence.cassandra.speculative.policy.executions:1}")
         private int speculativePolicyMaxExecutions;
 
+        private Collection<InetSocketAddress> cassandraContactPointsForCore;
         private Collection<InetSocketAddress> cassandraContactPointsForMb;
 
         private Session cassandraSessionForCore;
@@ -216,12 +215,12 @@ public class CassandraPersistenceConfiguration {
         private Session cassandraSessionForMb;
         private Cluster cassandraClusterForMb;
 
-        @Value("${persistence.cassandra.core.endpoint:}")
+        @Value("${persistence.cassandra.core.endpoint:tenant-${tenant}.cassandra.service.consul:9042}")
         public void setCassandraEndpointForCore(String cassandraEndpointForCore) {
             cassandraContactPointsForCore = convertToInetSocketAddressCollection(cassandraEndpointForCore);
         }
 
-        @Value("${persistence.cassandra.mb.endpoint:}")
+        @Value("${persistence.cassandra.mb.endpoint:${persistence.cassandra.core.endpoint:tenant-${tenant}.cassandra.service.consul:9042}}")
         public void setCassandraEndpointForMb(String cassandraEndpointForMb) {
             cassandraContactPointsForMb = convertToInetSocketAddressCollection(cassandraEndpointForMb);
         }
@@ -360,7 +359,7 @@ public class CassandraPersistenceConfiguration {
         }
 
         @PreDestroy
-        public void closeCassandra() throws InterruptedException {
+        public void closeCassandra() {
             List<CloseFuture> closeFutures = new ArrayList<>();
 
             closeFutures.add(cassandraSessionForCore.closeAsync());
