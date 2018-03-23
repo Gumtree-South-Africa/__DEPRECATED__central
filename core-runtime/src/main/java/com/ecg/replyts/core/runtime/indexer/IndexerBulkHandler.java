@@ -34,7 +34,7 @@ public class IndexerBulkHandler {
     @Autowired
     private BulkIndexer indexer;
 
-    @Value("#{'${indexing.2kafka.enabled:false}' == '${region:ams1}' }")
+    @Value("${indexing.2kafka.enabled:false}")
     private Boolean enableReindex2Kafka;
 
     @PostConstruct

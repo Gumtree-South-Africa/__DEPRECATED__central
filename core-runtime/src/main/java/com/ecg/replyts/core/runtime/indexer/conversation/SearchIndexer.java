@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -48,9 +49,18 @@ public class SearchIndexer {
     @Autowired(required = false)
     private Document2KafkaSink document2KafkaSink;
 
-    @Value("#{'${indexing.2kafka.enabled:false}' == 'true' && '${active.dc}' == '${region}'}")
+    @Value("${indexing.2kafka.enabled:false}")
     private boolean enableIndexing2Kafka;
-    
+
+    @PostConstruct
+    private void reportConfiguration() {
+        if (enableIndexing2Kafka) {
+            LOG.info("Comaas ES indexing is disabled, sending documents to kafka for indexing instead");
+        } else {
+            LOG.info("Indexing with comaas indexer");
+        }
+    }
+
     public SearchIndexer(Client elasticSearchClient, IndexDataBuilder indexDataBuilder) {
         this.elasticSearchClient = elasticSearchClient;
         this.indexDataBuilder = indexDataBuilder;
