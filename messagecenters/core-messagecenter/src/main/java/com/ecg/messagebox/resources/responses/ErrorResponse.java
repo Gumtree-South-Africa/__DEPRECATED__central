@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ErrorResponse {
 
     @ApiModelProperty(required = true)
@@ -19,7 +20,6 @@ public class ErrorResponse {
     private final String message;
     @ApiModelProperty(required = true)
     private final String revision;
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @ApiModelProperty
     private List<String> errors = new ArrayList<>();
     @ApiModelProperty

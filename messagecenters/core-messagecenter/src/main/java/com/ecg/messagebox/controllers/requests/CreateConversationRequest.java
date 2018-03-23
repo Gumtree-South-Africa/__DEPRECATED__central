@@ -1,14 +1,17 @@
 package com.ecg.messagebox.controllers.requests;
 
+import com.ecg.messagebox.model.Participant;
+
 import javax.validation.constraints.NotNull;
-import java.util.HashSet;
-import java.util.Set;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CreateConversationRequest {
 
-    @NotNull(message = "Conversation subject text cannot be null")
+    @NotNull(message = "Conversation subject text cannot be empty")
     public String subject;
 
-    @NotNull(message = "Set of participants cannot be null")
-    public Set<String> participantIds = new HashSet<>();
+    @NotNull(message = "List of participants cannot be empty")
+    public List<Participant> participants = new ArrayList<>();
 }

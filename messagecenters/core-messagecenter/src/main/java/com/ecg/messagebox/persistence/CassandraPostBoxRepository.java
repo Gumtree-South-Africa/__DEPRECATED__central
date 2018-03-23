@@ -1,7 +1,12 @@
 package com.ecg.messagebox.persistence;
 
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
-import com.ecg.messagebox.model.*;
+import com.ecg.messagebox.model.ConversationModification;
+import com.ecg.messagebox.model.ConversationThread;
+import com.ecg.messagebox.model.Message;
+import com.ecg.messagebox.model.MessageNotification;
+import com.ecg.messagebox.model.PostBox;
+import com.ecg.messagebox.model.Visibility;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 
 import java.util.List;
@@ -154,4 +159,6 @@ public interface CassandraPostBoxRepository {
      * @param incrementUnreadCount flag if we want to increase a number of unread messages along with stored conversation for this user.
      */
     void createPartnerConversation(PartnerMessagePayload partnerPayload, Message message, String conversationId, String userId, boolean incrementUnreadCount);
+
+    void createEmptyConversation(String userId, ConversationThread conversation);
 }

@@ -41,13 +41,17 @@ public class ConversationResponseConverter {
         String creationDateStr = conversation.getMetadata().getCreationDate()
                 .map(MessageCenterUtils::toFormattedTimeISO8601ExplicitTimezoneOffset).orElse(null);
 
+        MessageResponse messageResponse = null;
+        if (conversation.getLatestMessage() != null) {
+            messageResponse = toMessageResponse(conversation.getLatestMessage()).withIsRead(conversation.getHighestOtherParticipantNumUnread() == 0);
+        }
         return new ConversationResponse(
                 conversation.getId(),
                 conversation.getAdId(),
                 conversation.getVisibility().name().toLowerCase(),
                 conversation.getMessageNotification().name().toLowerCase(),
                 participantResponses,
-                toMessageResponse(conversation.getLatestMessage()).withIsRead(conversation.getHighestOtherParticipantNumUnread() == 0),
+                messageResponse,
                 creationDateStr,
                 conversation.getMetadata().getEmailSubject(),
                 conversation.getMetadata().getTitle().orElse(null),

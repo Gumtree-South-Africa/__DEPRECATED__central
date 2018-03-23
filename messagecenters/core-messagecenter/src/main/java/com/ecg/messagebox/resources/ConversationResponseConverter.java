@@ -35,13 +35,17 @@ class ConversationResponseConverter {
                 .map(ConversationResponseConverter::toParticipantResponse)
                 .collect(Collectors.toList());
 
+        MessageResponse messageResponse = null;
+        if (conversation.getLatestMessage() != null) {
+            messageResponse = toMessageResponse(conversation.getLatestMessage()).withIsRead(conversation.getHighestOtherParticipantNumUnread() == 0);
+        }
         return new ConversationResponse(
                 conversation.getId(),
                 conversation.getAdId(),
                 conversation.getVisibility(),
                 conversation.getMessageNotification(),
                 participantResponses,
-                toMessageResponse(conversation.getLatestMessage()).withIsRead(conversation.getHighestOtherParticipantNumUnread() == 0),
+                messageResponse,
                 conversation.getMetadata().getCreationDate().orElse(null),
                 conversation.getMetadata().getEmailSubject(),
                 conversation.getMetadata().getTitle().orElse(null),

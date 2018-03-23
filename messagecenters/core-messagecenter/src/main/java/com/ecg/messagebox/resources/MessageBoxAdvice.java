@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.WebDataBinder;
@@ -35,7 +36,7 @@ public class MessageBoxAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleClientException(ClientException exception) {
         ErrorResponse errorResponse = new ErrorResponse(exception.getMessage());
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return ResponseEntity.status(exception.getHttpStatus()).body(errorResponse);
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -54,7 +55,15 @@ public class MessageBoxAdvice extends ResponseEntityExceptionHandler {
 
         ErrorResponse errorResponse = new ErrorResponse(String.format("Validation failed. %d error(s)", allErrors.size()));
 
-        allErrors.stream().map(ObjectError::getDefaultMessage).forEach(errorResponse::addValidationError);
+        allErrors.forEach(objectError -> errorResponse.addValidationError(objectError.getDefaultMessage()));
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException exception, HttpHeaders headers, HttpStatus status, WebRequest request) {
+
+        ErrorResponse errorResponse = new ErrorResponse(exception.getClass().getName() + ": " + exception.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }

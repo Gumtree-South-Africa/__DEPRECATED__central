@@ -3,13 +3,21 @@ package com.ecg.messagebox.persistence;
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Statement;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
-import com.ecg.messagebox.model.*;
+import com.ecg.messagebox.model.ConversationMetadata;
+import com.ecg.messagebox.model.ConversationModification;
+import com.ecg.messagebox.model.ConversationThread;
+import com.ecg.messagebox.model.Message;
+import com.ecg.messagebox.model.MessageNotification;
+import com.ecg.messagebox.model.MessageType;
+import com.ecg.messagebox.model.Participant;
+import com.ecg.messagebox.model.PostBox;
+import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.persistence.model.ConversationIndex;
 import com.ecg.messagebox.persistence.model.PaginatedConversationIds;
 import com.ecg.messagebox.persistence.model.UnreadCounts;
 import com.ecg.messagebox.util.StreamUtils;
+import com.ecg.messagebox.util.uuid.UUIDComparator;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -17,19 +25,38 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.datastax.driver.core.utils.UUIDs.unixTimestamp;
 import static com.ecg.messagebox.model.Visibility.get;
-import static com.ecg.messagebox.util.uuid.UUIDComparator.staticCompare;
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.nullsLast;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 
 @Component
 public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
+
     private static final Logger LOG = LoggerFactory.getLogger(DefaultCassandraPostBoxRepository.class);
+
+    static final Comparator<ConversationThread> CONVERSATION_THREAD_COMPARATOR = comparing(
+        ConversationThread::getLatestMessage,
+        nullsLast(comparing(Message::getId, UUIDComparator::staticCompare))).thenComparing(ConversationThread::getId).reversed();
+
+    static final Comparator<ConversationIndex> CONVERSATION_INDEX_COMPARATOR = comparing(
+        ConversationIndex::getLatestMessageId,
+        nullsLast(UUIDComparator::staticCompare)).thenComparing(ConversationIndex::getConversationId).reversed();
+
+    static final Comparator<Message> MESSAGE_COMPARATOR = comparing(Message::getId, UUIDComparator::staticCompare);
 
     private final CassandraTemplate cassandraTemplate;
 
@@ -57,7 +84,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
                         }
                     }
                     return conversation;
-                }).sorted((c1, c2) -> staticCompare(c2.getLatestMessage().getId(), c1.getLatestMessage().getId()))
+                }).sorted(CONVERSATION_THREAD_COMPARATOR)
                 .collect(toList());
 
         UserUnreadCounts userUnreadCounts = createUserUnreadCounts(userId, conversationUnreadCountsMap.values().stream()
@@ -72,7 +99,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         List<String> allConversationIds = StreamUtils.toStream(resultSet)
                 .map(row -> new ConversationIndex(row.getString("convid"), row.getString("adid"), get(row.getInt("vis")), row.getUUID("latestmsgid")))
                 .filter(ci -> ci.getVisibility() == visibility)
-                .sorted((ci1, ci2) -> staticCompare(ci2.getLatestMessageId(), ci1.getLatestMessageId()))
+                .sorted(CONVERSATION_INDEX_COMPARATOR)
                 .map(ConversationIndex::getConversationId)
                 .collect(toList());
 
@@ -125,20 +152,21 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         if (limit < 1) {
             return Collections.emptyList();
         }
-        ResultSet resultSet = Optional.ofNullable(messageIdCursor)
-                .map(cursor -> cassandraTemplate.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITH_CURSOR, userId, conversationId, UUID.fromString(cursor), limit))
-                .orElse(cassandraTemplate.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR, userId, conversationId, limit));
+        ResultSet resultSet;
+        if (messageIdCursor != null) {
+            resultSet = cassandraTemplate.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITH_CURSOR, userId, conversationId, UUID.fromString(messageIdCursor), limit);
+        } else {
+            resultSet = cassandraTemplate.execute(Statements.SELECT_CONVERSATION_MESSAGES_WITHOUT_CURSOR, userId, conversationId, limit);
+        }
 
         return StreamUtils.toStream(resultSet)
-                .map(row -> {
-                    UUID messageId = row.getUUID("msgid");
-                    MessageMetadata metadata = JsonConverter.fromMessageMetadataJson(userId, conversationId, messageId.toString(), row.getString("metadata"));
-                    return new Message(row.getUUID("msgid"),
-                            MessageType.get(row.getString("type")),
-                            metadata);
-                })
-                .sorted((m1, m2) -> staticCompare(m1.getId(), m2.getId()))
+                .map(row -> createMessage(userId, conversationId, row.getUUID("msgid"), row.getString("metadata"), row.getString("type")))
+                .sorted(MESSAGE_COMPARATOR)
                 .collect(toList());
+    }
+
+    private Message createMessage(String userId, String conversationId, UUID messageId, String metadata, String type) {
+        return new Message(messageId, MessageType.get(type), JsonConverter.fromMessageMetadataJson(userId, conversationId, messageId.toString(), metadata));
     }
 
     private ConversationThread createConversation(String userId, Row row) {
@@ -227,70 +255,121 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
 
     @Override
     public void createConversation(String userId, ConversationThread conversation, Message message, boolean incrementUnreadCount) {
-        createConversation(conversation.getId(), userId, conversation.getAdId(), conversation.getParticipants(), message, conversation.getMetadata(), incrementUnreadCount);
+        BatchStatement batch = new BatchStatement();
+
+        String conversationId = conversation.getId();
+        String adId = conversation.getAdId();
+
+        updateConversation(batch, userId, conversationId, adId, message, conversation.getParticipants(), conversation.getMetadata());
+        updateAdConversationIndex(batch, userId, conversationId, adId, message.getId());
+        insertMessage(batch, userId, conversationId, message);
+        if (incrementUnreadCount) {
+            updateConversationUnreadCount(batch, userId, conversationId, adId);
+            updateOtherParticipantConversationUnreadCount(batch, conversationId, message.getSenderUserId());
+        }
+        insertAdConversationModificationIdx(batch, userId, conversationId, adId, message.getId());
+
+        cassandraTemplate.execute(batch);
+    }
+
+    @Override
+    public void createEmptyConversation(String userId, ConversationThread conversation) {
+        BatchStatement batch = new BatchStatement();
+
+        String conversationId = conversation.getId();
+        String adId = conversation.getAdId();
+
+        updateConversation(batch, userId, conversationId, adId, null, conversation.getParticipants(), conversation.getMetadata());
+        updateAdConversationIndex(batch, userId, conversationId, adId, null);
+
+        cassandraTemplate.execute(batch);
+    }
+
+    @Override
+    public void createPartnerConversation(PartnerMessagePayload payload, Message message, String conversationId, String userId, boolean incrementUnreadCount) {
+        BatchStatement batch = new BatchStatement();
+
+        String adId = payload.getAdId();
+        List<Participant> participants = Arrays.asList(payload.getBuyer(), payload.getSeller());
+        ConversationMetadata metadata = new ConversationMetadata(DateTime.now(), payload.getSubject(), payload.getAdTitle(), null);
+
+        updateConversation(batch, userId, conversationId, adId, message, participants, metadata);
+        updateAdConversationIndex(batch, userId, conversationId, adId, message.getId());
+        insertMessage(batch, userId, conversationId, message);
+        if (incrementUnreadCount) {
+            updateConversationUnreadCount(batch, userId, conversationId, adId);
+            updateOtherParticipantConversationUnreadCount(batch, conversationId, message.getSenderUserId());
+        }
+        insertAdConversationModificationIdx(batch, userId, conversationId, adId, message.getId());
+
+        cassandraTemplate.execute(batch);
     }
 
     @Override
     public void addMessage(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount) {
-        String messageJson = JsonConverter.toMessageJson(userId, conversationId, message);
-
         BatchStatement batch = new BatchStatement();
 
-        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
-        newMessageCqlStatements(userId, conversationId, adId, message, incrementUnreadCount).forEach(batch::add);
+        updateConversationLatestMessage(batch, userId, conversationId, message);
+        updateAdConversationIndex(batch, userId, conversationId, adId, message.getId());
+        insertMessage(batch, userId, conversationId, message);
+        if (incrementUnreadCount) {
+            updateConversationUnreadCount(batch, userId, conversationId, adId);
+            updateOtherParticipantConversationUnreadCount(batch, conversationId, message.getSenderUserId());
+        }
+        insertAdConversationModificationIdx(batch, userId, conversationId, adId, message.getId());
+
         cassandraTemplate.execute(batch);
     }
 
     @Override
     public void addSystemMessage(String userId, String conversationId, String adId, Message message) {
-        String messageJson = JsonConverter.toMessageJson(userId, conversationId, message);
-
         BatchStatement batch = new BatchStatement();
 
-        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
-        newSystemMessageCqlStatements(userId, conversationId, adId, message).forEach(batch::add);
+        updateConversationLatestMessage(batch, userId, conversationId, message);
+        updateAdConversationIndex(batch, userId, conversationId, adId, message.getId());
+        insertMessage(batch, userId, conversationId, message);
+        updateConversationUnreadCount(batch, userId, conversationId, adId);
+        insertAdConversationModificationIdx(batch, userId, conversationId, adId, message.getId());
+
         cassandraTemplate.execute(batch);
     }
 
-    private List<Statement> newMessageCqlStatements(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount) {
-        return newMessageCqlStatements(userId, conversationId, adId, message, incrementUnreadCount, true);
+    private void updateConversation(BatchStatement batch, String userId, String conversationId, String adId, Message message,
+            List<Participant> participants, ConversationMetadata metadata) {
+        String participantsJson = JsonConverter.toParticipantsJson(userId, conversationId, participants);
+        String messageJson = JsonConverter.toMessageJson(userId, conversationId, message);
+        String metadataJson = JsonConverter.toConversationMetadataJson(userId, conversationId, metadata);
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION, adId, Visibility.ACTIVE.getCode(), MessageNotification.RECEIVE.getCode(),
+                participantsJson, messageJson, metadataJson, userId, conversationId));
     }
 
-    private List<Statement> newMessageCqlStatements(String userId, String conversationId, String adId, Message message, boolean incrementUnreadCount, boolean insertMessage) {
-        List<Statement> statements = new ArrayList<>();
-        statements.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_INDEX, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
-
-        if (insertMessage) {
-            String messageMetadata = JsonConverter.toMessageMetadataJson(userId, conversationId, message);
-            statements.add(cassandraTemplate.bind(Statements.INSERT_MESSAGE, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
-        }
-
-        if (incrementUnreadCount) {
-            int newUnreadCount = getConversationUnreadCount(userId, conversationId) + 1;
-            int newOtherParticipantUnreadCount = getConversationOtherParticipantUnreadCount(message.getSenderUserId(), conversationId) + 1;
-            statements.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_UNREAD_COUNT, newUnreadCount, userId, conversationId));
-            statements.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT, newOtherParticipantUnreadCount, message.getSenderUserId(), conversationId));
-            statements.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT, newUnreadCount, userId, adId, conversationId));
-        }
-
-        statements.add(cassandraTemplate.bind(Statements.INSERT_AD_CONVERSATION_MODIFICATION_IDX, userId, conversationId, message.getId(), adId));
-
-        return statements;
+    private void updateAdConversationIndex(BatchStatement batch, String userId, String conversationId, String adId, UUID messageId) {
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_INDEX, Visibility.ACTIVE.getCode(), messageId, userId, adId, conversationId));
     }
 
-    private List<Statement> newSystemMessageCqlStatements(String userId, String conversationId, String adId, Message message) {
-        List<Statement> statements = new ArrayList<>();
-        statements.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_INDEX, Visibility.ACTIVE.getCode(), message.getId(), userId, adId, conversationId));
-        String messageMetadata = JsonConverter.toMessageMetadataJson(userId, conversationId, message);
-        statements.add(cassandraTemplate.bind(Statements.INSERT_MESSAGE, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
+    private void updateConversationLatestMessage(BatchStatement batch, String userId, String conversationId, Message message) {
+        String messageJson = JsonConverter.toMessageJson(userId, conversationId, message);
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_LATEST_MESSAGE, Visibility.ACTIVE.getCode(), messageJson, userId, conversationId));
+    }
 
+    private void updateConversationUnreadCount(BatchStatement batch, String userId, String conversationId, String adId) {
         int newUnreadCount = getConversationUnreadCount(userId, conversationId) + 1;
-        statements.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_UNREAD_COUNT, newUnreadCount, userId, conversationId));
-        statements.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT, newUnreadCount, userId, adId, conversationId));
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_UNREAD_COUNT, newUnreadCount, userId, conversationId));
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_AD_CONVERSATION_UNREAD_COUNT, newUnreadCount, userId, adId, conversationId));
+    }
 
-        statements.add(cassandraTemplate.bind(Statements.INSERT_AD_CONVERSATION_MODIFICATION_IDX, userId, conversationId, message.getId(), adId));
+    private void updateOtherParticipantConversationUnreadCount(BatchStatement batch, String conversationId, String senderUserId) {
+        int newOtherParticipantUnreadCount = getConversationOtherParticipantUnreadCount(senderUserId, conversationId) + 1;
+        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION_OTHER_PARTICIPANT_UNREAD_COUNT, newOtherParticipantUnreadCount, senderUserId, conversationId));
+    }
 
-        return statements;
+    private void insertMessage(BatchStatement batch, String userId, String conversationId, Message message) {
+        String messageMetadata = JsonConverter.toMessageMetadataJson(userId, conversationId, message);
+        batch.add(cassandraTemplate.bind(Statements.INSERT_MESSAGE, userId, conversationId, message.getId(), message.getType().getValue(), messageMetadata));
+    }
+
+    private void insertAdConversationModificationIdx(BatchStatement batch, String userId, String conversationId, String adId, UUID messageId) {
+        batch.add(cassandraTemplate.bind(Statements.INSERT_AD_CONVERSATION_MODIFICATION_IDX, userId, conversationId, messageId, adId));
     }
 
     @Override
@@ -347,41 +426,12 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
         return new ConversationModification(userId, convId, adId, msgId, lastModifiedDate);
     }
 
+    @Override
     public List<String> resolveConversationIdsByUserIdAndAdId(String userId, String adId, int limit) {
         ResultSet resultSet = cassandraTemplate.execute(cassandraTemplate.bind(Statements.SELECT_CONVERSATION_IDS_BY_USER_ID_AND_AD_ID, userId, adId, limit));
         return StreamUtils
                 .toStream(resultSet)
                 .map(row -> row.getString("convid"))
                 .collect(toList());
-    }
-
-    @Override
-    public void createPartnerConversation(PartnerMessagePayload payload, Message message, String conversationId, String userId, boolean incrementUnreadCount) {
-        createConversation(
-                conversationId,
-                userId,
-                payload.getAdId(),
-                Arrays.asList(payload.getBuyer(), payload.getSeller()),
-                message,
-                new ConversationMetadata(DateTime.now(), payload.getSubject(), payload.getAdTitle(), null),
-                incrementUnreadCount,
-                true);
-    }
-
-    private void createConversation(String conversationId, String senderId, String adId, List<Participant> participants, Message message, ConversationMetadata metadata, boolean incrementUnreadCount) {
-        createConversation(conversationId, senderId, adId, participants, message, metadata, incrementUnreadCount, true);
-    }
-
-    private void createConversation(String conversationId, String senderId, String adId, List<Participant> participants, Message message, ConversationMetadata metadata, boolean incrementUnreadCount, boolean insertMessage) {
-        String participantsJson = JsonConverter.toParticipantsJson(senderId, conversationId, participants);
-        String messageJson = JsonConverter.toMessageJson(senderId, conversationId, message);
-        String metadataJson = JsonConverter.toConversationMetadataJson(senderId, conversationId, metadata);
-
-        BatchStatement batch = new BatchStatement();
-
-        batch.add(cassandraTemplate.bind(Statements.UPDATE_CONVERSATION, adId, Visibility.ACTIVE.getCode(), MessageNotification.RECEIVE.getCode(),
-                participantsJson, messageJson, metadataJson, senderId, conversationId));
-        newMessageCqlStatements(senderId, conversationId, adId, message, incrementUnreadCount, insertMessage).forEach(batch::add);
-        cassandraTemplate.execute(batch);
     }
 }
