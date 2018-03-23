@@ -32,7 +32,7 @@ public abstract class SyncTestBase {
                 put("messagebox.userid.userIdentifierStrategy", "BY_USER_ID");
             }},
             null, 20, ES_ENABLED,
-            new Class[]{ConversationThreadControllerAcceptanceTest.class},
+            new Class[]{Object.class},
             "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_messagecenter_schema.cql");
 
     protected static MailBuilder buildMail() {

@@ -10,7 +10,6 @@ import com.ecg.messagecenter.util.ConversationThreadEnricher;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.sync.CustomExecutorsFactory;
 import com.ecg.sync.PostBoxResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
-import java.util.concurrent.ExecutorService;
 
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -43,7 +41,6 @@ public class PostBoxOverviewController {
     private final PostBoxResponseBuilder responseBuilder;
     private final boolean syncEnabled;
     private final boolean diffEnabled;
-    private final ExecutorService newExecutor;
 
     @Autowired(required = false)
     private WebApiSyncService webApiSyncService;
@@ -53,7 +50,6 @@ public class PostBoxOverviewController {
             ConversationRepository conversationRepository,
             SimplePostBoxRepository postBoxRepository,
             ConversationThreadEnricher conversationThreadEnricher,
-            CustomExecutorsFactory customExecutorsFactory,
             @Value("${webapi.sync.au.enabled:false}") boolean syncEnabled,
             @Value("${webapi.diff.au.enabled:false}") boolean diffEnabled
     ) {
@@ -61,7 +57,6 @@ public class PostBoxOverviewController {
         this.responseBuilder = new PostBoxResponseBuilder(conversationRepository, conversationThreadEnricher);
         this.syncEnabled = syncEnabled;
         this.diffEnabled = diffEnabled;
-        this.newExecutor = customExecutorsFactory.webApiExecutorService("new-webapi-executor");
 
         if (syncEnabled) {
             LOG.info("MessageCenter to MessageBox sync enabled");
