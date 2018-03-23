@@ -1,7 +1,8 @@
 package com.ecg.replyts.integration.test;
 
-import com.ecg.replyts.core.LoggingService;
 import com.ecg.replyts.core.Application;
+import com.ecg.replyts.core.ApplicationReadyEvent;
+import com.ecg.replyts.core.LoggingService;
 import com.ecg.replyts.core.Webserver;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.io.Files;
@@ -95,6 +96,8 @@ public final class ReplytsRunner {
             context.refresh();
 
             this.mailInterceptor = checkNotNull(context.getBean(MailInterceptor.class), "mailInterceptor");
+
+            context.publishEvent(new ApplicationReadyEvent(context));
 
             if (!context.getBean(Webserver.class).isStarted()) {
                 throw new IllegalStateException("COMaaS did not start up in its entirety");

@@ -149,6 +149,8 @@ public class Application {
             context.refresh();
 
             context.getBean(StartupExperience.class).running(context.getBean(HttpServerFactory.class).getPort());
+
+            context.publishEvent(new ApplicationReadyEvent(context));
         } catch (Exception e) {
             LOG.error("Unable to start Comaas", e);
         }

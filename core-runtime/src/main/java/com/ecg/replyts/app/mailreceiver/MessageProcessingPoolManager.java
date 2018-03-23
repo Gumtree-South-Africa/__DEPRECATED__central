@@ -1,5 +1,6 @@
 package com.ecg.replyts.app.mailreceiver;
 
+import com.ecg.replyts.core.ApplicationReadyEvent;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -8,13 +9,14 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.NotThreadSafe;
+
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
@@ -106,8 +108,8 @@ public abstract class MessageProcessingPoolManager {
 
     protected abstract Stream<MessageProcessor> createProcessorStream();
 
-    @PostConstruct
-    public final void startProcessing() {
+    @EventListener
+    public void onApplicationReadyEvent(ApplicationReadyEvent event) {
         checkState(!executor.isShutdown(), "The mail processing pool has been shutdown");
         createProcessorStream().peek(messageProcessors::add).map(this::createWorker).forEach(this::submitWorker);
     }

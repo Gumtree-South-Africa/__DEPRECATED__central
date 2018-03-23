@@ -1,12 +1,17 @@
 package com.ecg.replyts.app.mailreceiver;
 
 import com.ecg.replyts.app.mailreceiver.dropfolder.DropfolderMessageProcessingPoolManager;
+import com.ecg.replyts.core.ApplicationReadyEvent;
 import com.google.common.collect.Iterables;
 import org.junit.Test;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.jayway.awaitility.Awaitility.await;
@@ -32,7 +37,7 @@ public class DropfolderMessageProcessingPoolManagerTest {
                 throw new RuntimeException("this one supposed to kill a worker thread so that it's resurrects");
             }
         });
-        manager.startProcessing();
+        manager.onApplicationReadyEvent(new ApplicationReadyEvent(this));
 
         assertTrue("the processing service didn't reduce the latch to 0: the processing thread hasn't been restarted",
                 latch.await(10L, TimeUnit.SECONDS));
@@ -53,7 +58,7 @@ public class DropfolderMessageProcessingPoolManagerTest {
             workerInvocationCount.incrementAndGet();
             semaphore.acquire();
         });
-        manager.startProcessing();
+        manager.onApplicationReadyEvent(new ApplicationReadyEvent(this));
 
         // Wait until at least 5 threads has been started and waiting for the semaphore
         await().atMost(10L, TimeUnit.SECONDS).pollDelay(5L, TimeUnit.MILLISECONDS)
@@ -74,7 +79,7 @@ public class DropfolderMessageProcessingPoolManagerTest {
             daemonFlags.add(Thread.currentThread().isDaemon());
             semaphore.acquire();
         });
-        manager.startProcessing();
+        manager.onApplicationReadyEvent(new ApplicationReadyEvent(this));
         await().atMost(10L, TimeUnit.SECONDS).pollDelay(5L, TimeUnit.MILLISECONDS)
                 .until(() -> semaphore.getQueueLength() >= 5);
         // ensure that thread names are unique

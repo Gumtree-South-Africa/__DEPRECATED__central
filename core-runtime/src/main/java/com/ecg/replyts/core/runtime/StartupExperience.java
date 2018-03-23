@@ -52,5 +52,4 @@ public class StartupExperience {
             return false;
         }
     }
-
 }
