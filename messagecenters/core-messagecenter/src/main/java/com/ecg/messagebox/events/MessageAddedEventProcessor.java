@@ -16,14 +16,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
-import static com.google.common.collect.Lists.newArrayList;
+import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
+import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 
 @Component
 public class MessageAddedEventProcessor {
@@ -39,8 +39,7 @@ public class MessageAddedEventProcessor {
         this.eventConverter = new EventConverter(mailCloaking);
     }
 
-    public MessageAddedEventProcessor(EventConverter eventConverter,
-                                      MessageAddedKafkaPublisher publisher, boolean enabled) {
+    public MessageAddedEventProcessor(EventConverter eventConverter, MessageAddedKafkaPublisher publisher, boolean enabled) {
         this.enabled = enabled;
         this.eventConverter = eventConverter;
         this.publisher = publisher;
@@ -59,7 +58,7 @@ public class MessageAddedEventProcessor {
     }
 
     private EventPublisher.Event constructEvent(Conversation conv, Message msg, String msgText, UserUnreadCounts unreadCounts) {
-        final Map<String, String> headers = new HashMap<>(msg.getHeaders());
+        Map<String, String> headers = new HashMap<>(msg.getHeaders());
         headers.put(USER_MESSAGE_HEADER, msgText);
 
         final MessageAddedEvent messageAddedEvent = new MessageAddedEvent(msg.getId(),
@@ -75,12 +74,11 @@ public class MessageAddedEventProcessor {
                 msg.getAttachmentFilenames(),
                 singletonList(msgText));
 
-        return eventConverter.toEvents(conv, newArrayList(messageAddedEvent), unreadCounts, isNewConnection(conv.getMessages())).get(0);
+        return eventConverter.toEvents(conv, singletonList(messageAddedEvent), unreadCounts, isNewConnection(conv.getMessages())).get(0);
     }
 
     private EventPublisher.Event constructEvent(Conversation conv, String id, String msgText, UserUnreadCounts unreadCounts) {
-        final Map<String, String> headers = new HashMap<>();
-        headers.put(USER_MESSAGE_HEADER, msgText);
+        Map<String, String> headers = singletonMap(USER_MESSAGE_HEADER, msgText);
 
         final MessageAddedEvent messageAddedEvent = new MessageAddedEvent(id,
                 MessageDirection.SYSTEM_MESSAGE,
@@ -95,9 +93,8 @@ public class MessageAddedEventProcessor {
                 null,
                 singletonList(msgText));
 
-        return eventConverter.toEvents(conv, newArrayList(messageAddedEvent), unreadCounts, isNewConnection(conv.getMessages())).get(0);
+        return eventConverter.toEvents(conv, singletonList(messageAddedEvent), unreadCounts, isNewConnection(conv.getMessages())).get(0);
     }
-
 
     @Autowired(required = false)
     public void setPublisher(@Qualifier("messageAddedEventPublisher") MessageAddedKafkaPublisher publisher) {
@@ -108,34 +105,24 @@ public class MessageAddedEventProcessor {
      * Returns true only if the last message creates a connection in the conversation to avoid duplicate connections.
      */
     protected boolean isNewConnection(List<Message> messages) {
-        if (messages.size() > 2) {
-            final List<Message> messagesNoLatest = new ArrayList<>(messages);
-            messagesNoLatest.remove(messagesNoLatest.size() - 1);
-
-            return isConnected(messages) && !isConnected(messagesNoLatest);
-        } else {
-            return false;
-        }
+        return messages.size() > 2 && isConnected(messages) && !isConnected(messages.subList(0, messages.size() - 1));
     }
 
     /**
      * Returns true if conversation has a new connection
      */
     private boolean isConnected(List<Message> messages) {
-        final Stack<MessageDirection> stack = new Stack<>();
-        messages.forEach(m -> {
-            final MessageDirection direction = m.getMessageDirection();
-            if (stack.isEmpty()) {
-                stack.push(direction);
-            } else {
-                if (stack.peek() != direction) {
-                    stack.push(direction);
-                }
+        int i = 0;
+        for (Message message : messages) {
+            MessageDirection direction = message.getMessageDirection();
+            if (i == 0 && direction == BUYER_TO_SELLER) {
+                i++;
+            } else if (i == 1 && direction == SELLER_TO_BUYER) {
+                i++;
+            } else if (i == 2 && direction == BUYER_TO_SELLER) {
+                return true;
             }
-        });
-        return stack.size() > 2
-                && stack.get(0) == MessageDirection.BUYER_TO_SELLER
-                && stack.get(1) == MessageDirection.SELLER_TO_BUYER
-                && stack.get(2) == MessageDirection.BUYER_TO_SELLER;
+        }
+        return false;
     }
 }
