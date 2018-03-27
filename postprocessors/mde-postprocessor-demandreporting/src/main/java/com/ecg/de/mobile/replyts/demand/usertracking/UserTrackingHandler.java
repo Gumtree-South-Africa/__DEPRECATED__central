@@ -38,12 +38,7 @@ public class UserTrackingHandler {
     }
 
     private void prepareEventPublishing() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                flushOnExit();
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(this::flushOnExit));
 
         int initialDelay = config.getPublishingIntervalInSeconds() / config.getThreadPoolSize();
         for (int i = 0; i < config.getThreadPoolSize(); i++) {
@@ -73,6 +68,7 @@ public class UserTrackingHandler {
                 .plainText(mail.getPlaintextParts().stream().collect(Collectors.joining("\n-------------------------------------------------\n")))
                 .subject(mail.getSubject())
                 .senderMailAddress(mail.getFrom())
+                .publisher(getTrackingHeaderFromMessage("Publisher", message))
                 .receiverMailAddress(mail.getDeliveredTo())
                 .replyToMailAddress(extractFromSmptHeader(mail.getUniqueHeader("Reply-To"))) // none anonymized!
                 .build();
@@ -109,7 +105,7 @@ public class UserTrackingHandler {
 
     private Long asLong(String input) {
         try {
-           return Long.parseLong(input);
+            return Long.parseLong(input);
         } catch (Exception e) {
             return null;
         }

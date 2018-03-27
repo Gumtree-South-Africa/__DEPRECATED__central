@@ -9,6 +9,7 @@ class EmailMessage {
     final String replyToMailAddress;
     final String subject;
     final String plainText;
+    final String publisher;
 
     private EmailMessage(Builder b) {
         ad = b.ad;
@@ -18,6 +19,7 @@ class EmailMessage {
         replyToMailAddress = b.replyToMailAddress;
         subject = b.subject;
         plainText = b.plainText;
+        publisher = b.publisher;
     }
 
     static class Builder {
@@ -28,6 +30,7 @@ class EmailMessage {
         String replyToMailAddress;
         String subject;
         String plainText;
+        String publisher;
 
         Builder ad(AdRef a) {
             ad = a;
@@ -61,6 +64,11 @@ class EmailMessage {
 
         Builder plainText(String v) {
             plainText = v;
+            return this;
+        }
+
+        Builder publisher(String v) {
+            publisher = v;
             return this;
         }
 
