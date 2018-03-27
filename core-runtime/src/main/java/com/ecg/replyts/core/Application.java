@@ -36,6 +36,8 @@ public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 
     static {
+        java.security.Security.setProperty("networkaddress.cache.ttl" , "60");
+
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> LOG.error("Uncaught exception in thread {}", thread, throwable));
 
         LoggingService.bootstrap();
