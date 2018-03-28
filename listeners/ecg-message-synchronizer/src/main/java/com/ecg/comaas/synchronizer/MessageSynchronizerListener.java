@@ -69,13 +69,13 @@ public class MessageSynchronizerListener implements MessageProcessedListener {
     }
 
     private void processMessageInternal(Conversation conversation, Message message) {
-        String partnerFromUserid = extractProperty(conversation, PARTNER_FROM_USERID);
-        String partnerToUserid = extractProperty(conversation, PARTNER_TO_USERID);
-        String partnerBuyerName = extractProperty(conversation, PARTNER_BUYER_NAME);
-        String partnerSellerName = extractProperty(conversation, PARTNER_SELLER_NAME);
         String partnerAdId = extractProperty(conversation, PARTNER_ADID);
         String partnerTenant = extractProperty(conversation, PARTNER_TENANT);
-        String partnerTitle = extractProperty(conversation, PARTNER_TITLE);
+        String partnerFromUserid = extractProperty(conversation, PARTNER_FROM_USERID);
+        String partnerToUserid = extractProperty(conversation, PARTNER_TO_USERID);
+        String partnerBuyerName = extractOptionalProperty(conversation, PARTNER_BUYER_NAME);
+        String partnerSellerName = extractOptionalProperty(conversation, PARTNER_SELLER_NAME);
+        String partnerTitle = extractOptionalProperty(conversation, PARTNER_TITLE);
 
         ObjectNode payload = ObjectMapperConfigurer.objectBuilder()
                 .put("text", messagesResponseFactory.getCleanedMessage(conversation, message))
@@ -110,9 +110,19 @@ public class MessageSynchronizerListener implements MessageProcessedListener {
                 .put("role", participant);
     }
 
+    private static String extractOptionalProperty(Conversation conversation, String propertyName) {
+        return extractProperty(conversation, propertyName, false);
+    }
+
     private static String extractProperty(Conversation conversation, String propertyName) {
-        checkArgument(conversation.getCustomValues().containsKey(propertyName),
-                "Partner Property '%s' is missing. Partner's message synchronization is skipped.", propertyName);
+        return extractProperty(conversation, propertyName, true);
+    }
+
+    private static String extractProperty(Conversation conversation, String propertyName, boolean mandatory) {
+        if (mandatory) {
+            checkArgument(conversation.getCustomValues().containsKey(propertyName),
+                    "Partner Property '%s' is missing. Partner's message synchronization is skipped.", propertyName);
+        }
         return conversation.getCustomValues().get(propertyName);
     }
 }
