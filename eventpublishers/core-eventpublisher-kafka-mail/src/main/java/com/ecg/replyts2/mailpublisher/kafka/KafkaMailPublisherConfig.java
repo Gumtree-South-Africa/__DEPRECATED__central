@@ -20,7 +20,7 @@ import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_
 
 @Configuration
 public class KafkaMailPublisherConfig {
-    @Value("${kafka.core.servers:kafka.service.consul:9092}")
+    @Value("${mailpublisher.kafka.broker.list:#{null}}")
     private String kafkaBrokers;
     @Value("${mailpublisher.kafka.topic:coremail}")
     private String kafkaTopic;

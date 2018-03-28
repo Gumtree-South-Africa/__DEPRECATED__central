@@ -35,6 +35,8 @@ public class MessageControllerAcceptanceTest {
         System.setProperty("rabbitmq.endpoint", "gtau");
         System.setProperty("rabbitmq.connectionTimeout", "1000");
         System.setProperty("rabbitmq.port", "5672");
+
+        System.setProperty("mailpublisher.kafka.broker.list", "localhost:9092");
     }
 
     @Test

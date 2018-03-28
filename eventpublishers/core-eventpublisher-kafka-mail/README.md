@@ -24,6 +24,7 @@ Then to enable the Kafka producer include the following in your `replyts.propert
 
 ```
 mailpublisher.kafka.enabled=true
+mailpublisher.kafka.broker.list=localhost:9092
 mailpublisher.kafka.topic=rtscoremail
 ```
 
