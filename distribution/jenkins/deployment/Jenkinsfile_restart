@@ -138,13 +138,23 @@ node("master") {
                               usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
                 final boolean live = configFile.tenants.live.contains(tenant)
 
-                def nomadFile = "core-api.nomad"
+                urlprefixes = ""
                 if (live || environment == "lp") {
-                    nomadFile = "core-api_ACTIVE.nomad"
+                    urlprefixes = ",urlprefix-${tenantShort}.${environment}.comaas.cloud/,urlprefix-${dc}.${tenantShort}.${environment}.comaas.cloud/"
+
+                    if (tenantShort == 'au') {
+                        if (environment == 'lp') {
+                            urlprefixes += ",urlprefix-au-comaas.dro.ops.qa.au.ecg.so:8006/"
+                        }
+                        if (environment == 'prod') {
+                            urlprefixes += ",urlprefix-au-rts2-api:8080/,urlprefix-au-rts2-api.intern.gumtree.com.au:8080/"
+                        }
+                    }
                 }
 
                 final String vars = "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
                         "-var='version=${version}' " +
+                        "-var='urlprefixes=${urlprefixes}' " +
                         "-var='docker_password=${DOCKER_PASS}' " +
                         "-var='tenant=${tenant}' " +
                         "-var='tenant_short=${tenantShort}' " +
@@ -157,7 +167,7 @@ node("master") {
 
                 sh "levant render ${vars} distribution/jenkins/deployment/${nomadFile}"
                 sh "levant deploy -log-level=debug -address='http://http.nomad.service.consul:4646' ${vars} " +
-                        "distribution/jenkins/deployment/${nomadFile}"
+                        "distribution/jenkins/deployment/core-api.nomad"
             }
         }
     }

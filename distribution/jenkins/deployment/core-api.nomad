@@ -72,6 +72,7 @@ job "[[ .tenant ]]-core-api" {
         port = "http"
         tags = [
           "version-[[.version]]"
+          [[ .urlprefixes ]]
         ]
         check {
           type     = "http"
