@@ -159,14 +159,14 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
 
         urlprefixes = ""
         if (live || environment == "lp") {
-            urlprefixes = ",urlprefix-${tenantShort}.${environment}.comaas.cloud/,urlprefix-${dc}.${tenantShort}.${environment}.comaas.cloud/"
+            urlprefixes = ",\"urlprefix-${tenantShort}.${environment}.comaas.cloud/\",\"urlprefix-${dc}.${tenantShort}.${environment}.comaas.cloud/\""
 
             if (tenantShort == 'au') {
                 if (environment == 'lp') {
-                    urlprefixes += ",urlprefix-au-comaas.dro.ops.qa.au.ecg.so:8006/"
+                    urlprefixes += ",\"urlprefix-au-comaas.dro.ops.qa.au.ecg.so:8006/\""
                 }
                 if (environment == 'prod') {
-                    urlprefixes += ",urlprefix-au-rts2-api:8080/,urlprefix-au-rts2-api.intern.gumtree.com.au:8080/"
+                    urlprefixes += ",\"urlprefix-au-rts2-api:8080/\",\"urlprefix-au-rts2-api.intern.gumtree.com.au:8080/\""
                 }
             }
         }
