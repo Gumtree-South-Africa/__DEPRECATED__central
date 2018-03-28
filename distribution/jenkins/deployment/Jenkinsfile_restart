@@ -165,7 +165,7 @@ node("master") {
                         "-var='deploy_jenkins_job_nr=${originalDeployJenkinsJobNr}' " +
                         "-var='restart_jenkins_job_nr=${restartJenkinsJob}' "
 
-                sh "levant render ${vars} distribution/jenkins/deployment/${nomadFile}"
+                sh "levant render ${vars} distribution/jenkins/deployment/core-api.nomad"
                 sh "levant deploy -log-level=debug -address='http://http.nomad.service.consul:4646' ${vars} " +
                         "distribution/jenkins/deployment/core-api.nomad"
             }

@@ -160,7 +160,7 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
         urlprefixes = ""
         if (live || environment == "lp") {
             urlprefixes = ",urlprefix-${tenantShort}.${environment}.comaas.cloud/,urlprefix-${dc}.${tenantShort}.${environment}.comaas.cloud/"
-            
+
             if (tenantShort == 'au') {
                 if (environment == 'lp') {
                     urlprefixes += ",urlprefix-au-comaas.dro.ops.qa.au.ecg.so:8006/"
@@ -184,7 +184,7 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
                 "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
                 "-var='deploy_jenkins_job_nr=${deployJenkinsJob}' "
 
-        sh "levant render ${vars} distribution/jenkins/deployment/${nomadFile}"
+        sh "levant render ${vars} distribution/jenkins/deployment/core-api.nomad"
         sh "levant deploy -log-level=debug -address='http://http.nomad.service.consul:4646' -force-count=true ${vars} " +
                 "distribution/jenkins/deployment/core-api.nomad"
     }
