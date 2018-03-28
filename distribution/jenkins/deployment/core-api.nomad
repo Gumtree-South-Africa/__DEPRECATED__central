@@ -1,4 +1,4 @@
-job "[[ .tenant ]]-core-api" {
+job "core-api-[[ .tenant ]]" {
   region = "[[ .region ]]"
   datacenters = [
     [[- range $index, $element := .datacenters -]]
