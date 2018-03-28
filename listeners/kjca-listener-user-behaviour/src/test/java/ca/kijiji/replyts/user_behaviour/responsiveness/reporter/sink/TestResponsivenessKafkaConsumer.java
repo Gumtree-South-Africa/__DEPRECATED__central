@@ -20,7 +20,7 @@ public class TestResponsivenessKafkaConsumer {
     private static final String CONSUMER_GROUP_ID = "user-responsiveness-consumer";
     private static final String OFFSET_STRATEGY = "earliest";
 
-    @Value("${kafka.core.servers:kafkacore.service.consul:9092}")
+    @Value("${kafka.core.servers:kafka.service.consul:9092}")
     private String servers;
 
     @Value("${user-behaviour.responsiveness.queue.topic:userresponsiveness_ca}")
