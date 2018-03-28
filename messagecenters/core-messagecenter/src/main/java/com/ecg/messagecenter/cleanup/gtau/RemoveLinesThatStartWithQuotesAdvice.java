@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.cleanup;
+package com.ecg.messagecenter.cleanup.gtau;
 
 public class RemoveLinesThatStartWithQuotesAdvice extends AbstractCleanupAdvice {
     private static final String QUOTE = ">";
@@ -10,11 +10,6 @@ public class RemoveLinesThatStartWithQuotesAdvice extends AbstractCleanupAdvice 
 
     @Override
     public void processAdvice() {
-        quoteByLine(new LineAdvice() {
-            @Override
-            public boolean isQuoted(Text.Line line) {
-                return line.content.startsWith(QUOTE) || line.content.startsWith(PIPE);
-            }
-        });
+        quoteByLine(line -> line.content.startsWith(QUOTE) || line.content.startsWith(PIPE));
     }
 }

@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.cleanup;
+package com.ecg.messagecenter.cleanup.gtau;
 
 import com.ecg.replyts.app.Mails;
 import com.ecg.replyts.core.api.model.mail.Mail;

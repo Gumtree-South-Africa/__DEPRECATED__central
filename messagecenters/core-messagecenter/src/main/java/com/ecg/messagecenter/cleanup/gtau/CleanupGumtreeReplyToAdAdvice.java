@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.cleanup;
+package com.ecg.messagecenter.cleanup.gtau;
 
 public class CleanupGumtreeReplyToAdAdvice extends AbstractCleanupAdvice {
     private static final String REPLIED_TO_YOUR_AD = "replied to your ad";

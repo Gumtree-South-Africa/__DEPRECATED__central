@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.cleanup;
+package com.ecg.messagecenter.cleanup.gtau;
 
 import org.apache.commons.lang3.StringUtils;
 

@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.cleanup;
+package com.ecg.messagecenter.cleanup.gtau;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,10 +16,6 @@ public class CleanupWithQuotedHeadersAdvice extends AbstractCleanupAdvice {
 
     @Override
     public void processAdvice() {
-//        if (text.getFirstQuoteIndex() >= 0) {
-//            return;
-//        }
-
         for (Text.Line line : text.lines) {
             if (text.getAdvice().isLineCleaned(line.originalIndex) ||
                     text.getAdvice().isLineQuoted(line.originalIndex)) {

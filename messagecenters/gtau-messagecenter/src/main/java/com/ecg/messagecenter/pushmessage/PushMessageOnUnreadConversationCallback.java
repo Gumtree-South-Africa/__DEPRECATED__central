@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.pushmessage;
 
 import com.codahale.metrics.Counter;
-import com.ecg.messagecenter.cleanup.TextCleaner;
+import com.ecg.messagecenter.cleanup.gtau.TextCleaner;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.util.MessageContentHelper;
 import com.ecg.messagecenter.util.MessageType;

@@ -1,9 +1,10 @@
-package com.ecg.messagecenter.cleanup;
+package com.ecg.messagecenter.cleanup.gtau;
 
-import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.File;
 
 /**
  * Unit test for CleanupGumtreeReplyToAdAdvice

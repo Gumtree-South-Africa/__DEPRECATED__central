@@ -2,7 +2,7 @@ package com.ecg.messagecenter.util;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.cleanup.TextCleaner;
+import com.ecg.messagecenter.cleanup.gtau.TextCleaner;
 import com.ecg.messagecenter.webapi.responses.MessageResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;

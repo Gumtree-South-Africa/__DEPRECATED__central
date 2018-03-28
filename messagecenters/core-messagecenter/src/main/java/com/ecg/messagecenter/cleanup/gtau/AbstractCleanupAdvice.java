@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.cleanup;
+package com.ecg.messagecenter.cleanup.gtau;
 
 public abstract class AbstractCleanupAdvice implements CleanupAdvice {
     protected final Text text;
@@ -18,22 +18,18 @@ public abstract class AbstractCleanupAdvice implements CleanupAdvice {
         this.quoted[index] = true;
     }
 
-    protected void markCleaned(int index) {
+    private void markCleaned(int index) {
         this.cleaned[index] = true;
     }
 
     @Override
     public boolean isLineQuoted(int index) {
-        if(index < cleaned.length)
-            return quoted[index];
-        return false;
+        return index < cleaned.length && quoted[index];
     }
 
     @Override
     public boolean isLineCleaned(int index) {
-        if(index < cleaned.length)
-            return cleaned[index];
-        return false;
+        return index < cleaned.length && cleaned[index];
     }
 
     public void quoteByLine(LineAdvice lineAdvice) {
@@ -52,6 +48,6 @@ public abstract class AbstractCleanupAdvice implements CleanupAdvice {
     }
 
     public interface LineAdvice {
-        public boolean isQuoted(Text.Line line);
+        boolean isQuoted(Text.Line line);
     }
 }

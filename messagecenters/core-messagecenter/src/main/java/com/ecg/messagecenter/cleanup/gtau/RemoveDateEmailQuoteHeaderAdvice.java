@@ -1,4 +1,4 @@
-package com.ecg.messagecenter.cleanup;
+package com.ecg.messagecenter.cleanup.gtau;
 
 import java.util.regex.Pattern;
 
@@ -9,7 +9,6 @@ public class RemoveDateEmailQuoteHeaderAdvice extends AbstractCleanupAdvice {
             Pattern.compile("[0-9]{1,2} [a-zA-Z]{2,10} [0-9]{4}"),
             Pattern.compile("[a-zA-Z]{2,10} [0-9]{1,2}, [0-9]{4}"),
             Pattern.compile("[0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日")
-            //Pattern.compile("(Mon(day)?|Tue(sday)?|Wed(nesday)?|Thu(rsday)?|Fri(day)?|Sat(urday)?|Sun(day)?), [0-9]{1,2} (Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(tember)?|Oct(ober)?|Nov(ember)?|Dec(ember)?) \\d{4}")
     };
     private static final Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9._-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)*");
 
@@ -56,10 +55,7 @@ public class RemoveDateEmailQuoteHeaderAdvice extends AbstractCleanupAdvice {
 
     private static boolean lineContainsThePattern(String line, Pattern pattern) {
         // Is there something that looks like an email?
-        if (pattern.matcher(line).find()) {
-            return  true;
-        }
-        return false;
+        return pattern.matcher(line).find();
     }
 
     private static boolean lineContainsADate(String line) {
