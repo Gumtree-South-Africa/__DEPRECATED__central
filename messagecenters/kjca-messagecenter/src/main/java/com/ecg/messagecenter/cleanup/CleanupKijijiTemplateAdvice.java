@@ -9,7 +9,7 @@ public class CleanupKijijiTemplateAdvice extends AbstractCleanupAdvice {
                     Pattern.compile("(From|Phone):.*")
             },
             new Pattern[]{
-                    Pattern.compile("You can respond to .+ by replying to this email\\."),
+                    Pattern.compile("(You can respond to .+ by replying to this email\\.)|(Reply to .+)"),
                     Pattern.compile("Operated by: Marktplaats B.V Wibautstraat 224-2 Amsterdam 1097 DN Netherlands")
             },
             new Pattern[]{
@@ -17,7 +17,7 @@ public class CleanupKijijiTemplateAdvice extends AbstractCleanupAdvice {
                     Pattern.compile("(Expéditeur|Téléphone) :.*")
             },
             new Pattern[]{
-                    Pattern.compile("Vous pouvez répondre à .+ à partir de ce courriel\\."),
+                    Pattern.compile("(Vous pouvez répondre à .+ à partir de ce courriel\\.)|(Répondre à .+)"),
                     Pattern.compile("Exploité par: Marktplaats B.V | Wibautstraat 224-2 | Amsterdam | 1097 DN | Netherlands")
             }};
 
