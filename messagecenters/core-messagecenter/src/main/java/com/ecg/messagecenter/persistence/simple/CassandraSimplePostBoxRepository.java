@@ -97,7 +97,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @PostConstruct
     public void createThreadPoolExecutor() {
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(workQueueSize);
-        RejectedExecutionHandler rejectionHandler = new ThreadPoolExecutor.AbortPolicy();
+        RejectedExecutionHandler rejectionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
 
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat(CassandraSimplePostBoxRepository.class.getSimpleName() + "-%d").setDaemon(true).build();
         this.threadPoolExecutor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, threadFactory, rejectionHandler);
