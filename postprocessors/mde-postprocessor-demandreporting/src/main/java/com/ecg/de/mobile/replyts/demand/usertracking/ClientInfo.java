@@ -1,5 +1,8 @@
 package com.ecg.de.mobile.replyts.demand.usertracking;
 
+import java.util.Collections;
+import java.util.Map;
+
 public class ClientInfo {
     
     final String version;
@@ -9,9 +12,11 @@ public class ClientInfo {
     final String userAgent;
     final String akamaiBot;
     final String name;
+    final Map<String, String> experiments;
 
 
-    public ClientInfo(String version, String apiVersion, String ip, String deviceType, String userAgent, String akamaiBot, String name) {
+
+    ClientInfo(String version, String apiVersion, String ip, String deviceType, String userAgent, String akamaiBot, String name, Map<String, String> experiments) {
         this.version = version;
         this.apiVersion = apiVersion;
         this.ip = ip;
@@ -19,6 +24,7 @@ public class ClientInfo {
         this.userAgent = userAgent;
         this.akamaiBot = akamaiBot;
         this.name = name;
+        this.experiments = experiments;
     }
 
     public static ClientInfoBuilder builder() {
@@ -33,6 +39,7 @@ public class ClientInfo {
         String userAgent;
         String akamaiBot;
         String name;
+        Map<String, String> experiments = Collections.emptyMap();
 
         private ClientInfoBuilder() {
         }
@@ -74,9 +81,15 @@ public class ClientInfo {
             return this;
         }
 
+        public ClientInfoBuilder withExperiments(Map<String, String> experiments) {
+            if (experiments != null) {
+                this.experiments = experiments;
+            }
+            return this;
+        }
+
         public ClientInfo build() {
-            ClientInfo clientInfo = new ClientInfo(version, apiVersion, ip, deviceType, userAgent, akamaiBot, name);
-            return clientInfo;
+            return new ClientInfo(version, apiVersion, ip, deviceType, userAgent, akamaiBot, name, experiments);
         }
     }
 }

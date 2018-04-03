@@ -1,9 +1,15 @@
 package com.ecg.de.mobile.replyts.demand.usertracking;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
+import com.google.common.collect.ImmutableMap;
+import de.bechte.junit.runners.context.HierarchicalContextRunner;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,17 +17,10 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MutableConversation;
-import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
-
-import de.bechte.junit.runners.context.HierarchicalContextRunner;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(HierarchicalContextRunner.class)
 public class UserTrackingHandlerTest {
@@ -31,7 +30,7 @@ public class UserTrackingHandlerTest {
     private UserTrackingHandler userTrackingHandler;
 
     @Before
-    public void setup() throws Exception {
+    public void setup() {
         config = createDefaultConfiguration();
         factory = new TrackingEventPublisherFactoryMock();
         userTrackingHandler = new UserTrackingHandler(config, factory);
@@ -49,9 +48,8 @@ public class UserTrackingHandlerTest {
     @Test
     public void eventPublisherWasCalled() throws Exception {
         CountDownLatchRunnable runnable = factory.getRunnable();
-        runnable.createCountDownLatch(1);
+        runnable.createCountDownLatch();
         CountDownLatch latch = runnable.countDownLatch;
-
         latch.await();
     }
 
@@ -88,7 +86,6 @@ public class UserTrackingHandlerTest {
             headers.put("X-Cust-AD_VERSION", "2");
             headers.put("X-Cust-SELLER_CUSTOMER_ID", "3");
             headers.put("X-Cust-PUBLISHER", "publisher");
-            headers.put("X-Track-Useragent", "Useragent");
             headers.put("X-Track-Ip", "Ip");
             headers.put("X-Track-Referrer", "Referrer");
             headers.put("X-Track-Txid", "Txid");
@@ -122,6 +119,10 @@ public class UserTrackingHandlerTest {
                             .withDeviceType("ipad")
                             .withApiVersion("V1")
                             .withAkamaiBot("foobot")
+                            .withExperiments(ImmutableMap.<String, String>builder().
+                                    put("abTest.1", "A").
+                                    put("abTest.2", "B").
+                                    build())
                             .build()
                     )
                     .txId("Txid")
@@ -157,6 +158,7 @@ public class UserTrackingHandlerTest {
             assertEquals(expected.ns, actual.ns);
             assertEquals(expected.txId, actual.txId);
             assertEquals(expected.txSeq, actual.txSeq);
+            assertEquals(expected.txSeq, actual.txSeq);
         }
 
     }
@@ -174,14 +176,15 @@ public class UserTrackingHandlerTest {
         assertEquals(expected.deviceType, actual.deviceType);
         assertEquals(expected.ip, actual.ip);
         assertEquals(expected.userAgent, actual.userAgent);
+        assertEquals(expected.experiments, actual.experiments);
     }
 
     private class CountDownLatchRunnable implements Runnable {
 
         private CountDownLatch countDownLatch = null;
 
-        CountDownLatch createCountDownLatch(int countDown) {
-            countDownLatch = new CountDownLatch(countDown);
+        CountDownLatch createCountDownLatch() {
+            countDownLatch = new CountDownLatch(1);
             return countDownLatch;
         }
 

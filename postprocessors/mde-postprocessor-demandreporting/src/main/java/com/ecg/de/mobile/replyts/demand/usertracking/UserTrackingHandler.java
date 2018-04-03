@@ -61,7 +61,7 @@ public class UserTrackingHandler {
         Long adVersion = asLong(getCustomVariableFromMessageOrContext("ad_version", context));
         Long sellerId = asLong(getCustomVariableFromMessageOrContext("seller_customer_id", context));
 
-        Mail mail = context.getMail().get();
+        @SuppressWarnings("ConstantConditions") Mail mail = context.getMail().get();
         EmailMessage msg = EmailMessage.builder()
                 .ad(AdRef.of(adId, adVersion, sellerId))
                 .ip(getTrackingHeaderFromMessage("Ip", message))
@@ -81,6 +81,7 @@ public class UserTrackingHandler {
                 .withUserAgent(getTrackingHeaderFromMessage("Useragent", message))
                 .withVersion(getTrackingHeaderFromMessage("Version", message))
                 .withName(getTrackingHeaderFromMessage("Appname", message))
+                .withExperiments(Utils.parseAbTestMap(getTrackingHeaderFromMessage("Abtests", message)))
                 .build();
 
         Vi vi = Vi.of(
