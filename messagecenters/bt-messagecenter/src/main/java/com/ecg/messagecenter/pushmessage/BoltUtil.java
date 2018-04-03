@@ -31,7 +31,7 @@ public class BoltUtil {
         	return null;
         }
         if (users == null || users.length == 0 || users[0] == null || users[0].getUserId() == null) {
-        	logger.error("empty user returned for: " + userEmail);
+        	logger.debug("empty user returned for: " + userEmail);
         	return null;
         }
         return users[0].getUserId();
