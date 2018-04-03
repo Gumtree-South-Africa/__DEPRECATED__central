@@ -1,14 +1,12 @@
 package com.ecg.replyts.app;
 
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.Termination;
-import com.ecg.replyts.core.runtime.MetricsService;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
@@ -32,7 +30,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static com.codahale.metrics.MetricRegistry.name;
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_ORIGINAL_FROM;
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_ORIGINAL_TO;
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.MESSAGE_ID;
@@ -53,7 +50,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     private final ProcessingFlow processingFlow;
     private final ProcessingFinalizer persister;
     private final ProcessingContextFactory processingContextFactory;
-    private final Meter contentLengthMeter;
+    private final Counter contentLengthCounter;
 
     @Autowired
     public DefaultMessageProcessingCoordinator(
@@ -67,10 +64,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         this.processingFlow = checkNotNull(processingFlow, "processingFlow");
         this.persister = checkNotNull(persister, "presister");
         this.processingContextFactory = checkNotNull(processingContextFactory, "processingContextFactory");
-
-        MetricRegistry registry = MetricsService.getInstance().getRegistry();
-        this.contentLengthMeter = registry.meter(
-            name(TimingReports.getHostName(), DefaultMessageProcessingCoordinator.class.getName(), "content-length"));
+        this.contentLengthCounter = TimingReports.newCounter("mail-content-length");
     }
 
     /**
@@ -94,7 +88,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), Guids.next());
             setMDC(context);
-            contentLengthMeter.mark(bytes.length);
+            contentLengthCounter.inc(bytes.length);
             return Optional.of(handleContext(Optional.of(bytes), context));
         }
         finally {

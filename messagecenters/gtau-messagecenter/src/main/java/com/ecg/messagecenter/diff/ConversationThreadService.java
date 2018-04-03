@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.diff;
 
-import com.codahale.metrics.Histogram;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
@@ -11,13 +10,13 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletResponse;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +27,6 @@ import static org.joda.time.DateTime.now;
 public class ConversationThreadService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConversationThreadService.class);
-    private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
 
     private final ConversationRepository conversationRepository;
     private final SimplePostBoxRepository postBoxRepository;
@@ -99,7 +97,6 @@ public class ConversationThreadService {
 
         Optional<PostBoxSingleConversationThreadResponse> created = PostBoxSingleConversationThreadResponse.create(numUnread, email, conversation);
         if (created.isPresent()) {
-            API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
             return ResponseObject.of(created.get());
         } else {
             return entityNotFound(response, conversationId);

@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.diff;
 
-import com.codahale.metrics.Histogram;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -8,7 +7,6 @@ import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
-import com.ecg.replyts.core.runtime.TimingReports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +22,6 @@ import static org.joda.time.DateTime.now;
 public class ConversationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversationService.class);
-
-    private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
 
     private SimplePostBoxRepository postBoxRepository;
     private ConversationRepository conversationRepository;
@@ -74,7 +70,6 @@ public class ConversationService {
         Optional<PostBoxSingleConversationThreadResponse> created =
                 PostBoxSingleConversationThreadResponse.create(postBox.getNewRepliesCounter().getValue(), email, conversation);
         if (created.isPresent()) {
-            API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
             return created;
         } else {
             LOGGER.info("Conversation id #{} is empty but was accessed from list-view, should normally not be reachable by UI", conversationId);

@@ -1,7 +1,5 @@
 package com.ecg.messagecenter.webapi;
 
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -11,7 +9,6 @@ import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +16,12 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -34,11 +36,6 @@ import java.util.Arrays;
  */
 @Controller class PostBoxOverviewController {
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxOverviewController.class);
-
-    private static final Timer API_POSTBOX_BY_EMAIL = TimingReports.newTimer("webapi-postbox-by-email");
-    private static final Timer API_POSTBOX_CONVERSATION_DELETE_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-delete");
-
-    private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX = TimingReports.newHistogram("webapi-postbox-num-conversations-of-postbox");
 
     private final SimplePostBoxRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
@@ -66,32 +63,19 @@ import java.util.Arrays;
                     @RequestParam(value = "robotEnabled", defaultValue = "true", required = false)
                     boolean robotEnabled, HttpServletRequest request) {
 
-        Timer.Context timerContext = API_POSTBOX_BY_EMAIL.time();
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
-        try {
-            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        if (markAsRead(request)) {
+            postBox.resetReplies();
+            postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
+        }
 
-            API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX
-                            .update(postBox.getConversationThreads().size());
-
-            if (markAsRead(request)) {
-                postBox.resetReplies();
-                postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
-            }
-
-            if (robotEnabled) {
-                return responseBuilder
-                                .buildPostBoxResponse(email, size, page, postBox, newCounterMode);
-            } else {
-                return responseBuilder.buildPostBoxResponseRobotExcluded(email, size, page, postBox,
-                                newCounterMode);
-            }
-        } catch (RuntimeException e) {
-            LOG.error("Runtime Exception in PostBoxOverviewController: ", e);
-            throw e;
-
-        } finally {
-            timerContext.stop();
+        if (robotEnabled) {
+            return responseBuilder
+                            .buildPostBoxResponse(email, size, page, postBox, newCounterMode);
+        } else {
+            return responseBuilder.buildPostBoxResponseRobotExcluded(email, size, page, postBox,
+                            newCounterMode);
         }
     }
 
@@ -110,23 +94,13 @@ import java.util.Arrays;
                     @RequestParam(value = "size", defaultValue = "50", required = false)
                     Integer size) {
 
-        Timer.Context timerContext = API_POSTBOX_CONVERSATION_DELETE_BY_ID.time();
-
-        try {
-            PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-            postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
-            return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
-
-        } finally {
-            timerContext.stop();
-        }
+        PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
+        return responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
     }
 
 
     private boolean markAsRead(HttpServletRequest request) {
         return request.getMethod().equals(RequestMethod.PUT.name());
     }
-
-
-
 }

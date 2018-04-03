@@ -1,14 +1,13 @@
 package com.ecg.messagecenter.webapi;
 
 import ca.kijiji.replyts.TextAnonymizer;
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.UnreadCountCachePopulater;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.ConversationBlockRepository;
-import com.ecg.messagecenter.persistence.simple.*;
+import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterBlockCommand;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
@@ -19,7 +18,6 @@ import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +28,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,13 +49,6 @@ import static org.joda.time.DateTimeZone.UTC;
 @Controller
 class ConversationThreadController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversationThreadController.class);
-
-    private static final Timer API_POSTBOX_CONVERSATION_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-by-id");
-    private static final Timer API_POSTBOX_DELETE_CONVERSATION_BY_ID = TimingReports.newTimer("webapi-postbox-delete-conversation-by-id");
-    private static final Timer API_POSTBOX_BLOCK_CONVERSATION = TimingReports.newTimer("webapi-postbox-block-conversation");
-    private static final Timer API_POSTBOX_UNBLOCK_CONVERSATION = TimingReports.newTimer("webapi-postbox-unblock-conversation");
-    private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
-    private static final Counter API_POSTBOX_EMPTY_CONVERSATION = TimingReports.newCounter("webapi-postbox-empty-conversation");
 
     private SimplePostBoxRepository postBoxRepository;
     private ConversationRepository conversationRepository;
@@ -90,46 +87,44 @@ class ConversationThreadController {
             HttpServletRequest request,
             HttpServletResponse response) {
 
-        try (Timer.Context ignored = API_POSTBOX_CONVERSATION_BY_ID.time()) {
-            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
-            Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
-            if (!conversationThreadRequested.isPresent()) {
-                return entityNotFound(response);
-            }
+        Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
+        if (!conversationThreadRequested.isPresent()) {
+            return entityNotFound(response);
+        }
 
-            boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
+        boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
+        if (needToMarkAsRead) {
+            int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
+            postBox.decrementNewReplies(unreadMessages);
+            postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
+        }
+
+        ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
+        boolean blockedByBuyer = false, blockedBySeller = false;
+        if (conversationBlock != null) {
+            blockedByBuyer = conversationBlock.getBuyerBlockedSellerAt().isPresent();
+            blockedBySeller = conversationBlock.getSellerBlockedBuyerAt().isPresent();
+        }
+
+        if (newCounterMode) {
             if (needToMarkAsRead) {
-                int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
-                postBox.decrementNewReplies(unreadMessages);
-                postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
+                final PostBox updatedPostbox = markConversationAsRead(email, conversationId, postBox);
+                unreadCountCachePopulater.populateCache(updatedPostbox);
+
             }
-
-            ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
-            boolean blockedByBuyer = false, blockedBySeller = false;
-            if (conversationBlock != null) {
-                blockedByBuyer = conversationBlock.getBuyerBlockedSellerAt().isPresent();
-                blockedBySeller = conversationBlock.getSellerBlockedBuyerAt().isPresent();
-            }
-
-            if (newCounterMode) {
-                if (needToMarkAsRead) {
-                    final PostBox updatedPostbox = markConversationAsRead(email, conversationId, postBox);
-                    unreadCountCachePopulater.populateCache(updatedPostbox);
-
-                }
-                return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, blockedByBuyer, blockedBySeller, response);
+            return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, blockedByBuyer, blockedBySeller, response);
+        } else {
+            long numUnread;
+            if (needToMarkAsRead) {
+                final PostBox updatedPostbox = markConversationAsRead(email, conversationId, postBox);
+                numUnread = updatedPostbox.getUnreadConversationsCapped().size();
+                unreadCountCachePopulater.populateCache(updatedPostbox);
             } else {
-                long numUnread;
-                if (needToMarkAsRead) {
-                    final PostBox updatedPostbox = markConversationAsRead(email, conversationId, postBox);
-                    numUnread = updatedPostbox.getUnreadConversationsCapped().size();
-                    unreadCountCachePopulater.populateCache(updatedPostbox);
-                } else {
-                    numUnread = postBox.getUnreadConversationsCapped().size();
-                }
-                return lookupConversation(numUnread, email, conversationId, blockedByBuyer, blockedBySeller, response);
+                numUnread = postBox.getUnreadConversationsCapped().size();
             }
+            return lookupConversation(numUnread, email, conversationId, blockedByBuyer, blockedBySeller, response);
         }
     }
 
@@ -154,10 +149,8 @@ class ConversationThreadController {
                 numUnread, email, conversation, buyerAnonymousEmail, sellerAnonymousEmail, blockedByBuyer, blockedBySeller,
                 textAnonymizer);
         if (created.isPresent()) {
-            API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
             return ResponseObject.of(created.get());
         } else {
-            API_POSTBOX_EMPTY_CONVERSATION.inc();
             LOGGER.info("Conversation id #{} is empty but was accessed from list-view, should normally not be reachable by UI", conversationId);
             return entityNotFound(response);
         }
@@ -217,25 +210,18 @@ class ConversationThreadController {
     public ResponseEntity<Void> deleteSingleConversation(@PathVariable("email") final String email,
                                                          @PathVariable("conversationId") String conversationId,
                                                          HttpServletResponse response) {
-        try (Timer.Context ignored = API_POSTBOX_DELETE_CONVERSATION_BY_ID.time()) {
-            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
-            Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
-            if (conversationThreadRequested.isPresent()) {
-                postBox.removeConversation(conversationId);
-                postBoxRepository.deleteConversations(postBox, Collections.singletonList(conversationId));
-            }
-
-            unreadCountCachePopulater.populateCache(postBox);
-
-            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            LOGGER.warn("An unexpected exception occurred!", e);
-
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
+        if (conversationThreadRequested.isPresent()) {
+            postBox.removeConversation(conversationId);
+            postBoxRepository.deleteConversations(postBox, Collections.singletonList(conversationId));
         }
+
+        unreadCountCachePopulater.populateCache(postBox);
+
+        response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @RequestMapping(
@@ -244,36 +230,33 @@ class ConversationThreadController {
     )
     public ResponseEntity<Void> blockConversation(
             @PathVariable("email") final String email,
-            @PathVariable("conversationId") final String conversationId
-    ) {
-        try (Timer.Context ignored = API_POSTBOX_BLOCK_CONVERSATION.time()) {
-            MutableConversation conversation = conversationRepository.getById(conversationId);
-            if (wrongConversationOrEmail(email, conversation)) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-
-            java.util.Optional<DateTime> now = java.util.Optional.of(DateTime.now(UTC));
-
-            ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
-            java.util.Optional<DateTime> buyerBlockedSellerAt = java.util.Optional.empty();
-            java.util.Optional<DateTime> sellerBlockerBuyerAt = java.util.Optional.empty();
-
-            if (conversationBlock != null) {
-                buyerBlockedSellerAt = conversation.getBuyerId().equalsIgnoreCase(email) ? now : conversationBlock.getBuyerBlockedSellerAt();
-                sellerBlockerBuyerAt = conversation.getSellerId().equalsIgnoreCase(email) ? now : conversationBlock.getSellerBlockedBuyerAt();
-            }
-
-            conversationBlock = new ConversationBlock(
-                    conversationId,
-                    ConversationBlock.LATEST_VERSION,
-                    conversation.getBuyerId().equalsIgnoreCase(email) ? now : buyerBlockedSellerAt,
-                    conversation.getSellerId().equalsIgnoreCase(email) ? now : sellerBlockerBuyerAt
-            );
-
-            conversationBlockRepository.write(conversationBlock);
-
-            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+            @PathVariable("conversationId") final String conversationId) {
+        MutableConversation conversation = conversationRepository.getById(conversationId);
+        if (wrongConversationOrEmail(email, conversation)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+
+        java.util.Optional<DateTime> now = java.util.Optional.of(DateTime.now(UTC));
+
+        ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
+        java.util.Optional<DateTime> buyerBlockedSellerAt = java.util.Optional.empty();
+        java.util.Optional<DateTime> sellerBlockerBuyerAt = java.util.Optional.empty();
+
+        if (conversationBlock != null) {
+            buyerBlockedSellerAt = conversation.getBuyerId().equalsIgnoreCase(email) ? now : conversationBlock.getBuyerBlockedSellerAt();
+            sellerBlockerBuyerAt = conversation.getSellerId().equalsIgnoreCase(email) ? now : conversationBlock.getSellerBlockedBuyerAt();
+        }
+
+        conversationBlock = new ConversationBlock(
+                conversationId,
+                ConversationBlock.LATEST_VERSION,
+                conversation.getBuyerId().equalsIgnoreCase(email) ? now : buyerBlockedSellerAt,
+                conversation.getSellerId().equalsIgnoreCase(email) ? now : sellerBlockerBuyerAt
+        );
+
+        conversationBlockRepository.write(conversationBlock);
+
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @RequestMapping(
@@ -282,30 +265,27 @@ class ConversationThreadController {
     )
     public ResponseEntity<Void> unblockConversation(
             @PathVariable("email") final String email,
-            @PathVariable("conversationId") final String conversationId
-    ) {
-        try (Timer.Context ignored = API_POSTBOX_UNBLOCK_CONVERSATION.time()) {
-            MutableConversation conversation = conversationRepository.getById(conversationId);
-            if (wrongConversationOrEmail(email, conversation)) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-
-            ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
-            if (conversationBlock == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-
-            boolean buyerUnblockedSeller = conversation.getBuyerId().equalsIgnoreCase(email);
-            boolean sellerUnblockedBuyer = conversation.getSellerId().equalsIgnoreCase(email);
-            conversationBlockRepository.write(new ConversationBlock(
-                    conversationId,
-                    ConversationBlock.LATEST_VERSION,
-                    buyerUnblockedSeller ? java.util.Optional.empty() : conversationBlock.getBuyerBlockedSellerAt(),
-                    sellerUnblockedBuyer ? java.util.Optional.empty() : conversationBlock.getSellerBlockedBuyerAt()
-            ));
-
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            @PathVariable("conversationId") final String conversationId) {
+        MutableConversation conversation = conversationRepository.getById(conversationId);
+        if (wrongConversationOrEmail(email, conversation)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+
+        ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
+        if (conversationBlock == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        boolean buyerUnblockedSeller = conversation.getBuyerId().equalsIgnoreCase(email);
+        boolean sellerUnblockedBuyer = conversation.getSellerId().equalsIgnoreCase(email);
+        conversationBlockRepository.write(new ConversationBlock(
+                conversationId,
+                ConversationBlock.LATEST_VERSION,
+                buyerUnblockedSeller ? java.util.Optional.empty() : conversationBlock.getBuyerBlockedSellerAt(),
+                sellerUnblockedBuyer ? java.util.Optional.empty() : conversationBlock.getSellerBlockedBuyerAt()
+        ));
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     // Missing conversation or the email doesn't belong to either the seller or the buyer

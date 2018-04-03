@@ -1,7 +1,5 @@
 package com.ecg.messagecenter.webapi;
 
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -18,7 +16,6 @@ import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedCommand;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import org.joda.time.DateTime;
@@ -39,6 +36,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -51,9 +49,6 @@ import static org.joda.time.DateTime.now;
 @Controller
 public class ConversationThreadController {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxOverviewController.class);
-
-    private static final Timer API_POSTBOX_CONVERSATION_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-by-id");
-    private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
 
     @Autowired
     private SimplePostBoxRepository postBoxRepository;
@@ -125,43 +120,41 @@ public class ConversationThreadController {
     public ResponseObject<?> getPostBoxConversationByEmailAndConversationId(@PathVariable("email") String email, @PathVariable("conversationId") String conversationId,
       @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
       HttpServletRequest request, HttpServletResponse response) {
-        try (Timer.Context ignore = API_POSTBOX_CONVERSATION_BY_ID.time()) {
-            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
-            Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
+        Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
 
-            if (!conversationThreadRequested.isPresent()) {
-                return entityNotFound(response);
+        if (!conversationThreadRequested.isPresent()) {
+            return entityNotFound(response);
+        }
+
+        boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
+
+        if (needToMarkAsRead) {
+            postBox.decrementNewReplies(1);
+
+            postBoxRepository.write(postBox);
+            postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
+        }
+
+        Map<String, String> customValues = conversationThreadRequested.get().getCustomValues().get();
+
+        if (newCounterMode) {
+            if (needToMarkAsRead) {
+                markConversationAsRead(email, conversationId, postBox);
             }
 
-            boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
+            return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response, customValues);
+        } else {
+            long numUnread;
 
             if (needToMarkAsRead) {
-                postBox.decrementNewReplies(1);
-
-                postBoxRepository.write(postBox);
-                postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
-            }
-
-            Map<String, String> customValues = conversationThreadRequested.get().getCustomValues().get();
-
-            if (newCounterMode) {
-                if (needToMarkAsRead) {
-                    markConversationAsRead(email, conversationId, postBox);
-                }
-
-                return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, response, customValues);
+                numUnread = markConversationAsRead(email, conversationId, postBox);
             } else {
-                long numUnread;
-
-                if (needToMarkAsRead) {
-                    numUnread = markConversationAsRead(email, conversationId, postBox);
-                } else {
-                    numUnread = postBox.getUnreadConversations().size();
-                }
-
-                return lookupConversation(numUnread, email, conversationId, response, customValues);
+                numUnread = postBox.getUnreadConversations().size();
             }
+
+            return lookupConversation(numUnread, email, conversationId, response, customValues);
         }
     }
 
@@ -177,8 +170,6 @@ public class ConversationThreadController {
         Optional<PostBoxSingleConversationThreadResponse> created = PostBoxSingleConversationThreadResponse.create(numUnread, email, conversation, mailCloakingService, customValues);
 
         if (created.isPresent()) {
-            API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
-
             return ResponseObject.of(created.get());
         } else {
             LOGGER.info("Conversation id #{} is empty but was accessed from list-view, should normally not be reachable by UI", conversationId);

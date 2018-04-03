@@ -1,7 +1,5 @@
 package com.ecg.messagecenter.webapi;
 
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -12,7 +10,6 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +17,12 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,11 +35,6 @@ import static org.joda.time.DateTime.now;
 
 @Controller class ConversationThreadController {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxOverviewController.class);
-
-    private static final Timer API_POSTBOX_CONVERSATION_BY_ID =
-                    TimingReports.newTimer("webapi-postbox-conversation-by-id");
-    private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION =
-                    TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
 
     private final SimplePostBoxRepository postBoxRepository;
     private final ConversationRepository conversationRepository;
@@ -63,44 +60,36 @@ import static org.joda.time.DateTime.now;
                     @RequestParam(value = "robotEnabled", defaultValue = "true", required = false)
                     boolean robotEnabled, HttpServletRequest request,
                     HttpServletResponse response) {
+        PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
-        Timer.Context timerContext = API_POSTBOX_CONVERSATION_BY_ID.time();
+        Optional<ConversationThread> conversationThreadRequested =
+                        postBox.lookupConversation(conversationId);
+        if (!conversationThreadRequested.isPresent()) {
+            return entityNotFound(response);
+        }
 
-        try {
-            PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
+        if (needToMarkAsRead) {
+            int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
+            postBox.decrementNewReplies(unreadMessages);
+            postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
+        }
 
-            Optional<ConversationThread> conversationThreadRequested =
-                            postBox.lookupConversation(conversationId);
-            if (!conversationThreadRequested.isPresent()) {
-                return entityNotFound(response);
-            }
 
-            boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
+        if (newCounterMode) {
             if (needToMarkAsRead) {
-                int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
-                postBox.decrementNewReplies(unreadMessages);
-                postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
+                markConversationAsRead(email, conversationId, postBox);
             }
-
-
-            if (newCounterMode) {
-                if (needToMarkAsRead) {
-                    markConversationAsRead(email, conversationId, postBox);
-                }
-                return lookupConversation(postBox.getNewRepliesCounter().getValue(), email,
-                                conversationId, response, robotEnabled);
+            return lookupConversation(postBox.getNewRepliesCounter().getValue(), email,
+                            conversationId, response, robotEnabled);
+        } else {
+            long numUnread;
+            if (needToMarkAsRead) {
+                numUnread = markConversationAsRead(email, conversationId, postBox);
             } else {
-                long numUnread;
-                if (needToMarkAsRead) {
-                    numUnread = markConversationAsRead(email, conversationId, postBox);
-                } else {
-                    numUnread = postBox.getUnreadConversationsCapped().size();
-                }
-                return lookupConversation(numUnread, email, conversationId, response, robotEnabled);
+                numUnread = postBox.getUnreadConversationsCapped().size();
             }
-
-        } finally {
-            timerContext.stop();
+            return lookupConversation(numUnread, email, conversationId, response, robotEnabled);
         }
     }
 
@@ -118,8 +107,6 @@ import static org.joda.time.DateTime.now;
                         PostBoxSingleConversationThreadResponse
                                         .create(numUnread, email, conversation, robotEnabled);
         if (created.isPresent()) {
-            API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION
-                            .update(created.get().getMessages().size());
             return ResponseObject.of(created.get());
         } else {
             LOGGER.info("Conversation id #{} is empty but was accessed from list-view, should normally not be reachable by UI",

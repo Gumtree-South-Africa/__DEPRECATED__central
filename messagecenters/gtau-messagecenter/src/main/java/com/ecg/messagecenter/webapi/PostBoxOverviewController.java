@@ -1,7 +1,5 @@
 package com.ecg.messagecenter.webapi;
 
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.diff.WebApiSyncService;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -9,7 +7,6 @@ import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.util.ConversationThreadEnricher;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.sync.PostBoxResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +30,6 @@ import java.util.Arrays;
 public class PostBoxOverviewController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxOverviewController.class);
-    private static final Timer API_POSTBOX_BY_EMAIL = TimingReports.newTimer("webapi-postbox-by-email");
-    private static final Timer API_POSTBOX_CONVERSATION_DELETE_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-delete");
-    private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX = TimingReports.newHistogram("webapi-postbox-num-conversations-of-postbox");
 
     private final SimplePostBoxRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
@@ -51,8 +45,7 @@ public class PostBoxOverviewController {
             SimplePostBoxRepository postBoxRepository,
             ConversationThreadEnricher conversationThreadEnricher,
             @Value("${webapi.sync.au.enabled:false}") boolean syncEnabled,
-            @Value("${webapi.diff.au.enabled:false}") boolean diffEnabled
-    ) {
+            @Value("${webapi.diff.au.enabled:false}") boolean diffEnabled) {
         this.postBoxRepository = postBoxRepository;
         this.responseBuilder = new PostBoxResponseBuilder(conversationRepository, conversationThreadEnricher);
         this.syncEnabled = syncEnabled;
@@ -77,20 +70,16 @@ public class PostBoxOverviewController {
             @PathVariable String email,
             @RequestParam(value = "newCounterMode", defaultValue = "false") boolean newCounterMode,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size,
-            @RequestParam(value = "page", defaultValue = "0", required = false) Integer page
-    ) {
-        try (Timer.Context ignored = API_POSTBOX_BY_EMAIL.time()) {
-            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-            API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
+            @RequestParam(value = "page", defaultValue = "0", required = false) Integer page) {
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
-            ResponseObject<PostBoxResponse> postBoxResponse = responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
+        ResponseObject<PostBoxResponse> postBoxResponse = responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
 
-            if (syncEnabled && diffEnabled) {
-                webApiSyncService.logDiffOnPostBoxGet(email, page, size, postBoxResponse.getBody());
-            }
-
-            return postBoxResponse;
+        if (syncEnabled && diffEnabled) {
+            webApiSyncService.logDiffOnPostBoxGet(email, page, size, postBoxResponse.getBody());
         }
+
+        return postBoxResponse;
     }
 
     @DeleteMapping("/postboxes/{email}/conversations")
@@ -99,24 +88,21 @@ public class PostBoxOverviewController {
             @RequestParam(value = "ids", defaultValue = "") String[] ids,
             @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
-            @RequestParam(value = "size", defaultValue = "50", required = false) Integer size
-    ) {
-        try (Timer.Context ignored = API_POSTBOX_CONVERSATION_DELETE_BY_ID.time()) {
-            ResponseObject<PostBoxResponse> postBoxResponse;
-            if (syncEnabled) {
-                // Use retrieved PostBox Response from diffing to avoid the second call to cassandra
-                postBoxResponse = webApiSyncService.deleteConversations(email, Arrays.asList(ids), page, size, newCounterMode);
-            } else {
-                PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-                for (String id : ids) {
-                    postBox.removeConversation(id);
-                }
-
-                postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
-                postBoxResponse = responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
+            @RequestParam(value = "size", defaultValue = "50", required = false) Integer size) {
+        ResponseObject<PostBoxResponse> postBoxResponse;
+        if (syncEnabled) {
+            // Use retrieved PostBox Response from diffing to avoid the second call to cassandra
+            postBoxResponse = webApiSyncService.deleteConversations(email, Arrays.asList(ids), page, size, newCounterMode);
+        } else {
+            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+            for (String id : ids) {
+                postBox.removeConversation(id);
             }
 
-            return postBoxResponse;
+            postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
+            postBoxResponse = responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
         }
+
+        return postBoxResponse;
     }
 }

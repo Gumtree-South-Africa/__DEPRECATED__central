@@ -1,7 +1,5 @@
 package com.ecg.messagecenter.diff;
 
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -17,7 +15,6 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddCustomValueCommand;
 import com.ecg.replyts.core.api.webapi.model.ConversationRts;
-import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
@@ -38,11 +35,6 @@ import java.util.Optional;
 public class ConversationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversationService.class);
-
-    private static final Timer API_POSTBOX_CONVERSATION_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-by-id");
-    private static final Timer API_POSTBOX_CONVERSATION_BY_ID_RIAK = TimingReports.newTimer("webapi-postbox-conversation-by-id-riak");
-    private static final Timer API_POSTBOX_CONVERSATION_BY_ID_MSG_PROCESSING = TimingReports.newTimer("webapi-postbox-conversation-by-id-message-processing");
-    private static final Histogram API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION = TimingReports.newHistogram("webapi-postbox-num-messages-of-conversation");
 
     private static final Object SUCCESS = new Object();
 
@@ -71,33 +63,29 @@ public class ConversationService {
     }
 
     public Optional<PostBoxSingleConversationThreadResponse> getConversation(String email, String conversationId) {
-        try (Timer.Context ignore = API_POSTBOX_CONVERSATION_BY_ID.time()) {
-            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-            Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
-            if (!conversationThreadRequested.isPresent()) {
-                return Optional.empty();
-            }
-
-            return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId);
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
+        if (!conversationThreadRequested.isPresent()) {
+            return Optional.empty();
         }
+
+        return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId);
     }
 
     public Optional<PostBoxSingleConversationThreadResponse> readConversation(String email, String conversationId) {
-        try (Timer.Context ignore = API_POSTBOX_CONVERSATION_BY_ID.time()) {
-            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-            Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
-            if (!conversationThreadRequested.isPresent()) {
-                return Optional.empty();
-            }
-
-            if (conversationThreadRequested.get().isContainsUnreadMessages()) {
-                int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
-                postBox.decrementNewReplies(unreadMessages);
-                postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
-            }
-
-            return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId);
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
+        if (!conversationThreadRequested.isPresent()) {
+            return Optional.empty();
         }
+
+        if (conversationThreadRequested.get().isContainsUnreadMessages()) {
+            int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
+            postBox.decrementNewReplies(unreadMessages);
+            postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
+        }
+
+        return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId);
     }
 
     public Optional<Object> reportConversation(String email, String conversationId) {
@@ -150,10 +138,7 @@ public class ConversationService {
     }
 
     private Optional<PostBoxSingleConversationThreadResponse> lookupConversation(long numUnread, String email, String conversationId) {
-        Conversation conversation;
-        try (Timer.Context ignored = API_POSTBOX_CONVERSATION_BY_ID_RIAK.time()) {
-            conversation = conversationRepository.getById(conversationId);
-        }
+        Conversation conversation = conversationRepository.getById(conversationId);
 
         // can only happen if both buckets diverge
         if (conversation == null) {
@@ -161,13 +146,9 @@ public class ConversationService {
             return Optional.empty();
         }
 
-        Optional<PostBoxSingleConversationThreadResponse> created;
-        try (Timer.Context ignored = API_POSTBOX_CONVERSATION_BY_ID_MSG_PROCESSING.time()) {
-            created = PostBoxSingleConversationThreadResponse.create(numUnread, email, conversation);
-        }
+        Optional<PostBoxSingleConversationThreadResponse> created = PostBoxSingleConversationThreadResponse.create(numUnread, email, conversation);
 
         if (created.isPresent()) {
-            API_NUM_REQUESTED_NUM_MESSAGES_OF_CONVERSATION.update(created.get().getMessages().size());
             return created;
         } else {
             LOGGER.info("Conversation id #{} is empty but was accessed from list-view, should normally not be reachable by UI", conversationId);

@@ -1,7 +1,5 @@
 package com.ecg.messagecenter.webapi;
 
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.diff.WebApiSyncService;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -9,7 +7,6 @@ import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.sync.PostBoxResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,11 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class PostBoxOverviewController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxOverviewController.class);
-
-    private static final Timer API_POSTBOX_BY_EMAIL = TimingReports.newTimer("webapi-postbox-by-email");
-
-    private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX =
-            TimingReports.newHistogram("webapi-postbox-num-conversations-of-postbox");
 
     private final SimplePostBoxRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
@@ -68,18 +60,15 @@ public class PostBoxOverviewController {
             @RequestParam(value = "size", defaultValue = "50") Integer size,
             @RequestParam(value = "page", defaultValue = "0") Integer page) {
 
-        try (Timer.Context ignore = API_POSTBOX_BY_EMAIL.time()) {
-            PostBoxResponse postBoxResponse;
-            if (syncEnabled) {
-                // Use retrieved PostBox Response from diffing to avoid the second call to cassandra
-                postBoxResponse = webapiSyncService.getPostBox(email, page, size, newCounterMode);
-            } else {
-                PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-                API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
-                postBoxResponse = responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
-            }
-
-            return ResponseObject.of(postBoxResponse);
+        PostBoxResponse postBoxResponse;
+        if (syncEnabled) {
+            // Use retrieved PostBox Response from diffing to avoid the second call to cassandra
+            postBoxResponse = webapiSyncService.getPostBox(email, page, size, newCounterMode);
+        } else {
+            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+            postBoxResponse = responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
         }
+
+        return ResponseObject.of(postBoxResponse);
     }
 }

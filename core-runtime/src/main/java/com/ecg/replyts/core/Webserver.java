@@ -9,6 +9,7 @@ import com.ecg.replyts.core.webapi.HostReportingServletHandler;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import com.ecg.replyts.core.webapi.ThreadPoolBuilder;
 import com.ecg.replyts.core.webapi.util.ServerStartupLifecycleListener;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -28,8 +29,13 @@ import javax.annotation.PreDestroy;
 import java.lang.management.ManagementFactory;
 import java.util.List;
 
-import static org.eclipse.jetty.http.HttpMethod.*;
-import static org.eclipse.jetty.http.MimeTypes.Type.*;
+import static org.eclipse.jetty.http.HttpMethod.DELETE;
+import static org.eclipse.jetty.http.HttpMethod.GET;
+import static org.eclipse.jetty.http.HttpMethod.POST;
+import static org.eclipse.jetty.http.HttpMethod.PUT;
+import static org.eclipse.jetty.http.MimeTypes.Type.APPLICATION_JSON;
+import static org.eclipse.jetty.http.MimeTypes.Type.TEXT_JSON;
+import static org.eclipse.jetty.http.MimeTypes.Type.TEXT_PLAIN;
 
 @Component
 public class Webserver {
@@ -96,8 +102,16 @@ public class Webserver {
             registerJettyOnJmx();
         }
 
-        handlers.addHandler(instrument(gzip(new HandlerCollection(contextProviders.stream().map(SpringContextProvider::create).toArray(Handler[]::new)))));
-        handlers.addHandler(instrument(createAccessLoggingHandler()));
+        for (SpringContextProvider springContextProvider : contextProviders) {
+
+            Handler handler = gzip(springContextProvider.create());
+            String path = StringUtils.removeStart(springContextProvider.getPath(), "/");
+            if (!path.isEmpty()) { // Do not instrument home
+                handler = instrument(path, handler);
+            }
+            handlers.addHandler(handler);
+        }
+        handlers.addHandler(createAccessLoggingHandler());
 
         server.setHandler(handlers);
 
@@ -120,11 +134,12 @@ public class Webserver {
         return started;
     }
 
-    private Handler instrument(Handler handler) {
+    private Handler instrument(String path, Handler handler) {
         if (instrumented) {
             HostReportingServletHandler instrumentedHandler = new HostReportingServletHandler(MetricsService.getInstance().getRegistry());
-
             LOG.debug("Instrumenting handler: {}", handler);
+
+            instrumentedHandler.setName(path);
 
             instrumentedHandler.setHandler(handler);
 

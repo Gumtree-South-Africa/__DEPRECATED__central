@@ -1,6 +1,5 @@
 package com.ecg.replyts.core.webapi.screeningv2;
 
-import com.codahale.metrics.Timer;
 import com.ecg.replyts.app.UserEventListener;
 import com.ecg.replyts.core.api.model.user.event.EmailPreferenceEvent;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import static com.ecg.replyts.core.api.model.user.event.EmailPreferenceCommand.TURN_OFF_EMAIL;
 import static com.ecg.replyts.core.api.model.user.event.EmailPreferenceCommand.TURN_ON_EMAIL;
-import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
@@ -27,10 +25,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 @ConditionalOnExpression("'${email.opt.out.enabled:false}' == 'true' && ('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))")
 public class EmailOptOutController {
     private static final Logger LOG = LoggerFactory.getLogger(EmailOptOutController.class);
-
-    private static final Timer TURN_ON = newTimer("webapi.email-notifications.turn-on");
-    private static final Timer TURN_OFF = newTimer("webapi.email-notifications.turn-off");
-    private static final Timer STATUS = newTimer("webapi.email-notifications.status");
 
     @Autowired
     private EmailOptOutRepository emailOptOutRepository;
@@ -41,42 +35,36 @@ public class EmailOptOutController {
     @RequestMapping(value = "/email-notifications/{userId}/turn-on", produces = APPLICATION_JSON_UTF8_VALUE, method = PUT)
     @ResponseBody
     ResponseObject<?> emailTurnOn(@PathVariable String userId) {
-        try (Timer.Context ignored = TURN_ON.time()) {
-            LOG.trace("Turning on email notifications for userId: " + userId);
+        LOG.trace("Turning on email notifications for userId: " + userId);
 
-            emailOptOutRepository.turnOnEmail(userId);
+        emailOptOutRepository.turnOnEmail(userId);
 
-            if (userEventListener != null) {
-                userEventListener.eventTriggered(new EmailPreferenceEvent(TURN_ON_EMAIL, userId));
-            }
-
-            return ResponseObject.of(RequestState.OK);
+        if (userEventListener != null) {
+            userEventListener.eventTriggered(new EmailPreferenceEvent(TURN_ON_EMAIL, userId));
         }
+
+        return ResponseObject.of(RequestState.OK);
     }
 
     @RequestMapping(value = "/email-notifications/{userId}/turn-off", produces = APPLICATION_JSON_UTF8_VALUE, method = PUT)
     @ResponseBody
     ResponseObject<?> emailTurnOff(@PathVariable String userId) {
-        try (Timer.Context ignored = TURN_OFF.time()) {
-            LOG.trace("Turning off email notifications for userId: " + userId);
+        LOG.trace("Turning off email notifications for userId: " + userId);
 
-            emailOptOutRepository.turnOffEmail(userId);
+        emailOptOutRepository.turnOffEmail(userId);
 
-            if (userEventListener != null) {
-                userEventListener.eventTriggered(new EmailPreferenceEvent(TURN_OFF_EMAIL, userId));
-            }
-
-            return ResponseObject.of(RequestState.OK);
+        if (userEventListener != null) {
+            userEventListener.eventTriggered(new EmailPreferenceEvent(TURN_OFF_EMAIL, userId));
         }
+
+        return ResponseObject.of(RequestState.OK);
     }
 
     @RequestMapping(value = "/email-notifications/{userId}", produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
     @ResponseBody
     ResponseObject<?> isEmailTurnedOn(@PathVariable String userId) {
-        try (Timer.Context ignored = STATUS.time()) {
-            final boolean emailTurnedOn = emailOptOutRepository.isEmailTurnedOn(userId);
-            return ResponseObject.of(new EmailNotificationsStatus(emailTurnedOn));
-        }
+        final boolean emailTurnedOn = emailOptOutRepository.isEmailTurnedOn(userId);
+        return ResponseObject.of(new EmailNotificationsStatus(emailTurnedOn));
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

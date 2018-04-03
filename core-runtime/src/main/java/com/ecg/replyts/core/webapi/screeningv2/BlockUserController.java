@@ -1,8 +1,6 @@
 package com.ecg.replyts.core.webapi.screeningv2;
 
-import com.codahale.metrics.Timer;
 import com.ecg.replyts.app.UserEventListener;
-import com.ecg.replyts.core.api.model.user.event.BlockAction;
 import com.ecg.replyts.core.api.model.user.event.BlockedUserEvent;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import static com.ecg.replyts.core.api.model.user.event.BlockAction.BLOCK_USER;
 import static com.ecg.replyts.core.api.model.user.event.BlockAction.UNBLOCK_USER;
-import static com.ecg.replyts.core.runtime.TimingReports.newTimer;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -27,9 +24,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @ConditionalOnExpression("#{('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))}")
 public class BlockUserController {
     private static final Logger LOG = LoggerFactory.getLogger(BlockUserController.class);
-
-    private static final Timer BLOCK_USER_TIMER = newTimer("webapi.block-user");
-    private static final Timer UNBLOCK_USER_TIMER = newTimer("webapi.unblock-user");
 
     @Autowired
     private BlockUserRepository blockUserRepository;
@@ -40,32 +34,28 @@ public class BlockUserController {
     @RequestMapping(value = "/block-users/{blockerId}/{blockeeId}", produces = APPLICATION_JSON_UTF8_VALUE, method = POST)
     @ResponseBody
     ResponseObject<?> blockUser(@PathVariable String blockerId, @PathVariable String blockeeId) {
-        try (Timer.Context ignored = BLOCK_USER_TIMER.time()) {
-            LOG.trace("Blocking user, blockerId: %s blockeeId: %s", blockerId, blockeeId);
+        LOG.trace("Blocking user, blockerId: %s blockeeId: %s", blockerId, blockeeId);
 
-            blockUserRepository.blockUser(blockerId, blockeeId);
+        blockUserRepository.blockUser(blockerId, blockeeId);
 
-            if (userEventListener != null) {
-                userEventListener.eventTriggered(new BlockedUserEvent(blockerId, blockeeId, BLOCK_USER));
-            }
-
-            return ResponseObject.of(RequestState.OK);
+        if (userEventListener != null) {
+            userEventListener.eventTriggered(new BlockedUserEvent(blockerId, blockeeId, BLOCK_USER));
         }
+
+        return ResponseObject.of(RequestState.OK);
     }
 
     @RequestMapping(value = "/block-users/{blockerId}/{blockeeId}", produces = APPLICATION_JSON_UTF8_VALUE, method = DELETE)
     @ResponseBody
     ResponseObject<?> unblockUser(@PathVariable String blockerId, @PathVariable String blockeeId) {
-        try (Timer.Context ignored = UNBLOCK_USER_TIMER.time()) {
-            LOG.trace("Unblocking user, blockerId: %s blockeeId: %s", blockerId, blockeeId);
+        LOG.trace("Unblocking user, blockerId: %s blockeeId: %s", blockerId, blockeeId);
 
-            blockUserRepository.unblockUser(blockerId, blockeeId);
+        blockUserRepository.unblockUser(blockerId, blockeeId);
 
-            if (userEventListener != null) {
-                userEventListener.eventTriggered(new BlockedUserEvent(blockerId, blockeeId, UNBLOCK_USER));
-            }
-
-            return ResponseObject.of(RequestState.OK);
+        if (userEventListener != null) {
+            userEventListener.eventTriggered(new BlockedUserEvent(blockerId, blockeeId, UNBLOCK_USER));
         }
+
+        return ResponseObject.of(RequestState.OK);
     }
 }

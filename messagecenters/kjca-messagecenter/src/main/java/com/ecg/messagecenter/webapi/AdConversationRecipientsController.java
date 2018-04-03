@@ -1,7 +1,5 @@
 package com.ecg.messagecenter.webapi;
 
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -13,9 +11,6 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
@@ -41,12 +36,6 @@ import java.util.List;
  */
 @Controller
 class AdConversationRecipientsController {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AdConversationRecipientsController.class);
-
-    private static final Timer API_POSTBOX_ENQUIRY_BY_AD = TimingReports.newTimer("webapi-postbox-enquiry-by-ad");
-    private static final Histogram API_NUM_CONVERSATIONS_BY_AD = TimingReports.newHistogram("webapi-postbox-num-conversations-by-ad");
-
 
     private final SimplePostBoxRepository postBoxRepository;
     private final ConversationRepository conversationRepository;
@@ -90,35 +79,26 @@ class AdConversationRecipientsController {
             @PathVariable("adId") String adId,
             @RequestParam(value = "state", defaultValue = "ACTIVE", required = false) ConversationState state) throws UnsupportedEncodingException {
 
-        Timer.Context timerContext = API_POSTBOX_ENQUIRY_BY_AD.time();
+        final String sellerEmail = URLDecoder.decode(urlEncodedSellerEmail, StandardCharsets.UTF_8.name());
+        final PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(sellerEmail));
 
-        try {
-            final String sellerEmail = URLDecoder.decode(urlEncodedSellerEmail, StandardCharsets.UTF_8.name());
-            final PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(sellerEmail));
+        final List<BuyerContactResponse> buyerContacts = new ArrayList<>();
 
-            final List<BuyerContactResponse> buyerContacts = new ArrayList<>();
+        final AdConversationRecipientListResponse adConversationRecipientListResponse = new AdConversationRecipientListResponse(adId, buyerContacts);
 
-            final AdConversationRecipientListResponse adConversationRecipientListResponse = new AdConversationRecipientListResponse(adId, buyerContacts);
+        for (ConversationThread conversationThread : postBox.getConversationThreads()) {
 
-            for (ConversationThread conversationThread : postBox.getConversationThreads()) {
-
-                // only look at conversations for given ad
-                if (conversationThread.getAdId().equals(adId)) {
-                    // that match the state (default = ACTIVE)
-                    final Conversation conversation = conversationRepository.getById(conversationThread.getConversationId());
-                    if (conversation != null && conversation.getState().equals(state)) {
-                        addBuyerContact(buyerContacts, conversationThread, conversation.getState());
-                    }
+            // only look at conversations for given ad
+            if (conversationThread.getAdId().equals(adId)) {
+                // that match the state (default = ACTIVE)
+                final Conversation conversation = conversationRepository.getById(conversationThread.getConversationId());
+                if (conversation != null && conversation.getState().equals(state)) {
+                    addBuyerContact(buyerContacts, conversationThread, conversation.getState());
                 }
             }
-
-            API_NUM_CONVERSATIONS_BY_AD.update(buyerContacts.size());
-
-            return ResponseObject.of(adConversationRecipientListResponse);
-
-        } finally {
-            timerContext.stop();
         }
+
+        return ResponseObject.of(adConversationRecipientListResponse);
     }
 
     private void addBuyerContact(List<BuyerContactResponse> buyerContacts, ConversationThread conversationThread, ConversationState state) {

@@ -1,9 +1,7 @@
 package com.ecg.replyts.core.webapi;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.RatioGauge;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.collect.Maps;
@@ -54,28 +52,9 @@ public class HostReportingServletHandler extends HandlerWrapper {
     // header, excluding active
     private Timer requestDelays;
 
-    // the number of dispatches seen by this handler, excluding active
-    private Timer dispatches;
-
-    // the number of active requests
-    private Counter activeRequests;
-
-    // the number of active dispatches
-    private Counter activeDispatches;
-
-    // the number of requests currently suspended.
-    private Counter activeSuspended;
-
-    // the number of requests that have been asynchronously dispatched
-    private Meter asyncDispatches;
-
-    // the number of requests that expired while suspended
-    private Meter asyncTimeouts;
-
-    private Meter[] responses;
+    private Counter[] responses;
 
     private Map<HttpMethod, Timer> httpMethodRequests;
-    private Timer otherRequests;
 
     private AsyncListener listener;
 
@@ -101,80 +80,28 @@ public class HostReportingServletHandler extends HandlerWrapper {
     protected void doStart() throws Exception {
         super.doStart();
 
-        final String prefix = name(TimingReports.getHostName(), getHandler().getClass().getName(), name);
+        final String prefix = name(TimingReports.getHostName(), getHandler().getClass().getSimpleName(), name);
 
         this.requests = metricRegistry.timer(name(prefix, "requests"));
         this.requestDelays = metricRegistry.timer(name(prefix, "request-delays"));
-        this.dispatches = metricRegistry.timer(name(prefix, "dispatches"));
 
-        this.activeRequests = metricRegistry.counter(name(prefix, "active-requests"));
-        this.activeDispatches = metricRegistry.counter(name(prefix, "active-dispatches"));
-        this.activeSuspended = metricRegistry.counter(name(prefix, "active-suspended"));
-
-        this.asyncDispatches = metricRegistry.meter(name(prefix, "async-dispatches"));
-        this.asyncTimeouts = metricRegistry.meter(name(prefix, "async-timeouts"));
-
-        this.responses = new Meter[] { metricRegistry.meter(name(prefix, "1xx-responses")), // 1xx
-                metricRegistry.meter(name(prefix, "2xx-responses")), // 2xx
-                metricRegistry.meter(name(prefix, "3xx-responses")), // 3xx
-                metricRegistry.meter(name(prefix, "4xx-responses")), // 4xx
-                metricRegistry.meter(name(prefix, "5xx-responses")) // 5xx
+        this.responses = new Counter[] {
+            null,
+            metricRegistry.counter(name(prefix, "2xx-responses")), // 2xx
+            null,
+            metricRegistry.counter(name(prefix, "4xx-responses")), // 4xx
+            metricRegistry.counter(name(prefix, "5xx-responses")) // 5xx
         };
 
-        httpMethodRequests = Maps.toMap(
-            Arrays.asList(HttpMethod.values()),
+        this.httpMethodRequests = Maps.toMap(
+            Arrays.asList(HttpMethod.GET, HttpMethod.PUT, HttpMethod.POST, HttpMethod.DELETE),
             httpMethod -> metricRegistry.timer(name(prefix, httpMethod.toString().toLowerCase() + "-requests")));
-
-        this.otherRequests = metricRegistry.timer(name(prefix, "other-requests"));
-
-        metricRegistry.register(name(prefix, "percent-4xx-1m"), new RatioGauge() {
-            @Override
-            protected Ratio getRatio() {
-                return Ratio.of(responses[3].getOneMinuteRate(), requests.getOneMinuteRate());
-            }
-        });
-
-        metricRegistry.register(name(prefix, "percent-4xx-5m"), new RatioGauge() {
-            @Override
-            protected Ratio getRatio() {
-                return Ratio.of(responses[3].getFiveMinuteRate(), requests.getFiveMinuteRate());
-            }
-        });
-
-        metricRegistry.register(name(prefix, "percent-4xx-15m"), new RatioGauge() {
-            @Override
-            protected Ratio getRatio() {
-                return Ratio.of(responses[3].getFifteenMinuteRate(), requests.getFifteenMinuteRate());
-            }
-        });
-
-        metricRegistry.register(name(prefix, "percent-5xx-1m"), new RatioGauge() {
-            @Override
-            protected Ratio getRatio() {
-                return Ratio.of(responses[4].getOneMinuteRate(), requests.getOneMinuteRate());
-            }
-        });
-
-        metricRegistry.register(name(prefix, "percent-5xx-5m"), new RatioGauge() {
-            @Override
-            protected Ratio getRatio() {
-                return Ratio.of(responses[4].getFiveMinuteRate(), requests.getFiveMinuteRate());
-            }
-        });
-
-        metricRegistry.register(name(prefix, "percent-5xx-15m"), new RatioGauge() {
-            @Override
-            protected Ratio getRatio() {
-                return Ratio.of(responses[4].getFifteenMinuteRate(), requests.getFifteenMinuteRate());
-            }
-        });
 
         this.listener = new AsyncListener() {
             private long startTime;
 
             @Override
             public void onTimeout(AsyncEvent event) throws IOException {
-                asyncTimeouts.mark();
             }
 
             @Override
@@ -193,9 +120,6 @@ public class HostReportingServletHandler extends HandlerWrapper {
                 final HttpServletRequest request = (HttpServletRequest) state.getRequest();
                 final HttpServletResponse response = (HttpServletResponse) state.getResponse();
                 updateResponses(request, response, startTime);
-                if (state.getHttpChannelState().getState() != HttpChannelState.State.DISPATCHED) {
-                    activeSuspended.dec();
-                }
             }
         };
     }
@@ -204,37 +128,23 @@ public class HostReportingServletHandler extends HandlerWrapper {
     public void handle(String path, Request request, HttpServletRequest httpRequest, HttpServletResponse httpResponse)
             throws IOException, ServletException {
 
-        activeDispatches.inc();
-
         final long start;
         final HttpChannelState state = request.getHttpChannelState();
         if (state.isInitial()) {
             // new request
-            activeRequests.inc();
             start = request.getTimeStamp();
         } else {
             // resumed request
             start = System.currentTimeMillis();
-            activeSuspended.dec();
-            if (state.getState() == HttpChannelState.State.DISPATCHED) {
-                asyncDispatches.mark();
-            }
         }
 
         try {
             super.handle(path, request, httpRequest, httpResponse);
         } finally {
-            final long now = System.currentTimeMillis();
-            final long dispatched = now - start;
-
-            activeDispatches.dec();
-            dispatches.update(dispatched, TimeUnit.MILLISECONDS);
-
             if (state.isSuspended()) {
                 if (state.isInitial()) {
                     state.addListener(listener);
                 }
-                activeSuspended.inc();
             } else if (state.isInitial()) {
                 updateResponses(httpRequest, httpResponse, start);
             }
@@ -245,13 +155,14 @@ public class HostReportingServletHandler extends HandlerWrapper {
     private void updateResponses(HttpServletRequest request, HttpServletResponse response, long start) {
         final int responseStatus = response.getStatus() / 100;
         if (responseStatus >= 1 && responseStatus <= 5) {
-            responses[responseStatus - 1].mark();
+            Counter counter = responses[responseStatus - 1];
+            if (counter != null) {
+                counter.inc();
+            }
         }
-        activeRequests.dec();
         final long elapsedTime = System.currentTimeMillis() - start;
-        HttpMethod httpMethod = HttpMethod.fromString(request.getMethod());
         updateRequestsMetric(elapsedTime);
-        updateHttpMethodRequestsMetric(httpMethod, elapsedTime);
+        updateHttpMethodRequestsMetric(HttpMethod.fromString(request.getMethod()), elapsedTime);
         updateRequestDelayMetric(request);
     }
 
@@ -260,8 +171,10 @@ public class HostReportingServletHandler extends HandlerWrapper {
     }
 
     private void updateHttpMethodRequestsMetric(HttpMethod httpMethod, long elapsedTime) {
-        Timer timer = httpMethodRequests.getOrDefault(httpMethod, otherRequests);
-        timer.update(elapsedTime, TimeUnit.MILLISECONDS);
+        Timer timer = httpMethodRequests.get(httpMethod);
+        if (timer != null) {
+            timer.update(elapsedTime, TimeUnit.MILLISECONDS);
+        }
     }
 
     private void updateRequestDelayMetric(HttpServletRequest request) {

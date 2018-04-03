@@ -1,7 +1,5 @@
 package com.ecg.messagecenter.webapi;
 
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.persistence.block.ConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
@@ -12,7 +10,6 @@ import com.ecg.messagecenter.webapi.responses.PostBoxResponse;
 import com.ecg.messagecenter.webapi.responses.PostBoxResponseBuilder;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
@@ -32,10 +29,6 @@ import java.util.Arrays;
 
 @Controller
 class PostBoxOverviewController {
-
-    private static final Timer API_POSTBOX_BY_EMAIL = TimingReports.newTimer("webapi-postbox-by-email");
-    private static final Timer API_POSTBOX_CONVERSATION_DELETE_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-delete");
-    private static final Histogram API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX = TimingReports.newHistogram("webapi-postbox-num-conversations-of-postbox");
 
     private final SimplePostBoxRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
@@ -66,23 +59,14 @@ class PostBoxOverviewController {
             @RequestParam(value = "role", required = false) ConversationRole role,
             HttpServletRequest request) {
 
-        Timer.Context timerContext = API_POSTBOX_BY_EMAIL.time();
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
-        try {
-            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-
-            API_NUM_REQUESTED_NUM_CONVERSATIONS_OF_POSTBOX.update(postBox.getConversationThreads().size());
-
-            if (markAsRead(request)) {
-                postBox.resetReplies();
-                postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
-            }
-
-            return responseBuilder.buildPostBoxResponse(email, size, page, role, postBox);
-
-        } finally {
-            timerContext.stop();
+        if (markAsRead(request)) {
+            postBox.resetReplies();
+            postBoxRepository.markConversationsAsRead(postBox, postBox.getConversationThreads());
         }
+
+        return responseBuilder.buildPostBoxResponse(email, size, page, role, postBox);
     }
 
 
@@ -95,28 +79,19 @@ class PostBoxOverviewController {
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "50", required = false) Integer size) {
 
-        Timer.Context timerContext = API_POSTBOX_CONVERSATION_DELETE_BY_ID.time();
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
-        try {
-            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-
-            for (String id : ids) {
-                postBox.removeConversation(id);
-            }
-
-            postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
-
-            return responseBuilder.buildPostBoxResponse(email, size, page, postBox);
-
-        } finally {
-            timerContext.stop();
+        for (String id : ids) {
+            postBox.removeConversation(id);
         }
+
+        postBoxRepository.deleteConversations(postBox, Arrays.asList(ids));
+
+        return responseBuilder.buildPostBoxResponse(email, size, page, postBox);
     }
 
 
     private boolean markAsRead(HttpServletRequest request) {
         return request.getMethod().equals(RequestMethod.PUT.name());
     }
-
-
 }

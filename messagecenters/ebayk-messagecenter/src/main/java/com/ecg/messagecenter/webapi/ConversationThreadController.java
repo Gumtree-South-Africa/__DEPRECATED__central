@@ -1,12 +1,10 @@
 package com.ecg.messagecenter.webapi;
 
-import com.codahale.metrics.Timer;
 import com.ecg.messagecenter.diff.ConversationService;
 import com.ecg.messagecenter.diff.WebApiSyncService;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +14,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 
@@ -24,8 +27,6 @@ import java.util.Optional;
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ConversationThreadController {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationThreadController.class);
-
-    private static final Timer API_POSTBOX_CONVERSATION_BY_ID = TimingReports.newTimer("webapi-postbox-conversation-by-id");
 
     private final boolean syncEnabled;
     private final ConversationService conversationService;
@@ -54,18 +55,16 @@ public class ConversationThreadController {
             @PathVariable("email") String email,
             @PathVariable("conversationId") String conversationId) {
 
-        try (Timer.Context ignore = API_POSTBOX_CONVERSATION_BY_ID.time()) {
-            Optional<PostBoxSingleConversationThreadResponse> response;
-            if (syncEnabled) {
-                response = webapiSyncService.getConversation(email, conversationId);
-            } else {
-                response = conversationService.getConversation(email, conversationId);
-            }
-
-            return response.map(ResponseObject::of)
-                    .map(ResponseEntity::ok)
-                    .orElseGet(this::entityNotFound);
+        Optional<PostBoxSingleConversationThreadResponse> response;
+        if (syncEnabled) {
+            response = webapiSyncService.getConversation(email, conversationId);
+        } else {
+            response = conversationService.getConversation(email, conversationId);
         }
+
+        return response.map(ResponseObject::of)
+                .map(ResponseEntity::ok)
+                .orElseGet(this::entityNotFound);
     }
 
     @PutMapping("/postboxes/{email}/conversations/{conversationId}")
@@ -73,18 +72,16 @@ public class ConversationThreadController {
             @PathVariable("email") String email,
             @PathVariable("conversationId") String conversationId) {
 
-        try (Timer.Context ignore = API_POSTBOX_CONVERSATION_BY_ID.time()) {
-            Optional<PostBoxSingleConversationThreadResponse> response;
-            if (syncEnabled) {
-                response = webapiSyncService.readConversation(email, conversationId);
-            } else {
-                response = conversationService.readConversation(email, conversationId);
-            }
-
-            return response.map(ResponseObject::of)
-                    .map(ResponseEntity::ok)
-                    .orElseGet(this::entityNotFound);
+        Optional<PostBoxSingleConversationThreadResponse> response;
+        if (syncEnabled) {
+            response = webapiSyncService.readConversation(email, conversationId);
+        } else {
+            response = conversationService.readConversation(email, conversationId);
         }
+
+        return response.map(ResponseObject::of)
+                .map(ResponseEntity::ok)
+                .orElseGet(this::entityNotFound);
     }
 
     private ResponseEntity entityNotFound() {

@@ -4,13 +4,13 @@ import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.graphite.Graphite;
-import com.codahale.metrics.graphite.GraphiteReporter;
 import com.ecg.replyts.core.runtime.MetricsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import javax.annotation.PreDestroy;
+
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;

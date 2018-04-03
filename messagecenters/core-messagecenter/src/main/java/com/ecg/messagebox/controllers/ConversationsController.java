@@ -1,13 +1,11 @@
 package com.ecg.messagebox.controllers;
 
-import com.codahale.metrics.Timer;
 import com.ecg.messagebox.controllers.responses.ConversationsResponse;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import com.ecg.replyts.core.runtime.TimingReports;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
@@ -28,10 +26,6 @@ import java.util.stream.Collectors;
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ConversationsController {
 
-    private final Timer getConversationsTimer = TimingReports.newTimer("webapi.get-conversations");
-    private final Timer executeActionsTimer = TimingReports.newTimer("webapi.execute-actions");
-    private final Timer getConversationIdsByAdId = TimingReports.newTimer("webapi.get-conversation-ids-by-adid");
-
     private final PostBoxService postBoxService;
 
     @Autowired
@@ -51,11 +45,9 @@ public class ConversationsController {
             @RequestParam(name = "limit", defaultValue = "50") int limit,
             @RequestParam(name = "visibility", defaultValue = "active") String visibility) {
 
-        try (Timer.Context ignored = getConversationsTimer.time()) {
-            PostBox conversations = postBoxService.getConversations(userId, Visibility.valueOf(visibility.toUpperCase()), offset, limit);
-            ConversationsResponse conversationsResponse = toConversationsResponse(conversations, offset, limit);
-            return ResponseObject.of(conversationsResponse);
-        }
+        PostBox conversations = postBoxService.getConversations(userId, Visibility.valueOf(visibility.toUpperCase()), offset, limit);
+        ConversationsResponse conversationsResponse = toConversationsResponse(conversations, offset, limit);
+        return ResponseObject.of(conversationsResponse);
     }
 
     @PostMapping("/users/{userId}/conversations")
@@ -67,24 +59,22 @@ public class ConversationsController {
             @RequestParam(name = "offset", defaultValue = "0") int offset,
             @RequestParam(name = "limit", defaultValue = "50") int limit) {
 
-        try (Timer.Context ignored = executeActionsTimer.time()) {
-            PostBox postBox;
-            Visibility newVisibility = Visibility.valueOf(visibility.toUpperCase());
-            switch (action) {
-                case "change-visibility":
-                    if (newVisibility == Visibility.ACTIVE) {
-                        postBox = postBoxService.activateConversations(userId, Arrays.asList(conversationIds), offset, limit);
-                    } else {
-                        postBox = postBoxService.archiveConversations(userId, Arrays.asList(conversationIds), offset, limit);
-                    }
-                    break;
-                default:
-                    postBox = null;
-                    break;
-            }
-            Object response = postBox == null ? RequestState.INVALID_ARGUMENTS : toConversationsResponse(postBox, offset, limit);
-            return ResponseObject.of(response);
+        PostBox postBox;
+        Visibility newVisibility = Visibility.valueOf(visibility.toUpperCase());
+        switch (action) {
+            case "change-visibility":
+                if (newVisibility == Visibility.ACTIVE) {
+                    postBox = postBoxService.activateConversations(userId, Arrays.asList(conversationIds), offset, limit);
+                } else {
+                    postBox = postBoxService.archiveConversations(userId, Arrays.asList(conversationIds), offset, limit);
+                }
+                break;
+            default:
+                postBox = null;
+                break;
         }
+        Object response = postBox == null ? RequestState.INVALID_ARGUMENTS : toConversationsResponse(postBox, offset, limit);
+        return ResponseObject.of(response);
     }
 
     @GetMapping("/users/{userId}/ads/{adId}/conversations/ids")
@@ -93,11 +83,9 @@ public class ConversationsController {
             @PathVariable("adId") String adId,
             @RequestParam(name = "limit", defaultValue = "500") int limit) {
 
-        try (Timer.Context ignored = getConversationIdsByAdId.time()) {
-            List<String> resolvedConversationIds = postBoxService
-                    .getConversationsById(userId, adId, limit);
-            return ResponseObject.of(resolvedConversationIds);
-        }
+        List<String> resolvedConversationIds = postBoxService
+                .getConversationsById(userId, adId, limit);
+        return ResponseObject.of(resolvedConversationIds);
     }
 
     private static ConversationsResponse toConversationsResponse(PostBox postBox, int offset, int limit) {
