@@ -51,7 +51,6 @@ Closure wrapWithStepDefinition(final String tenantLong, final String environment
                     } else {
                         commonFunctions.sendToSlackJenkinsChannel('#FF0000', slackMessage)
                     }
-                    commonFunctions.sendSlackNotification('#FF0000', tenantLong, slackMessage)
                     error(ex.getMessage())
                 }
             }

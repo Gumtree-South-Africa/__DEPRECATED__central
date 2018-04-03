@@ -161,6 +161,9 @@ static String getUserIdFromEmail(String email) {
 }
 
 void sendSlackNotification(String colour, String channel, String message) {
+    if (channel == 'ar' || channel == 'mx' || channel == 'sg' || channel == 'za') {
+        channel = 'bolt'
+    }
     sendToSlack(colour, channel, message)
 }
 
