@@ -156,6 +156,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
             testProperties.put("persistence.skip.mail.storage", true);
         }
 
+        if (!testProperties.containsKey("tenant")) {
+            testProperties.put("tenant", "unknown");
+        }
+
         if (!testProperties.containsKey("replyts.tenant")) {
             testProperties.put("replyts.tenant", "unknown");
         }

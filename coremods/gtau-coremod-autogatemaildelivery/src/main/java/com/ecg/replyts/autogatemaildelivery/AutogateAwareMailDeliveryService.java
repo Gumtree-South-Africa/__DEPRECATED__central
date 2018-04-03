@@ -6,128 +6,111 @@ import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
 import com.ecg.replyts.core.runtime.mailparser.MailEnhancer;
-import com.google.common.base.Strings;
+import com.ecg.replyts.core.runtime.util.HttpClientFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.protocol.HTTP;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
+import java.nio.charset.Charset;
+
 /**
- * Mail Delivery Service performs HTTP Posts of Leads to Autogate dataconnect service when the 
+ * Mail Delivery Service performs HTTP Posts of Leads to Autogate dataconnect service when the
  * specific URL header has been set - otherwise sends as normal mail message.
  */
 @ComaasPlugin
 @Primary
 @Component
 public class AutogateAwareMailDeliveryService implements MailDeliveryService {
-    private final static Logger LOG = LoggerFactory.getLogger(AutogateAwareMailDeliveryService.class);
 
-    private String autogateHttpUrlHeader;
+    private static final Logger LOG = LoggerFactory.getLogger(AutogateAwareMailDeliveryService.class);
 
-    private String autogateHttpAccountName;
-
-    private String autogateHttpAccountPassword;
-
-    private HttpClient httpClient;
-
-    private MailDeliveryService smtpMailDeliveryService;
-
-    private MailEnhancer mailEnhancer;
+    private final String autogateHttpUrlHeader;
+    private final String autogateHttpAccountName;
+    private final String autogateHttpAccountPassword;
+    private final CloseableHttpClient httpClient;
+    private final MailDeliveryService smtpMailDeliveryService;
+    private final MailEnhancer mailEnhancer;
 
     @Autowired
     public AutogateAwareMailDeliveryService(
-      @Qualifier("smtpMailDeliveryService") MailDeliveryService smtpMailDeliveryService,
-      MailEnhancer mailEnhancer,
-      @Value("${replyts.autogate.header.url:X-Cust-Http-Url}")
-      String autogateHttpUrlHeader,
-      @Value("${replyts.autogate.header.account:X-Cust-Http-Account-Name}")
-      String autogateHttpAccountName,
-      @Value("${replyts.autogate.header.password:X-Cust-Http-Account-Password}")
-      String autogateHttpAccountPassword,
-      @Value("${replyts.autogate.httpclient.proxyHost:}")
-      String proxyHost,
-      @Value("${replyts.autogate.httpclient.proxyPort:80}")
-      int proxyPort,
-      @Value("${replyts.autogate.httpclient.maxConnectionsPerRoute:100}")
-      int maxConnectionsPerRoute,
-      @Value("${replyts.autogate.httpclient.maxConnections:100}")
-      int maxConnections,
-      @Value("${replyts.autogate.httpclient.connectionTimeout:1000}")
-      int connectionTimeout,
-      @Value("${replyts.autogate.httpclient.socketTimeout:1000}")
-      int socketTimeout) {
+            @Qualifier("smtpMailDeliveryService") MailDeliveryService smtpMailDeliveryService,
+            MailEnhancer mailEnhancer,
+            @Value("${replyts.autogate.header.url:X-Cust-Http-Url}") String autogateHttpUrlHeader,
+            @Value("${replyts.autogate.header.account:X-Cust-Http-Account-Name}") String autogateHttpAccountName,
+            @Value("${replyts.autogate.header.password:X-Cust-Http-Account-Password}") String autogateHttpAccountPassword,
+            @Value("${replyts.autogate.httpclient.proxyHost:}") String proxyHost,
+            @Value("${replyts.autogate.httpclient.proxyPort:80}") int proxyPort,
+            @Value("${replyts.autogate.httpclient.maxConnectionsPerRoute:100}") int maxConnectionsPerRoute,
+            @Value("${replyts.autogate.httpclient.maxConnections:100}") int maxConnections,
+            @Value("${replyts.autogate.httpclient.connectionTimeout:1000}") int connectionTimeout,
+            @Value("${replyts.autogate.httpclient.connectionManagerTimeout:1000}") int connectionManagerTimeout,
+            @Value("${replyts.autogate.httpclient.socketTimeout:1000}") int socketTimeout
+    ) {
         this.smtpMailDeliveryService = smtpMailDeliveryService;
         this.mailEnhancer = mailEnhancer;
         this.autogateHttpAccountName = autogateHttpAccountName;
         this.autogateHttpAccountPassword = autogateHttpAccountPassword;
         this.autogateHttpUrlHeader = autogateHttpUrlHeader;
 
-        httpClient = buildHttpClient(proxyHost, proxyPort, socketTimeout, connectionTimeout, maxConnections, maxConnectionsPerRoute);
-    }
-
-    private HttpClient buildHttpClient(String proxyHost, int proxyPort, int socketTimeout, int connectionTimeout, int maxConnections, int maxConnectionsPerRoute) {
-        HttpClientBuilder builder = HttpClientBuilder.createHttpclient();
-
-        if (!Strings.isNullOrEmpty(proxyHost)) {
-            builder.usingProxy(proxyHost, proxyPort);
+        if (StringUtils.isEmpty(proxyHost)) {
+            httpClient = HttpClientFactory.createCloseableHttpClient(connectionTimeout, connectionManagerTimeout,
+                    socketTimeout, maxConnectionsPerRoute, maxConnections);
+        } else {
+            httpClient = HttpClientFactory.createCloseableHttpClientWithProxy(connectionTimeout, connectionManagerTimeout,
+                    socketTimeout, maxConnectionsPerRoute, maxConnections, proxyHost, proxyPort);
         }
-
-        return builder.withSocketTimeout(socketTimeout)
-          .withConnectionTimeout(connectionTimeout)
-          .withConnectionsLimitedTo(maxConnections, maxConnectionsPerRoute).build();
     }
 
     @Override
-    public void deliverMail(Mail m) throws MailDeliveryException {
-        LOG.info("Got headers: " + m.getDecodedHeaders().keySet());
-        String xRobot = m.getUniqueHeader("X-Robot");
-        String postUrl = m.getUniqueHeader(autogateHttpUrlHeader);
-        if (postUrl == null || postUrl.isEmpty()) {
+    public void deliverMail(Mail mail) throws MailDeliveryException {
+        LOG.info("Got headers: {}", mail.getDecodedHeaders().keySet());
+        String xRobot = mail.getUniqueHeader("X-Robot");
+        String postUrl = mail.getUniqueHeader(autogateHttpUrlHeader);
+        if (StringUtils.isEmpty(postUrl)) {
             LOG.info("Delivering mail via ReplyTS");
             if (xRobot != null) {
                 LOG.info("X-Robot header present, not sending mail");
-                return;
             } else {
-                smtpMailDeliveryService.deliverMail(this.mailEnhancer.process(m));
+                smtpMailDeliveryService.deliverMail(this.mailEnhancer.process(mail));
             }
         } else {
-            postHttpLead(m, postUrl);
+            postHttpLead(mail, postUrl);
         }
     }
 
     /**
      * Send HTTP Post lead to the professional sellers
      */
-    private void postHttpLead(Mail m, String postUrl) throws MailDeliveryException {
+    private void postHttpLead(Mail mail, String postUrl) throws MailDeliveryException {
         try {
             LOG.info("Autogate HTTP found - posting Lead to Autogate");
 
             // set headers
-            final String accountName = m.getUniqueHeader(autogateHttpAccountName);
-            final String accountPassword = m.getUniqueHeader(autogateHttpAccountPassword);
             final HttpPost httpPost = new HttpPost(postUrl);
-            httpPost.setHeader("AccountName", accountName);
-            httpPost.setHeader("Password", accountPassword);
+            httpPost.setHeader("AccountName", mail.getUniqueHeader(autogateHttpAccountName));
+            httpPost.setHeader("Password", mail.getUniqueHeader(autogateHttpAccountPassword));
 
             // set body
             final StringBuilder sb = new StringBuilder();
-            for(TypedContent<String> textPart : m.getTextParts(false)) {
+            for (TypedContent<String> textPart : mail.getTextParts(false)) {
                 sb.append(textPart.getContent());
             }
-            final StringEntity se = new StringEntity(sb.toString(), HTTP.UTF_8);
+            final StringEntity se = new StringEntity(sb.toString(), Charset.forName("UTF-8"));
             se.setContentType("text/xml");
-            httpPost.setHeader("Content-Type","text/xml;charset=UTF-8");
+            httpPost.setHeader("Content-Type", "text/xml;charset=UTF-8");
             httpPost.setEntity(se);
 
             // perform HTTP post
@@ -137,23 +120,26 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
             // check results
             final HttpEntity httpEntity = response.getEntity();
             String httpEntityString = null;
-            if(httpEntity != null) {
+            if (httpEntity != null) {
                 httpEntityString = EntityUtils.toString(httpEntity);
             }
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ||
                     response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
-                LOG.info("Lead succesfully posted to Autogate, messageId=" + m.getMessageId()
-                        + ", responseCode=" + response.getStatusLine().getStatusCode()
-                        + ", response=" + httpEntityString);
+                LOG.info("Lead successfully posted to Autogate, messageId={}, responseCode={}, response={}",
+                        mail.getMessageId(), response.getStatusLine().getStatusCode(), httpEntityString);
             } else {
-                LOG.error("Failed to post Lead to Autogate, messageId=" + m.getMessageId()
-                        + ", responseCode=" + response.getStatusLine().getStatusCode()
-                        + ", requestBody=" + sb.toString()
-                        + ", response=" + httpEntityString);
+                LOG.error("Failed to post Lead to Autogate, messageId={}, responseCode={}, requestBody={}, response={}",
+                        mail.getMessageId(), response.getStatusLine().getStatusCode(), sb.toString(), httpEntityString);
             }
         } catch (Exception e) {
-            LOG.error("Failed to deliver mail messageId=" + m.getMessageId(), e);
-            throw new MailDeliveryException("Failed to deliver mail messageId=" + m.getMessageId(), e);
+            String errorMessage = "Failed to deliver mail messageId=" + mail.getMessageId();
+            LOG.error(errorMessage, e);
+            throw new MailDeliveryException(errorMessage, e);
         }
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        HttpClientFactory.closeWithLogging(httpClient);
     }
 }

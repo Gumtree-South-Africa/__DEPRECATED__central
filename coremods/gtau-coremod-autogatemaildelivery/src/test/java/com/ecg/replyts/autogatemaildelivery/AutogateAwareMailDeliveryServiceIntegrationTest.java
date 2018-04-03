@@ -1,28 +1,33 @@
 package com.ecg.replyts.autogatemaildelivery;
 
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.mail.internet.MimeMessage;
 
 import java.util.Properties;
 import java.util.function.Supplier;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
-/**-
- * @author mdarapour
- */
 public class AutogateAwareMailDeliveryServiceIntegrationTest {
-    private final static int HTTP_PORT = OpenPortFinder.findFreePort();
-    private final static Logger LOGGER = LoggerFactory.getLogger(AutogateAwareMailDeliveryServiceIntegrationTest.class);
+
+    private static final int HTTP_PORT = OpenPortFinder.findFreePort();
+    private static final Logger LOGGER = LoggerFactory.getLogger(AutogateAwareMailDeliveryServiceIntegrationTest.class);
 
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
@@ -46,30 +51,30 @@ public class AutogateAwareMailDeliveryServiceIntegrationTest {
     public void setup() {
         WireMock.resetToDefault();
         WireMock.resetAllScenarios();
+
+        stubFor(post(urlMatching("/?(.*)")).willReturn(aResponse().withStatus(200)));
     }
 
     @AfterClass
     public static void down() {
         try {
             WireMock.shutdownServer();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             LOGGER.warn("Perhaps WireMock has already gone down!", ex.getMessage());
         }
     }
 
     @Test
     public void ignoresNormalEmails() {
-        stubFor(post(urlMatching("/?(.*)")).willReturn(aResponse().withStatus(200)));
         rule.deliver(MailBuilder.aNewMail().from("buyer@foo.com").to("seller@bar.com").adId("213").htmlBody("hello seller"));
-        MimeMessage mail = rule.waitForMail();
+        rule.waitForMail();
         verify(0, getRequestedFor(urlMatching("/?(.*)")));
     }
 
-    @Ignore
+    @Test
     public void redirectsMailsToAutogate() throws Exception {
-        stubFor(post(urlMatching("/?(.*)")).willReturn(aResponse().withStatus(200)));
-        MailInterceptor.ProcessedMail mail = rule.deliver(MailBuilder.aNewMail().
-                from("buyer@foo.com")
+        rule.deliver(MailBuilder.aNewMail()
+                .from("buyer@foo.com")
                 .to("seller@bar.com")
                 .adId("213")
                 .plainBody("hello seller")

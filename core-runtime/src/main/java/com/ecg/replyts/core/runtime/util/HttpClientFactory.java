@@ -12,13 +12,19 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 
 public class HttpClientFactory {
+
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientFactory.class);
 
-    public static CloseableHttpClient createCloseableHttpClient(int connectionTimeout,
-                                                                int connectionRequestTimeout,
-                                                                int socketTimeout,
-                                                                int maxConnectionsPerHost,
-                                                                int maxTotalConnections) {
+    private HttpClientFactory() {
+    }
+
+    public static CloseableHttpClient createCloseableHttpClient(
+            int connectionTimeout,
+            int connectionRequestTimeout,
+            int socketTimeout,
+            int maxConnectionsPerHost,
+            int maxTotalConnections
+    ) {
         return HttpClientBuilder.create()
                 .setMaxConnPerRoute(maxConnectionsPerHost)
                 .setMaxConnTotal(maxTotalConnections)
@@ -30,14 +36,15 @@ public class HttpClientFactory {
                 .build();
     }
 
-    public static CloseableHttpClient createCloseableHttpClientWithProxy(int connectionTimeout,
-                                                                int connectionRequestTimeout,
-                                                                int socketTimeout,
-                                                                int maxConnectionsPerHost,
-                                                                int maxTotalConnections,
-                                                                String proxyHost,
-                                                                Integer proxyPort) {
-
+    public static CloseableHttpClient createCloseableHttpClientWithProxy(
+            int connectionTimeout,
+            int connectionRequestTimeout,
+            int socketTimeout,
+            int maxConnectionsPerHost,
+            int maxTotalConnections,
+            String proxyHost,
+            Integer proxyPort
+    ) {
         HttpHost proxy = HttpHost.create(proxyHost + ":" + proxyPort);
         DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
         LOG.debug("Creating HTTP client using [{}:{}] as a proxy", proxyHost, proxyPort);
