@@ -70,8 +70,6 @@ public class UrlGatewayPostProcessor implements EmailPostProcessor, ContentOverr
 
     @Override
     public String overrideContent(String content) {
-        // COMAAS-893 Disabled for now, MP is trying to figure out how this needs to be solved.
-        return content;
-        // return PLAIN_TEXT_REWRITER.rewriteUrls(content, gatewaySwitcher);
+         return PLAIN_TEXT_REWRITER.rewriteUrls(content, gatewaySwitcher);
     }
 }

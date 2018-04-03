@@ -13,8 +13,8 @@ import org.springframework.core.env.StandardEnvironment;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -82,5 +82,8 @@ public class UrlGatewayPostProcessorTest {
         return Arrays.asList(c1, c2);
     }
 
-
+    @Test
+    public void overrideContent() {
+        assertThat(processor.overrideContent(PLAIN_TEXT_CONTENT)).isEqualTo(PROCESSED_PLAIN_TEXT_CONTENT);
+    }
 }
