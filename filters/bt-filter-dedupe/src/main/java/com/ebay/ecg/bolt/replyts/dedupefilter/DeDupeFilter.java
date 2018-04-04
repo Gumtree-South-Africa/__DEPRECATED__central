@@ -85,7 +85,9 @@ public class DeDupeFilter implements Filter {
 
             String adId = message.getHeaders().get("X-Cust-Reply-Adid");
             String ipAddr = message.getHeaders().get("X-Cust-Ip");
-
+            if (adId == null || ipAddr == null) {
+                return Collections.emptyList();
+            }
             RtsSearchResponse response = searchService.search(generateSearchPayLoad(receiverMailAddress, inMessage, filterConfig.getMinShouldMatch()));
 
             long matchesFound = response.getResult().stream()
