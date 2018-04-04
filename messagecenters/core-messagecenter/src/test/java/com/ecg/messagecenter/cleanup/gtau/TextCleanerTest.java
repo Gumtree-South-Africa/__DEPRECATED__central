@@ -18,6 +18,17 @@ import static org.junit.Assert.assertTrue;
 
 
 public class TextCleanerTest {
+    private File[] retryingFileLister(File mailFolder, String extension) {
+        final int max = 3;
+        for (int tries = 0; tries < max; tries++) {
+            File[] f = mailFolder.listFiles((dir, name) -> name.endsWith(extension));
+            if (f != null) {
+                return f;
+            }
+        }
+        throw new IllegalStateException("Could not read files from mailFolder '" + mailFolder + "' with extension '" + extension + "'");
+    }
+
     @Test
     public void cleanupText() throws Exception {
         File mailFolder = new File(getClass().getResource("mailReceived").getFile());
@@ -26,8 +37,8 @@ public class TextCleanerTest {
         long start, end, duration;
         String fileName, result;
 
-        File[] mails = mailFolder.listFiles((dir, name) -> name.endsWith("eml"));
-        File[] texts = mailFolder.listFiles((dir, name) -> name.endsWith("txt"));
+        File[] mails = retryingFileLister(mailFolder, "eml");
+        File[] texts = retryingFileLister(mailFolder, "txt");
 
         for (File text : texts) {
             expected.put(fileName(text.getName()), IOUtils.toString(new FileInputStream(text)));
@@ -38,7 +49,6 @@ public class TextCleanerTest {
             fileName = fileName(f.getName());
             try {
                 Mail mail = Mails.readMail(ByteStreams.toByteArray(fin));
-                Map<String, String> headers = mail.getUniqueHeaders();
                 List<String> parts = mail.getPlaintextParts();
                 start = System.currentTimeMillis();
                 result = TextCleaner.cleanupText(parts.get(0));
