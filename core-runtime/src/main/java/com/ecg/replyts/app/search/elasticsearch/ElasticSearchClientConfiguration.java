@@ -23,8 +23,7 @@ public class ElasticSearchClientConfiguration {
     private TransportClient client;
 
     @Bean
-    public TransportClient esClient(@Value("${search.es.endpoints:tenant-${tenant}.elasticsearch.service.consul:9300}") String endpoints,
-                                    @Value("${search.es.clustername}") String clusterName) {
+    public TransportClient esClient(@Value("${search.es.endpoints}") String endpoints, @Value("${search.es.clustername}") String clusterName) {
 
         LOG.info("Productive ES Node configuration. endpoints: {}, clustername: {}", endpoints, clusterName);
 

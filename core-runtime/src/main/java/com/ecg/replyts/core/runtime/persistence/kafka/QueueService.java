@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class QueueService {
     private static final Logger LOG = LoggerFactory.getLogger(QueueService.class);
 
-    @Value("${kafka.core.servers:kafka.service.consul:9092}")
+    @Value("${kafka.core.servers}")
     private String bootstrapServers;
 
     private Map<String, Producer<String, byte[]>> producers = new ConcurrentHashMap<>();

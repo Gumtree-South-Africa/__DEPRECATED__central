@@ -21,7 +21,7 @@ public class KafkaProducerConfigBuilder<K, V> {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaProducerConfigBuilder.class);
 
-    @Value("${kafka.core.servers:kafka.service.consul:9092}")
+    @Value("${kafka.core.servers}")
     private String servers;
 
     @Value("${kafka.core.key.serializer:org.apache.kafka.common.serialization.StringSerializer}")

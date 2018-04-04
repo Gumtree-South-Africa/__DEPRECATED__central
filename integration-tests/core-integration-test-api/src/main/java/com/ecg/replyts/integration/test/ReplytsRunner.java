@@ -65,6 +65,7 @@ public final class ReplytsRunner {
             properties.put("persistence.cassandra.mb.endpoint", CassandraIntegrationTestProvisioner.getEndPoint());
             setEnv("COMAAS_HTTP_PORT", httpPort.toString());
             properties.put("delivery.smtp.port", String.valueOf(smtpOutPort));
+            properties.put("kafka.core.servers", "localhost:9092");
 
             properties.put("mailreceiver.filesystem.dropfolder", dropFolder.getAbsolutePath());
 

@@ -215,12 +215,12 @@ public class CassandraPersistenceConfiguration {
         private Session cassandraSessionForMb;
         private Cluster cassandraClusterForMb;
 
-        @Value("${persistence.cassandra.core.endpoint:tenant-${tenant}.cassandra.service.consul:9042}")
+        @Value("${persistence.cassandra.core.endpoint}")
         public void setCassandraEndpointForCore(String cassandraEndpointForCore) {
             cassandraContactPointsForCore = convertToInetSocketAddressCollection(cassandraEndpointForCore);
         }
 
-        @Value("${persistence.cassandra.mb.endpoint:${persistence.cassandra.core.endpoint:tenant-${tenant}.cassandra.service.consul:9042}}")
+        @Value("${persistence.cassandra.mb.endpoint:${persistence.cassandra.core.endpoint}}")
         public void setCassandraEndpointForMb(String cassandraEndpointForMb) {
             cassandraContactPointsForMb = convertToInetSocketAddressCollection(cassandraEndpointForMb);
         }

@@ -13,7 +13,7 @@ import java.util.Properties;
 
 @Service
 class KafkaMessageConsumerFactory {
-    @Value("${kafka.core.servers:kafka.service.consul:9092}")
+    @Value("${kafka.core.servers}")
     private String bootstrapServers;
 
     public Consumer<String, byte[]> createConsumer(final String topicName) {
