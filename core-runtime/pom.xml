@@ -297,10 +297,6 @@
             <artifactId>archaius-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.reactivex</groupId>
-            <artifactId>rxjava</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.netflix.servo</groupId>
             <artifactId>servo-core</artifactId>
         </dependency>

@@ -86,24 +86,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.reactivex</groupId>
-            <artifactId>rxnetty-http</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.reactivex</groupId>
-                    <artifactId>rxjava</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.vavr</groupId>
-            <artifactId>vavr</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.reactivex</groupId>
-            <artifactId>rxjava</artifactId>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>rest-assured</artifactId>
         </dependency>
     </dependencies>
     <build>
