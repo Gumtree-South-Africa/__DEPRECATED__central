@@ -4,6 +4,7 @@ import ch.qos.logback.access.jetty.RequestLogImpl;
 import ch.qos.logback.classic.LoggerContext;
 import com.ecg.replyts.core.runtime.HttpServerFactory;
 import com.ecg.replyts.core.runtime.MetricsService;
+import com.ecg.replyts.core.runtime.prometheus.ApiResponseExporter;
 import com.ecg.replyts.core.webapi.ContextProvider;
 import com.ecg.replyts.core.webapi.HostReportingServletHandler;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
@@ -103,7 +104,6 @@ public class Webserver {
         }
 
         for (SpringContextProvider springContextProvider : contextProviders) {
-
             Handler handler = gzip(springContextProvider.create());
             String path = StringUtils.removeStart(springContextProvider.getPath(), "/");
             if (!path.isEmpty()) { // Do not instrument home
@@ -112,6 +112,7 @@ public class Webserver {
             handlers.addHandler(handler);
         }
         handlers.addHandler(createAccessLoggingHandler());
+        handlers.addHandler(new ApiResponseExporter());
 
         server.setHandler(handlers);
 
@@ -193,5 +194,9 @@ public class Webserver {
         } else {
             return contextHandler;
         }
+    }
+
+    public int getThreads() {
+        return server.getThreadPool().getThreads();
     }
 }

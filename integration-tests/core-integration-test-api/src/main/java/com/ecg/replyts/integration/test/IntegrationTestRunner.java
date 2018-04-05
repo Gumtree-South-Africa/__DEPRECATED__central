@@ -1,5 +1,6 @@
 package com.ecg.replyts.integration.test;
 
+import io.prometheus.client.CollectorRegistry;
 import org.elasticsearch.client.Client;
 import org.junit.Assert;
 import org.junit.rules.ExternalResource;
@@ -62,6 +63,8 @@ public class IntegrationTestRunner extends ExternalResource {
             isRunning = false;
 
             LOGGER.info("Stopped COMaaS");
+
+            CollectorRegistry.defaultRegistry.clear();
         }
     }
 

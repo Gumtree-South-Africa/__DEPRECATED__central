@@ -3,6 +3,7 @@ package com.ecg.replyts.core;
 import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.ecg.replyts.core.runtime.HttpServerFactory;
 import com.ecg.replyts.core.runtime.StartupExperience;
+import com.ecg.replyts.core.runtime.prometheus.PrometheusExporter;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.DiscoveryStrategyConfig;
@@ -134,7 +135,7 @@ public class Application {
 
             parent.getEnvironment().getPropertySources().addFirst(new ComaasPropertySource());
 
-            parent.register(LoggingService.class, CloudConfiguration.class);
+            parent.register(LoggingService.class, CloudConfiguration.class, PrometheusExporter.class);
 
             parent.refresh();
 
