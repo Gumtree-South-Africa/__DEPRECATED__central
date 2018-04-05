@@ -39,10 +39,11 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
 
     private static final String SKIP_MESSAGE_CENTER = "skip-message-center";
 
-    private final Timer processingTimer = newTimer("message-box.postBoxUpdateListener.timer");
-    private final Counter processingSuccessCounter = newCounter("message-box.postBoxUpdateListener.success");
-    private final Counter processingFailedCounter = newCounter("message-box.postBoxUpdateListener.failed");
-    private final Counter missingUserIdsCounter = newCounter("message-box.postBoxUpdateListener.missingUserIdsCounter");
+    private final Timer processingTimer = newTimer("message-box.postBoxUpdateListener.core.timer");
+    private final Counter processingSuccessCounter = newCounter("message-box.postBoxUpdateListener.core.success");
+    private final Counter processingFailedCounter = newCounter("message-box.postBoxUpdateListener.core.failed");
+    private final Counter missingBuyerIdCounter = newCounter("message-box.postBoxUpdateListener.core.missingBuyerId");
+    private final Counter missingSellerIdCounter = newCounter("message-box.postBoxUpdateListener.core.missingSellerId");
 
     private final PostBoxService postBoxService;
     private final UserIdentifierService userIdentifierService;
@@ -81,7 +82,12 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         if (!buyerUserIdOpt.isPresent() || !sellerUserIdOpt.isPresent()) {
             LOGGER.warn("No buyer or seller id available for conversation {}, conversation state {} and message {}, [buyer/seller]: {}/{}",
                     conv.getId(), conv.getState(), msg.getId(), buyerUserIdOpt.isPresent(), sellerUserIdOpt.isPresent());
-            missingUserIdsCounter.inc();
+            if (!buyerUserIdOpt.isPresent()) {
+                missingBuyerIdCounter.inc();
+            }
+            if (!sellerUserIdOpt.isPresent()) {
+                missingSellerIdCounter.inc();
+            }
             return;
         }
 
@@ -91,7 +97,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             final String msgSenderUserId = msg.getMessageDirection() == BUYER_TO_SELLER ? buyerUserId : sellerUserId;
             final String msgReceiverUserId = msg.getMessageDirection() == BUYER_TO_SELLER ? sellerUserId : buyerUserId;
 
-            if (!isDirectionBlocked(msgSenderUserId, msgReceiverUserId) && msg.getState() != IGNORED ) {
+            if (!isDirectionBlocked(msgSenderUserId, msgReceiverUserId) && msg.getState() != IGNORED) {
                 String cleanMsg = messagesResponseFactory.getCleanedMessage(conv, msg);
 
                 for (ContentOverridingPostProcessor contentOverridingPostProcessor : contentOverridingPostProcessors) {
@@ -107,7 +113,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                 messageAddedEventProcessor.publishMessageAddedEvent(conv, msg, cleanMsg,
                         postBoxService.getUnreadCounts(msgReceiverUserId));
             } else {
-                LOGGER.debug(format("Direction from the %s to %s is blocked for the message %s", msgSenderUserId, msgReceiverUserId, msg.getId()));
+                LOGGER.debug("Direction from the {} to {} is blocked for the message {}", msgSenderUserId, msgReceiverUserId, msg.getId());
             }
 
             processingSuccessCounter.inc();
