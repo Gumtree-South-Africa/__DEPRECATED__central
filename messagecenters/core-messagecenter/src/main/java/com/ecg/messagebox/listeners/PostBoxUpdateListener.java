@@ -42,8 +42,8 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final Timer processingTimer = newTimer("message-box.postBoxUpdateListener.core.timer");
     private final Counter processingSuccessCounter = newCounter("message-box.postBoxUpdateListener.core.success");
     private final Counter processingFailedCounter = newCounter("message-box.postBoxUpdateListener.core.failed");
+    private final Counter missingBothIdsCounter = newCounter("message-box.postBoxUpdateListener.core.missingBothIds");
     private final Counter missingBuyerIdCounter = newCounter("message-box.postBoxUpdateListener.core.missingBuyerId");
-    private final Counter missingSellerIdCounter = newCounter("message-box.postBoxUpdateListener.core.missingSellerId");
 
     private final PostBoxService postBoxService;
     private final UserIdentifierService userIdentifierService;
@@ -82,11 +82,13 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         if (!buyerUserIdOpt.isPresent() || !sellerUserIdOpt.isPresent()) {
             LOGGER.warn("No buyer or seller id available for conversation {}, conversation state {} and message {}, [buyer/seller]: {}/{}",
                     conv.getId(), conv.getState(), msg.getId(), buyerUserIdOpt.isPresent(), sellerUserIdOpt.isPresent());
+
             if (!buyerUserIdOpt.isPresent()) {
-                missingBuyerIdCounter.inc();
-            }
-            if (!sellerUserIdOpt.isPresent()) {
-                missingSellerIdCounter.inc();
+                if (!sellerUserIdOpt.isPresent()) {
+                    missingBothIdsCounter.inc();
+                } else {
+                    missingBuyerIdCounter.inc();
+                }
             }
             return;
         }
