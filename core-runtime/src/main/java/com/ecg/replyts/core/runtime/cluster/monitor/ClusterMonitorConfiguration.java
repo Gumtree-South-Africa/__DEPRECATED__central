@@ -6,7 +6,6 @@ import com.basho.riak.client.RiakFactory;
 import com.basho.riak.client.raw.http.HTTPClientConfig;
 import com.ecg.replyts.core.api.ClusterMonitor;
 import com.ecg.replyts.core.api.sanitychecks.Check;
-import com.ecg.replyts.core.Application;
 import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
 import com.ecg.replyts.core.runtime.persistence.RiakHostConfig.Host;
@@ -19,13 +18,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@Profile(Application.PRODUCTIVE_PROFILE)
 @Deprecated
 @Configuration
 @ConditionalOnExpression(

@@ -1,6 +1,5 @@
 package com.ecg.replyts.app.search.elasticsearch;
 
-import com.ecg.replyts.core.Application;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -10,13 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PreDestroy;
 
 @Configuration
-@Profile(Application.PRODUCTIVE_PROFILE)
 public class ElasticSearchClientConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchClientConfiguration.class);
 

@@ -10,7 +10,6 @@ import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.api.persistence.MailRepository;
-import com.ecg.replyts.core.Application;
 import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.indexer.RiakIndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.RiakHostConfig;
@@ -28,10 +27,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
+
 import java.util.List;
 
 @Configuration
@@ -81,7 +80,6 @@ public class RiakPersistenceConfiguration {
     }
 
     @Configuration
-    @Profile({Application.PRODUCTIVE_PROFILE, Application.MIGRATION_PROFILE})
     @ConditionalOnExpression("'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid')")
     public static class RiakClientConfiguration {
         @Value("${persistence.riak.idleConnectionTimeoutMs:60000}")

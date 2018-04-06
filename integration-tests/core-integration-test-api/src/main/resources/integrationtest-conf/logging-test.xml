@@ -37,7 +37,7 @@ from logback-test.xml.
         </then>
     </if>
 
-    <root level="ERROR">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 </included>

@@ -25,18 +25,17 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.PostConstruct;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static com.ecg.replyts.core.Application.EMBEDDED_PROFILE;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.setEnv;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
@@ -47,7 +46,6 @@ import static org.junit.Assert.assertNotNull;
   @ContextConfiguration(classes = HealthControllerTest.CloudConfiguration.class),
   @ContextConfiguration(classes = HealthControllerTest.TestConfiguration.class)
 })
-@ActiveProfiles(EMBEDDED_PROFILE)
 public class HealthControllerTest {
     @Value("#{environment.COMAAS_HTTP_PORT}")
     private Integer httpPort;

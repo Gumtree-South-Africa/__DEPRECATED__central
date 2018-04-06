@@ -1,6 +1,5 @@
 package com.ecg.replyts.integration.test;
 
-import com.ecg.replyts.core.Application;
 import com.ecg.replyts.core.ApplicationReadyEvent;
 import com.ecg.replyts.core.LoggingService;
 import com.ecg.replyts.core.Webserver;
@@ -50,8 +49,6 @@ public final class ReplytsRunner {
 
         try {
             context = new AnnotationConfigApplicationContext();
-
-            context.getEnvironment().setActiveProfiles(Application.EMBEDDED_PROFILE);
 
             Properties properties = new Properties();
 

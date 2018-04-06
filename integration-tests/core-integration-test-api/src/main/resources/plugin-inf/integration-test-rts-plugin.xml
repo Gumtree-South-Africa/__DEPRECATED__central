@@ -17,11 +17,11 @@
     <bean class="com.ecg.replyts.integration.test.postprocessor.IdLeakingPostProcessor"/>
 
     <!-- Provide embedded clients for riak services -->
-    <bean class="com.ecg.replyts.integration.riak.EmbeddedRiakClientConfiguration"/>
+    <bean class="com.ecg.replyts.integration.riak.EmbeddedRiakClientConfiguration" primary="true"/>
 
-    <bean class="com.ecg.replyts.integration.elasticsearch.EmbeddedElasticSearchClientConfiguration"/>
+    <bean class="com.ecg.replyts.integration.elasticsearch.EmbeddedElasticSearchClientConfiguration" primary="true"/>
 
-    <bean class="com.ecg.replyts.integration.hazelcast.EmbeddedHazelcastConfiguration"/>
+    <bean class="com.ecg.replyts.integration.hazelcast.EmbeddedHazelcastConfiguration" primary="true"/>
 
-    <bean class="com.ecg.replyts.integration.AlwaysHappyClusterMonitor"/>
+    <bean class="com.ecg.replyts.integration.AlwaysHappyClusterMonitor" primary="true"/>
 </beans>

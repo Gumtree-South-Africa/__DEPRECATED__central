@@ -39,13 +39,13 @@ public class LegacyWebConfiguration extends WebMvcConfigurationSupport {
 
     @Configuration
     @ComponentScan("com.ecg.messagecenter.webapi")
-    @ConditionalOnExpression(PluginConfiguration.ONLY_V1_TENANTS)
+    @ConditionalOnExpression(MessageBoxConfiguration.ONLY_V1_TENANTS)
     public static class MessageCenterEndpoints {
     }
 
     @Configuration
     @ComponentScan({"com.ecg.messagebox.controllers", "com.ecg.sync"})
-    @ConditionalOnExpression(PluginConfiguration.V2_AND_UPGRADE_TENANTS)
+    @ConditionalOnExpression(MessageBoxConfiguration.V2_AND_UPGRADE_TENANTS)
     public static class MessageBoxEndpoints {
     }
 

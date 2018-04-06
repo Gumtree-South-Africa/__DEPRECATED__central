@@ -1,14 +1,13 @@
 package com.ebay.ecg.replyts.robot.api;
 
-import com.ecg.replyts.core.Application;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.context.annotation.Profile;
 
 import javax.mail.internet.MimeMessage;
+
 import java.util.Properties;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
@@ -16,7 +15,6 @@ import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENA
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.equalTo;
 
-@Profile(Application.EMBEDDED_PROFILE)
 public class MessageControllerAcceptanceTest {
 
     private final Properties properties = new Properties() {{

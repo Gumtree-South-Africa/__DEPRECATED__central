@@ -2,13 +2,12 @@ package com.ecg.messagebox.persistence;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class MessageBoxConfiguration {
+public class CassandraTemplateConfiguration {
 
     @Bean
     public CassandraTemplate cassandraTemplate(@Qualifier("cassandraSessionForMb") Session session,

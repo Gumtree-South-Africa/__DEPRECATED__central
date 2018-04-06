@@ -44,10 +44,6 @@ public class Application {
         LoggingService.bootstrap();
     }
 
-    public static final String PRODUCTIVE_PROFILE = "productive";
-    public static final String EMBEDDED_PROFILE = "embedded";
-    public static final String MIGRATION_PROFILE = "migration";
-
     @Bean
     public Config hazelcastConfiguration(
             @Value("${replyts.tenant}") String tenant,
@@ -144,8 +140,6 @@ public class Application {
             AbstractRefreshableApplicationContext context = new ClassPathXmlApplicationContext(new String[] {
               "classpath:super-mega-temporary-context.xml",
             }, false, parent);
-
-            context.getEnvironment().setActiveProfiles(PRODUCTIVE_PROFILE);
 
             context.registerShutdownHook();
 

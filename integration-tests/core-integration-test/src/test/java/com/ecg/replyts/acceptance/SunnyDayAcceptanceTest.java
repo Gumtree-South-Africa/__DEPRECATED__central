@@ -1,13 +1,11 @@
 package com.ecg.replyts.acceptance;
 
-import com.ecg.replyts.core.Application;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.google.common.io.ByteStreams;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.context.annotation.Profile;
 import org.subethamail.wiser.WiserMessage;
 
 import javax.mail.Address;
@@ -26,7 +24,6 @@ import static org.hamcrest.Matchers.nullValue;
 /**
  * All-is-well integration tests.
  */
-@Profile(Application.EMBEDDED_PROFILE)
 public class SunnyDayAcceptanceTest {
 
     private static final int deliveryTimeoutSeconds = 45;
