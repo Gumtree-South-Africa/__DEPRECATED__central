@@ -73,8 +73,8 @@ job "core-api-[[ .tenant ]]" {
         tags = [
           "version-[[.version]]",
           "http",
-          "urlprefix-[[ .tenant ]].[[ .environment ]].comaas.cloud/",
-          "urlprefix-[[ .region ]].[[ .tenant ]].[[ .environment ]].comaas.cloud/"
+          "urlprefix-[[ .tenant_short ]].[[ .environment ]].comaas.cloud/",
+          "urlprefix-[[ .region ]].[[ .tenant_short ]].[[ .environment ]].comaas.cloud/"
           [[ .urlprefixes ]]
         ]
         check {
