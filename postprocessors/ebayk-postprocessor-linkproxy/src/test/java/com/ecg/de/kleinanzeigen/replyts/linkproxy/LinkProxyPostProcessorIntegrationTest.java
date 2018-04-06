@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class LinkProxyPostProcessorAutomationTest {
+public class LinkProxyPostProcessorIntegrationTest {
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
         Properties properties = new Properties();

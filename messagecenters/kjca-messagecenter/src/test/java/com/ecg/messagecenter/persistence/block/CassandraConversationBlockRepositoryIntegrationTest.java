@@ -23,12 +23,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {CassandraConversationBlockRepositoryTest.TestContext.class})
+@ContextConfiguration(classes = {CassandraConversationBlockRepositoryIntegrationTest.TestContext.class})
 @TestPropertySource(properties = {
         "persistence.strategy = cassandra",
         "replyts.maxConversationAgeDays = 25"
 })
-public class CassandraConversationBlockRepositoryTest {
+public class CassandraConversationBlockRepositoryIntegrationTest {
     @Autowired
     private ConversationBlockRepository conversationBlockRepository;
 

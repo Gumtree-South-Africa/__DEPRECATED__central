@@ -28,11 +28,11 @@ import static org.joda.time.DateTime.now;
 import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { CassandraSimplePostBoxRepositoryTest.TestContext.class })
+@ContextConfiguration(classes = { CassandraSimplePostBoxRepositoryIntegrationTest.TestContext.class })
 @TestPropertySource(properties = {
   "persistence.strategy = cassandra",
 })
-public class CassandraSimplePostBoxRepositoryTest {
+public class CassandraSimplePostBoxRepositoryIntegrationTest {
 
     @Autowired
     private SimplePostBoxRepository postBoxRepository;

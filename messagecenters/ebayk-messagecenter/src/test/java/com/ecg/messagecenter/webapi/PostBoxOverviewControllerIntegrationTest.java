@@ -49,11 +49,11 @@ import static com.ecg.messagecenter.webapi.PostBoxResponseAssertions.assertUnrea
 import static org.joda.time.DateTime.now;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {PostBoxOverviewControllerTest.TestContext.class})
+@ContextConfiguration(classes = {PostBoxOverviewControllerIntegrationTest.TestContext.class})
 @TestPropertySource(properties = {
   "persistence.strategy = cassandra"
 })
-public class PostBoxOverviewControllerTest {
+public class PostBoxOverviewControllerIntegrationTest {
     static final String DETAILED_CONVERSATION = "detailed-conversation";
     static final List<String> DETAILED_CONVERSATION_LIST = Collections.singletonList(DETAILED_CONVERSATION);
 

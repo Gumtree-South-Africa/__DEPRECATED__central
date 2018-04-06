@@ -14,7 +14,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 
-public class AttachmentSupportTest {
+public class AttachmentSupportAcceptanceTest {
 
     @Rule
     public ReplyTsIntegrationTestRule replyTs = new ReplyTsIntegrationTestRule(ES_ENABLED);

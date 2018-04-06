@@ -11,13 +11,13 @@ import com.ecg.sync.PostBoxResponse;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.AD_ID;
-import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.BUYER_ID;
-import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.BUYER_NAME;
-import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.DETAILED_CONVERSATION;
-import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.NOW;
-import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.SELLER_ID;
-import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerTest.SELLER_NAME;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerIntegrationTest.AD_ID;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerIntegrationTest.BUYER_ID;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerIntegrationTest.BUYER_NAME;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerIntegrationTest.DETAILED_CONVERSATION;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerIntegrationTest.NOW;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerIntegrationTest.SELLER_ID;
+import static com.ecg.messagecenter.webapi.PostBoxOverviewControllerIntegrationTest.SELLER_NAME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 

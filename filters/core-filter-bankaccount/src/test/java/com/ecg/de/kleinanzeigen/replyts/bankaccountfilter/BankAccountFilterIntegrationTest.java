@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class BankAccountFilterAutomationTest {
+public class BankAccountFilterIntegrationTest {
     @Rule
     public ReplyTsIntegrationTestRule replyTS = new ReplyTsIntegrationTestRule();
 

@@ -20,13 +20,13 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = ResponsivenessKafkaSinkE2ETest.TestConfig.class)
+@ContextConfiguration(classes = ResponsivenessKafkaSinkIntegrationTest.TestConfig.class)
 @TestPropertySource(properties = {
         "user-behaviour.responsiveness.enabled=true",
         "user-behaviour.responsiveness.sink=queue",
         "kafka.core.servers=localhost:9092",
 })
-public class ResponsivenessKafkaSinkE2ETest {
+public class ResponsivenessKafkaSinkIntegrationTest {
 
     private static final long DEFAULT_READ_TIMEOUT = 10_000;
 

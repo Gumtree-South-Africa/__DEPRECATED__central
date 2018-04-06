@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author maldana@ebay.de
  */
-public class OpenImmoDeanonymizerListenerTest {
+public class OpenImmoDeanonymizerListenerIntegrationTest {
 
     @Rule
     public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule();

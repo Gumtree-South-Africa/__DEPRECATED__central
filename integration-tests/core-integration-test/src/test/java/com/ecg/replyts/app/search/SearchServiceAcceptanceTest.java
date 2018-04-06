@@ -40,7 +40,7 @@ import static org.junit.Assert.assertThat;
 /**
  * @author alindhorst (original author)
  */
-public class SearchServiceTest {
+public class SearchServiceAcceptanceTest {
 
     private static final String URL_TEMPLATE = "http://localhost:%d/screeningv2/" + SearchMessageCommand.MAPPING;
     private String url;

@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class CassandraOccurrenceRegistryTest {
+public class CassandraOccurrenceRegistryIntegrationTest {
     private static final Date NOW = new Date();
     private static final String USER = "jdoe@example.com";
 

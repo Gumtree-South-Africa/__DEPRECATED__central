@@ -20,9 +20,9 @@ import java.util.function.Supplier;
 import static org.junit.Assert.*;
 
 
-public class MailEnhancerTest {
+public class MailEnhancerIntegrationTest {
     private final static int HTTP_PORT = OpenPortFinder.findFreePort();
-    private final static Logger LOGGER = LoggerFactory.getLogger(MailEnhancerTest.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(MailEnhancerIntegrationTest.class);
 
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {

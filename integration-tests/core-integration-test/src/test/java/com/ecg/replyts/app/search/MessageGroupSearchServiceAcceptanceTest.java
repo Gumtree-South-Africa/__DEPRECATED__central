@@ -43,10 +43,10 @@ import static com.jayway.restassured.path.json.JsonPath.from;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-public class MessageGroupSearchServiceTest {
+public class MessageGroupSearchServiceAcceptanceTest {
 
     private static final String URL_TEMPLATE = "http://localhost:%d/screeningv2/" + SearchMessageGroupCommand.MAPPING;
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageGroupSearchServiceTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageGroupSearchServiceAcceptanceTest.class);
     private static final Long TIMEOUT_MS = 10000L;
     private String url;
 

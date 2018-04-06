@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 
-public class SetCustomValueTest {
+public class SetCustomValueAcceptanceTest {
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
 
