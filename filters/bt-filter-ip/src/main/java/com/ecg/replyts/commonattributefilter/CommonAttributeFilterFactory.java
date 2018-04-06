@@ -9,8 +9,15 @@ import org.springframework.stereotype.Component;
 @ComaasPlugin
 @Component
 public class CommonAttributeFilterFactory implements FilterFactory {
-	@Override
+	public static final String IDENTIFIER = "com.ecg.replyts.commonattributefilter.CommonAttributeFilterFactory";
+
+    @Override
 	public Filter createPlugin(String filterName, JsonNode jsonNode) {
         return new CommonAttributeFilter(PatternRulesParser.parse(jsonNode));
     }
+
+	@Override
+	public String getIdentifier() {
+	    return IDENTIFIER;
+	}
 }

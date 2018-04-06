@@ -35,7 +35,7 @@ class PreviousPatternsExtractor {
 
     private void addAllWordfilterHits(List<ProcessingFeedback> processingFeedback, Builder<String> found) {
         for (ProcessingFeedback feedback : processingFeedback) {
-            boolean isWordfilterHit = feedback.getFilterName().equals(WordfilterFactory.class.getName());
+            boolean isWordfilterHit = feedback.getFilterName().equals(WordfilterFactory.IDENTIFIER);
             if (isWordfilterHit) {
                 found.add(feedback.getUiHint());
             }

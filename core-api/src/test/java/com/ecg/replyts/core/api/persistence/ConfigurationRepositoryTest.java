@@ -3,7 +3,6 @@ package com.ecg.replyts.core.api.persistence;
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
-import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -28,7 +27,7 @@ public class ConfigurationRepositoryTest {
     @Before
     public void setup() {
         PluginConfiguration pluginConfiguration = new PluginConfiguration(
-                new ConfigurationId(FilterFactory.class, "fooinstance"),
+                new ConfigurationId("filterFactory", "fooinstance"),
                 222L, PluginState.ENABLED, 12L, JsonObjects.parse("{foo: 322}")
         );
         List<PluginConfiguration> configList = Collections.singletonList(pluginConfiguration);
@@ -46,7 +45,7 @@ public class ConfigurationRepositoryTest {
         assertEquals("ENABLED", firstConfig.get("state").textValue());
         assertEquals(12L, firstConfig.get("version").longValue());
         assertEquals(222L, firstConfig.get("priority").longValue());
-        assertEquals(FilterFactory.class.getName(), firstConfig.get("pluginFactory").textValue());
+        assertEquals("filterFactory", firstConfig.get("pluginFactory").textValue());
         assertEquals("fooinstance", firstConfig.get("instanceId").textValue());
         assertEquals(322, firstConfig.get("configuration").get("foo").intValue());
     }

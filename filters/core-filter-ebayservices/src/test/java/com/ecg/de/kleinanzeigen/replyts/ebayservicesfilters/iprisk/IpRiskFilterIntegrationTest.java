@@ -1,8 +1,8 @@
 package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.iprisk;
 
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -23,7 +23,7 @@ public class IpRiskFilterIntegrationTest {
     @Before
     public void setUp() throws Exception {
           itRule.registerConfig(
-                  IpRiskFilterFactory.class,
+                  IpRiskFilterFactory.IDENTIFIER,
                   JsonObjects.builder().attr("GOOD","20").attr("BAD", "20").attr("MEDIUM_BAD", "20").attr("VERY_BAD", "20").build());
     }
 

@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 /** Factory that generates wordfilters form a json config that basically contains an array of pattern/score pairs. */
 class WordfilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.wordfilter.WordfilterFactory";
+
     private long regexProcessingTimeoutMs;
 
     @Autowired
@@ -20,5 +22,10 @@ class WordfilterFactory implements FilterFactory {
     public Filter createPlugin(String filtername, JsonNode jsonNode) {
         PatternRulesParser ruleParser = new PatternRulesParser(jsonNode);
         return new Wordfilter(ruleParser.getConfig(), regexProcessingTimeoutMs);
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

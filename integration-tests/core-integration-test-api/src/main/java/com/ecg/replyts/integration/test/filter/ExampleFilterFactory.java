@@ -12,6 +12,8 @@ import java.util.List;
 
 public class ExampleFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.replyts.integration.test.filter.ExampleFilterFactory";
+
     @Override
     public Filter createPlugin(String instanceName, JsonNode configuration) {
         return new Filter() {
@@ -20,5 +22,10 @@ public class ExampleFilterFactory implements FilterFactory {
                 return Collections.emptyList();
             }
         };
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

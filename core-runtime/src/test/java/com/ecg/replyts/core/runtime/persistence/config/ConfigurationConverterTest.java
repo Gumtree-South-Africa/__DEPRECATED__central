@@ -111,7 +111,7 @@ public class ConfigurationConverterTest {
         assertThat(configurationObject.getTimestamp()).isEqualTo(120);
 
         PluginConfiguration config = configurationObject.getPluginConfiguration();
-        assertThat(config.getId().findFactoryClass()).isEqualTo(FilterChainTest.ExampleFilterFactory.class);
+        assertThat(config.getId().getPluginFactory()).isEqualTo(FilterChainTest.ExampleFilterFactory.IDENTIFIER);
         assertThat(config.getPriority()).isEqualTo(10);
         assertThat(config.getVersion()).isEqualTo(123);
         assertThat(config.getId().getInstanceId()).isEqualTo("Sample");
@@ -122,7 +122,7 @@ public class ConfigurationConverterTest {
         ObjectNode config = JsonObjects
                 .builder()
                 .attr("config", JsonObjects.builder().attr("foo", "baar"))
-                .attr("pluginFactory", FilterChainTest.ExampleFilterFactory.class.getName())
+                .attr("pluginFactory", FilterChainTest.ExampleFilterFactory.IDENTIFIER)
                 .attr("instanceId", "Sample")
                 .attr("priority", 10)
                 .attr("version", 123)
@@ -136,7 +136,7 @@ public class ConfigurationConverterTest {
 
     @Test
     public void marshallingAndUnmarshallingWorks() {
-        ConfigurationId configId = new ConfigurationId(FilterChainTest.ExampleFilterFactory.class, "fooInst");
+        ConfigurationId configId = new ConfigurationId(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "fooInst");
         Configurations config = new Configurations(Lists.newArrayList(new ConfigurationObject(1L, new PluginConfiguration(
                 configId,
                 100,

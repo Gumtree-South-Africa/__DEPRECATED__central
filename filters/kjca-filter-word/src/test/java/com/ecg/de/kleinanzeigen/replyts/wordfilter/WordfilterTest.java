@@ -166,7 +166,7 @@ public class WordfilterTest {
         Message previousMessage = mock(Message.class);
         when(previousMessage.getId()).thenReturn("previousMsg");
         when(previousMessage.getState()).thenReturn(MessageState.SENT);
-        when(previousMessage.getProcessingFeedback()).thenReturn(Collections.singletonList(new ImmutableProcessingFeedback(WordfilterFactory.class.getName(), "sampleinstance", "FooStr[a-z]*", "desc", 100, FilterResultState.OK, false)));
+        when(previousMessage.getProcessingFeedback()).thenReturn(Collections.singletonList(new ImmutableProcessingFeedback(WordfilterFactory.IDENTIFIER, "sampleinstance", "FooStr[a-z]*", "desc", 100, FilterResultState.OK, false)));
 
         when(conversation.getMessages()).thenReturn(Collections.singletonList(previousMessage));
 

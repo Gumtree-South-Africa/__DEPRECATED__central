@@ -28,7 +28,7 @@ public class MessageFilteringAcceptanceTest {
     @Test
     public void doesNotDeliverWhenFilterBlocksMail() throws Exception {
 
-        rule.registerConfig(SubjectKeywordFilterFactory.class, JsonObjects.builder().attr("foo", "bar").build());
+        rule.registerConfig(SubjectKeywordFilterFactory.IDENTIFIER, JsonObjects.builder().attr("foo", "bar").build());
 
         MailInterceptor.ProcessedMail output = rule.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com").subject("DROPPED").adId("123").htmlBody("foo"));
 
@@ -38,7 +38,7 @@ public class MessageFilteringAcceptanceTest {
 
     @Test
     public void stopsFilterOnceFilterConfigDeleted() throws Exception {
-        Configuration.ConfigurationId newConfig = rule.registerConfig(SubjectKeywordFilterFactory.class, JsonObjects.builder().attr("foo", "bar").build());
+        Configuration.ConfigurationId newConfig = rule.registerConfig(SubjectKeywordFilterFactory.IDENTIFIER, JsonObjects.builder().attr("foo", "bar").build());
 
         MailBuilder mail = MailBuilder.aNewMail()
                 .from("foo@bar.com")

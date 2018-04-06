@@ -12,12 +12,22 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 
 public class ScoringFilterFactory implements FilterFactory {
+
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.thresholdresultinspector.ScoringFilterFactory";
+
+    @Override
     public Filter createPlugin(String s, JsonNode jsonNode) {
         final int score = jsonNode.get("score").asInt();
         return new Filter() {
+            @Override
             public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
                 return singletonList(new FilterFeedback("", "", score, FilterResultState.OK));
             }
         };
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

@@ -3,7 +3,6 @@ package com.ecg.replyts.integration.test;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
-import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.ecg.replyts.integration.test.support.Waiter;
@@ -21,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.subethamail.wiser.WiserMessage;
 
 import javax.mail.internet.MimeMessage;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -145,6 +145,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         testProperties.put("replyts2-messagecenter-plugin.pushmobile.url", "UNSET_PROPERTY");
         testProperties.put("replyts2-messagecenter-plugin.api.host", "UNSET_PROPERTY");
         testProperties.put("kafka.core.servers", "localhost:9092");
+        testProperties.put("riak.cluster.monitor.enabled", "false");
 
         LOG.debug("Running tests with ES enabled: " + esEnabled);
 
@@ -223,39 +224,33 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      * registers a new filter/resultinspector config to the configapi, effectively starting up a new filter or result
      * inspector configuration. blocks until the configured service is up and running.
      */
-    public Configuration.ConfigurationId registerConfig(Class<? extends BasePluginFactory> type, ObjectNode config) {
-        return registerConfig(type, config, 100L);
+    public Configuration.ConfigurationId registerConfig(String identifier, ObjectNode config) {
+        return registerConfig("instance-" + COUNTER.incrementAndGet(), identifier, config, 100L);
     }
 
-
-    /**
-     * registers a new filter/resultinspector config to the configapi, effectively starting up a new filter or result
-     * inspector configuration. blocks until the configured service is up and running.
-     */
-    public Configuration.ConfigurationId registerConfig(Class<? extends BasePluginFactory> type, ObjectNode config, long priority) {
-        return registerConfigWithInstanceId("instance-" + COUNTER.incrementAndGet(), type, config, priority);
+    public Configuration.ConfigurationId registerConfig(String identifier, ObjectNode config, long priority) {
+        return registerConfig("instance-" + COUNTER.incrementAndGet(), identifier, config, priority);
     }
 
     /**
      * registers a new filter/resultinspector config to the configapi, effectively starting up a new filter or result
      * inspector configuration. blocks until the configured service is up and running.
      */
-    public Configuration.ConfigurationId registerConfigWithInstanceId(String instanceId,
-                                                                      Class<? extends BasePluginFactory> type,
-                                                                      ObjectNode config,
-                                                                      long priority) {
-        Configuration.ConfigurationId c = new Configuration.ConfigurationId(type.getName(), instanceId);
-        LOG.info("Created config " + c + " with priority " + priority);
-        client.putConfiguration(new Configuration(c, PluginState.ENABLED, priority, config));
+    private Configuration.ConfigurationId registerConfig(String instanceId, String identifier, ObjectNode config,
+            long priority) {
+
+        Configuration.ConfigurationId configurationId = new Configuration.ConfigurationId(identifier, instanceId);
+        LOG.info("Created config " + configurationId + " with priority " + priority);
+        client.putConfiguration(new Configuration(configurationId, PluginState.ENABLED, priority, config));
         waitUntilConfigurationChangeIsPropagated();
-        return c;
+        return configurationId;
     }
 
     /**
      * unregisters a configuration, effectively switching that service off. blocks until that service is offline.
      */
-    public void deleteConfig(Configuration.ConfigurationId c) {
-        client.deleteConfiguration(c);
+    public void deleteConfig(Configuration.ConfigurationId configurationId) {
+        client.deleteConfiguration(configurationId);
         waitUntilConfigurationChangeIsPropagated();
     }
 

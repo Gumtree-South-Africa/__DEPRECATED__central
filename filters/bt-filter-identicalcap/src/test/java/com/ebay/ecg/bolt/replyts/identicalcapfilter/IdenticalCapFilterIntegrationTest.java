@@ -1,14 +1,13 @@
 package com.ebay.ecg.bolt.replyts.identicalcapfilter;
 
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
-
-import java.util.*;
-
+import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
+import com.ecg.replyts.core.api.search.SearchService;
+import com.ecg.replyts.core.api.util.JsonObjects;
+import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.MailInterceptor;
+import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,12 +15,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.search.SearchService;
-import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailBuilder;
-import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class IdenticalCapFilterIntegrationTest {
@@ -89,8 +90,8 @@ public class IdenticalCapFilterIntegrationTest {
             + "}"
           + "}";
 
-        rule.registerConfig(IdenticalCapFilterFactory.class, (ObjectNode) JsonObjects.parse(config));
- 
+        rule.registerConfig(IdenticalCapFilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse(config));
+
         String from = "foo" + System.currentTimeMillis() + "@bar.com";
 
         for (int i = 0; i < 3; i++) {

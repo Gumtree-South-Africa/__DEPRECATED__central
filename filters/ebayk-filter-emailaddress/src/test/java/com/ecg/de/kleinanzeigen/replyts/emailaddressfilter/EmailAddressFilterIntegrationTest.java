@@ -2,8 +2,8 @@ package com.ecg.de.kleinanzeigen.replyts.emailaddressfilter;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.Before;
@@ -27,7 +27,7 @@ public class EmailAddressFilterIntegrationTest {
     public void setup() {
         ArrayNode addresses = JsonObjects.newJsonArray();
         addresses.add("foo@bar.com");
-        replyTS.registerConfig(EmailAddressFilterFactory.class, JsonObjects.builder().attr("values", addresses).attr("score", 100).build());
+        replyTS.registerConfig(EmailAddressFilterFactory.IDENTIFIER, JsonObjects.builder().attr("values", addresses).attr("score", 100).build());
     }
 
     @Test
@@ -92,7 +92,7 @@ public class EmailAddressFilterIntegrationTest {
         ArrayNode values = JsonObjects.newJsonArray();
         values.add("foo@bar.com");
 
-        replyTS.registerConfig(EmailAddressFilterFactory.class, JsonObjects.builder().attr("values", values).attr("score", 100).build());
+        replyTS.registerConfig(EmailAddressFilterFactory.IDENTIFIER, JsonObjects.builder().attr("values", values).attr("score", 100).build());
 
         byte[] encoded = Files.readAllBytes(Paths.get(EmailAddressFilterIntegrationTest.class.getResource("/html-mail.txt").toURI()));
         String text = new String(encoded, "utf8");

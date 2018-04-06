@@ -5,9 +5,9 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import de.mobile.ebay.service.IpRatingService;
+import de.mobile.ebay.service.OAuthTokenProvider;
 import de.mobile.ebay.service.impl.Config;
 import de.mobile.ebay.service.impl.IpRatingServiceImpl;
-import de.mobile.ebay.service.OAuthTokenProvider;
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 @Component
 class IpRiskFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.iprisk.IpRiskFilterFactory";
+
     private final IpRatingService ipRatingService;
 
     @Autowired
@@ -30,5 +32,10 @@ class IpRiskFilterFactory implements FilterFactory {
     @Override
     public Filter createPlugin(String s, JsonNode jsonNode) {
         return new IpRiskFilter(s, new IpLevelConfigParser(jsonNode).parse(),ipRatingService, new IpAddressExtractor());
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

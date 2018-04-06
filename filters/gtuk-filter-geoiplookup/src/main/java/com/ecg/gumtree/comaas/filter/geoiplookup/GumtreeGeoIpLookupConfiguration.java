@@ -1,14 +1,9 @@
 package com.ecg.gumtree.comaas.filter.geoiplookup;
 
-import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
-import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.gumtree.common.geoip.GeoIpService;
 import com.gumtree.common.geoip.MaxMindGeoIpService;
-import com.gumtree.filters.comaas.config.GeoIpLookupFilterConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,10 +11,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.zip.ZipInputStream;
 
-@ComaasPlugin
 @Configuration
-@Import(GumtreeGeoIpLookupFilterConfiguration.GeoIpLookupFilterFactory.class)
-public class GumtreeGeoIpLookupFilterConfiguration {
+public class GumtreeGeoIpLookupConfiguration {
     @Bean
     GeoIpService geoIpService() {
         try {
@@ -36,18 +29,4 @@ public class GumtreeGeoIpLookupFilterConfiguration {
         }
     }
 
-    @Bean
-    public FilterFactory filterFactory(GeoIpService geoIpService) {
-        return new GeoIpLookupFilterFactory(geoIpService);
-    }
-
-    static class GeoIpLookupFilterFactory extends GumtreeFilterFactory<GeoIpLookupFilterConfig, GumtreeGeoIpLookupFilter> {
-        GeoIpLookupFilterFactory(GeoIpService geoIpService) {
-            super(GeoIpLookupFilterConfig.class,
-                    (a, b) -> new GumtreeGeoIpLookupFilter()
-                            .withPluginConfig(a)
-                            .withFilterConfig(b)
-                            .withGeoIPService(geoIpService));
-        }
-    }
 }

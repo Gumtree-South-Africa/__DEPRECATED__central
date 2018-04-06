@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+
 import java.time.Duration;
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,6 +20,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class VolumeFilterFactory implements FilterFactory {
+
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.volumefilter.VolumeFilterFactory";
 
     private static final Logger LOG = LoggerFactory.getLogger(VolumeFilterFactory.class);
 
@@ -84,5 +87,10 @@ public class VolumeFilterFactory implements FilterFactory {
                     + " but the provided configuration allows to register up to " + maxPossibleOccurrencesForThisInstance
                     + ". Either make the longest quota shorter or decrease allowance of the shortest quota.");
         }
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

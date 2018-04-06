@@ -21,7 +21,7 @@ public class WordfilterIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
-        replyTsIntegrationTestRule.registerConfig(WordfilterFactory.class, (ObjectNode) JsonObjects.parse("" +
+        replyTsIntegrationTestRule.registerConfig(WordfilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("" +
                 "{'ignoreQuotedRegexps':true,'rules': [{'regexp': 'badword', 'score':2000}," +
                                                         "{'regexp': 'meanword', 'score':12000}," +
                                                         "{'regexp': 'badcategoryword', 'score':6000 , 'categoryIds': ['c218', 'c45556565']}]}"));

@@ -3,17 +3,22 @@ package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 import ca.kijiji.replyts.Activation;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
+import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-/** Factory that generates wordfilters form a json config that basically contains an array of pattern/score pairs. */
-class WordfilterFactory implements FilterFactory {
+@ComaasPlugin
+@Component
+public class WordfilterFactory implements FilterFactory {
+
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.wordfilter.WordfilterFactory";
 
     private long regexProcessingTimeoutMs;
 
     @Autowired
-    WordfilterFactory(@Value("${replyts2-wordfilter-plugin.regex.processingTimeoutMs:600000}") long regexProcessingTimeoutMs) {
+    public WordfilterFactory(@Value("${replyts2-wordfilter-plugin.regex.processingTimeoutMs:600000}") long regexProcessingTimeoutMs) {
         this.regexProcessingTimeoutMs = regexProcessingTimeoutMs;
     }
 
@@ -22,5 +27,10 @@ class WordfilterFactory implements FilterFactory {
         PatternRulesParser ruleParser = new PatternRulesParser(jsonNode);
         Activation activation = new Activation(jsonNode);
         return new Wordfilter(ruleParser.getConfig(), activation, regexProcessingTimeoutMs);
+    }
+
+    @Override
+        public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

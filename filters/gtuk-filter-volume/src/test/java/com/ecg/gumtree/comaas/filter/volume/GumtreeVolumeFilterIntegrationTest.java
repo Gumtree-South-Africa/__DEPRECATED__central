@@ -30,7 +30,7 @@ public class GumtreeVolumeFilterIntegrationTest {
     }
 
     private Configuration.ConfigurationId registerVolumeConfig() {
-        return rule.registerConfigWithInstanceId("volume", GumtreeVolumeFilterConfiguration.VolumeFilterFactory.class,
+        return rule.registerConfig(GumtreeVolumeFilterFactory.IDENTIFIER,
                 (ObjectNode) JsonObjects.parse("{\n" +
                         "      \"result\" : \"HOLD\",\n" +
                         "      \"seconds\" : 3600,\n" +

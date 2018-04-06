@@ -1,8 +1,8 @@
 package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.ip2country;
 
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -23,7 +23,7 @@ public class Ip2CountryFilterIntegrationTest {
     @Before
     public void setUp() throws Exception {
           itRule.registerConfig(
-                  Ip2CountryFilterFactory.class,
+                  Ip2CountryFilterFactory.IDENTIFIER,
                   JsonObjects.builder().attr("DEFAULT","50").attr("DE", "0").attr("NL", "200").build());
     }
 

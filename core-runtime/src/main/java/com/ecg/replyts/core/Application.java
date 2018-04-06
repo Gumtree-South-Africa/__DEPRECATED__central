@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.AbstractRefreshableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.util.HashMap;
@@ -141,7 +141,7 @@ public class Application {
 
             // XXX: Initialize the application as we were doing before; as going annotation-only requires quite some more refactoring as parent/child is not as easily supported
 
-            AbstractApplicationContext context = new ClassPathXmlApplicationContext(new String[] {
+            AbstractRefreshableApplicationContext context = new ClassPathXmlApplicationContext(new String[] {
               "classpath:super-mega-temporary-context.xml",
             }, false, parent);
 

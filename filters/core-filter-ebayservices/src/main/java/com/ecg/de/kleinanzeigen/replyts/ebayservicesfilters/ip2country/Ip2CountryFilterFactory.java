@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 @Component
 class Ip2CountryFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.ip2country.Ip2CountryFilterFactory";
+
     private final Ip2CountryResolver ip2CountryResolver;
 
     @Autowired
@@ -29,5 +31,10 @@ class Ip2CountryFilterFactory implements FilterFactory {
     private Ip2CountryRules parse(JsonNode jsonNode) {
         CountryRulesParser crp = new CountryRulesParser(jsonNode);
         return new Ip2CountryRules(crp.getDefaultScore(), crp.getCountryScores());
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

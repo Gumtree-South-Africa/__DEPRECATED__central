@@ -35,12 +35,12 @@ public class VolumeFilterIntegrationTest {
         final ArrayNode add = JsonObjects.newJsonArray().add(JsonObjects.builder().attr("allowance", "1").attr("perTimeValue", "1").attr("perTimeUnit", "DAYS").attr("score", "100").build());
         final ObjectNode rules1 = JsonObjects.builder().attr("rules", add).build();
 
-        return rule.registerConfigWithInstanceId("volume", VolumeFilterFactory.class, rules1, 100);
+        return rule.registerConfig(VolumeFilterFactory.IDENTIFIER, rules1);
     }
 
     @Test
     public void violatesQuota() throws Exception {
-        rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
+        rule.registerConfig(VolumeFilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 1, \"perTimeUnit\": \"HOURS\", \"score\": 100},\n" +
                 "        {\"allowance\": 20, \"perTimeValue\": 1, \"perTimeUnit\": \"DAYS\", \"score\": 200}\n" +
@@ -61,7 +61,7 @@ public class VolumeFilterIntegrationTest {
 
     @Test
     public void skipsQuotaViolation() throws InterruptedException {
-        rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
+        rule.registerConfig(VolumeFilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 1, \"perTimeUnit\": \"MINUTES\", \"score\": 100},\n" +
                 "        {\"allowance\": 20, \"perTimeValue\": 10, \"perTimeUnit\": \"MINUTES\", \"score\": 200}\n" +
@@ -78,6 +78,4 @@ public class VolumeFilterIntegrationTest {
         MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
         assertEquals(MessageState.SENT, response.getMessage().getState());
     }
-
-
 }

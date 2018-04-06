@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 @Component
 class BadwordFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.de.mobile.replyts.badword.BadwordFilterFactory";
+
     private final CsFilterServiceClient csFilterServiceClient;
 
     public BadwordFilterFactory(CsFilterServiceClient csFilterServiceClient) {
@@ -17,5 +19,10 @@ class BadwordFilterFactory implements FilterFactory {
     @Override
     public Filter createPlugin(String s, JsonNode jsonNode) {
         return new BadwordFilter(csFilterServiceClient);
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

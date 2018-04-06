@@ -60,7 +60,7 @@ public class FilterServiceIntegrationTest {
     public void setupTest() {
         MockServlet.reset();
         testStartTime = Instant.now().withMillis(0).toDate();
-        replyTsIntegrationTestRule.registerConfig(FilterServiceFactory.class, (ObjectNode) JsonObjects.parse("{}"));
+        replyTsIntegrationTestRule.registerConfig(FilterServiceFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("{}"));
     }
 
     private static void createServer(Class<? extends HttpServlet> servlet) throws Exception {

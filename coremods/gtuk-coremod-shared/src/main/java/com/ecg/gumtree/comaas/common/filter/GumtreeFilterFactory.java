@@ -8,11 +8,12 @@ import com.gumtree.filters.comaas.config.State;
 import com.gumtree.filters.comaas.json.ConfigMapper;
 
 import javax.annotation.Nonnull;
+
 import java.io.IOException;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
-public class GumtreeFilterFactory<T extends CommonConfig, R extends Filter> implements FilterFactory {
+public abstract class GumtreeFilterFactory<T extends CommonConfig, R extends Filter> implements FilterFactory {
     private final Class<T> type;
     private final BiFunction<com.gumtree.filters.comaas.Filter, T, R> createConfig;
     private final BiConsumer<String, T> callInit;
@@ -48,4 +49,7 @@ public class GumtreeFilterFactory<T extends CommonConfig, R extends Filter> impl
 
         return createConfig.apply(pluginConfig, filterConfig);
     }
+
+    @Override
+    abstract public String getIdentifier();
 }

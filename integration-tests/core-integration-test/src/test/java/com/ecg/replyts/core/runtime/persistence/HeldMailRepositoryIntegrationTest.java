@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
+
 import java.util.Collections;
 
 import static com.jayway.restassured.RestAssured.given;
@@ -30,7 +31,7 @@ public class HeldMailRepositoryIntegrationTest {
     public void testChangeState() {
         // Mark all incoming messages as HELD
 
-        testRule.registerConfig(AlwaysHoldIntegrationFilterFactory.class, JsonObjects.builder().build());
+        testRule.registerConfig(AlwaysHoldIntegrationFilterFactory.IDENTIFIER, JsonObjects.builder().build());
 
         // Send a message and confirm it is indeed HELD
 
@@ -60,10 +61,18 @@ public class HeldMailRepositoryIntegrationTest {
 
     @Component
     public static class AlwaysHoldIntegrationFilterFactory implements FilterFactory {
+
+        private static final String IDENTIFIER = "com.ecg.replyts.core.runtime.persistence.AlwaysHoldIntegrationFilterFactory";
+
         @Nonnull
         @Override
         public Filter createPlugin(String instanceName, JsonNode configuration) {
             return context -> Collections.singletonList(new FilterFeedback("Foo", "Bar", 0, FilterResultState.HELD));
+        }
+
+        @Override
+        public String getIdentifier() {
+            return IDENTIFIER;
         }
     }
 }

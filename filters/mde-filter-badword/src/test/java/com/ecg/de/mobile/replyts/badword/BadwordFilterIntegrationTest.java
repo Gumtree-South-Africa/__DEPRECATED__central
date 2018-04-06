@@ -7,12 +7,16 @@ import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
@@ -37,7 +41,7 @@ public class BadwordFilterIntegrationTest {
     @Before
     public void setup() {
         replyTsIntegrationTestRule.registerConfig(
-                BadwordFilterFactory.class,
+                BadwordFilterFactory.IDENTIFIER,
                 null
         );
     }

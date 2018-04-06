@@ -10,6 +10,9 @@ import javax.annotation.Nonnull;
 
 @Component
 public class BlockedUserFilterFactory implements FilterFactory {
+
+    public static final String IDENTIFIER = "com.ebay.columbus.replyts2.blockeduser.BlockedUserFilterFactory";
+
     @Autowired
     private UserStateService userStateService;
 
@@ -17,5 +20,10 @@ public class BlockedUserFilterFactory implements FilterFactory {
     @Override
     public Filter createPlugin(String instanceName, JsonNode configuration) {
         return new BlockedUserFilter(userStateService);
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

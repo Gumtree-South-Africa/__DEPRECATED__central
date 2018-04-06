@@ -22,6 +22,8 @@ import org.springframework.stereotype.Component;
 @Component
 class IpRiskFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.iprisk.IpRiskFilterFactory";
+
     private static final Logger LOG = LoggerFactory.getLogger(IpRiskFilterFactory.class);
 
     private final IpRatingService ipRatingService;
@@ -35,5 +37,10 @@ class IpRiskFilterFactory implements FilterFactory {
     @Override
     public Filter createPlugin(String s, JsonNode jsonNode) {
         return new IpRiskFilter(s, new IpLevelConfigParser(jsonNode).parse(),ipRatingService, new IpAddressExtractor());
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

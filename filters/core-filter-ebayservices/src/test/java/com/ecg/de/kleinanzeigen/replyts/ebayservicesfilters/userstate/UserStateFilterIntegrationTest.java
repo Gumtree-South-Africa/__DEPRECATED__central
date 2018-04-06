@@ -1,8 +1,8 @@
 package com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.userstate;
 
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -23,7 +23,7 @@ public class UserStateFilterIntegrationTest {
     @Before
     public void setUp() throws Exception {
           itRule.registerConfig(
-                  UserStateFilterFactory.class,
+                  UserStateFilterFactory.IDENTIFIER,
                   JsonObjects.builder().attr("UNKNOWN", "1").attr("CONFIRMED", "1").attr("SUSPENDED", "1").build());
     }
 

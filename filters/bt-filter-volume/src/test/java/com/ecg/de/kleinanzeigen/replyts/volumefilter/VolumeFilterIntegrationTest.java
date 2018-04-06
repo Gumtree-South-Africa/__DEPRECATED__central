@@ -20,7 +20,7 @@ public class VolumeFilterIntegrationTest {
 
     @Test
     public void violatesQuota() throws Exception {
-        rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
+        rule.registerConfig(VolumeFilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 1, \"perTimeUnit\": \"HOURS\", \"score\": 100},\n" +
                 "        {\"allowance\": 20, \"perTimeValue\": 1, \"perTimeUnit\": \"DAYS\", \"score\": 200}\n" +
@@ -44,7 +44,7 @@ public class VolumeFilterIntegrationTest {
 
     @Test
     public void skipsQuotaViolation() throws InterruptedException {
-        rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
+        rule.registerConfig(VolumeFilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 3, \"perTimeUnit\": \"SECONDS\", \"score\": 100},\n" +
                 "        {\"allowance\": 20, \"perTimeValue\": 10, \"perTimeUnit\": \"SECONDS\", \"score\": 200}\n" +
@@ -68,7 +68,7 @@ public class VolumeFilterIntegrationTest {
 
     @Test
     public void remembersViolations() throws Exception {
-        rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
+        rule.registerConfig(VolumeFilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 4, \"perTimeUnit\": \"SECONDS\", \"score\": 100," +
                 "           \"scoreMemoryDurationValue\": 10, \"scoreMemoryDurationUnit\": \"SECONDS\"}\n" +
@@ -108,7 +108,7 @@ public class VolumeFilterIntegrationTest {
 
     @Test
     public void ignoresFollowUpEmails() throws Exception {
-        rule.registerConfig(VolumeFilterFactory.class, (ObjectNode) JsonObjects.parse("{\n" +
+        rule.registerConfig(VolumeFilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 1, \"perTimeValue\": 100, \"perTimeUnit\": \"SECONDS\", \"score\": 100}" +
                 "    ], runFor : { \"exceptCategories\": [], \"categories\":[]},ignoreFollowUps: true\n" +

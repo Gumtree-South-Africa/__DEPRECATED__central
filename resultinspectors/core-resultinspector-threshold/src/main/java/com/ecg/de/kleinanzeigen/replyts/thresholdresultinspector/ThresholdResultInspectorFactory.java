@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class ThresholdResultInspectorFactory implements ResultInspectorFactory{
 
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.thresholdresultinspector.ThresholdResultInspectorFactory";
 
     @Override
     public ResultInspector createPlugin(String s, JsonNode jsonNode) {
@@ -15,5 +16,10 @@ public class ThresholdResultInspectorFactory implements ResultInspectorFactory{
         long blockedThreshold = Long.valueOf(blocked);
 
         return new ThresholdResultInspector(s, heldThreshold, blockedThreshold);
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

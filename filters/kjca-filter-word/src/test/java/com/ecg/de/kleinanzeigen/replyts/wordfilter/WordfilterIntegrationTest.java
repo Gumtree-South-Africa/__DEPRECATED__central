@@ -2,8 +2,8 @@ package com.ecg.de.kleinanzeigen.replyts.wordfilter;
 
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
@@ -30,7 +30,7 @@ public class WordfilterIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
-        replyTsIntegrationTestRule.registerConfig(WordfilterFactory.class, (ObjectNode) JsonObjects.parse("" +
+        replyTsIntegrationTestRule.registerConfig(WordfilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("" +
                 "{'ignoreQuotedRegexps':true,'rules': [" +
                 "{'regexp': 'badword', 'score':2000}," +
                 "{'regexp': 'meanword', 'score':12000}," +
@@ -89,7 +89,7 @@ public class WordfilterIntegrationTest {
                 .listConfigurations()
                 .forEach(configuration -> replyTsIntegrationTestRule.deleteConfig(configuration.getConfigurationId()));
 
-        replyTsIntegrationTestRule.registerConfig(WordfilterFactory.class, (ObjectNode) JsonObjects.parse(
+        replyTsIntegrationTestRule.registerConfig(WordfilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse(
                 "{'ignoreFollowUps':true,'rules': [{'regexp': 'badword', 'score':2000}]}")
         );
 

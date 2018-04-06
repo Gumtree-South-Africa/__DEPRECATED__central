@@ -4,10 +4,10 @@ public interface ConfigurationRefreshEventListener {
     /**
      * Return true to enable the unregister hook
      *
-     * @param clazz the ? extends BasePluginFactory classname
+     * @param String the plugin factory identifier
      * @return true is unregister should be called
      */
-    boolean isApplicable(Class<?> clazz);
+    boolean isApplicable(String identifier);
 
     /**
      * Put any unregister code in this method

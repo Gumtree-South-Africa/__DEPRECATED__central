@@ -16,6 +16,8 @@ import java.util.Map;
 @Component
 class Ip2CountryFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.ip2country.Ip2CountryFilterFactory";
+
     private final Ip2CountryResolver ip2CountryResolver;
 
     @Autowired
@@ -33,5 +35,10 @@ class Ip2CountryFilterFactory implements FilterFactory {
         int defaultScore = 50; // read from json
         Map<String, Integer> countryScores = null; // read from json
         return new Ip2CountryRules(crp.getDefaultScore(), crp.getCountryScores());
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

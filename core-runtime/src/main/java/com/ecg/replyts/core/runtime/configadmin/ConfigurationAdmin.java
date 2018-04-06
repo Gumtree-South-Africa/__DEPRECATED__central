@@ -7,8 +7,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Manages Configurations/Plugins for a specific type. Will keep an ordered list of all plugins running and is able to
@@ -28,19 +35,18 @@ public class ConfigurationAdmin<T> {
 
     private Map<ConfigurationId, PluginInstanceReference<T>> knownServices = new HashMap<>();
 
-    private AtomicReference<List<PluginInstanceReference<T>>> runningServices = new AtomicReference() {{
-        set(new ArrayList<>());
-    }};
+    private AtomicReference<List<PluginInstanceReference<T>>> runningServices = new AtomicReference<>(new ArrayList<>());
 
-    private List<BasePluginFactory<T>> factories;
+    private Map<String, BasePluginFactory<T>> factories;
 
     private String adminName;
 
     public ConfigurationAdmin(List<BasePluginFactory<T>> factories, String adminName) {
-        this.factories = factories;
+
+        this.factories = factories.stream().collect(Collectors.toMap(BasePluginFactory::getIdentifier, Function.identity()));
         this.adminName = adminName;
 
-        LOG.info("Starting Configuration Admin '{}' with known Factories {}", adminName, factories);
+        LOG.info("Starting Configuration Admin '{}' with known Factories {}", adminName, this.factories.keySet());
     }
 
     String getAdminName() {
@@ -76,12 +82,7 @@ public class ConfigurationAdmin<T> {
      * @return <code>true</code> if this instance has a reference to the plugin factory this configuration is for.
      */
     boolean handlesConfiguration(ConfigurationId configId) {
-        for (BasePluginFactory<?> s : factories) {
-            if (s.getClass().equals(configId.findFactoryClass())) {
-                return true;
-            }
-        }
-        return false;
+        return getPluginFactory(configId).isPresent();
     }
 
     /**
@@ -102,13 +103,18 @@ public class ConfigurationAdmin<T> {
      */
     @SuppressWarnings("unchecked")
     T createPluginInstance(PluginConfiguration configuration) {
-        ConfigurationId id = configuration.getId();
-        for (BasePluginFactory<?> s : factories) {
-            if (s.getClass().equals(id.findFactoryClass())) {
-                return (T) s.createPlugin(id.getInstanceId(), configuration.getConfiguration());
-            }
-        }
-        throw new IllegalStateException(String.format("ServiceFactory %s not found. Cannot create a new service from it", id.getPluginFactory()));
+        ConfigurationId configId = configuration.getId();
+
+        BasePluginFactory<?> pluginFactory = getPluginFactory(configId)
+            .orElseThrow(() -> new IllegalStateException(String.format(
+                "ServiceFactory %s not found. Cannot create a new service from it",
+                configId.getPluginFactory())));
+
+        return (T) pluginFactory.createPlugin(configId.getInstanceId(), configuration.getConfiguration());
+    }
+
+    private Optional<BasePluginFactory<?>> getPluginFactory(ConfigurationId configId) {
+        return Optional.ofNullable(factories.get(configId.getPluginFactory()));
     }
 
     /**

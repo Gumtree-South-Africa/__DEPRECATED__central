@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -97,7 +98,7 @@ public class Refresher {
 
         for (ConfigurationId toDelete : configsToBeRemoved) {
             for (ConfigurationRefreshEventListener listener : refreshEventListeners) {
-                if (listener.isApplicable(toDelete.findFactoryClass())) {
+                if (listener.isApplicable(toDelete.getPluginFactory())) {
                     try {
                         listener.unregister(toDelete.getInstanceId());
                     } catch (Exception ex) {

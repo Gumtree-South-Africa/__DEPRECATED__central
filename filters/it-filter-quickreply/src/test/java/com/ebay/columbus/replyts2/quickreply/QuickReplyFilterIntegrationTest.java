@@ -25,11 +25,11 @@ public class QuickReplyFilterIntegrationTest {
                         properties.put("replyts.quickreply.placeholders", "__!ADDRESS!__");
 
                         return properties;
-                    }).get(), QuickReplyFilterConfiguration.class);
+                    }).get(), QuickReplyFilterFactory.class);
 
     @Before
     public void setUp() {
-        replyTsIntegrationTestRule.registerConfig(QuickReplyFilterFactory.class, null);
+        replyTsIntegrationTestRule.registerConfig(QuickReplyFilterFactory.IDENTIFIER, null);
     }
 
     @Test public void quickReplyFilterDoesNotFireWhenHeaderIsMissing() throws Exception {

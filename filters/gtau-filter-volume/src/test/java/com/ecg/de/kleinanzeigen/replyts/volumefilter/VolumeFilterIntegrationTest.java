@@ -2,8 +2,8 @@ package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Rule;
@@ -22,7 +22,7 @@ public class VolumeFilterIntegrationTest {
 
     @Test
     public void violatesQuota() throws Exception {
-        rule.registerConfig(VolumeFilterFactory.class,  (ObjectNode) JsonObjects.parse("{\n" +
+        rule.registerConfig(VolumeFilterFactory.IDENTIFIER,  (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 1, \"perTimeUnit\": \"HOURS\", \"score\": 100},\n" +
                 "        {\"allowance\": 20, \"perTimeValue\": 1, \"perTimeUnit\": \"DAYS\", \"score\": 200}\n" +
@@ -43,7 +43,7 @@ public class VolumeFilterIntegrationTest {
 
     @Test
     public void doesNotViolateQuotaIfWhitelistedEmail() throws Exception {
-        rule.registerConfig(VolumeFilterFactory.class,  (ObjectNode) JsonObjects.parse("{\n" +
+        rule.registerConfig(VolumeFilterFactory.IDENTIFIER,  (ObjectNode) JsonObjects.parse("{\n" +
                 "    whitelistedEmails: [\"no-reply@gumtree.com.au\"],\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 1, \"perTimeUnit\": \"HOURS\", \"score\": 100},\n" +
@@ -67,7 +67,7 @@ public class VolumeFilterIntegrationTest {
 
     @Test
     public void skipsQuotaViolation() throws InterruptedException {
-        rule.registerConfig(VolumeFilterFactory.class,  (ObjectNode) JsonObjects.parse("{\n" +
+        rule.registerConfig(VolumeFilterFactory.IDENTIFIER,  (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 1, \"perTimeUnit\": \"MINUTES\", \"score\": 100},\n" +
                 "        {\"allowance\": 20, \"perTimeValue\": 10, \"perTimeUnit\": \"MINUTES\", \"score\": 200}\n" +

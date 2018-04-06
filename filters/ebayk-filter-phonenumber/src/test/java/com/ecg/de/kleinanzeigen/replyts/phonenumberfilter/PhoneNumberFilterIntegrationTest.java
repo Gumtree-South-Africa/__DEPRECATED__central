@@ -2,8 +2,8 @@ package com.ecg.de.kleinanzeigen.replyts.phonenumberfilter;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.Before;
@@ -27,7 +27,7 @@ public class PhoneNumberFilterIntegrationTest {
     public void setup() {
         ArrayNode numbers = JsonObjects.newJsonArray();
         numbers.add("015156035123");
-        replyTS.registerConfig(PhoneNumberFilterFactory.class, JsonObjects.builder().attr("numbers", numbers).attr("score", 100).build());
+        replyTS.registerConfig(PhoneNumberFilterFactory.IDENTIFIER, JsonObjects.builder().attr("numbers", numbers).attr("score", 100).build());
     }
 
     @Test
@@ -107,7 +107,7 @@ public class PhoneNumberFilterIntegrationTest {
         ArrayNode numbers = JsonObjects.newJsonArray();
         numbers.add("+4915151234567");
 
-        replyTS.registerConfig(PhoneNumberFilterFactory.class, JsonObjects.builder().attr("numbers", numbers).attr("score", 100).build());
+        replyTS.registerConfig(PhoneNumberFilterFactory.IDENTIFIER, JsonObjects.builder().attr("numbers", numbers).attr("score", 100).build());
 
         byte[] encoded = Files.readAllBytes(Paths.get(PhoneNumberFilterIntegrationTest.class.getResource("/html-mail.txt").toURI()));
         String text = new String(encoded, "utf8");

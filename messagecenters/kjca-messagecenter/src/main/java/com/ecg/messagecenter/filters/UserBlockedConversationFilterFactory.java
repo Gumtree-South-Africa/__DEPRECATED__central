@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UserBlockedConversationFilterFactory implements FilterFactory {
+
+    public static final String IDENTIFIER = "com.ecg.messagecenter.filters.UserBlockedConversationFilterFactory";
+
     private static final String SCORE_JSON_KEY = "score";
 
     private final ConversationBlockRepository conversationBlockRepository;
@@ -27,5 +30,10 @@ public class UserBlockedConversationFilterFactory implements FilterFactory {
         }
 
         return new UserBlockedConversationFilter(conversationBlockRepository, scoreJsonNode.asInt());
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

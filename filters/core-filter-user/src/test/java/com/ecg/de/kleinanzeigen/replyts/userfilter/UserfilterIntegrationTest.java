@@ -1,16 +1,15 @@
 package com.ecg.de.kleinanzeigen.replyts.userfilter;
 
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
 
 /**
  * User: acharton
@@ -23,7 +22,7 @@ public class UserfilterIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
-          itRule.registerConfig(UserfilterFactory.class, (ObjectNode) JsonObjects.parse("{'rules': [{'regexp': 'buyer', 'score':2000}]}"));
+          itRule.registerConfig(UserfilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("{'rules': [{'regexp': 'buyer', 'score':2000}]}"));
     }
 
     @Test

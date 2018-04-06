@@ -1,22 +1,15 @@
 package com.ecg.gumtree.comaas.filter.category;
 
-import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
-import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.gumtree.api.category.CategoryModel;
 import com.gumtree.api.category.CategoryReadApi;
 import com.gumtree.api.config.CategoryModelFactory;
 import com.gumtree.api.config.CategoryReadApiFactory;
-import com.gumtree.filters.comaas.config.CategoryFilterConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
-@ComaasPlugin
 @Configuration
-@Import(GumtreeCategoryFilterConfiguration.CategoryFilterFactory.class)
-public class GumtreeCategoryFilterConfiguration {
+public class GumtreeCategoryConfiguration {
     @Value("${gumtree.category.api.hostname:localhost}")
     private String hostname;
 
@@ -43,16 +36,5 @@ public class GumtreeCategoryFilterConfiguration {
     @Bean
     public CategoryModel unfilteredCategoryModel(CategoryReadApi categoryReadApi) {
         return new CategoryModelFactory(categoryReadApi, cacheCheckInterval).createWithoutFilters();
-    }
-
-    @Bean
-    public FilterFactory filterFactory(CategoryModel categoryModel) {
-        return new CategoryFilterFactory(categoryModel);
-    }
-
-    static class CategoryFilterFactory extends GumtreeFilterFactory<CategoryFilterConfig, GumtreeCategoryFilter> {
-        CategoryFilterFactory(CategoryModel categoryModel) {
-            super(CategoryFilterConfig.class, (a, b) -> new GumtreeCategoryFilter().withCategoryModel(categoryModel));
-        }
     }
 }

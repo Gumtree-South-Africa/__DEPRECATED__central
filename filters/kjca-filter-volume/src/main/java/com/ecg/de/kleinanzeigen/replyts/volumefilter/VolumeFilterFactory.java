@@ -13,6 +13,9 @@ import static java.lang.String.format;
 
 @Component
 public class VolumeFilterFactory implements FilterFactory {
+
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.volumefilter.VolumeFilterFactory";
+
     private static final AtomicInteger EVENT_PROCESSOR_COUNTER = new AtomicInteger(0);
 
     private static final String PROVIDER_NAME_PREFIX = "volumefilter_provider_";
@@ -20,6 +23,7 @@ public class VolumeFilterFactory implements FilterFactory {
     @Autowired
     private SharedBrain sharedBrain;
 
+    @Override
     public Filter createPlugin(String filterName, JsonNode configuration) {
         ConfigurationParser config = new ConfigurationParser(configuration);
 
@@ -32,5 +36,10 @@ public class VolumeFilterFactory implements FilterFactory {
           config.isIgnoreFollowUps(),
           new Activation(configuration),
           eventStreamProcessor);
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

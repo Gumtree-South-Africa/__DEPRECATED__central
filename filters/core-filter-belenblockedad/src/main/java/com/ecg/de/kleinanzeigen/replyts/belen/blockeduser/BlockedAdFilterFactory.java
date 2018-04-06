@@ -9,6 +9,8 @@ import javax.sql.DataSource;
 
 class BlockedAdFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.belen.blockeduser.BlockedAdFilterFactory";
+
     private DataSource datasource;
 
     BlockedAdFilterFactory(DataSource datasource) {
@@ -18,5 +20,10 @@ class BlockedAdFilterFactory implements FilterFactory {
     @Override
     public Filter createPlugin(String s, JsonNode jsonNode) {
         return new BlockedAdFilter(s, new JdbcTemplate(datasource));
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

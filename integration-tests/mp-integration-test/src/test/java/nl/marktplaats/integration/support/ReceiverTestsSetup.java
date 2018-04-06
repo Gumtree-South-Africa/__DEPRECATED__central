@@ -66,7 +66,7 @@ public class ReceiverTestsSetup {
         // Configure result inspector
         replyTsConfigClient.putConfiguration(
                 new Configuration(
-                        new Configuration.ConfigurationId(ThresholdResultInspectorFactory.class.getName(), "instance-0"),
+                        new Configuration.ConfigurationId(ThresholdResultInspectorFactory.IDENTIFIER, "instance-0"),
                         PluginState.ENABLED,
                         1,
                         JsonObjects.parse("{'held':50, 'blocked':100}")));
@@ -74,7 +74,7 @@ public class ReceiverTestsSetup {
         // Configure bank account filter
         replyTsConfigClient.putConfiguration(
                 new Configuration(
-                        new Configuration.ConfigurationId(BankAccountFilterFactory.class.getName(), "instance-0"),
+                        new Configuration.ConfigurationId(BankAccountFilterFactory.IDENTIFIER, "instance-0"),
                         PluginState.ENABLED,
                         1,
                         JsonObjects.parse("{'fraudulentBankAccounts': ['123456', '987654321', '87238935']}")));
@@ -82,7 +82,7 @@ public class ReceiverTestsSetup {
         // Configure volume filter
         replyTsConfigClient.putConfiguration(
                 new Configuration(
-                        new Configuration.ConfigurationId(VolumeFilterFactory.class.getName(), "instance-0"),
+                        new Configuration.ConfigurationId(VolumeFilterFactory.IDENTIFIER, "instance-0"),
                         PluginState.ENABLED,
                         1,
                         JsonObjects.parse("[{'timeSpan': 10,'timeUnit': 'MINUTES','maxCount': 10,'score': 100}]")));

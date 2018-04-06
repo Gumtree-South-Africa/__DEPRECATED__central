@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 @Component
 class UserStateFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters.userstate.UserStateFilterFactory";
+
     private final UserProfileService userService;
 
     @Autowired
@@ -25,5 +27,10 @@ class UserStateFilterFactory implements FilterFactory {
     @Override
     public Filter createPlugin(String instanceName, JsonNode jsonNode) {
         return new UserStateFilter(new UserStateConfigParser(jsonNode).parse(), userService);
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

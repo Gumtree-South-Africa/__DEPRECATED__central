@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit;
 
 public class VolumeFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "nl.marktplaats.filter.volume.VolumeFilterFactory";
+
     private VolumeFilterEventRepository volumeFilterEventRepository;
     private VolumeFilterConfigParser volumeFilterConfigParser;
 
@@ -24,6 +26,7 @@ public class VolumeFilterFactory implements FilterFactory {
         this.volumeFilterConfigParser = volumeFilterConfigParser;
     }
 
+    @Override
     public Filter createPlugin(String instanceName, JsonNode configurationAsJson) {
         VolumeFilterConfiguration config = volumeFilterConfigParser.parse(configurationAsJson);
         return new VolumeFilter(config, volumeFilterEventRepository);
@@ -42,5 +45,10 @@ public class VolumeFilterFactory implements FilterFactory {
             });
             return new VolumeFilterConfiguration(rules);
         }
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

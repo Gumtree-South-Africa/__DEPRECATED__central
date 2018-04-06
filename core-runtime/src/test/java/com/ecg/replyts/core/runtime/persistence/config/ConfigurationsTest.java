@@ -30,14 +30,14 @@ public class ConfigurationsTest {
 
     @Before
     public void setUp() {
-        when(existingConfig1.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.class, "existing1"));
-        when(existingConfig2.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.class, "existing2"));
+        when(existingConfig1.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing1"));
+        when(existingConfig2.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing2"));
         configurations = new Configurations(Lists.newArrayList(new ConfigurationObject(10, existingConfig1), new ConfigurationObject(20, existingConfig2)), true);
     }
 
     @Test
     public void removesElementFromListCorrectly() {
-        Configurations newConfig = configurations.delete(new ConfigurationId(FilterChainTest.ExampleFilterFactory.class, "existing1"));
+        Configurations newConfig = configurations.delete(new ConfigurationId(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing1"));
 
         assertEquals(1, newConfig.getConfigurationObjects().size());
         assertEquals("existing2", newConfig.getConfigurationObjects().get(0).getPluginConfiguration().getId().getInstanceId());
@@ -47,7 +47,7 @@ public class ConfigurationsTest {
     public void updatesElementCorrectly() {
 
         PluginConfiguration pluginConf = mock(PluginConfiguration.class);
-        when(pluginConf.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.class, "existing2"));
+        when(pluginConf.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing2"));
         ConfigurationObject toUpdate = new ConfigurationObject(222, pluginConf);
 
         Configurations newConfig = configurations.addOrUpdate(toUpdate);
@@ -62,7 +62,7 @@ public class ConfigurationsTest {
     public void addsElementCorrectly() {
 
         PluginConfiguration pluginConf = mock(PluginConfiguration.class);
-        when(pluginConf.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.class, "new1"));
+        when(pluginConf.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "new1"));
         ConfigurationObject toUpdate = new ConfigurationObject(222, pluginConf);
 
         Configurations newConfig = configurations.addOrUpdate(toUpdate);

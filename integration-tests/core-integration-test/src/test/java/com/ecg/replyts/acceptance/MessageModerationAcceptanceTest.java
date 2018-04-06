@@ -2,8 +2,8 @@ package com.ecg.replyts.acceptance;
 
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
-import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.ecg.replyts.integration.test.filter.SubjectKeywordFilterFactory;
 import com.jayway.restassured.RestAssured;
@@ -38,7 +38,7 @@ public class MessageModerationAcceptanceTest {
 
     @Before
     public void setUp() {
-        rule.registerConfig(SubjectKeywordFilterFactory.class, JsonObjects.builder().attr("foo", "bar").build());
+        rule.registerConfig(SubjectKeywordFilterFactory.IDENTIFIER, JsonObjects.builder().attr("foo", "bar").build());
 
         processedMail = rule.deliver(MailBuilder.aNewMail().from("a"+(++counter)+"@b.com").to("b@c.com").adId("23222").subject("HELD").plainBody("foobar"));
         Assert.assertEquals(MessageState.HELD, processedMail.getMessage().getState());

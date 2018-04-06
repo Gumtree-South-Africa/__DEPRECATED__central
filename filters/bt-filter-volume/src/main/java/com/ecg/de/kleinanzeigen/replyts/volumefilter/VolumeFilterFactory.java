@@ -8,9 +8,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class VolumeFilterFactory implements FilterFactory {
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.volumefilter.VolumeFilterFactory";
+
     @Autowired
     private SharedBrain sharedBrain;
 
+    @Override
     public Filter createPlugin(String filterName, JsonNode jsonNode) {
         ConfigurationParser config = new ConfigurationParser(jsonNode);
 
@@ -19,5 +22,10 @@ public class VolumeFilterFactory implements FilterFactory {
           config.isIgnoreFollowUps(),
           config.getExceptCategoriesList(),
           config.getAllowedCategoriesList());
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

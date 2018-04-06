@@ -1,10 +1,9 @@
 package com.ecg.gumtree.comaas.filter.integration;
 
-import com.ecg.gumtree.comaas.filter.knowngood.GumtreeKnownGoodFilterConfiguration;
-import com.ecg.gumtree.comaas.filter.word.GumtreeWordFilterConfiguration;
+import com.ecg.gumtree.comaas.filter.knowngood.GumtreeKnownGoodFilterFactory;
+import com.ecg.gumtree.comaas.filter.word.GumtreeWordFilterFactory;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
-import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.MailInterceptor;
@@ -20,7 +19,9 @@ import java.util.List;
 import java.util.Properties;
 
 import static com.ecg.gumtree.comaas.filter.integration.Utils.readFileContent;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @Configuration
 public class FilterIntegrationTest {
@@ -63,9 +64,9 @@ public class FilterIntegrationTest {
             Path knownGoodFilterPath = Paths.get(FilterIntegrationTest.class.getResource("/configs/knowngood_filter_config.json").toURI());
             ObjectNode knownGoodFilterConfig = (ObjectNode) JsonObjects.parse(readFileContent(knownGoodFilterPath));
 
-            wordFilterPoo = new FilterObject(GumtreeWordFilterConfiguration.WordFilterFactory.class, wordFilterConfigPoo);
-            wordFilterFoo = new FilterObject(GumtreeWordFilterConfiguration.WordFilterFactory.class, wordFilterConfigFoo);
-            knownGoodFilter = new FilterObject(GumtreeKnownGoodFilterConfiguration.KnownGoodFilterFactory.class, knownGoodFilterConfig);
+            wordFilterPoo = new FilterObject(GumtreeWordFilterFactory.IDENTIFIER, wordFilterConfigPoo);
+            wordFilterFoo = new FilterObject(GumtreeWordFilterFactory.IDENTIFIER, wordFilterConfigFoo);
+            knownGoodFilter = new FilterObject(GumtreeKnownGoodFilterFactory.IDENTIFIER, knownGoodFilterConfig);
         } catch (Exception e) {
             fail("Could not create Path for filters configuration files");
         }
@@ -87,7 +88,7 @@ public class FilterIntegrationTest {
     private void loadFilters(FilterObject... filters) {
         int priority = 200;
         for (FilterObject filterObject : filters) {
-            rule.registerConfig(filterObject.filter, filterObject.config, priority);
+            rule.registerConfig(filterObject.identifier, filterObject.config, priority);
             priority -= 10;
         }
     }
@@ -126,11 +127,11 @@ public class FilterIntegrationTest {
     }
 
     static class FilterObject {
-        Class<? extends BasePluginFactory> filter;
+        String identifier;
         ObjectNode config;
 
-        FilterObject(Class<? extends BasePluginFactory> filter, ObjectNode config) {
-            this.filter = filter;
+        FilterObject(String identifier, ObjectNode config) {
+            this.identifier = identifier;
             this.config = config;
         }
     }

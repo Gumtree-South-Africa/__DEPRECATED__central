@@ -2,7 +2,14 @@ package com.ecg.replyts.app.filterchain;
 
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
@@ -46,7 +53,11 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = FilterChainTest.TestContext.class)
@@ -89,9 +100,17 @@ public class FilterChainTest {
     private TestMessageProcessingContext testMessageProcessingContext;
 
     public static class ExampleFilterFactory implements BasePluginFactory<Object> {
+
+        public static final String IDENTIFIER = "com.ecg.replyts.app.filterchain.ExampleFilterFactory";
+
         @Override
         public Object createPlugin(String instanceName, JsonNode configuration) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getIdentifier() {
+            return IDENTIFIER;
         }
     }
 
@@ -103,7 +122,7 @@ public class FilterChainTest {
         when(mail.getMessageId()).thenReturn(MESSAGE_ID);
 
         when(filterRef.getConfiguration()).thenReturn(pluginConfiguration);
-        when(pluginConfiguration.getId()).thenReturn(new ConfigurationId(ExampleFilterFactory.class, "instance"));
+        when(pluginConfiguration.getId()).thenReturn(new ConfigurationId(ExampleFilterFactory.IDENTIFIER, "instance"));
 
         testMessageProcessingContext = new TestMessageProcessingContext(mail);
         testMessageProcessingContext.setConversation(conversation);
@@ -274,7 +293,7 @@ public class FilterChainTest {
         when(filterRef2.getState()).thenReturn(PluginState.ENABLED);
         when(filterRef2.getCreatedService()).thenReturn(mockFilter2);
 
-        List<PluginInstanceReference<Filter>> filterList = new ArrayList<PluginInstanceReference<Filter>>();
+        List<PluginInstanceReference<Filter>> filterList = new ArrayList<>();
         filterList.add(filterRef1);
         filterList.add(filterRef2);
         when(filterConfig.getRunningServices()).thenReturn(filterList);
@@ -310,7 +329,7 @@ public class FilterChainTest {
         assertThat(filteredProcessingFeedbacks.size(), is(1));
 
         ProcessingFeedback feedback = filteredProcessingFeedbacks.iterator().next();
-        assertThat(feedback.getFilterName(), equalTo(ExampleFilterFactory.class.getName()));
+        assertThat(feedback.getFilterName(), equalTo(ExampleFilterFactory.IDENTIFIER));
     }
 
     private ImmutableList<FilterFeedback> singleFeedbackWithState(FilterResultState filterResultState) {

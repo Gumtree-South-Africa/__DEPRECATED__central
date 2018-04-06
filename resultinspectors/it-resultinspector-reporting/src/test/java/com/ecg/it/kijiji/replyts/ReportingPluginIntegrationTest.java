@@ -4,7 +4,11 @@ import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,8 +37,8 @@ public class ReportingPluginIntegrationTest {
                     }).get(), TestConfiguration.class, ReportingResultInspectorConfiguration.class);
 
     @Before public void setUp() {
-        replyTsIntegrationTestRule.registerConfig(ReportingResultInspectorFactory.class, null);
-        replyTsIntegrationTestRule.registerConfig(FakeWordfilterPluginFactory.class, null);
+        replyTsIntegrationTestRule.registerConfig(ReportingResultInspectorFactory.IDENTIFIER, null);
+        replyTsIntegrationTestRule.registerConfig(FakeWordfilterPluginFactory.IDENTIFIER, null);
     }
 
     @Ignore
@@ -65,4 +69,3 @@ public class ReportingPluginIntegrationTest {
     }
 
 }
-    

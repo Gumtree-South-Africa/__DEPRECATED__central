@@ -10,6 +10,8 @@ import java.util.List;
 
 public class BankAccountFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "nl.marktplaats.filter.bankaccount.BankAccountFilterFactory";
+
     private final DescriptionBuilder descriptionBuilder;
 
     @Autowired
@@ -64,5 +66,10 @@ public class BankAccountFilterFactory implements FilterFactory {
         if (jsonNode == null) return defaultValue;
         else if (jsonNode.isNumber()) return jsonNode.intValue();
         else return Integer.parseInt(jsonNode.asText());
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

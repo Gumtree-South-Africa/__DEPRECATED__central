@@ -18,6 +18,8 @@ import static com.ecg.replyts.core.api.model.conversation.FilterResultState.HELD
  */
 public class SubjectKeywordFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.replyts.integration.test.filter.SubjectKeywordFilterFactory";
+
     /**
      * Filter messages base on keywords "HELD" and "DROPPED" in the subject.
      */
@@ -56,4 +58,8 @@ public class SubjectKeywordFilterFactory implements FilterFactory {
         return new SubjectKeywordFilter();
     }
 
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
+    }
 }

@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 class FilterServiceFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.de.mobile.replyts.comafilterservice.FilterServiceFactory";
+
     private final ComaFilterService comaFilterService;
     private final ContactMessageAssembler contactMessageAssembler;
 
@@ -19,5 +21,10 @@ class FilterServiceFactory implements FilterFactory {
     @Override
     public Filter createPlugin(String s, JsonNode jsonNode) {
         return new FilterService(comaFilterService, contactMessageAssembler);
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

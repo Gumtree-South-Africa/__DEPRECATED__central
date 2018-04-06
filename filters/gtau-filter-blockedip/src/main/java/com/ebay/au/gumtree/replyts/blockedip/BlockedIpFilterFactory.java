@@ -11,6 +11,9 @@ import javax.sql.DataSource;
  * @author mdarapour
  */
 public class BlockedIpFilterFactory implements FilterFactory {
+
+    public static final String IDENTIFIER = "com.ebay.au.gumtree.replyts.blockedip.BlockedIpFilterFactory";
+
     private DataSource datasource;
 
     public BlockedIpFilterFactory(DataSource datasource) {
@@ -20,5 +23,10 @@ public class BlockedIpFilterFactory implements FilterFactory {
     @Override
     public Filter createPlugin(String s, JsonNode jsonNode) {
         return new BlockedIpFilter(s, new JdbcTemplate(datasource));
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

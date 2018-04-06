@@ -9,7 +9,14 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public class FakeWordfilterPluginFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.it.kijiji.replyts.FakeWordfilterPluginFactory";
+
     @Override public Filter createPlugin(String instanceName, JsonNode configuration) {
         return new FakeWordfilterPlugin();
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

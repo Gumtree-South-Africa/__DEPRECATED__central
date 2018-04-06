@@ -18,7 +18,7 @@ public class GeoIpProviderTest {
 
     @Before
     public void setUp() throws Exception {
-        GumtreeGeoIpLookupFilterConfiguration gumtreeGeoIpLookupFilterConfiguration = new GumtreeGeoIpLookupFilterConfiguration();
+        GumtreeGeoIpLookupConfiguration gumtreeGeoIpLookupFilterConfiguration = new GumtreeGeoIpLookupConfiguration();
         this.geoIpService = gumtreeGeoIpLookupFilterConfiguration.geoIpService();
     }
 

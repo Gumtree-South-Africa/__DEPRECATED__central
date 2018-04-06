@@ -28,4 +28,7 @@ public interface BasePluginFactory<T> {
      */
     @Nonnull
     T createPlugin(String instanceName, JsonNode configuration);
+
+    @Nonnull
+    String getIdentifier();
 }

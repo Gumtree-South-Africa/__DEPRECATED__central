@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 @ComaasPlugin
 @Component
 public class DeDupeFilterFactory implements FilterFactory {
+    public static final String IDENTIFIER = "com.ebay.ecg.bolt.replyts.dedupefilter.DeDupeFilterFactory";
+
     private static final Logger LOG = LoggerFactory.getLogger(DeDupeFilterFactory.class);
 
     @Autowired
@@ -27,5 +29,10 @@ public class DeDupeFilterFactory implements FilterFactory {
         LOG.debug("Instance Name for DeDupeFilter is {}", instanceName);
 
         return new DeDupeFilter(searchService, conversationRepository, ConfigurationParser.parse(jsonNode));
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

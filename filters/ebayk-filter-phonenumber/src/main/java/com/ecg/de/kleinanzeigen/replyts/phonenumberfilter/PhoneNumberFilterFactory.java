@@ -6,8 +6,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 class PhoneNumberFilterFactory implements FilterFactory {
 
+    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.phonenumberfilter.PhoneNumberFilterFactory";
+
     @Override
     public Filter createPlugin(String instanceName, JsonNode configuration) {
         return new PhoneNumberFilter(PhoneNumberFilterConfiguration.from(configuration));
+    }
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 }

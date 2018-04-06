@@ -1,7 +1,12 @@
 package com.ecg.gumtree.comaas.filter.volume;
 
 import com.ecg.replyts.core.runtime.configadmin.ConfigurationRefreshEventListener;
-import com.espertech.esper.client.*;
+import com.espertech.esper.client.Configuration;
+import com.espertech.esper.client.EPOnDemandQueryResult;
+import com.espertech.esper.client.EPServiceProvider;
+import com.espertech.esper.client.EPServiceProviderManager;
+import com.espertech.esper.client.EPStatement;
+import com.espertech.esper.client.EventBean;
 import com.espertech.esper.core.service.EPServiceProviderImpl;
 import com.gumtree.filters.comaas.config.VelocityFilterConfig;
 import org.slf4j.Logger;
@@ -9,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -53,8 +59,8 @@ import static java.lang.String.format;
     }
 
     @Override
-    public boolean isApplicable(Class<?> clazz) {
-        return clazz.equals(GumtreeVolumeFilterConfiguration.VolumeFilterFactory.class);
+    public boolean isApplicable(String identifier) {
+        return identifier.equals(GumtreeVolumeFilterFactory.IDENTIFIER);
     }
 
     @Override
