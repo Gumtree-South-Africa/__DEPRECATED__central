@@ -1,6 +1,6 @@
 package com.ecg.gumtree.comaas.common.filter;
 
-import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.gumtree.gumshield.api.client.GumshieldApi;
 import com.gumtree.gumshield.api.client.impl.RemoteGumshieldApiFactoryBean;
 import com.gumtree.gumshield.api.client.spec.UserApi;

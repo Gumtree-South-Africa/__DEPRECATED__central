@@ -1,7 +1,7 @@
 package com.ecg.replyts.core.runtime.mailparser;
 
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import org.apache.james.mime4j.dom.address.Mailbox;
 import org.apache.james.mime4j.dom.field.AddressListField;
 import org.apache.james.mime4j.dom.field.FieldName;

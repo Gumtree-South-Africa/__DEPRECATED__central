@@ -1,8 +1,8 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
 import com.datastax.driver.core.Session;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

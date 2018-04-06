@@ -1,6 +1,6 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 

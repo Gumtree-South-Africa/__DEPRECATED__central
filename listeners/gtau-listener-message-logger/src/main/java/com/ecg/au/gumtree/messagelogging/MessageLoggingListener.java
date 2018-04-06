@@ -3,7 +3,7 @@ package com.ecg.au.gumtree.messagelogging;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.mchange.v2.c3p0.DriverManagerDataSource;
 import org.slf4j.Logger;

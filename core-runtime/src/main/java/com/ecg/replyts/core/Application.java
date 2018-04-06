@@ -1,6 +1,6 @@
 package com.ecg.replyts.core;
 
-import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.runtime.HttpServerFactory;
 import com.ecg.replyts.core.runtime.StartupExperience;
 import com.ecg.replyts.core.runtime.prometheus.PrometheusExporter;

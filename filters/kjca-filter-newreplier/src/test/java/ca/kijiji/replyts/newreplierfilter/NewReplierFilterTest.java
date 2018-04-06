@@ -1,7 +1,7 @@
 package ca.kijiji.replyts.newreplierfilter;
 
-import ca.kijiji.replyts.Activation;
 import ca.kijiji.replyts.TnsApiClient;
+import com.ecg.comaas.core.filter.activable.Activation;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;

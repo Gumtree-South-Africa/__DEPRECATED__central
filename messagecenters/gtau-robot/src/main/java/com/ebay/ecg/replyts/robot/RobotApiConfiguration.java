@@ -5,7 +5,7 @@ import com.ebay.ecg.australia.events.rabbitmq.RabbitMQConsumerConfiguration;
 import com.ebay.ecg.australia.events.rabbitmq.RabbitMQEventHandlerConsumer;
 import com.ebay.ecg.replyts.robot.handler.RabbitMQConsumer;
 import com.ebay.ecg.replyts.robot.service.RobotService;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,6 +1,6 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import ca.kijiji.replyts.Activation;
+import com.ecg.comaas.core.filter.activable.Activation;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;

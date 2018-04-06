@@ -1,6 +1,6 @@
 package com.ecg.de.kleinanzeigen.replyts.volumefilter;
 
-import ca.kijiji.replyts.Activation;
+import com.ecg.comaas.core.filter.activable.Activation;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;

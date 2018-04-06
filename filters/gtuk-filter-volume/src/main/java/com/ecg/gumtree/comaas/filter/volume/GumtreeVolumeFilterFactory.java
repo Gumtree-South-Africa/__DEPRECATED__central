@@ -2,8 +2,8 @@ package com.ecg.gumtree.comaas.filter.volume;
 
 import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
 import com.ecg.gumtree.comaas.filter.volume.monitoring.VolumeFilterMonitoringConfiguration;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.api.search.SearchService;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
 import com.gumtree.common.util.time.SystemClock;
 import com.gumtree.filters.comaas.config.VelocityFilterConfig;
 import org.springframework.beans.factory.annotation.Autowired;

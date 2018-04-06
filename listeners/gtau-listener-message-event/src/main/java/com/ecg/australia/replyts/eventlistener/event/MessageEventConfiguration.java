@@ -7,7 +7,7 @@ import java.util.concurrent.TimeoutException;
 
 import com.ebay.ecg.australia.events.rabbitmq.RabbitMQConfiguration;
 import com.ebay.ecg.australia.events.rabbitmq.RabbitMQEventHandlerClient;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

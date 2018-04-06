@@ -1,7 +1,7 @@
 package com.ecg.gumtree.comaas.filter.flagged;
 
 import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.gumtree.filters.comaas.config.UserFlaggedFilterConfig;
 import org.springframework.stereotype.Component;
 

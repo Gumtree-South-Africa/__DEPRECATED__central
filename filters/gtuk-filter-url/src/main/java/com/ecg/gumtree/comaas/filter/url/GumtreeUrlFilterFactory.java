@@ -1,7 +1,7 @@
 package com.ecg.gumtree.comaas.filter.url;
 
 import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.gumtree.filters.comaas.config.UrlFilterConfig;
 import org.springframework.stereotype.Component;
 

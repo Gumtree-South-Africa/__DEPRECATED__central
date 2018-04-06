@@ -1,6 +1,6 @@
 package com.ecg.it.kijiji.replyts;
 
-import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import org.springframework.beans.factory.annotation.Value;

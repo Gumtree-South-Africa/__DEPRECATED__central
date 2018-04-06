@@ -1,7 +1,7 @@
 package com.ebay.columbus.replyts2.conversationmonitor;
 
 import com.ecg.replyts.app.postprocessorchain.PostProcessor;
-import com.ecg.replyts.core.runtime.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
