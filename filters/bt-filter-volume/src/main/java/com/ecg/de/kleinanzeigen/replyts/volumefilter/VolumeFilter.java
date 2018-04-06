@@ -133,7 +133,6 @@ public class VolumeFilter implements Filter {
         }
 
         if (isAllowedCategory(categorySet)) {
-            sharedBrain.markSeen(topic, senderMailAddress);
 
             List<FilterFeedback> feedbacksFromRememberedScore = getRememberedScoreFeedbacks(senderMailAddress);
 
@@ -141,21 +140,27 @@ public class VolumeFilter implements Filter {
                 return feedbacksFromRememberedScore;
             }
 
-            for (Quota q : sortedQuotas) {
-                long mailsInTimeWindow = processor.count(senderMailAddress, q);
+            try {
+                for (Quota q : sortedQuotas) {
+                    long mailsInTimeWindow = processor.count(senderMailAddress, q) + 1;
+                    LOG.debug("No. of mails in {} {}: {}", q.getPerTimeValue(), q.getPerTimeUnit(), mailsInTimeWindow);
 
-                LOG.debug("No. of mails in {} {}: {}", q.getPerTimeValue(), q.getPerTimeUnit(), mailsInTimeWindow);
+                    if (mailsInTimeWindow > q.getAllowance()) {
+                        String violationDescription = q.describeViolation(mailsInTimeWindow);
+                        rememberQuotaViolation(senderMailAddress, q, violationDescription);
 
-                if (mailsInTimeWindow > q.getAllowance()) {
-                    String violationDescription = q.describeViolation(mailsInTimeWindow);
-
-                    rememberQuotaViolation(senderMailAddress, q, violationDescription);
-
-                    return Collections.singletonList(new FilterFeedback(
-                      q.uihint(),
-                      violationDescription,
-                      q.getScore(),
-                      FilterResultState.OK));
+                        return Collections.singletonList(new FilterFeedback(
+                          q.uihint(),
+                          violationDescription,
+                          q.getScore(),
+                          FilterResultState.OK));
+                    }
+                }
+            } finally {
+                try {
+                    sharedBrain.markSeen(topic, senderMailAddress);
+                } catch (Exception ex) {
+                    LOG.error("Error occurred during publishing an incoming message to hazelcast", ex);
                 }
             }
         }

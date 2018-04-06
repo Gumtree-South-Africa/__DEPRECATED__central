@@ -31,7 +31,7 @@ public class VolumeFilterIntegrationTest {
 
         for (int i = 0; i < 3; i++) {
             MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
-            TimeUnit.SECONDS.sleep(1);
+
             assertEquals(MessageState.SENT, response.getMessage().getState());
         }
 
@@ -84,8 +84,6 @@ public class VolumeFilterIntegrationTest {
         }
 
         rule.flushSearchIndex();
-
-        TimeUnit.SECONDS.sleep(1);
 
         MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
 
