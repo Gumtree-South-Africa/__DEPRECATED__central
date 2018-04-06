@@ -122,7 +122,8 @@ function main() {
     bin/build.sh -T ${TENANT} -P docker
 
     log "Importing properties into Consul"
-    docker run --net ${DOCKER_NETWORK} --rm --volume ${PWD}/distribution/conf/${TENANT}/docker.properties:/docker.properties -w / docker-registry.ecg.so/comaas/properties-to-consul:0.0.5 -consul http://${DOCKER_CONSUL}:8500 -file /docker.properties
+    docker run --network ${DOCKER_NETWORK} --rm --volume ${PWD}/distribution/conf/${TENANT}/docker.properties:/props.properties \
+        docker-registry.ecg.so/comaas/properties-to-consul:0.0.7 -consul http://${DOCKER_CONSUL}:8500 -tenant ${TENANT}
 
     log "Starting comaas for tenant ${TENANT}"
 

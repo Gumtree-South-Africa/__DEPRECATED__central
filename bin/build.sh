@@ -184,7 +184,8 @@ function main() {
             log "Hint: (cd docker && make up)"
             exit 1
         fi
-        docker run --net comaasdocker_default --rm --volume ${PWD}/distribution/conf/${TENANT}/docker.properties:/docker.properties -w / docker-registry.ecg.so/comaas/properties-to-consul:0.0.5 -consul http://comaasdocker_consul_1:8500 -file /docker.properties
+        docker run --network comaasdocker_default --rm --volume ${PWD}/distribution/conf/${TENANT}/docker.properties:/props.properties \
+            docker-registry.ecg.so/comaas/properties-to-consul:0.0.7 -consul http://comaasdocker_consul_1:8500 -tenant ${TENANT}
     fi
 
     export COMAAS_HTTP_PORT=18081

@@ -115,14 +115,7 @@ void downloadFileFromGithub(final String version, final String tenant, final Str
                 returnStatus: true
         )
         if (status != "0") {
-            filePath = "ecg-comaas/central/$version/distribution/conf/$tenant/import_into_consul/${environmentShort}.properties"
-            status = sh(
-                    script: "curl --fail -o $destination -sLH 'Authorization: token $TOKEN' https://raw.github.corp.ebay.com/$filePath",
-                    returnStatus: true
-            )
-            if (status != "0") {
-                error("Could not download $filePath from Github (also tried without 'import_into_consul')")
-            }
+            error("Could not download $filePath from Github")
         }
     }
 }
@@ -131,7 +124,8 @@ void loadPropsIntoConsul(final String tenant, final String version, final String
     downloadFileFromGithub(version, tenant, environmentShort)
 
     final String status = sh(
-            script: "properties-to-consul -file props.properties",
+            script: "docker run --network host --rm --volume \$(pwd)/props.properties:/props.properties " +
+                    "docker-registry.ecg.so/comaas/properties-to-consul:0.0.7 -tenant ${tenant}",
             returnStatus: true
     )
     if (status != "0") {
@@ -139,7 +133,7 @@ void loadPropsIntoConsul(final String tenant, final String version, final String
     }
 }
 
-void deployToEnv(final String tenant, final String artifact, final String environment, final String version, final String dc, final Integer nrOfInstances, final boolean live) {
+void deployToEnv(final String tenant, final String artifact, final String environment, final String version, final String dc, final Integer nrOfInstances) {
     ansiColor('xterm') {
         sh "PYTHONWARNINGS='ignore' deploy.py --config /etc/comaas/comaas-${tenant}.yaml --logdir ~ --component $artifact"
     }
@@ -157,17 +151,14 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
     withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
                       usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
 
+        // Remove after https://jira.corp.ebay.com/browse/COMAAS-950 is fixed
         urlprefixes = ""
-        if (live || environment == "lp") {
-            urlprefixes = ",\"urlprefix-${tenantShort}.${environment}.comaas.cloud/\",\"urlprefix-${dc}.${tenantShort}.${environment}.comaas.cloud/\""
-
-            if (tenantShort == 'au') {
-                if (environment == 'lp') {
-                    urlprefixes += ",\"urlprefix-au-comaas.dro.ops.qa.au.ecg.so:8006/\""
-                }
-                if (environment == 'prod') {
-                    urlprefixes += ",\"urlprefix-au-rts2-api:8080/\",\"urlprefix-au-rts2-api.intern.gumtree.com.au:8080/\""
-                }
+        if (tenantShort == 'au') {
+            if (environment == 'lp') {
+                urlprefixes += ",\"urlprefix-au-comaas.dro.ops.qa.au.ecg.so:8006/\""
+            }
+            if (environment == 'prod') {
+                urlprefixes += ",\"urlprefix-au-rts2-api:8080/\",\"urlprefix-au-rts2-api.intern.gumtree.com.au:8080/\""
             }
         }
 
@@ -227,9 +218,6 @@ node("master") {
 
     Integer nrOfInstances = environmentShort == 'lp' ? configFile.instances.lp : configFile.instances.prod[tenant] as Integer
 
-    // enable urlprefixes for this tenant, which means API traffic in production will go to the Nomad nodes
-    final boolean live = configFile.tenants.live.contains(tenant)
-
     stage("Deploying") {
         node("$environmentShort && $dc") {
             boolean skip = false
@@ -266,7 +254,7 @@ node("master") {
 
                     final String artifact = downloadVersionFromSwift(tenant, versionToDeploy)
                     loadPropsIntoConsul(tenant, versionToDeploy, environmentShort)
-                    deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstances, live)
+                    deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstances)
 
                     final String graphitePayload = commonFunctions.createGraphitePayload('succeeded', commonFunctions.getAlias(tenant), "$versionToDeploy deployed")
                     sendGraphiteMetric(dc, environmentShort, graphitePayload)

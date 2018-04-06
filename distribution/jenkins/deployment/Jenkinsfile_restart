@@ -134,23 +134,17 @@ node("master") {
                 // Is this really necessary? Can we pass the files to the builder instead?
                 checkout scm
 
-                configFile = readYaml file: "distribution/jenkins/deployment/configuration.yaml"
-
                 withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
                                   usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
-                    final boolean live = configFile.tenants.live.contains(tenant)
 
+                    // Remove after https://jira.corp.ebay.com/browse/COMAAS-950 is fixed
                     urlprefixes = ""
-                    if (live || environment == "lp") {
-                        urlprefixes = ",\"urlprefix-${tenantShort}.${environment}.comaas.cloud/\",\"urlprefix-${dc}.${tenantShort}.${environment}.comaas.cloud/\""
-
-                        if (tenantShort == 'au') {
-                            if (environment == 'lp') {
-                                urlprefixes += ",\"urlprefix-au-comaas.dro.ops.qa.au.ecg.so:8006/\""
-                            }
-                            if (environment == 'prod') {
-                                urlprefixes += ",\"urlprefix-au-rts2-api:8080/\",\"urlprefix-au-rts2-api.intern.gumtree.com.au:8080/\""
-                            }
+                    if (tenantShort == 'au') {
+                        if (environment == 'lp') {
+                            urlprefixes += ",\"urlprefix-au-comaas.dro.ops.qa.au.ecg.so:8006/\""
+                        }
+                        if (environment == 'prod') {
+                            urlprefixes += ",\"urlprefix-au-rts2-api:8080/\",\"urlprefix-au-rts2-api.intern.gumtree.com.au:8080/\""
                         }
                     }
 
