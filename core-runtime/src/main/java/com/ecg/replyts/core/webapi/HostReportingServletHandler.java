@@ -128,6 +128,11 @@ public class HostReportingServletHandler extends HandlerWrapper {
     public void handle(String path, Request request, HttpServletRequest httpRequest, HttpServletResponse httpResponse)
             throws IOException, ServletException {
 
+        if (!path.startsWith("/"+name)) {
+            super.handle(path, request, httpRequest, httpResponse);
+            return;
+        }
+
         final long start;
         final HttpChannelState state = request.getHttpChannelState();
         if (state.isInitial()) {
