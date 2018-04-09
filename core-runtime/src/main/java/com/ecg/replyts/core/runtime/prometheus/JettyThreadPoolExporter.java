@@ -4,10 +4,10 @@ import com.ecg.replyts.core.Webserver;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.GaugeMetricFamily;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -16,6 +16,7 @@ public class JettyThreadPoolExporter {
 
     private final Webserver webserver;
 
+    @Autowired
     public JettyThreadPoolExporter(Webserver webserver) {
         this.webserver = webserver;
     }

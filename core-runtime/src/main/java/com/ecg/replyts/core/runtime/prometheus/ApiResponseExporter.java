@@ -12,7 +12,6 @@ import javax.servlet.AsyncListener;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 
 public class ApiResponseExporter extends HandlerWrapper {
@@ -24,7 +23,7 @@ public class ApiResponseExporter extends HandlerWrapper {
 
     @Override
     protected void doStart() throws Exception {
-        apiResponseStatusCodes = Gauge.build("api_response_status_codes", "API response HTTP status code").labelNames("status_code").create().register();
+        apiResponseStatusCodes = Gauge.build("api_response_status_codes", "API response HTTP status code").labelNames("status_code").register();
         apiResponseTimes = Summary.build("api_response_times", "API Response time").quantile(0.95, 0.01).labelNames("method").register();
 
         super.doStart();

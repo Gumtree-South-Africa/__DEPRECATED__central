@@ -7,6 +7,7 @@ import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
 import com.ecg.replyts.core.runtime.mailparser.MailEnhancer;
 import com.ecg.replyts.core.runtime.util.HttpClientFactory;
+import io.prometheus.client.Counter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -36,6 +37,8 @@ import java.nio.charset.Charset;
 public class AutogateAwareMailDeliveryService implements MailDeliveryService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AutogateAwareMailDeliveryService.class);
+    private static final Counter failedLeadPost = Counter.build("au_failed_post_lead",
+            "AU post lead failures to professional sellers").register();
 
     private final String autogateHttpUrlHeader;
     private final String autogateHttpAccountName;
@@ -96,7 +99,7 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
      */
     private void postHttpLead(Mail mail, String postUrl) throws MailDeliveryException {
         try {
-            LOG.info("Autogate HTTP found - posting Lead to Autogate");
+            LOG.info("Autogate HTTP found - posting Lead to Autogate url {}", postUrl);
 
             // set headers
             final HttpPost httpPost = new HttpPost(postUrl);
@@ -128,10 +131,13 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
                 LOG.info("Lead successfully posted to Autogate, messageId={}, responseCode={}, response={}",
                         mail.getMessageId(), response.getStatusLine().getStatusCode(), httpEntityString);
             } else {
+                failedLeadPost.inc();
+                String requestBody = sb.toString();
                 LOG.error("Failed to post Lead to Autogate, messageId={}, responseCode={}, requestBody={}, response={}",
-                        mail.getMessageId(), response.getStatusLine().getStatusCode(), sb.toString(), httpEntityString);
+                        mail.getMessageId(), response.getStatusLine().getStatusCode(), requestBody, httpEntityString);
             }
         } catch (Exception e) {
+            failedLeadPost.inc();
             String errorMessage = "Failed to deliver mail messageId=" + mail.getMessageId();
             LOG.error(errorMessage, e);
             throw new MailDeliveryException(errorMessage, e);
