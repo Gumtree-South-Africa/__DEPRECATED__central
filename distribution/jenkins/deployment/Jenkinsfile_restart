@@ -110,9 +110,7 @@ node("master") {
 
     currentBuild.description = description
 
-    timeout(time: 1, unit: 'MINUTES') {
-        input message: "Restarting Comaas for tenant: ${tenant} in " + (isActiveDC ? "ACTIVE " : "") + "dc: ${dc} on env: ${environment}. Are you sure?"
-    }
+    echo "Restarting Comaas for tenant: ${tenant} in " + (isActiveDC ? "ACTIVE" : "") + " dc: ${dc} on env: ${environment}."
 
     stage("Restarting Comaas") {
         node("$environment && $dc") {
