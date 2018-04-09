@@ -32,6 +32,9 @@ public class HealthController {
 
     private String searchClusterVersion;
 
+    @Value("${active.dc:unknown}")
+    private String activeDc;
+
     @Value("${spring.application.name:unknown}")
     private String instanceName;
 
@@ -79,6 +82,10 @@ public class HealthController {
     @JsonPropertyOrder(value = { "version", "tenant", "instanceName", "hostname"}, alphabetic = true)
     class Health {
         private Health() {
+        }
+
+        public String getActiveDc() {
+            return activeDc;
         }
 
         public String getVersion() {
