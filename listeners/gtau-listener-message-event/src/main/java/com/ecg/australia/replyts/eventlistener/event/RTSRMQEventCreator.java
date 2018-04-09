@@ -7,16 +7,16 @@ import com.ebay.ecg.australia.events.rabbitmq.RabbitMQEventHandlerClient;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-
 @Component
 public class RTSRMQEventCreator {
-    private static Logger LOG = LoggerFactory.getLogger(RTSRMQEventCreator.class);
+
+    private static final Logger LOG = LoggerFactory.getLogger(RTSRMQEventCreator.class);
 
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
     private static final String REPLY_CHANNEL_HEADER = "X-Reply-Channel";
@@ -24,40 +24,28 @@ public class RTSRMQEventCreator {
     private static final String CATEGORY_ID = "categoryid";
     private static final String IP = "ip";
 
-    @Autowired
-    private RabbitMQEventHandlerClient eventHandlerClient;
+    private final RabbitMQEventHandlerClient eventHandlerClient;
 
-    @PostConstruct
-    public void onStartup() {
-        LOG.info("RTSRMQEventCreator created.");
+    @Autowired
+    public RTSRMQEventCreator(RabbitMQEventHandlerClient eventHandlerClient) {
+        this.eventHandlerClient = eventHandlerClient;
     }
 
     public void messageEventEntry(final Conversation conversation, final Message message) {
-        try {
-            final MessageEvents.MessageCreatedEvent messageRequestCreatedEvent = createMessageEvent(conversation, message);
-
-            if (messageRequestCreatedEvent != null) {
-                eventHandlerClient.fire(messageRequestCreatedEvent);
-
-                LOG.trace("Sent MessageCreatedEvent conversationId: {}, messageId: {}, adId: {}, sellerMail: {}, buyerMail: {}",
-                        messageRequestCreatedEvent.getConversationInfo().getMessageConversationInfo().getConversationId(),
-                        messageRequestCreatedEvent.getConversationInfo().getMessageConversationInfo().getMessageId(),
-                        messageRequestCreatedEvent.getConversationInfo().getAdId(),
-                        messageRequestCreatedEvent.getConversationInfo().getSellerMail(),
-                        messageRequestCreatedEvent.getConversationInfo().getBuyerMail());
-            }
-        } catch (Exception e) {
-            LOG.error("Error sending MessageCreatedEvent to RabbitMQ", e);
-        }
-    }
-
-    private MessageEvents.MessageCreatedEvent createMessageEvent(final Conversation conversation, final Message message) {
         final MessageEvents.MessageCreatedEvent messageRequestCreatedEvent = createMessageRequestCreatedEvent(conversation, message);
 
-        if (messageRequestCreatedEvent == null) {
-            LOG.warn("Failed to create MessageCreatedEvent");
+        // publish to RabbitMQ
+        eventHandlerClient.fire(messageRequestCreatedEvent);
+
+        if (LOG.isTraceEnabled()) {
+            Entities.ConversationInfo conversationInfo = messageRequestCreatedEvent.getConversationInfo();
+            LOG.trace("Sent MessageCreatedEvent conversationId: {}, messageId: {}, adId: {}, sellerMail: {}, buyerMail: {}",
+                    conversationInfo.getMessageConversationInfo().getConversationId(),
+                    conversationInfo.getMessageConversationInfo().getMessageId(),
+                    conversationInfo.getAdId(),
+                    conversationInfo.getSellerMail(),
+                    conversationInfo.getBuyerMail());
         }
-        return messageRequestCreatedEvent;
     }
 
     /**
@@ -67,124 +55,114 @@ public class RTSRMQEventCreator {
      * @param message      the Message
      * @return MessageCreatedEvent the event to send to RabbitMQ
      */
-    protected MessageEvents.MessageCreatedEvent createMessageRequestCreatedEvent(final Conversation conversation, final Message message) {
-        if (conversation != null) {
-            Entities.MessageDirection messageDirection = null;
-            String messageId = null;
-            String messageState = null;
-            String conversationState = null;
-            String categoryId = null;
-            String ip = null;
-            String userAgent = null;
-            String replyChannel = null;
-            String messageReceivedAt = null;
-            String conversationCreatedAt = null;
-            String conversationLastModifiedAt = null;
-            String messageSize = null;
+    private static MessageEvents.MessageCreatedEvent createMessageRequestCreatedEvent(final Conversation conversation, final Message message) {
+        final Entities.MessageConversationInfo messageConversationInfo = messageConversationInfo(conversation, message);
+        final Entities.ConversationInfo conversationInfo = conversationInfo(conversation, messageConversationInfo);
 
-            Entities.MessageConversationInfo.Builder messageConvInfoBuilder = Entities.MessageConversationInfo.newBuilder();
-            Entities.ConversationInfo.Builder conversationInfoBuilder = Entities.ConversationInfo.newBuilder();
+        if (LOG.isTraceEnabled()) {
+            String mciToString = MoreObjects.toStringHelper("MessageConversationInfo")
+                    .add("conversationId", conversation.getId())
+                    .add("messageDirection", messageConversationInfo.getMessageDirection())
+                    .add("messageId", messageConversationInfo.getMessageId())
+                    .add("messageState", messageConversationInfo.getMessageState())
+                    .add("messageReceivedAt", messageConversationInfo.getMessageReceivedAt())
+                    .add("replyChannel", messageConversationInfo.getReplyChannel())
+                    .toString();
+            LOG.trace(mciToString);
 
-            messageConvInfoBuilder.setConversationId(conversation.getId());
-            if (message != null) {
-                messageId = message.getId();
-                messageConvInfoBuilder.setMessageId(messageId);
-
-                if (message.getReceivedAt() != null) {
-                    messageReceivedAt = message.getReceivedAt().toString(DATE_FORMAT);
-                    messageConvInfoBuilder.setMessageReceivedAt(messageReceivedAt);
-                }
-
-                if (message.getMessageDirection() != null && message.getMessageDirection() != MessageDirection.UNKNOWN) {
-                    messageDirection = Entities.MessageDirection.valueOf(message.getMessageDirection().name());
-                    messageConvInfoBuilder.setMessageDirection(messageDirection);
-                }
-
-                if (message.getState() != null) {
-                    messageState = message.getState().name();
-                    messageConvInfoBuilder.setMessageState(messageState);
-                }
-            }
-
-            if (conversation.getAdId() != null)
-                conversationInfoBuilder.setAdId(conversation.getAdId());
-
-            if (conversation.getSellerId() != null)
-                conversationInfoBuilder.setSellerMail(conversation.getSellerId());
-
-            if (conversation.getBuyerId() != null)
-                conversationInfoBuilder.setBuyerMail(conversation.getBuyerId());
-
-            if (conversation.getState() != null) {
-                conversationState = conversation.getState().name();
-                conversationInfoBuilder.setConversationState(conversationState);
-            }
-
-            if (conversation.getCreatedAt() != null) {
-                conversationCreatedAt = conversation.getCreatedAt().toString(DATE_FORMAT);
-                conversationInfoBuilder.setConversationCreatedAt(conversationCreatedAt);
-            }
-
-            if (conversation.getLastModifiedAt() != null) {
-                conversationLastModifiedAt = conversation.getLastModifiedAt().toString(DATE_FORMAT);
-                conversationInfoBuilder.setConversationLastModifiedDate(conversationLastModifiedAt);
-            }
-
-            if (conversation.getMessages() != null) {
-                messageSize = String.valueOf(conversation.getMessages().size());
-                conversationInfoBuilder.setNumOfMessageInConversation(messageSize);
-            }
-
-            if (conversation.getCustomValues() != null) {
-                categoryId = conversation.getCustomValues().get(CATEGORY_ID);
-                if (categoryId != null) {
-                    conversationInfoBuilder.setCategoryId(categoryId);
-                }
-
-                ip = conversation.getCustomValues().get(IP);
-                if (ip != null) {
-                    conversationInfoBuilder.setIp(ip);
-                }
-
-                userAgent = conversation.getCustomValues().get(USER_AGENT);
-                if (userAgent != null) {
-                    conversationInfoBuilder.setUserAgent(userAgent);
-                }
-
-                replyChannel = conversation.getCustomValues().get(REPLY_CHANNEL_HEADER);
-                if (replyChannel != null) {
-                    messageConvInfoBuilder.setReplyChannel(replyChannel);
-                }
-            }
-
-            final Entities.MessageConversationInfo messageConversationInfo = messageConvInfoBuilder.build();
-            conversationInfoBuilder.setMessageConversationInfo(messageConversationInfo);
-
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("MessageConversationInfo: " + conversation.getId() + ", " + messageDirection + ", " + messageId + ", " + messageState +
-                        ", " + messageReceivedAt + ", " + replyChannel);
-            }
-
-            final Entities.ConversationInfo conversationInfo = conversationInfoBuilder.build();
-
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("ConversationInfo: " + conversationState + ", " + conversation.getAdId() +
-                        ", " + conversation.getSellerId() + ", " + conversation.getBuyerId() + ", " + messageSize +
-                        ", " + conversationCreatedAt + ", " + conversationLastModifiedAt +
-                        ", " + categoryId + ", " + ip + ", " + userAgent);
-            }
-
-            final OriginDefinition.Origin origin = OriginDefinition.Origin.newBuilder()
-                    .setTimestamp(System.currentTimeMillis())
-                    .build();
-
-            return MessageEvents.MessageCreatedEvent.newBuilder()
-                    .setOrigin(origin)
-                    .setConversationInfo(conversationInfo)
-                    .build();
-        } else {
-            LOG.trace(" No conversation: {}", conversation);
-            return null;
+            String ciToString = MoreObjects.toStringHelper("ConversationInfo")
+                    .add("conversationState", conversationInfo.getConversationState())
+                    .add("adId", conversation.getAdId())
+                    .add("sellerId", conversation.getSellerId())
+                    .add("buyerId", conversation.getBuyerId())
+                    .add("messageSize", conversation.getMessages().size())
+                    .add("conversationCreatedAt", conversationInfo.getConversationCreatedAt())
+                    .add("conversationLastModifiedAt", conversationInfo.getConversationLastModifiedDate())
+                    .add("categoryId", conversationInfo.getCategoryId())
+                    .add("IP", conversationInfo.getIp())
+                    .add("userAgent", conversationInfo.getUserAgent())
+                    .toString();
+            LOG.trace(ciToString);
         }
+
+        final OriginDefinition.Origin origin = OriginDefinition.Origin.newBuilder()
+                .setTimestamp(System.currentTimeMillis())
+                .build();
+
+        return MessageEvents.MessageCreatedEvent.newBuilder()
+                .setOrigin(origin)
+                .setConversationInfo(conversationInfo)
+                .build();
+    }
+
+    private static Entities.ConversationInfo conversationInfo(Conversation conversation, Entities.MessageConversationInfo messageConversationInfo) {
+        Entities.ConversationInfo.Builder conversationInfoBuilder = Entities.ConversationInfo.newBuilder();
+
+        if (conversation.getAdId() != null) {
+            conversationInfoBuilder.setAdId(conversation.getAdId());
+        }
+        if (conversation.getSellerId() != null) {
+            conversationInfoBuilder.setSellerMail(conversation.getSellerId());
+        }
+        if (conversation.getBuyerId() != null) {
+            conversationInfoBuilder.setBuyerMail(conversation.getBuyerId());
+        }
+        if (conversation.getState() != null) {
+            conversationInfoBuilder.setConversationState(conversation.getState().name());
+        }
+        if (conversation.getCreatedAt() != null) {
+            conversationInfoBuilder.setConversationCreatedAt(conversation.getCreatedAt().toString(DATE_FORMAT));
+        }
+        if (conversation.getLastModifiedAt() != null) {
+            conversationInfoBuilder.setConversationLastModifiedDate(conversation.getLastModifiedAt().toString(DATE_FORMAT));
+        }
+        if (conversation.getMessages() != null) {
+            conversationInfoBuilder.setNumOfMessageInConversation(String.valueOf(conversation.getMessages().size()));
+        }
+
+        if (conversation.getCustomValues() != null) {
+            String categoryId = conversation.getCustomValues().get(CATEGORY_ID);
+            if (categoryId != null) {
+                conversationInfoBuilder.setCategoryId(categoryId);
+            }
+            String ip = conversation.getCustomValues().get(IP);
+            if (ip != null) {
+                conversationInfoBuilder.setIp(ip);
+            }
+            String userAgent = conversation.getCustomValues().get(USER_AGENT);
+            if (userAgent != null) {
+                conversationInfoBuilder.setUserAgent(userAgent);
+            }
+        }
+
+        conversationInfoBuilder.setMessageConversationInfo(messageConversationInfo);
+        return conversationInfoBuilder.build();
+    }
+
+    private static Entities.MessageConversationInfo messageConversationInfo(Conversation conversation, Message message) {
+        Entities.MessageConversationInfo.Builder messageConvInfoBuilder = Entities.MessageConversationInfo.newBuilder();
+
+        messageConvInfoBuilder.setConversationId(conversation.getId());
+        if (message != null) {
+            messageConvInfoBuilder.setMessageId(message.getId());
+            if (message.getReceivedAt() != null) {
+                messageConvInfoBuilder.setMessageReceivedAt(message.getReceivedAt().toString(DATE_FORMAT));
+            }
+            if (message.getMessageDirection() != null && message.getMessageDirection() != MessageDirection.UNKNOWN) {
+                messageConvInfoBuilder.setMessageDirection(Entities.MessageDirection.valueOf(message.getMessageDirection().name()));
+            }
+            if (message.getState() != null) {
+                messageConvInfoBuilder.setMessageState(message.getState().name());
+            }
+        }
+
+        if (conversation.getCustomValues() != null) {
+            String replyChannel = conversation.getCustomValues().get(REPLY_CHANNEL_HEADER);
+            if (replyChannel != null) {
+                messageConvInfoBuilder.setReplyChannel(replyChannel);
+            }
+        }
+
+        return messageConvInfoBuilder.build();
     }
 }

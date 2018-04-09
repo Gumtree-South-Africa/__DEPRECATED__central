@@ -1,23 +1,28 @@
 package com.ecg.australia.replyts.eventlistener.event;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.TimeoutException;
-
 import com.ebay.ecg.australia.events.rabbitmq.RabbitMQConfiguration;
 import com.ebay.ecg.australia.events.rabbitmq.RabbitMQEventHandlerClient;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeoutException;
+
 @ComaasPlugin
 @Configuration
-@Import({ RTSRMQEventCreator.class, MessageEventListener.class })
+@Import({RTSRMQEventCreator.class, MessageEventListener.class})
 public class MessageEventConfiguration {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MessageEventConfiguration.class);
+
     @Value("${rabbitmq.host}")
     private String host;
 
@@ -41,8 +46,7 @@ public class MessageEventConfiguration {
 
     @Bean(name = "rabbitMQConfigProducer")
     public RabbitMQConfiguration getRabbitMQConfigProducer() {
-        System.out.println("Creating configuration with these parameters:");
-        System.out.println("host=" + host + ",port="  + port + ",endpoint=" + endpoint);
+        LOG.info("Creating configuration with host={}, port={}, endpoint={}", host, port, endpoint);
 
         final RabbitMQConfiguration config = new RabbitMQConfiguration();
         config.setHost(host);

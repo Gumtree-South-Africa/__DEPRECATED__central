@@ -8,25 +8,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-
 @Component
 public class MessageEventListener implements MessageProcessedListener {
+
     private static final Logger LOG = LoggerFactory.getLogger(MessageEventListener.class);
 
-    @Autowired
-    private RTSRMQEventCreator eventCreator;
+    private final RTSRMQEventCreator eventCreator;
 
-    @PostConstruct
-    public void onStartup() {
-        LOG.info("MessageEventListener created.");
+    @Autowired
+    public MessageEventListener(RTSRMQEventCreator eventCreator) {
+        this.eventCreator = eventCreator;
     }
 
+    @Override
     public void messageProcessed(Conversation conversation, Message message) {
-        try {
-            eventCreator.messageEventEntry(conversation, message);
-        } catch (RuntimeException e) {
-            LOG.error("Message logging failed",e);
+        if (conversation == null || message == null) {
+            LOG.error("Either conversation or message is null -> conversation={}, message={}", conversation, message);
+            return;
         }
+        eventCreator.messageEventEntry(conversation, message);
     }
 }

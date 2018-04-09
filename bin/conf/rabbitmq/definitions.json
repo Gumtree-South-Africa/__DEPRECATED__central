@@ -1,0 +1,61 @@
+{
+  "rabbit_version": "3.7.3",
+  "users": [
+    {
+      "name": "guest",
+      "password_hash": "rX3DhXN7/wj0q6Ey6n3ehXppRuCOPEFCjgTiFIMPmk60ApW7",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "topic_permissions": [
+  ],
+  "parameters": [
+  ],
+  "global_parameters": [
+    {
+      "name": "cluster_name",
+      "value": "rabbit@ee4b364feceb"
+    }
+  ],
+  "policies": [
+  ],
+  "queues": [
+    {
+      "name": "gumbot.queue.commands",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-ha-policy": "all"
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "gt.topic.default",
+      "vhost": "/",
+      "type": "fanout",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+  ]
+}

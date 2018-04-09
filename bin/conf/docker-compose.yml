@@ -27,3 +27,12 @@ services:
     ports:
       - "8161:8161"
       - "61616:61616"
+  rabbitmq: # testing AU (Gumbot related stuff)
+    image: rabbitmq:3-management
+    volumes:
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+      - ./rabbitmq/definitions.json:/opt/definitions.json:ro
+      - ./rabbitmq/rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro
+    ports:
+      - "5672:5672"
+      - "15672:15672"
