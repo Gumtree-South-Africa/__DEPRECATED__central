@@ -123,6 +123,11 @@ void downloadFileFromGithub(final String version, final String tenant, final Str
 void loadPropsIntoConsul(final String tenant, final String version, final String environmentShort) {
     downloadFileFromGithub(version, tenant, environmentShort)
 
+    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
+                      usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
+        sh "docker login -u $DOCKER_USER -p $DOCKER_PASS docker-registry.ecg.so"
+    }
+
     final String status = sh(
             script: "docker run --network host --rm --volume \$(pwd)/props.properties:/props.properties " +
                     "docker-registry.ecg.so/comaas/properties-to-consul:0.0.7 -tenant ${tenant}",
