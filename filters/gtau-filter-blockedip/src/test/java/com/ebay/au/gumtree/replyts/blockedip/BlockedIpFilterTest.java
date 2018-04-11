@@ -25,9 +25,6 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * @author mdarapour
- */
 @RunWith(MockitoJUnitRunner.class)
 public class BlockedIpFilterTest {
     @Mock
@@ -37,8 +34,8 @@ public class BlockedIpFilterTest {
     private BlockedIpFilter filter;
 
     @Before
-    public void setup() throws Exception {
-        filter = new BlockedIpFilter("filter", template);
+    public void setup() {
+        filter = new BlockedIpFilter(template);
         context = mock(MessageProcessingContext.class, RETURNS_DEEP_STUBS);
         when(context.getMessage().getHeaders().get(BlockedIpFilter.IP_ADDR_HEADER)).thenReturn("127.0.0.1");
     }
