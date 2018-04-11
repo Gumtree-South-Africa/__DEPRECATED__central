@@ -17,8 +17,8 @@ public class SendMessageCommand extends FailureAwareCommand<SendMessage> {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
 
-    public SendMessageCommand(HttpClient httpClient, HttpHost httpHost, SendMessage messageRequest) {
-        super(httpClient, httpHost);
+    public SendMessageCommand(HttpClient httpClient, HttpHost httpHost, SendMessage messageRequest, int hystrixTimeout) {
+        super(httpClient, httpHost, hystrixTimeout);
 
         this.request = new HttpPost(SEND_MESSAGE_BASE_URL);
         try {

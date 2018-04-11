@@ -23,18 +23,21 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String SUBSCRIPTIONS_BASE_URL = "/subscriptions";
 
-    private LookupSubscriptionCommand(HttpClient httpClient,
-                                      HttpHost httpHost,
-                                      Long id,
-                                      Long userId,
-                                      String deviceToken,
-                                      String deliveryService,
-                                      SendClient.NotificationType type,
-                                      Boolean enabled,
-                                      Locale locale,
-                                      Long offset,
-                                      Long limit) {
-        super(httpClient, httpHost);
+    private LookupSubscriptionCommand(
+            HttpClient httpClient,
+            HttpHost httpHost,
+            Long id,
+            Long userId,
+            String deviceToken,
+            String deliveryService,
+            SendClient.NotificationType type,
+            Boolean enabled,
+            Locale locale,
+            Long offset,
+            Long limit,
+            Integer hystrixTimeout
+    ) {
+        super(httpClient, httpHost, hystrixTimeout);
 
         try {
             URIBuilder subscriptionLookupUriBuilder = new URIBuilder(SUBSCRIPTIONS_BASE_URL);
@@ -57,6 +60,7 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
         private Locale locale = null;
         private Long offset = null;
         private Long limit = null;
+        private Integer hystrixTimeout = null;
 
         public Builder(HttpClient httpClient, HttpHost httpHost) {
             this.httpClient = httpClient;
@@ -103,8 +107,13 @@ public class LookupSubscriptionCommand extends FailureAwareCommand<List<Subscrip
             return this;
         }
 
+        public Builder setHystrixTimeout(int hystrixTimeout) {
+            this.hystrixTimeout = hystrixTimeout;
+            return this;
+        }
+
         public LookupSubscriptionCommand build() {
-            return new LookupSubscriptionCommand(httpClient, httpHost, id, userId, deviceToken, deliveryService, type, enabled, locale, offset, limit);
+            return new LookupSubscriptionCommand(httpClient, httpHost, id, userId, deviceToken, deliveryService, type, enabled, locale, offset, limit, hystrixTimeout);
         }
     }
 

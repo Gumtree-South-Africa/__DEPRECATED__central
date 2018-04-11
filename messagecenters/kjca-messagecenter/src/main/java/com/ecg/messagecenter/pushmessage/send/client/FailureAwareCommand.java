@@ -6,10 +6,15 @@ import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.google.common.io.Closeables;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
+import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixThreadPoolKey;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ClosedInputStream;
-import org.apache.http.*;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.HttpClientUtils;
@@ -33,9 +38,11 @@ abstract class FailureAwareCommand<T> extends HystrixCommand<T> {
     private SendException failure;
     private String correlationId;
 
-    public FailureAwareCommand(final HttpClient httpClient, HttpHost httpHost) {
+    public FailureAwareCommand(final HttpClient httpClient, HttpHost httpHost, int hystrixTimeout) {
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("SEND"))
-                .andThreadPoolKey(HystrixThreadPoolKey.Factory.asKey("SEND")));
+                .andThreadPoolKey(HystrixThreadPoolKey.Factory.asKey("SEND"))
+                .andCommandPropertiesDefaults(HystrixCommandProperties.Setter().withExecutionTimeoutInMilliseconds(hystrixTimeout))
+        );
 
         this.httpClient = httpClient;
         this.httpHost = httpHost;

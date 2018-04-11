@@ -74,7 +74,7 @@ public class SendClient {
 
     public SendMessage sendMessage(@Nonnull SendMessage messageRequest) {
         try (Timer.Context ignored = sendMessageTimer.time()) {
-            SendMessageCommand command = new SendMessageCommand(httpClient, httpHost, messageRequest);
+            SendMessageCommand command = new SendMessageCommand(httpClient, httpHost, messageRequest, hystrixTimeout);
             final SendMessage response = command.execute();
             if (response != null) {
                 return response;
@@ -98,6 +98,7 @@ public class SendClient {
                     .setType(NotificationType.CHATMESSAGE)
                     .setEnabled(true)
                     .setLimit(1L)
+                    .setHystrixTimeout(hystrixTimeout)
                     .build();
             final List<Subscription> response = command.execute();
             return response != null && !response.isEmpty();
