@@ -1,5 +1,7 @@
 package com.ecg.comaas.mde.postprocessor.demandreporting;
 
+import org.apache.commons.lang3.StringUtils;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 import javax.annotation.Nullable;
@@ -71,7 +73,7 @@ public final class Utils {
         int equalsSignPos = input.indexOf('=');
         if (equalsSignPos >= 0) {
             result.put(input.substring(0, equalsSignPos), input.substring(equalsSignPos + 1));
-        } else {
+        } else if (StringUtils.isNotBlank(input)){
             result.put(input, "");
         }
     }
