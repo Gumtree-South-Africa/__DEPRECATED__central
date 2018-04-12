@@ -27,8 +27,6 @@ def uploadToSwift(String tenant, String version, String pwd, String retentionDay
 
     withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'swift',
                       usernameVariable: 'SWIFT_USER', passwordVariable: 'SWIFT_PASS']]) {
-//        final String userId = getUID()
-
         final String file = "comaas-${tenant}_${version}.tar.gz"
         final String target = "${tenant}/builds/${file}"
 
