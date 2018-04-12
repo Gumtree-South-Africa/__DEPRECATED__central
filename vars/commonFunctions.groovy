@@ -215,34 +215,6 @@ String getUID() {
     ).trim()
 }
 
-def uploadToSwift(String tenant, String version, String pwd) {
-    echo "Uploading Comaas for $tenant with version $version to Swift (from $pwd)"
-
-    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'swift',
-                      usernameVariable: 'SWIFT_USER', passwordVariable: 'SWIFT_PASS']]) {
-        final String userId = getUID()
-
-        final String file = "comaas-${tenant}_${version}.tar.gz"
-        final String target = "${tenant}/builds/${file}"
-
-        echo sh(
-                script: "docker run --rm " +
-                        "-v ${pwd}:/objects " +
-                        "--network host " +
-                        "-u $userId " +
-                        "-e OS_AUTH_URL=https://keystone.dus1.cloud.ecg.so/v2.0 " +
-                        "-e OS_TENANT_NAME='comaas-qa' " +
-                        "-e OS_USERNAME='$SWIFT_USER' " +
-                        "-e OS_PASSWORD='$SWIFT_PASS' " +
-                        "-e OS_PROJECT_NAME='comaas-control-prod' " +
-                        "-e OS_REGION_NAME='dus1' " +
-                        "ebayclassifiedsgroup/python-swiftclient:3.5.0 " +
-                        "swift upload --skip-identical --object-name $target comaas /objects/$file",
-                returnStdout: true
-        )
-    }
-}
-
 boolean isVersionPresentInSwift(String tenant, String version) {
     withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'swift',
                       usernameVariable: 'SWIFT_USER', passwordVariable: 'SWIFT_PASS']]) {
