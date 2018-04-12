@@ -69,10 +69,6 @@ String getOriginalWantedInstances(final String tenantLongName) {
     return getMetaInformation("wanted_instances", tenantLongName)
 }
 
-String getOriginalWantedInstancesPerZone(final String tenantLongName) {
-    return getMetaInformation("wanted_instances_per_zone", tenantLongName)
-}
-
 String getOriginalRestartJenkinsJobNr(final String tenantLongName) {
     return getMetaInformation("restart_jenkins_job_nr", tenantLongName)
 }
@@ -117,7 +113,6 @@ node("master") {
             final String originalDeployJenkinsJobNr = getOriginalDeployNr(tenant)
             final String version = getOriginalVersion(tenant)
             final String wantedInstances = getOriginalWantedInstances(tenant)
-            final String wantedInstancesPerZone = getOriginalWantedInstancesPerZone(tenant)
             final String originalJenkinsRestartJobNr = getOriginalRestartJenkinsJobNr(tenant)
             final String restartJenkinsJob = originalJenkinsRestartJobNr == "none" ? env.BUILD_NUMBER : originalJenkinsRestartJobNr + "," + env.BUILD_NUMBER
 
@@ -155,7 +150,6 @@ node("master") {
                             "-var='environment=${environment}' " +
                             "-var='region=${dc}' " +
                             "-var='api_count=${wantedInstances}' " +
-                            "-var='api_count_per_zone=${wantedInstancesPerZone}' " +
                             "-var='deploy_jenkins_job_nr=${originalDeployJenkinsJobNr}' " +
                             "-var='restart_jenkins_job_nr=${restartJenkinsJob}' "
 

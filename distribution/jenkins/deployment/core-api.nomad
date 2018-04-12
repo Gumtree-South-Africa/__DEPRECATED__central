@@ -1,19 +1,12 @@
 job "core-api-[[ .tenant ]]" {
   region = "[[ .region ]]"
-  datacenters = [
-    [[- range $index, $element := .datacenters -]]
-      [[/* if element is not index 0 (bool false) prepend a comma */]]
-      [[- if $index ]], [[ end -]]
-      "[[- . ]]"
-    [[- end -]]
-  ]
+  datacenters = ["zone1", "zone2", "zone3", "zone4"]
 
   type = "service"
 
   meta {
     wanted_instances = [[.api_count]]
     docker_image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
-    wanted_instances_per_zone = "[[.api_count_per_zone]]"
     deploy_jenkins_job_nr = "[[.deploy_jenkins_job_nr]]"
     restart_jenkins_job_nr = "[[.restart_jenkins_job_nr]]"
     version = "[[.version]]"
@@ -36,12 +29,6 @@ job "core-api-[[ .tenant ]]" {
   group "api" {
 
     count = [[.api_count]]
-
-    constraint {
-      operator = "distinct_property"
-      attribute = "${node.datacenter}"
-      value = "[[.api_count_per_zone]]"
-    }
 
     constraint {
       attribute = "${node.class}"

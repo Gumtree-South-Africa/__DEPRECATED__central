@@ -145,11 +145,6 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
 
     final String tenantShort = commonFunctions.getAlias(tenant)
 
-    // There are 4 availability zones (called DC in Nomad), and we want to be able to both spread more or less evenly
-    // over zones, and have the allocation space to reschedule enough instances when a zone goes down. This is a best
-    // effort effort:
-    final Integer nrOfInstancesPerZone = nrOfInstances.intdiv(4) + 1
-
     // Is this really necessary? Can we pass the files to the builder instead?
     checkout scm
 
@@ -177,7 +172,6 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
                 "-var='environment=${environment}' " +
                 "-var='region=${dc}' " +
                 "-var='api_count=${nrOfInstances}' " +
-                "-var='api_count_per_zone=${nrOfInstancesPerZone}' " +
                 "-var='deploy_jenkins_job_nr=${deployJenkinsJob}' "
 
         sh "levant render ${vars} distribution/jenkins/deployment/core-api.nomad"
