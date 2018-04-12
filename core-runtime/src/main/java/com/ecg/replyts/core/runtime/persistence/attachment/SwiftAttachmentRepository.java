@@ -131,7 +131,7 @@ public class SwiftAttachmentRepository {
                 }
                 Optional<SwiftObject> swiftObject = Optional.of(so);
 
-                if (LOG.isDebugEnabled() && swiftObject.isPresent()) {
+                if (LOG.isDebugEnabled()) {
                     SwiftObject sobj = swiftObject.get();
                     LOG.debug("Loaded attachment {}/{} size {} bytes, " +
                                     "from container {}, " +

@@ -71,8 +71,7 @@ public class AttachmentRepository {
     public void storeAttachments(String messageId, Mail mail) {
         MAIL_WITH_ATTACHMENTS_COUNTER.inc();
 
-        try (Timer.Context time = STORE_MAIL.time()) {
-
+        try (Timer.Context ignored = STORE_MAIL.time()) {
             long totalSize = 0;
             LOG.trace("Storing attachments {}", mail.getAttachmentNames());
             for (String aname : mail.getAttachmentNames()) {
@@ -94,12 +93,12 @@ public class AttachmentRepository {
 
     public void storeAttachment(String messageId, String aname, TypedContent<byte[]> attachment) {
         try (Timer.Context ignored = STORE_ATTACHMENT.time()) {
-            LOG.debug("Storing message {}, attachment {} , size {} bytes", messageId, aname, attachment.getContent().length);
-            attachmentKafkaSinkService.store(getCompositeKey(messageId, aname), attachment.getContent());
+            String key = getCompositeKey(messageId, aname);
+            LOG.debug("Storing message {}, attachment {}, size {} bytes, as {}", messageId, aname, attachment.getContent().length, key);
+            attachmentKafkaSinkService.store(key, attachment.getContent());
         }
 
         ATTACHMENT_SIZE_HISTOGRAM.update(attachment.getContent().length);
-
     }
 
 }
