@@ -8,25 +8,19 @@ import com.ecg.messagecenter.persistence.block.ConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
-import com.ecg.messagecenter.webapi.requests.MessageCenterBlockCommand;
-import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -63,11 +57,6 @@ class ConversationThreadController {
         this.mailCloakingService = mailCloakingService;
         this.textAnonymizer = textAnonymizer;
         this.unreadCountCachePopulater = unreadCountCachePopulater;
-    }
-
-    @InitBinder
-    public void initBinderInternal(WebDataBinder binder) {
-        binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
     }
 
     /*
@@ -193,8 +182,6 @@ class ConversationThreadController {
             }
         }
 
-        long numUnreadCounter;
-
         //optimization to not cause too many write actions (potential for conflicts)
         if (needsUpdate) {
             PostBox<ConversationThread> postBoxToUpdate = new PostBox<>(email, Optional.of(postBox.getNewRepliesCounter().getValue()), threadsToUpdate);
@@ -226,69 +213,5 @@ class ConversationThreadController {
 
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @PostMapping("/postboxes/{email}/conversations/{conversationId}/block")
-    public ResponseEntity<Void> blockConversation(
-            @PathVariable("email") final String email,
-            @PathVariable("conversationId") final String conversationId) {
-        MutableConversation conversation = conversationRepository.getById(conversationId);
-        if (wrongConversationOrEmail(email, conversation)) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-        java.util.Optional<DateTime> now = java.util.Optional.of(DateTime.now(UTC));
-
-        ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
-        java.util.Optional<DateTime> buyerBlockedSellerAt = java.util.Optional.empty();
-        java.util.Optional<DateTime> sellerBlockerBuyerAt = java.util.Optional.empty();
-
-        if (conversationBlock != null) {
-            buyerBlockedSellerAt = conversation.getBuyerId().equalsIgnoreCase(email) ? now : conversationBlock.getBuyerBlockedSellerAt();
-            sellerBlockerBuyerAt = conversation.getSellerId().equalsIgnoreCase(email) ? now : conversationBlock.getSellerBlockedBuyerAt();
-        }
-
-        conversationBlock = new ConversationBlock(
-                conversationId,
-                ConversationBlock.LATEST_VERSION,
-                conversation.getBuyerId().equalsIgnoreCase(email) ? now : buyerBlockedSellerAt,
-                conversation.getSellerId().equalsIgnoreCase(email) ? now : sellerBlockerBuyerAt
-        );
-
-        conversationBlockRepository.write(conversationBlock);
-
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
-    }
-
-    @DeleteMapping("/postboxes/{email}/conversations/{conversationId}/block")
-    public ResponseEntity<Void> unblockConversation(
-            @PathVariable("email") final String email,
-            @PathVariable("conversationId") final String conversationId) {
-        MutableConversation conversation = conversationRepository.getById(conversationId);
-        if (wrongConversationOrEmail(email, conversation)) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-        ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
-        if (conversationBlock == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-        boolean buyerUnblockedSeller = conversation.getBuyerId().equalsIgnoreCase(email);
-        boolean sellerUnblockedBuyer = conversation.getSellerId().equalsIgnoreCase(email);
-        conversationBlockRepository.write(new ConversationBlock(
-                conversationId,
-                ConversationBlock.LATEST_VERSION,
-                buyerUnblockedSeller ? java.util.Optional.empty() : conversationBlock.getBuyerBlockedSellerAt(),
-                sellerUnblockedBuyer ? java.util.Optional.empty() : conversationBlock.getSellerBlockedBuyerAt()
-        ));
-
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    // Missing conversation or the email doesn't belong to either the seller or the buyer
-    private boolean wrongConversationOrEmail(@PathVariable("email") String email, MutableConversation conversation) {
-        return conversation == null ||
-                (!conversation.getBuyerId().equalsIgnoreCase(email) && !conversation.getSellerId().equalsIgnoreCase(email));
     }
 }
