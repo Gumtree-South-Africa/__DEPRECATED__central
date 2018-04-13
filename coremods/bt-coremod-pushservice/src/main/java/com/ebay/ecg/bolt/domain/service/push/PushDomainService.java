@@ -147,7 +147,12 @@ public class PushDomainService {
         if (CollectionUtils.isNotEmpty(pushRegistrations)) {
             LOG.debug("Found {} registrations for {}", pushRegistrations.size(), receiverdId);
 
-            return pushRegistrations.stream().map(registration -> processPushRegistration(registration, payload)).findFirst().orElseThrow((() -> new RuntimeException("No PushNotification results for " + receiverdId)));
+            List<Result> results = null;
+            for (PushRegistration registration: pushRegistrations) {
+                results = processPushRegistration(registration, payload);
+            }
+            // we just need to return one of the registration results (we don't care which one)
+            return results;
         } else {
             LOG.debug("No registration found for {}", receiverdId);
 
