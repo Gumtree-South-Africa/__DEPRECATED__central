@@ -6,7 +6,7 @@ import ca.kijiji.replyts.json.JsonTransformer;
 import ca.kijiji.replyts.model.ReplyTSConversationDTO;
 import ca.kijiji.replyts.model.ReplyTSMessageDTO;
 import ca.kijiji.replyts.model.ReplyTSProcessedMessageEventDTO;
-import com.ecg.de.kleinanzeigen.replyts.userfilter.UserfilterFactory;
+import com.ecg.comaas.core.filter.user.UserfilterFactory;
 import com.ecg.replyts.app.filterchain.FilterChain;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
@@ -216,7 +216,7 @@ public class ActiveMQReporterTest {
                 .withFilterResultState(FilterResultState.DROPPED)
                 .withProcessingFeedback(ProcessingFeedbackBuilder.aProcessingFeedback()
                                 .withFilterInstance("userfilter")
-                                .withFilterName(UserfilterFactory.class.getCanonicalName())
+                                .withFilterName(UserfilterFactory.IDENTIFIER)
                 )
                 .withProcessingFeedback(ProcessingFeedbackBuilder.aProcessingFeedback()
                                 .withFilterInstance("filterchain")

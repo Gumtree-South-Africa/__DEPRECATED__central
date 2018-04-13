@@ -8,9 +8,15 @@ import ca.kijiji.replyts.model.ReplyTSMessageDTO;
 import ca.kijiji.replyts.model.ReplyTSProcessedMessageEventDTO;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.ecg.de.kleinanzeigen.replyts.userfilter.UserfilterFactory;
+import com.ecg.comaas.core.filter.user.UserfilterFactory;
 import com.ecg.replyts.app.filterchain.FilterChain;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.google.common.collect.ImmutableList;
@@ -156,7 +162,7 @@ public class ActiveMQReporter implements MessageProcessedListener {
 
         for (ProcessingFeedback processingFeedback : message.getProcessingFeedback()) {
             String filterName = processingFeedback.getFilterName();
-            if (UserfilterFactory.class.getCanonicalName().equals(filterName)) {
+            if (UserfilterFactory.IDENTIFIER.equals(filterName)) {
                 foundUserFilterResult = true;
             } else if (FilterChain.class.getCanonicalName().equals(filterName) && FilterResultState.DROPPED.equals(message.getFilterResultState())) {
                 foundFinalResult = true;
