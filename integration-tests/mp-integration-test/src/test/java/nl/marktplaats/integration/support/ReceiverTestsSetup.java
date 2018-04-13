@@ -1,9 +1,9 @@
 package nl.marktplaats.integration.support;
 
 import com.datastax.driver.core.Session;
+import com.ecg.comaas.core.resultinspector.threshold.ThresholdResultInspectorFactory;
 import com.ecg.comaas.mp.filter.bankaccount.BankAccountFilterFactory;
 import com.ecg.comaas.mp.filter.volume.VolumeFilterFactory;
-import com.ecg.de.kleinanzeigen.replyts.thresholdresultinspector.ThresholdResultInspectorFactory;
 import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;

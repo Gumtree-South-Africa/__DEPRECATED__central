@@ -8,8 +8,10 @@ import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class PreProcessorManager {
@@ -22,7 +24,7 @@ public class PreProcessorManager {
     @PostConstruct
     public void orderPreProcessors() {
         Collections.sort(this.preProcessors, new OrderComparator());
-        LOG.info("Preprocessors registered: {}", preProcessors);
+        LOG.info("PreProcessors registered: {}", preProcessors.stream().map(Object::getClass).map(Class::getName).collect(Collectors.joining(", ")));
     }
 
     public void preProcess(MessageProcessingContext context) {

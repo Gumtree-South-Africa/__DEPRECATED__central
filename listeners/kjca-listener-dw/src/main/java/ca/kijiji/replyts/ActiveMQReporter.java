@@ -182,9 +182,9 @@ public class ActiveMQReporter implements MessageProcessedListener {
 
         for (ProcessingFeedback processingFeedback : message.getProcessingFeedback()) {
             String filterName = processingFeedback.getFilterName();
-            if (EmailBlockedFilterFactory.class.getCanonicalName().equals(filterName)) {
+            if (EmailBlockedFilterFactory.IDENTIFIER.equals(filterName)) {
                 foundUserEmailFilterResult = true;
-            } else if (IpBlockedFilterFactory.class.getCanonicalName().equals(filterName)) {
+            } else if (IpBlockedFilterFactory.IDENTIFIER.equals(filterName)) {
                 foundUserIpFilterResult = true;
             } else if (FilterChain.class.getCanonicalName().equals(filterName) && FilterResultState.DROPPED.equals(message.getFilterResultState())) {
                 foundFinalResult = true;

@@ -40,7 +40,7 @@ public class PreviousPatternsExtractor {
         Set<String> result = new HashSet<>();
 
         for (ProcessingFeedback feedback : processingFeedback) {
-            if (feedback.getFilterName().equals(WordfilterFactory.class.getName())) {
+            if (feedback.getFilterName().equals(WordfilterFactory.IDENTIFIER)) {
                 result.add(feedback.getUiHint());
             }
         }

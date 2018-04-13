@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 
@@ -22,8 +23,8 @@ public class PostProcessorChain {
 
     @PostConstruct
     public void orderPostProcessors() {
-        LOG.info("Custom Postprocesors Registered: {}", postProcessors);
         this.postProcessors.sort(new OrderComparator());
+        LOG.info("PostProcessors registered: {}", postProcessors.stream().map(Object::getClass).map(Class::getName).collect(Collectors.joining(", ")));
     }
 
     public void postProcess(MessageProcessingContext context) {
