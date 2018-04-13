@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.webapi;
 
-import ca.kijiji.replyts.TextAnonymizer;
+import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
 import com.ecg.messagecenter.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.UnreadCountCachePopulater;
@@ -11,13 +11,11 @@ import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.google.common.collect.ImmutableList;
-import org.apache.james.mime4j.field.DateTimeFieldImpl;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;

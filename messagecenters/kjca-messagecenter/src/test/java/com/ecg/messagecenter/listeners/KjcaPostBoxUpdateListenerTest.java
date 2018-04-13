@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.listeners;
 
-import ca.kijiji.replyts.TextAnonymizer;
+import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.persistence.SimplePostBoxInitializer;
@@ -26,9 +26,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.joda.time.DateTime.now;
 import static org.joda.time.DateTimeZone.UTC;
-import static org.mockito.Mockito.any;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 

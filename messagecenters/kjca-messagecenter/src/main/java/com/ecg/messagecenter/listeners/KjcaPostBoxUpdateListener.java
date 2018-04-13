@@ -1,9 +1,9 @@
 package com.ecg.messagecenter.listeners;
 
-import ca.kijiji.replyts.AddresserUtil;
-import ca.kijiji.replyts.TextAnonymizer;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
+import com.ecg.comaas.kjca.coremod.shared.AddresserUtil;
+import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.CommonApiConfig;
 import com.ecg.messagecenter.capi.HttpClientConfig;

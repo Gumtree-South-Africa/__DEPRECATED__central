@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.persistence;
 
-import ca.kijiji.replyts.TextAnonymizer;
+import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.persistence.block.ConversationBlockRepository;
 import com.ecg.messagecenter.persistence.simple.AbstractSimplePostBoxInitializer;

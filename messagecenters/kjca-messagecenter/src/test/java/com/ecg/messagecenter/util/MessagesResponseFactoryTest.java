@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.util;
 
-import ca.kijiji.replyts.TextAnonymizer;
+import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
 import com.ecg.messagecenter.webapi.responses.MessageResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;

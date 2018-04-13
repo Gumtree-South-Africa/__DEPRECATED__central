@@ -1,8 +1,8 @@
 package com.ecg.messagecenter.pushmessage;
 
-import ca.kijiji.replyts.BoxHeaders;
-import ca.kijiji.replyts.TextAnonymizer;
 import ca.kijiji.tracing.TraceThreadLocal;
+import com.ecg.comaas.kjca.coremod.shared.BoxHeaders;
+import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
 import com.ecg.messagecenter.capi.AdInfoLookup;
 import com.ecg.messagecenter.capi.UserInfoLookup;
 import com.ecg.messagecenter.cleanup.TextCleaner;

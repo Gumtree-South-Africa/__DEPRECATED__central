@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.webapi;
 
-import ca.kijiji.replyts.TextAnonymizer;
+import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
 import com.ecg.messagecenter.persistence.ConversationThread;
 import com.ecg.messagecenter.persistence.UnreadCountCachePopulater;
 import com.ecg.messagecenter.persistence.block.ConversationBlock;
