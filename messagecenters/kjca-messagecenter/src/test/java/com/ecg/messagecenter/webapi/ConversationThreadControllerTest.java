@@ -58,7 +58,7 @@ public class ConversationThreadControllerTest {
     public void markConversationRead_triggersUnreadCountCacher() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setMethod("PUT");
-        controller.getPostBoxConversationByEmailAndConversationId(EMAIL, CONVERSATION_ID, false, request, new MockHttpServletResponse());
+        controller.readPostBox(EMAIL, CONVERSATION_ID, new MockHttpServletResponse());
 
         Mockito.verify(unreadCountCachePopulater).populateCache(readPostBox);
     }

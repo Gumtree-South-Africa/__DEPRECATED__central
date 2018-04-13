@@ -35,6 +35,7 @@ import java.util.List;
  * We use these details to notify them that an ad is being deleted.
  */
 @Controller
+@Deprecated
 class AdConversationRecipientsController {
 
     private final SimplePostBoxRepository postBoxRepository;

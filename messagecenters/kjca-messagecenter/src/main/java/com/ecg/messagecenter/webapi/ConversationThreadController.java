@@ -26,18 +26,10 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +38,8 @@ import java.util.Optional;
 import static org.joda.time.DateTime.now;
 import static org.joda.time.DateTimeZone.UTC;
 
-@Controller
+@RestController
+@RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 class ConversationThreadController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversationThreadController.class);
 
@@ -77,14 +70,13 @@ class ConversationThreadController {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor());
     }
 
-    @RequestMapping(value = MessageCenterGetPostBoxConversationCommand.MAPPING,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
-    @ResponseBody
-    ResponseObject<?> getPostBoxConversationByEmailAndConversationId(
+    /*
+     * newCounterMode always FALSE
+     */
+    @GetMapping(value = "/postboxes/{email}/conversations/{conversationId}")
+    ResponseObject<?> getPostBox(
             @PathVariable("email") String email,
             @PathVariable("conversationId") String conversationId,
-            @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
-            HttpServletRequest request,
             HttpServletResponse response) {
 
         PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
@@ -94,7 +86,33 @@ class ConversationThreadController {
             return entityNotFound(response);
         }
 
-        boolean needToMarkAsRead = markAsRead(request) && conversationThreadRequested.get().isContainsUnreadMessages();
+        ConversationBlock conversationBlock = conversationBlockRepository.byId(conversationId);
+        boolean blockedByBuyer = false, blockedBySeller = false;
+        if (conversationBlock != null) {
+            blockedByBuyer = conversationBlock.getBuyerBlockedSellerAt().isPresent();
+            blockedBySeller = conversationBlock.getSellerBlockedBuyerAt().isPresent();
+        }
+
+        return lookupConversation(postBox.getUnreadConversationsCapped().size(), email, conversationId, blockedByBuyer, blockedBySeller, response);
+    }
+
+    /*
+     * newCounterMode always FALSE
+     */
+    @PutMapping("/postboxes/{email}/conversations/{conversationId}")
+    ResponseObject<?> readPostBox(
+            @PathVariable("email") String email,
+            @PathVariable("conversationId") String conversationId,
+            HttpServletResponse response) {
+
+        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+
+        Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
+        if (!conversationThreadRequested.isPresent()) {
+            return entityNotFound(response);
+        }
+
+        boolean needToMarkAsRead = conversationThreadRequested.get().isContainsUnreadMessages();
         if (needToMarkAsRead) {
             int unreadMessages = postBoxRepository.unreadCountInConversation(PostBoxId.fromEmail(postBox.getEmail()), conversationId);
             postBox.decrementNewReplies(unreadMessages);
@@ -108,24 +126,15 @@ class ConversationThreadController {
             blockedBySeller = conversationBlock.getSellerBlockedBuyerAt().isPresent();
         }
 
-        if (newCounterMode) {
-            if (needToMarkAsRead) {
-                final PostBox updatedPostbox = markConversationAsRead(email, conversationId, postBox);
-                unreadCountCachePopulater.populateCache(updatedPostbox);
-
-            }
-            return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId, blockedByBuyer, blockedBySeller, response);
+        long numUnread;
+        if (needToMarkAsRead) {
+            final PostBox updatedPostbox = markConversationAsRead(email, conversationId, postBox);
+            numUnread = updatedPostbox.getUnreadConversationsCapped().size();
+            unreadCountCachePopulater.populateCache(updatedPostbox);
         } else {
-            long numUnread;
-            if (needToMarkAsRead) {
-                final PostBox updatedPostbox = markConversationAsRead(email, conversationId, postBox);
-                numUnread = updatedPostbox.getUnreadConversationsCapped().size();
-                unreadCountCachePopulater.populateCache(updatedPostbox);
-            } else {
-                numUnread = postBox.getUnreadConversationsCapped().size();
-            }
-            return lookupConversation(numUnread, email, conversationId, blockedByBuyer, blockedBySeller, response);
+            numUnread = postBox.getUnreadConversationsCapped().size();
         }
+        return lookupConversation(numUnread, email, conversationId, blockedByBuyer, blockedBySeller, response);
     }
 
     private ResponseObject<?> lookupConversation(
@@ -201,12 +210,7 @@ class ConversationThreadController {
         return ResponseObject.of(RequestState.ENTITY_NOT_FOUND);
     }
 
-    private boolean markAsRead(HttpServletRequest request) {
-        return request.getMethod().equals(RequestMethod.PUT.name());
-    }
-
-    @RequestMapping(value = MessageCenterGetPostBoxConversationCommand.MAPPING,
-            method = {RequestMethod.DELETE})
+    @DeleteMapping("/postboxes/{email}/conversations/{conversationId}")
     public ResponseEntity<Void> deleteSingleConversation(@PathVariable("email") final String email,
                                                          @PathVariable("conversationId") String conversationId,
                                                          HttpServletResponse response) {
@@ -224,10 +228,7 @@ class ConversationThreadController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @RequestMapping(
-            value = MessageCenterBlockCommand.MAPPING,
-            method = {RequestMethod.POST}
-    )
+    @PostMapping("/postboxes/{email}/conversations/{conversationId}/block")
     public ResponseEntity<Void> blockConversation(
             @PathVariable("email") final String email,
             @PathVariable("conversationId") final String conversationId) {
@@ -259,10 +260,7 @@ class ConversationThreadController {
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
-    @RequestMapping(
-            value = MessageCenterBlockCommand.MAPPING,
-            method = {RequestMethod.DELETE}
-    )
+    @DeleteMapping("/postboxes/{email}/conversations/{conversationId}/block")
     public ResponseEntity<Void> unblockConversation(
             @PathVariable("email") final String email,
             @PathVariable("conversationId") final String conversationId) {
