@@ -1,6 +1,8 @@
 package nl.marktplaats.integration.support;
 
 import com.datastax.driver.core.Session;
+import com.ecg.comaas.mp.filter.bankaccount.BankAccountFilterFactory;
+import com.ecg.comaas.mp.filter.volume.VolumeFilterFactory;
 import com.ecg.de.kleinanzeigen.replyts.thresholdresultinspector.ThresholdResultInspectorFactory;
 import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
@@ -8,8 +10,6 @@ import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.ecg.replyts.integration.test.IntegrationTestRunner;
-import nl.marktplaats.filter.bankaccount.BankAccountFilterFactory;
-import nl.marktplaats.filter.volume.VolumeFilterFactory;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.BeforeMethod;
