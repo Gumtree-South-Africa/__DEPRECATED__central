@@ -1,11 +1,10 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
+import com.ecg.comaas.protobuf.ComaasProtos.Payload;
+import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
-import com.ecg.replyts.core.runtime.persistence.kafka.RetryableMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.MockConsumer;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
@@ -19,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -62,8 +60,6 @@ public class KafkaRetryMessageProcessorTest {
 
     private static long retryOffset = 0;
 
-    private ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-
     @Before
     public void setUp() throws Exception {
         HashMap<TopicPartition, Long> beginningOffsets = new HashMap<>();
@@ -78,11 +74,12 @@ public class KafkaRetryMessageProcessorTest {
 
     private void sendRetryMessage(final RetryableMessage retryableMessage) throws JsonProcessingException {
         consumer.assign(Collections.singletonList(new TopicPartition(TOPIC_RETRY, 0)));
-        consumer.addRecord(new ConsumerRecord<>(TOPIC_RETRY, 0, retryOffset++, "someKey", mapper.writeValueAsBytes(retryableMessage)));
+        consumer.addRecord(new ConsumerRecord<>(TOPIC_RETRY, 0, retryOffset++, "someKey", retryableMessage.toByteArray()));
     }
 
     private RetryableMessage setUpTest(final int triedCount) throws Exception {
-        RetryableMessage wanted = new RetryableMessage(Instant.now(), Instant.now(), PAYLOAD, triedCount, CORRELATION_ID);
+        Payload payload = Payload.newBuilder().build();
+        RetryableMessage wanted = RetryableMessage.newBuilder().setPayload(payload).setRetryCount(triedCount).setCorrelationId(CORRELATION_ID).build();
         when(queueService.deserialize(any())).thenReturn(wanted);
         sendRetryMessage(wanted);
         return wanted;

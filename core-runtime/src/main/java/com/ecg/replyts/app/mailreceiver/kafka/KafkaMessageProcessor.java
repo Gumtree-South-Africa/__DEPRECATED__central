@@ -1,11 +1,12 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
+import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
 import com.ecg.replyts.app.mailreceiver.MessageProcessor;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
-import com.ecg.replyts.core.runtime.persistence.kafka.RetryableMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.protobuf.Timestamp;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.errors.WakeupException;
@@ -13,7 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+
 import java.io.IOException;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 @NotThreadSafe
@@ -79,12 +82,12 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     }
 
     RetryableMessage decodeMessage(ConsumerRecord<String, byte[]> messageRecord) throws IOException {
-        final byte[] messageJson = messageRecord.value();
+        final byte[] data = messageRecord.value();
         final RetryableMessage retryableMessage;
         try {
-            retryableMessage = queueService.deserialize(messageJson);
+            retryableMessage = queueService.deserialize(data);
         } catch (IOException e) {
-            failMessage(messageJson, e);
+            failMessage(data, e);
             throw e;
         }
         return retryableMessage;
@@ -110,12 +113,25 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     void delayRetryMessage(final RetryableMessage retryableMessage) {
         RETRIED_MESSAGE_COUNTER.inc();
         try {
-            RetryableMessage retriedMessage = new RetryableMessage(
-                    retryableMessage.getMessageReceivedTime(),
-                    retryableMessage.getNextConsumptionTime().plus(retryOnFailedMessagePeriodMinutes, ChronoUnit.MINUTES),
-                    retryableMessage.getPayload(),
-                    retryableMessage.getTriedCount() + 1,
-                    retryableMessage.getCorrelationId());
+            Instant currentConsumptionTime = Instant.ofEpochSecond(
+                retryableMessage.getNextConsumptionTime().getSeconds(),
+                retryableMessage.getNextConsumptionTime().getNanos())
+                    .plus(retryOnFailedMessagePeriodMinutes, ChronoUnit.MINUTES);
+
+            Timestamp nextConsumptionTime = Timestamp
+                    .newBuilder()
+                    .setSeconds(currentConsumptionTime.getEpochSecond())
+                    .setNanos(currentConsumptionTime.getNano())
+                    .build();
+
+            int retryCount = retryableMessage.getRetryCount() + 1;
+
+            RetryableMessage retriedMessage = RetryableMessage
+                    .newBuilder(retryableMessage)
+                    .setRetryCount(retryCount)
+                    .setNextConsumptionTime(nextConsumptionTime)
+                    .build();
+
             publishToTopic(KafkaTopicService.getTopicRetry(shortTenant), retriedMessage);
         } catch (JsonProcessingException e) {
             LOG.error("Could not serialize message before putting it in the retry queue, correlationId: {}", retryableMessage.getCorrelationId(), e);
@@ -124,11 +140,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
     // Put the message back in the incoming topic
     void retryMessage(final RetryableMessage retryableMessage) {
-        try {
-            queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
-        } catch (JsonProcessingException e) {
-            LOG.error("Could not serialize message before putting it back in the incoming queue after retry, correlationId: {}", retryableMessage.getCorrelationId(), e);
-        }
+        queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
     }
 
     // After n retries, we abandon the message by putting it in the abandoned topic

@@ -1,5 +1,7 @@
 package com.ecg.messagebox.resources;
 
+import com.ecg.comaas.protobuf.ComaasProtos.Payload;
+import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
 import com.ecg.messagebox.controllers.requests.CreateConversationRequest;
 import com.ecg.messagebox.controllers.requests.PostMessageRequest;
 import com.ecg.messagebox.controllers.responses.CreateConversationResponse;
@@ -12,33 +14,40 @@ import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.resources.responses.PostMessageResponse;
-import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
-import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.cluster.Guids;
+import com.ecg.replyts.core.runtime.cluster.XidFactory;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
+import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
+import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
+import com.google.protobuf.Timestamp;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +56,6 @@ import java.util.Optional;
 
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
-import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewConversationCommand;
 import static org.joda.time.DateTime.now;
 
@@ -56,27 +64,32 @@ import static org.joda.time.DateTime.now;
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class PostMessageResource {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PostMessageResource.class);
+
     private final ProcessingContextFactory processingContextFactory;
-    private final MessageProcessingCoordinator messageProcessingCoordinator;
     private final MutableConversationRepository conversationRepository;
     private final UserIdentifierService userIdentifierService;
     private final UniqueConversationSecret uniqueConversationSecret;
     private final CassandraPostBoxRepository postBoxRepository;
+    private final QueueService queueService;
+
+    @Value("${replyts.tenant.short:${replyts.tenant}}")
+    private String shortTenant;
 
     @Autowired
     public PostMessageResource(
             ProcessingContextFactory processingContextFactory,
-            MessageProcessingCoordinator messageProcessingCoordinator,
             MutableConversationRepository conversationRepository,
             UserIdentifierService userIdentifierService,
             UniqueConversationSecret uniqueConversationSecret,
-            CassandraPostBoxRepository postBoxRepository) {
+            CassandraPostBoxRepository postBoxRepository,
+            QueueService queueService) {
         this.processingContextFactory = processingContextFactory;
-        this.messageProcessingCoordinator = messageProcessingCoordinator;
         this.conversationRepository = conversationRepository;
         this.userIdentifierService = userIdentifierService;
         this.uniqueConversationSecret = uniqueConversationSecret;
         this.postBoxRepository = postBoxRepository;
+        this.queueService = queueService;
     }
 
     @ApiOperation(
@@ -134,7 +147,8 @@ public class PostMessageResource {
         ConversationThread conversationThread = new ConversationThread(conversationId, adId, userId, Visibility.ACTIVE,
                 MessageNotification.RECEIVE, participants, null, conversationMetadata);
 
-        postBoxRepository.createEmptyConversation(userId, conversationThread);
+        postBoxRepository.createEmptyConversation(buyer.getUserId(), conversationThread);
+        postBoxRepository.createEmptyConversation(seller.getUserId(), conversationThread);
 
         return new CreateConversationResponse(false, conversationId);
     }
@@ -153,7 +167,8 @@ public class PostMessageResource {
     public PostMessageResponse postMessage(
             @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
             @ApiParam(value = "Conversation ID", required = true) @PathVariable("conversationId") String conversationId,
-            @ApiParam(value = "Message payload", required = true) @RequestBody PostMessageRequest postMessageRequest) {
+            @ApiParam(value = "Message payload", required = true) @RequestBody PostMessageRequest postMessageRequest,
+            @RequestHeader("X-Correlation-ID") Optional<String> correlationId) {
 
         MutableConversation conversation = conversationRepository.getById(conversationId);
 
@@ -171,19 +186,26 @@ public class PostMessageResource {
             throw new ClientException(HttpStatus.BAD_REQUEST, "User is not a participant");
         }
 
-        AddMessageCommand addMessageCommand =
-                anAddMessageCommand(conversation.getId(), context.getMessageId())
-                        .withMessageDirection(context.getMessageDirection())
-                        .withSenderMessageIdHeader(context.getMessageId())
-                        //.withInResponseToMessageId() TODO akobiakov: find out what this is used for
-                        .withHeaders(Collections.emptyMap())
-                        .withTextParts(Collections.singletonList(postMessageRequest.message))
-                        .withAttachmentFilenames(Collections.emptyList())
-                        .build();
+        Instant time = Instant.now();
+        Timestamp timestamp = Timestamp
+                .newBuilder()
+                .setSeconds(time.getEpochSecond())
+                .setNanos(time.getNano())
+                .build();
+        Payload payload = Payload.newBuilder().setConversationId(conversationId)
+                .setUserId(userId).setMessage(postMessageRequest.message).build();
+        RetryableMessage retryableMessage = RetryableMessage
+                .newBuilder()
+                .setReceivedTime(timestamp)
+                .setCorrelationId(correlationId.orElseGet(XidFactory::nextXid))
+                .setPayload(payload)
+                .build();
 
-        context.addCommand(addMessageCommand);
+        LOG.info("Proto serialized size: {}", retryableMessage.getSerializedSize());
 
-        String messageId = messageProcessingCoordinator.handleContext(Optional.empty(), context);
-        return new PostMessageResponse(messageId);
+        queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
+
+        // TODO is this neccesary? It's already in a header.
+        return new PostMessageResponse(retryableMessage.getCorrelationId());
     }
 }

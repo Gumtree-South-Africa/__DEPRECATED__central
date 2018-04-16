@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_package = "com.ecg.comaas.protobuf";
+
+import "google/protobuf/timestamp.proto";
+
+message RetryableMessage {
+  google.protobuf.Timestamp received_time = 1;
+  google.protobuf.Timestamp next_consumption_time = 2;
+  int32 retry_count = 4;
+  string correlation_id = 5;
+  Payload payload = 3;
+}
+
+message Payload {
+  string user_id = 1;
+  string conversation_id = 2;
+  string message = 3;
+}

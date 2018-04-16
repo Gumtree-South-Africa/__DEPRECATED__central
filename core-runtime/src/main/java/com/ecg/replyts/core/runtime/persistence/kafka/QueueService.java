@@ -1,8 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -15,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
@@ -29,8 +28,6 @@ public class QueueService {
 
     private Map<String, Producer<String, byte[]>> producers = new ConcurrentHashMap<>();
 
-    private ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-
     @PreDestroy
     void destroy() {
         producers.values().forEach(producer -> {
@@ -42,7 +39,7 @@ public class QueueService {
         });
     }
 
-    public void publish(final String topicName, final RetryableMessage retryableMessage) throws JsonProcessingException {
+    public void publish(final String topicName, final RetryableMessage retryableMessage) {
         publish(topicName, serialize(retryableMessage));
     }
 
@@ -64,11 +61,11 @@ public class QueueService {
         return new KafkaProducer<>(props);
     }
 
-    private byte[] serialize(final RetryableMessage retryableMessage) throws JsonProcessingException {
-        return mapper.writeValueAsBytes(retryableMessage);
+    private byte[] serialize(final RetryableMessage retryableMessage) {
+        return retryableMessage.toByteArray();
     }
 
-    public RetryableMessage deserialize(final byte[] json) throws IOException {
-        return mapper.readValue(json, RetryableMessage.class);
+    public RetryableMessage deserialize(final byte[] data) throws IOException {
+        return RetryableMessage.parseFrom(data);
     }
 }

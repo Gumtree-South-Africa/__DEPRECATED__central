@@ -663,6 +663,7 @@
         <hystrix-version>1.5.2</hystrix-version>
         <asynchttpclient.version>1.9.38</asynchttpclient.version>
         <yammer.metrics.version>2.2.0</yammer.metrics.version>
+        <protobuf-version>3.5.1</protobuf-version>
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
@@ -2076,6 +2077,12 @@
                 <artifactId>c3p0</artifactId>
                 <version>${c3p0-version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf-version}</version>
+            </dependency>
+
 
             <dependency>
                 <groupId>org.apache.activemq</groupId>

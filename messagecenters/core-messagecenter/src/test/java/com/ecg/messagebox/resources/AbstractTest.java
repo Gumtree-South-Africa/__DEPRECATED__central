@@ -18,6 +18,7 @@ import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSec
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
+import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -104,6 +105,11 @@ public abstract class AbstractTest {
         @Bean
         CassandraPostBoxRepository cassandraPostBoxRepository() {
             return mock(CassandraPostBoxRepository.class);
+        }
+
+        @Bean
+        QueueService queueService() {
+            return mock(QueueService.class);
         }
     }
 

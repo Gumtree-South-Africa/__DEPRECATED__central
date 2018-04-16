@@ -1,10 +1,10 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
 import com.codahale.metrics.Histogram;
+import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
-import com.ecg.replyts.core.runtime.persistence.kafka.RetryableMessage;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +28,7 @@ public class KafkaRetryMessageProcessor extends KafkaMessageProcessor {
         super(queueService, kafkaMessageConsumerFactory, retryOnFailedMessagePeriodMinutes, shortTenant);
     }
 
+    @Override
     protected void processMessage(ConsumerRecord<String, byte[]> messageRecord) {
         setTaskFields();
 
@@ -40,12 +41,15 @@ public class KafkaRetryMessageProcessor extends KafkaMessageProcessor {
 
         LOG.debug("Found a message {} in the retry topic with next consumption time {}", retryableMessage.getCorrelationId(), retryableMessage.getNextConsumptionTime());
 
-        if (!sleepUntilInstant(retryableMessage.getNextConsumptionTime())) {
+        Instant nextConsumptionTime = Instant.ofEpochSecond(
+            retryableMessage.getNextConsumptionTime().getSeconds(),
+            retryableMessage.getNextConsumptionTime().getNanos());
+        if (!sleepUntilInstant(nextConsumptionTime)) {
             LOG.warn("The thread has been interrupted while sleeping before making an attempt to retry message with correlationId: {}", retryableMessage.getCorrelationId());
             return;
         }
 
-        RETRY_LAG.update(ChronoUnit.MILLIS.between(retryableMessage.getNextConsumptionTime(), Instant.now()));
+        RETRY_LAG.update(ChronoUnit.MILLIS.between(nextConsumptionTime, Instant.now()));
 
         LOG.debug("Putting message back to incoming topic {}", retryableMessage.getCorrelationId());
         retryMessage(retryableMessage);

@@ -1,8 +1,10 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
 import com.ecg.replyts.app.MessageProcessingCoordinator;
+import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.app.mailreceiver.MessageProcessingPoolManager;
 import com.ecg.replyts.app.mailreceiver.MessageProcessor;
+import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +12,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Stream;
-
 
 @Component
 @ConditionalOnProperty(name = "mail.provider.strategy", havingValue = "kafka")
@@ -40,6 +41,12 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
     protected KafkaMessageConsumerFactory kafkaMessageConsumerFactory;
 
     @Autowired
+    private ProcessingContextFactory processingContextFactory;
+
+    @Autowired
+    private MutableConversationRepository mutableConversationRepository;
+
+    @Autowired
     public KafkaMessageProcessingPoolManager(@Value("${replyts.threadpool.kafka.new.mail.size:2}") int newMailProcessingThreads,
                                              @Value("${replyts.threadpool.kafka.retry.mail.size:2}") int retryProcessingThreads,
                                              @Value("${replyts.threadpool.shutdown.await.ms:10000}") long gracefulShutdownTimeoutMs) {
@@ -58,7 +65,8 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
 
     private KafkaNewMessageProcessor createNewMessageConsumer() {
         return new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService, kafkaMessageConsumerFactory,
-                retryOnFailedMessagePeriodMinutes, maxRetries, shortTenant, messageProcessingEnabled);
+                retryOnFailedMessagePeriodMinutes, maxRetries, shortTenant, messageProcessingEnabled,
+                mutableConversationRepository, processingContextFactory);
     }
 
     private KafkaRetryMessageProcessor createRetryMessageConsumer() {

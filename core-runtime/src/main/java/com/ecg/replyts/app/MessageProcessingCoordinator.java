@@ -4,6 +4,7 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 
 import javax.annotation.WillNotClose;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
