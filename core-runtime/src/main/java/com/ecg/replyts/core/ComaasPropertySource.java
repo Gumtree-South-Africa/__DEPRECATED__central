@@ -15,7 +15,7 @@ public class ComaasPropertySource extends MapPropertySource {
         putEnvIfNotNull(properties, "COMAAS_HTTP_PORT", "replyts.http.port");
         putEnvIfNotNull(properties, "COMAAS_HAZELCAST_IP", "hazelcast.ip");
         putEnvIfNotNull(properties, "COMAAS_HAZELCAST_PORT", "hazelcast.port");
-        putEnvIfNotNull(properties, "COMAAS_METRICS_PORT", "metrics.port");
+        putEnvIfNotNull(properties, "COMAAS_PROMETHEUS_PORT", "prometheus.port");
         putEnvIfNotNull(properties, "COMAAS_RUN_CRON_JOBS", "node.run.cronjobs");
 
         if (System.getProperty("tenant") != null) {

@@ -7,7 +7,7 @@ CLASSPATH="${BASE_DIR}/lib/*"
 REPO=${BASE_DIR}/lib
 CONF_DIR=${BASE_DIR}/conf
 
-if [ -z ${TENANT} ] || [ -z ${NOMAD_PORT_http} ] || [ -z ${NOMAD_IP_hazelcast} ] || [ -z ${NOMAD_PORT_hazelcast} ] || [ -z ${NOMAD_PORT_metrics} ] || [ -z ${NOMAD_REGION} ] || [ -z ${HEAP_SIZE} ]; then
+if [ -z ${TENANT} ] || [ -z ${NOMAD_PORT_http} ] || [ -z ${NOMAD_IP_hazelcast} ] || [ -z ${NOMAD_PORT_hazelcast} ] || [ -z ${NOMAD_PORT_prometheus} ] || [ -z ${NOMAD_REGION} ] || [ -z ${HEAP_SIZE} ]; then
     echo "Please set TENANT, NOMAD_PORT_http, NOMAD_IP_hazelcast, NOMAD_PORT_hazelcast, NOMAD_PORT_metrics, NOMAD_REGION, and HEAP_SIZE"
     exit 1
 fi
@@ -27,7 +27,7 @@ trap stop SIGTERM
 export COMAAS_HTTP_PORT=${NOMAD_PORT_http}
 export COMAAS_HAZELCAST_IP=${NOMAD_IP_hazelcast}
 export COMAAS_HAZELCAST_PORT=${NOMAD_PORT_hazelcast}
-export COMAAS_METRICS_PORT=${NOMAD_PORT_metrics}
+export COMAAS_PROMETHEUS_PORT=${NOMAD_PORT_prometheus}
 export COMAAS_RUN_CRON_JOBS=false
 
 export region=${NOMAD_REGION}

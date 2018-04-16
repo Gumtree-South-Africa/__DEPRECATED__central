@@ -19,7 +19,7 @@ public class PrometheusExporter {
     private final int port;
 
     @Autowired
-    public PrometheusExporter(@Value("${metrics.port:9428}") int port) {
+    public PrometheusExporter(@Value("${prometheus.port:9428}") int port) {
         this.port = port;
     }
 

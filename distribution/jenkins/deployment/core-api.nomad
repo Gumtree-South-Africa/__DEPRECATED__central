@@ -88,9 +88,9 @@ job "core-api-[[ .tenant ]]" {
 
       service {
         name = "comaas-core-[[ .tenant ]]"
-        port = "metrics"
+        port = "prometheus"
         tags = [
-          "metrics"
+          "prometheus"
         ]
       }
 
@@ -101,7 +101,7 @@ job "core-api-[[ .tenant ]]" {
             mbits = 100
             port "http" {}
             port "hazelcast" {}
-            port "metrics" {}
+            port "prometheus" {}
         }
       }
     }
