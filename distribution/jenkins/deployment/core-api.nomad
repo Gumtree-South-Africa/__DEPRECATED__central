@@ -86,13 +86,22 @@ job "core-api-[[ .tenant ]]" {
         }
       }
 
+      service {
+        name = "comaas-core-[[ .tenant ]]"
+        port = "metrics"
+        tags = [
+          "metrics"
+        ]
+      }
+
       resources {
         cpu    = [[.api_resources_cpu]]
         memory = [[.api_resources_mem]]
         network {
-            port "http" {}
             mbits = 100
+            port "http" {}
             port "hazelcast" {}
+            port "metrics" {}
         }
       }
     }
