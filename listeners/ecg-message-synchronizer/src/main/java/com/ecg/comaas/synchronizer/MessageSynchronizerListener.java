@@ -53,6 +53,8 @@ public class MessageSynchronizerListener implements MessageProcessedListener {
 
     @Autowired
     public MessageSynchronizerListener(SyncMessagesResponseFactory messagesResponseFactory, PartnerConfiguration partnerConfiguration) {
+        LOG.info("Partner message synchronization enabled.");
+
         this.messagesResponseFactory = messagesResponseFactory;
         this.partnerConfiguration = partnerConfiguration;
         this.partnerClient = JerseyClientBuilder.createClient()

@@ -222,6 +222,7 @@
                 <module>filters/core-filter-user</module>
                 <module>filters/core-filter-activable</module>
 
+                <module>listeners/ecg-message-synchronizer</module>
                 <module>listeners/ebayk-listener-dailyreport</module>
                 <module>listeners/ebayk-listener-jsonlogging</module>
 
