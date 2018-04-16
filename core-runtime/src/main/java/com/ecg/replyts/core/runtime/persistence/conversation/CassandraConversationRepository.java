@@ -2,7 +2,6 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIndex;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
@@ -38,15 +37,6 @@ public interface CassandraConversationRepository extends MutableConversationRepo
      * @return stream of {@link ImmutablePair}s of Conversation and ConversationEvent
      */
     Stream<ImmutablePair<Conversation, ConversationEvent>> findEventsCreatedBetween(DateTime start, DateTime end);
-
-    /**
-     * Streams conversation events created in the hour of the provided date.
-     * @param date the date to search conversation events
-     * @return the stream with conversation event indexes
-     *
-     * TO BE REMOVED AFTER https://jira.corp.ebay.com/browse/COMAAS-645 IS CLOSED
-     */
-    Stream<ConversationEventIdx> streamConversationEventIdxsByHour(DateTime date);
 
     /**
      * Streams conversation events created in the hour of the provided date.

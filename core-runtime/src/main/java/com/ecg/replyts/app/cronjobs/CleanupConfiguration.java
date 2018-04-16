@@ -20,7 +20,6 @@ public class CleanupConfiguration {
     private final int workQueueSize;
     private final int threadCount;
     private final int conversationCleanupRateLimit;
-    private final boolean readFromNewIndexTable;
     private final int cleanupTaskTimeoutSec;
     private final int batchSize;
     private final String cronJobExpression;
@@ -36,14 +35,12 @@ public class CleanupConfiguration {
             @Value("${replyts.cleanup.conversation.streaming.queue.size:100}") int workQueueSize,
             @Value("${replyts.cleanup.conversation.streaming.threadcount:4}") int threadCount,
             @Value("${replyts.cleanup.conversation.rate.limit:1000}") int conversationCleanupRateLimit,
-            @Value("${cronjob.cleanup.conversation.readFromNewIndexTable:false}") boolean readFromNewIndexTable,
             @Value("${replyts.cleanup.task.timeout.sec:60}") int cleanupTaskTimeoutSec,
             @Value("${replyts.cleanup.conversation.streaming.batch.size:2000}") int batchSize,
             @Value("${replyts.cleanup.conversation.schedule.expression:0 0/30 * * * ? *}") String cronJobExpression) {
         this.workQueueSize = workQueueSize;
         this.threadCount = threadCount;
         this.conversationCleanupRateLimit = conversationCleanupRateLimit;
-        this.readFromNewIndexTable = readFromNewIndexTable;
         this.cleanupTaskTimeoutSec = cleanupTaskTimeoutSec;
         this.batchSize = batchSize;
         this.cronJobExpression = cronJobExpression;
@@ -72,10 +69,6 @@ public class CleanupConfiguration {
 
     public int getMaxConversationAgeDays() {
         return maxConversationAgeDays;
-    }
-
-    public int getMaxMailAgeDays() {
-        return maxMailAgeDays;
     }
 
     /**
@@ -107,10 +100,6 @@ public class CleanupConfiguration {
 
     public int getConversationCleanupRateLimit() {
         return conversationCleanupRateLimit;
-    }
-
-    public boolean isReadFromNewIndexTable() {
-        return readFromNewIndexTable;
     }
 
     public int getCleanupTaskTimeoutSec() {

@@ -17,7 +17,7 @@ import com.ecg.replyts.core.api.model.conversation.command.NewConversationComman
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIndex;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierConfiguration;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
@@ -146,10 +146,10 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
         DateTime timeNow = now();
         DateTime firstMsgReceivedAtDateTime = new DateTime(timeNow.getYear(), timeNow.getMonthOfYear(), timeNow.getDayOfMonth(), 9, 11, 43);
         given(newConversationCommand(conversationId1), newAddMessageCommand(conversationId1, "msg123", firstMsgReceivedAtDateTime));
-        List<ConversationEventIdx> conversationEvents = getConversationRepository().streamConversationEventIdxsByHour(timeNow)
+        List<ConversationEventIndex> conversationEvents = getConversationRepository().streamConversationEventIndexesByHour(timeNow)
                 .collect(Collectors.toList());
         assertEquals(1, conversationEvents.size());
-        ConversationEventIdx conversationEventByHour = conversationEvents.get(0);
+        ConversationEventIndex conversationEventByHour = conversationEvents.get(0);
         assertEquals(conversationEventByHour.getConversationId(), conversationId1);
     }
 
@@ -195,7 +195,7 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
         conversation.applyCommand(new ConversationDeletedCommand(conversationId1, now()));
         conversation.commit(this.conversationRepository, conversationEventListeners);
 
-        List<ConversationEventIdx> conversationEventIdxs = getConversationRepository().streamConversationEventIdxsByHour(firstMsgReceivedAtDateTime.hourOfDay().roundFloorCopy())
+        List<ConversationEventIndex> conversationEventIdxs = getConversationRepository().streamConversationEventIndexesByHour(firstMsgReceivedAtDateTime.hourOfDay().roundFloorCopy())
                 .collect(Collectors.toList());
         assertTrue(conversationEventIdxs.isEmpty());
         assertNull(getConversationRepository().getLastModifiedDate(conversationId1));
@@ -216,7 +216,7 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
         conversation.applyCommand(new ConversationDeletedCommand(conversationId1, now()));
         conversation.commit(this.conversationRepository, conversationEventListeners);
 
-        List<ConversationEventIdx> conversationEventIds = getConversationRepository().streamConversationEventIdxsByHour(timeNow)
+        List<ConversationEventIndex> conversationEventIds = getConversationRepository().streamConversationEventIndexesByHour(timeNow)
                 .collect(Collectors.toList());
         assertTrue(conversationEventIds.isEmpty());
     }

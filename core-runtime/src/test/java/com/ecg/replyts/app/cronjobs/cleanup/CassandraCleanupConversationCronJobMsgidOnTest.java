@@ -3,7 +3,7 @@ package com.ecg.replyts.app.cronjobs.cleanup;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIndex;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.attachment.SwiftAttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
@@ -86,10 +86,10 @@ public class CassandraCleanupConversationCronJobMsgidOnTest {
         DateTime dateToBeProcessed = now().minusDays(MAX_CONVERSATION_AGE_DAYS).dayOfMonth().roundFloorCopy().toDateTime();
         when(cleanupDateCalculator.getCleanupDate(MAX_CONVERSATION_AGE_DAYS, JOB_NAME))
                 .thenReturn(dateToBeProcessed);
-        ConversationEventIdx conversationEventIdx = new ConversationEventIdx(dateToBeProcessed, CONVERSATION_ID1, UUID.randomUUID());
-        List<ConversationEventIdx> conversationEventIdxList = Collections.singletonList(conversationEventIdx);
-        Stream<ConversationEventIdx> conversationEventIdxStream = conversationEventIdxList.stream();
-        when(conversationRepository.streamConversationEventIdxsByHour(dateToBeProcessed)).thenReturn(conversationEventIdxStream);
+        ConversationEventIndex conversationEventIdx = new ConversationEventIndex(dateToBeProcessed, CONVERSATION_ID1);
+        List<ConversationEventIndex> conversationEventIdxList = Collections.singletonList(conversationEventIdx);
+        Stream<ConversationEventIndex> conversationEventIdxStream = conversationEventIdxList.stream();
+        when(conversationRepository.streamConversationEventIndexesByHour(dateToBeProcessed)).thenReturn(conversationEventIdxStream);
 
         // last modified date is the same as the date to be processed, so conversation should be removed
         DateTime lastModifiedDate = dateToBeProcessed;

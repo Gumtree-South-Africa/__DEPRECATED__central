@@ -22,13 +22,12 @@ public class CassandreConversationCleanupTestContext {
                                                                    @Value("${replyts.cleanup.conversation.streaming.queue.size:100}") int workQueueSize,
                                                                    @Value("${replyts.cleanup.conversation.streaming.threadcount:4}") int threadCount,
                                                                    @Value("${replyts.cleanup.conversation.rate.limit:1000}") int conversationCleanupRateLimit,
-                                                                   @Value("${cronjob.cleanup.conversation.readFromNewIndexTable:false}") boolean readFromNewIndexTable,
                                                                    @Value("${replyts.cleanup.task.timeout.sec:60}") int cleanupTaskTimeoutSec,
                                                                    @Value("${replyts.cleanup.conversation.streaming.batch.size:2000}") int batchSize,
                                                                    @Value("${replyts.cleanup.conversation.schedule.expression:0 0/30 * * * ? *}") String cronJobExpression) {
 
         return new CleanupConfiguration(maxConversationAgeDays, maxMailAgeDays, maxResults, everyNMinutes, offsetConversations,
-                numCleanUpThreads, workQueueSize, threadCount, conversationCleanupRateLimit, readFromNewIndexTable, cleanupTaskTimeoutSec,
+                numCleanUpThreads, workQueueSize, threadCount, conversationCleanupRateLimit, cleanupTaskTimeoutSec,
                 batchSize, cronJobExpression);
     }
 

@@ -19,7 +19,6 @@ import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIdx;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventIndex;
 import com.ecg.replyts.core.api.model.conversation.event.MessageAddedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
@@ -71,7 +70,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
     private final Timer commitTimer = TimingReports.newTimer("cassandra.conversationRepo-commit");
     private final Timer modifiedBetweenTimer = TimingReports.newTimer("cassandra.conversationRepo-modifiedBetween");
     private final Timer streamConversationsModifiedBetweenTimer = TimingReports.newTimer("cassandra.conversationRepo-streamConversationIds");
-    private final Timer streamConversationEventIdxsByHourTimer = TimingReports.newTimer("cassandra.conversationRepo-streamConversationEventIdxsByHour");
     private final Timer streamConversationEventIndexesByHourTimer = TimingReports.newTimer("cassandra.conversationRepo-streamConversationEventIndexesByHour");
     private final Timer getLastModifiedDate = TimingReports.newTimer("cassandra.conversationRepo-getLastModifiedDate");
     private final Timer getConversationModificationDates = TimingReports.newTimer("cassandra.conversationRepo-getConversationModificationDates");
@@ -187,18 +185,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         }
     }
 
-    // TODO COMAAS-645 only need data and conversationId here
-    // TO BE DELETED WHEN ALL TENANTS ARE ON THE NEW INDEX
-    @Override
-    public Stream<ConversationEventIdx> streamConversationEventIdxsByHour(DateTime date) {
-        try (Timer.Context ignored = streamConversationEventIdxsByHourTimer.time()) {
-            DateTime creationDateRoundedByHour = date.hourOfDay().roundFloorCopy();
-            Statement bound = Statements.SELECT_CONVERSATION_EVENTS_BY_DATE.bind(this, creationDateRoundedByHour.toDate());
-            ResultSet resultset = session.execute(bound);
-            return toStream(resultset).map(row -> new ConversationEventIdx(creationDateRoundedByHour, row.getString(FIELD_CONVERSATION_ID), row.getUUID(FIELD_EVENT_ID)));
-        }
-    }
-
     @Override
     public Stream<ConversationEventIndex> streamConversationEventIndexesByHour(DateTime date) {
         try (Timer.Context ignored = streamConversationEventIndexesByHourTimer.time()) {
@@ -279,12 +265,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
                             eventId,
                             conversationEvent.getClass().getCanonicalName() + "@@" + jsonEventStr));
                     if (conversationEvent instanceof MessageAddedEvent) {
-                        batch.add(Statements.INSERT_CONVERSATION_EVENTS_BY_DATE.bind(
-                                this,
-                                currentTime.hourOfDay().roundFloorCopy().toDate(),
-                                conversationId,
-                                eventId)
-                        );
                         batch.add(Statements.INSERT_CONVERSATION_BY_DATE.bind(
                                 this,
                                 currentTime.hourOfDay().roundFloorCopy().toDate(),
@@ -375,10 +355,9 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
             batch.add(Statements.DELETE_CONVERSATION_EVENTS.bind(this, conversationId));
             // Delete core_conversation_modification_desc_idx after conversation event as it is used to find conversation to delete:
             batch.add(Statements.DELETE_CONVERSATION_MODIFICATION_IDXS.bind(this, conversationId));
-            // Delete core_conversation_events_by_date last as it is used to find core_conversation_modification_desc_idx
+            // Delete core_conversation_events_index_by_date last as it is used to find core_conversation_modification_desc_index
             conversationModificationDates.forEach(conversationModificationDate -> {
                 Date roundedDate = new DateTime(conversationModificationDate).hourOfDay().roundFloorCopy().toDate();
-                batch.add(Statements.DELETE_CONVERSATION_EVENTS_BY_DATE.bind(this, roundedDate, conversationId));
                 batch.add(Statements.DELETE_CONVERSATION_BY_DATE.bind(this, roundedDate, conversationId));
             });
             batch.setConsistencyLevel(getWriteConsistency()).setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL);
@@ -442,7 +421,6 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
 
     static class Statements extends StatementsBase {
         static Statements SELECT_FROM_CONVERSATION_EVENTS = new Statements("SELECT * FROM core_conversation_events WHERE conversation_id=? ORDER BY event_id ASC", false);
-        static Statements SELECT_CONVERSATION_EVENTS_BY_DATE = new Statements("SELECT conversation_id, event_id FROM core_conversation_events_by_date WHERE creatdate = ?", false);
         static Statements SELECT_CONVERSATIONS_BY_DATE = new Statements("SELECT conversation_id FROM core_conversation_events_index_by_date WHERE rounded_event_date = ?", false);
         static Statements SELECT_CONVERSATION_ID_FROM_SECRET = new Statements("SELECT conversation_id FROM core_conversation_secret WHERE secret=? LIMIT 1", false);
         static Statements SELECT_CONVERSATION_WHERE_MODIFICATION_BETWEEN = new Statements("SELECT conversation_id FROM core_conversation_modification_desc_idx WHERE modification_date >=? AND modification_date <= ? ALLOW FILTERING", false);
@@ -455,13 +433,11 @@ public class DefaultCassandraConversationRepository implements CassandraReposito
         static Statements INSERT_CONVERSATION_SECRET = new Statements("INSERT INTO core_conversation_secret (secret, conversation_id) VALUES (?,?)", true);
         static Statements INSERT_CONVERSATION_MODIFICATION_IDX = new Statements("INSERT INTO core_conversation_modification_desc_idx (conversation_id, modification_date) VALUES (?,?)", true);
         static Statements INSERT_RESUME_IDX = new Statements("INSERT INTO core_conversation_resume_idx (compound_key, conversation_id) VALUES (?,?)", true);
-        static Statements INSERT_CONVERSATION_EVENTS_BY_DATE = new Statements("INSERT INTO core_conversation_events_by_date (creatdate, conversation_id, event_id) VALUES (?, ?, ?)", true);
         static Statements INSERT_CONVERSATION_BY_DATE = new Statements("INSERT INTO core_conversation_events_index_by_date (rounded_event_date, conversation_id) VALUES (?, ?)", true);
 
         static Statements DELETE_CONVERSATION_EVENTS = new Statements("DELETE FROM core_conversation_events WHERE conversation_id=?", true);
         static Statements DELETE_CONVERSATION_SECRET = new Statements("DELETE FROM core_conversation_secret WHERE secret=?", true);
         static Statements DELETE_CONVERSATION_MODIFICATION_IDXS = new Statements("DELETE FROM core_conversation_modification_desc_idx WHERE conversation_id=?", true);
-        static Statements DELETE_CONVERSATION_EVENTS_BY_DATE = new Statements("DELETE FROM core_conversation_events_by_date WHERE creatdate = ? AND conversation_id = ?", true);
         static Statements DELETE_CONVERSATION_BY_DATE = new Statements("DELETE FROM core_conversation_events_index_by_date WHERE rounded_event_date = ? AND conversation_id = ?", true);
         static Statements DELETE_RESUME_IDX = new Statements("DELETE FROM core_conversation_resume_idx WHERE compound_key=?", true);
 

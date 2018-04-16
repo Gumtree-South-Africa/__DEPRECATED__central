@@ -97,16 +97,6 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     @Override
     public void execute() throws Exception {
         LOG.info("Started Cleanup Conversation Cronjob");
-        if (config.isReadFromNewIndexTable()) {
-            executeOnNewIndex();
-        } else {
-            executeOnOldIndex();
-        }
-        LOG.info("Finished Cleanup Conversation Cronjob");
-    }
-
-    private void executeOnNewIndex() throws Exception {
-
         DateTime cleanupDate = cleanupDateCalculator.getCleanupDate(config.getMaxConversationAgeDays(), CLEANUP_CONVERSATION_JOB_NAME);
 
         if (cleanupDate == null) {
@@ -120,23 +110,8 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
         List<Future<?>> cleanUpTasks = createCleanUpTasks(conversationEventIdxs, cleanupDate);
 
         waitCleanUpTasksAndLog(cleanUpTasks, cleanupDate);
-    }
 
-    private void executeOnOldIndex() throws Exception {
-
-        DateTime cleanupDate = cleanupDateCalculator.getCleanupDate(config.getMaxConversationAgeDays(), CLEANUP_CONVERSATION_JOB_NAME);
-
-        if (cleanupDate == null) {
-            return;
-        }
-
-        LOG.info("Cleanup: Deleting conversations for the date '{}'", cleanupDate);
-
-        Stream<? extends ConversationEventId> conversationEventIdxs = conversationRepository.streamConversationEventIdxsByHour(cleanupDate);
-
-        List<Future<?>> cleanUpTasks = createCleanUpTasks(conversationEventIdxs, cleanupDate);
-
-        waitCleanUpTasksAndLog(cleanUpTasks, cleanupDate);
+        LOG.info("Finished Cleanup Conversation Cronjob");
     }
 
     private void waitCleanUpTasksAndLog(List<Future<?>> cleanUpTasks, DateTime cleanupDate) throws java.util.concurrent.TimeoutException {
