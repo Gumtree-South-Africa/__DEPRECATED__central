@@ -33,8 +33,8 @@ public class MessageLoggingListenerTest {
 
     @Before
     public void setUp() {
-        messageLoggingListener = new MessageLoggingListener("com.mysql.jdbc.Driver", "jdbc:mysql://127.0.0.1:3306/replyts",
-                "user", "password");
+        messageLoggingListener = new MessageLoggingListener("url", "user", "password", "250",
+                "2048", "true", "true");
         messageLoggingListener.setTemplate(template);
     }
 

@@ -36,3 +36,14 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+  mysql: # testing AU (message logger)
+    image: mysql
+    volumes:
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql_root
+      MYSQL_USER: mysql_guest
+      MYSQL_PASSWORD: mysql_guest

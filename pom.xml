@@ -651,6 +651,7 @@
         <mysql-connector-version>5.1.40</mysql-connector-version>
         <hikaricp.version>2.4.7</hikaricp.version>
         <c3p0-version>0.9.1.2</c3p0-version>
+        <hikari-cp-version>2.7.8</hikari-cp-version>
         <ebay-services-version>0.32</ebay-services-version>
         <libphonenumber-version>7.0.10</libphonenumber-version>
         <esper-version>6.1.0</esper-version>
