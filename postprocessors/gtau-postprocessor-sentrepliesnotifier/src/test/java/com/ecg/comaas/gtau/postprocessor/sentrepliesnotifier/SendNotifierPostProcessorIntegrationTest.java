@@ -13,14 +13,17 @@ import org.slf4j.LoggerFactory;
 
 import javax.mail.internet.MimeMessage;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
-/**
- * @author mdarapour
- */
 public class SendNotifierPostProcessorIntegrationTest {
 
-    private final static int DEFAULT_PORT       = Integer.parseInt(System.getProperty("replyts.sentnotifier.filter.test.port","12345"));
+    private final static int DEFAULT_PORT = Integer.parseInt(System.getProperty("replyts.sentnotifier.filter.test.port", "12345"));
     private final static Logger LOGGER = LoggerFactory.getLogger(SendNotifierPostProcessorIntegrationTest.class);
 
     @Rule
@@ -31,14 +34,14 @@ public class SendNotifierPostProcessorIntegrationTest {
 
     @BeforeClass
     public static void load() {
-        System.setProperty("replyts.sendnotifier.endpoint.url", String.format("http://localhost:%d/",DEFAULT_PORT));
+        System.setProperty("replyts.sendnotifier.endpoint.url", String.format("http://localhost:%d/", DEFAULT_PORT));
     }
 
     @AfterClass
     public static void down() {
         try {
             WireMock.shutdownServer();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             LOGGER.warn("Perhaps WireMock has already gone down!", ex);
         }
     }

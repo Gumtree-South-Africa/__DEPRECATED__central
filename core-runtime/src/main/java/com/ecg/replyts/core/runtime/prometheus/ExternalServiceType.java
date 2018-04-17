@@ -4,7 +4,8 @@ public enum ExternalServiceType {
 
     MY_SQL("mysql"),
     RABBIT_MQ("rabbitmq"),
-    AUTO_GATE("autogate");
+    AUTO_GATE("autogate"),
+    NOTIFY_POST_PROCESSOR("notify_post_processor");
 
     private String label;
 

@@ -1,16 +1,17 @@
 package com.ecg.comaas.gtau.postprocessor.headerinjector;
 
-import com.ecg.replyts.core.api.model.mail.Mail;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 public class HeaderInjectorPostprocessorConfig implements Serializable {
-    private List<String> headersToInject;
-    private int order;
+
+    private static final long serialVersionUID = -4335999688187094952L;
+
+    private final List<String> headersToInject;
+    private final int order;
 
     public HeaderInjectorPostprocessorConfig(String headers, int order) {
         headersToInject = Lists.newArrayList(Splitter.on(',').split(headers));
@@ -23,16 +24,5 @@ public class HeaderInjectorPostprocessorConfig implements Serializable {
 
     public int getOrder() {
         return order;
-    }
-
-    public void cleanup() {
-        List<String> temp = new ArrayList<String>();
-        for (String headerName : headersToInject) {
-            if (headerName.startsWith(Mail.CUSTOM_HEADER_PREFIX)) {
-                headerName = headerName.substring(Mail.CUSTOM_HEADER_PREFIX.length());
-            }
-            temp.add(headerName.toLowerCase());
-        }
-        this.headersToInject = temp;
     }
 }

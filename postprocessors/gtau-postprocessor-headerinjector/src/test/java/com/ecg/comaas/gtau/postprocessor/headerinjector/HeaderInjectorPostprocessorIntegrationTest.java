@@ -11,17 +11,15 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * @author mdarapour
- */
 public class HeaderInjectorPostprocessorIntegrationTest {
+
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
     @BeforeClass
     public static void load() {
-        System.setProperty( "replyts.header-injector.headers", "X-Cust-Http-Url,X-Cust-Http-Account-Name,X-Cust-Http-Account-Password" );
-        System.setProperty( "replyts.header-injector.order", "100" );
+        System.setProperty("replyts.header-injector.headers", "X-Cust-Http-Url,X-Cust-Http-Account-Name,X-Cust-Http-Account-Password");
+        System.setProperty("replyts.header-injector.order", "100");
     }
 
     @Test

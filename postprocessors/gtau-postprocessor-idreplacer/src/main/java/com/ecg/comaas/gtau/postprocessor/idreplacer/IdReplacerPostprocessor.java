@@ -21,12 +21,13 @@ import java.util.regex.Pattern;
 @ComaasPlugin
 @Component
 public class IdReplacerPostprocessor implements PostProcessor {
-    static final Pattern CONVERSATION_ID    = Pattern.compile("<%%CONVERSATION_ID%%>");
-    static final Pattern MESSAGE_ID         = Pattern.compile("<%%MESSAGE_ID%%>");
-    static final Pattern HASH               = Pattern.compile("<%%HASH%%>");
 
-    private static final String ALGORITHM   = "HmacMD5";
-    private static final Mac    HMAC_MD5;
+    private static final Logger LOG = LoggerFactory.getLogger(IdReplacerPostprocessor.class);
+    private static final Pattern CONVERSATION_ID = Pattern.compile("<%%CONVERSATION_ID%%>");
+    private static final Pattern MESSAGE_ID = Pattern.compile("<%%MESSAGE_ID%%>");
+    private static final Pattern HASH = Pattern.compile("<%%HASH%%>");
+    private static final String ALGORITHM = "HmacMD5";
+    private static final Mac HMAC_MD5;
     private static final String SECRET_SALT = "X23!=?m(";
 
     static {
@@ -35,28 +36,25 @@ public class IdReplacerPostprocessor implements PostProcessor {
             final SecretKeySpec key = new SecretKeySpec(SECRET_SALT.getBytes(), ALGORITHM);
             HMAC_MD5.init(key);
         } catch (InvalidKeyException e) {
-            throw new RuntimeException("Invalid Key: " + e.getMessage());
+            String errorMessage = "Invalid Key: " + e.getMessage();
+            LOG.error(errorMessage, e);
+            throw new RuntimeException(errorMessage);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("MD5 provider not found: " + e.getMessage());
+            String errorMessage = "MD5 provider not found: " + e.getMessage();
+            LOG.error(errorMessage, e);
+            throw new RuntimeException(errorMessage);
         }
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(IdReplacerPostprocessor.class);
-
-    private IdReplacerConfig config;
+    private final int order;
 
     @Autowired
     public IdReplacerPostprocessor(@Value("${replyts-id-replacer.plugin.order:250}") int order) {
-        config = new IdReplacerConfig(order);
+        this.order = order;
     }
 
     @Override
     public void postProcess(MessageProcessingContext context) {
-        if (!context.getOutgoingMail().isMutable()) {
-            LOG.error("Cannot replace ids from outbound mail: Mail is not mutable");
-            return;
-        }
-
         final String messageId = context.getMessage().getId();
         final String conversationId = context.getConversation().getId();
         final String adId = context.getConversation().getAdId();
@@ -75,7 +73,7 @@ public class IdReplacerPostprocessor implements PostProcessor {
                     + (replaceConversationId ? conversationId : "")
                     + (replaceMessageId ? messageId : "");
 
-            LOG.debug("Hash input [{}]",hashInput);
+            LOG.debug("Hash input [{}]", hashInput);
 
             output = CONVERSATION_ID.matcher(output).replaceAll(conversationId);
             output = MESSAGE_ID.matcher(output).replaceAll(messageId);
@@ -85,13 +83,13 @@ public class IdReplacerPostprocessor implements PostProcessor {
         }
     }
 
-    public static String hash(final String source) {
+    private static String hash(final String source) {
         final byte[] hash = HMAC_MD5.doFinal(source.getBytes());
         return Base64.encodeBase64URLSafeString(hash);
     }
 
     @Override
     public int getOrder() {
-        return config.getOrder();
+        return this.order;
     }
 }

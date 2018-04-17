@@ -13,18 +13,16 @@ import javax.mail.internet.MimeMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-/**
- * @author mdarapour
- */
 public class FromNamePostprocessorIntegrationTest {
+
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
     @BeforeClass
     public static void load() {
-        System.setProperty( "replyts.from-name.header.buyer", "buyer-name" );
-        System.setProperty( "replyts.from-name.header.seller", "seller-name" );
-        System.setProperty( "replyts.from-name.plugin.order", "250" );
+        System.setProperty("replyts.from-name.header.buyer", "buyer-name");
+        System.setProperty("replyts.from-name.header.seller", "seller-name");
+        System.setProperty("replyts.from-name.plugin.order", "250");
     }
 
     @Test
@@ -40,7 +38,7 @@ public class FromNamePostprocessorIntegrationTest {
 
         assertNotNull("Headers must include 'From'", mail.getHeaders("From"));
         assertEquals("Expecting one 'From' in the header", 1, mail.getHeaders("From").size());
-        assertEquals(String.format("Fooler <%s>",mail.getFrom()), mail.getHeaders("From").get(0));
+        assertEquals(String.format("Fooler <%s>", mail.getFrom()), mail.getHeaders("From").get(0));
     }
 
     @Test
@@ -67,6 +65,6 @@ public class FromNamePostprocessorIntegrationTest {
 
         assertNotNull("Headers must include 'From'", mail.getHeaders("From"));
         assertEquals("Expecting one 'From' in the header", 1, mail.getHeaders("From").size());
-        assertEquals(String.format("Barber <%s>",mail.getFrom()), mail.getHeaders("From").get(0));
+        assertEquals(String.format("Barber <%s>", mail.getFrom()), mail.getHeaders("From").get(0));
     }
 }
