@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -63,7 +62,7 @@ public class ProcessingFinalizer {
     @Autowired
     private ConversationEventListeners conversationEventListeners;
 
-    @Value("#{'${indexing.2kafka.enabled:false}' == '${region:ams1}' }")
+    @Value("${indexing.2kafka.enabled:false}")
     private boolean enableIndexing2Kafka;
 
     @Autowired(required = false)

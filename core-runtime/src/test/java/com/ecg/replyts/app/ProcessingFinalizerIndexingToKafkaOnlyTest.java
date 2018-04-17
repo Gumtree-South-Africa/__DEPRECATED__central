@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 @TestPropertySource(properties = {
         "persistence.strategy = cassandra",
         "ship.documents2kafka.enabled=true",
-        "indexing.2kafka.enabled=ams1",
+        "indexing.2kafka.enabled=true",
         "region=ams1"
 })
 public class ProcessingFinalizerIndexingToKafkaOnlyTest {
