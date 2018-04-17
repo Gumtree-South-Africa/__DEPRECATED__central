@@ -6,8 +6,8 @@ import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
 import com.ecg.replyts.core.runtime.mailparser.MailEnhancer;
+import com.ecg.replyts.core.runtime.prometheus.ExternalServiceType;
 import com.ecg.replyts.core.runtime.util.HttpClientFactory;
-import io.prometheus.client.Counter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -27,6 +27,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PreDestroy;
 import java.nio.charset.Charset;
 
+import static com.ecg.replyts.core.runtime.prometheus.PrometheusFailureHandler.reportExternalServiceFailure;
+
 /**
  * Mail Delivery Service performs HTTP Posts of Leads to Autogate dataconnect service when the
  * specific URL header has been set - otherwise sends as normal mail message.
@@ -37,8 +39,6 @@ import java.nio.charset.Charset;
 public class AutogateAwareMailDeliveryService implements MailDeliveryService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AutogateAwareMailDeliveryService.class);
-    private static final Counter failedLeadPost = Counter.build("au_failed_post_lead",
-            "AU post lead failures to professional sellers").register();
 
     private final String autogateHttpUrlHeader;
     private final String autogateHttpAccountName;
@@ -131,13 +131,13 @@ public class AutogateAwareMailDeliveryService implements MailDeliveryService {
                 LOG.info("Lead successfully posted to Autogate, messageId={}, responseCode={}, response={}",
                         mail.getMessageId(), response.getStatusLine().getStatusCode(), httpEntityString);
             } else {
-                failedLeadPost.inc();
+                reportExternalServiceFailure(ExternalServiceType.AUTO_GATE);
                 String requestBody = sb.toString();
                 LOG.error("Failed to post Lead to Autogate, messageId={}, responseCode={}, requestBody={}, response={}",
                         mail.getMessageId(), response.getStatusLine().getStatusCode(), requestBody, httpEntityString);
             }
         } catch (Exception e) {
-            failedLeadPost.inc();
+            reportExternalServiceFailure(ExternalServiceType.AUTO_GATE);
             String errorMessage = "Failed to deliver mail messageId=" + mail.getMessageId();
             LOG.error(errorMessage, e);
             throw new MailDeliveryException(errorMessage, e);

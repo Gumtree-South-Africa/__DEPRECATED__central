@@ -7,12 +7,14 @@ import com.ebay.ecg.australia.events.rabbitmq.RabbitMQEventHandlerClient;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.runtime.prometheus.ExternalServiceType;
 import com.google.common.base.MoreObjects;
-import io.prometheus.client.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static com.ecg.replyts.core.runtime.prometheus.PrometheusFailureHandler.reportExternalServiceFailure;
 
 @Component
 public class RTSRMQEventCreator {
@@ -24,7 +26,6 @@ public class RTSRMQEventCreator {
     private static final String USER_AGENT = "User-Agent";
     private static final String CATEGORY_ID = "categoryid";
     private static final String IP = "ip";
-    private static final Counter failedRmqPublish = Counter.build("au_failed_rabbitmq_publish", "AU failed publishing to RabbitMQ").register();
 
     private final RabbitMQEventHandlerClient eventHandlerClient;
 
@@ -40,7 +41,7 @@ public class RTSRMQEventCreator {
             // publish to RabbitMQ
             eventHandlerClient.fire(messageRequestCreatedEvent);
         } catch (Exception e) {
-            failedRmqPublish.inc();
+            reportExternalServiceFailure(ExternalServiceType.RABBIT_MQ);
             LOG.error("Failed to publish event to RabbitMQ for message {} in conversation {}", message.getId(), conversation.getId(), e);
         }
 

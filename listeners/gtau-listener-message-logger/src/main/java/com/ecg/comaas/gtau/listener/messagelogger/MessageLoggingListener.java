@@ -5,8 +5,8 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
+import com.ecg.replyts.core.runtime.prometheus.ExternalServiceType;
 import com.zaxxer.hikari.HikariDataSource;
-import io.prometheus.client.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +17,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
+import static com.ecg.replyts.core.runtime.prometheus.PrometheusFailureHandler.reportExternalServiceFailure;
+
 @ComaasPlugin
 @Component
 @ConditionalOnProperty(value = "au.messagelogger.enabled", havingValue = "true", matchIfMissing = true)
 public class MessageLoggingListener implements MessageProcessedListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageLoggingListener.class);
-    private static final Counter failedMySqlUpdate = Counter.build("au_failed_mysql_update", "AU failed storing to MySQL").register();
     private static final String INSERT_STATEMENT = "INSERT INTO rts2_event_log (messageId, conversationId, " +
             "messageDirection, conversationState, messageState, adId, sellerMail, buyerMail, numOfMessageInConversation, " +
             "logTimestamp, conversationCreatedAt, messageReceivedAt, conversationLastModifiedDate, custcategoryid, " +
@@ -66,7 +67,7 @@ public class MessageLoggingListener implements MessageProcessedListener {
 
             template.update(INSERT_STATEMENT, values.toArray(new String[values.size()]));
         } catch (RuntimeException e) {
-            failedMySqlUpdate.inc();
+            reportExternalServiceFailure(ExternalServiceType.MY_SQL);
             LOG.error("Message logging failed", e);
         }
     }
