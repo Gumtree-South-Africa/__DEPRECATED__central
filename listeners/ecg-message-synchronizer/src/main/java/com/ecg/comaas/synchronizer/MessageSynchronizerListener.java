@@ -21,6 +21,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -72,17 +73,25 @@ public class MessageSynchronizerListener implements MessageProcessedListener {
     }
 
     private void processMessageInternal(Conversation conversation, Message message) {
+        String partnerFromUserid = extractProperty(conversation, PARTNER_FROM_USERID);
+
+        if (!partnerFromUserid.equals("9399104")) {
+            // Skip for test
+            return;
+        }
+
         String partnerAdId = extractProperty(conversation, PARTNER_ADID);
         String partnerTenant = extractProperty(conversation, PARTNER_TENANT);
-        String partnerFromUserid = extractProperty(conversation, PARTNER_FROM_USERID);
         String partnerToUserid = extractProperty(conversation, PARTNER_TO_USERID);
         String partnerBuyerName = extractOptionalProperty(conversation, PARTNER_BUYER_NAME);
         String partnerSellerName = extractOptionalProperty(conversation, PARTNER_SELLER_NAME);
         String partnerTitle = extractOptionalProperty(conversation, PARTNER_TITLE);
 
+        String msgSenderUserId = message.getMessageDirection() == BUYER_TO_SELLER ? partnerFromUserid : partnerToUserid;
+
         ObjectNode payload = ObjectMapperConfigurer.objectBuilder()
                 .put("text", messagesResponseFactory.getCleanedMessage(conversation, message))
-                .put("senderUserId", partnerFromUserid)
+                .put("senderUserId", msgSenderUserId)
                 .put("type", "partner")
                 .put("adId", partnerAdId)
                 .put("adTitle", partnerTitle)
