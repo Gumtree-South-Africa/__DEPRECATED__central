@@ -73,16 +73,10 @@ public class MessageSynchronizerListener implements MessageProcessedListener {
     }
 
     private void processMessageInternal(Conversation conversation, Message message) {
-        String partnerFromUserid = extractProperty(conversation, PARTNER_FROM_USERID);
-
-        if (!partnerFromUserid.equals("9399104")) {
-            // Skip for test
-            return;
-        }
-
         String partnerAdId = extractProperty(conversation, PARTNER_ADID);
         String partnerTenant = extractProperty(conversation, PARTNER_TENANT);
         String partnerToUserid = extractProperty(conversation, PARTNER_TO_USERID);
+        String partnerFromUserid = extractProperty(conversation, PARTNER_FROM_USERID);
         String partnerBuyerName = extractOptionalProperty(conversation, PARTNER_BUYER_NAME);
         String partnerSellerName = extractOptionalProperty(conversation, PARTNER_SELLER_NAME);
         String partnerTitle = extractOptionalProperty(conversation, PARTNER_TITLE);
