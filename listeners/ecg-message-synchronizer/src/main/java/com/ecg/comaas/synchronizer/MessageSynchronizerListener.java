@@ -1,6 +1,6 @@
 package com.ecg.comaas.synchronizer;
 
-import com.ecg.comaas.synchronizer.extractor.SyncMessagesResponseFactory;
+import com.ecg.comaas.synchronizer.extractor.EbaykMessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -27,7 +28,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * {@link MessageSynchronizerListener#PARTNER_ADID} header then this email was sent on behalf of any partner specified using header
  * {@link MessageSynchronizerListener#PARTNER_TENANT}. The synchronizer then sends an HTTP message to partner's comaas with and actual
  * message and partner's information to store this message using its own MessageBox instance.
- *
+ * <p>
  * Messages are then synchronized between tenant's comaas instances.
  */
 @Component
@@ -47,15 +48,15 @@ public class MessageSynchronizerListener implements MessageProcessedListener {
 
     private static final String MSGBOX_PARTNER_SYNC_PATH = "msgcenter/partner-sync";
 
-    private final SyncMessagesResponseFactory messagesResponseFactory;
+    private final EbaykMessagesResponseFactory messagesResponseFactory;
     private final PartnerConfiguration partnerConfiguration;
     private final JerseyClient partnerClient;
 
     @Autowired
-    public MessageSynchronizerListener(SyncMessagesResponseFactory messagesResponseFactory, PartnerConfiguration partnerConfiguration) {
+    public MessageSynchronizerListener(PartnerConfiguration partnerConfiguration) {
         LOG.info("Partner message synchronization enabled.");
 
-        this.messagesResponseFactory = messagesResponseFactory;
+        this.messagesResponseFactory = new EbaykMessagesResponseFactory();
         this.partnerConfiguration = partnerConfiguration;
         this.partnerClient = JerseyClientBuilder.createClient()
                 .register(new JacksonJaxbJsonProvider());
