@@ -6,8 +6,6 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.prometheus.ExternalServiceType;
-import com.ecg.replyts.core.runtime.prometheus.PrometheusFailureHandler;
 import com.ecg.replyts.core.runtime.util.HttpClientFactory;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -22,6 +20,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.stream.Collectors;
+
+import static com.ecg.replyts.core.runtime.prometheus.PrometheusFailureHandler.reportExternalServiceFailure;
 
 @ComaasPlugin
 @Component
@@ -84,7 +84,7 @@ public class SendNotifierPostProcessor implements PostProcessor {
                 LOG.warn("HTTP GET to {} returned status code {} instead of {}", notifyUrl, response.getStatusLine().getStatusCode(), HttpStatus.SC_OK);
             }
         } catch (IOException e) {
-            PrometheusFailureHandler.reportExternalServiceFailure(ExternalServiceType.NOTIFY_POST_PROCESSOR);
+            reportExternalServiceFailure("notifier_post_processor");
             LOG.error("HTTP GET to {} failed", notifyUrl, e);
         }
     }

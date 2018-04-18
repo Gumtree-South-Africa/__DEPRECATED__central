@@ -7,7 +7,6 @@ import com.ebay.ecg.australia.events.rabbitmq.RabbitMQEventHandlerClient;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.runtime.prometheus.ExternalServiceType;
 import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +40,7 @@ public class RTSRMQEventCreator {
             // publish to RabbitMQ
             eventHandlerClient.fire(messageRequestCreatedEvent);
         } catch (Exception e) {
-            reportExternalServiceFailure(ExternalServiceType.RABBIT_MQ);
+            reportExternalServiceFailure("rabbitmq_publish_message_created_event");
             LOG.error("Failed to publish event to RabbitMQ for message {} in conversation {}", message.getId(), conversation.getId(), e);
         }
 

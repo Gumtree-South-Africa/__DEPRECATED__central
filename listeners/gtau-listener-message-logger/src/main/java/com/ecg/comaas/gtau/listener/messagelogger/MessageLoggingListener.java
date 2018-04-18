@@ -5,7 +5,6 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
-import com.ecg.replyts.core.runtime.prometheus.ExternalServiceType;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +66,7 @@ public class MessageLoggingListener implements MessageProcessedListener {
 
             template.update(INSERT_STATEMENT, values.toArray(new String[values.size()]));
         } catch (RuntimeException e) {
-            reportExternalServiceFailure(ExternalServiceType.MY_SQL);
+            reportExternalServiceFailure("mysql_store_event_log");
             LOG.error("Message logging failed", e);
         }
     }

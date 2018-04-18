@@ -13,7 +13,13 @@ public final class PrometheusFailureHandler {
     private PrometheusFailureHandler() {
     }
 
-    public static void reportExternalServiceFailure(ExternalServiceType externalServiceType) {
-        EXTERNAL_SERVICE_FAILURE.labels(externalServiceType.getLabel()).inc();
+    /**
+     * Report an external service failure
+     * 
+     * @param serviceFailureDescription Short description of the service and context that fails. This value is propagated 
+     * to the oncall person. This should NOT contain any dynamic values (f.e. message id) as this will break Prometheus.
+     */
+    public static void reportExternalServiceFailure(String serviceFailureDescription) {
+        EXTERNAL_SERVICE_FAILURE.labels(serviceFailureDescription).inc();
     }
 }
