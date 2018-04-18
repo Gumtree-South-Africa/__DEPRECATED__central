@@ -1,6 +1,5 @@
 package com.ebay.ecg.replyts.robot.handler;
 
-import com.codahale.metrics.Timer;
 import com.ebay.ecg.australia.events.command.robot.RobotCommands;
 import com.ebay.ecg.australia.events.entity.Entities;
 import com.ebay.ecg.australia.events.service.EventHandler;
@@ -9,7 +8,6 @@ import com.ebay.ecg.replyts.robot.api.requests.payload.MessageSender;
 import com.ebay.ecg.replyts.robot.api.requests.payload.RichMessage;
 import com.ebay.ecg.replyts.robot.service.RobotService;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.google.protobuf.GeneratedMessage;
 import org.slf4j.Logger;
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Component;
 public class RabbitMQConsumer implements EventHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(RabbitMQConsumer.class);
-    private static final Timer CONSUMER_ROBOT_POST_TO_CONVERSATION_BY_ID = TimingReports.newTimer("consumer-robot-post-to-conversation-by-id");
 
     private final RobotService robotService;
 
@@ -61,19 +58,16 @@ public class RabbitMQConsumer implements EventHandler {
         if (e instanceof GeneratedMessage) {
             MDCConstants.setTaskFields(RabbitMQConsumer.class.getSimpleName());
             GeneratedMessage message = (GeneratedMessage) e;
+            String messageClassName = message.getClass().getName();
+            if (messageClassName.contains(RobotCommands.PostMessageCommand.class.getSimpleName())) {
+                LOG.debug("Command message received {}:{}", messageClassName, message);
 
-            try (Timer.Context ignore = CONSUMER_ROBOT_POST_TO_CONVERSATION_BY_ID.time()) {
-                String messageClassName = message.getClass().getName();
-                if (messageClassName.contains(RobotCommands.PostMessageCommand.class.getSimpleName())) {
-                    LOG.debug("Command message received {}:{}", messageClassName, message);
+                Entities.MessageInfo messageInfo = ((RobotCommands.PostMessageCommand) message).getMessageInfo();
 
-                    Entities.MessageInfo messageInfo = ((RobotCommands.PostMessageCommand) message).getMessageInfo();
+                MessagePayload payload = new MessagePayload(messageInfo.getMessage(), convert(messageInfo.getMessageDirection()),
+                        messageInfo.getLinksList(), sender(messageInfo), richMessage(messageInfo));
 
-                    MessagePayload payload = new MessagePayload(messageInfo.getMessage(), convert(messageInfo.getMessageDirection()),
-                            messageInfo.getLinksList(), sender(messageInfo), richMessage(messageInfo));
-
-                    robotService.addMessageToConversation(messageInfo.getConversationId(), payload);
-                }
+                robotService.addMessageToConversation(messageInfo.getConversationId(), payload);
             }
         }
     }

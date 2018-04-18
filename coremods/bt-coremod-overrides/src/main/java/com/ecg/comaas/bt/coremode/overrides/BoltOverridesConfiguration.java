@@ -8,8 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-// Will get picked up by the Application @ComponentScan (com.ecg.replyts.app.*)
-
 @ComaasPlugin
 @Configuration
 public class BoltOverridesConfiguration {
