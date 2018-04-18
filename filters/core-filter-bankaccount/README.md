@@ -31,18 +31,18 @@ Datasource configuration is a rather tricky beast, that will be kept in `replyts
 Internally, this plugin uses a c3p0 datasource for connection management. The connection is read-only.
 ```
 replyts2-belenblockeduserfilter-plugin.dataSource.url # jdbc connection url to the correct datasource
-replyts2-belenblockeduserfilter-plugin.username #default: belen
-replyts2-belenblockeduserfilter-plugin.password #default: <empty>
-replyts2-belenblockeduserfilter-plugin.dataSource.pool.c3p0.initialPoolSize #default: 5
-replyts2-belenblockeduserfilter-plugin.dataSource.pool.c3p0.minPoolSize #default: 3
-replyts2-belenblockeduserfilter-plugin.dataSource.pool.c3p0.maxPoolSize #default: 100
-replyts2-belenblockeduserfilter-plugin.dataSource.pool.c3p0.acquireIncrement #default: 5
-replyts2-belenblockeduserfilter-plugin.dataSource.pool.c3p0.maxIdleTime #default: 90
-replyts2-belenblockeduserfilter-plugin.dataSource.pool.c3p0.maxConnectionAge #default: 900
-replyts2-belenblockeduserfilter-plugin.dataSource.pool.c3p0.idleConnectionTestPeriod #default: 30
+replyts2-belenblockeduserfilter-plugin.dataSource.username #default: belen
+replyts2-belenblockeduserfilter-plugin.dataSource.password #default: <empty>
+replyts2-belenblockeduserfilter-plugin.dataSource.initialPoolSize #default: 5
+replyts2-belenblockeduserfilter-plugin.dataSource.minPoolSize #default: 3
+replyts2-belenblockeduserfilter-plugin.dataSource.maxPoolSize #default: 100
+replyts2-belenblockeduserfilter-plugin.dataSource.acquireIncrement #default: 5
+replyts2-belenblockeduserfilter-plugin.dataSource.maxIdleTime #default: 90
+replyts2-belenblockeduserfilter-plugin.dataSource.maxConnectionAge #default: 900
+replyts2-belenblockeduserfilter-plugin.dataSource.idleConnectionTestPeriod #default: 30
 replyts2-belenblockeduserfilter-plugin.dataSource.name #default: belen_user
-replyts2-belenblockeduserfilter-plugin.dataSource.pool.checkoutTimeout #default: 2000
-replyts2-belenblockeduserfilter-plugin.dataSource.pool.c3p0.numHelperThreads #default: 10
+replyts2-belenblockeduserfilter-plugin.dataSource.checkoutTimeout #default: 2000
+replyts2-belenblockeduserfilter-plugin.dataSource.numHelperThreads #default: 10
 ```
 
 # Running integration tests

@@ -25,4 +25,18 @@ CREATE TABLE IF NOT EXISTS rts2_event_log (
   KEY idx_log_timestamp (logTimestamp)
 )
   ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
+  DEFAULT CHARSET = utf8;
+
+CREATE TABLE IF NOT EXISTS userdata (
+  id     INT(11)      NOT NULL AUTO_INCREMENT,
+  status VARCHAR(20)  NOT NULL,
+  email  VARCHAR(100) NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS external_user_tns (
+  id     INT(11)      NOT NULL AUTO_INCREMENT,
+  status VARCHAR(20)  NOT NULL,
+  email  VARCHAR(100) NOT NULL,
+  PRIMARY KEY (id)
+);

@@ -7,10 +7,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
@@ -19,32 +16,22 @@ import java.util.List;
  */
 class BlockedUserFilter implements Filter {
 
-    private final CompoundUserStateResolver compoundUserStateResolver;
+    private final StateDataSource stateDataSource;
 
-    public BlockedUserFilter(JdbcTemplate jdbcTemplate) {
-        this(new CompoundUserStateResolver(jdbcTemplate));
-    }
-
-    public BlockedUserFilter(CompoundUserStateResolver compoundUserStateResolver) {
-        this.compoundUserStateResolver = compoundUserStateResolver;
+    public BlockedUserFilter(JdbcTemplate jdbcTemplate, boolean extTnsEnabled) {
+        this.stateDataSource = new StateDataSource(jdbcTemplate, extTnsEnabled);
     }
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
         MessageDirection messageDirection = messageProcessingContext.getMessageDirection();
-
         String senderMailAddress = messageProcessingContext.getConversation().getUserIdFor(messageDirection.getFromRole());
-        UserState state = compoundUserStateResolver.resolve(senderMailAddress);
+        UserState state = stateDataSource.getState(senderMailAddress);
 
-
-        if (state == UserState.BLOCKED) {
-            return ImmutableList.<FilterFeedback>of(new FilterFeedback(
-                    "BLOCKED",
-                    "User is blocked " + senderMailAddress,
-                    0,
-                    FilterResultState.DROPPED));
+        if (UserState.BLOCKED == state) {
+            return ImmutableList.of(
+                    new FilterFeedback("BLOCKED", "User is blocked " + senderMailAddress, 0, FilterResultState.DROPPED));
         }
-
         return Collections.emptyList();
     }
 }

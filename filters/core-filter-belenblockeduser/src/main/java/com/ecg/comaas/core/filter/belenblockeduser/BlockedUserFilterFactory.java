@@ -5,26 +5,30 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import javax.sql.DataSource;
 
 @Component
 public class BlockedUserFilterFactory implements FilterFactory {
 
-    public static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.belen.blockeduser.BlockedUserFilterFactory";
+    static final String IDENTIFIER = "com.ecg.de.kleinanzeigen.replyts.belen.blockeduser.BlockedUserFilterFactory";
 
-    private DataSource datasource;
+    private final JdbcTemplate jdbcTemplate;
+    private final boolean extTnsEnabled;
 
     @Autowired
-    public BlockedUserFilterFactory(@Qualifier("userDataSource") DataSource datasource) {
-        this.datasource = datasource;
+    public BlockedUserFilterFactory(
+            @Qualifier("belenBlockedUserJdbcTemplate") JdbcTemplate jdbcTemplate,
+            @Value("${replyts2-belenblockeduserfilter-plugin.externalTnsEnabled:true}") boolean extTnsEnabled
+    ) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.extTnsEnabled = extTnsEnabled;
     }
 
     @Override
     public Filter createPlugin(String s, JsonNode jsonNode) {
-        return new BlockedUserFilter(new JdbcTemplate(datasource));
+        return new BlockedUserFilter(jdbcTemplate, extTnsEnabled);
     }
 
     @Override

@@ -36,7 +36,7 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
-  mysql: # testing AU (message logger)
+  mysql: # testing AU, EK
     image: mysql
     volumes:
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
