@@ -262,7 +262,7 @@ def createGraphitePayload(String event, String tenant, String message) {
 }
 
 void sendGraphiteMetric(String dc, String envName, String jsonPayload) {
-    sh "curl -s -X POST 'https://graphite.${dc}.cloud.ops.${envName}.comaas.ecg.so/events/' -d '$jsonPayload'"
+    sh "curl -s -X POST 'https://graphite.comaas-${envName}.${dc}.cloud/events/' -d '$jsonPayload'"
 }
 
 void forcefullyRemoveStaleDockerContainers() {
