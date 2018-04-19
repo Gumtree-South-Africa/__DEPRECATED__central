@@ -41,7 +41,6 @@ import static org.mockito.Mockito.when;
         "replyts.cleanup.conversation.streaming.queue.size = 1",
         "replyts.cleanup.conversation.streaming.threadcount = 1",
         "replyts.cleanup.conversation.streaming.batch.size = 1",
-        "cronjob.cleanup.conversation.readFromNewIndexTable = false",
         "replyts.cleanup.conversation.schedule.expression = 0 0/30 * * * ? *"
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
