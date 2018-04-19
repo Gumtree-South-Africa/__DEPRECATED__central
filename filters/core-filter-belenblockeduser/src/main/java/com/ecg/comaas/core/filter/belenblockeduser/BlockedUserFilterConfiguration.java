@@ -39,6 +39,10 @@ public class BlockedUserFilterConfiguration {
         hikariConfig.setMaximumPoolSize(maxPoolSize);
         hikariConfig.setConnectionTimeout(borrowTimeout);
         hikariConfig.setMaxLifetime(maxLifetime);
+
+        hikariConfig.setConnectionTestQuery("SELECT 1");
+        hikariConfig.setReadOnly(true);
+
         hikariConfig.addDataSourceProperty("cachePrepStmts", cachePreparedStatements);
         hikariConfig.addDataSourceProperty("prepStmtCacheSize", prepareStatementsCacheSize);
         hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", prepareStatementCacheSqlLimit);
