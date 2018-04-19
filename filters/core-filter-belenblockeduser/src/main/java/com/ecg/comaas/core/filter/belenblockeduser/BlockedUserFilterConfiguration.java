@@ -22,13 +22,13 @@ public class BlockedUserFilterConfiguration {
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.password:}") String password,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.initialPoolSize:5}") int initialPoolSize,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.maxPoolSize:100}") int maxPoolSize,
-            @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.name:belen_user}") String dataSourceName,
-            @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.maxIdleTime:90}") int maxIdleTime,
-            @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.connectTimeout:30000}") long connectionTimeout,
+            @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.name:}") String dataSourceName,
+            @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.borrowTimeout:2000}") int borrowTimeout,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.cachePrepStmts:true}") String cachePreparedStatements,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.prepStmtCacheSize:250}") String prepareStatementsCacheSize,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.prepStmtCacheSqlLimit:2048}") String prepareStatementCacheSqlLimit,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.useServerPrepStmts:true}") String useServerPrepareStatements,
+            @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.connectTimeout:30000}") long connectionTimeout,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.socketTimeout:60000}") String socketTimeout
     ) {
         HikariConfig hikariConfig = new HikariConfig();
@@ -38,12 +38,12 @@ public class BlockedUserFilterConfiguration {
         hikariConfig.setMinimumIdle(initialPoolSize);
         hikariConfig.setMaximumPoolSize(maxPoolSize);
         hikariConfig.setPoolName(dataSourceName);
-        hikariConfig.setIdleTimeout(maxIdleTime);
-        hikariConfig.setConnectionTimeout(connectionTimeout);
+        hikariConfig.setConnectionTimeout(borrowTimeout);
         hikariConfig.addDataSourceProperty("cachePrepStmts", cachePreparedStatements);
         hikariConfig.addDataSourceProperty("prepStmtCacheSize", prepareStatementsCacheSize);
         hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", prepareStatementCacheSqlLimit);
         hikariConfig.addDataSourceProperty("useServerPrepStmts", useServerPrepareStatements);
+        hikariConfig.addDataSourceProperty("connectTimeout", connectionTimeout);
         hikariConfig.addDataSourceProperty("socketTimeout", socketTimeout);
         return new JdbcTemplate(new HikariDataSource(hikariConfig));
     }
