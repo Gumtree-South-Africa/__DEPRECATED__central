@@ -36,7 +36,6 @@ replyts2-belenblockeduserfilter-plugin.dataSource.password #default: <empty>
 replyts2-belenblockeduserfilter-plugin.dataSource.initialPoolSize #default: 5
 replyts2-belenblockeduserfilter-plugin.dataSource.maxPoolSize #default: 100
 replyts2-belenblockeduserfilter-plugin.dataSource.maxIdleTime #default: 90
-replyts2-belenblockeduserfilter-plugin.dataSource.name #default: belen_user
 ```
 
 # Running integration tests

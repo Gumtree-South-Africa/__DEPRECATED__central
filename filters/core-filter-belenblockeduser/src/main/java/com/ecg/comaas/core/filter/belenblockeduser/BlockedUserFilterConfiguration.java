@@ -22,7 +22,6 @@ public class BlockedUserFilterConfiguration {
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.password:}") String password,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.initialPoolSize:5}") int initialPoolSize,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.maxPoolSize:100}") int maxPoolSize,
-            @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.name:}") String dataSourceName,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.borrowTimeout:2000}") int borrowTimeout,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.cachePrepStmts:true}") String cachePreparedStatements,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.prepStmtCacheSize:250}") String prepareStatementsCacheSize,
@@ -37,7 +36,6 @@ public class BlockedUserFilterConfiguration {
         hikariConfig.setPassword(password);
         hikariConfig.setMinimumIdle(initialPoolSize);
         hikariConfig.setMaximumPoolSize(maxPoolSize);
-        hikariConfig.setPoolName(dataSourceName);
         hikariConfig.setConnectionTimeout(borrowTimeout);
         hikariConfig.addDataSourceProperty("cachePrepStmts", cachePreparedStatements);
         hikariConfig.addDataSourceProperty("prepStmtCacheSize", prepareStatementsCacheSize);
