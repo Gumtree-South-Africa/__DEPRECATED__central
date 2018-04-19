@@ -21,6 +21,7 @@ public class StateDataSource {
     public StateDataSource(JdbcTemplate jdbcTemplate, boolean extTnsEnabled) {
         this.jdbcTemplate = jdbcTemplate;
         this.extTnsEnabled = extTnsEnabled;
+        LOG.debug("External TnS is enabled/disabled {}", extTnsEnabled);
     }
 
     public UserState getState(String email) {
@@ -33,11 +34,15 @@ public class StateDataSource {
 
     private UserState getFromUserData(String email) {
         String state = getQueryResult(SELECT_STATUS_FROM_USER_DATA, email);
-        return UserState.from(state, UserState.UNDECIDED);
+        UserState userState = UserState.from(state, UserState.UNDECIDED);
+        LOG.debug("User state result from user_data table for email {} is {}", email, userState);
+        return userState;
     }
 
     private UserState getFromExternalTnS(String email) {
         String state = getQueryResult(SELECT_STATUS_EXTERNAL_USER_TNS, email);
+        UserState userState = UserState.from(state, UserState.ACTIVE);
+        LOG.debug("User state result from external_tns for email {} is {}", email, userState);
         return UserState.from(state, UserState.ACTIVE);
     }
 
