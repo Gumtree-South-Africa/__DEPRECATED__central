@@ -1,7 +1,16 @@
 package com.ecg.messagecenter.persistence.simple;
 
 import com.codahale.metrics.Timer;
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.Metadata;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.Token;
+import com.datastax.driver.core.TokenRange;
 import com.datastax.driver.core.exceptions.ReadTimeoutException;
 import com.datastax.driver.core.policies.DowngradingConsistencyRetryPolicy;
 import com.datastax.driver.core.policies.FallthroughRetryPolicy;
@@ -12,7 +21,12 @@ import com.ecg.replyts.core.runtime.persistence.CassandraRepository;
 import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.persistence.StatementsBase;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.Iterators;
+import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableRangeMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeMap;
+import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -21,14 +35,28 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toSet;
 
 public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository, CassandraRepository {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraSimplePostBoxRepository.class);
@@ -269,15 +297,28 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
                 LOG.error("Getting postbox data for '" + roundedToHourStr + "' timed out", rte);
                 return false;
             }
-            Iterator<List<Row>> partitions = Iterators.partition(resultSet.iterator(), batchSize);
-            BlockingQueue<List<ConversationThreadModificationDate>> jobs = new ArrayBlockingQueue<>(this.workQueueSize);
 
+            // After the introduction of token range-grouped jobs, the blocking queue is an overkill (since there's
+            // no lazyness in fetching the jobs anymore). Leave it for now. To be removed if effectiveness of grouping
+            // is proven.
+            BlockingQueue<Collection<ConversationThreadModificationDate>> jobs = new ArrayBlockingQueue<>(this.workQueueSize);
             ExecutorService cleanupExecutor = createCleanupExecutor(this.threadCount, jobs);
             try {
-                while (partitions.hasNext()) {
-                    List<Row> rows = partitions.next();
-                    resultSet.fetchMoreResults();
-                    jobs.put(rows.stream().map(this::createConversationThreadModificationDate).collect(Collectors.toList()));
+                Metadata metadata = session.getCluster().getMetadata();
+                RangeMap<Token, TokenRange> tokenRangeMap = calculateRangeMap(metadata.getTokenRanges());
+                Collection<Set<ConversationThreadModificationDate>> postBoxModificationByTokenRange = StreamSupport
+                        .stream(resultSet.spliterator(), false)
+                        .map(this::createConversationThreadModificationDate)
+                        .collect(groupingBy(v -> tokenRangeMap.getEntry(calculateToken(metadata, v)), toSet())) // This gives us O(ln(R)*V) when grouping by token ranges
+                        .values();
+
+                for (Set<ConversationThreadModificationDate> postboxesInSameRange : postBoxModificationByTokenRange) {
+                    if (postboxesInSameRange == null || postboxesInSameRange.isEmpty()) {
+                        continue;
+                    }
+                    for (List<ConversationThreadModificationDate> batch : Iterables.partition(postboxesInSameRange, batchSize)) {
+                        jobs.put(batch);
+                    }
                 }
             } catch (InterruptedException e) {
                 LOG.warn("Interrupted while waiting to add more jobs", e);
@@ -299,7 +340,28 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         }
     }
 
-    private ExecutorService createCleanupExecutor(int threadCount, BlockingQueue<List<ConversationThreadModificationDate>> jobs) {
+    private static RangeMap<Token, TokenRange> calculateRangeMap(Collection<TokenRange> tokenRanges) {
+        // RangeMap is preferred over RangeSet because it doesn't merge adjacent ranges
+        ImmutableRangeMap.Builder<Token, TokenRange> tokenRangeSetBuilder = ImmutableRangeMap.builder();
+        for (TokenRange range : tokenRanges) {
+            if (range.isEmpty()) {
+                continue;
+            }
+            if (range.isWrappedAround()) {
+                tokenRangeSetBuilder.put(Range.greaterThan(range.getStart()), range);
+                tokenRangeSetBuilder.put(Range.atMost(range.getEnd()), range);
+            } else {
+                tokenRangeSetBuilder.put(Range.openClosed(range.getStart(), range.getEnd()), range);
+            }
+        }
+        return tokenRangeSetBuilder.build();
+    }
+
+    private static Token calculateToken(Metadata metadata, ConversationThreadModificationDate c) {
+        return metadata.newToken(String.valueOf(Hashing.murmur3_128().hashString(c.getPostboxId(), Charsets.UTF_8).asLong()));
+    }
+
+    private ExecutorService createCleanupExecutor(int threadCount, BlockingQueue<Collection<ConversationThreadModificationDate>> jobs) {
         ThreadFactory threadFactory = new ThreadFactoryBuilder()
                 .setNameFormat(CassandraSimplePostBoxRepository.class.getSimpleName() + "-%d")
                 .setDaemon(true)
@@ -309,7 +371,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
             executor.submit(setTaskFields(() -> {
                 while (!executor.isShutdown()) {
                     try {
-                        List<ConversationThreadModificationDate> job = jobs.poll(100, TimeUnit.MILLISECONDS);
+                        Collection<ConversationThreadModificationDate> job = jobs.poll(100, TimeUnit.MILLISECONDS);
                         if (job != null) {
                             doCleanup(job);
                         }
@@ -332,7 +394,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
                 row.getDate(FIELD_MODIFICATION_DATE), row.getDate(FIELD_ROUNDED_MODIFICATION_DATE));
     }
 
-    private void doCleanup(List<ConversationThreadModificationDate> idxs) {
+    private void doCleanup(Collection<ConversationThreadModificationDate> idxs) {
         LOG.info("Cleanup: Deleting data related to {} conversation thread modification dates", idxs.size());
 
         for (ConversationThreadModificationDate conversationThreadModificationDate : idxs) {

@@ -5,13 +5,10 @@ import java.util.Date;
 import java.util.Objects;
 
 public class ConversationThreadModificationDate {
-    private String postboxId;
-
-    private String conversationThreadId;
-
-    private Date modificationDate;
-
-    private Date roundedModificationDate;
+    private final String postboxId;
+    private final String conversationThreadId;
+    private final Date modificationDate;
+    private final Date roundedModificationDate;
 
     public ConversationThreadModificationDate(String postboxId, String conversationThreadId, Date modificationDate, Date roundedModificationDate) {
         this.postboxId = postboxId;
@@ -42,14 +39,12 @@ public class ConversationThreadModificationDate {
         if (o == null || getClass() != o.getClass()) return false;
         ConversationThreadModificationDate that = (ConversationThreadModificationDate) o;
         return Objects.equals(postboxId, that.postboxId) &&
-          Objects.equals(conversationThreadId, that.conversationThreadId) &&
-          Objects.equals(modificationDate, that.modificationDate) &&
-          Objects.equals(roundedModificationDate, that.roundedModificationDate);
+          Objects.equals(conversationThreadId, that.conversationThreadId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(postboxId, conversationThreadId, modificationDate);
+        return Objects.hash(postboxId, conversationThreadId);
     }
 
     @Override
