@@ -1,6 +1,5 @@
 package com.ecg.comaas.kjca.coremod.overrides;
 
-import com.ecg.comaas.kjca.coremod.overrides.logging.ExceptionMetricsLogger;
 import com.ecg.comaas.kjca.coremod.overrides.postprocessor.Addresser;
 import com.ecg.comaas.kjca.coremod.overrides.postprocessor.MessageBodyAnonymizer;
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
@@ -18,7 +17,7 @@ import java.util.Arrays;
 // Will get picked up by the Application @ComponentScan (com.ecg.replyts.app.*)
 
 @Configuration
-@Import({TextAnonymizer.class, ExceptionMetricsLogger.class, BrokenContentTypeFix.class, Addresser.class, MessageBodyAnonymizer.class})
+@Import({TextAnonymizer.class, BrokenContentTypeFix.class, Addresser.class, MessageBodyAnonymizer.class})
 public class AlternativePostProcessorChainConfiguration {
     @Bean
     @Primary
