@@ -79,9 +79,10 @@ public class SendNotifierPostProcessor implements PostProcessor {
     private void doGet(String notifyUrl) {
         try {
             HttpGet httpGet = new HttpGet(notifyUrl);
-            CloseableHttpResponse response = httpClient.execute(httpGet);
-            if (HttpStatus.SC_OK != response.getStatusLine().getStatusCode()) {
-                LOG.warn("HTTP GET to {} returned status code {} instead of {}", notifyUrl, response.getStatusLine().getStatusCode(), HttpStatus.SC_OK);
+            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+                if (HttpStatus.SC_OK != response.getStatusLine().getStatusCode()) {
+                    LOG.warn("HTTP GET to {} returned status code {} instead of {}", notifyUrl, response.getStatusLine().getStatusCode(), HttpStatus.SC_OK);
+                }
             }
         } catch (IOException e) {
             reportExternalServiceFailure("notifier_post_processor");
