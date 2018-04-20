@@ -257,8 +257,8 @@ boolean isDirPresent(String location, String dirname) {
 }
 
 void sendGrafanaMetric(String tenant, String dc, String environment, String event, String message) {
-    String payload = JsonOutput.toJson(["text": "$message", "tags": ["comaas", "$event", "$tenant"]])
-    sh "curl -s -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJrIjoiTmdhSUxKZGxvalp6c3BxZTU4NEFvaTNxWkdKSndma2QiLCJuIjoiamVua2lucyIsImlkIjoxfQ==' -X POST 'https://grafana.comaas-${envName}.${dc}.cloud/api/annotations/' -d '$payload'"
+    String payload = JsonOutput.toJson(["text": message, "tags": ["comaas", event, tenant]])
+    sh "curl -s -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJrIjoiTmdhSUxKZGxvalp6c3BxZTU4NEFvaTNxWkdKSndma2QiLCJuIjoiamVua2lucyIsImlkIjoxfQ==' -X POST 'https://grafana.comaas-${environment}.${dc}.cloud/api/annotations/' -d '$payload'"
 }
 
 void forcefullyRemoveStaleDockerContainers() {

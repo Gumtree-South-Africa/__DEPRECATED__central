@@ -29,7 +29,7 @@ void deploymentFailed(final String tenant, final String version, final String dc
     exMessage = ex.getMessage()
     String currentVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
 
-    commonFunctions.sendGrafanaMetric(tenant, dc, environmentShort, "Comaas deploy", "failed")
+    commonFunctions.sendGrafanaMetric(tenant, dc, environmentShort, "failed", "$currentVersion remains")
 
     String slackMessage = "Deploying Comaas `$tenant` `$version` to `$environmentShort` failed with `$exMessage`, `$currentVersion` remains"
     sendToSlack('#FF0000', tenant, slackMessage, environmentShort)
@@ -57,7 +57,7 @@ void notifyAboutPendingUpgrade(final String tenant, final String version, final 
     final String currentVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
     final String dcState = activeDcSlackString(tenant, dc, environmentShort)
 
-    commonFunctions.sendGrafanaMetric(commonFunctions.getAlias(tenant), dc, environmentShort, "Comaas deploy", "failed")
+    commonFunctions.sendGrafanaMetric(commonFunctions.getAlias(tenant), dc, environmentShort, "started", "from $currentVersion to $version")
 
     String slackMessage = "Upgrading Comaas for `$tenant` from version `$currentVersion` to `$version` on `$environmentShort` " +
             "in `$dc` $dcState (<https://github.corp.ebay.com/ecg-comaas/central/compare/$currentVersion...$version|Diff>) (<$BUILD_URL|Build>)"
@@ -249,7 +249,7 @@ node("master") {
                     loadPropsIntoConsul(tenant, versionToDeploy, environmentShort)
                     deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstances)
 
-                    commonFunctions.sendGrafanaMetric(commonFunctions.getAlias(tenant), dc, environmentShort, "Comaas deploy $versionToDeploy", "finished")
+                    commonFunctions.sendGrafanaMetric(commonFunctions.getAlias(tenant), dc, environmentShort, "finished", "deployed $versionToDeploy")
 
                     final String activeDcSlack = activeDcSlackString(tenant, dc, environmentShort)
                     final String slackMessage = "Comaas version `$versionToDeploy` for `$tenant` successfully deployed to " +
