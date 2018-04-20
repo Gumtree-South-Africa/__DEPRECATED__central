@@ -28,17 +28,13 @@ void deploymentFailed(final String tenant, final String version, final String dc
     echo "--->>> Exception: $ex"
     exMessage = ex.getMessage()
     String currentVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
-    String slackMessage = "Deploying Comaas `$tenant` `$version` to `$environmentShort` failed with `$exMessage`, `$currentVersion` remains"
-    String graphitePayload = commonFunctions.createGraphitePayload('failed', commonFunctions.getAlias(tenant), "tried $version, current $currentVersion remains")
 
-    sendGraphiteMetric(dc, environmentShort, graphitePayload)
+    commonFunctions.sendGrafanaMetric(tenant, dc, environmentShort, "Comaas deploy", "failed")
+
+    String slackMessage = "Deploying Comaas `$tenant` `$version` to `$environmentShort` failed with `$exMessage`, `$currentVersion` remains"
     sendToSlack('#FF0000', tenant, slackMessage, environmentShort)
 
     error("Deploying Comaas version $version to $environmentShort failed with $exMessage")
-}
-
-void sendGraphiteMetric(String dc, String environmentShort, String jsonPayload) {
-    sh "curl -s -X POST 'https://graphite.comaas-${environmentShort}.${dc}.cloud/events/' -d '$jsonPayload'"
 }
 
 void sendToSlack(final String colour, final String channel, final String message, final String environmentShort) {
@@ -61,12 +57,10 @@ void notifyAboutPendingUpgrade(final String tenant, final String version, final 
     final String currentVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
     final String dcState = activeDcSlackString(tenant, dc, environmentShort)
 
+    commonFunctions.sendGrafanaMetric(commonFunctions.getAlias(tenant), dc, environmentShort, "Comaas deploy", "failed")
+
     String slackMessage = "Upgrading Comaas for `$tenant` from version `$currentVersion` to `$version` on `$environmentShort` " +
             "in `$dc` $dcState (<https://github.corp.ebay.com/ecg-comaas/central/compare/$currentVersion...$version|Diff>) (<$BUILD_URL|Build>)"
-
-    String graphitePayload = commonFunctions.createGraphitePayload('started', commonFunctions.getAlias(tenant), "from $currentVersion to $version")
-
-    sendGraphiteMetric(dc, environmentShort, graphitePayload)
     sendToSlack('#FFFF00', tenant, slackMessage, environmentShort)
 }
 
@@ -255,8 +249,7 @@ node("master") {
                     loadPropsIntoConsul(tenant, versionToDeploy, environmentShort)
                     deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstances)
 
-                    final String graphitePayload = commonFunctions.createGraphitePayload('succeeded', commonFunctions.getAlias(tenant), "$versionToDeploy deployed")
-                    sendGraphiteMetric(dc, environmentShort, graphitePayload)
+                    commonFunctions.sendGrafanaMetric(commonFunctions.getAlias(tenant), dc, environmentShort, "Comaas deploy $versionToDeploy", "finished")
 
                     final String activeDcSlack = activeDcSlackString(tenant, dc, environmentShort)
                     final String slackMessage = "Comaas version `$versionToDeploy` for `$tenant` successfully deployed to " +
