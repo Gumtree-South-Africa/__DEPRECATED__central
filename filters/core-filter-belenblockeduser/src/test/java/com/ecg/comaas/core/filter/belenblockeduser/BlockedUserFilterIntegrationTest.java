@@ -24,6 +24,7 @@ public class BlockedUserFilterIntegrationTest {
         put("replyts2-belenblockeduserfilter-plugin.dataSource.url", DB_URL);
         put("replyts2-belenblockeduserfilter-plugin.dataSource.username", DB_USER);
         put("replyts2-belenblockeduserfilter-plugin.dataSource.password", DB_PASS);
+        put("replyts2-belenblockeduserfilter-plugin.dataSource.maxPoolSize", 10);
     }};
 
     @Rule
