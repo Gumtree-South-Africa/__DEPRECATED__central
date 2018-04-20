@@ -157,7 +157,7 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
         }
 
         final String deployJenkinsJob = env.BUILD_NUMBER
-        final String vars = "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
+        final String vars = "-var-file=/deployment/environments/${environment}.tf " +
                 "-var='version=${version}' " +
                 "-var='urlprefixes=${urlprefixes}' " +
                 "-var='docker_password=${DOCKER_PASS}' " +
@@ -165,12 +165,13 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
                 "-var='tenant_short=${tenantShort}' " +
                 "-var='environment=${environment}' " +
                 "-var='region=${dc}' " +
-                "-var='api_count=${nrOfInstances}' " +
+                "-var='api_count=${nrOfInstancesHttp}' " +
+                "-var='newmsg_count=${nrOfInstancesNewMsg}' " +
                 "-var='deploy_jenkins_job_nr=${deployJenkinsJob}' "
+        final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
-        sh "levant render ${vars} distribution/jenkins/deployment/core-api.nomad"
-        sh "levant deploy -log-level=debug -address='http://http.nomad.service.consul:4646' -force-count=true ${vars} " +
-                "distribution/jenkins/deployment/core-api.nomad"
+        sh "$levantCmd render ${vars} /deployment/core-api.nomad"
+        sh "$levantCmd deploy ${vars} -force-count=true -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/core-api.nomad"
     }
 }
 
@@ -209,7 +210,8 @@ node("master") {
 
     currentBuild.description = "$PROVIDED_TENANT/$dc/$versionToDeploy"
 
-    Integer nrOfInstances = environmentShort == 'lp' ? configFile.instances.lp : configFile.instances.prod[tenant] as Integer
+    Integer nrOfInstancesHttp = environmentShort == 'lp' ? configFile.instances.lp : configFile.instances.prod.http[tenant] as Integer
+    Integer nrOfInstancesNewMsg = environmentShort == 'lp' ? configFile.instances.lp : configFile.instances.prod.newmsg[tenant] as Integer
 
     stage("Deploying") {
         node("$environmentShort && $dc") {
@@ -247,13 +249,13 @@ node("master") {
 
                     final String artifact = downloadVersionFromSwift(tenant, versionToDeploy)
                     loadPropsIntoConsul(tenant, versionToDeploy, environmentShort)
-                    deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstances)
+                    deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstancesHttp, nrOfInstancesNewMsg)
 
                     commonFunctions.sendGrafanaMetric(commonFunctions.getAlias(tenant), dc, environmentShort, "finished", "deployed $versionToDeploy")
 
                     final String activeDcSlack = activeDcSlackString(tenant, dc, environmentShort)
                     final String slackMessage = "Comaas version `$versionToDeploy` for `$tenant` successfully deployed to " +
-                            "`$environmentShort` in `$dc` ${activeDcSlack} with ${nrOfInstances} API nodes"
+                            "`$environmentShort` in `$dc` ${activeDcSlack} with ${nrOfInstancesHttp} API nodes, ${nrOfInstancesNewMsg} message ingesting nodes"
                     sendToSlack('#00FF00', tenant, slackMessage, environmentShort)
                 } catch (ex) {
                     deploymentFailed(tenant, versionToDeploy, dc, environmentShort, ex)

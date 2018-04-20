@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.time.LocalTime;
 import java.util.Random;
 
-public class ShadowTestingFramework9000 {
-    public static void maybeDoAThing() throws ParsingException, IOException {
+class ShadowTestingFramework9000 {
+    static void maybeDoAThing() throws ParsingException, IOException {
         // One message in each n should throw a ParsingException (random distribution)
         int chanceOfParsingException = getEnv("KAFKA_CHANCE_OF_PARSING_EXCEPTION");
         if (chanceOfParsingException > 0 && 0 == new Random().nextInt(chanceOfParsingException)) {

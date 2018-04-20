@@ -7,11 +7,13 @@ variable docker_username { default = "comaas-docker-registry" }
 variable docker_password { default = "unset" }
 variable vault_policy { default = "nomad-secret-readonly" }
 
-variable node_class { default = "services" }
-
 variable api_count { default = 3 }
 variable api_resources_cpu { default = 2200 }
 variable api_resources_mem { default = 3096 }
+
+variable newmsg_count { default = 3 }
+variable newmsg_resources_cpu { default = 2200 }
+variable newmsg_resources_mem { default = 3096 }
 
 variable restart_jenkins_job_nr { default = "none" }
 

@@ -65,8 +65,12 @@ String getOriginalVersion(final String tenantLongName) {
     return getMetaInformation("version", tenantLongName)
 }
 
-String getOriginalWantedInstances(final String tenantLongName) {
-    return getMetaInformation("wanted_instances", tenantLongName)
+String getOriginalWantedInstancesHttp(final String tenantLongName) {
+    return getMetaInformation("wanted_instances_api", tenantLongName)
+}
+
+String getOriginalWantedInstancesNewMsg(final String tenantLongName) {
+    return getMetaInformation("wanted_instances_newmsg", tenantLongName)
 }
 
 String getOriginalRestartJenkinsJobNr(final String tenantLongName) {
@@ -112,7 +116,8 @@ node("master") {
         node("$environment && $dc") {
             final String originalDeployJenkinsJobNr = getOriginalDeployNr(tenant)
             final String version = getOriginalVersion(tenant)
-            final String wantedInstances = getOriginalWantedInstances(tenant)
+            final String wantedInstancesHttp = getOriginalWantedInstancesHttp(tenant)
+            final String wantedInstancesNewMsg = getOriginalWantedInstancesNewMsg(tenant)
             final String originalJenkinsRestartJobNr = getOriginalRestartJenkinsJobNr(tenant)
             final String restartJenkinsJob = originalJenkinsRestartJobNr == "none" ? env.BUILD_NUMBER : originalJenkinsRestartJobNr + "," + env.BUILD_NUMBER
 
@@ -141,7 +146,7 @@ node("master") {
                         }
                     }
 
-                    final String vars = "-var-file=distribution/jenkins/deployment/environments/${environment}.tf " +
+                    final String vars = "-var-file=/deployment/environments/${environment}.tf " +
                             "-var='version=${version}' " +
                             "-var='urlprefixes=${urlprefixes}' " +
                             "-var='docker_password=${DOCKER_PASS}' " +
@@ -149,13 +154,14 @@ node("master") {
                             "-var='tenant_short=${tenantShort}' " +
                             "-var='environment=${environment}' " +
                             "-var='region=${dc}' " +
-                            "-var='api_count=${wantedInstances}' " +
+                            "-var='api_count=${wantedInstancesHttp}' " +
+                            "-var='api_count=${wantedInstancesNewMsg}' " +
                             "-var='deploy_jenkins_job_nr=${originalDeployJenkinsJobNr}' " +
                             "-var='restart_jenkins_job_nr=${restartJenkinsJob}' "
+                    final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
-                    sh "levant render ${vars} distribution/jenkins/deployment/core-api.nomad"
-                    sh "levant deploy -log-level=debug -address='http://http.nomad.service.consul:4646' ${vars} " +
-                            "distribution/jenkins/deployment/core-api.nomad"
+                    sh "$levantCmd render ${vars} /deployment/core-api.nomad"
+                    sh "$levantCmd deploy ${vars} -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/core-api.nomad"
                 }
             }
         }

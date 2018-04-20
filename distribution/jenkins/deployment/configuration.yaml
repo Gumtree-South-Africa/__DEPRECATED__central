@@ -2,14 +2,27 @@
 instances:
   lp: 2
   prod:
-    ebayk: 12
-    gtau: 6
-    gtuk: 6
-    it: 3
-    kjca: 6
-    mde: 3
-    mp: 12
-    ar: 3
-    sg: 3
-    mx: 3
-    za: 3
+    http:
+      ebayk: 12
+      gtau: 6
+      gtuk: 6
+      it: 3
+      kjca: 6
+      mde: 3
+      mp: 12
+      ar: 3
+      sg: 3
+      mx: 3
+      za: 3
+    newmsg:
+      ebayk: 12
+      gtau: 6
+      gtuk: 6
+      it: 3
+      kjca: 6
+      mde: 3
+      mp: 12
+      ar: 3
+      sg: 3
+      mx: 3
+      za: 3

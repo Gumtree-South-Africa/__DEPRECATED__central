@@ -16,7 +16,7 @@ class KafkaMessageConsumerFactory {
     @Value("${kafka.core.servers}")
     private String bootstrapServers;
 
-    public Consumer<String, byte[]> createConsumer(final String topicName) {
+    Consumer<String, byte[]> createConsumer(final String topicName) {
         final Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "MailProcessingGroup_" + topicName);
