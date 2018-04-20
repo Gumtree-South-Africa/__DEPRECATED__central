@@ -24,6 +24,7 @@ public class BlockedUserFilterConfiguration {
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.maxPoolSize:100}") int maxPoolSize,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.borrowTimeout:2000}") int borrowTimeout,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.maxLifetime:1500000}") long maxLifetime,
+            @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.poolName:}") String poolName,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.cachePrepStmts:true}") String cachePreparedStatements,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.prepStmtCacheSize:250}") String prepareStatementsCacheSize,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.prepStmtCacheSqlLimit:2048}") String prepareStatementCacheSqlLimit,
@@ -39,6 +40,7 @@ public class BlockedUserFilterConfiguration {
         hikariConfig.setMaximumPoolSize(maxPoolSize);
         hikariConfig.setConnectionTimeout(borrowTimeout);
         hikariConfig.setMaxLifetime(maxLifetime);
+        hikariConfig.setPoolName(poolName);
 
         hikariConfig.setConnectionTestQuery("SELECT 1");
         hikariConfig.setReadOnly(true);
