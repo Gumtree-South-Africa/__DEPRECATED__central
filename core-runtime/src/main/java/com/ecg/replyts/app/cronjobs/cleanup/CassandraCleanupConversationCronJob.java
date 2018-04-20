@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -39,7 +38,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.ecg.replyts.core.runtime.TimingReports.newGauge;
@@ -137,26 +135,23 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
             MDCConstants.setTaskFields(CassandraCleanupConversationCronJob.class.getSimpleName());
 
-            Set<String> convIds = idxs.stream().collect(Collectors.toConcurrentMap(ConversationEventId::getConversationId, id -> true, (k, v) -> true)).keySet();
-
-            processConversationIds(cleanupDate, idxs, convIds);
+            processConversationIds(cleanupDate, idxs);
         })));
 
         return cleanUpTasks;
     }
 
-    private void processConversationIds(DateTime cleanupDate, List<? extends ConversationEventId> idxs, Set<String> convIds) {
-        LOG.info("Cleanup: Deleting data related to {} de-duplicated conversation events out of {} events ", convIds.size(), idxs.size());
+    private void processConversationIds(DateTime cleanupDate, List<? extends ConversationEventId> idxs) {
+        LOG.info("Cleanup: Deleting data related to {} conversation events", idxs.size());
 
-        convIds.forEach(conversationId -> {
-
+        idxs.forEach(conversationIdx -> {
+            String conversationId = conversationIdx.getConversationId();
             double sleepTimeSeconds = rateLimiter.acquire();
             newGauge("cleanup.conversations.rateLimiter.sleepTimeSecondsGauge", () -> sleepTimeSeconds);
 
             Long lastModifiedDate = conversationRepository.getLastModifiedDate(conversationId);
 
             // Round the lastModifiedDate to the day, then compare to the (already rounded) cleanup date
-
             DateTime roundedLastModifiedDate = lastModifiedDate != null ? new DateTime((lastModifiedDate)).hourOfDay().roundFloorCopy().toDateTime() : null;
 
             if (lastModifiedDate != null && (roundedLastModifiedDate.isBefore(cleanupDate) || roundedLastModifiedDate.equals(cleanupDate))) {
