@@ -1,12 +1,16 @@
 package com.ecg.replyts.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.MapPropertySource;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ComaasPropertySource extends MapPropertySource {
+class ComaasPropertySource extends MapPropertySource {
+    private static final Logger LOG = LoggerFactory.getLogger(ComaasPropertySource.class);
+
     static final String NAME = "comaas_environment";
 
     private static Map<String, Object> getEnvVars() {
@@ -28,8 +32,10 @@ public class ComaasPropertySource extends MapPropertySource {
     }
 
     private static void putEnvIfNotNull(Map<String, Object> builder, String envVar, String propertyName) {
-        if (System.getenv(envVar) != null) {
-            builder.put(propertyName, System.getenv(envVar));
+        final String s = System.getenv(envVar);
+        if (s != null) {
+            builder.put(propertyName, s);
+            LOG.info("Writing property {} from environment variable {} with value '{}'", propertyName, envVar, s);
         }
     }
 
