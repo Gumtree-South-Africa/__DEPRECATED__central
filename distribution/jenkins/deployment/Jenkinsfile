@@ -132,7 +132,7 @@ void loadPropsIntoConsul(final String tenant, final String version, final String
     }
 }
 
-void deployToEnv(final String tenant, final String artifact, final String environment, final String version, final String dc, final Integer nrOfInstances) {
+void deployToEnv(final String tenant, final String artifact, final String environment, final String version, final String dc, final Integer nrOfInstancesHttp, final Integer nrOfInstancesNewMsg) {
     ansiColor('xterm') {
         sh "PYTHONWARNINGS='ignore' deploy.py --config /etc/comaas/comaas-${tenant}.yaml --logdir ~ --component $artifact"
     }
