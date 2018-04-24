@@ -37,7 +37,7 @@ public class SpringContextProvider implements ContextProvider, Ordered {
         this.context = context;
     }
 
-    public SpringContextProvider(String path, Class configurationClass, ApplicationContext parentContext) {
+    public SpringContextProvider(String path, Class configurationClass, ApplicationContext parentContext, String... packageScan) {
         this.path = path;
 
         if (parentContext instanceof WebApplicationContext) {
@@ -47,6 +47,10 @@ public class SpringContextProvider implements ContextProvider, Ordered {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         context.setParent(parentContext);
         context.register(configurationClass);
+
+        if (packageScan.length > 0) {
+            context.scan(packageScan);
+        }
 
         this.context = context;
     }
