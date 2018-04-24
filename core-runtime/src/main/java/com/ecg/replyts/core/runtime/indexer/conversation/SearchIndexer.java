@@ -76,6 +76,9 @@ public class SearchIndexer {
         }
         try {
             ListenableActionFuture<BulkResponse> responseFuture = updateSearchAsync(conversations);
+            if (responseFuture == null) {
+                return;
+            }
             BulkResponse response = responseFuture.get(TIMEOUT_SYNC_UPDATE_MINUTES, MINUTES);
             if (response.hasFailures()) {
                 throw new RuntimeException(response.buildFailureMessage());
