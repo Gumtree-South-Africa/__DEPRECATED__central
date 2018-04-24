@@ -12,10 +12,10 @@ import org.springframework.context.annotation.FilterType;
 
 @ComaasPlugin
 @Configuration
-@ConditionalOnExpression("#{'${replyts.tenant}' != 'kjca' && '${replyts.tenant}' != 'it'}")
+@ConditionalOnExpression("#{'${replyts.tenant}' != 'kjca' && '${replyts.tenant}' != 'it' && '${replyts.tenant}' != 'ebayk'}")
 public class MessageBoxConfiguration {
 
-    static final String V2_AND_UPGRADE_TENANTS = "#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde' || ('${replyts.tenant}' == 'gtuk' && '${webapi.sync.uk.enabled}' == 'true') || ('${replyts.tenant}' == 'ebayk' && '${webapi.sync.ek.enabled}' == 'true') || ('${replyts.tenant}' == 'gtau' && '${webapi.sync.au.enabled}' == 'true')}";
+    static final String V2_AND_UPGRADE_TENANTS = "#{'${replyts.tenant}' == 'mp' || '${replyts.tenant}' == 'mde' || ('${replyts.tenant}' == 'gtuk' && '${webapi.sync.uk.enabled}' == 'true') || ('${replyts.tenant}' == 'gtau' && '${webapi.sync.au.enabled}' == 'true')}";
     static final String ONLY_V1_TENANTS = "#{'${replyts.tenant}' != 'mp' && '${replyts.tenant}' != 'mde'}";
 
     @Configuration
