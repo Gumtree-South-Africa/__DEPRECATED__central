@@ -12,7 +12,9 @@ import org.springframework.context.annotation.FilterType;
 @ComaasPlugin
 @Configuration
 @ConditionalOnProperty(name = "replyts.tenant", havingValue = "gtau")
-@ComponentScan(value = "com.ecg.messagecenter", excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagecenter.gtau.webapi.*"))
+@ComponentScan(value = "com.ecg.messagecenter", excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagecenter.gtau.webapi.*"),
+        @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagecenter.gtau.robot.*")})
 public class GtauMessageBoxConfiguration {
 
     @Configuration
