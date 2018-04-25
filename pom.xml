@@ -305,7 +305,6 @@
 
             <modules>
                 <module>coremods/kjca-coremod-shared</module>
-                <module>coremods/kjca-coremod-jolokia</module>
                 <module>coremods/kjca-coremod-overrides</module>
 
                 <module>filters/core-filter-user</module>
@@ -562,12 +561,10 @@
 
         <maven.exec.skip>true</maven.exec.skip>
         <cs-filter-shared.version>1.5</cs-filter-shared.version>
-        <jolokia-spring.version>1.1.1</jolokia-spring.version>
         <mongo-java-driver-version>2.14.3</mongo-java-driver-version>
         <openstack4j.version>3.0.4</openstack4j.version>
         <amqp-client-version>3.4.2</amqp-client-version>
         <logstash-logback-encoder-version>4.7</logstash-logback-encoder-version>
-        <jolokia-version>1.1.1</jolokia-version>
         <antlr-version>3.5.2</antlr-version>
         <archaius.version>0.7.4</archaius.version>
         <servo.version>0.9.2</servo.version>
@@ -1094,12 +1091,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.jolokia</groupId>
-                <artifactId>jolokia-spring</artifactId>
-                <version>${jolokia-spring.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>ecg.comaas</groupId>
                 <artifactId>core-messagecenter</artifactId>
                 <version>${project.version}</version>
@@ -1111,11 +1102,6 @@
                 <version>${mongo-java-driver-version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.jolokia</groupId>
-                <artifactId>jolokia-jvm</artifactId>
-                <version>${jolokia-version}</version>
-            </dependency>
             <dependency>
                 <groupId>net.logstash.logback</groupId>
                 <artifactId>logstash-logback-encoder</artifactId>

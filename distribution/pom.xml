@@ -432,10 +432,6 @@
                 </dependency>
 
                 <dependency>
-                    <groupId>org.jolokia</groupId>
-                    <artifactId>jolokia-jvm</artifactId>
-                </dependency>
-                <dependency>
                     <groupId>net.logstash.logback</groupId>
                     <artifactId>logstash-logback-encoder</artifactId>
                     <exclusions>
@@ -541,11 +537,6 @@
                 <dependency>
                     <groupId>ecg.comaas</groupId>
                     <artifactId>kjca-coremod-shared</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>kjca-coremod-jolokia</artifactId>
                     <version>${project.version}</version>
                 </dependency>
                 <dependency>
