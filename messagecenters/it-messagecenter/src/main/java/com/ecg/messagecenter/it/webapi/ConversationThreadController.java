@@ -5,7 +5,7 @@ import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.it.webapi.responses.PostBoxSingleConversationThreadResponse;
-import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
+import com.ecg.messagecenter.bt.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
