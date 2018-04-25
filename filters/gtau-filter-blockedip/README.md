@@ -30,8 +30,8 @@ Datasource configuration is kept in `replyts.properties` within the `confDir`.
 Internally, this plugin uses a c3p0 datasource for connection management. The connection is read-only.
 ```
 replyts2-blockedipfilter-plugin.dataSource.url # jdbc connection url to the correct datasource
-replyts2-blockedipfilter-plugin.username #default: box
-replyts2-blockedipfilter-plugin.password #default: <empty>
+replyts2-blockedipfilter-plugin.dataSource.username #default: box
+replyts2-blockedipfilter-plugin.dataSource.password #default: <empty>
 replyts2-blockedipfilter-plugin.dataSource.pool.c3p0.initialPoolSize #default: 5
 replyts2-blockedipfilter-plugin.dataSource.pool.c3p0.minPoolSize #default: 3
 replyts2-blockedipfilter-plugin.dataSource.pool.c3p0.maxPoolSize #default: 100

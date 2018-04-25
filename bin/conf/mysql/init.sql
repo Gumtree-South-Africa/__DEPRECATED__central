@@ -40,3 +40,11 @@ CREATE TABLE IF NOT EXISTS external_user_tns (
   email  VARCHAR(100) NOT NULL,
   PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS ip_ranges (
+  id              INT(11)     NOT NULL AUTO_INCREMENT,
+  expiration_date DATETIME    NOT NULL,
+  begin_ip        VARCHAR(15) NOT NULL,
+  end_ip          VARCHAR(15) NOT NULL,
+  PRIMARY KEY (id)
+);
