@@ -2,8 +2,8 @@ package com.ecg.messagecenter.gtau.util;
 
 import com.ecg.messagecenter.gtau.persistence.Header;
 import com.ecg.messagecenter.gtau.util.MessageType;
-import com.ecg.messagecenter.gtuk.webapi.responses.MessageResponse;
-import com.ecg.messagecenter.gtuk.webapi.responses.RobotMessageResponse;
+import com.ecg.messagecenter.gtau.webapi.responses.MessageResponse;
+import com.ecg.messagecenter.gtau.webapi.responses.RobotMessageResponse;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.google.common.collect.Maps;
 import org.junit.Before;

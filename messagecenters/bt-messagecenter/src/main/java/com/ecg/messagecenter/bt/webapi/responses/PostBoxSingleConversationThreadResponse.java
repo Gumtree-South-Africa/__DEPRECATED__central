@@ -1,8 +1,8 @@
 package com.ecg.messagecenter.bt.webapi.responses;
 
 import com.ecg.messagecenter.util.ConversationBoundnessFinder;
-import com.ecg.messagecenter.util.MessagesDiffer;
-import com.ecg.messagecenter.util.MessagesResponseFactory;
+import com.ecg.messagecenter.bt.util.MessagesDiffer;
+import com.ecg.messagecenter.bt.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;

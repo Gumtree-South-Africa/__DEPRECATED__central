@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.gtau.util;
 
 import com.ecg.messagecenter.gtau.util.MessagesResponseFactory;
-import com.ecg.messagecenter.gtuk.webapi.responses.MessageResponse;
+import com.ecg.messagecenter.gtau.webapi.responses.MessageResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
