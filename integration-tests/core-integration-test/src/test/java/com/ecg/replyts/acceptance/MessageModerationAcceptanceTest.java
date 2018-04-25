@@ -15,22 +15,15 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.ecg.replyts.integration.test.support.Waiter.await;
 import static org.hamcrest.Matchers.is;
 
 public class MessageModerationAcceptanceTest {
-
-    private final Properties properties = new Properties() {{
-        put("persistence.strategy", "riak");
-    }};
-
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(properties, null, 20, ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(true);
 
     private ProcessedMail processedMail;
 

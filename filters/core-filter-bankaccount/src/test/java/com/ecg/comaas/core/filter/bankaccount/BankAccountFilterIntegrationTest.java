@@ -1,6 +1,5 @@
 package com.ecg.comaas.core.filter.bankaccount;
 
-import com.ecg.comaas.core.filter.bankaccount.BankAccountFilterFactory;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.integration.test.MailBuilder;
@@ -10,11 +9,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 
 public class BankAccountFilterIntegrationTest {
     @Rule
-    public ReplyTsIntegrationTestRule replyTS = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule replyTS = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_GTAU));
 
     @Test
     public void firesOnBankAccount() {

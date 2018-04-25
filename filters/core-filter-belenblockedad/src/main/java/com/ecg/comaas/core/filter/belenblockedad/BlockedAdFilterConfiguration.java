@@ -6,12 +6,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
-
 import java.beans.PropertyVetoException;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
+
 @ComaasPlugin
+@Profile({TENANT_GTAU, TENANT_EBAYK})
 @Configuration
 @ComponentScan(basePackageClasses = BlockedAdFilterConfiguration.class)
 public class BlockedAdFilterConfiguration {

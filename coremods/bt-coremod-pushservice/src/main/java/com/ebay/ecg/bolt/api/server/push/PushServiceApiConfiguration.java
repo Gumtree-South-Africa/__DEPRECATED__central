@@ -1,5 +1,7 @@
 package com.ebay.ecg.bolt.api.server.push;
 
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
+import com.ecg.replyts.core.webapi.SpringContextProvider;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientURI;
@@ -7,13 +9,17 @@ import com.mongodb.ReadPreference;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
-import com.ecg.replyts.core.webapi.SpringContextProvider;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_AR;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MX;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_ZA;
+
 @ComaasPlugin
+@Profile({TENANT_MX, TENANT_AR, TENANT_ZA})
 @Configuration
 @ComponentScan("com.ebay.ecg.bolt.domain")
 @ComponentScan("com.ebay.ecg.bolt.platform")

@@ -1,4 +1,4 @@
-package com.ecg.au.gumtree.messagelogging;
+package com.ecg.comaas.gtau.listener.messagelogger;
 
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.zaxxer.hikari.HikariDataSource;
@@ -11,11 +11,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.List;
 import java.util.Properties;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MessageLoggingListenerIntegrationTest {
-
     private static final String DB_URL = "jdbc:mysql://localhost:3306/comaas";
     private static final String DB_USER = "mysql_guest";
     private static final String DB_PASS = "mysql_guest";
@@ -25,14 +26,18 @@ public class MessageLoggingListenerIntegrationTest {
     private static final String SELLER_EMAIL = "seller@example.com";
     private static final String AD_ID = "12345";
 
-    private final Properties testProperties = new Properties() {{
-        put("replyts.tenant", "gtau");
-        put("au.messagelogger.url", DB_URL);
-        put("au.messagelogger.username", DB_USER);
-        put("au.messagelogger.password", DB_PASS);
-    }};
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties);
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties());
+
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_GTAU);
+        properties.put("replyts.tenant", TENANT_GTAU);
+        properties.put("au.messagelogger.url", DB_URL);
+        properties.put("au.messagelogger.username", DB_USER);
+        properties.put("au.messagelogger.password", DB_PASS);
+        return properties;
+    }
+
     private JdbcTemplate template;
 
     @Before

@@ -14,13 +14,11 @@ import static org.mockito.Mockito.when;
 
 
 public class ConversationBoundnessFinderTest {
-
     @Test
     public void mailToSellerIsInboundWhenMessageDirectionIsBuyerToSeller() {
         MailTypeRts actual = ConversationBoundnessFinder.boundnessForRole(ConversationRole.Seller, MessageDirection.BUYER_TO_SELLER);
         assertThat(actual).isEqualTo(MailTypeRts.INBOUND);
     }
-
 
     @Test
     public void mailToBuyerIsInboundWhenMessageDirectionIsSellerToBuyer() {
@@ -28,13 +26,11 @@ public class ConversationBoundnessFinderTest {
         assertThat(actual).isEqualTo(MailTypeRts.INBOUND);
     }
 
-
     @Test
     public void mailToSellerIsOutboundWhenMessageDirectionIsSellerToBuyer() {
         MailTypeRts actual = ConversationBoundnessFinder.boundnessForRole(ConversationRole.Seller, MessageDirection.SELLER_TO_BUYER);
         assertThat(actual).isEqualTo(MailTypeRts.OUTBOUND);
     }
-
 
     @Test
     public void mailToBuyerIsOutboundWhenMessageDirectionIsBuyerToSeller() {
@@ -61,7 +57,7 @@ public class ConversationBoundnessFinderTest {
     }
 
     @Test
-    public void lookupUsersRole_whenNoBuyerId_shouldRerurnNull() {
+    public void lookupUsersRole_whenSomeBuyerId_shouldReturnSeller() {
         String email = "some.email@company.domain";
         AbstractConversationThread abstractConversationThreadMock = mockConversationThread(Optional.of("some.other.email@company.domain"));
 

@@ -1,4 +1,4 @@
-package com.ecg.au.gumtree.messagelogging;
+package com.ecg.comaas.gtau.listener.messagelogger;
 
 public class MySqlTestProjection {
 

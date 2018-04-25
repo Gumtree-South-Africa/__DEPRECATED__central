@@ -20,8 +20,7 @@ import static org.junit.Assert.assertTrue;
 @Ignore("Unstable test")
 public class TextCleanerTest {
     private File[] retryingFileLister(File mailFolder, String extension) {
-        final int max = 3;
-        for (int tries = 0; tries < max; tries++) {
+        for (int tries = 0; tries < 10; tries++) {
             File[] f = mailFolder.listFiles((dir, name) -> name.endsWith(extension));
             if (f != null) {
                 return f;

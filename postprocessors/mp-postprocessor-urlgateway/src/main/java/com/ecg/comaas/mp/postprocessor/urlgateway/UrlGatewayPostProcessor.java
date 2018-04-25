@@ -17,12 +17,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
+
 // TODO akobiakov: this thing should actually work with post message api messages as well.
 @ComaasPlugin
+@Profile(TENANT_MP)
 @Component
 @Import(UrlGatewayPostProcessorConfig.class)
 public class UrlGatewayPostProcessor implements EmailPostProcessor, ContentOverridingPostProcessor {

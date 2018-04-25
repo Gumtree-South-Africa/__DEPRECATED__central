@@ -9,7 +9,10 @@ import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
 
 /**
  * Examines the body of the message and replaces all instances of seller and
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Component;
  * Does not do anything if anonymization is disabled. See {@link Addresser}.
  */
 @ComaasPlugin
+@Profile(TENANT_GTUK)
 @Component
 @Import(MessageBodyAnonymizerConfig.class)
 public class MessageBodyAnonymizer implements PostProcessor {

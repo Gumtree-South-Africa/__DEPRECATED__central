@@ -8,21 +8,22 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.function.Supplier;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class LinkProxyPostProcessorIntegrationTest {
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(createProperties());
 
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_EBAYK);
         properties.put("replyts.linkescaper.proxyurl", "http://foo.com?url=%s");
         properties.put("replyts.linkescaper.whitelist", "host.com");
-
         return properties;
-    }).get());
+    }
 
     @Test
     public void proxiesUnknownDomains() {

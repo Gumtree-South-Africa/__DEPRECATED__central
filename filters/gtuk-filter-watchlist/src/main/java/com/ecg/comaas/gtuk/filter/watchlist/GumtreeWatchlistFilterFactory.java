@@ -5,9 +5,13 @@ import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.gumtree.filters.comaas.config.WatchlistFilterConfig;
 import com.gumtree.gumshield.api.client.GumshieldApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
+
 @ComaasPlugin
+@Profile(TENANT_GTUK)
 @Component
 public class GumtreeWatchlistFilterFactory extends GumtreeFilterFactory<WatchlistFilterConfig, GumtreeWatchlistFilter> {
 

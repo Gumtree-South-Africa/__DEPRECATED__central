@@ -11,11 +11,14 @@ import org.junit.Test;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -48,7 +51,7 @@ public class IdReplacerPostprocessorIntegrationTest {
     }
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_GTAU));
 
     @Test
     public void testPrepare() throws Exception {

@@ -14,14 +14,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
 import javax.sql.DataSource;
-
 import java.util.concurrent.TimeUnit;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
+
 @ComaasPlugin
+@Profile(TENANT_GTUK)
 @Configuration
 public class ReportingPluginConfig {
 

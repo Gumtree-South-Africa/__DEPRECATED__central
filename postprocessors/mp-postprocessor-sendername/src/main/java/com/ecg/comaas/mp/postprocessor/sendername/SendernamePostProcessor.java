@@ -12,12 +12,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import javax.mail.internet.InternetAddress;
-
 import java.io.UnsupportedEncodingException;
+
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
 
 /**
  * Copies the name from the initial e-mail to the From header for outgoing e-mails.
@@ -36,6 +38,7 @@ import java.io.UnsupportedEncodingException;
  */
 // TODO akobiakov and this one as well
 @ComaasPlugin
+@Profile(TENANT_MP)
 @Component
 public class SendernamePostProcessor implements EmailPostProcessor {
 

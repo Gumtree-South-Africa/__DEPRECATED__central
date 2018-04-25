@@ -9,20 +9,22 @@ import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
+
 @ComaasPlugin
 @Configuration
 @Import(RobotService.class)
-@ConditionalOnProperty(value = "replyts.tenant", havingValue = "gtau")
+@Profile(TENANT_GTAU)
 public class RobotApiConfiguration {
 
     @Value("${rabbitmq.host}")

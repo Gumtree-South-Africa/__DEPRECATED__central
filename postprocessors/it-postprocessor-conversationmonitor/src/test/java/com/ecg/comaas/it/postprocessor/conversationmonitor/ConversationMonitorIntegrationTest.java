@@ -8,9 +8,10 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.function.Supplier;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_IT;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 
 /**
  * Created by fmaffioletti on 28/07/14.
@@ -18,15 +19,17 @@ import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 public class ConversationMonitorIntegrationTest {
 
     @Rule public ReplyTsIntegrationTestRule replyTsIntegrationTestRule =
-            new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-                Properties properties = new Properties();
-                properties.put("replyts.conversation.monitor.trigger.chars", "65533,189");
-                properties.put("replyts.conversation.monitor.threshold.check.enabled", "true");
-                properties.put("replyts.conversation.monitor.warn.size.threshold", "5");
-                properties.put("replyts.conversation.monitor.error.size.threshold", "10");
-                properties.put("replyts.conversation.monitor.replaced.chars", "$|a,&|b");
-                return properties;
-            }).get(), ConversationMonitorPostProcessor.class);
+            new ReplyTsIntegrationTestRule(createProperties(), ConversationMonitorPostProcessor.class);
+
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_IT);
+        properties.put("replyts.conversation.monitor.trigger.chars", "65533,189");
+        properties.put("replyts.conversation.monitor.threshold.check.enabled", "true");
+        properties.put("replyts.conversation.monitor.warn.size.threshold", "5");
+        properties.put("replyts.conversation.monitor.error.size.threshold", "10");
+        properties.put("replyts.conversation.monitor.replaced.chars", "$|a,&|b");
+        return properties;
+    }
 
     @Test public void conversationMonitorFilterNoReplacedChars() {
         MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule

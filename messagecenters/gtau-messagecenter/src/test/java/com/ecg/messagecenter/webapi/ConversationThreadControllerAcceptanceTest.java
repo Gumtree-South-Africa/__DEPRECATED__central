@@ -7,24 +7,31 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
+
 import java.util.Properties;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.hamcrest.Matchers.equalTo;
 
 public class ConversationThreadControllerAcceptanceTest {
 
     @Rule
     public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(
-            new Properties() {{
-                put("replyts.tenant", "gtau");
-                put("webapi.sync.au.enabled", "true");
-                put("persistence.strategy", "cassandra");
-            }},
+            createProperties(),
             null, 20, ES_ENABLED,
             new Class[]{ConversationThreadControllerAcceptanceTest.class},
             "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_messagecenter_schema.cql");
+
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_GTAU);
+        properties.put("replyts.tenant", "gtau");
+        properties.put("webapi.sync.au.enabled", "true");
+        properties.put("persistence.strategy", "cassandra");
+        return properties;
+    }
 
     @Test
     public void readMessages() throws Exception {

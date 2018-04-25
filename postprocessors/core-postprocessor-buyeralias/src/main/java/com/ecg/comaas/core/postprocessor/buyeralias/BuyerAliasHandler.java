@@ -1,4 +1,4 @@
-package com.ecg.de.kleinanzeigen.replyts.buyeralias;
+package com.ecg.comaas.core.postprocessor.buyeralias;
 
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.MailAddress;

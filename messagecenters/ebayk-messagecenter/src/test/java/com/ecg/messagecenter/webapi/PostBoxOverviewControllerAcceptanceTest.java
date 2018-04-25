@@ -9,18 +9,21 @@ import javax.mail.internet.MimeMessage;
 
 import java.util.Properties;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.hamcrest.Matchers.equalTo;
 
 public class PostBoxOverviewControllerAcceptanceTest {
-    private final Properties testProperties = new Properties() {{
-        put("replyts.tenant", "ebayk");
-        put("persistence.strategy", "riak");
-    }};
-
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), null, 20, ES_ENABLED);
+
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_EBAYK);
+        properties.put("persistence.strategy", "riak");
+        return properties;
+    }
 
     @Test
     public void readConversation() {

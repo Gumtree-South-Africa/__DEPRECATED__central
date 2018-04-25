@@ -10,10 +10,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 
 class BankAccountFilter implements Filter {
-
-
     private final BankAccountFilterConfiguration config;
-
 
     BankAccountFilter(BankAccountFilterConfiguration config) {
         this.config = config;
@@ -38,5 +35,4 @@ class BankAccountFilter implements Filter {
 
         return null;
     }
-
 }

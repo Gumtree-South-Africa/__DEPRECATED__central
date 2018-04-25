@@ -10,12 +10,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 
 public class GumtreeVolumeFilterIntegrationTest {
-
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(true);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_GTUK), true);
 
     @Test
     public void testMultipleRegistrations() {

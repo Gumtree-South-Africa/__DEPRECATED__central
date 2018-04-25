@@ -14,8 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
-import java.util.function.Supplier;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -30,8 +31,10 @@ public class AutogateAwareMailDeliveryServiceIntegrationTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(AutogateAwareMailDeliveryServiceIntegrationTest.class);
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(createProperties());
+
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_GTAU);
 
         // Header Injector
         properties.put("replyts.header-injector.headers", "Http-Url,Http-Account-Name,Http-Account-Password");
@@ -42,7 +45,7 @@ public class AutogateAwareMailDeliveryServiceIntegrationTest {
         properties.put("replyts.autogate.header.password", "Http-Account-Password");
 
         return properties;
-    }).get());
+    }
 
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(HTTP_PORT);

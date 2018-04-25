@@ -8,9 +8,13 @@ import com.rabbitmq.client.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.util.Assert;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
+
 @Configuration
+@Profile(TENANT_GTUK)
 @ComaasPlugin
 public class EventPublisherConfig {
 

@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.mail.internet.MimeMessage;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -27,7 +29,7 @@ public class SendNotifierPostProcessorIntegrationTest {
     private final static Logger LOGGER = LoggerFactory.getLogger(SendNotifierPostProcessorIntegrationTest.class);
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_GTAU));
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(DEFAULT_PORT);

@@ -37,7 +37,7 @@ public class MessageBoxConfiguration {
     @ConditionalOnExpression(ONLY_V1_TENANTS)
     public static class MessageCenterServices {
         @Bean
-        public SpringContextProvider v1ContextProvider(@Value("${replyts.tenant}") String tenant, ApplicationContext context) {
+        public SpringContextProvider v1ContextProvider(@Value("${tenant}") String tenant, ApplicationContext context) {
             String tenantPath = "kjca".equals(tenant) ? "/message-center" : "/ebayk-msgcenter";
 
             return new SpringContextProvider(tenantPath, LegacyWebConfiguration.class, context);

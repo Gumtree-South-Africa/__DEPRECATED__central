@@ -3,16 +3,26 @@ package com.ecg.comaas.mde.postprocessor.donotanonymize;
 import com.ecg.replyts.app.postprocessorchain.PostProcessor;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.mail.internet.InternetAddress;
+
 import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 
-class DoNotAnonymizePostProcessor implements PostProcessor {
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MDE;
+
+@ComaasPlugin
+@Profile(TENANT_MDE)
+@Component
+public class DoNotAnonymizePostProcessor implements PostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(DoNotAnonymizePostProcessor.class);
 
@@ -20,7 +30,7 @@ class DoNotAnonymizePostProcessor implements PostProcessor {
 
     private final String password;
 
-    DoNotAnonymizePostProcessor(String password) {
+    DoNotAnonymizePostProcessor(@Value("${replyts.doNotAnonymize.password:J2y$idmEqLo2yyDyope}") String password) {
         this.password = password;
     }
 

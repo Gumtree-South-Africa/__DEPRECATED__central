@@ -1181,6 +1181,16 @@ public class MessageTextHandlerTest {
         }
     }
 
+    private File[] getFiles(File folder, String extension) {
+        for (int i = 0; i < 20; i++) {
+            File[] mails = folder.listFiles((dir, name) -> name.endsWith(extension));
+            if (mails != null) {
+                return mails;
+            }
+        }
+        throw new IllegalStateException("Could not load test files with extension " + extension + " from folder " + folder);
+    }
+
     @Test
     public void testValidMails() throws Exception {
         File mailFolder = new File(getClass().getResource("/mailReceived").getFile());
@@ -1189,8 +1199,8 @@ public class MessageTextHandlerTest {
         long start, end, duration;
         String fileName, result;
 
-        File[] mails = mailFolder.listFiles((dir, name) -> name.endsWith("eml"));
-        File[] texts = mailFolder.listFiles((dir, name) -> name.endsWith("txt"));
+        File[] mails = getFiles(mailFolder, "eml");
+        File[] texts = getFiles(mailFolder, "txt");
         for (File text : texts) {
             expected.put(fileName(text.getName()), IOUtils.toString(new FileInputStream(text)));
         }

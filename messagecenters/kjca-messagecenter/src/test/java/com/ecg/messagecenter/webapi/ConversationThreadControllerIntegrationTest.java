@@ -11,8 +11,10 @@ import org.springframework.http.HttpStatus;
 
 import java.util.Properties;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 
 public class ConversationThreadControllerIntegrationTest {
     private static final MailBuilder MAIL = aNewMail()
@@ -21,15 +23,15 @@ public class ConversationThreadControllerIntegrationTest {
             .adId("232323")
             .plainBody("First contact from buyer.");
 
-    private final Properties testProperties = new Properties() {{
-        put("replyts.tenant", "kjca");
-        put("persistence.strategy", "riak");
-        put("unread.count.cache.queue", "devull");
-    }};
-
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), null, 20, ES_ENABLED);
 
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_KJCA);
+        properties.put("persistence.strategy", "riak");
+        properties.put("unread.count.cache.queue", "devull");
+        return properties;
+    }
     @Test
     public void deleteConversation_removedFromPostbox() throws Exception {
         Conversation conversation = testRule.deliver(MAIL).getConversation();
@@ -48,6 +50,7 @@ public class ConversationThreadControllerIntegrationTest {
                 .body("body.conversations", Matchers.empty())
                 .get(postboxEndpoint);
     }
+
 
     @Test
     public void existingConversation_sellerBlocksUnblocks() throws Exception {

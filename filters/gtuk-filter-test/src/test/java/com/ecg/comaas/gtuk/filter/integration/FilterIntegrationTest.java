@@ -9,16 +9,20 @@ import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.gumtree.api.category.CategoryModel;
+import com.gumtree.api.category.stub.StubCategoryModel;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Properties;
 
 import static com.ecg.comaas.gtuk.filter.integration.Utils.readFileContent;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -34,7 +38,6 @@ public class FilterIntegrationTest {
     private static FilterObject knownGoodFilter;
 
     static {
-
         mailWithBadWordFromKnownGood = MailBuilder.aNewMail()
                 .adId("1234")
                 .from("foo@bar.com")
@@ -72,13 +75,16 @@ public class FilterIntegrationTest {
         }
     }
 
+    @Bean
+    public CategoryModel unfilteredCategoryModel() {
+        return new StubCategoryModel();
+    }
+
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(
-            new Properties() {{
-                put("replyts.tenant", "gtuk");
-            }},
+            propertiesWithTenant(TENANT_GTUK),
             null, 20, false,
-            new Class[]{FilterConfigurationIntegrationTest.class},
+            new Class[]{FilterIntegrationTest.class},
             "cassandra_schema.cql");
 
     /**

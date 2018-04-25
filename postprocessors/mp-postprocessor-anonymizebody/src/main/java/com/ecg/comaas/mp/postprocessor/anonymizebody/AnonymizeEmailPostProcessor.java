@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,7 +24,10 @@ import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
+
 @ComaasPlugin
+@Profile(TENANT_MP)
 @Component
 @Import(AnonymizeEmailPostProcessorConfig.class)
 public class AnonymizeEmailPostProcessor implements EmailPostProcessor {

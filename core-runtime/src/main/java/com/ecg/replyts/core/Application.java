@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT;
 import static java.lang.String.format;
 
 @Configuration
@@ -142,6 +143,8 @@ public class Application {
             }, false, parent);
 
             context.registerShutdownHook();
+
+            context.getEnvironment().setActiveProfiles(parent.getEnvironment().getProperty(TENANT));
 
             context.refresh();
 

@@ -6,7 +6,11 @@ import com.ecg.replyts.integration.test.OpenPortFinder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +18,14 @@ import org.subethamail.wiser.WiserMessage;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.util.Properties;
-import java.util.function.Supplier;
 
-import static org.junit.Assert.*;
+import java.util.Properties;
+
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 
 
 public class MailEnhancerIntegrationTest {
@@ -25,8 +33,11 @@ public class MailEnhancerIntegrationTest {
     private final static Logger LOGGER = LoggerFactory.getLogger(MailEnhancerIntegrationTest.class);
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(createProperties());
+
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_GTAU);
+
 
         // Header Injector
         properties.put( "replyts.header-injector.headers", "Http-Url,Http-Account-Name,Http-Account-Password,X-Reply-Channel,Email-From-Override,Email-To-Override,Email-Cc-Override,Email-Bcc-Override" );
@@ -38,7 +49,7 @@ public class MailEnhancerIntegrationTest {
         properties.put( "replyts.header.email.bcc.list", "Email-Bcc-Override" );
 
         return properties;
-    }).get());
+    }
 
 
     @ClassRule

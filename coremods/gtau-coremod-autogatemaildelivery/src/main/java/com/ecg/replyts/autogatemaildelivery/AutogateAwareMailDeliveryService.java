@@ -21,11 +21,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
 import java.nio.charset.Charset;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
 import static com.ecg.replyts.core.runtime.prometheus.PrometheusFailureHandler.reportExternalServiceFailure;
 
 /**
@@ -33,6 +35,7 @@ import static com.ecg.replyts.core.runtime.prometheus.PrometheusFailureHandler.r
  * specific URL header has been set - otherwise sends as normal mail message.
  */
 @ComaasPlugin
+@Profile(TENANT_GTAU)
 @Primary
 @Component
 public class AutogateAwareMailDeliveryService implements MailDeliveryService {

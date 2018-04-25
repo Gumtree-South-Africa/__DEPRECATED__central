@@ -4,13 +4,15 @@ import com.ecg.messagecenter.cleanup.gtau.TextCleaner;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
 
 @Primary
 @Component
-@ConditionalOnExpression("#{'${replyts.tenant}' == 'gtau'}")
+@Profile(TENANT_GTAU)
 public class GtauMessageResponseFactory implements MessagesResponseFactory {
 
     @Override

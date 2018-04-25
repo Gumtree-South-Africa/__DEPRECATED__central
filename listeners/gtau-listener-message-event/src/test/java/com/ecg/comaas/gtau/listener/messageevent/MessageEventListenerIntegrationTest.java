@@ -11,7 +11,9 @@ import org.junit.Test;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MessageEventListenerIntegrationTest {
@@ -22,19 +24,19 @@ public class MessageEventListenerIntegrationTest {
     private static final String SELLER_EMAIL = "seller@example.com";
     private static final String AD_ID = "12345";
 
-    private final Properties testProperties = new Properties() {{
-        put("replyts.tenant", "gtau");
-
-        put("rabbitmq.host", "localhost");
-        put("rabbitmq.port", "5672");
-        put("rabbitmq.virtualHost", "/");
-        put("rabbitmq.username", "guest");
-        put("rabbitmq.password", "guest");
-        put("rabbitmq.connectionTimeout", "1000");
-    }};
-
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties);
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties());
+
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_GTAU);
+        properties.put("rabbitmq.host", "localhost");
+        properties.put("rabbitmq.port", "5672");
+        properties.put("rabbitmq.virtualHost", "/");
+        properties.put("rabbitmq.username", "guest");
+        properties.put("rabbitmq.password", "guest");
+        properties.put("rabbitmq.connectionTimeout", "1000");
+        return properties;
+    }
 
     private Connection connection;
     private Channel channel;

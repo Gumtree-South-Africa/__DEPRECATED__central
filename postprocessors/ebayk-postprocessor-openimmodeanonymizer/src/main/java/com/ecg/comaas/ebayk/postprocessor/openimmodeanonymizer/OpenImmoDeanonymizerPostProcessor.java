@@ -9,9 +9,13 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
+
 @ComaasPlugin
+@Profile(TENANT_EBAYK)
 @Component
 public class OpenImmoDeanonymizerPostProcessor implements PostProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(OpenImmoDeanonymizerPostProcessor.class);

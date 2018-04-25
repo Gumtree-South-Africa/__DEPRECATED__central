@@ -8,22 +8,24 @@ import org.junit.Test;
 
 import java.util.Properties;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MDE;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class UniqueIdIntegrationTest {
 
     private static final String X_MOBILEDE_BUYER_ID = "X-MOBILEDE-BUYER-ID";
-    private static final Properties PROPERTIES;
-
-    static {
-        PROPERTIES = new Properties();
-        PROPERTIES.put("replyts.uniqueid.ignoredBuyerAddresses", "foo@Foo.com , a@b.com");
-        PROPERTIES.put("replyts.uniqueid.order", "1");
-    }
 
     @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(PROPERTIES);
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(createProperties());
+
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_MDE);
+        properties.put("replyts.uniqueid.ignoredBuyerAddresses", "foo@Foo.com , a@b.com");
+        properties.put("replyts.uniqueid.order", "1");
+        return properties;
+    }
 
     private MailBuilder createInitialMailFromBuyer() {
         return MailBuilder.aNewMail()

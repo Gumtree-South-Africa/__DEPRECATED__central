@@ -17,6 +17,8 @@ import org.junit.Test;
 
 import java.util.List;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -42,7 +44,7 @@ public class EchelonFilterIntegrationTest {
     private static final String RESPONSE_KO = "KO\n" + KO_FEEDBACK;
 
     @Rule
-    public ReplyTsIntegrationTestRule rtsRule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule rtsRule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_GTAU));
 
     @Rule
     public WireMockClassRule wireMockServer = new WireMockClassRule(DEFAULT_PORT);

@@ -6,19 +6,28 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+
 import java.util.List;
+
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MDE;
 
 
 /**
  * Replaces the email address TO a seller, if it differs from address of last response of seller in these conversation.
  */
+@ComaasPlugin
+@Profile(TENANT_MDE)
+@Component
 public class SendToLastSellerAddressPostProcessor implements PostProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(SendToLastSellerAddressPostProcessor.class);
 

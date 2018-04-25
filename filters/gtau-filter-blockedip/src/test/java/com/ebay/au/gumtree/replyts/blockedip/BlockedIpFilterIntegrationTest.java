@@ -1,7 +1,9 @@
 package com.ebay.au.gumtree.replyts.blockedip;
 
+import com.ecg.replyts.core.api.model.Tenants;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
+import com.ecg.replyts.integration.test.support.IntegrationTestUtils;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.After;
 import org.junit.Before;
@@ -21,15 +23,17 @@ public class BlockedIpFilterIntegrationTest {
     private static final String DB_PASS = "mysql_guest";
     private static final String DEFAULT_IP = "127.0.0.1";
 
-    private final Properties testProperties = new Properties() {{
-        put("replyts2-blockedipfilter-plugin.dataSource.url", DB_URL);
-        put("replyts2-blockedipfilter-plugin.dataSource.username", DB_USER);
-        put("replyts2-blockedipfilter-plugin.dataSource.password", DB_PASS);
-        put("replyts2-blockedipfilter-plugin.dataSource.pool.maxPoolSize", 10);
-    }};
-
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties);
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties());
+
+    private Properties createProperties() {
+        Properties properties = IntegrationTestUtils.propertiesWithTenant(Tenants.TENANT_GTAU);
+        properties.put("replyts2-blockedipfilter-plugin.dataSource.url", DB_URL);
+        properties.put("replyts2-blockedipfilter-plugin.dataSource.username", DB_USER);
+        properties.put("replyts2-blockedipfilter-plugin.dataSource.password", DB_PASS);
+        properties.put("replyts2-blockedipfilter-plugin.dataSource.pool.maxPoolSize", 10);
+        return properties;
+    }
 
     private JdbcTemplate template;
 

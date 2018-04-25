@@ -9,10 +9,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 
 import java.util.UUID;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
+
 @ComaasPlugin
+@Profile(TENANT_EBAYK)
 @Configuration
 @Import(KafkaHadoopLogConfig.class)
 public class DailyReportConfiguration {

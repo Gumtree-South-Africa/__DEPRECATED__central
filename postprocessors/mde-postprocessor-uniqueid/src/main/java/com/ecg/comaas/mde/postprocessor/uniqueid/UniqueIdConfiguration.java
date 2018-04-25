@@ -5,12 +5,16 @@ import com.google.common.collect.ImmutableSet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MDE;
+
 @ComaasPlugin
+@Profile(TENANT_MDE)
 @Configuration
 public class UniqueIdConfiguration {
 

@@ -5,7 +5,9 @@ import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
 import static com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -16,9 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author maldana@ebay.de
  */
 public class OpenImmoDeanonymizerPostProcessorIntegrationTest {
-
     @Rule
-    public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_EBAYK));
 
     @Test
     public void deannoymizationForOpenImmo() {

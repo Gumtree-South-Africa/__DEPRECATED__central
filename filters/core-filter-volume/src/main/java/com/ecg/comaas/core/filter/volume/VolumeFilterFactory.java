@@ -10,20 +10,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
-
 import java.time.Duration;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @ComaasPlugin
+@Profile(TENANT_EBAYK)
 @Component
 public class VolumeFilterFactory implements FilterFactory {
 

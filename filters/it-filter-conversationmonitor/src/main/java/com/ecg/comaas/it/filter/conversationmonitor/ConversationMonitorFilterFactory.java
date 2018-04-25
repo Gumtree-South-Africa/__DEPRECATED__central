@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -16,7 +17,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_IT;
+
 @ComaasPlugin
+@Profile(TENANT_IT)
 @Component
 public class ConversationMonitorFilterFactory implements FilterFactory {
 

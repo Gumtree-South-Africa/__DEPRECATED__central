@@ -10,12 +10,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 
 public class ThresholdResultInspectorIntegrationTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(null, ScoringFilterFactory.class);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_GTUK), ScoringFilterFactory.class);
 
     @Before
     public void setUp() throws Exception {

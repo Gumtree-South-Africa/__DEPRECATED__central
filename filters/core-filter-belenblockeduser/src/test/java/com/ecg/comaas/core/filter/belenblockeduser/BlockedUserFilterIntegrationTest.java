@@ -11,7 +11,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Properties;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 
 public class BlockedUserFilterIntegrationTest {
 
@@ -20,15 +22,17 @@ public class BlockedUserFilterIntegrationTest {
     private static final String DB_PASS = "mysql_guest";
     private static final String FROM_EMAIL = "buyer@example.com";
 
-    private final Properties testProperties = new Properties() {{
-        put("replyts2-belenblockeduserfilter-plugin.dataSource.url", DB_URL);
-        put("replyts2-belenblockeduserfilter-plugin.dataSource.username", DB_USER);
-        put("replyts2-belenblockeduserfilter-plugin.dataSource.password", DB_PASS);
-        put("replyts2-belenblockeduserfilter-plugin.dataSource.maxPoolSize", 10);
-    }};
-
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties);
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties());
+
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_EBAYK);
+        properties.put("replyts2-belenblockeduserfilter-plugin.dataSource.url", DB_URL);
+        properties.put("replyts2-belenblockeduserfilter-plugin.dataSource.username", DB_USER);
+        properties.put("replyts2-belenblockeduserfilter-plugin.dataSource.password", DB_PASS);
+        properties.put("replyts2-belenblockeduserfilter-plugin.dataSource.maxPoolSize", 10);
+        return properties;
+    }
 
     private JdbcTemplate template;
 

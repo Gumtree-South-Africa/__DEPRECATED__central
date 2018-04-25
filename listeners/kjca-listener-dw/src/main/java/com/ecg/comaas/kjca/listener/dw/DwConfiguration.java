@@ -8,10 +8,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jms.connection.JmsTransactionManager;
 import org.springframework.jms.core.JmsTemplate;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
+
 @ComaasPlugin
+@Profile(TENANT_KJCA)
 @Configuration
 @Import(ActiveMQReporter.class)
 @ComponentScan("com.ecg.comaas.kjca")

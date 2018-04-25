@@ -1,22 +1,18 @@
-package com.ecg.de.kleinanzeigen.replyts.buyeralias;
+package com.ecg.comaas.core.postprocessor.buyeralias;
 
 import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
-import static org.junit.Assert.assertTrue;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
+import static org.junit.Assert.assertEquals;
 
-/**
- * User: acharton
- * Date: 11/12/13
- */
 public class BuyerAliasIntegrationTest {
-
     @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule();
-
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_GTUK));
 
     @Test
     public void buyerAliasAppended() throws Exception {
@@ -28,13 +24,10 @@ public class BuyerAliasIntegrationTest {
                         .htmlBody("this is a message! ")
                         .customHeader("buyer-name", "BuyerName")
                         .customHeader("seller-name", "SellerName")
-
                 );
 
-
-        assertTrue(processedMail.getOutboundMail().getFromName().equals("BuyerName über eBay Kleinanzeigen"));
+        assertEquals("BuyerName über eBay Kleinanzeigen", processedMail.getOutboundMail().getFromName());
     }
-
 
     @Test
     public void sellerAliasAppended() throws Exception {
@@ -46,15 +39,10 @@ public class BuyerAliasIntegrationTest {
                         .htmlBody("this is a message! ")
                         .customHeader("buyer-name", "BuyerName")
                         .customHeader("seller-name", "SellerName")
-
                 );
-
 
         processedMail = replyTsIntegrationTestRule.deliver(aNewMail().to(processedMail.getOutboundMail().getFrom()).from("foo@bar.com").htmlBody("replyFromSeller"));
 
-        assertTrue(processedMail.getOutboundMail().getFromName().equals("SellerName über eBay Kleinanzeigen"));
+        assertEquals("SellerName über eBay Kleinanzeigen", processedMail.getOutboundMail().getFromName());
     }
-
-
-
 }

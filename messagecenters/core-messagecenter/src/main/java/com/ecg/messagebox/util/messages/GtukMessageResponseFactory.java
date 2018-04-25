@@ -6,17 +6,19 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
+
 @Primary
 @Component
-@ConditionalOnExpression("#{'${replyts.tenant}' == 'gtuk'}")
+@Profile(TENANT_GTUK)
 public class GtukMessageResponseFactory implements MessagesResponseFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(GtukMessageResponseFactory.class);

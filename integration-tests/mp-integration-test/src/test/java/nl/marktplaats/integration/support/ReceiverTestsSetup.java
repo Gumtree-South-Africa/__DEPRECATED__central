@@ -16,10 +16,11 @@ import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
-import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 
 public class ReceiverTestsSetup {
     private static String KEYSPACE = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
@@ -38,26 +39,7 @@ public class ReceiverTestsSetup {
 
         session = embeddedCassandra.loadSchema(KEYSPACE, "cassandra_schema.cql", "cassandra_volume_filter_schema.cql");
 
-        runner = new IntegrationTestRunner(((Supplier<Properties>) () -> {
-            Properties properties = new Properties();
-
-            properties.put("confDir", ((Supplier<String>) () -> {
-                List<String> configurationDirectoryAsModulePaths = Arrays.asList(
-                        "src/test/resources/mp-integration-test-conf",
-                        "replyts2-mp-integration-tests/src/test/resources/mp-integration-test-conf"
-                );
-
-                return configurationDirectoryAsModulePaths
-                        .stream()
-                        .filter(d -> new File(d).isDirectory())
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalStateException("Was not able to find configuration directory"));
-            }).get());
-            properties.put("persistence.cassandra.core.keyspace", KEYSPACE);
-            properties.put("persistence.cassandra.mb.keyspace", KEYSPACE);
-
-            return properties;
-        }).get(), "/mp-integration-test-conf");
+        runner = new IntegrationTestRunner(createProperties(), "/mp-integration-test-conf");
 
         runner.start();
 
@@ -86,6 +68,24 @@ public class ReceiverTestsSetup {
                         PluginState.ENABLED,
                         1,
                         JsonObjects.parse("[{'timeSpan': 10,'timeUnit': 'MINUTES','maxCount': 10,'score': 100}]")));
+    }
+
+    private static Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_MP);
+
+        properties.put("confDir", createConfDir());
+        properties.put("persistence.cassandra.core.keyspace", KEYSPACE);
+        properties.put("persistence.cassandra.mb.keyspace", KEYSPACE);
+
+        return properties;
+    }
+
+    private static String createConfDir() {
+        return Stream
+                .of("src/test/resources/mp-integration-test-conf",
+                    "replyts2-mp-integration-tests/src/test/resources/mp-integration-test-conf")
+                .filter(d -> new File(d).isDirectory()).findFirst()
+                .orElseThrow(() -> new IllegalStateException("Was not able to find configuration directory"));
     }
 
     @BeforeMethod(groups = { "receiverTests" })

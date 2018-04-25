@@ -13,27 +13,30 @@ import static com.ecg.messagecenter.webapi.SyncTestBase.TestValues.FROM;
 import static com.ecg.messagecenter.webapi.SyncTestBase.TestValues.MESSAGE;
 import static com.ecg.messagecenter.webapi.SyncTestBase.TestValues.SUBJECT;
 import static com.ecg.messagecenter.webapi.SyncTestBase.TestValues.TO;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 
 public abstract class SyncTestBase {
 
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(
-            new Properties() {{
-                put("replyts.tenant", "gtau");
-                put("persistence.strategy", "cassandra");
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), null, 20,
+            ES_ENABLED, new Class[] { Object.class }, "cassandra_schema.cql", "cassandra_messagebox_schema.cql",
+            "cassandra_messagecenter_schema.cql");
 
-                put("webapi.sync.au.enabled", "true");
-                put("webapi.sync.v2.enabled", "true");
-                put("webapi.diff.au.enabled", "true");
-                put("messagebox.userid.by_user_id.customValueNameForBuyer", "buyer-user-id");
-                put("messagebox.userid.by_user_id.customValueNameForSeller", "seller-user-id");
-                put("messagebox.userid.userIdentifierStrategy", "BY_USER_ID");
-            }},
-            null, 20, ES_ENABLED,
-            new Class[]{Object.class},
-            "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_messagecenter_schema.cql");
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_GTAU);
+        properties.put("replyts.tenant", TENANT_GTAU);
+        properties.put("persistence.strategy", "cassandra");
+        properties.put("webapi.sync.au.enabled", "true");
+        properties.put("webapi.sync.v2.enabled", "true");
+        properties.put("webapi.diff.au.enabled", "true");
+        properties.put("messagebox.userid.by_user_id.customValueNameForBuyer", "buyer-user-id");
+        properties.put("messagebox.userid.by_user_id.customValueNameForSeller", "seller-user-id");
+        properties.put("messagebox.userid.userIdentifierStrategy", "BY_USER_ID");
+        return properties;
+    }
 
     protected static MailBuilder buildMail() {
         return aNewMail()

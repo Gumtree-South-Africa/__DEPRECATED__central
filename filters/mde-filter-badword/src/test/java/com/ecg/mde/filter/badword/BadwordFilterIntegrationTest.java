@@ -20,9 +20,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
-import java.util.function.Supplier;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MDE;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 
 public class BadwordFilterIntegrationTest {
@@ -31,19 +32,17 @@ public class BadwordFilterIntegrationTest {
     private final int port_number = OpenPortFinder.findFreePort();
 
     @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule((((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(createProperties());
+
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_MDE);
         properties.put("replyts.mobile.badword.csFilterServiceEndpoint", "http://localhost:"+port_number+"/cs-filter-service");
         return properties;
-    }).get()));
-
+    }
 
     @Before
     public void setup() {
-        replyTsIntegrationTestRule.registerConfig(
-                BadwordFilterFactory.IDENTIFIER,
-                null
-        );
+        replyTsIntegrationTestRule.registerConfig(BadwordFilterFactory.IDENTIFIER, null);
     }
 
     @After

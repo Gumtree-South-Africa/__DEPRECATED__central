@@ -9,9 +9,13 @@ import com.ning.http.client.providers.grizzly.GrizzlyAsyncHttpProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
 
 @ComaasPlugin
 @Configuration
+@Profile(TENANT_GTUK)
 public class Replyts2StatsNotifierConfig {
 
     @Value("${gumtree.stats.api.url}")

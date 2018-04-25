@@ -1,6 +1,5 @@
 package com.ecg.comaas.core.filter.word;
 
-import com.ecg.comaas.core.filter.word.WordfilterFactory;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.integration.test.MailInterceptor;
@@ -11,14 +10,14 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.ecg.comaas.core.filter.word.Wordfilter.CATEGORY_ID;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 
 public class WordfilterIntegrationTest {
-
     @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule();
-
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_GTAU));
 
     @Before
     public void setUp() throws Exception {

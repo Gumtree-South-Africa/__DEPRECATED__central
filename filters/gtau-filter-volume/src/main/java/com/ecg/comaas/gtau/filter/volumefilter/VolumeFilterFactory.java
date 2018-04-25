@@ -6,9 +6,13 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
+
 @ComaasPlugin
+@Profile(TENANT_GTAU)
 @Component
 class VolumeFilterFactory implements FilterFactory {
 

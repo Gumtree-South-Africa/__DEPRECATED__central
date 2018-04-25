@@ -1,4 +1,4 @@
-package com.ecg.de.kleinanzeigen.replyts.buyeralias;
+package com.ecg.comaas.core.postprocessor.buyeralias;
 
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
@@ -12,7 +12,11 @@ import java.util.Map;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * User: acharton
@@ -26,7 +30,7 @@ public class BuyerAliasHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        headers = new HashMap<String, String>();
+        headers = new HashMap<>();
         msgContext = mock(MessageProcessingContext.class, RETURNS_DEEP_STUBS);
         aliasFormatPattern = "%s";
 

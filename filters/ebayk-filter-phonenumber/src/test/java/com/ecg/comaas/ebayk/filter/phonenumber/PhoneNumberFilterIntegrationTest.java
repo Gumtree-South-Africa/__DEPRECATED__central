@@ -15,13 +15,13 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PhoneNumberFilterIntegrationTest {
-
-
     @Rule
-    public ReplyTsIntegrationTestRule replyTS = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule replyTS = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_EBAYK));
 
     @Before
     public void setup() {

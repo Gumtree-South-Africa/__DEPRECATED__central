@@ -190,6 +190,7 @@ function main() {
 
     export COMAAS_HTTP_PORT=18081
     export COMAAS_HAZELCAST_IP=127.0.0.1
+    export tenant=${TENANT}
     CMD="${MVN_CMD} ${MVN_ARGS} ${MVN_TASKS}"
     log "Executing: ${CMD}"
     ${CMD}

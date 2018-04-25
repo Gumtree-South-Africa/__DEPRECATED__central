@@ -1,15 +1,16 @@
 package com.ecg.comaas.mde.postprocessor.rememberlastselleraddress;
 
-import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
-import static org.junit.Assert.assertEquals;
-
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
+import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.integration.test.MailInterceptor.ProcessedMail;
-import com.ecg.replyts.integration.test.MailBuilder;
-import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MDE;
+import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
+import static org.junit.Assert.assertEquals;
 
 
 public class SendToLastSellerAddressPostProcessorIntegrationTest {
@@ -29,7 +30,7 @@ public class SendToLastSellerAddressPostProcessorIntegrationTest {
     private final static String SELLER_WITH_FULL_NAME = "Bob Foobar <" + SELLER + ">";
 
     @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_MDE));
 
     @Test
     public void doesNotTouchBuyerEmailAddresses() {

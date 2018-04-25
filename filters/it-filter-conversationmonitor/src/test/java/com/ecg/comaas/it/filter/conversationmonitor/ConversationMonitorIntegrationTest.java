@@ -7,25 +7,28 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Properties;
-import java.util.function.Supplier;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_IT;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 
 /**
  * Created by fmaffioletti on 28/07/14.
  */
 public class ConversationMonitorIntegrationTest {
+    @Rule
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule =
+            new ReplyTsIntegrationTestRule(createProperties(), ConversationMonitorFilterFactory.class);
 
-    @Rule public ReplyTsIntegrationTestRule replyTsIntegrationTestRule =
-            new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-                Properties properties = new Properties();
-                properties.put("replyts.conversation.monitor.trigger.chars", "65533,189");
-                properties.put("replyts.conversation.monitor.threshold.check.enabled", "true");
-                properties.put("replyts.conversation.monitor.warn.size.threshold", "5");
-                properties.put("replyts.conversation.monitor.error.size.threshold", "10");
-                properties.put("replyts.conversation.monitor.replaced.chars", "$|a,&|b");
-                return properties;
-            }).get(), ConversationMonitorFilterFactory.class);
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_IT);
+        properties.put("replyts.conversation.monitor.trigger.chars", "65533,189");
+        properties.put("replyts.conversation.monitor.threshold.check.enabled", "true");
+        properties.put("replyts.conversation.monitor.warn.size.threshold", "5");
+        properties.put("replyts.conversation.monitor.error.size.threshold", "10");
+        properties.put("replyts.conversation.monitor.replaced.chars", "$|a,&|b");
+        return properties;
+    }
 
     @Test public void conversationMonitorFilterNoReplacedChars() throws Exception {
         MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule

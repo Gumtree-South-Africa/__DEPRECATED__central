@@ -5,6 +5,7 @@ import com.ecg.replyts.core.LoggingService;
 import com.ecg.replyts.core.Webserver;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.io.Files;
+import io.prometheus.client.CollectorRegistry;
 import org.elasticsearch.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.setEnv;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -48,6 +50,8 @@ public final class ReplytsRunner {
         wiser.start();
 
         try {
+            CollectorRegistry.defaultRegistry.clear();
+
             context = new AnnotationConfigApplicationContext();
 
             Properties properties = new Properties();
@@ -86,10 +90,13 @@ public final class ReplytsRunner {
             new XmlBeanDefinitionReader(context).loadBeanDefinitions(megaTemporaryResource);
 
             if (configurations != null && configurations.length != 0) {
+                LOG.info("Registering: {}", configurations);
                 context.register(configurations);
             }
 
             context.registerShutdownHook();
+
+            context.getEnvironment().setActiveProfiles(testProperties.getProperty(TENANT));
 
             context.refresh();
 

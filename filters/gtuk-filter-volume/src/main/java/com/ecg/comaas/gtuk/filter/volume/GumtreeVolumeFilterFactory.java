@@ -1,16 +1,20 @@
 package com.ecg.comaas.gtuk.filter.volume;
 
-import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
 import com.ecg.comaas.gtuk.filter.volume.monitoring.VolumeFilterMonitoringConfiguration;
+import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.api.search.SearchService;
 import com.gumtree.common.util.time.SystemClock;
 import com.gumtree.filters.comaas.config.VelocityFilterConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
+
 @ComaasPlugin
+@Profile(TENANT_GTUK)
 @Component
 @Import({ EventStreamProcessor.class, SharedBrain.class, VolumeFilterMonitoringConfiguration.class })
 public class GumtreeVolumeFilterFactory extends GumtreeFilterFactory<VelocityFilterConfig, GumtreeVolumeFilter> {

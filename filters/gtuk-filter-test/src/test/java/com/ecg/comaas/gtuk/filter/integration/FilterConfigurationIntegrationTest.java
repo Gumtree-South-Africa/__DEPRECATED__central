@@ -22,6 +22,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static com.ecg.comaas.gtuk.filter.integration.Utils.readFileContent;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 
 @Configuration
 public class FilterConfigurationIntegrationTest {
@@ -32,7 +34,7 @@ public class FilterConfigurationIntegrationTest {
     }
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(null, FilterConfigurationIntegrationTest.class);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_GTUK), FilterConfigurationIntegrationTest.class);
 
     @Test
     public void loadsAllConfiguration() throws IOException, URISyntaxException, JSONException {

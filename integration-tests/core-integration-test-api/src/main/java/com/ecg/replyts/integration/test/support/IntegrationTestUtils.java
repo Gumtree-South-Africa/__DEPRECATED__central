@@ -2,6 +2,9 @@ package com.ecg.replyts.integration.test.support;
 
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.Properties;
+
+import static com.ecg.replyts.core.api.model.Tenants.TENANT;
 
 public abstract class IntegrationTestUtils {
     /**
@@ -25,5 +28,11 @@ public abstract class IntegrationTestUtils {
         } catch (Exception e) {
             throw new IllegalStateException("Failed to set environment variable", e);
         }
+    }
+
+    public static Properties propertiesWithTenant(String tenant) {
+        Properties properties = new Properties();
+        properties.put(TENANT, tenant);
+        return properties;
     }
 }

@@ -10,9 +10,13 @@ import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
+
 @ComaasPlugin
+@Profile(TENANT_EBAYK)
 @Component
 public class JsonLoggingListener implements MessageProcessedListener {
 

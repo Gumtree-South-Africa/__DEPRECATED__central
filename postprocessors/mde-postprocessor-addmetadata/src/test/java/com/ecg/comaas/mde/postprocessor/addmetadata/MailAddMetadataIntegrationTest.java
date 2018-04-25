@@ -1,27 +1,28 @@
 package com.ecg.comaas.mde.postprocessor.addmetadata;
 
 import com.ecg.replyts.core.api.model.mail.TypedContent;
-import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.MailBuilder;
+import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.function.Supplier;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MDE;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 
 public class MailAddMetadataIntegrationTest {
     @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(createProperties());
 
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_MDE);
         properties.put("replyts.mobilede.addmetadata.plugin.order", "201" );
-
         return properties;
-    }).get());
+    }
 
     @Test
     public void testAddingMetadata() {

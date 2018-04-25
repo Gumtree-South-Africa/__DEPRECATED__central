@@ -2,7 +2,6 @@ package com.ebay.ecg.replyts.robot.api;
 
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -10,31 +9,27 @@ import javax.mail.internet.MimeMessage;
 
 import java.util.Properties;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.equalTo;
 
 public class MessageControllerAcceptanceTest {
-
-    private final Properties properties = new Properties() {{
-        put("replyts.tenant", "gtau");
-    }};
-
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(properties, ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(createProperties(), true);
 
-    @BeforeClass
-    public static void setup() {
-        System.setProperty("rabbitmq.host", "localhost");
-        System.setProperty("rabbitmq.username", "guest");
-        System.setProperty("rabbitmq.password", "guest");
-        System.setProperty("rabbitmq.virtualHost", "/");
-        System.setProperty("rabbitmq.endpoint", "gtau");
-        System.setProperty("rabbitmq.connectionTimeout", "1000");
-        System.setProperty("rabbitmq.port", "5672");
-
-        System.setProperty("mailpublisher.kafka.broker.list", "localhost:9092");
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_GTAU);
+        properties.put("rabbitmq.host", "localhost");
+        properties.put("rabbitmq.username", "guest");
+        properties.put("rabbitmq.password", "guest");
+        properties.put("rabbitmq.virtualHost", "/");
+        properties.put("rabbitmq.endpoint", "gtau");
+        properties.put("rabbitmq.connectionTimeout", "1000");
+        properties.put("rabbitmq.port", "5672");
+        properties.put("mailpublisher.kafka.broker.list", "localhost:9092");
+        return properties;
     }
 
     @Test

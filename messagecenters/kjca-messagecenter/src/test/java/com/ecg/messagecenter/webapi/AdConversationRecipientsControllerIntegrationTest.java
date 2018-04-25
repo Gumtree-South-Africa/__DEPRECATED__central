@@ -10,9 +10,10 @@ import org.junit.Test;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Properties;
-import java.util.function.Supplier;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.hamcrest.Matchers.equalTo;
 
 /**
@@ -35,16 +36,15 @@ public class AdConversationRecipientsControllerIntegrationTest {
     private static String MESSAGE_CENTER_URI_BASE = "/message-center";
 
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(((Supplier<Properties>) () -> {
-        Properties properties = new Properties();
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties());
 
-        properties.put("replyts.tenant", "kjca");
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_KJCA);
         properties.put("push-mobile.enabled","false");
         properties.put("persistence.strategy", "riak");
         properties.put("unread.count.cache.queue", "devull");
-
         return properties;
-    }).get());
+    }
 
     /**
      * This email gets 3 emails sent to it, with the first 2 for AD_ID, and the 3rd email for another ad

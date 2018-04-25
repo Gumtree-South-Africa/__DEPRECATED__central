@@ -6,20 +6,26 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.mail.internet.MimeMessage;
+
 import java.util.Properties;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
 import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
-import static org.hamcrest.Matchers.*;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.isEmptyString;
+import static org.hamcrest.Matchers.not;
 
 public class ConversationThreadControllerAcceptanceTest {
-    private final Properties testProperties = new Properties() {{
-        put("replyts.tenant", "ebayk");
-        put("persistence.strategy", "riak");
-    }};
+    private Properties createProperties() {
+        Properties properties = propertiesWithTenant(TENANT_EBAYK);
+        properties.put("persistence.strategy", "riak");
+        return properties;
+    }
 
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), null, 20, ES_ENABLED);
 
 
     @Test
@@ -81,7 +87,7 @@ public class ConversationThreadControllerAcceptanceTest {
                 .body("body.messages.size()", equalTo(3))
                 .body("body.numUnread", equalTo(1))
                 .get("http://localhost:" + testRule.getHttpPort() + "/ebayk-msgcenter/postboxes/buyer3@buyer.com/conversations/" + conversationId);
-        
+
     }
 
 

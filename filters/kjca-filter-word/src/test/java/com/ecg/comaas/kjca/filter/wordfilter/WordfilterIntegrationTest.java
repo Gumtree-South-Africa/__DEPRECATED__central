@@ -10,22 +10,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Properties;
-
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 
 public class WordfilterIntegrationTest {
-
-    private final Properties testProperties = new Properties() {{
-        put("persistence.strategy", "riak");
-    }};
-
     @Rule
-    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(testProperties, null, 20, ES_ENABLED);
-
-
+    public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_KJCA));
 
     @Before
     public void setUp() throws Exception {
@@ -36,7 +28,6 @@ public class WordfilterIntegrationTest {
                 "{'regexp': 'badcategoryword', 'score':6000 , 'categoryIds': ['c218', 'c45556565']}]}"));
 
     }
-
 
     @Test
     public void wordfilterFiresOnPatternHit() throws Exception {
@@ -53,7 +44,6 @@ public class WordfilterIntegrationTest {
                 .deliver(aNewMail().customHeader(Wordfilter.CATEGORY_ID, "c218").adId("1234").from("foo@bar.com").to("bar@foo.com").htmlBody("this is a <b>badcategoryword</b>! "));
 
         assertEquals(1, processedMail.getMessage().getProcessingFeedback().size());
-
     }
 
     @Test
@@ -104,4 +94,3 @@ public class WordfilterIntegrationTest {
         assertEquals(0, followUpMail.getMessage().getProcessingFeedback().size());
     }
 }
-

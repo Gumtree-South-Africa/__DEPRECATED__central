@@ -6,10 +6,16 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_IT;
 
 /** Factory that generates wordfilters form a json config that basically contains an array of pattern/score pairs. */
 @ComaasPlugin
+@Profile({TENANT_GTAU, TENANT_EBAYK, TENANT_IT})
 @Component
 class WordfilterFactory implements FilterFactory {
 

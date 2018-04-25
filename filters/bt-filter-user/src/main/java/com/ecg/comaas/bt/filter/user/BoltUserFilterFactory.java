@@ -9,12 +9,19 @@ import com.fasterxml.jackson.databind.node.JsonNodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.regex.Pattern;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_AR;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MX;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_SG;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_ZA;
+
 @ComaasPlugin
+@Profile({TENANT_MX, TENANT_AR, TENANT_ZA, TENANT_SG})
 @Component
 public class BoltUserFilterFactory implements FilterFactory {
     public static final String IDENTIFIER = "com.ecg.replyts.bolt.filter.user.BoltUserFilterFactory";

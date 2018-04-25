@@ -9,11 +9,14 @@ import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
 import static com.ecg.replyts.core.api.model.mail.Mail.ADID_HEADER;
 
 @ComaasPlugin
+@Profile(TENANT_KJCA)
 @Component
 class IncrementReplyCountListener implements MessageProcessedListener {
     private static final Logger LOG = LoggerFactory.getLogger(IncrementReplyCountListener.class);

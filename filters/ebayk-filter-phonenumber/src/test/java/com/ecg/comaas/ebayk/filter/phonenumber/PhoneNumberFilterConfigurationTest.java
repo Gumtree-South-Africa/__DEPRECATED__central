@@ -10,10 +10,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
 public class PhoneNumberFilterConfigurationTest {
-
     @Rule
     public ExpectedException exception = ExpectedException.none();
-
 
     @Test
     public void parsesJsonCorrectly() {

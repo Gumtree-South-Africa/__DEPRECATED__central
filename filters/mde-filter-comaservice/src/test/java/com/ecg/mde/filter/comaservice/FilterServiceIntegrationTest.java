@@ -31,6 +31,8 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Properties;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MDE;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -43,7 +45,7 @@ public class FilterServiceIntegrationTest {
     public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(createProperties());
 
     private Properties createProperties() {
-        Properties properties = new Properties();
+        Properties properties = propertiesWithTenant(TENANT_MDE);
         properties.put("replyts.mobile.comafilterservice.webserviceUrl","http://localhost:8181");
         properties.put("replyts.mobile.comafilterservice.active","true");
         return properties;

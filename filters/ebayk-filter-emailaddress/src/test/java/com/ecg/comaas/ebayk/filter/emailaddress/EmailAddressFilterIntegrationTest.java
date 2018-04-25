@@ -15,24 +15,25 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
+import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EmailAddressFilterIntegrationTest {
 
-
     @Rule
-    public ReplyTsIntegrationTestRule replyTS = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_EBAYK));
 
     @Before
     public void setup() {
         ArrayNode addresses = JsonObjects.newJsonArray();
         addresses.add("foo@bar.com");
-        replyTS.registerConfig(EmailAddressFilterFactory.IDENTIFIER, JsonObjects.builder().attr("values", addresses).attr("score", 100).build());
+        rule.registerConfig(EmailAddressFilterFactory.IDENTIFIER, JsonObjects.builder().attr("values", addresses).attr("score", 100).build());
     }
 
     @Test
     public void inHeldIfConfiguredEmailAddressContaining() {
-        ProcessedMail processedMail = replyTS.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
+        ProcessedMail processedMail = rule.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
                 .adId("1233343")
                 .htmlBody("hello world foo [at] bar.com"));
 
@@ -42,7 +43,7 @@ public class EmailAddressFilterIntegrationTest {
     @Test
     public void sentIfEmailAddressNotContaining() {
 
-        ProcessedMail processedMail = replyTS.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
+        ProcessedMail processedMail = rule.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
                 .adId("1233343")
                 .htmlBody("hello world IBAN DE99 - 2032 0500 - 4989 - 1234 56"));
 
@@ -52,7 +53,7 @@ public class EmailAddressFilterIntegrationTest {
     @Test
     public void findEmailAddressInHtmlTags() {
 
-        ProcessedMail processedMail = replyTS.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
+        ProcessedMail processedMail = rule.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
                 .adId("1233343")
                 .htmlBody("<font face=\"Arial,Helvetica, sans-serif\">\n" +
                         "<b>Nachricht von:</b> rolland\n" +
@@ -66,7 +67,7 @@ public class EmailAddressFilterIntegrationTest {
     @Test
     public void findEmailAddressInHtmlTags2() {
 
-        ProcessedMail processedMail = replyTS.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
+        ProcessedMail processedMail = rule.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
                 .adId("1233343")
                 .htmlBody(" <a href=\"mailto:foo@bar.com\" >mail me</a>)"));
 
@@ -76,7 +77,7 @@ public class EmailAddressFilterIntegrationTest {
     @Test
     public void findEmailAddressInSubject() {
 
-        ProcessedMail processedMail = replyTS.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
+        ProcessedMail processedMail = rule.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
                 .adId("1233343")
                 .subject("My mail: foo@bar.com")
                 .htmlBody("Some text"));
@@ -92,12 +93,12 @@ public class EmailAddressFilterIntegrationTest {
         ArrayNode values = JsonObjects.newJsonArray();
         values.add("foo@bar.com");
 
-        replyTS.registerConfig(EmailAddressFilterFactory.IDENTIFIER, JsonObjects.builder().attr("values", values).attr("score", 100).build());
+        rule.registerConfig(EmailAddressFilterFactory.IDENTIFIER, JsonObjects.builder().attr("values", values).attr("score", 100).build());
 
         byte[] encoded = Files.readAllBytes(Paths.get(EmailAddressFilterIntegrationTest.class.getResource("/html-mail.txt").toURI()));
         String text = new String(encoded, "utf8");
 
-        ProcessedMail processedMail = replyTS.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
+        ProcessedMail processedMail = rule.deliver(MailBuilder.aNewMail().from("foo@bar.com").to("bar@foo.com")
                 .adId("1233343")
                 .htmlBody(text));
 
