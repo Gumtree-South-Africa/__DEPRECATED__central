@@ -1,7 +1,6 @@
 package com.ecg.messagecenter.it.cleanup;
 
 import com.ecg.messagecenter.it.chat.Template;
-import com.ecg.messagecenter.it.cleanup.TextCleaner;
 import com.ecg.replyts.app.Mails;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.google.common.collect.Maps;
@@ -17,6 +16,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -24,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -156,14 +159,19 @@ public class ItalianTextCleanerTest {
 
     @Test
     public void cleanupText() throws Exception {
-        File mailFolder = new File(getClass().getResource("kijiji").getFile());
+
         Map<String, String> expected = Maps.newHashMap();
         FileInputStream fin;
         long start, end, duration;
         String fileName, result;
 
-        File[] mails = mailFolder.listFiles((dir, name) -> name.endsWith("eml"));
-        File[] texts = mailFolder.listFiles((dir, name) -> name.endsWith("txt"));
+        List<File> files = Files.list(Paths.get("src/test/resources/com/ecg/messagecenter/it/cleanup/kijiji")).map(Path::toFile).collect(toList());
+
+        List<File> mails = files.stream().filter(file -> file.getName().endsWith(".eml")).collect(toList());
+        List<File> texts = files.stream().filter(file -> file.getName().endsWith(".txt")).collect(toList());
+
+        assertTrue(!mails.isEmpty());
+        assertTrue(!texts.isEmpty());
 
         for (File text : texts) {
             expected.put(fileName(text.getName()), IOUtils.toString(new FileInputStream(text), Charset.defaultCharset()));

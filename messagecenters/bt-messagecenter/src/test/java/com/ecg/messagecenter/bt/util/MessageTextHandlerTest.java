@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.bt.util;
 
-import com.ecg.messagecenter.bt.util.MessageTextHandler;
 import com.ecg.replyts.app.Mails;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -11,9 +10,13 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.stream.Collectors.toList;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -1182,39 +1185,31 @@ public class MessageTextHandlerTest {
         }
     }
 
-    private File[] getFiles(File folder, String extension) {
-        for (int i = 0; i < 20; i++) {
-            File[] mails = folder.listFiles((dir, name) -> name.endsWith(extension));
-            if (mails != null) {
-                return mails;
-            }
-        }
-        throw new IllegalStateException("Could not load test files with extension " + extension + " from folder " + folder);
-    }
-
     @Test
     public void testValidMails() throws Exception {
-        File mailFolder = new File(getClass().getResource("/mailReceived").getFile());
-        Map<String, String> expected = Maps.newHashMap();
-        FileInputStream fin;
-        long start, end, duration;
-        String fileName, result;
+        List<File> files = Files.list(Paths.get("src/test/resources/mailReceived")).map(Path::toFile).collect(toList());
 
-        File[] mails = getFiles(mailFolder, "eml");
-        File[] texts = getFiles(mailFolder, "txt");
+        List<File> mails = files.stream().filter(file -> file.getName().endsWith(".eml")).collect(toList());
+        List<File> texts = files.stream().filter(file -> file.getName().endsWith(".txt")).collect(toList());
+
+        assertTrue(!mails.isEmpty());
+        assertTrue(!texts.isEmpty());
+
+        Map<String, String> expected = Maps.newHashMap();
+
         for (File text : texts) {
             expected.put(fileName(text.getName()), IOUtils.toString(new FileInputStream(text)));
         }
 
         for (File f : mails) {
-            fin = new FileInputStream(f);
-            fileName = fileName(f.getName());
+            FileInputStream fin = new FileInputStream(f);
+            String fileName = fileName(f.getName());
             try {
                 List<String> parts = Mails.readMail(ByteStreams.toByteArray(fin)).getPlaintextParts();
-                start = System.currentTimeMillis();
-                result = MessageTextHandler.remove(parts.get(0));
-                end = System.currentTimeMillis();
-                duration = end - start;
+                long start = System.currentTimeMillis();
+                String result = MessageTextHandler.remove(parts.get(0));
+                long end = System.currentTimeMillis();
+                long duration = end - start;
                 assertTrue("Long running regex, Length: " + result.length() + " Time: " + duration + " File:[" + fileName + "]", duration < 30 * 10);
                 if (expected.containsKey(fileName)) {
                     assertEqualsIgnoreLineEnding("File '" + f.getAbsolutePath() + "'", expected.get(fileName), result);
