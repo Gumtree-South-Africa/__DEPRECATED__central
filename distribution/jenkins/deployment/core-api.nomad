@@ -68,8 +68,8 @@ job "core-api-[[ .tenant ]]" {
         check {
           type = "http"
           path = "/hazelcast/health"
-          interval = "5s"
-          timeout  = "2s"
+          interval = "30s"
+          timeout = "5s"
         }
       }
 
