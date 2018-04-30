@@ -32,6 +32,8 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
@@ -61,6 +63,8 @@ import static java.util.stream.Collectors.toSet;
 public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository, CassandraRepository {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraSimplePostBoxRepository.class);
 
+    public static final String THREAD_CONVERSATION_CLASS = "conversationThreadClass";
+
     private static final String FIELD_POSTBOX_ID = "postbox_id";
     private static final String FIELD_CONVERSATION_ID = "conversation_id";
     private static final String FIELD_MODIFICATION_DATE = "modification_date";
@@ -86,6 +90,10 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
     private Map<StatementsBase, PreparedStatement> preparedStatements;
 
+    @Autowired
+    @Qualifier(THREAD_CONVERSATION_CLASS)
+    private String conversationThreadClass;
+
     @Value("${replyts.cleanup.conversation.streaming.queue.size:500}")
     private int workQueueSize;
 
@@ -101,9 +109,17 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @Value("${comaas.cleanup.postbox.retryLowerConsistency:false}")
     private boolean retryCleanupLowerConsistency;
 
+    private Class<? extends AbstractConversationThread> conversationClazz;
+
     @PostConstruct
     public void initializePreparedStatements() {
         this.preparedStatements = StatementsBase.prepare(Statements.class, session);
+
+        try {
+            this.conversationClazz = (Class<? extends AbstractConversationThread>) Class.forName(conversationThreadClass);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("ConversationThread class was not found. It would end up with a failing marshalling: " + conversationThreadClass);
+        }
     }
 
     CassandraSimplePostBoxRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
@@ -161,15 +177,14 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         try {
             // AbstractConversationThread is parameterized so store the effective class in the data
 
-            String jsonClass = jsonValue.substring(0, jsonValue.indexOf("@@"));
             String jsonContent = jsonValue.substring(jsonValue.indexOf("@@") + 2);
 
-            AbstractConversationThread conversationThread = ObjectMapperConfigurer.getObjectMapper().readValue(jsonContent, (Class<? extends AbstractConversationThread>) Class.forName(jsonClass));
+            AbstractConversationThread conversationThread = ObjectMapperConfigurer.getObjectMapper().readValue(jsonContent, conversationClazz);
 
             conversationThread.setContainsUnreadMessages(numUnreadMessages > 0);
 
             return Optional.of(conversationThread);
-        } catch (ClassNotFoundException | IOException e) {
+        } catch (IOException e) {
             LOG.error("Could not deserialize post box {} conversation {} json: {}", id.asString(), conversationId, jsonValue, e);
 
             return Optional.empty();
