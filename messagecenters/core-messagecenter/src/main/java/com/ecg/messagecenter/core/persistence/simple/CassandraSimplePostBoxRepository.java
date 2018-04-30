@@ -32,8 +32,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
@@ -63,8 +61,6 @@ import static java.util.stream.Collectors.toSet;
 public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository, CassandraRepository {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraSimplePostBoxRepository.class);
 
-    public static final String THREAD_CONVERSATION_CLASS = "conversationThreadClass";
-
     private static final String FIELD_POSTBOX_ID = "postbox_id";
     private static final String FIELD_CONVERSATION_ID = "conversation_id";
     private static final String FIELD_MODIFICATION_DATE = "modification_date";
@@ -90,8 +86,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
     private Map<StatementsBase, PreparedStatement> preparedStatements;
 
-    @Autowired
-    @Qualifier(THREAD_CONVERSATION_CLASS)
+    @Value("${persistence.cassandra.conversation.class}")
     private String conversationThreadClass;
 
     @Value("${replyts.cleanup.conversation.streaming.queue.size:500}")
