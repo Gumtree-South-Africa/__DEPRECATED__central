@@ -80,7 +80,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         Optional<String> sellerUserIdOpt = userIdentifierService.getSellerUserId(conv);
 
         if (!buyerUserIdOpt.isPresent() || !sellerUserIdOpt.isPresent()) {
-            LOGGER.warn("No buyer or seller id available for conversation {}, conversation state {} and message {}, [buyer/seller]: {}/{}",
+            LOGGER.info("No buyer or seller id available for conversation {}, conversation state {} and message {}, [buyer/seller]: {}/{}",
                     conv.getId(), conv.getState(), msg.getId(), buyerUserIdOpt.isPresent(), sellerUserIdOpt.isPresent());
 
             if (!buyerUserIdOpt.isPresent()) {
