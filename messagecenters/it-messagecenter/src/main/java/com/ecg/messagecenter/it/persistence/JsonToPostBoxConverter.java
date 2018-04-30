@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.it.persistence;
 
-import com.ecg.messagecenter.persistence.simple.AbstractJsonToPostBoxConverter;
-import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.AbstractJsonToPostBoxConverter;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.joda.time.DateTime;

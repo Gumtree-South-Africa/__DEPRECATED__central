@@ -1,11 +1,11 @@
 package com.ecg.messagecenter.bt.webapi;
 
-import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
-import com.ecg.messagecenter.webapi.requests.MessageCenterDeletePostBoxConversationCommandNew;
-import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.messagecenter.bt.webapi.responses.PostBoxResponse;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.webapi.requests.MessageCenterDeletePostBoxConversationCommandNew;
+import com.ecg.messagecenter.core.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;

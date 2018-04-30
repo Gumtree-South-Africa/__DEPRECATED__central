@@ -5,8 +5,8 @@ import com.ecg.messagebox.model.Participant;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.resources.WebApiSyncV2Service;
 import com.ecg.messagebox.service.PostBoxService;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.sync.EmailNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +67,7 @@ public class WebApiSyncV2ServiceImpl implements WebApiSyncV2Service {
                             .orElseThrow(() -> new EmailNotFoundException(String.format("Cannot find user email for delete a conversation. UserId: %s", userId)));
 
                     // MessageCenter part
-                    com.ecg.messagecenter.persistence.simple.PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+                    com.ecg.messagecenter.core.persistence.simple.PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
                     for (String conversationId : conversationIds) {
                         postBox.removeConversation(conversationId);
                     }

@@ -1,12 +1,12 @@
 package com.ecg.messagecenter.bt.webapi;
 
 import com.ecg.messagecenter.bt.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.bt.webapi.requests.MessageCenterClosePostBoxConversationCommand;
-import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.bt.webapi.responses.PostBoxSingleConversationThreadResponse;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;

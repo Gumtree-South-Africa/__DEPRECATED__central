@@ -1,12 +1,12 @@
 package com.ecg.messagecenter.gtau.pushmessage;
 
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.gtau.persistence.ConversationThread;
 import com.ecg.messagecenter.gtau.persistence.Header;
 import com.ecg.messagecenter.gtau.pushmessage.AdInfoLookup;
 import com.ecg.messagecenter.gtau.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.gtau.pushmessage.PushMessagePayload;
 import com.ecg.messagecenter.gtau.pushmessage.PushService;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;

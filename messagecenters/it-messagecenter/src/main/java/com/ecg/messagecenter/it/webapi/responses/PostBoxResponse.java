@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.it.webapi.responses;
 
 
-import com.ecg.messagecenter.util.MessageCenterUtils;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;

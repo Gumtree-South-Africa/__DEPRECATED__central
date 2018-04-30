@@ -1,12 +1,12 @@
 package com.ecg.messagecenter.kjca.listeners;
 
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.kjca.capi.AdInfoLookup;
 import com.ecg.messagecenter.kjca.capi.UserInfoLookup;
 import com.ecg.messagecenter.kjca.listeners.KjcaPostBoxUpdateListener;
 import com.ecg.messagecenter.kjca.listeners.UnreadCountCacher;
 import com.ecg.messagecenter.kjca.persistence.SimplePostBoxInitializer;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.kjca.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.kjca.pushmessage.PushService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;

@@ -1,7 +1,8 @@
 package com.ecg.messagecenter.it.persistence;
 
-import com.ecg.messagecenter.persistence.simple.AbstractSimplePostBoxInitializer;
-import com.ecg.messagecenter.util.MessageCenterUtils;
+import com.ecg.messagecenter.core.persistence.simple.AbstractSimplePostBoxInitializer;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.messagecenter.it.util.MessagesDiffer;
 import com.ecg.messagecenter.it.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -25,6 +27,11 @@ public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<C
     private static final Logger LOG = LoggerFactory.getLogger(SimplePostBoxInitializer.class);
 
     private MessagesResponseFactory messageResponseFactory = new MessagesResponseFactory(new MessagesDiffer());
+
+    @Autowired
+    public SimplePostBoxInitializer(SimplePostBoxRepository postBoxRepository) {
+        super(postBoxRepository);
+    }
 
     @Override
     protected boolean filter(String email, Conversation conversation) {

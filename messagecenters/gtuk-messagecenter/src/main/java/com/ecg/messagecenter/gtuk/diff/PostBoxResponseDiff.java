@@ -2,9 +2,9 @@ package com.ecg.messagecenter.gtuk.diff;
 
 import com.codahale.metrics.Counter;
 import com.ecg.messagebox.model.PostBox;
-import com.ecg.messagecenter.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.core.util.ConversationBoundnessFinder;
 import com.ecg.messagecenter.gtuk.persistence.ConversationThread;
-import com.ecg.messagecenter.util.ConversationBoundnessFinder;
 import com.ecg.messagecenter.gtuk.webapi.responses.PostBoxListItemResponse;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.ecg.messagecenter.util.MessageCenterUtils.truncateText;
+import static com.ecg.messagecenter.core.util.MessageCenterUtils.truncateText;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
 import static java.lang.Math.min;
 import static java.util.Optional.ofNullable;

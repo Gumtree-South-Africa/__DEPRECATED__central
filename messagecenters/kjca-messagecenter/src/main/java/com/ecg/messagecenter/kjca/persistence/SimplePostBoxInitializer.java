@@ -1,10 +1,11 @@
 package com.ecg.messagecenter.kjca.persistence;
 
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
+import com.ecg.messagecenter.core.persistence.simple.AbstractSimplePostBoxInitializer;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlockRepository;
-import com.ecg.messagecenter.persistence.simple.AbstractSimplePostBoxInitializer;
-import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.messagecenter.kjca.util.MessagesDiffer;
 import com.ecg.messagecenter.kjca.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -25,17 +26,21 @@ import static org.joda.time.DateTime.now;
  */
 @Component
 public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<ConversationThread> {
-    @Autowired
+
     private ConversationBlockRepository conversationBlockRepository;
-
-    @Autowired
     private TextAnonymizer textAnonymizer;
-
     private MessagesResponseFactory messageResponseFactory;
 
-    @PostConstruct
-    private void createMessagesResponseFactory() {
-        messageResponseFactory = new MessagesResponseFactory(new MessagesDiffer(), textAnonymizer);
+    @Autowired
+    public SimplePostBoxInitializer(
+            SimplePostBoxRepository postBoxRepository,
+            ConversationBlockRepository conversationBlockRepository,
+            TextAnonymizer textAnonymizer) {
+
+        super(postBoxRepository);
+        this.conversationBlockRepository = conversationBlockRepository;
+        this.textAnonymizer = textAnonymizer;
+        this.messageResponseFactory = new MessagesResponseFactory(new MessagesDiffer(), textAnonymizer);
     }
 
     @Override

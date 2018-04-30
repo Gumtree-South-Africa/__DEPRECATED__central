@@ -2,11 +2,11 @@ package com.ecg.messagecenter.ebayk.webapi;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
-import com.ecg.messagecenter.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.core.persistence.simple.CassandraSimplePostBoxConfiguration;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.ebayk.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.simple.CassandraSimplePostBoxConfiguration;
-import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.ebayk.webapi.responses.PostBoxListItemResponse;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.IdBasedConversationResumer;

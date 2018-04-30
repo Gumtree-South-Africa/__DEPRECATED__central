@@ -1,8 +1,8 @@
 package com.ecg.messagecenter.it.webapi.responses;
 
+import com.ecg.messagecenter.core.util.ConversationBoundnessFinder;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.messagecenter.it.persistence.ConversationThread;
-import com.ecg.messagecenter.util.ConversationBoundnessFinder;
-import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.messagecenter.it.util.MessagesDiffer;
 import com.ecg.messagecenter.it.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;

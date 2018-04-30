@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ecg.messagecenter.util.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
+import static com.ecg.messagecenter.core.util.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
 
 class ConversationDiffUtil {
 

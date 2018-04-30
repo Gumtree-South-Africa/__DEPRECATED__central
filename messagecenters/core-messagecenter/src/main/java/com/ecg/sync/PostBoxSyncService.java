@@ -4,9 +4,9 @@ import com.codahale.metrics.Counter;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
-import com.ecg.messagecenter.persistence.AbstractConversationThread;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -113,8 +113,8 @@ public class PostBoxSyncService {
      */
     @SuppressWarnings("unchecked")
     public List<String> getConversationId(String email) {
-        com.ecg.messagecenter.persistence.simple.PostBox<AbstractConversationThread> postbox =
-                (com.ecg.messagecenter.persistence.simple.PostBox<AbstractConversationThread>) postBoxRepository.byId(PostBoxId.fromEmail(email));
+        com.ecg.messagecenter.core.persistence.simple.PostBox<AbstractConversationThread> postbox =
+                (com.ecg.messagecenter.core.persistence.simple.PostBox<AbstractConversationThread>) postBoxRepository.byId(PostBoxId.fromEmail(email));
 
         return postbox.getConversationThreads().stream()
                 .map(AbstractConversationThread::getConversationId)

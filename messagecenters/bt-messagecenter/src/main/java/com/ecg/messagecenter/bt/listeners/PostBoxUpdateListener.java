@@ -1,8 +1,8 @@
 package com.ecg.messagecenter.bt.listeners;
 
-import com.ecg.messagecenter.listeners.UserNotificationRules;
 import com.ecg.messagecenter.bt.persistence.PostBoxInitializer;
 import com.ecg.messagecenter.bt.util.MessageTextHandler;
+import com.ecg.messagecenter.core.listeners.UserNotificationRules;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

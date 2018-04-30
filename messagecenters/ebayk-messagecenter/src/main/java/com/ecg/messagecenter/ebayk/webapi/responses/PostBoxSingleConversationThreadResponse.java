@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.ebayk.webapi.responses;
 
-import com.ecg.messagecenter.util.ConversationBoundnessFinder;
+import com.ecg.messagecenter.core.util.ConversationBoundnessFinder;
 import com.ecg.messagecenter.ebayk.util.MessagesDiffer;
 import com.ecg.messagecenter.ebayk.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;

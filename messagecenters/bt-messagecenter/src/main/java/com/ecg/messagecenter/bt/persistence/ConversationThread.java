@@ -3,7 +3,7 @@ package com.ecg.messagecenter.bt.persistence;
 import java.util.Map;
 import java.util.Optional;
 
-import com.ecg.messagecenter.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

@@ -2,9 +2,9 @@ package com.ecg.messagecenter.ebayk.persistence;
 
 import com.basho.riak.client.IRiakObject;
 import com.basho.riak.client.cap.BasicVClock;
-import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.RiakGzipAwareContentFilter;
-import com.ecg.messagecenter.persistence.simple.RiakSimplePostBoxConverter;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.RiakGzipAwareContentFilter;
+import com.ecg.messagecenter.core.persistence.simple.RiakSimplePostBoxConverter;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;

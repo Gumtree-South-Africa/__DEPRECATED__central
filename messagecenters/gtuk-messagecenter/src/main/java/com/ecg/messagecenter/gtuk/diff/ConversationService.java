@@ -1,9 +1,9 @@
 package com.ecg.messagecenter.gtuk.diff;
 
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.gtuk.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.gtuk.webapi.ConversationCustomValue;
 import com.ecg.messagecenter.gtuk.webapi.DeletedCustomValue;
 import com.ecg.messagecenter.gtuk.webapi.FlaggedCustomValue;

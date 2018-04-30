@@ -1,11 +1,11 @@
 package com.ecg.messagecenter.ebayk.pushmessage;
 
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.ebayk.persistence.ConversationThread;
 import com.ecg.messagecenter.ebayk.pushmessage.AdImageLookup;
 import com.ecg.messagecenter.ebayk.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.ebayk.pushmessage.PushMessagePayload;
 import com.ecg.messagecenter.ebayk.pushmessage.PushService;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;

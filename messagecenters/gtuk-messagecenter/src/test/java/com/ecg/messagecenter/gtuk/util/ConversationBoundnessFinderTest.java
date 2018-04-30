@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.gtuk.util;
 
-import com.ecg.messagecenter.util.ConversationBoundnessFinder;
+import com.ecg.messagecenter.core.util.ConversationBoundnessFinder;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;

@@ -2,8 +2,8 @@ package com.ecg.messagecenter.gtau.webapi;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.gtau.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.gtau.util.ConversationThreadEnricher;
 import com.ecg.messagecenter.gtau.util.MessagesResponseFactory;
 import com.ecg.messagecenter.gtau.webapi.responses.MessageResponse;

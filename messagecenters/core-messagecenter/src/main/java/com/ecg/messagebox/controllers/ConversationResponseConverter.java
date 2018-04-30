@@ -6,13 +6,13 @@ import com.ecg.messagebox.controllers.responses.ParticipantResponse;
 import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.Message;
 import com.ecg.messagebox.model.Participant;
-import com.ecg.messagecenter.util.MessageCenterUtils;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.ecg.messagecenter.util.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
+import static com.ecg.messagecenter.core.util.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
 
 public class ConversationResponseConverter {
 

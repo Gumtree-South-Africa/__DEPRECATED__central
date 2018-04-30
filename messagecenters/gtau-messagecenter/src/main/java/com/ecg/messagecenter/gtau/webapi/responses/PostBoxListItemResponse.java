@@ -1,8 +1,8 @@
 package com.ecg.messagecenter.gtau.webapi.responses;
 
+import com.ecg.messagecenter.core.util.ConversationBoundnessFinder;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.messagecenter.gtau.persistence.ConversationThread;
-import com.ecg.messagecenter.util.ConversationBoundnessFinder;
-import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;

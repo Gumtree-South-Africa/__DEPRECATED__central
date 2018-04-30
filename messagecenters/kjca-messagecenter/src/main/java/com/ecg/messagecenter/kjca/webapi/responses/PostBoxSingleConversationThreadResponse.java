@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.kjca.webapi.responses;
 
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
-import com.ecg.messagecenter.util.ConversationBoundnessFinder;
+import com.ecg.messagecenter.core.util.ConversationBoundnessFinder;
 import com.ecg.messagecenter.kjca.util.MessagesDiffer;
 import com.ecg.messagecenter.kjca.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;

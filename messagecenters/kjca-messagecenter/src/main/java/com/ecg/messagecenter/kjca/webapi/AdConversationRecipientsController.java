@@ -1,9 +1,9 @@
 package com.ecg.messagecenter.kjca.webapi;
 
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.kjca.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.kjca.webapi.requests.MessageCenterGetAdConversationRecipientsCommand;
 import com.ecg.messagecenter.kjca.webapi.responses.AdConversationRecipientListResponse;
 import com.ecg.messagecenter.kjca.webapi.responses.BuyerContactResponse;

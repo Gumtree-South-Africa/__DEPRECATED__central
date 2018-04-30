@@ -2,7 +2,7 @@ package com.ecg.messagecenter.gtuk.util;
 
 import com.codahale.metrics.Histogram;
 import com.ecg.gumtree.replyts2.common.message.MessageCenterUtils;
-import com.ecg.messagecenter.util.ConversationBoundnessFinder;
+import com.ecg.messagecenter.core.util.ConversationBoundnessFinder;
 import com.ecg.messagecenter.gtuk.webapi.responses.MessageResponse;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.TimingReports;

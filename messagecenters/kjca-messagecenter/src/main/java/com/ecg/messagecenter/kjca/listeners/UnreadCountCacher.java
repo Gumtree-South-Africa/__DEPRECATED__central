@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.kjca.listeners;
 
+import com.ecg.messagecenter.core.persistence.simple.AbstractSimplePostBoxInitializer;
 import com.ecg.messagecenter.kjca.persistence.UnreadCountCachePopulater;
-import com.ecg.messagecenter.persistence.simple.AbstractSimplePostBoxInitializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

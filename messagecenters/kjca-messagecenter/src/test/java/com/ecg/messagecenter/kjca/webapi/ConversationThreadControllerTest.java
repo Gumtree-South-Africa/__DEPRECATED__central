@@ -2,13 +2,13 @@ package com.ecg.messagecenter.kjca.webapi;
 
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
 import com.ecg.messagecenter.kjca.webapi.ConversationThreadController;
-import com.ecg.messagecenter.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.core.persistence.simple.DefaultRiakSimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.kjca.persistence.ConversationThread;
 import com.ecg.messagecenter.kjca.persistence.UnreadCountCachePopulater;
 import com.ecg.messagecenter.kjca.persistence.block.RiakConversationBlockRepository;
-import com.ecg.messagecenter.persistence.simple.DefaultRiakSimplePostBoxRepository;
-import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.google.common.collect.ImmutableList;

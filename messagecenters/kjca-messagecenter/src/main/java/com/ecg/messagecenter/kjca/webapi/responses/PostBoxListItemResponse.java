@@ -1,9 +1,9 @@
 package com.ecg.messagecenter.kjca.webapi.responses;
 
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlock;
+import com.ecg.messagecenter.core.util.ConversationBoundnessFinder;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.messagecenter.kjca.persistence.ConversationThread;
-import com.ecg.messagecenter.util.ConversationBoundnessFinder;
-import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.model.MailTypeRts;
 

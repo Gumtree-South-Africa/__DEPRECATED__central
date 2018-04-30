@@ -1,8 +1,9 @@
 package com.ecg.messagecenter.gtau.persistence;
 
-import com.ecg.messagecenter.persistence.simple.AbstractSimplePostBoxInitializer;
+import com.ecg.messagecenter.core.persistence.simple.AbstractSimplePostBoxInitializer;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.messagecenter.gtau.util.ConversationThreadEnricher;
-import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.messagecenter.gtau.util.MessageType;
 import com.ecg.messagecenter.gtau.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -24,7 +25,8 @@ public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<C
     private final ConversationThreadEnricher conversationThreadEnricher;
 
     @Autowired
-    public SimplePostBoxInitializer(ConversationThreadEnricher conversationThreadEnricher) {
+    public SimplePostBoxInitializer(ConversationThreadEnricher conversationThreadEnricher, SimplePostBoxRepository simplePostBoxRepository) {
+        super(simplePostBoxRepository);
         this.conversationThreadEnricher = conversationThreadEnricher;
     }
 

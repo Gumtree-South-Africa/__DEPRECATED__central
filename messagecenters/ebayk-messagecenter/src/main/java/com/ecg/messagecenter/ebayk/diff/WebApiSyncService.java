@@ -7,8 +7,8 @@ import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.CassandraPostBoxService;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.ebayk.webapi.PostBoxResponseBuilder;
 import com.ecg.messagecenter.ebayk.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
@@ -123,7 +123,7 @@ public class WebApiSyncService {
 
                 response = oldModelFuture.join().getPostBoxResponse();
             } else {
-                com.ecg.messagecenter.persistence.simple.PostBox postBox;
+                com.ecg.messagecenter.core.persistence.simple.PostBox postBox;
                 if (size != 0) {
                     postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
                 } else {
@@ -144,8 +144,8 @@ public class WebApiSyncService {
     public PostBoxResponse readPostBox(String email, int page, int size) {
         try (Timer.Context ignored = getConversationsTimer.time()) {
 
-            Function<com.ecg.messagecenter.persistence.simple.PostBox, com.ecg.messagecenter.persistence.simple.PostBox> readPostbox =
-                    (com.ecg.messagecenter.persistence.simple.PostBox postBox) -> {
+            Function<com.ecg.messagecenter.core.persistence.simple.PostBox, com.ecg.messagecenter.core.persistence.simple.PostBox> readPostbox =
+                    (com.ecg.messagecenter.core.persistence.simple.PostBox postBox) -> {
                         List conversations = postBox.getConversationThreadsCapTo(page, size);
                         int totalUnreads = postBoxRepository.unreadCountInConversations(postBox.getId(), conversations);
                         postBox.decrementNewReplies(totalUnreads);

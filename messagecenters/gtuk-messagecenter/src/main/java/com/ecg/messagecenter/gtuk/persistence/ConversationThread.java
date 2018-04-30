@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.gtuk.persistence;
 
-import com.ecg.messagecenter.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.joda.time.DateTime;
 

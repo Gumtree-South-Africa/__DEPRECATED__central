@@ -2,9 +2,9 @@ package com.ecg.messagecenter.gtau.util;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.cleanup.gtau.TextCleaner;
-import com.ecg.messagecenter.util.ConversationBoundnessFinder;
-import com.ecg.messagecenter.util.MessageCenterUtils;
+import com.ecg.messagecenter.core.cleanup.gtau.TextCleaner;
+import com.ecg.messagecenter.core.util.ConversationBoundnessFinder;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.messagecenter.gtau.webapi.responses.MessageResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;

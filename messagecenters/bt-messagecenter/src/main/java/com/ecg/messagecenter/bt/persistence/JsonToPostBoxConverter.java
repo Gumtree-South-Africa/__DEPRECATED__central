@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.bt.persistence;
 
-import com.ecg.messagecenter.persistence.simple.AbstractJsonToPostBoxConverter;
-import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.AbstractJsonToPostBoxConverter;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.util.JsonObjects;

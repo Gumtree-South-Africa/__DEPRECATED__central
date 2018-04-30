@@ -2,7 +2,7 @@ package com.ecg.messagecenter.it.listeners;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.listeners.UserNotificationRules;
+import com.ecg.messagecenter.core.listeners.UserNotificationRules;
 import com.ecg.messagecenter.it.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.it.pushmessage.AdInfoLookup;
 import com.ecg.messagecenter.it.pushmessage.KmobilePushService;

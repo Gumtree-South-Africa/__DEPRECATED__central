@@ -1,8 +1,8 @@
 package com.ecg.messagecenter.kjca.webapi.responses;
 
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.kjca.persistence.ConversationThread;
 import com.ecg.messagecenter.kjca.persistence.block.RiakConversationBlockRepository;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.google.common.collect.Lists;

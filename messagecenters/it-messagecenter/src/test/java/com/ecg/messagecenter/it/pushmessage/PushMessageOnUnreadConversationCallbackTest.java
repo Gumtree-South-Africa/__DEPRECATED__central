@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.it.pushmessage;
 
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.it.cleanup.TextCleaner;
 import com.ecg.messagecenter.it.persistence.ConversationThread;
 import com.ecg.messagecenter.it.persistence.Header;
@@ -7,7 +8,6 @@ import com.ecg.messagecenter.it.pushmessage.AdInfoLookup;
 import com.ecg.messagecenter.it.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.it.pushmessage.PushMessagePayload;
 import com.ecg.messagecenter.it.pushmessage.PushService;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;

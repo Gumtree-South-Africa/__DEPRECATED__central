@@ -1,9 +1,9 @@
 package com.ecg.messagecenter.gtuk.webapi;
 
+import com.ecg.messagecenter.core.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.gtuk.diff.ConversationService;
 import com.ecg.messagecenter.gtuk.diff.WebApiSyncService;
 import com.ecg.messagecenter.gtuk.webapi.requests.MessageCenterDeleteConversationCommand;
-import com.ecg.messagecenter.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.gtuk.webapi.requests.MessageCenterReportConversationCommand;
 import com.ecg.messagecenter.gtuk.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;

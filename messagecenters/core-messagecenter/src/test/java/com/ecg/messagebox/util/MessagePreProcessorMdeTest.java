@@ -45,32 +45,32 @@ public class MessagePreProcessorMdeTest extends MessagePreProcessorTest {
 
     @Test
     public void realAnswerEbayKTest() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer10_ebayk.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer10_ebayk_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer10_ebayk.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer10_ebayk_cut.txt");
 
         cutAndCompare(PATTERNS, msg, expected);
     }
 
     @Test
     public void realAnswerTest() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer1.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer1_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer1.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer1_cut.txt");
 
         cutAndCompare(PATTERNS, msg, expected);
     }
 
     @Test
     public void realAnswer2Test() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer2.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer2_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer2.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer2_cut.txt");
 
         cutAndCompare(PATTERNS, msg, expected);
     }
 
     @Test
     public void realAnswer3Test() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer3.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer3_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer3.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer3_cut.txt");
 
         cutAndCompare(PATTERNS, msg, expected);
     }
@@ -78,48 +78,48 @@ public class MessagePreProcessorMdeTest extends MessagePreProcessorTest {
 
     @Test
     public void realAnswer4Test() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer4_google_client.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer4_google_client_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer4_google_client.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer4_google_client_cut.txt");
 
         cutAndCompare(PATTERNS, msg, expected);
     }
 
     @Test
     public void realAnswer5Test() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer5.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer5_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer5.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer5_cut.txt");
 
         cutAndCompare(PATTERNS, msg, expected);
     }
 
     @Test
     public void realAnswer6Test() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer6.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer6_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer6.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer6_cut.txt");
 
         cutAndCompare(PATTERNS, msg, expected);
     }
 
     @Test
     public void realAnswer7Test() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer7.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer7_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer7.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer7_cut.txt");
 
         cutAndCompare(PATTERNS, msg, expected);
     }
 
     @Test
     public void realAnswer8Test() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer8.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer8_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer8.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer8_cut.txt");
 
         cutAndCompare(PATTERNS, msg, expected);
     }
 
     @Test
     public void realAnswer9Test() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer9.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mde/emailAnswer9_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer9.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mde/emailAnswer9_cut.txt");
 
         cutAndCompare(PATTERNS, msg, expected);
     }
@@ -138,8 +138,8 @@ public class MessagePreProcessorMdeTest extends MessagePreProcessorTest {
     @Test
     public void outlook12Test() throws Exception {
 
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/outlook12Message");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/outlook12Message_answer");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/outlook12Message");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/outlook12Message_answer");
 
         cutAndCompare(PATTERNS, msg, expected);
     }

@@ -1,7 +1,7 @@
 package com.ecg.messagebox.controllers.responses;
 
 import com.ecg.messagebox.model.MessageType;
-import com.ecg.messagecenter.util.MessageCenterUtils;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;

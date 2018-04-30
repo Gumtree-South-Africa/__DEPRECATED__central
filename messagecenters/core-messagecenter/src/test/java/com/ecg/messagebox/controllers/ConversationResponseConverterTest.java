@@ -17,7 +17,7 @@ import java.util.Optional;
 import static com.datastax.driver.core.utils.UUIDs.timeBased;
 import static com.ecg.messagebox.model.MessageNotification.RECEIVE;
 import static com.ecg.messagebox.model.Visibility.ACTIVE;
-import static com.ecg.messagecenter.util.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
+import static com.ecg.messagecenter.core.util.MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset;
 import static java.util.Arrays.asList;
 import static org.joda.time.DateTime.now;
 import static org.junit.Assert.assertEquals;

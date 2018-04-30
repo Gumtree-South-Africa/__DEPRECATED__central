@@ -1,8 +1,8 @@
 package com.ecg.messagecenter.ebayk.webapi;
 
 import com.codahale.metrics.Counter;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.ebayk.persistence.ConversationThread;
-import com.ecg.messagecenter.persistence.simple.PostBox;
 import com.ecg.messagecenter.ebayk.webapi.responses.PostBoxListItemResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;

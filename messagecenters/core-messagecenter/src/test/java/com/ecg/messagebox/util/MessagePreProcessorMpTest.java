@@ -28,24 +28,24 @@ public class MessagePreProcessorMpTest extends MessagePreProcessorTest {
 
     @Test
     public void realAnswerTest() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mp/emailAnswer1.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mp/emailAnswer1_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mp/emailAnswer1.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mp/emailAnswer1_cut.txt");
 
         cutAndCompare(PATTERNS_MP, msg, expected);
     }
 
     @Test
     public void realAnswer2Test() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mp/emailAnswer2.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mp/emailAnswer2_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mp/emailAnswer2.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mp/emailAnswer2_cut.txt");
 
         cutAndCompare(PATTERNS_MP, msg, expected);
     }
 
     @Test
     public void realAnswer3Test() throws IOException {
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/mp/emailAnswer3.txt");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/mp/emailAnswer3_cut.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/mp/emailAnswer3.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/mp/emailAnswer3_cut.txt");
 
         cutAndCompare(PATTERNS_MP, msg, expected);
     }
@@ -53,8 +53,8 @@ public class MessagePreProcessorMpTest extends MessagePreProcessorTest {
     @Test
     public void outlook12Test() throws Exception {
 
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/outlook12Message");
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/outlook12Message_answer");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/outlook12Message");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/outlook12Message_answer");
 
         cutAndCompare(PATTERNS_MP, msg, expected);
     }

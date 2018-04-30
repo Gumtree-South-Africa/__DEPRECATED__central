@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.it.webapi.responses;
 
-import com.ecg.messagecenter.util.MessageCenterUtils;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.google.common.base.Preconditions;
 import org.joda.time.DateTime;

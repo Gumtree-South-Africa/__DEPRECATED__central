@@ -1,6 +1,6 @@
 package com.ecg.sync;
 
-import com.ecg.messagecenter.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
 
 public class PostBoxDiff {
 

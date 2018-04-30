@@ -4,12 +4,16 @@ import com.ecg.replyts.core.api.model.Tenants;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Profile;
 
 @ComaasPlugin
 @Configuration
 @Profile({Tenants.TENANT_AR, Tenants.TENANT_SG, Tenants.TENANT_MX, Tenants.TENANT_ZA})
-@ComponentScan(value = "com.ecg.messagecenter", excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagecenter.bt.webapi.*"))
+@ComponentScan(value = { "com.ecg.messagecenter.core", "com.ecg.messagecenter.bt" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagecenter.bt.webapi.*"))
 public class BtMessageBoxConfiguration {
 
     @Bean

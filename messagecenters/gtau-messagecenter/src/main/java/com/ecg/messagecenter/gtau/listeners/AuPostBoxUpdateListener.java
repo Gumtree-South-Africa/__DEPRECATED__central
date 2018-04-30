@@ -2,7 +2,7 @@ package com.ecg.messagecenter.gtau.listeners;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.listeners.UserNotificationRules;
+import com.ecg.messagecenter.core.listeners.UserNotificationRules;
 import com.ecg.messagecenter.gtau.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.gtau.pushmessage.AdInfoLookup;
 import com.ecg.messagecenter.gtau.pushmessage.KmobilePushService;

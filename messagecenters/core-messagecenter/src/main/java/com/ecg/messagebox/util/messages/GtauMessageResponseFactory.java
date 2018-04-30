@@ -1,6 +1,6 @@
 package com.ecg.messagebox.util.messages;
 
-import com.ecg.messagecenter.cleanup.gtau.TextCleaner;
+import com.ecg.messagecenter.core.cleanup.gtau.TextCleaner;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import org.apache.commons.lang3.StringUtils;

@@ -1,13 +1,13 @@
 package com.ecg.messagecenter.it.webapi;
 
 import com.codahale.metrics.Counter;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.messagecenter.it.cleanup.TextCleaner;
 import com.ecg.messagecenter.it.persistence.ConversationThread;
 import com.ecg.messagecenter.it.persistence.Header;
 import com.ecg.messagecenter.it.webapi.responses.PostBoxListItemResponse;
 import com.ecg.messagecenter.it.webapi.responses.PostBoxResponse;
-import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.util.MessageCenterUtils;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;

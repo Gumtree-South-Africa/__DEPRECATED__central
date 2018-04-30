@@ -2,8 +2,8 @@ package com.ecg.messagecenter.bt.util;
 
 import com.codahale.metrics.Histogram;
 import com.ecg.messagecenter.bt.webapi.responses.MessageResponse;
-import com.ecg.messagecenter.util.ConversationBoundnessFinder;
-import com.ecg.messagecenter.util.MessageCenterUtils;
+import com.ecg.messagecenter.core.util.ConversationBoundnessFinder;
+import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.google.common.collect.Iterables;

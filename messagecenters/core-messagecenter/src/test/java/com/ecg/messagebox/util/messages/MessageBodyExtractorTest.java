@@ -32,10 +32,10 @@ public class MessageBodyExtractorTest {
     @Test
     public void realTextTest() throws IOException {
 
-        String msg = loadFileAsString("/com/ecg/messagecenter/util/contactMessage.txt");
+        String msg = loadFileAsString("/com/ecg/messagecenter/core/util/contactMessage.txt");
         String result = DefaultMessagesResponseFactory.extractBodyMarkedByNonPrintableChars(msg);
 
-        String expected = loadFileAsString("/com/ecg/messagecenter/util/contactMessageTrimmed.txt");
+        String expected = loadFileAsString("/com/ecg/messagecenter/core/util/contactMessageTrimmed.txt");
         Assert.assertTrue(result.equals(expected));
     }
 

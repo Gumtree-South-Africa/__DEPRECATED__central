@@ -2,7 +2,7 @@ package com.ecg.messagecenter.ebayk.listeners;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.listeners.UserNotificationRules;
+import com.ecg.messagecenter.core.listeners.UserNotificationRules;
 import com.ecg.messagecenter.ebayk.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.ebayk.pushmessage.AdImageLookup;
 import com.ecg.messagecenter.ebayk.pushmessage.PushMessageOnUnreadConversationCallback;

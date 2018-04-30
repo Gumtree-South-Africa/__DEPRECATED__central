@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.gtuk.webapi.responses;
 
-import com.ecg.messagecenter.util.ConversationBoundnessFinder;
+import com.ecg.messagecenter.core.util.ConversationBoundnessFinder;
 import com.ecg.messagecenter.gtuk.util.MessagesDiffer;
 import com.ecg.messagecenter.gtuk.util.MessagesResponseFactory;
 import com.ecg.messagecenter.gtuk.webapi.ConversationCustomValue;

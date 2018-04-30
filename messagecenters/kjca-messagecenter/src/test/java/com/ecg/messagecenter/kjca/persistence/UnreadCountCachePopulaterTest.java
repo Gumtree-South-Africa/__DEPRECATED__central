@@ -1,11 +1,11 @@
 package com.ecg.messagecenter.kjca.persistence;
 
+import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.kjca.persistence.ConversationThread;
 import com.ecg.messagecenter.kjca.persistence.UnreadCountCachePopulater;
-import com.ecg.messagecenter.persistence.AbstractConversationThread;
-import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

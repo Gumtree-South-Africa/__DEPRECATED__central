@@ -7,8 +7,8 @@ import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.CassandraPostBoxService;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.gtuk.webapi.PostBoxResponseBuilder;
 import com.ecg.messagecenter.gtuk.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
@@ -123,7 +123,7 @@ public class WebApiSyncService {
 
                 response = oldModelFuture.join().getPostBoxResponse();
             } else {
-                com.ecg.messagecenter.persistence.simple.PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+                com.ecg.messagecenter.core.persistence.simple.PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
                 response = responseBuilder.buildPostBoxResponse(email, size, page, postBox, newCounterMode);
             }
 

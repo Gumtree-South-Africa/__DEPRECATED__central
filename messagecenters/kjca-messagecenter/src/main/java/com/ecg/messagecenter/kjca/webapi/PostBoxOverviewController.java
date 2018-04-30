@@ -1,9 +1,9 @@
 package com.ecg.messagecenter.kjca.webapi;
 
+import com.ecg.messagecenter.core.persistence.simple.PostBox;
+import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlockRepository;
-import com.ecg.messagecenter.persistence.simple.PostBox;
-import com.ecg.messagecenter.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.kjca.webapi.responses.PostBoxResponse;
 import com.ecg.messagecenter.kjca.webapi.responses.PostBoxResponseBuilder;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
