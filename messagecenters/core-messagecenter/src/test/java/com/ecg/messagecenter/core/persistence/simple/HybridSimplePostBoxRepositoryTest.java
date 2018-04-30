@@ -196,7 +196,7 @@ public class HybridSimplePostBoxRepositoryTest {
     }
 
     private AbstractConversationThread createConversationThread(DateTime date, String conversationId) {
-        return new PostBoxTest.ConversationThread("123", conversationId, date, date, date, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        return new ConversationThread("123", conversationId, date, date, date, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     }
 
 }

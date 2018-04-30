@@ -38,7 +38,8 @@ import static org.junit.Assert.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { DefaultRiakSimplePostBoxRepositoryTest.TestContext.class })
 @TestPropertySource(properties = {
-  "persistence.strategy = riak"
+  "persistence.strategy = riak",
+  "persistence.cassandra.conversation.class = com.ecg.messagecenter.core.persistence.simple.ConversationThread"
 })
 public class DefaultRiakSimplePostBoxRepositoryTest {
     private static final DateTime CREATED_AT = now();
@@ -109,7 +110,7 @@ public class DefaultRiakSimplePostBoxRepositoryTest {
     private static AbstractConversationThread createConvThread(DateTime modifiedAt, String convId, boolean containsUnreadMessages) {
         DateTime receivedDate = modifiedAt;
 
-        return new PostBoxTest.ConversationThread("123", convId, CREATED_AT, modifiedAt, receivedDate, containsUnreadMessages, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        return new ConversationThread("123", convId, CREATED_AT, modifiedAt, receivedDate, containsUnreadMessages, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     @Configuration

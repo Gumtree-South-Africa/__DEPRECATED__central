@@ -111,7 +111,7 @@ public class RiakSimplePostBoxMergerTest {
     private AbstractConversationThread createConvThread(DateTime modifiedAt, String convId) {
         DateTime receivedDate = modifiedAt;
 
-        return new PostBoxTest.ConversationThread("123", convId, CREATED_AT, modifiedAt, receivedDate, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        return new ConversationThread("123", convId, CREATED_AT, modifiedAt, receivedDate, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     @Configuration
