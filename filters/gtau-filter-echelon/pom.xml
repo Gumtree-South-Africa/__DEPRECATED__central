@@ -16,6 +16,10 @@
     <dependencies>
         <dependency>
             <groupId>ecg.comaas</groupId>
+            <artifactId>core-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
             <artifactId>core-api</artifactId>
         </dependency>
         <dependency>
@@ -52,6 +56,11 @@
             <artifactId>wiremock</artifactId>
             <scope>test</scope>
             <classifier>standalone</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

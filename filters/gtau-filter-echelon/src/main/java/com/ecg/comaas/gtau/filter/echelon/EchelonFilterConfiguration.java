@@ -1,9 +1,12 @@
 package com.ecg.comaas.gtau.filter.echelon;
 
-public class EchelonFilterConfiguration {
-    private String endpointUrl;
-    private int endpointTimeout;
-    private int score;
+import com.google.common.base.MoreObjects;
+
+public final class EchelonFilterConfiguration {
+
+    private final String endpointUrl;
+    private final int endpointTimeout;
+    private final int score;
 
     public EchelonFilterConfiguration(String endpointUrl, int endpointTimeout, int score) {
         this.endpointUrl = endpointUrl;
@@ -15,23 +18,20 @@ public class EchelonFilterConfiguration {
         return endpointUrl;
     }
 
-    public void setEndpointUrl(String endpointUrl) {
-        this.endpointUrl = endpointUrl;
-    }
-
     public int getEndpointTimeout() {
         return endpointTimeout;
-    }
-
-    public void setEndpointTimeout(int endpointTimeout) {
-        this.endpointTimeout = endpointTimeout;
     }
 
     public int getScore() {
         return score;
     }
 
-    public void setScore(int score) {
-        this.score = score;
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("endpointUrl", endpointUrl)
+                .add("endpointTimeout", endpointTimeout)
+                .add("score", score)
+                .toString();
     }
 }

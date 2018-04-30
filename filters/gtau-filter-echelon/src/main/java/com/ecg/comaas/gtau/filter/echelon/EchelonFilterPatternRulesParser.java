@@ -1,36 +1,43 @@
 package com.ecg.comaas.gtau.filter.echelon;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 
-public class EchelonFilterPatternRulesParser {
+public final class EchelonFilterPatternRulesParser {
+
     private static final int DEFAULT_SCORE = 0;
 
-    private String endpointUrl;
-    private int endpointTimeout;
-    private int score;
+    private EchelonFilterPatternRulesParser() {
+    }
 
-    private EchelonFilterPatternRulesParser(JsonNode jsonNode) {
+    public static EchelonFilterConfiguration fromJson(JsonNode jsonNode) {
+        String endpointUrl = getEndpointUrl(jsonNode);
+        int endpointTimeout = getEndpointTimeout(jsonNode);
+        int score = getScore(jsonNode);
+        return new EchelonFilterConfiguration(endpointUrl, endpointTimeout, score);
+    }
+
+    private static String getEndpointUrl(JsonNode jsonNode) {
         JsonNode endpointUrlNode = jsonNode.get("endpointUrl");
-        Preconditions.checkArgument(isValidString(endpointUrlNode), "given config does not contain a valid endpointUrl element.");
-        endpointUrl = endpointUrlNode.textValue();
+        if (endpointUrlNode == null || StringUtils.isEmpty(endpointUrlNode.textValue())) {
+            throw new IllegalArgumentException("endpointUrl is invalid - " + endpointUrlNode);
+        }
+        return endpointUrlNode.textValue();
+    }
+
+    private static int getEndpointTimeout(JsonNode jsonNode) {
         JsonNode endpointTimeoutNode = jsonNode.get("endpointTimeout");
-        Preconditions.checkArgument(isValidInt(endpointTimeoutNode), "given config does not contain a valid endpointTimeout element.");
-        endpointTimeout = endpointTimeoutNode.asInt();
+        if (endpointTimeoutNode == null || !endpointTimeoutNode.canConvertToInt()) {
+            throw new IllegalArgumentException("endpointTimeout is invalid - " + endpointTimeoutNode);
+        }
+        return endpointTimeoutNode.asInt();
+    }
+
+    private static int getScore(JsonNode jsonNode) {
         JsonNode scoreNode = jsonNode.get("score");
-        score = scoreNode != null ? scoreNode.asInt() : DEFAULT_SCORE;
-    }
-
-    public static boolean isValidString(JsonNode jsonNode) {
-        return jsonNode != null && jsonNode.textValue() != null && !jsonNode.textValue().isEmpty();
-    }
-
-    public static boolean isValidInt(JsonNode jsonNode) {
-        return jsonNode != null && jsonNode.canConvertToInt();
-    }
-
-    public static EchelonFilterConfiguration getConfig(JsonNode config) {
-        EchelonFilterPatternRulesParser parser = new EchelonFilterPatternRulesParser(config);
-        return new EchelonFilterConfiguration(parser.endpointUrl, parser.endpointTimeout, parser.score);
+        if (scoreNode == null || !scoreNode.canConvertToInt()) {
+            return DEFAULT_SCORE;
+        }
+        return scoreNode.asInt();
     }
 }
