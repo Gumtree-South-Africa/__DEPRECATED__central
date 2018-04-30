@@ -1,136 +1,113 @@
 package com.ecg.comaas.gtau.filter.echelon;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.base.Strings;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-/**
- * @author mdarapour
- */
+import static com.ecg.replyts.core.runtime.prometheus.PrometheusFailureHandler.reportExternalServiceFailure;
+
 public class EchelonFilter implements Filter {
+
     private static final Logger LOG = LoggerFactory.getLogger(EchelonFilter.class);
-
-    static final String IP_CUSTOM_HEADER            = "ip";         // X-CUST-IP
-    static final String MACHINE_ID_CUSTOM_HEADER    = "mach-id";    // X-CUST-MACH-ID
-    static final String CATEGORY_ID_CUSTOM_HEADER   = "categoryid"; // X-CUST-CATEGORYID
-
+    private static final String IP_CUSTOM_HEADER = "ip";
+    private static final String MACHINE_ID_CUSTOM_HEADER = "mach-id";
+    private static final String CATEGORY_ID_CUSTOM_HEADER = "categoryid";
     private static final String KO = "KO";
-    private String endpointUrl;
-    private int endpointTimeout;
-    private int score;
+    private static final String ECHELON_DESCRIPTION = "echelon_filter";
 
-    public EchelonFilter(EchelonFilterConfiguration config) {
-        super();
-        LOG.info("Creating new instance of EchelonFilter: {}", hashCode());
-        endpointUrl = config.getEndpointUrl();
-        endpointTimeout = config.getEndpointTimeout();
-        score = config.getScore();
+    private final EchelonFilterConfiguration configuration;
+    private final CloseableHttpClient httpClient;
+
+    public EchelonFilter(EchelonFilterConfiguration configuration, CloseableHttpClient httpClient) {
+        LOG.info("Creating new instance of EchelonFilter: {} with configuration '{}'", hashCode(), configuration);
+        this.configuration = configuration;
+        this.httpClient = httpClient;
     }
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
-        final ArrayList<FilterFeedback> resp = new ArrayList<FilterFeedback>();
-
-        if (MessageDirection.BUYER_TO_SELLER == context.getMessageDirection()) {
-            Conversation c = context.getConversation();
-
-            try {
-                if ((null != c) && (null != c.getMessages())) {
-                    String ip = c.getCustomValues().get(IP_CUSTOM_HEADER);
-
-                    if(Strings.isNullOrEmpty(ip)) {
-                        return resp;
-                    }
-
-                    String machineId = c.getCustomValues().get(MACHINE_ID_CUSTOM_HEADER);
-
-                    final String categoryId = c.getCustomValues().get(CATEGORY_ID_CUSTOM_HEADER);
-                    final String adId = c.getAdId();
-                    final String email = c.getBuyerId();
-                    final StringBuilder builder = new StringBuilder();
-
-                    if (machineId != null && machineId.equals("unknown")) {
-                        machineId = "";
-                    }
-
-                    builder.append(endpointUrl);
-                    builder.append('?');
-                    builder.append("adId=").append(encode(adId)).append('&');
-                    builder.append("ip=").append(encode(ip)).append('&');
-                    builder.append("machineId=").append(encode(machineId)).append('&');
-                    builder.append("categoryId=").append(encode(categoryId)).append('&');
-                    builder.append("email=").append(encode(email));
-
-                    final String notifyUrl = builder.toString();
-                    final URL url = new URL(notifyUrl);
-                    final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-                    try{
-                        connection.setRequestMethod("GET");
-                        connection.setReadTimeout(endpointTimeout);
-                        LOG.trace("Sending echelon request [{}]", connection.getURL());
-                        connection.connect();
-                        final int responseCode = connection.getResponseCode();
-                        if (HttpURLConnection.HTTP_OK == responseCode) {
-                            final BufferedReader is = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                            final String firstLine = is.readLine();
-                            final StringBuilder sb = new StringBuilder();
-                            String line;
-                            while (null != (line = is.readLine())) {
-                                sb.append(line);
-                                sb.append('\n');
-                            }
-                            is.close();
-
-                            if ((null != firstLine) && firstLine.trim().equals(KO)) {
-                                final EchelonFeedback feedback = new EchelonFeedback(sb.toString(), score);
-                                resp.add(feedback);
-                            }
-                        } else {
-                            LOG.error("Didn't get a 200 response from endpoint, but a " + responseCode);
-                        }
-                    }catch(IOException ex){
-                        LOG.error("Error notifying " + notifyUrl, ex);
-                    }finally {
-                        try {
-                            connection.disconnect();
-                        } catch (Exception e) {
-                            LOG.error("error closing the connection", e);
-                        }
-                    }
-                }
-            }catch(Exception ex) {
-                LOG.error("Couldn't open connection to endpoint" + endpointUrl, ex);
-            }
+        if (MessageDirection.BUYER_TO_SELLER != context.getMessageDirection()
+                || context.getConversation() == null
+                || context.getConversation().getMessages() == null
+                || Strings.isNullOrEmpty(context.getConversation().getCustomValues().get(IP_CUSTOM_HEADER))) {
+            return Collections.emptyList();
         }
 
-        return resp;
+        return doGet(buildUrl(context.getConversation(), configuration.getEndpointUrl()));
     }
 
-    private String encode(String str) {
-        if (str == null || str.isEmpty()) {
+    private List<FilterFeedback> doGet(String url) {
+        HttpGet httpGet = new HttpGet(url);
+        LOG.trace("Sending echelon request [{}]", url);
+        try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+            if (HttpStatus.SC_OK != response.getStatusLine().getStatusCode()) {
+                reportExternalServiceFailure(ECHELON_DESCRIPTION);
+                LOG.error("Got {} status code instead of 200", response.getStatusLine().getStatusCode());
+                return Collections.emptyList();
+            }
+
+            HttpEntity httpEntity = response.getEntity();
+            if (httpEntity != null) {
+                String body = EntityUtils.toString(httpEntity).trim();
+                if (!Strings.isNullOrEmpty(body) && body.startsWith(KO)) {
+                    return Collections.singletonList(new FilterFeedback("Echelon", extractKoFromBody(body), configuration.getScore(), FilterResultState.DROPPED));
+                }
+            }
+        } catch (Exception e) {
+            reportExternalServiceFailure(ECHELON_DESCRIPTION);
+            LOG.error("HTTP GET to {} failed", url, e);
+        }
+        return Collections.emptyList();
+    }
+
+    private static String buildUrl(Conversation conversation, String endpointUrl) {
+        String ip = conversation.getCustomValues().get(IP_CUSTOM_HEADER);
+        String machineId = conversation.getCustomValues().get(MACHINE_ID_CUSTOM_HEADER);
+        if (machineId != null && machineId.equals("unknown")) {
+            machineId = "";
+        }
+        String categoryId = conversation.getCustomValues().get(CATEGORY_ID_CUSTOM_HEADER);
+        String adId = conversation.getAdId();
+        String email = conversation.getBuyerId();
+
+        return endpointUrl + '?' +
+                "adId=" + encode(adId) + '&' +
+                "ip=" + encode(ip) + '&' +
+                "machineId=" + encode(machineId) + '&' +
+                "categoryId=" + encode(categoryId) + '&' +
+                "email=" + encode(email);
+    }
+
+    private static String encode(String str) {
+        if (Strings.isNullOrEmpty(str)) {
             return "";
         }
         try {
             return URLEncoder.encode(str, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            LOG.error("Panic!", e);
+            LOG.error("Failed to encode {} in UTF-8", str, e);
             return "";
         }
+    }
+
+    private static String extractKoFromBody(String body) {
+        return body.substring(KO.length()).trim();
     }
 }

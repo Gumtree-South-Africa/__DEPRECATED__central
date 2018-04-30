@@ -32,13 +32,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author mdarapour
- */
 public class EchelonFilterIntegrationTest {
-    private final static int DEFAULT_TIMEOUT    = 15000;
-    private final static int DEFAULT_PORT       = Integer.parseInt(System.getProperty("replyts.echelon.filter.test.port", String.valueOf(OpenPortFinder.findFreePort())));
 
+    private static final int DEFAULT_TIMEOUT = 15000;
+    private static final int DEFAULT_PORT = Integer.parseInt(System.getProperty("replyts.echelon.filter.test.port", String.valueOf(OpenPortFinder.findFreePort())));
     private static final String RESPONSE_OK = "OK";
     private static final String KO_FEEDBACK = "Feedback";
     private static final String RESPONSE_KO = "KO\n" + KO_FEEDBACK;
@@ -53,7 +50,7 @@ public class EchelonFilterIntegrationTest {
     public void setup() {
         rtsRule.registerConfig(EchelonFilterFactory.IDENTIFIER,
                 (ObjectNode) JsonObjects.parse(
-                        String.format("{endpointUrl:'http://localhost:%d/',endpointTimeout:%d,score:0}",DEFAULT_PORT,DEFAULT_TIMEOUT)));
+                        String.format("{endpointUrl:'http://localhost:%d/',endpointTimeout:%d,score:0}", DEFAULT_PORT, DEFAULT_TIMEOUT)));
     }
 
     @Test
@@ -61,20 +58,19 @@ public class EchelonFilterIntegrationTest {
         stubFor(get(urlMatching(".*adId=123.*")).willReturn(aResponse().withStatus(200).withBody(RESPONSE_OK.getBytes())));
 
         MailInterceptor.ProcessedMail processedMail =
-        rtsRule.deliver(MailBuilder.aNewMail()
-                .from("buyer@foo.com")
-                .to("seller@bar.com")
-                .adId("123")
-                .htmlBody("hello seller")
-                .customHeader("Ip", "127.0.0.1")
-                .customHeader("Mach-Id", "machineId")
-                .customHeader("Categoryid", "1"));
+                rtsRule.deliver(MailBuilder.aNewMail()
+                        .from("buyer@foo.com")
+                        .to("seller@bar.com")
+                        .adId("123")
+                        .htmlBody("hello seller")
+                        .customHeader("Ip", "127.0.0.1")
+                        .customHeader("Mach-Id", "machineId")
+                        .customHeader("Categoryid", "1"));
 
         List<LoggedRequest> requests = findAll(getRequestedFor(urlMatching(".*")));
         assertThat(requests.size(), is(1));
         verify(1, getRequestedFor(urlEqualTo("/?adId=123&ip=127.0.0.1&machineId=machineId&categoryId=1&email=buyer%40foo.com")));
         assertEquals("FilterFeedback", 0, processedMail.getMessage().getProcessingFeedback().size());
-
     }
 
     @Test
@@ -100,7 +96,7 @@ public class EchelonFilterIntegrationTest {
         Assert.assertNotNull(result);
         Assert.assertFalse("Processing Feedback must not be empty", result.isEmpty());
         ProcessingFeedback reason = result.get(0);
-        Assert.assertEquals(KO_FEEDBACK + '\n', reason.getDescription());
+        Assert.assertEquals(KO_FEEDBACK, reason.getDescription());
         Assert.assertEquals(FilterResultState.DROPPED, reason.getResultState());
     }
 
