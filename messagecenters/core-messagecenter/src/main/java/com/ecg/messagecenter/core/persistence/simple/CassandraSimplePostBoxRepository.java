@@ -86,6 +86,9 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
     private Map<StatementsBase, PreparedStatement> preparedStatements;
 
+    @Value("${persistence.cassandra.conversation.class}")
+    private String conversationThreadClass;
+
     @Value("${replyts.cleanup.conversation.streaming.queue.size:500}")
     private int workQueueSize;
 
@@ -101,9 +104,17 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @Value("${comaas.cleanup.postbox.retryLowerConsistency:false}")
     private boolean retryCleanupLowerConsistency;
 
+    private Class<? extends AbstractConversationThread> conversationClazz;
+
     @PostConstruct
     public void initializePreparedStatements() {
         this.preparedStatements = StatementsBase.prepare(Statements.class, session);
+
+        try {
+            this.conversationClazz = (Class<? extends AbstractConversationThread>) Class.forName(conversationThreadClass);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("ConversationThread class was not found. It would end up with a failing marshalling: " + conversationThreadClass);
+        }
     }
 
     CassandraSimplePostBoxRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
@@ -161,15 +172,14 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         try {
             // AbstractConversationThread is parameterized so store the effective class in the data
 
-            String jsonClass = jsonValue.substring(0, jsonValue.indexOf("@@"));
             String jsonContent = jsonValue.substring(jsonValue.indexOf("@@") + 2);
 
-            AbstractConversationThread conversationThread = ObjectMapperConfigurer.getObjectMapper().readValue(jsonContent, (Class<? extends AbstractConversationThread>) Class.forName(jsonClass));
+            AbstractConversationThread conversationThread = ObjectMapperConfigurer.getObjectMapper().readValue(jsonContent, conversationClazz);
 
             conversationThread.setContainsUnreadMessages(numUnreadMessages > 0);
 
             return Optional.of(conversationThread);
-        } catch (ClassNotFoundException | IOException e) {
+        } catch (IOException e) {
             LOG.error("Could not deserialize post box {} conversation {} json: {}", id.asString(), conversationId, jsonValue, e);
 
             return Optional.empty();

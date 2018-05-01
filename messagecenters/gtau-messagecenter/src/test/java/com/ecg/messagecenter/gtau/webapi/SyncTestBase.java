@@ -35,6 +35,7 @@ public abstract class SyncTestBase {
         properties.put("messagebox.userid.by_user_id.customValueNameForBuyer", "buyer-user-id");
         properties.put("messagebox.userid.by_user_id.customValueNameForSeller", "seller-user-id");
         properties.put("messagebox.userid.userIdentifierStrategy", "BY_USER_ID");
+        properties.put("persistence.cassandra.conversation.class", "com.ecg.messagecenter.gtau.persistence.ConversationThread");
         return properties;
     }
 

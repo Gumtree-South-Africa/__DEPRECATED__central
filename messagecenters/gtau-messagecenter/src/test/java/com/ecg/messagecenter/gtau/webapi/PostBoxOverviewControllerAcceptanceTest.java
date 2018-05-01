@@ -32,6 +32,7 @@ public class PostBoxOverviewControllerAcceptanceTest {
         properties.put("webapi.sync.au.enabled", "true");
         properties.put("persistence.strategy", "cassandra");
         properties.put("messages.conversations.enrichment.on.read", "true");
+        properties.put("persistence.cassandra.conversation.class", "com.ecg.messagecenter.gtau.persistence.ConversationThread");
         return properties;
     }
 

@@ -4,16 +4,12 @@ import com.ecg.replyts.core.api.model.Tenants;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.*;
 
 @ComaasPlugin
 @Configuration
 @Profile(Tenants.TENANT_IT)
-@ComponentScan(value = { "com.ecg.messagecenter.core", "com.ecg.messagecenter.it" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagecenter.it.webapi.*"))
+@ComponentScan(value = {"com.ecg.messagecenter.core", "com.ecg.messagecenter.it"}, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagecenter.it.webapi.*"))
 public class ItMessageBoxConfiguration {
 
     @Bean

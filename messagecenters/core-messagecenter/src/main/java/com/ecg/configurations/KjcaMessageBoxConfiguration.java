@@ -5,16 +5,12 @@ import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.*;
 
 @ComaasPlugin
 @Configuration
 @Profile(Tenants.TENANT_KJCA)
-@ComponentScan(value = { "com.ecg.messagecenter.core", "com.ecg.messagecenter.kjca" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagecenter.kjca.webapi.*"))
+@ComponentScan(value = {"com.ecg.messagecenter.core", "com.ecg.messagecenter.kjca"}, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagecenter.kjca.webapi.*"))
 public class KjcaMessageBoxConfiguration {
 
     @Configuration

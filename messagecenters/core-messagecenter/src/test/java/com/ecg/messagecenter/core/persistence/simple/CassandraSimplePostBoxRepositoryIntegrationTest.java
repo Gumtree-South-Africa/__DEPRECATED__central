@@ -4,11 +4,6 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.core.persistence.Counter;
-import com.ecg.messagecenter.core.persistence.simple.CassandraSimplePostBoxConfiguration;
-import com.ecg.messagecenter.core.persistence.simple.CassandraSimplePostBoxRepository;
-import com.ecg.messagecenter.core.persistence.simple.PostBox;
-import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -36,6 +31,7 @@ import static org.junit.Assert.*;
 @ContextConfiguration(classes = { CassandraSimplePostBoxRepositoryIntegrationTest.TestContext.class })
 @TestPropertySource(properties = {
   "persistence.strategy = cassandra",
+  "persistence.cassandra.conversation.class = com.ecg.messagecenter.core.persistence.simple.ConversationThread"
 })
 public class CassandraSimplePostBoxRepositoryIntegrationTest {
 
@@ -393,7 +389,7 @@ public class CassandraSimplePostBoxRepositoryIntegrationTest {
     }
 
     private AbstractConversationThread createConversationThread(DateTime date, String conversationId) {
-        return new PostBoxTest.ConversationThread("123", conversationId, date, date, date, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        return new ConversationThread("123", conversationId, date, date, date, false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     }
     @Configuration
     @Import({

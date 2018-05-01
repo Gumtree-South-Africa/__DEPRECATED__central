@@ -5,16 +5,12 @@ import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.*;
 
 @ComaasPlugin
 @Configuration
 @Profile(Tenants.TENANT_EBAYK)
-@ComponentScan(value = { "com.ecg.messagecenter.core", "com.ecg.messagecenter.ebayk" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagecenter.ebayk.webapi.*"))
+@ComponentScan(value = {"com.ecg.messagecenter.core", "com.ecg.messagecenter.ebayk"}, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagecenter.ebayk.webapi.*"))
 public class EbaykMessageBoxConfiguration {
 
     @Configuration
