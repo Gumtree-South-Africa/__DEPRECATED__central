@@ -61,6 +61,8 @@ import static java.util.stream.Collectors.toSet;
 public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository, CassandraRepository {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraSimplePostBoxRepository.class);
 
+    private static final String LEGACY_CONVERSATION_THREAD_CLASS = "com.ecg.messagecenter.persistence.ConversationThread";
+
     private static final String FIELD_POSTBOX_ID = "postbox_id";
     private static final String FIELD_CONVERSATION_ID = "conversation_id";
     private static final String FIELD_MODIFICATION_DATE = "modification_date";
@@ -190,10 +192,9 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         try {
             // AbstractConversationThread is parameterized so store the effective class in the data
 
-            String jsonClass = conversationThread.getClass().getName();
             String jsonContent = ObjectMapperConfigurer.getObjectMapper().writeValueAsString(conversationThread);
 
-            return Optional.of(jsonClass + "@@" + jsonContent);
+            return Optional.of(LEGACY_CONVERSATION_THREAD_CLASS + "@@" + jsonContent);
         } catch (JsonProcessingException e) {
             LOG.error("Could not serialize conversation thread with conversation ID {}", conversationThread.getConversationId(), e);
 
