@@ -1,6 +1,6 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
-import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
+import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.replyts.app.mailreceiver.MessageProcessor;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
@@ -81,9 +81,9 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
         }
     }
 
-    RetryableMessage decodeMessage(ConsumerRecord<String, byte[]> messageRecord) throws IOException {
+    Message decodeMessage(ConsumerRecord<String, byte[]> messageRecord) throws IOException {
         final byte[] data = messageRecord.value();
-        final RetryableMessage retryableMessage;
+        final Message retryableMessage;
         try {
             retryableMessage = queueService.deserialize(data);
         } catch (IOException e) {
@@ -95,12 +95,12 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
     protected abstract void processMessage(ConsumerRecord<String, byte[]> messageRecord);
 
-    private void publishToTopic(final String topic, final RetryableMessage retryableMessage) throws JsonProcessingException {
+    private void publishToTopic(final String topic, final Message retryableMessage) throws JsonProcessingException {
         queueService.publish(topic, retryableMessage);
     }
 
     // Some messages are unparseable, so we don't even retry, instead they go on the unparseable topic
-    void unparseableMessage(final RetryableMessage retryableMessage) {
+    void unparseableMessage(final Message retryableMessage) {
         UNPARSEABLE_COUNTER.inc();
         try {
             publishToTopic(KafkaTopicService.getTopicUnparseable(shortTenant), retryableMessage);
@@ -110,7 +110,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     }
 
     // Put the message in the retry topic with a specific delay
-    void delayRetryMessage(final RetryableMessage retryableMessage) {
+    void delayRetryMessage(final Message retryableMessage) {
         RETRIED_MESSAGE_COUNTER.inc();
         try {
             Instant currentConsumptionTime = Instant.ofEpochSecond(
@@ -126,7 +126,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
             int retryCount = retryableMessage.getRetryCount() + 1;
 
-            RetryableMessage retriedMessage = RetryableMessage
+            Message retriedMessage = Message
                     .newBuilder(retryableMessage)
                     .setRetryCount(retryCount)
                     .setNextConsumptionTime(nextConsumptionTime)
@@ -139,12 +139,12 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     }
 
     // Put the message back in the incoming topic
-    void retryMessage(final RetryableMessage retryableMessage) {
+    void retryMessage(final Message retryableMessage) {
         queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
     }
 
     // After n retries, we abandon the message by putting it in the abandoned topic
-    void abandonMessage(final RetryableMessage retryableMessage, final Exception e) {
+    void abandonMessage(final Message retryableMessage, final Exception e) {
         ABANDONED_RETRY_COUNTER.inc();
         LOG.error("Mail processing abandoned for message with correlationId {}", retryableMessage.getCorrelationId(), e);
         try {

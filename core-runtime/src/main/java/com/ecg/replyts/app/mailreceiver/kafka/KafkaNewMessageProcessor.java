@@ -1,6 +1,6 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
-import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
+import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -12,10 +12,12 @@ import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
+import com.google.protobuf.ByteString;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
@@ -62,7 +64,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
     protected void processMessage(ConsumerRecord<String, byte[]> messageRecord) {
         setTaskFields();
 
-        RetryableMessage retryableMessage;
+        Message retryableMessage;
         try {
             retryableMessage = decodeMessage(messageRecord);
         } catch (IOException e) {
@@ -73,9 +75,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
 
         try {
             if (messageProcessingEnabled) {
-
                 processMessage(retryableMessage);
-
             } else {
                 // Remove when we are done testing
                 ShadowTestingFramework9000.maybeDoAThing();
@@ -91,16 +91,21 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
         }
     }
 
-    private void processMessage(RetryableMessage retryableMessage) {
-
+    private void processMessage(Message retryableMessage) throws IOException, ParsingException {
         MutableConversation conversation = getConversation(retryableMessage.getPayload().getConversationId());
-
-        MessageProcessingContext context = createContext(retryableMessage.getPayload().getUserId(), conversation);
-
-        context.addCommand(
-            createAddMessageCommand(retryableMessage.getPayload().getMessage(), conversation.getId(), context));
-
-        messageProcessingCoordinator.handleContext(Optional.empty(), context);
+        Optional<byte[]> rawEmail = Optional.ofNullable(retryableMessage.getRawEmail())
+                .filter(bytes -> !bytes.isEmpty())
+                .map(ByteString::toByteArray);
+        if (rawEmail.isPresent() ) {
+            // A presence of a raw email represents the deprecated way of ingesting emails
+            // See https://github.corp.ebay.com/ecg-comaas/comaas-adr/blob/master/adr-004-kmail-transition-period.md
+            messageProcessingCoordinator.accept(new ByteArrayInputStream(rawEmail.get()));
+        } else {
+            MessageProcessingContext context = createContext(retryableMessage.getPayload().getUserId(), conversation);
+            context.addCommand(
+                    createAddMessageCommand(retryableMessage.getPayload().getMessage(), conversation.getId(), context));
+            messageProcessingCoordinator.handleContext(Optional.empty(), context);
+        }
     }
 
     private MutableConversation getConversation(String conversationId) {

@@ -76,8 +76,10 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     @Override
     public final Optional<String> accept(@WillNotClose InputStream input) throws IOException, ParsingException {
         Stopwatch stopwatch = Stopwatch.createStarted();
+        String messageId = Guids.next();
+        byte[] bytes = ByteStreams.toByteArray(input);
+
         try (Timer.Context ignored = OVERALL_TIMER.time()) {
-            byte[] bytes = ByteStreams.toByteArray(input);
             LOG.debug("Message received", keyValue("contentLength", bytes.length));
 
             Optional<Mail> mail = parseMail(bytes);
@@ -86,31 +88,25 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 return Optional.empty();
             }
 
-            MessageProcessingContext context = processingContextFactory.newContext(mail.get(), Guids.next());
+            MessageProcessingContext context = processingContextFactory.newContext(mail.get(), messageId);
             setMDC(context);
             contentLengthCounter.inc(bytes.length);
             return Optional.of(handleContext(Optional.of(bytes), context));
-        }
-        finally {
+        } catch (ParsingException e) {
+            LOG.warn("Could not parse mail with id {}", messageId, e);
+            handleTermination(Termination.unparseable(e), messageId, Optional.empty(), Optional.empty(), Optional.of(bytes));
+            throw e;
+        } finally {
             LOG.debug("Message processed", keyValue("processingTime", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
         }
     }
 
     private Optional<Mail> parseMail(byte[] incomingMailContents) throws ParsingException {
-        try {
-            Mail mail = Mails.readMail(incomingMailContents);
-
-            if (mail.getDeliveredTo() == null) {
-                throw new ParsingException("Delivered-To header missing");
-            }
-
-            return Optional.of(mail);
-        } catch (ParsingException parsingException) {
-            final String messageId = Guids.next();
-            LOG.warn("Could not parse mail with id {}", messageId, parsingException);
-            handleTermination(Termination.unparseable(parsingException), messageId, Optional.empty(), Optional.empty(), Optional.of(incomingMailContents));
-            throw parsingException;
+        Mail mail = Mails.readMail(incomingMailContents);
+        if (mail.getDeliveredTo() == null) {
+            throw new ParsingException("Delivered-To header missing");
         }
+        return Optional.of(mail);
     }
 
     @Override

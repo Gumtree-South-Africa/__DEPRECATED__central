@@ -1,15 +1,11 @@
 package com.ecg.messagebox.resources;
 
-import com.ecg.comaas.protobuf.ComaasProtos.Payload;
-import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
+import com.ecg.comaas.protobuf.MessageOuterClass.Message;
+import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
 import com.ecg.messagebox.controllers.requests.CreateConversationRequest;
 import com.ecg.messagebox.controllers.requests.PostMessageRequest;
 import com.ecg.messagebox.controllers.responses.CreateConversationResponse;
-import com.ecg.messagebox.model.ConversationMetadata;
-import com.ecg.messagebox.model.ConversationThread;
-import com.ecg.messagebox.model.MessageNotification;
-import com.ecg.messagebox.model.Participant;
-import com.ecg.messagebox.model.Visibility;
+import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
@@ -29,30 +25,17 @@ import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversation
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.google.protobuf.Timestamp;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
@@ -194,7 +177,7 @@ public class PostMessageResource {
                 .build();
         Payload payload = Payload.newBuilder().setConversationId(conversationId)
                 .setUserId(userId).setMessage(postMessageRequest.message).build();
-        RetryableMessage retryableMessage = RetryableMessage
+        Message retryableMessage = Message
                 .newBuilder()
                 .setReceivedTime(timestamp)
                 .setCorrelationId(correlationId.orElseGet(XidFactory::nextXid))

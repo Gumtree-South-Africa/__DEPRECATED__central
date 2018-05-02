@@ -1,0 +1,3 @@
+[submodule "core-api/src/main/protobuf"]
+	path = core-api/src/main/protobuf
+	url = git@github.corp.ebay.com:ecg-comaas/comaas-protocols.git

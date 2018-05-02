@@ -1,7 +1,7 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
-import com.ecg.comaas.protobuf.ComaasProtos.Payload;
-import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
+import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
+import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -53,7 +53,7 @@ public class KafkaRetryMessageProcessorTest {
     private ArgumentCaptor<String> topicNameCaptor;
 
     @Captor
-    private ArgumentCaptor<RetryableMessage> retryableMessageCaptor;
+    private ArgumentCaptor<Message> retryableMessageCaptor;
 
     @Captor
     private ArgumentCaptor<byte[]> payloadCaptor;
@@ -72,14 +72,14 @@ public class KafkaRetryMessageProcessorTest {
         kafkaRetryMessageProcessor = new KafkaRetryMessageProcessor(queueService, kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, SHORT_TENANT);
     }
 
-    private void sendRetryMessage(final RetryableMessage retryableMessage) throws JsonProcessingException {
+    private void sendRetryMessage(final Message retryableMessage) throws JsonProcessingException {
         consumer.assign(Collections.singletonList(new TopicPartition(TOPIC_RETRY, 0)));
         consumer.addRecord(new ConsumerRecord<>(TOPIC_RETRY, 0, retryOffset++, "someKey", retryableMessage.toByteArray()));
     }
 
-    private RetryableMessage setUpTest(final int triedCount) throws Exception {
+    private Message setUpTest(final int triedCount) throws Exception {
         Payload payload = Payload.newBuilder().build();
-        RetryableMessage wanted = RetryableMessage.newBuilder().setPayload(payload).setRetryCount(triedCount).setCorrelationId(CORRELATION_ID).build();
+        Message wanted = Message.newBuilder().setPayload(payload).setRetryCount(triedCount).setCorrelationId(CORRELATION_ID).build();
         when(queueService.deserialize(any())).thenReturn(wanted);
         sendRetryMessage(wanted);
         return wanted;
@@ -102,7 +102,7 @@ public class KafkaRetryMessageProcessorTest {
 
     @Test
     public void retriedMessageWritesToIncomingTopic() throws Exception {
-        RetryableMessage wanted = setUpTest(4);
+        Message wanted = setUpTest(4);
 
         kafkaRetryMessageProcessor.processNext();
 

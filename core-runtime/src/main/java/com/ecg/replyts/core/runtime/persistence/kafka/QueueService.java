@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
-import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
+import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -39,7 +39,7 @@ public class QueueService {
         });
     }
 
-    public void publish(final String topicName, final RetryableMessage retryableMessage) {
+    public void publish(final String topicName, final Message retryableMessage) {
         publish(topicName, serialize(retryableMessage));
     }
 
@@ -61,11 +61,11 @@ public class QueueService {
         return new KafkaProducer<>(props);
     }
 
-    private byte[] serialize(final RetryableMessage retryableMessage) {
+    private byte[] serialize(final Message retryableMessage) {
         return retryableMessage.toByteArray();
     }
 
-    public RetryableMessage deserialize(final byte[] data) throws IOException {
-        return RetryableMessage.parseFrom(data);
+    public Message deserialize(final byte[] data) throws IOException {
+        return Message.parseFrom(data);
     }
 }

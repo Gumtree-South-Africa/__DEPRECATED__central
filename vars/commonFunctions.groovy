@@ -38,7 +38,15 @@ def checkoutGithubRepo(final String branch, final String relativeDir) {
             $class                           : 'GitSCM',
             branches                         : [[name: branch]],
             doGenerateSubmoduleConfigurations: false,
-            extensions                       : [[$class: 'RelativeTargetDirectory', relativeTargetDir: relativeDir]],
+            extensions                       : [
+                    [$class: 'RelativeTargetDirectory', relativeTargetDir: relativeDir],
+                    [$class: 'SubmoduleOption',
+                     disableSubmodules: false,
+                     parentCredentials: true,
+                     recursiveSubmodules: true,
+                     reference: '',
+                     trackingSubmodules: false]
+            ],
             submoduleCfg                     : [],
             userRemoteConfigs                : [[credentialsId: 'GITHUB', url: 'git@github.corp.ebay.com:ecg-comaas/central.git']]
     ])

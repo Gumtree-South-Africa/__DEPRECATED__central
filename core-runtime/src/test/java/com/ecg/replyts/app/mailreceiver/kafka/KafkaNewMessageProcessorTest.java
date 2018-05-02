@@ -1,7 +1,7 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
-import com.ecg.comaas.protobuf.ComaasProtos.Payload;
-import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
+import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
+import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -42,7 +42,7 @@ public class KafkaNewMessageProcessorTest {
     private static final String TOPIC_INCOMING = KafkaTopicService.getTopicIncoming(SHORT_TENANT);
     private static final String TOPIC_FAILED = KafkaTopicService.getTopicFailed(SHORT_TENANT);
     private static final String TOPIC_ABANDONED = KafkaTopicService.getTopicAbandoned(SHORT_TENANT);
-    private static final byte[] PAYLOAD = RetryableMessage.newBuilder().build().toByteArray();
+    private static final byte[] PAYLOAD = Message.newBuilder().build().toByteArray();
     private static final int RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES = 5;
     private static final int MAX_RETRIES = 5;
 
@@ -75,7 +75,7 @@ public class KafkaNewMessageProcessorTest {
     private ArgumentCaptor<String> topicNameCaptor;
 
     @Captor
-    private ArgumentCaptor<RetryableMessage> retryableMessageCaptor;
+    private ArgumentCaptor<Message> retryableMessageCaptor;
 
     @Captor
     private ArgumentCaptor<byte[]> payloadCaptor;
@@ -111,9 +111,9 @@ public class KafkaNewMessageProcessorTest {
         consumer.addRecord(new ConsumerRecord<>(TOPIC_INCOMING, 0, incomingOffset++, "someKey", rawMessage));
     }
 
-    private RetryableMessage setUpTest(final int triedCount) throws IOException {
+    private Message setUpTest(final int triedCount) throws IOException {
         Payload payload = Payload.newBuilder().setMessage("message").setUserId("userId").build();
-        RetryableMessage wanted = RetryableMessage.newBuilder().setPayload(payload).setRetryCount(triedCount).build();
+        Message wanted = Message.newBuilder().setPayload(payload).setRetryCount(triedCount).build();
         when(queueService.deserialize(any())).thenReturn(wanted);
         sendIncomingMessage(wanted.toByteArray());
         return wanted;
@@ -123,7 +123,7 @@ public class KafkaNewMessageProcessorTest {
     @SuppressWarnings("unchecked")
     public void unparseableMessageWritesToUnparseableTopic() throws Exception {
         when(messageProcessingCoordinator.handleContext(any(), any())).thenThrow(ParsingException.class);
-        final RetryableMessage wanted = setUpTest(0);
+        final Message wanted = setUpTest(0);
 
         kafkaNewMessageProcessor.processNext();
 
@@ -139,7 +139,7 @@ public class KafkaNewMessageProcessorTest {
     @SuppressWarnings("unchecked")
     public void failedMessageWritesToAbandonedTopicIfTooManyRetries() throws Exception {
         when(messageProcessingCoordinator.handleContext(any(), any())).thenThrow(IOException.class);
-        final RetryableMessage wanted = setUpTest(MAX_RETRIES);
+        final Message wanted = setUpTest(MAX_RETRIES);
 
         kafkaNewMessageProcessor.processNext();
 
@@ -157,7 +157,7 @@ public class KafkaNewMessageProcessorTest {
         when(messageProcessingCoordinator.handleContext(any(), any())).thenThrow(IOException.class);
         when(mutableConversationRepository.getById(any())).thenReturn(mutableConversation);
 
-        final RetryableMessage wanted = setUpTest(2);
+        final Message wanted = setUpTest(2);
 
         kafkaNewMessageProcessor.processNext();
 
@@ -166,13 +166,13 @@ public class KafkaNewMessageProcessorTest {
         verify(queueService).deserialize(any());
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_RETRY);
 
-        RetryableMessage actualRetryableMessage = retryableMessageCaptor.getValue();
-        assertThat(actualRetryableMessage.getRetryCount()).isEqualTo(wanted.getRetryCount() + 1);
-        assertThat(actualRetryableMessage.getNextConsumptionTime().getSeconds())
+        Message actualMessage = retryableMessageCaptor.getValue();
+        assertThat(actualMessage.getRetryCount()).isEqualTo(wanted.getRetryCount() + 1);
+        assertThat(actualMessage.getNextConsumptionTime().getSeconds())
                 .isEqualTo(wanted.getNextConsumptionTime().getSeconds() + TimeUnit.MINUTES.toSeconds(RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES));
-        assertThat(actualRetryableMessage.getCorrelationId()).isEqualTo(wanted.getCorrelationId());
-        assertThat(actualRetryableMessage.getPayload()).isEqualTo(wanted.getPayload());
-        assertThat(actualRetryableMessage.getReceivedTime()).isEqualTo(wanted.getReceivedTime());
+        assertThat(actualMessage.getCorrelationId()).isEqualTo(wanted.getCorrelationId());
+        assertThat(actualMessage.getPayload()).isEqualTo(wanted.getPayload());
+        assertThat(actualMessage.getReceivedTime()).isEqualTo(wanted.getReceivedTime());
     }
 
     @Test

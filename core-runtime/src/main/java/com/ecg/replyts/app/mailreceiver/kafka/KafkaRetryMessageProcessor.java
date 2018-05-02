@@ -1,7 +1,7 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
 import com.codahale.metrics.Histogram;
-import com.ecg.comaas.protobuf.ComaasProtos.RetryableMessage;
+import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
@@ -32,7 +32,7 @@ public class KafkaRetryMessageProcessor extends KafkaMessageProcessor {
     protected void processMessage(ConsumerRecord<String, byte[]> messageRecord) {
         setTaskFields();
 
-        RetryableMessage retryableMessage;
+        Message retryableMessage;
         try {
             retryableMessage = decodeMessage(messageRecord);
         } catch (IOException e) {

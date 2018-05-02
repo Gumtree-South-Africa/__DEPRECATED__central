@@ -105,6 +105,13 @@
                 <version>3.5.1.1</version>
                 <configuration>
                     <includeStdTypes>true</includeStdTypes>
+                    <includeDirectories>
+                        <include>src/main/protobuf</include>
+                    </includeDirectories>
+                    <inputDirectories>
+                        <include>src/main/protobuf/ingestion</include>
+                        <include>src/main/protobuf/gogoproto</include>
+                    </inputDirectories>
                 </configuration>
                 <executions>
                     <execution>
