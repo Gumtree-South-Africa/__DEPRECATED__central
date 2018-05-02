@@ -2,6 +2,7 @@ package com.ecg.comaas.mde.postprocessor.demandreporting;
 
 import com.google.gson.Gson;
 import de.mobile.analytics.domain.Event;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
@@ -98,7 +99,7 @@ public class HttpEventPublisher implements Runnable {
                         && statusLine.getStatusCode() < 300) {
                     return TRUE;
                 }
-                LOG.warn("Failed response status code {}", statusLine.getStatusCode());
+                LOG.warn("Failed response status code {} and response {}", statusLine.getStatusCode(), entityAsText(response));
                 return FALSE;
             } finally {
                 if (response.getEntity() != null) {
@@ -108,6 +109,14 @@ public class HttpEventPublisher implements Runnable {
 
         }
 
+        private String entityAsText(HttpResponse response) {
+            return Optional.ofNullable(response.getEntity()).map(entity -> {
+                try {
+                    return EntityUtils.toString(entity);
+                } catch (IOException exceptionToSkip) {
+                    return StringUtils.EMPTY;
+                }
+            }).orElse(StringUtils.EMPTY);
+        }
     }
-
 }
