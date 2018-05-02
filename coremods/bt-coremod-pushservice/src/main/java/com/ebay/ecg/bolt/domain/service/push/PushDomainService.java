@@ -109,10 +109,6 @@ public class PushDomainService {
                 break;
         }
 
-        HttpEntity entity = response.getEntity();
-
-        LOG.debug("Response payload {}", EntityUtils.toString(entity, "UTF-8"));
-
         switch (code) {
             case 200:
                 return Result.ok(payload, deviceToken);
