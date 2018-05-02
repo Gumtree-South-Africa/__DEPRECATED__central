@@ -18,7 +18,7 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
 @ComaasPlugin
 @Profile(TENANT_EBAYK)
 @Configuration
-@ComponentScan(basePackages = "com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters")
+@ComponentScan
 public class EbayServicesConfiguration {
 
     @Value("#{systemEnvironment['http_proxy']?:'${replyts2-ebayservicesfilters-plugin.proxyurl:}'}")
@@ -62,16 +62,18 @@ public class EbayServicesConfiguration {
 
     @Bean
     public UserProfileServiceImpl ebayUserProfileService(
+            RestClientFactory restClientFactory,
             @Value("${replyts2-ebayservicesfilters-plugin.user.endpointUrl}") String endpointUrl,
             @Value("${replyts2-ebayservicesfilters-plugin.user.oauthUrl}") String oauthUrl,
             @Value("${replyts2-ebayservicesfilters-plugin.oauthtoken.clientId}") String clientId,
             @Value("${replyts2-ebayservicesfilters-plugin.oauthtoken.clientSecret}") String clientSecret) {
         UserStateServiceConfig config = new UserStateServiceConfig(endpointUrl, oauthUrl, clientId, clientSecret);
-        return new UserProfileServiceImpl(ebayServicesRestClientFactory(), config);
+        return new UserProfileServiceImpl(restClientFactory, config);
     }
 
     @Bean
     public OAuthTokenProviderImpl ebayOAuthTokenProvider(
+            RestClientFactory restClientFactory,
             @Value("${replyts2-ebayservicesfilters-plugin.oauthtoken.endpointUrl:https://api.ebay.com/}") String endpointUrl,
             @Value("${replyts2-ebayservicesfilters-plugin.oauthtoken.clientId}") String clientId,
             @Value("${replyts2-ebayservicesfilters-plugin.oauthtoken.clientSecret}") String clientSecret) {
@@ -79,10 +81,11 @@ public class EbayServicesConfiguration {
         config.setEndpointUrl(endpointUrl);
         config.setClientId(clientId);
         config.setClientSecret(clientSecret);
-        return new OAuthTokenProviderImpl(ebayServicesRestClientFactory(), config);
+        return new OAuthTokenProviderImpl(restClientFactory, config);
     }
 
-    private RestClientFactory ebayServicesRestClientFactory() {
+    @Bean
+    public RestClientFactory ebayServicesRestClientFactory() {
         RestClientFactoryBuilder restClientFactoryBuilder = new RestClientFactoryBuilder();
         restClientFactoryBuilder.setMaxTotalConnections(100);
         restClientFactoryBuilder.setSocketTimeout(3);
