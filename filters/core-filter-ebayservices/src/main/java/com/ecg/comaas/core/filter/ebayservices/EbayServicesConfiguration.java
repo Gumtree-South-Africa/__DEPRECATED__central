@@ -18,7 +18,7 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
 @ComaasPlugin
 @Profile(TENANT_EBAYK)
 @Configuration
-@ComponentScan(basePackages = "com.ecg.de.kleinanzeigen.replyts.ebayservicesfilters")
+@ComponentScan
 public class EbayServicesConfiguration {
 
     @Value("#{systemEnvironment['http_proxy']?:'${replyts2-ebayservicesfilters-plugin.proxyurl:}'}")
