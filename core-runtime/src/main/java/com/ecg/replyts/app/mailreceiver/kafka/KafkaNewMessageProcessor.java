@@ -92,15 +92,13 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
     }
 
     private void processMessage(Message retryableMessage) throws IOException, ParsingException {
-        MutableConversation conversation = getConversation(retryableMessage.getPayload().getConversationId());
-        Optional<byte[]> rawEmail = Optional.ofNullable(retryableMessage.getRawEmail())
-                .filter(bytes -> !bytes.isEmpty())
-                .map(ByteString::toByteArray);
-        if (rawEmail.isPresent() ) {
+        ByteString rawEmail = retryableMessage.getRawEmail();
+        if (rawEmail != null && !rawEmail.isEmpty()) {
             // A presence of a raw email represents the deprecated way of ingesting emails
             // See https://github.corp.ebay.com/ecg-comaas/comaas-adr/blob/master/adr-004-kmail-transition-period.md
-            messageProcessingCoordinator.accept(new ByteArrayInputStream(rawEmail.get()));
+            messageProcessingCoordinator.accept(new ByteArrayInputStream(rawEmail.toByteArray()));
         } else {
+            MutableConversation conversation = getConversation(retryableMessage.getPayload().getConversationId());
             MessageProcessingContext context = createContext(retryableMessage.getPayload().getUserId(), conversation);
             context.addCommand(
                     createAddMessageCommand(retryableMessage.getPayload().getMessage(), conversation.getId(), context));
