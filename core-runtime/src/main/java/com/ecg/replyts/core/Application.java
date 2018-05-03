@@ -94,6 +94,7 @@ public class Application {
 
     @Bean(destroyMethod = "shutdown")
     public HazelcastInstance hazelcastInstance(Config config) {
+        LOG.info("Effective hazelcast configuration: {}", config);
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(config);
 
         LOG.info("Hazelcast Cluster Members (name): {}", hazelcastInstance.getConfig().getGroupConfig().getName());
