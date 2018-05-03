@@ -28,7 +28,7 @@ import java.util.ResourceBundle;
 
 public class ContactMessageSmsService {
     private static final Logger LOG = LoggerFactory.getLogger(ContactMessageSmsService.class);
-    private static Map<String, String> ABBREVIATIONS = new HashMap<String, String>();
+    private static Map<String, String> ABBREVIATIONS = new HashMap<>();
 
     static {
         ABBREVIATIONS.put(quote("autohaus"), "AH");
@@ -47,11 +47,13 @@ public class ContactMessageSmsService {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
     private HttpClient httpClient;
-
-    @Value("${mde.sms.service.url:}")
     private String apiUrl;
+
+    public ContactMessageSmsService(HttpClient httpClient, String apiUrl) {
+        this.httpClient = httpClient;
+        this.apiUrl = apiUrl;
+    }
 
     public boolean send(ContactMessage contactMessage) throws Exception {
         if (StringUtils.isEmpty(apiUrl)) {
