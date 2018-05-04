@@ -3,6 +3,7 @@
 ## Dev setup
 
 * Follow the steps mentioned [here](https://github.corp.ebay.com/ecg-comaas/central/wiki#set-up-code-review) to clone this repository.
+* Run `git submodule update --init`
 * Setup Docker
 
 ### Docker
