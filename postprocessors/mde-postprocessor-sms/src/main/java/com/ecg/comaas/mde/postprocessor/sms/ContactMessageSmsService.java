@@ -18,12 +18,8 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Currency;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.ResourceBundle;
 
 
 public class ContactMessageSmsService {
@@ -71,10 +67,13 @@ public class ContactMessageSmsService {
     }
 
     private HttpPost post(Long dealerId, SmsSendRequest payload) throws Exception {
-        StringEntity params = new StringEntity(
-                objectMapper.writeValueAsString(payload), Charset.forName("UTF-8")
-        );
-        HttpPost post = new HttpPost(apiUrl + dealerId);
+        String payloadString = objectMapper.writeValueAsString(payload);
+        StringEntity params = new StringEntity(payloadString, Charset.forName("UTF-8"));
+
+        String targetUrl = apiUrl + dealerId;
+        LOG.debug("Sending SMS to '{}' and payload '{}'", targetUrl, payloadString);
+
+        HttpPost post = new HttpPost(targetUrl);
         post.addHeader(HTTP.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
         post.addHeader(HTTP.CONTENT_ENCODING, "UTF-8");
         post.setEntity(params);
@@ -96,16 +95,23 @@ public class ContactMessageSmsService {
                 if (200 <= statusLine.getStatusCode() && statusLine.getStatusCode() < 400) {
                     return true;
                 }
-                LOG.warn("Failed response status code {}, body: {}",
-                        statusLine.getStatusCode(),
-                        EntityUtils.toString(response.getEntity(), "UTF-8")
-                );
+                LOG.warn("Failed response status code {} and response {}", statusLine.getStatusCode(), entityAsText(response));
                 return false;
             } finally {
                 if (response.getEntity() != null) {
                     EntityUtils.consumeQuietly(response.getEntity());
                 }
             }
+        }
+
+        private static String entityAsText(HttpResponse response) {
+            return Optional.ofNullable(response.getEntity()).map(entity -> {
+                try {
+                    return EntityUtils.toString(entity);
+                } catch (IOException exceptionToSkip) {
+                    return org.apache.commons.lang3.StringUtils.EMPTY;
+                }
+            }).orElse(org.apache.commons.lang3.StringUtils.EMPTY);
         }
     }
 
