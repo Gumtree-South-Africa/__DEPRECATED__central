@@ -47,6 +47,12 @@ export swift_authentication_url=https://keystone.${region}.cloud.ecg.so/v2.0
     -XX:-HeapDumpOnOutOfMemoryError \
     -Djava.awt.headless=true \
     -Dcom.datastax.driver.FORCE_NIO=true \
+    -Dmail.mime.parameters.strict=false \
+    -Dmail.mime.address.strict=false \
+    -Dmail.mime.ignoreunknownencoding=true \
+    -Dmail.mime.uudecode.ignoreerrors=true \
+    -Dmail.mime.uudecode.ignoremissingbeginend=true \
+    -Dmail.mime.multipart.allowempty=true \
     -XX:+PrintGCDetails \
     -Xloggc:/alloc/logs/gc.log \
     -verbose:gc \
