@@ -15,6 +15,9 @@ variable newmsg_count { default = 2 }
 variable newmsg_resources_cpu { default = 1100 }
 variable newmsg_resources_mem { default = 3096 }
 
+variable cronjob_resources_cpu { default = 100 }
+variable cronjob_resources_mem { default = 1024 }
+
 variable restart_jenkins_job_nr { default = "none" }
 
 variable filebeat_config {
