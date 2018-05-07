@@ -236,5 +236,95 @@ EOH
         }
       }
     }
+  },
+  group "cronjob" {
+
+    count = 1
+
+    constraint {
+      attribute = "${node.class}"
+      value = "services"
+    }
+
+    task "cronjob" {
+      driver = "docker"
+
+      config {
+        image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
+        network_mode = "host"
+
+        auth {
+          username = "[[.docker_username]]"
+          password = "[[.docker_password]]"
+        }
+      }
+
+      env {
+        HEAP_SIZE = "2g"
+        JAVA_OPTS = ""
+        CRONJOBS_ENABLED = true
+        TENANT = "[[ .tenant ]]"
+        MAIL_PROVIDER_STRATEGY = "kafka"
+      }
+
+      service {
+        name = "comaas-core-[[ .tenant ]]"
+        tags = [
+          "version-[[.version]]",
+          "cronjob"
+        ]
+      }
+
+      service {
+        name = "comaas-core-[[ .tenant ]]"
+        port = "prometheus"
+        tags = [
+          "prometheus"
+        ]
+      }
+
+      resources {
+        cpu    = [[.cronjob_resources_cpu]]
+        memory = [[.cronjob_resources_mem]]
+        network {
+          mbits = 100
+          // keep this, Comaas needs it to start up
+          port "http" {}
+          port "hazelcast" {}
+          port "prometheus" {}
+        }
+      }
+    }
+
+    task "filebeat" {
+      driver = "docker"
+      config {
+        image = "docker-registry.ecg.so/comaas/filebeat:5.6.3"
+        args = [
+          "-c", "/local/config/filebeat.yml"
+        ]
+
+        network_mode = "host"
+        auth {
+          username = "[[.docker_username]]"
+          password = "[[.docker_password]]"
+        }
+      }
+
+      template {
+        data = <<EOH
+[[ .filebeat_config ]]
+EOH
+        destination = "local/config/filebeat.yml"
+      }
+
+      resources {
+        cpu = 100
+        memory = 256
+        network {
+          mbits = 1
+        }
+      }
+    }
   }
 }

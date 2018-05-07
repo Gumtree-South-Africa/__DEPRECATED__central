@@ -8,18 +8,15 @@ variable docker_password { default = "unset" }
 variable vault_policy { default = "nomad-secret-readonly" }
 
 variable api_count { default = 3 }
-variable api_resources_cpu {
-  default = 1500
-}
-variable api_resources_mem {
-  default = 4096
-}
+variable api_resources_cpu { default = 1500 }
+variable api_resources_mem { default = 4096 }
 
 variable newmsg_count { default = 3 }
-variable newmsg_resources_cpu {
-  default = 1500
-}
+variable newmsg_resources_cpu { default = 1500 }
 variable newmsg_resources_mem { default = 3096 }
+
+variable cronjob_resources_cpu { default = 100 }
+variable cronjob_resources_mem { default = 1024 }
 
 variable restart_jenkins_job_nr { default = "none" }
 

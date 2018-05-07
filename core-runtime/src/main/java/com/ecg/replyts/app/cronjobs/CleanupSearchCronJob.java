@@ -6,13 +6,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
 @Component
-@ConditionalOnProperty(name = "cronjob.cleanupSearch.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "CRONJOBS_ENABLED", havingValue = "true", matchIfMissing = false)
+@ConditionalOnExpression("#{'${cronjob.cleanupSearch.enabled:false}' == 'true'}")
 public class CleanupSearchCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CleanupSearchCronJob.class);
 
@@ -27,6 +29,7 @@ public class CleanupSearchCronJob implements CronJobExecutor {
     public CleanupSearchCronJob(CleanupConfiguration config, MutableSearchService searchService) {
         this.config = config;
         this.searchService = searchService;
+        LOG.warn("Cronjob started");
     }
 
     @Override

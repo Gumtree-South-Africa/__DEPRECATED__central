@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -44,6 +45,7 @@ import static com.ecg.replyts.core.runtime.TimingReports.newGauge;
 import static org.joda.time.DateTime.now;
 
 @Component
+@ConditionalOnProperty(name = "CRONJOBS_ENABLED", havingValue = "true", matchIfMissing = false)
 @ConditionalOnExpression("#{'${cronjob.cleanup.conversation.enabled:false}' == 'true' && '${active.dc}' != '${region}' && '${persistence.strategy}' == 'cassandra'}")
 public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraCleanupConversationCronJob.class);
