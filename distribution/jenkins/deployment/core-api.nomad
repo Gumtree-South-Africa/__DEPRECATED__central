@@ -45,7 +45,7 @@ job "core-api-[[ .tenant ]]" {
       }
 
       env {
-        HEAP_SIZE = "2g"
+        HEAP_SIZE = [[ .comaas_heap_size ]]
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
@@ -149,7 +149,7 @@ EOH
       }
 
       env {
-        HEAP_SIZE = "2g"
+        HEAP_SIZE = [[ .comaas_heap_size ]]
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
       }
@@ -260,7 +260,7 @@ EOH
       }
 
       env {
-        HEAP_SIZE = "2g"
+        HEAP_SIZE = [[ .cronjob_heap_size ]]
         JAVA_OPTS = ""
         CRONJOBS_ENABLED = true
         TENANT = "[[ .tenant ]]"

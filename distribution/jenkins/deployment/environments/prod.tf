@@ -20,6 +20,9 @@ variable cronjob_resources_mem { default = 1024 }
 
 variable restart_jenkins_job_nr { default = "none" }
 
+variable comaas_heap_size { default = "2G" }
+variable cronjob_heap_size { default = "768M" }
+
 variable filebeat_config {
     type = "string"
     default = <<EOF
