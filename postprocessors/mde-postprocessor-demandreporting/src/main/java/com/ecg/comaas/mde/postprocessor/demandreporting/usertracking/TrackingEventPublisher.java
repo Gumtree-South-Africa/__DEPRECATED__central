@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
+import com.ecg.comaas.mde.postprocessor.demandreporting.GsonConfigurer;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -23,23 +24,19 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
-import com.google.gson.Gson;
 
 class TrackingEventPublisher implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(TrackingEventPublisher.class);
     private final HttpClient httpClient;
     private final UserTrackingHandler.Config config;
-    private final Gson gson;
     private final BlockingQueue<TrackingEvent> eventQueue;
     private final List<TrackingEvent> buffer;
 
     TrackingEventPublisher(BlockingQueue<TrackingEvent> queue,
                            UserTrackingHandler.Config config,
-                           HttpClient httpClient,
-                           Gson gson) {
+                           HttpClient httpClient) {
         this.config = config;
         this.httpClient = httpClient;
-        this.gson = gson;
         this.eventQueue = queue;
         this.buffer = new ArrayList<>(config.getEventBufferSize());
     }
@@ -67,7 +64,7 @@ class TrackingEventPublisher implements Runnable {
 
     private HttpPut prepareHttpCall() {
         HttpPut method = new HttpPut(createEventEndpointUrl(config.getApiUrl()));
-        String json = gson.toJson(buffer);
+        String json = GsonConfigurer.instance().toJson(buffer);
         logger.debug("Prepared Entity to send: " + json);
         method.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
         return method;

@@ -1,28 +1,21 @@
 package com.ecg.comaas.mde.postprocessor.demandreporting.usertracking;
 
 
-import java.util.concurrent.BlockingQueue;
-
 import org.apache.http.client.HttpClient;
 
-import com.google.gson.Gson;
-
+import java.util.concurrent.BlockingQueue;
 
 public class TrackingEventPublisherFactory {
 
     private final UserTrackingHandler.Config config;
-    private final Gson gson;
     private HttpClient httpClient;
 
-    public TrackingEventPublisherFactory(UserTrackingHandler.Config config, HttpClient httpClient, Gson gson) {
+    public TrackingEventPublisherFactory(UserTrackingHandler.Config config, HttpClient httpClient) {
         this.config = config;
         this.httpClient = httpClient;
-        this.gson = gson;
     }
 
     public Runnable create(BlockingQueue<TrackingEvent> queue) {
-        return new TrackingEventPublisher(queue, config, httpClient, gson);
+        return new TrackingEventPublisher(queue, config, httpClient);
     }
-
-
 }

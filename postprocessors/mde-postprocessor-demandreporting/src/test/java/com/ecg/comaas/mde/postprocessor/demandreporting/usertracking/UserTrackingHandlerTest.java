@@ -201,7 +201,7 @@ public class UserTrackingHandlerTest {
         private CountDownLatchRunnable runnable;
 
         public TrackingEventPublisherFactoryMock() {
-            super(config, null, null);
+            super(config, null);
         }
 
         @Override

@@ -1,6 +1,5 @@
 package com.ecg.comaas.mde.postprocessor.demandreporting;
 
-import com.google.gson.Gson;
 import de.mobile.analytics.domain.Event;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -28,17 +27,14 @@ public class HttpEventPublisher implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HttpEventPublisher.class);
     private final HttpClient httpClient;
     private final BehaviorTrackingHandler.Config config;
-    private final Gson gson;
     private final BlockingQueue<Event> eventQueue;
     private final List<Event> buffer;
 
     HttpEventPublisher(BlockingQueue<Event> queue,
                        BehaviorTrackingHandler.Config config,
-                       HttpClient httpClient,
-                       Gson gson) {
+                       HttpClient httpClient) {
         this.config = config;
         this.httpClient = httpClient;
-        this.gson = gson;
         this.eventQueue = queue;
         this.buffer = new ArrayList<>(config.getEventBufferSize());
     }
@@ -71,7 +67,7 @@ public class HttpEventPublisher implements Runnable {
 
     private HttpPut prepareHttpCall() {
         HttpPut method = new HttpPut(createEventEndpointUrl(config.getApiUrl()));
-        String json = gson.toJson(buffer);
+        String json = GsonConfigurer.instance().toJson(buffer);
         LOG.trace("Prepared Entity to send: {}", json);
         method.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
         return method;
