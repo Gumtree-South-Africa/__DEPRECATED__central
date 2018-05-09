@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.WillNotClose;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -30,9 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_ORIGINAL_FROM;
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.MAIL_ORIGINAL_TO;
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.MESSAGE_ID;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static net.logstash.logback.argument.StructuredArguments.keyValue;
 
@@ -45,6 +42,8 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     private static final Logger LOG = LoggerFactory.getLogger(DefaultMessageProcessingCoordinator.class);
 
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("processing-total");
+    private static final io.prometheus.client.Counter X_COMAAS_TENANT_COUNTER = io.prometheus.client.Counter.build("ingest_tenant_header_total",
+            "Incoming Emails with(out) the X-Comaas-Tenant header").labelNames("present").register();
 
     private final List<MessageProcessedListener> messageProcessedListeners = new ArrayList<>();
     private final ProcessingFlow processingFlow;
@@ -88,6 +87,8 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 return Optional.empty();
             }
 
+            boolean containsTenantCode = mail.get().containsHeader("X-Comaas-Tenant");
+            X_COMAAS_TENANT_COUNTER.labels(String.valueOf(containsTenantCode)).inc();
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), messageId);
             setMDC(context);
             contentLengthCounter.inc(bytes.length);
