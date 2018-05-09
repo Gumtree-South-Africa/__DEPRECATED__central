@@ -86,7 +86,8 @@ public class UserTrackingHandler {
 
         Vi vi = Vi.of(
                 getCustomVariableFromMessageOrContext("buyer_device_id", context),
-                getCustomVariableFromMessageOrContext("buyer_customer_id", context)
+                getCustomVariableFromMessageOrContext("buyer_customer_id", context),
+                Optional.ofNullable(getTrackingHeaderFromMessage("Donottrack", message)).map("true"::equalsIgnoreCase).orElse(null)
         );
 
         return EmailContactEvent.builder()

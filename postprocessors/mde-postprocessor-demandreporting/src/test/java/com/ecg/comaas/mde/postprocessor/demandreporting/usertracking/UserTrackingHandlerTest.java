@@ -97,6 +97,7 @@ public class UserTrackingHandlerTest {
             headers.put("X-Track-Akamaibot", "foobot");
             headers.put("X-Track-Appname", "apname");
             headers.put("X-Track-Version", "version");
+            headers.put("X-Track-Donottrack", "true");
 
 
             when(mail.getPlaintextParts()).thenReturn(Arrays.asList("Text part 1", "Text part 2"));
@@ -127,7 +128,7 @@ public class UserTrackingHandlerTest {
                     )
                     .txId("Txid")
                     .txSeq("1")
-                    .vi(Vi.of("7", "9"))
+                    .vi(Vi.of("7", "9", true))
                     .build();
 
             EmailContactEvent actual = userTrackingHandler.createTrackingEventFromContext(context);
@@ -166,6 +167,7 @@ public class UserTrackingHandlerTest {
     private void assertEqualsVi(Vi actual, Vi expected) {
         assertEquals(expected.cid, actual.cid);
         assertEquals(expected.sub, actual.sub);
+        assertEquals(expected.doNotTrack, actual.doNotTrack);
     }
 
     private void assertEqualsCi(ClientInfo actual, ClientInfo expected) {
