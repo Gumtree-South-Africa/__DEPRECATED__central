@@ -29,10 +29,9 @@ public class GdprAcceptanceTest extends ReplyTsIntegrationTestRuleHelper {
         assertThat(messagesInMessageboxForUser("30"), is(1));
 
         // close the conversation
-        // curl -H "Content-Type: application/json" -X PUT -d "{ 'state':'CLOSED', 'issuerEmail':'Geert2'}" -vvv "http://localhost:18081/screeningv2/conversation/1:1w35b82:29qj12jhn"
         RestAssured
                 .given()
-                .body("{ 'state':'CLOSED', 'issuerEmail':'CS-Agent', 'userId':'25'}")
+                .body("{ 'state':'CLOSED', 'issuerEmail':'sam@example.com', 'deleteForIssuer':'true'}")
                 .contentType("application/json")
                 .expect()
                 .statusCode(200)

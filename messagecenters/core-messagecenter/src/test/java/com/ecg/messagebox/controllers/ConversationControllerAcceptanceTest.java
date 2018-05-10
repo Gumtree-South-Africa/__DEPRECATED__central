@@ -63,6 +63,19 @@ public class ConversationControllerAcceptanceTest extends ReplyTsIntegrationTest
     }
 
     @Test
+    public void closeConversation() throws Exception {
+        String convId = testRule.deliver(MAIL1).getConversation().getId();
+
+        RestAssured
+                .given()
+                .body("{ 'state':'CLOSED', 'issuerEmail':'buyer@buyer.com'}")
+                .contentType("application/json")
+                .expect()
+                .statusCode(200)
+                .put("http://localhost:" + testRule.getHttpPort() + "/screeningv2/conversation/" + convId);
+    }
+
+    @Test
     public void markConversationAsRead() throws Exception {
         String convId = testRule.deliver(MAIL1).getConversation().getId();
         testRule.waitForMail();

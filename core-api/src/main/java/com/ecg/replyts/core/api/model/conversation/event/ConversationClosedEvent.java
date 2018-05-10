@@ -37,6 +37,6 @@ public class ConversationClosedEvent extends ConversationEvent {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getConversationModifiedAt().getMillis(),getCloseIssuer());
+        return Objects.hashCode(getConversationModifiedAt().getMillis(), getCloseIssuer());
     }
 }

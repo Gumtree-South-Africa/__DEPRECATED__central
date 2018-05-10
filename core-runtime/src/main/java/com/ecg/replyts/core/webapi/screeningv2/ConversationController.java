@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddCustomValueCommand;
+import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedAndDeletedForUserCommand;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedCommand;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.webapi.commands.GetConversationCommand;
@@ -92,13 +93,23 @@ class ConversationController {
 
         PreconditionIssuerEmailIsBuyerOrSeller(changeConversationStatePayload, conversation);
 
-        conversation.applyCommand(
-                new ConversationClosedCommand(
-                    conversationId,
-                    ConversationRole.getRole(changeConversationStatePayload.getIssuerEmail(), conversation),
-                    DateTime.now()
-                )
-        );
+        if (changeConversationStatePayload.isDeleteForIssuer()) {
+            conversation.applyCommand(
+                    new ConversationClosedAndDeletedForUserCommand(
+                            conversationId,
+                            changeConversationStatePayload.getIssuerEmail(),
+                            DateTime.now()
+                    )
+            );
+        } else {
+            conversation.applyCommand(
+                    new ConversationClosedCommand(
+                            conversationId,
+                            ConversationRole.getRole(changeConversationStatePayload.getIssuerEmail(), conversation),
+                            DateTime.now()
+                    )
+            );
+        }
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
 

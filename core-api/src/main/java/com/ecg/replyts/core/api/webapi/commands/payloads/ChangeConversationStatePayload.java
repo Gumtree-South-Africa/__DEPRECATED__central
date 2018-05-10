@@ -9,6 +9,7 @@ public class ChangeConversationStatePayload {
 
     private ConversationState state;
     private String issuerEmail;
+    private Boolean deleteForIssuer;
 
     public String getIssuerEmail() {
         return issuerEmail;
@@ -26,4 +27,14 @@ public class ChangeConversationStatePayload {
         this.state = state;
     }
 
+    public Boolean isDeleteForIssuer() {
+        if (deleteForIssuer == null) {
+            return false;
+        }
+        return deleteForIssuer;
+    }
+
+    public void setDeleteForIssuer(Boolean deleteForIssuer) {
+        this.deleteForIssuer = deleteForIssuer;
+    }
 }
