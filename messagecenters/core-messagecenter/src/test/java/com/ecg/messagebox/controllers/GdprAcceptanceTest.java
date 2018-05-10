@@ -23,7 +23,7 @@ public class GdprAcceptanceTest extends ReplyTsIntegrationTestRuleHelper {
                         .plainBody("Hello max, I want to buy your stuff")
         ).getConversation().getId();
 
-        String buyerEmail = testRule.waitForMail().getFrom()[0].toString();
+        String anonymizedBuyerEmail = testRule.waitForMail().getFrom()[0].toString();
 
         assertThat(conversationsInMessageboxForUser("25"), is(1));
         assertThat(conversationsInMessageboxForUser("30"), is(1));
@@ -47,7 +47,7 @@ public class GdprAcceptanceTest extends ReplyTsIntegrationTestRuleHelper {
         testRule.deliver(
                 aNewMail()
                         .from("max@example.com")
-                        .to(buyerEmail)
+                        .to(anonymizedBuyerEmail)
                         .adId("1234")
                         .plainBody("Hi sam, are you still there?"));
 

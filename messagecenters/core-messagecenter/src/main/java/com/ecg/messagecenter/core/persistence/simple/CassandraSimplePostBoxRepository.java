@@ -504,16 +504,21 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     }
 
     @Override
-    public void deleteConversations(PostBox postBox, List<String> convIds) {
+    public void deleteConversations(PostBoxId postBoxId, List<String> convIds) {
         try (Timer.Context ignored = deleteConversationThreadBatchTimer.time()) {
             BatchStatement batch = new BatchStatement();
 
             for (String conv : convIds) {
-                deleteConversationThreadStatements(batch, PostBoxId.fromEmail(postBox.getEmail()), conv);
+                deleteConversationThreadStatements(batch, postBoxId, conv);
             }
 
             session.execute(batch);
         }
+    }
+
+    @Override
+    public void deleteConversations(PostBox postBox, List<String> convIds) {
+        deleteConversations(postBox.getId(), convIds);
     }
 
     private void writeConversationThreadStatements(BatchStatement batch, PostBoxId id, AbstractConversationThread conversationThread, int numUnreadMessages) {

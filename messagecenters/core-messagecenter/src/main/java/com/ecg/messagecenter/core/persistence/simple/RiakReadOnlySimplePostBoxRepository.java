@@ -93,6 +93,11 @@ public class RiakReadOnlySimplePostBoxRepository implements RiakSimplePostBoxRep
     }
 
     @Override
+    public void deleteConversations(PostBoxId postBoxId, List<String> convIds) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void deleteConversations(PostBox postBox, List<String> deletedIds) {
         LOG.debug("RiakReadOnlySimplePostBoxRepository.deleteConversations was called");
     }

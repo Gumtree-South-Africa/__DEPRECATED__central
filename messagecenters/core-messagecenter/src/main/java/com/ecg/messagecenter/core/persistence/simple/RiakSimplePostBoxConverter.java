@@ -16,10 +16,10 @@ public class RiakSimplePostBoxConverter implements Converter<PostBox> {
     private static final Histogram POSTBOX_NUM_THREADS_SIZE_HISTOGRAM = TimingReports.newHistogram("riak-postbox-sizes.num-conversations");
     private static final Histogram POSTBOX_NUM_UNREAD = TimingReports.newHistogram("riak-postbox-sizes.num-conversations-unread");
 
-    @Autowired
+    @Autowired(required = false)
     private AbstractPostBoxToJsonConverter toJson;
 
-    @Autowired
+    @Autowired(required = false)
     private AbstractJsonToPostBoxConverter toPostBox;
 
     @Value("${persistence.riak.bucket.name.prefix:}" + DefaultRiakSimplePostBoxRepository.POST_BOX)

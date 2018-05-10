@@ -5,14 +5,22 @@ import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.joda.time.DateTime;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Component
 @ConditionalOnExpression("#{'${persistence.strategy}' == 'riak' || '${persistence.strategy}'.startsWith('hybrid') }")
 public class PostBoxToJsonConverter implements AbstractPostBoxToJsonConverter<ConversationThread> {
+
+    @PostConstruct
+    public void setup() {
+        LoggerFactory.getLogger("GeertLogger").error("HOI GEERT");
+    }
+
     @Override
     public String toJson(PostBox<ConversationThread> p) {
         return JsonObjects.builder()

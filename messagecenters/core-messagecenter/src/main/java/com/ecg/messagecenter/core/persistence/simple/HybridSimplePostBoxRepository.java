@@ -158,6 +158,11 @@ public class HybridSimplePostBoxRepository implements RiakSimplePostBoxRepositor
     }
 
     @Override
+    public void deleteConversations(PostBoxId postBoxId, List<String> convIds) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void deleteConversations(PostBox postBox, List<String> deletedIds) {
         try {
             cassandraRepository.deleteConversations(postBox, deletedIds);

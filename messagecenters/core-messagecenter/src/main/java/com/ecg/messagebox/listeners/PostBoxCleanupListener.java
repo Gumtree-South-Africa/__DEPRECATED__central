@@ -30,7 +30,8 @@ public class PostBoxCleanupListener implements ConversationEventListener {
 
     private final Timer processingTimer = newTimer("message-box.postBoxCleanupListener.timer");
     private final Counter failedCleanupCounter = TimingReports.newCounter("message-box.postBoxCleanupListener.failed");
-    private final Counter failedCleanupForUserCounter = TimingReports.newCounter("message-box.postBoxCleanupListener.failedCleanupForUser");
+    private final Timer cleanupForUserTimer = newTimer("message-box.postBoxCleanupForUserListener.timer");
+    private final Counter failedCleanupForUserCounter = TimingReports.newCounter("message-box.postBoxCleanupForUserListener.failed");
 
     private final PostBoxService postBoxService;
     private final UserIdentifierService userIdentifierService;
@@ -75,7 +76,7 @@ public class PostBoxCleanupListener implements ConversationEventListener {
     private void deleteConversationForUser(Conversation conversation, String userId) {
         Preconditions.checkArgument(userId != null && !userId.equals(""), "userId should have a value (convId: '%s')", conversation.getId());
 
-        try (Timer.Context ignored = processingTimer.time()) {
+        try (Timer.Context ignored = cleanupForUserTimer.time()) {
             postBoxService.deleteConversation(userId, conversation.getId(), conversation.getAdId());
             LOGGER.info("Deleted conversation with id '{}' from postbox of user with id '{}'", conversation.getId(), userId);
         } catch (Exception e) {

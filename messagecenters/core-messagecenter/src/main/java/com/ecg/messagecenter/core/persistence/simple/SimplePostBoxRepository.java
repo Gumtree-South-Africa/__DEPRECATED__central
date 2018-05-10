@@ -26,6 +26,8 @@ public interface SimplePostBoxRepository {
 
     void write(PostBox postBox);
 
+    void deleteConversations(PostBoxId postBoxId, List<String> convIds);
+
     void deleteConversations(PostBox postBox, List<String> deletedIds);
 
     default void markConversationAsRead(PostBox postBox, AbstractConversationThread conversation) {

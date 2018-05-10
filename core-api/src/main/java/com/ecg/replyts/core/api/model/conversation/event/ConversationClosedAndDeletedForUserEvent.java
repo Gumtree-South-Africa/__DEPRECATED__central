@@ -9,18 +9,24 @@ import org.joda.time.DateTime;
 public class ConversationClosedAndDeletedForUserEvent extends ConversationEvent {
 
     private String userId;
+    private String userEmail;
 
-    protected ConversationClosedAndDeletedForUserEvent(@JsonProperty("conversationModifiedAt") DateTime decidedAt, @JsonProperty("closeIssuer")  String userId) {
+    protected ConversationClosedAndDeletedForUserEvent(@JsonProperty("conversationModifiedAt") DateTime decidedAt, @JsonProperty("issuerId")  String userId, @JsonProperty("issuerEmail") String userEmail) {
         super(ConversationClosedAndDeletedForUserEvent.class.getSimpleName() + "-" + decidedAt.getMillis(), decidedAt);
         this.userId = userId;
+        this.userEmail = userEmail;
     }
 
     public ConversationClosedAndDeletedForUserEvent(ConversationClosedAndDeletedForUserCommand cmd) {
-        this(cmd.getAt(), cmd.getUserId());
+        this(cmd.getAt(), cmd.getUserId(), cmd.getUserEmail());
     }
 
     public String getUserId() {
         return userId;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
     }
 
     @Override
@@ -31,11 +37,12 @@ public class ConversationClosedAndDeletedForUserEvent extends ConversationEvent 
         ConversationClosedAndDeletedForUserEvent that = (ConversationClosedAndDeletedForUserEvent) o;
 
         return Pairwise.pairsAreEqual(this.getConversationModifiedAt().getMillis(), that.getConversationModifiedAt().getMillis(),
-                this.getUserId(), that.getUserId());
+                this.getUserId(), that.getUserId(),
+                this.getUserEmail(), that.getUserEmail());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getConversationModifiedAt().getMillis(), getUserId());
+        return Objects.hashCode(getConversationModifiedAt().getMillis(), getUserId(), getUserEmail());
     }
 }

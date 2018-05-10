@@ -46,6 +46,7 @@ public class EkPostBoxUpdateListener implements MessageProcessedListener {
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
 
+        LOG.error("GEEEEERT");
         if (conversationIsFromOpenImmo(conversation)) {
             // we don't annonymize but send out to cleartext To-address (see replyts2-openimmo-deanonymizer plugin)
             // therefore no messaging in message-box possible -> so don't display it
@@ -90,8 +91,6 @@ public class EkPostBoxUpdateListener implements MessageProcessedListener {
         }
         return Range.closedOpen(20000, 200000).contains(Integer.parseInt(conv.getCustomValues().get(CUSTOM_VALUE_AD_API_USERID)));
     }
-
-
 
     private void updateMessageCenter(String email, Conversation conversation, Message message, boolean newReplyArrived) {
         postBoxInitializer.moveConversationToPostBox(

@@ -103,6 +103,11 @@ public class DefaultRiakSimplePostBoxRepository implements RiakSimplePostBoxRepo
     }
 
     @Override
+    public void deleteConversations(PostBoxId postBoxId, List<String> convIds) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void deleteConversations(PostBox postBox, List<String> deletedIds) {
         write(postBox, deletedIds);
     }
