@@ -3,7 +3,9 @@ package com.ecg.messagebox.listeners;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedAndDeletedForUserCommand;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedCommand;
+import com.ecg.replyts.core.api.model.conversation.event.ConversationClosedAndDeletedForUserEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationClosedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationDeletedEvent;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
@@ -63,6 +65,14 @@ public class PostBoxCleanupListenerTest {
         listener.eventsTriggered(conversation, Arrays.asList(new ConversationClosedEvent(new ConversationClosedCommand(conversation.getId(), ConversationRole.Buyer, new DateTime()))));
 
         verify(postBoxServiceMock, never()).deleteConversation(BUYER_USER_ID, conversation.getId(), conversation.getAdId());
+        verify(postBoxServiceMock, never()).deleteConversation(SELLER_USER_ID, conversation.getId(), conversation.getAdId());
+    }
+
+    @Test
+    public void conversationClosedAndDeletedForUserEventIsProcessed() {
+        listener.eventsTriggered(conversation, Arrays.asList(new ConversationClosedAndDeletedForUserEvent(new ConversationClosedAndDeletedForUserCommand(conversation.getId(), BUYER_USER_ID, "", new DateTime()))));
+
+        verify(postBoxServiceMock).deleteConversation(BUYER_USER_ID, conversation.getId(), conversation.getAdId());
         verify(postBoxServiceMock, never()).deleteConversation(SELLER_USER_ID, conversation.getId(), conversation.getAdId());
     }
 }

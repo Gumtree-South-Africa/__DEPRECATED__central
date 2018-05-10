@@ -25,23 +25,23 @@ public class GdprAcceptanceTest extends ReplyTsIntegrationTestRuleHelper {
 
         String buyerEmail = testRule.waitForMail().getFrom()[0].toString();
 
-        assertThat(messagesInMessageboxForUser("25"), is(1));
-        assertThat(messagesInMessageboxForUser("30"), is(1));
+        assertThat(conversationsInMessageboxForUser("25"), is(1));
+        assertThat(conversationsInMessageboxForUser("30"), is(1));
 
         // close the conversation
         RestAssured
                 .given()
-                .body("{ 'state':'CLOSED', 'issuerEmail':'sam@example.com', 'deleteForIssuer':'true'}")
+                .body("{ 'state':'CLOSED', 'deleteForIssuer':'true', 'issuerId':'25'}")
                 .contentType("application/json")
                 .expect()
                 .statusCode(200)
                 .put("http://localhost:" + testRule.getHttpPort() + "/screeningv2/conversation/" + convId);
 
         // assert that messagebox is empty for DDR initiating user
-        assertThat(messagesInMessageboxForUser("25"), is(0));
+        assertThat(conversationsInMessageboxForUser("25"), is(0));
 
         // assert that other party is not affected
-        assertThat(messagesInMessageboxForUser("30"), is(1));
+        assertThat(conversationsInMessageboxForUser("30"), is(1));
 
         // send a new message by user 30
         testRule.deliver(
@@ -51,18 +51,18 @@ public class GdprAcceptanceTest extends ReplyTsIntegrationTestRuleHelper {
                         .adId("1234")
                         .plainBody("Hi sam, are you still there?"));
 
-        // no new message should be in the messageboxes
-        assertThat(messagesInMessageboxForUser("25"), is(0));
-        assertThat(messagesInMessageboxForUser("30"), is(1));
+        // no new conversation should be in the messageboxes
+        assertThat(conversationsInMessageboxForUser("25"), is(0));
+        assertThat(conversationsInMessageboxForUser("30"), is(1));
     }
 
-    private int messagesInMessageboxForUser(String userId) {
+    private int conversationsInMessageboxForUser(String userId) {
         String response = RestAssured.given()
                 .expect()
                 .statusCode(200)
-                .get("http://localhost:" + testRule.getHttpPort() + "/msgcenter/users/" + userId + "/conversations")
+                .get("http://localhost:" + testRule.getHttpPort() + "/msgbox/users/" + userId + "/conversations")
                 .asString();
 
-        return JsonPath.from(response).getInt("body.conversations.size");
+        return JsonPath.from(response).getInt("conversations.size");
     }
 }

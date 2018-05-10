@@ -18,6 +18,7 @@ import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.ConversationRts;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
@@ -50,6 +51,7 @@ class ConversationController {
     private final MailCloakingService mailCloakingService;
     private final SearchIndexer searchIndexer;
     private final ConversationEventListeners conversationEventListeners;
+    private final UserIdentifierService userIdentifierService;
     private final Timer loadConversationTimer = TimingReports.newTimer("core-conversationController.loadConversation");
 
     @Autowired
@@ -57,12 +59,14 @@ class ConversationController {
                            DomainObjectConverter converter,
                            MailCloakingService mailCloakingService,
                            SearchIndexer searchIndexer,
-                           ConversationEventListeners conversationEventListeners) {
+                           ConversationEventListeners conversationEventListeners,
+                           UserIdentifierService userIdentifierService) {
         this.conversationRepository = conversationRepository;
         this.converter = converter;
         this.mailCloakingService = mailCloakingService;
         this.searchIndexer = searchIndexer;
         this.conversationEventListeners = conversationEventListeners;
+        this.userIdentifierService = userIdentifierService;
     }
 
     /**
@@ -91,12 +95,13 @@ class ConversationController {
             return ResponseObject.of(RequestState.ENTITY_NOT_FOUND);
         }
 
-        PreconditionIssuerEmailIsBuyerOrSeller(changeConversationStatePayload, conversation);
+        checkThatIssuerIsBuyerOrSeller(changeConversationStatePayload, conversation);
 
         if (changeConversationStatePayload.isDeleteForIssuer()) {
             conversation.applyCommand(
                     new ConversationClosedAndDeletedForUserCommand(
                             conversationId,
+                            changeConversationStatePayload.getIssuerId(),
                             changeConversationStatePayload.getIssuerEmail(),
                             DateTime.now()
                     )
@@ -141,15 +146,22 @@ class ConversationController {
         return ResponseObject.of(conversationRts);
     }
 
-    private void PreconditionIssuerEmailIsBuyerOrSeller(ChangeConversationStatePayload changeConversationStatePayload, MutableConversation conversation) {
+    private void checkThatIssuerIsBuyerOrSeller(ChangeConversationStatePayload changeConversationStatePayload, MutableConversation conversation) {
+        String issuerId = changeConversationStatePayload.getIssuerId();
         String issuerEmail = changeConversationStatePayload.getIssuerEmail();
-        String buyerId = conversation.getBuyerId();
-        String sellerId = conversation.getSellerId();
+
+        String buyerId = userIdentifierService.getBuyerUserId(conversation).orElse("");
+        String sellerId = userIdentifierService.getSellerUserId(conversation).orElse("");
+
+        String buyerEmail = conversation.getBuyerId();
+        String sellerEmail = conversation.getSellerId();
+
         Preconditions.checkArgument(
-            issuerEmail.equalsIgnoreCase(buyerId) || issuerEmail.equalsIgnoreCase(sellerId),
-            "issuerEmail '%s' is not buyerId '%s' or sellerId '%s'",
-            issuerEmail,
-            buyerId,
-            sellerId);
+                issuerId.equalsIgnoreCase(buyerId) || issuerId.equalsIgnoreCase(sellerId) ||
+            issuerEmail.equalsIgnoreCase(buyerEmail) || issuerEmail.equalsIgnoreCase(sellerEmail),
+            "issuerId '%s' or issuerEmail '%s' are not one of: buyerId '%s',  sellerId '%s', buyerEmail '%s' or sellerEmail '%s'",
+            issuerId, issuerEmail,
+            buyerId, sellerId,
+            buyerEmail, sellerEmail);
     }
 }

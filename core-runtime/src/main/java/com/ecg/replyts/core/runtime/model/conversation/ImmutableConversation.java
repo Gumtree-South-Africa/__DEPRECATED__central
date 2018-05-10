@@ -262,6 +262,9 @@ public class ImmutableConversation implements Conversation { // NOSONAR
         if (event instanceof ConversationClosedEvent) {
             return updateInternal((ConversationClosedEvent) event);
         }
+        if (event instanceof ConversationClosedAndDeletedForUserEvent) {
+            return updateInternal((ConversationClosedAndDeletedForUserEvent) event);
+        }
         if (event instanceof CustomValueAddedEvent) {
             return updateInternal((CustomValueAddedEvent) event);
         }
@@ -364,6 +367,13 @@ public class ImmutableConversation implements Conversation { // NOSONAR
         return aConversation(this)
                 .withState(ConversationState.CLOSED)
                 .closedBy(event.getCloseIssuer())
+                .withLastModifiedAt(event.getConversationModifiedAt())
+                .build();
+    }
+
+    private ImmutableConversation updateInternal(ConversationClosedAndDeletedForUserEvent event) {
+        return aConversation(this)
+                .withState(ConversationState.CLOSED)
                 .withLastModifiedAt(event.getConversationModifiedAt())
                 .build();
     }
