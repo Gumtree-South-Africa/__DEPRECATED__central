@@ -25,6 +25,7 @@ import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversation
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
 import com.google.common.base.Preconditions;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -103,7 +104,7 @@ class ConversationController {
                             conversationId,
                             changeConversationStatePayload.getIssuerId(),
                             changeConversationStatePayload.getIssuerEmail(),
-                            DateTime.now()
+                            DateTime.now(DateTimeZone.UTC)
                     )
             );
         } else {
@@ -111,7 +112,7 @@ class ConversationController {
                     new ConversationClosedCommand(
                             conversationId,
                             ConversationRole.getRole(changeConversationStatePayload.getIssuerEmail(), conversation),
-                            DateTime.now()
+                            DateTime.now(DateTimeZone.UTC)
                     )
             );
         }
