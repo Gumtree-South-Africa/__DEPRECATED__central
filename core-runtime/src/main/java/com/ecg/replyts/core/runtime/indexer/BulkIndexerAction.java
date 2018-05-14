@@ -79,12 +79,12 @@ public class BulkIndexerAction implements IndexerAction {
     public void shutdown() {
         threadPoolExecutor.shutdown();
         try {
-            LOG.info("Indexing terminating due to shuwdown");
+            LOG.info("Indexing terminating due to shutdown");
             if (!threadPoolExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
                 LOG.warn("Some of the thread haven't completed during the graceful period, going to interrupt them...");
             }
             threadPoolExecutor.shutdownNow();
-            LOG.info("Indexing terminated due to shuwdown");
+            LOG.info("Indexing terminated due to shutdown");
         } catch (InterruptedException e) {
             LOG.warn("Indexing termination failed", e);
             Thread.currentThread().interrupt();
