@@ -139,8 +139,8 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
 
     final String tenantShort = commonFunctions.getAlias(tenant)
 
-    // Is this really necessary? Can we pass the files to the builder instead?
-    checkout scm
+    tagToCheckout = "refs/tags/$version"
+    checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[credentialsId: 'GITHUB', url: 'git@github.corp.ebay.com:ecg-comaas/central.git']], branches: [[name: tagToCheckout]]], poll: false
 
     withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
                       usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
