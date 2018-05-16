@@ -1,4 +1,4 @@
-FROM openjdk:8u131-jre-alpine
+FROM openjdk:8u151-jdk-alpine
 
 LABEL maintainer="Comaas team <DL-eCG-comaas-dev@ebay.com>"
 
