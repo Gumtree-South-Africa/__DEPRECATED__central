@@ -19,6 +19,11 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+
+import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgAbandonedCounter;
+import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgRetriedCounter;
+import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgUnparseableCounter;
+
 @NotThreadSafe
 abstract class KafkaMessageProcessor implements MessageProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaMessageProcessor.class);
@@ -100,8 +105,9 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     }
 
     // Some messages are unparseable, so we don't even retry, instead they go on the unparseable topic
+
     void unparseableMessage(final Message retryableMessage) {
-        UNPARSEABLE_COUNTER.inc();
+        incMsgUnparseableCounter();
         try {
             publishToTopic(KafkaTopicService.getTopicUnparseable(shortTenant), retryableMessage);
         } catch (JsonProcessingException e) {
@@ -111,11 +117,11 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
     // Put the message in the retry topic with a specific delay
     void delayRetryMessage(final Message retryableMessage) {
-        RETRIED_MESSAGE_COUNTER.inc();
+        incMsgRetriedCounter();
         try {
             Instant currentConsumptionTime = Instant.ofEpochSecond(
-                retryableMessage.getNextConsumptionTime().getSeconds(),
-                retryableMessage.getNextConsumptionTime().getNanos())
+                    retryableMessage.getNextConsumptionTime().getSeconds(),
+                    retryableMessage.getNextConsumptionTime().getNanos())
                     .plus(retryOnFailedMessagePeriodMinutes, ChronoUnit.MINUTES);
 
             Timestamp nextConsumptionTime = Timestamp
@@ -145,7 +151,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
     // After n retries, we abandon the message by putting it in the abandoned topic
     void abandonMessage(final Message retryableMessage, final Exception e) {
-        ABANDONED_RETRY_COUNTER.inc();
+        incMsgAbandonedCounter();
         LOG.error("Mail processing abandoned for message with correlationId {}", retryableMessage.getCorrelationId(), e);
         try {
             publishToTopic(KafkaTopicService.getTopicAbandoned(shortTenant), retryableMessage);

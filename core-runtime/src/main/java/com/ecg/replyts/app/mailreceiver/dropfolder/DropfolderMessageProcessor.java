@@ -32,6 +32,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.ecg.replyts.app.mailreceiver.MessageProcessor.*;
+import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgAbandonedCounter;
+import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgRetriedCounter;
+import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgUnparseableCounter;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
@@ -193,20 +197,19 @@ public class DropfolderMessageProcessor implements MessageProcessor {
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(tempFilename))) {
             messageProcessor.accept(inputStream);
         } catch (ParsingException e) {
-            UNPARSEABLE_COUNTER.inc();
+            incMsgUnparseableCounter();
             File unparsableFilename = new File(failedDirectory, UNPARSABLE_PREFIX + originalFilename.getName());
 
             if (!tempFilename.renameTo(unparsableFilename)) {
                 LOG.error("Failed to move unparsable mail to 'failed' directory {}", tempFilename.getName());
             }
         } catch (Exception e) {
-            RETRIED_MESSAGE_COUNTER.inc();
+            incMsgRetriedCounter();
 
             File failedFilename = new File(failedDirectory, FAILED_PREFIX + originalFilename.getName());
 
             if (failedFilename.getName().matches(abandonedFileNameMatchPattern)) {
-                ABANDONED_RETRY_COUNTER.inc();
-
+                incMsgAbandonedCounter();
                 LOG.error("Mail processing abandoned for file: '{}'", failedFilename.getName(), e);
             } else {
                 LOG.warn("Mail processing failed. Storing mail in failed folder as '{}'", failedFilename.getName(), e);
