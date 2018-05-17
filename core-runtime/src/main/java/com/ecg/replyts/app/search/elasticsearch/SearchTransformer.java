@@ -186,7 +186,7 @@ public final class SearchTransformer {
 
     private void setupTimeRangeFilter() {
         if (payload.getFromDate() != null || payload.getToDate() != null) {
-            RangeFilterBuilder rangeFilter = rangeFilter("receivedDate")
+            RangeFilterBuilder rangeFilter = rangeFilter("lastModified")
               .from(payload.getFromDate())
               .to(payload.getToDate());
 
@@ -198,10 +198,10 @@ public final class SearchTransformer {
         SortOrder so = payload.getOrdering().equals(SearchMessagePayload.ResultOrdering.NEWEST_FIRST) ? DESC : ASC;
 
         if (!groupedSearch) {
-            searchRequestBuilder.addSort("receivedDate", so);
+            searchRequestBuilder.addSort("lastModified", so);
         }
 
-        itemsAggregation.addSort("receivedDate", so);
+        itemsAggregation.addSort("lastModified", so);
     }
 
     private void setupPaging(SearchRequestBuilder searchRequestBuilder) {
