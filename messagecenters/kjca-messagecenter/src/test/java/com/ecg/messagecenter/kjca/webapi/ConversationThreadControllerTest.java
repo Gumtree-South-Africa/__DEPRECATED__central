@@ -1,14 +1,13 @@
 package com.ecg.messagecenter.kjca.webapi;
 
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
-import com.ecg.messagecenter.kjca.webapi.ConversationThreadController;
+import com.ecg.messagecenter.kjca.persistence.block.CassandraConversationBlockRepository;
 import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
-import com.ecg.messagecenter.core.persistence.simple.DefaultRiakSimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.kjca.persistence.ConversationThread;
 import com.ecg.messagecenter.kjca.persistence.UnreadCountCachePopulater;
-import com.ecg.messagecenter.kjca.persistence.block.RiakConversationBlockRepository;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.google.common.collect.ImmutableList;
@@ -28,9 +27,9 @@ public class ConversationThreadControllerTest {
     private static final String EMAIL = "user@example.com";
     private static final String CONVERSATION_ID = "conversationId";
 
-    private DefaultRiakSimplePostBoxRepository postBoxRepository = Mockito.mock(DefaultRiakSimplePostBoxRepository.class);
+    private SimplePostBoxRepository postBoxRepository = Mockito.mock(SimplePostBoxRepository.class);
     private ConversationRepository conversationRepository = Mockito.mock(ConversationRepository.class);
-    private RiakConversationBlockRepository conversationBlockRepository = Mockito.mock(RiakConversationBlockRepository.class);
+    private CassandraConversationBlockRepository conversationBlockRepository = Mockito.mock(CassandraConversationBlockRepository.class);
     private MailCloakingService mailCloakingService = Mockito.mock(MailCloakingService.class);
     private TextAnonymizer textAnonymizer = Mockito.mock(TextAnonymizer.class);
     private UnreadCountCachePopulater unreadCountCachePopulater = Mockito.mock(UnreadCountCachePopulater.class);

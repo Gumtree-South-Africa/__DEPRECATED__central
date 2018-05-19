@@ -20,7 +20,8 @@ public class BaseReplyTsIntegrationTest {
 
     private Properties createProperties() {
         Properties properties = propertiesWithTenant(TENANT_IT);
-        properties.put("persistence.strategy", "riak");
+        properties.put("persistence.strategy", "cassandra");
+        properties.put("persistence.cassandra.conversation.class", "com.ecg.messagecenter.it.persistence.ConversationThread");
         return properties;
     }
 

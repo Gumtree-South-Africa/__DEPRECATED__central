@@ -28,7 +28,7 @@ public class CassandraIntegrationTestProvisioner {
 
     private static CassandraIntegrationTestProvisioner INSTANCE;
 
-    private Set<String> KEYSPACES = new ConcurrentHashSet<>();
+    private Set<String> keyspaces = new ConcurrentHashSet<>();
 
     private Cluster cluster;
 
@@ -37,6 +37,10 @@ public class CassandraIntegrationTestProvisioner {
 
     private static int getLocalCassandraPort() {
         return Integer.parseInt(System.getProperty("testLocalCassandraPort", "9042"));
+    }
+
+    public Set<String> getKeyspaces() {
+        return keyspaces;
     }
 
     public static synchronized CassandraIntegrationTestProvisioner getInstance() {
@@ -64,7 +68,7 @@ public class CassandraIntegrationTestProvisioner {
     public synchronized Session loadSchema(String keyspace, String... cqlFilePaths) {
         Stopwatch sw = Stopwatch.createStarted();
 
-        if (!KEYSPACES.add(keyspace)) {
+        if (!keyspaces.add(keyspace)) {
             LOG.debug("Keyspace '{}' has already been initialized", keyspace);
 
             return getSession(keyspace);
@@ -106,7 +110,7 @@ public class CassandraIntegrationTestProvisioner {
         }
 
         if (keyspace != null) {
-            KEYSPACES.add(keyspace);
+            keyspaces.add(keyspace);
         }
 
         return cluster.connect(keyspace);

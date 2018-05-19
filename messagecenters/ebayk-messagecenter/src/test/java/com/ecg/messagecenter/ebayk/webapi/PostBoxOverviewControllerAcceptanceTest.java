@@ -17,11 +17,12 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class PostBoxOverviewControllerAcceptanceTest {
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), null, 20, ES_ENABLED);
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), null, 20, ES_ENABLED, "cassandra_schema.cql", "cassandra_messagecenter_schema.cql");
 
     private Properties createProperties() {
         Properties properties = propertiesWithTenant(TENANT_EBAYK);
-        properties.put("persistence.strategy", "riak");
+        properties.put("persistence.strategy", "cassandra");
+        properties.put("persistence.cassandra.conversation.class", "com.ecg.messagecenter.ebayk.persistence.ConversationThread");
         return properties;
     }
 

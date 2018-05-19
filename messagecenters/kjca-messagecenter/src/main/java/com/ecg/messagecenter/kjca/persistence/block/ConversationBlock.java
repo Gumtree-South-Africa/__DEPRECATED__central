@@ -16,7 +16,7 @@ import java.util.Optional;
 public class ConversationBlock {
     public static final int LATEST_VERSION = 1;
 
-    private final String conversationId; // This is the key in Riak's bucket. It doesn't appear in JSON.
+    private final String conversationId;
     private final int version;
     private final Optional<DateTime> buyerBlockedSellerAt;
     private final Optional<DateTime> sellerBlockedBuyerAt;

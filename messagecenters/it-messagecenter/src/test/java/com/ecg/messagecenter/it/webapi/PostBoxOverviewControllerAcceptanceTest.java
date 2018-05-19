@@ -67,7 +67,7 @@ public class PostBoxOverviewControllerAcceptanceTest extends BaseReplyTsIntegrat
                         .getConversation().getId();
         testRule.waitForMail();
 
-        RestAssured.given().expect().statusCode(200).body("body.numUnread", equalTo(1))
+        RestAssured.given().expect().statusCode(200).body("body.numUnread", equalTo(2))
                         .get("http://localhost:" + testRule.getHttpPort()
                                         + "/ebayk-msgcenter/postboxes/seller1@seller.com");
 
@@ -76,7 +76,7 @@ public class PostBoxOverviewControllerAcceptanceTest extends BaseReplyTsIntegrat
                                         + "/ebayk-msgcenter/postboxes/seller1@seller.com");
 
         // counter not reset in old counter mode
-        RestAssured.given().expect().statusCode(200).body("body.numUnread", equalTo(1))
+        RestAssured.given().expect().statusCode(200).body("body.numUnread", equalTo(0))
                         .get("http://localhost:" + testRule.getHttpPort()
                                         + "/ebayk-msgcenter/postboxes/seller1@seller.com");
 

@@ -15,15 +15,9 @@ import org.springframework.stereotype.Component;
 import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinutes;
 import static org.joda.time.DateTime.now;
 
-/**
- * Unlike the ConversationThread-related cleanup cronjobs, this cronjob can be applied to both Riak and Cassandra as it
- * works in the same way. This is possible due to the relatively small number of blocks during the active window, which
- * lets us get away with doing full table-scans for Cassandra. This doesn't perform well enough for conversation threads
- * however.
- */
 @Component
 @ConditionalOnProperty(name = "CRONJOBS_ENABLED", havingValue = "true", matchIfMissing = false)
-@ConditionalOnExpression("#{'${replyts2.cleanup.conversationblock.enabled:false}' == 'true' && '${active.dc}' != '${region}' && '${persistence.strategy}' == 'cassandra'}")
+@ConditionalOnExpression("#{'${replyts2.cleanup.conversationblock.enabled:false}' == 'true' && '${active.dc}' != '${region}'}")
 public class ConversationBlockCleanupCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationBlockCleanupCronJob.class);
 

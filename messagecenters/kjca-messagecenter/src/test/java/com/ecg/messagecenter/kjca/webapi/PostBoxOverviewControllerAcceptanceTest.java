@@ -11,7 +11,6 @@ import java.util.Properties;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -19,12 +18,15 @@ import static org.hamcrest.Matchers.hasItems;
 
 public class PostBoxOverviewControllerAcceptanceTest {
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), null, 20, ES_ENABLED);
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties())
+            .addCassandraSchema("cassandra_kjca_messagecenter_schema.cql")
+            .addCassandraSchema("cassandra_messagecenter_schema.cql");
 
     private Properties createProperties() {
         Properties properties = propertiesWithTenant(TENANT_KJCA);
-        properties.put("persistence.strategy", "riak");
+        properties.put("persistence.strategy", "cassandra");
         properties.put("unread.count.cache.queue", "devull");
+        properties.put("persistence.cassandra.conversation.class", "com.ecg.messagecenter.kjca.persistence.ConversationThread");
         return properties;
     }
 

@@ -2,7 +2,7 @@ package com.ecg.messagecenter.kjca.webapi.responses;
 
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.kjca.persistence.ConversationThread;
-import com.ecg.messagecenter.kjca.persistence.block.RiakConversationBlockRepository;
+import com.ecg.messagecenter.kjca.persistence.block.CassandraConversationBlockRepository;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.google.common.collect.Lists;
@@ -26,7 +26,7 @@ public class PostBoxResponseBuilderTest {
 
     @Before
     public void setUp() throws Exception {
-        builder = new PostBoxResponseBuilder(mock(RiakConversationBlockRepository.class), 30);
+        builder = new PostBoxResponseBuilder(mock(CassandraConversationBlockRepository.class), 30);
         postBox = new PostBox<>("" +
                 USER_EMAIL,
                 Optional.of(0L),

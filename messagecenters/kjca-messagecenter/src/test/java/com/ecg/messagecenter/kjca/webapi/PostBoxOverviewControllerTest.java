@@ -1,12 +1,11 @@
 package com.ecg.messagecenter.kjca.webapi;
 
 import com.ecg.messagecenter.core.persistence.Counter;
-import com.ecg.messagecenter.core.persistence.simple.DefaultRiakSimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.kjca.persistence.ConversationThread;
-import com.ecg.messagecenter.kjca.webapi.PostBoxOverviewController;
-import com.ecg.messagecenter.kjca.persistence.block.RiakConversationBlockRepository;
+import com.ecg.messagecenter.kjca.persistence.block.CassandraConversationBlockRepository;
 import com.ecg.messagecenter.kjca.webapi.responses.PostBoxResponse;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -33,9 +32,9 @@ public class PostBoxOverviewControllerTest {
     private PostBoxOverviewController controller;
 
     @Mock
-    private DefaultRiakSimplePostBoxRepository postBoxRepository;
+    private SimplePostBoxRepository postBoxRepository;
     @Mock
-    private RiakConversationBlockRepository conversationBlockRepository;
+    private CassandraConversationBlockRepository conversationBlockRepository;
 
     @Before
     public void setUp() throws Exception {

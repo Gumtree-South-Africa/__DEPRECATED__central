@@ -36,13 +36,17 @@ public class AdConversationRecipientsControllerIntegrationTest {
     private static String MESSAGE_CENTER_URI_BASE = "/message-center";
 
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties());
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties())
+            .addCassandraSchema("cassandra_kjca_messagecenter_schema.cql")
+            .addCassandraSchema("cassandra_messagecenter_schema.cql");
+
 
     private Properties createProperties() {
         Properties properties = propertiesWithTenant(TENANT_KJCA);
         properties.put("push-mobile.enabled","false");
-        properties.put("persistence.strategy", "riak");
+        properties.put("persistence.strategy", "cassandra");
         properties.put("unread.count.cache.queue", "devull");
+        properties.put("persistence.cassandra.conversation.class", "com.ecg.messagecenter.kjca.persistence.ConversationThread");
         return properties;
     }
 

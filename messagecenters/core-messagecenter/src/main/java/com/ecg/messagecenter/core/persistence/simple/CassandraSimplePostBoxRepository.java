@@ -250,32 +250,6 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     }
 
     /**
-     * This implementation is used only in hybrid to avoid setting current modification time during the migration.
-     */
-    void markConversationsAsReadForHybrid(PostBox postBox, List<AbstractConversationThread> conversations) {
-        try (Timer.Context ignored = writeTimer.time()) {
-            BatchStatement batch = new BatchStatement();
-
-            for (AbstractConversationThread conversation : conversations) {
-                String conversationId = conversation.getConversationId();
-                ((PostBox<AbstractConversationThread>) postBox).cloneConversationMarkAsRead(conversationId).ifPresent(readConversation -> {
-                    Optional<String> jsonValue = toJson(readConversation);
-
-                    if (jsonValue.isPresent()) {
-                        batch.add(Statements.UPDATE_CONVERSATION_THREAD.bind(this, jsonValue.get(), postBox.getId().asString(), conversationId));
-                        batch.add(Statements.UPDATE_CONVERSATION_THREAD_UNREAD_COUNT.bind(this, 0, postBox.getId().asString(), conversationId));
-                    }
-                });
-            }
-
-            session.execute(batch);
-        }
-
-        // Sorting conversation, required as their status was changed (e.g. unread->read)
-        postBox.sortConversations();
-    }
-
-    /**
      * Used only for a migration, delete candidate.
      */
     void writeThread(PostBoxId id, AbstractConversationThread conversationThread) {

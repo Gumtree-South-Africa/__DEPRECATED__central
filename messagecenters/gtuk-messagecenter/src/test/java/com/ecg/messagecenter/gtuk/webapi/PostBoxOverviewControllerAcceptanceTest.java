@@ -23,7 +23,7 @@ public class PostBoxOverviewControllerAcceptanceTest {
 
     private Properties createProperties() {
         Properties properties = propertiesWithTenant(TENANT_GTUK);
-        properties.put("persistence.strategy", "riak");
+        properties.put("persistence.strategy", "cassandra");
         return properties;
     }
 

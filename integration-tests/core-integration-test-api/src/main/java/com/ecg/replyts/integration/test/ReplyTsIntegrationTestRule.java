@@ -20,15 +20,10 @@ import org.slf4j.LoggerFactory;
 import org.subethamail.wiser.WiserMessage;
 
 import javax.mail.internet.MimeMessage;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -80,8 +75,6 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     private CassandraIntegrationTestProvisioner CASDB = CassandraIntegrationTestProvisioner.getInstance();
 
     private String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
-
-    private boolean cassandraEnabled = true;
 
     public ReplyTsIntegrationTestRule() {
         this(null, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], "cassandra_schema.cql");
@@ -139,23 +132,15 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
         testProperties.put("persistence.cassandra.core.keyspace", keyspace);
         testProperties.put("persistence.cassandra.mb.keyspace", keyspace);
+        testProperties.put("persistence.skip.mail.storage", true);
         testProperties.put("replyts.jetty.instrument", false);
         testProperties.put("mailreceiver.watch.retrydelay.millis", 250);
         testProperties.put("search.es.enabled", esEnabled);
         testProperties.put("replyts2-messagecenter-plugin.pushmobile.url", "UNSET_PROPERTY");
         testProperties.put("replyts2-messagecenter-plugin.api.host", "UNSET_PROPERTY");
         testProperties.put("kafka.core.servers", "localhost:9092");
-        testProperties.put("riak.cluster.monitor.enabled", "false");
 
         LOG.debug("Running tests with ES enabled: " + esEnabled);
-
-        if ("riak".equals(testProperties.get("persistence.strategy"))) {
-            cassandraEnabled = false;
-        }
-
-        if (cassandraEnabled) {
-            testProperties.put("persistence.skip.mail.storage", true);
-        }
 
         if (!testProperties.containsKey("tenant")) {
             testProperties.put("tenant", "unknown");
@@ -172,20 +157,16 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     @Override
     public Statement apply(final Statement base, Description description) {
         this.description = description;
+        Session session;
 
-        Session session = null;
-
-        if (cassandraEnabled) {
-            try {
-                session = CASDB.loadSchema(keyspace, cqlFilePaths);
-            } catch (Exception e) {
-                throw new IllegalStateException(e);
-            }
+        try {
+            session = CASDB.loadSchema(keyspace, cqlFilePaths);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
 
         testRunner.start();
 
-        Session finalSession = session;
         return new Statement() {
             @Override
             public void evaluate() throws Throwable { // NOSONAR
@@ -198,9 +179,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
                 } finally {
                     cleanConfigs();
                     testRunner.stop();
-                    if (cassandraEnabled) {
-                        CASDB.cleanTables(finalSession, keyspace);
-                    }
+                    CASDB.cleanTables(session, keyspace);
                 }
             }
         };
@@ -237,7 +216,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      * inspector configuration. blocks until the configured service is up and running.
      */
     private Configuration.ConfigurationId registerConfig(String instanceId, String identifier, ObjectNode config,
-            long priority) {
+                                                         long priority) {
 
         Configuration.ConfigurationId configurationId = new Configuration.ConfigurationId(identifier, instanceId);
         LOG.info("Created config " + configurationId + " with priority " + priority);
