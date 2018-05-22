@@ -3,7 +3,6 @@ package com.ecg.replyts.app;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.processing.Termination;
 import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
@@ -37,9 +36,6 @@ import static org.mockito.Mockito.when;
 public class ProcessingFinalizerIndexing2ESAndKafka {
     @MockBean
     private MutableConversationRepository conversationRepository;
-
-    @MockBean
-    private MailRepository mailRepository;
 
     @MockBean
     private SearchIndexer searchIndexer;
@@ -77,8 +73,6 @@ public class ProcessingFinalizerIndexing2ESAndKafka {
         messagePersister.persistAndIndex(conv, msgid, Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination);
 
         verify(conv).commit(conversationRepository, conversationEventListeners);
-
-        verify(mailRepository).persistMail(anyString(), any(byte[].class), any(Optional.class));
 
         verify(searchIndexer).updateSearchAsync(Arrays.<Conversation>asList(conv));
 

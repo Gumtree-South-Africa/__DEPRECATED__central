@@ -83,7 +83,7 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
                 if (row == null) {
                     LOG.warn("No Filter Configurations available - no message filtering will be performed. If you don't have any " +
                                     "filter rules configured, this is normal, otherwise there might be a problem with accessing Cassandra.",
-                            ConfigurationConverter.KEY);
+                            Configurations.KEY);
                     return Configurations.EMPTY_CONFIG_SET;
                 }
                 return ConfigurationJsonSerializer.toDomain(row.getString("configuration"));

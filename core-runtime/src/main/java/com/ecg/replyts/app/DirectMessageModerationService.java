@@ -5,7 +5,6 @@ import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.MessageModeratedCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
-import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ModerationAction;
@@ -55,9 +54,6 @@ public class DirectMessageModerationService implements ModerationService {
     @Autowired
     private HeldMailRepository heldMailRepository;
 
-    @Autowired(required = false)
-    private MailRepository mailRepository;
-
     @Autowired
     private ProcessingFlow flow;
 
@@ -91,10 +87,6 @@ public class DirectMessageModerationService implements ModerationService {
 
                         attachmentRepository.storeAttachments(messageId, parsedMail);
                     }
-                }
-
-                if (mailRepository != null) {
-                    mailRepository.persistMail(messageId, inboundMailData, Optional.of(outputStream.toByteArray()));
                 }
 
             } catch (IOException e) {

@@ -6,12 +6,11 @@ import com.ecg.replyts.core.runtime.persistence.kafka.KafkaConsumerConfig;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,20 +66,17 @@ public class KafkaDocumentSinkIntegrationTest {
             assertEquals("Expecting one record only", 1, records.count());
 
             for (ConsumerRecord<String, byte[]> record : records) {
-                try {
-                    assertEquals(consumerConfig.getTopic(), record.topic());
-                    assertEquals(msgkey, record.key());
+                assertEquals(consumerConfig.getTopic(), record.topic());
+                assertEquals(msgkey, record.key());
 
-                    JSONObject obj = new JSONObject(new String(record.value()));
+                JsonParser jsonParser = new JsonParser();
+                JsonObject obj = (JsonObject) jsonParser.parse(new String(record.value()));
 
-                    assertEquals(toEmail, obj.getString("toEmail"));
-                    assertEquals(fromEmail, obj.getString("fromEmail"));
-                    assertEquals(msgText, obj.getString("messageText"));
-                    assertEquals(adId, obj.getInt("adId"));
-                    assertEquals(attachmentName, obj.getJSONArray("attachments").getString(0));
-                } catch (JSONException e) {
-                    Assert.fail(String.format("Expected valid JSON but got '%s' Error: %s", new String(record.value()), e.getMessage()));
-                }
+                assertEquals(toEmail, obj.get("toEmail").getAsString());
+                assertEquals(fromEmail, obj.get("fromEmail").getAsString());
+                assertEquals(msgText, obj.get("messageText").getAsString());
+                assertEquals(adId, obj.get("adId").getAsInt());
+                assertEquals(attachmentName, obj.getAsJsonArray("attachments").get(0).getAsString());
             }
         }
     }

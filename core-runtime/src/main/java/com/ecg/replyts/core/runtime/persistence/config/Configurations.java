@@ -1,6 +1,5 @@
 package com.ecg.replyts.core.runtime.persistence.config;
 
-import com.basho.riak.client.convert.RiakKey;
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -10,8 +9,7 @@ import java.util.List;
 class Configurations {
     static final Configurations EMPTY_CONFIG_SET = new Configurations(Lists.newArrayList(), false);
 
-    @RiakKey
-    private String key = ConfigurationConverter.KEY; // NOSONAR
+    public static final String KEY = "config";
 
     private final boolean compressed;
 

@@ -4,7 +4,6 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.processing.Termination;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
@@ -49,9 +48,6 @@ public class ProcessingFinalizer {
 
     @Autowired
     private SearchIndexer searchIndexer;
-
-    @Autowired(required = false)
-    private MailRepository mailRepository;
 
     @Autowired(required = false)
     private AttachmentRepository attachmentRepository;
@@ -110,10 +106,6 @@ public class ProcessingFinalizer {
         }
 
         byte[] mailData = incomingMailContent.get();
-
-        if (mailRepository != null) {
-            mailRepository.persistMail(messageId, mailData, outgoingMailContent);
-        }
 
         if (attachmentRepository != null) {
             Mail parsedMail = attachmentRepository.hasAttachments(messageId, mailData);

@@ -19,7 +19,7 @@ import java.util.TimeZone;
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnExpression("#{('${cronjob.cleanup.conversation.enabled:false}' == 'true' || '${cronjob.cleanup.postboxes.enabled:false}' == 'true') && '${active.dc}' != '${region}' && ('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))}")
+@ConditionalOnExpression("#{('${cronjob.cleanup.conversation.enabled:false}' == 'true' || '${cronjob.cleanup.postboxes.enabled:false}' == 'true') && '${active.dc}' != '${region}'}")
 public class CleanupDateCalculator {
     private static final Logger LOG = LoggerFactory.getLogger(CleanupDateCalculator.class);
 

@@ -9,13 +9,13 @@ import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import static com.ecg.replyts.core.api.processing.MessageProcessingContext.DELIVERY_CHANNEL_MAIL;
 
 @Component
-@ConditionalOnExpression("#{ ${email.opt.out.enabled:false} && " +
-        "('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))}")
+@ConditionalOnProperty(value = "email.opt.out.enabled", havingValue = "true")
 public class EmailOptOutPreProcessor implements PreProcessor {
 
     private EmailOptOutPreProcessorFilter filter;

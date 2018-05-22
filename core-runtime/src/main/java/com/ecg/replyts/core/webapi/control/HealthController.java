@@ -44,17 +44,11 @@ public class HealthController {
     @Value("${persistence.strategy:unknown}")
     private String conversationRepositorySource;
 
-    @Value("#{'${persistence.riak.datacenter.primary.hosts:unknown}'.split(',')}")
-    private List<String> riakHosts;
-
     @Value("#{'${persistence.cassandra.core.endpoint}'.split(',')}")
     private List<String> cassandraHosts;
 
     @Value("#{'${search.es.endpoints}'.split(',')}")
     private List<String> elasticSearchHosts;
-
-    @Value("${persistence.riak.bucket.name.prefix:}")
-    private String riakBucketPrefix;
 
     @Value("${persistence.cassandra.core.keyspace:replyts2}")
     private String cassandraKeyspace;
@@ -108,16 +102,8 @@ public class HealthController {
             return elasticSearchHosts;
         }
 
-        public List<String> getRiakHosts() {
-            return riakHosts;
-        }
-
         public List<String> getCassandraHosts() {
             return cassandraHosts;
-        }
-
-        public String getRiakBucketPrefix() {
-            return riakBucketPrefix;
         }
 
         public String getCassandraKeyspace() {

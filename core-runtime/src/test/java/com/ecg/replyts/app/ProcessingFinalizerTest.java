@@ -1,13 +1,10 @@
 package com.ecg.replyts.app;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedCommand;
-import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.processing.Termination;
 import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
-import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import org.junit.Before;
@@ -25,8 +22,6 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,14 +29,11 @@ import static org.mockito.Mockito.when;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Import(ProcessingFinalizer.class)
 @TestPropertySource(properties = {
-        "persistence.strategy = riak"
+        "persistence.strategy = cassandra"
 })
 public class ProcessingFinalizerTest {
     @MockBean
     private MutableConversationRepository conversationRepository;
-
-    @MockBean
-    private MailRepository mailRepository;
 
     @MockBean
     private SearchIndexer searchIndexer;
@@ -54,9 +46,6 @@ public class ProcessingFinalizerTest {
 
     @MockBean
     private ConversationEventListeners conversationEventListeners;
-
-    @MockBean
-    private MailPublisher mailProcessedListener;
 
     @Autowired
     private ProcessingFinalizer messagePersister;
@@ -76,34 +65,12 @@ public class ProcessingFinalizerTest {
     }
 
     @Test
-    public void persistsOutgoingMailIfAvailable() {
-        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination);
-
-        verify(mailRepository).persistMail(anyString(), any(byte[].class), any(Optional.class));
-    }
-
-    @Test
     public void persistsData() {
         messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination);
 
         verify(conv).commit(conversationRepository, conversationEventListeners);
 
-        verify(mailRepository).persistMail(anyString(), any(byte[].class), any(Optional.class));
-
         verify(searchIndexer).updateSearchAsync(Arrays.<Conversation>asList(conv));
-    }
-
-    @Test
-    public void skipsUpdatingForNonCassandraIfConversationSizeExceedsConstraint() {
-        when(conv.getMessages()).thenReturn(Arrays.asList(new Message[ProcessingFinalizer.MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION + 1]));
-
-        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination);
-
-        verify(conv, never()).commit(conversationRepository, conversationEventListeners);
-
-        verify(mailRepository, never()).persistMail(anyString(), any(byte[].class), any(Optional.class));
-
-        verify(searchIndexer, never()).updateSearchAsync(Arrays.asList(conv));
     }
 }
 

@@ -53,53 +53,5 @@ COMaaS Management Console
     <li><a href="statusCrons">Show Cronjob Execution Status</a></li>
     <li><a href="health">Show Health Status</a></li>
 </ul>
-<h3>Migration (conditional on persistance.strategy.startsWith('Hybrid')</h3>
-<h4>Core conversations</h4>
-<p>At present only one request from the below can be run at one time, excluding the status call. Be ware that some conversations/postboxes outside of the given time slice will also be migrated thanks for peculiar riak behaviour.</p>
-<ul>
-    <li><a href="/coremigration/allconversations">/coremigration/allconversations</a> migrate all conversation with modification date falling within now() and now()-replyts.maxConversationAgeDays</li>
-    <li><a href="/coremigration/conversationsFromDate/01-07-2016T10:00">/coremigration/conversationsFromDate/{fromDate}</a> date format <code>dd-MM-yyyyThh:mm</code> example 01-07-2016T10:01</li>
-    <li><a href="/coremigration/conversationsBetween/01-07-2016T10:00/01-07-2016T10:01">/coremigration/conversationsBetween/{fromDate}/{toDate}</a> migrating conversations from {fromDate} until now()</li>
-    <li><a href="/coremigration/conversation/id1">/coremigration/conversation/{id}</a> where {id} is a conversaton id</li>
-    <li><a href="/coremigration/status">/coremigration/status</a></li>
-</ul>
-<h4>Postboxes (only available when messagecenter is a part of the tenant's distribution)</h4>
-KJCA context path <b>message-center</b> for example http://host:port/message-center/msgmigration/status
-<br/>GTAU & EBAYK context path <b>ebayk-msgcenter</b> http://host:port/ebayk-msgcenter/msgmigration/status
-<ul>
-    <li><a href="/ebayk-msgcenter/msgmigration/allpostboxes">{context}/msgmigration/allpostboxes</a> migrate all postboxes with modification date falling within now() and now()-replyts.maxConversationAgeDays date/time range</li>
-    <li><a href="/ebayk-msgcenter/msgmigration/postboxes/id1,id2,id3">{context}/msgmigration/postboxes/{ids}</a> where {ids} is the list of comma-separated postbox ids</li>
-    <li><a href="/ebayk-msgcenter/msgmigration/postboxesBetween/01-07-2016T10:00/01-07-2016T10:01">{context}/msgmigration/postboxesBetween/{fromDate}/{toDate}</a> migrating postboxes within given time slice.</li>
-    <li><a href="/ebayk-msgcenter/msgmigration/postboxesFromDate/01-07-2016T10:00">{context}/msgmigration/postboxesFromDate/{fromDate}</a> migrating postboxes from {fromDate} until now()</li>
-    <li><a href="/ebayk-msgcenter/msgmigration/status">/ebayk-msgcenter/msgmigration/status</a> check the status of the migration</li>
-</ul>
-<h4>Conversation block (only available for KCJA)</h4>
-<ul>
-    <li><a href="/message-center/convblockmigration/allconvblock">/message-center/convblockmigration/allconvblock</a></li>
-    <li><a href="/message-center/convblockmigration/status">/message-center/convblockmigration/status</a></li>
-</ul>
-<h4>Mail attachment migration</h4>
-<ul>
-    <li><a href="/mailmigration/mailsBetween/01-07-2016T10:00/01-07-2016T10:01">Migrate attachments in the time slice /mailmigration/mailsBetween/{fromDate}/{toDate}</a></li>
-    <li><a href="/mailmigration/mailsFromDate/01-07-2016T10:00">Migrate attachments from the time till now /mailmigration/mailsFromDate/{fromDate}</a></li>
-    <li><a href="/mailmigration/allmails">Migrate all attachments within retention period /mailmigration/allmails</a></li>
-    <li><a href="/mailmigration/mail/id1,id2">Migrate attachments by id (comma separated list) /mailmigration/mail/id1,id2 </a></li>
-    <li><a href="/mailmigration/status">Mail migration status /mailmigration/status </a></li>
-</ul>
-
-<h4>Mail attachment migration</h4>
-<ul>
-    <li><a href="/verifyattachment/betweenDates/01-07-2016T10:00/01-07-2016T10:01">Verify attachments in the time slice /verifyattachment/betweenDates/{fromDate}/{toDate}</a></li>
-    <li><a href="/verifyattachment/id1,id2">Verify attachments by id (comma separated list) /verifyattachment/id1,id2 </a></li>
-</ul>
-
-<h3>Swagger / OpenAPI documentation</h3>
-<ul>
-    <!-- <li><b>Control</b> <a href="/swagger-ui.html">Swagger</a></li> -->
-    <!-- <li><b>Messagecenter</b> <a href="/msgcenter/swagger-ui.html">Swagger</a></li> -->
-    <li><b>Messagebox</b> <a href="/msgbox/swagger-ui.html">Swagger</a></li>
-    <!-- <li><b>Config CRUD</b> <a href="/configv2/swagger-ui.html">Swagger</a></li> -->
-    <!-- <li><b>Screening API</b> <a href="/screeningv2/swagger-ui.html">Swagger</a></li> -->
-</ul>
 </body>
 </html>

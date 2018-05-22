@@ -16,9 +16,6 @@
     <!-- Expose Message and conversation Id in the outbound mail, to make automation testing easier -->
     <bean class="com.ecg.replyts.integration.test.postprocessor.IdLeakingPostProcessor"/>
 
-    <!-- Provide embedded clients for riak services -->
-    <bean class="com.ecg.replyts.integration.riak.EmbeddedRiakClientConfiguration" primary="true"/>
-
     <bean class="com.ecg.replyts.integration.elasticsearch.EmbeddedElasticSearchClientConfiguration" primary="true"/>
 
     <bean class="com.ecg.replyts.integration.hazelcast.EmbeddedHazelcastConfiguration" primary="true"/>

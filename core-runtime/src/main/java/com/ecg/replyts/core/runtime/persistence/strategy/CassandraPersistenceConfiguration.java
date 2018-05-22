@@ -124,7 +124,6 @@ public class CassandraPersistenceConfiguration {
     }
 
     @Configuration
-    @ConditionalOnExpression("#{'${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid')}")
     public static class CassandraClientConfiguration {
 
         /**

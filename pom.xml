@@ -633,7 +633,6 @@
         <quartz-version>2.2.1</quartz-version>
         <restassured-version>2.6.0</restassured-version>
         <awaitility-version>1.7.0</awaitility-version>
-        <riak-client.version>1.4.4</riak-client.version>
         <slf4j-version>1.7.25</slf4j-version>
         <spring-version>4.3.4.RELEASE</spring-version>
         <subethasmtp-version>3.1.7</subethasmtp-version>
@@ -661,6 +660,7 @@
         <asynchttpclient.version>1.9.38</asynchttpclient.version>
         <yammer.metrics.version>2.2.0</yammer.metrics.version>
         <protobuf-version>3.5.1</protobuf-version>
+        <json-version>20180130</json-version>
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
@@ -1595,6 +1595,11 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${json-version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.testng</groupId>
@@ -1803,21 +1808,6 @@
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${joda-time-version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.basho.riak</groupId>
-                <artifactId>riak-client</artifactId>
-                <version>${riak-client.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>jackson-annotations</artifactId>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>jackson-core</artifactId>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.elasticsearch</groupId>

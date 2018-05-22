@@ -1,7 +1,6 @@
 package com.ecg.replyts.app.mailreceiver.dropfolder;
 
 import com.ecg.replyts.app.MessageProcessingCoordinator;
-import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import org.junit.After;
 import org.junit.Before;
@@ -242,8 +241,5 @@ public class DropfolderMessageProcessorTest {
     static class TestContext {
         @MockBean
         private MessageProcessingCoordinator consumer;
-
-        @MockBean
-        private ClusterModeManager clusterModeManager;
     }
 }

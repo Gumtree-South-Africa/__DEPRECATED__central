@@ -4,7 +4,6 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.conversation.BulkIndexer;
-import com.ecg.replyts.core.runtime.migrator.Util;
 import com.ecg.replyts.core.runtime.workers.InstrumentedCallerRunsPolicy;
 import com.ecg.replyts.core.runtime.workers.InstrumentedExecutorService;
 import com.google.common.collect.Iterators;

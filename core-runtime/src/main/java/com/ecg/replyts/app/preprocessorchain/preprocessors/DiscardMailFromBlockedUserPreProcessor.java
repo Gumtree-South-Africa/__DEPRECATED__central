@@ -12,7 +12,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 @Component("discardMailFromBlockedUserPreProcessor")
-@ConditionalOnExpression("#{'${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid')}")
 public class DiscardMailFromBlockedUserPreProcessor implements PreProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(DiscardMailFromBlockedUserPreProcessor.class);
 

@@ -158,7 +158,7 @@
     </build>
 
     <properties>
-        <part1.tests>**/acceptance/**.java,**/integration.riak/**.java</part1.tests>
+        <part1.tests>**/acceptance/**.java</part1.tests>
         <!-- part2.tests>**/acceptance/test.core/**.java,**/core.runtime/**/**.java,**/app.search/**.java</part2.tests -->
     </properties>
 

@@ -6,7 +6,6 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
-import com.ecg.replyts.core.api.persistence.MailRepository;
 import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ModerationAction;
@@ -45,9 +44,6 @@ public class DirectMessageModerationServiceTest {
     private SearchIndexer searchIndexer;
 
     @MockBean
-    private MailRepository mailRepository;
-
-    @MockBean
     private HeldMailRepository heldMailRepository;
 
     @MockBean
@@ -76,7 +72,6 @@ public class DirectMessageModerationServiceTest {
         when(conversationRepository.getById("1")).thenReturn(c);
         INBOUND_MAIL = "From: foo\nDelivered-To: bar\n\nhello".getBytes();
         when(heldMailRepository.read("1")).thenReturn(INBOUND_MAIL);
-        when(mailRepository.readInboundMail("1")).thenReturn(INBOUND_MAIL);
         when(processingContextFactory.newContext((Mail) notNull(), eq("1"), (ProcessingTimeGuard) notNull()))
                 .thenReturn(new MessageProcessingContext(Mails.readMail(INBOUND_MAIL), "1", new ProcessingTimeGuard(300L)));
 
@@ -90,7 +85,6 @@ public class DirectMessageModerationServiceTest {
         mms.changeMessageState(c, "1", new ModerationAction(ModerationResultState.GOOD, Optional.empty()));
 
         verify(flow).inputForPostProcessor(any(MessageProcessingContext.class));
-        verify(mailRepository).persistMail(eq("1"), any(byte[].class), any(Optional.class));
         verify(searchIndexer).updateSearchAsync(Arrays.<Conversation>asList(c));
         verify(c).commit(conversationRepository, conversationEventListeners);
     }

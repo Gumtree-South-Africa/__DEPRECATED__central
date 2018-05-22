@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +22,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 @Controller
-@ConditionalOnExpression("'${email.opt.out.enabled:false}' == 'true' && ('${persistence.strategy}' == 'cassandra' || '${persistence.strategy}'.startsWith('hybrid'))")
+@ConditionalOnProperty(value = "email.opt.out.enabled", havingValue = "true")
 public class EmailOptOutController {
     private static final Logger LOG = LoggerFactory.getLogger(EmailOptOutController.class);
 

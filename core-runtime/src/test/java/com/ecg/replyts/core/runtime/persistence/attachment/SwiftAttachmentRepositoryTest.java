@@ -42,8 +42,7 @@ public class SwiftAttachmentRepositoryTest {
 
     @Test(timeout = 20000L)
     public void testHashMessageIntoIds() {
-        try (InputStream is = getClass().getResourceAsStream("/riak_ids.txt")) {
-            // read some riak Ids
+        try (InputStream is = getClass().getResourceAsStream("/ids.txt")) {
             Map<String, AtomicInteger> bucketCount = new HashMap<>();
             // bucket -> values
             Multimap<String, String> values = ArrayListMultimap.create();

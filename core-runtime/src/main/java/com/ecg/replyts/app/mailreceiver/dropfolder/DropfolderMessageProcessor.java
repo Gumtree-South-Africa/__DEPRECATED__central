@@ -4,8 +4,6 @@ import com.codahale.metrics.Counter;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.mailreceiver.MessageProcessor;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.cluster.ClusterMode;
-import com.ecg.replyts.core.runtime.cluster.ClusterModeManager;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import org.apache.commons.lang3.StringUtils;
@@ -18,11 +16,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
@@ -32,10 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.ecg.replyts.app.mailreceiver.MessageProcessor.*;
-import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgAbandonedCounter;
-import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgRetriedCounter;
-import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgUnparseableCounter;
+import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
@@ -54,9 +45,6 @@ public class DropfolderMessageProcessor implements MessageProcessor {
     static final String PROCESSING_FILE_PREFIX = "inwork_";
 
     private static final FileFilter INCOMING_FILE_FILTER = file -> file.isFile() && file.getName().startsWith(INCOMING_FILE_PREFIX);
-
-    @Autowired(required = false)
-    private ClusterModeManager clusterModeManager;
 
     @Value("${mailreceiver.filesystem.dropfolder}")
     private String dropfolder;
@@ -131,18 +119,16 @@ public class DropfolderMessageProcessor implements MessageProcessor {
 
     @Override
     public void processNext() throws InterruptedException {
-        if (shouldProcessMessagesNow()) {
-            Optional<File> nextMessage = nextMessage();
-            if (nextMessage.isPresent()) {
-                try {
-                    ACTIVE_DROPFOLDER_PROCESSORS_COUNTER.inc();
-                    LOG.trace("About to submit {} for processing", nextMessage.get());
-                    process(nextMessage.get());
-                } finally {
-                    ACTIVE_DROPFOLDER_PROCESSORS_COUNTER.dec();
-                }
-                return;
+        Optional<File> nextMessage = nextMessage();
+        if (nextMessage.isPresent()) {
+            try {
+                ACTIVE_DROPFOLDER_PROCESSORS_COUNTER.inc();
+                LOG.trace("About to submit {} for processing", nextMessage.get());
+                process(nextMessage.get());
+            } finally {
+                ACTIVE_DROPFOLDER_PROCESSORS_COUNTER.dec();
             }
+            return;
         }
 
         TimeUnit.MILLISECONDS.sleep(watchRetryDelayMs);
@@ -223,9 +209,5 @@ public class DropfolderMessageProcessor implements MessageProcessor {
                 LOG.error("Failed to delete mail {} from dropfolder after successful processing", tempFilename.getName());
             }
         }
-    }
-
-    private boolean shouldProcessMessagesNow() {
-        return clusterModeManager == null || clusterModeManager.determineMode() != ClusterMode.BLOCKED;
     }
 }

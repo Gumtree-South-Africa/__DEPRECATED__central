@@ -184,16 +184,6 @@
             <artifactId>cglib</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.basho.riak</groupId>
-            <artifactId>riak-client</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpclient</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
         </dependency>
