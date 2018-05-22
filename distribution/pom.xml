@@ -965,49 +965,6 @@
                 </dependency>
             </dependencies>
         </profile>
-
-        <profile>
-            <id>migration</id>
-
-            <properties>
-                <profile-classifier>migration</profile-classifier>
-            </properties>
-
-            <dependencies>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>difftool</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>ebayk-messagecenter</artifactId>
-                    <version>${project.version}</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>commons-logging</groupId>
-                            <artifactId>commons-logging</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>kjca-messagecenter</artifactId>
-                    <version>${project.version}</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>commons-logging</groupId>
-                            <artifactId>commons-logging</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
-                    <artifactId>kjca-coremod-shared</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
     </profiles>
 
     <dependencies>
@@ -1105,7 +1062,7 @@
                         <configuration>
                             <rules>
                                 <requireActiveProfile>
-                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,mx,ar,za,sg,it,migration,dk</profiles>
+                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,mx,ar,za,sg,it,dk</profiles>
                                     <all>false</all>
                                 </requireActiveProfile>
                             </rules>
