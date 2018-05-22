@@ -16,7 +16,7 @@ variable newmsg_resources_cpu { default = 1100 }
 variable newmsg_resources_mem { default = 3096 }
 
 variable cronjob_resources_cpu { default = 100 }
-variable cronjob_resources_mem { default = 1024 }
+variable cronjob_resources_mem { default = 1280 }
 
 variable restart_jenkins_job_nr { default = "none" }
 
@@ -41,6 +41,7 @@ filebeat.prospectors:
   json.overwrite_keys: true
   paths:
   - ${NOMAD_ALLOC_DIR}/logs/api.stderr.*
+  - ${NOMAD_ALLOC_DIR}/logs/cronjob.stderr.*
   type: log
 - fields.kafka_topic: access_logs
   json.add_error_key: true
@@ -48,6 +49,7 @@ filebeat.prospectors:
   json.overwrite_keys: true
   paths:
   - ${NOMAD_ALLOC_DIR}/logs/api.stdout.*
+  - ${NOMAD_ALLOC_DIR}/logs/cronjob.stdout.*
   type: log
 logging.to_files: false
 output.kafka:
