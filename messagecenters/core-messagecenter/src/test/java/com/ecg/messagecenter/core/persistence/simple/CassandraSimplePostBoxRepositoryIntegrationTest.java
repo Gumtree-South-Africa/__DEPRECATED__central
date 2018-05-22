@@ -30,7 +30,6 @@ import static org.junit.Assert.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { CassandraSimplePostBoxRepositoryIntegrationTest.TestContext.class })
 @TestPropertySource(properties = {
-  "persistence.strategy = cassandra",
   "persistence.cassandra.conversation.class = com.ecg.messagecenter.core.persistence.simple.ConversationThread"
 })
 public class CassandraSimplePostBoxRepositoryIntegrationTest {

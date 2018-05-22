@@ -20,8 +20,6 @@ import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @TestPropertySource(properties = {
-  "persistence.strategy = cassandra",
-
   "replyts.indexer.streaming.threadcount = 8",
   "replyts.indexer.streaming.queue.size = 1000",
   "replyts.indexer.streaming.conversationid.batch.size = 10",

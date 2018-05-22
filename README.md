@@ -113,14 +113,6 @@ In order to add keys to consul, add them with the prefix `comaas/<tenant>` or `c
 ## MP system overview
 ![Messaging system overview at Marktplaats](/docs/20151221-messaging-system-overview.jpg)
 
-## Notes on (future) tenants:
-
-eBay Annunci (Italy) is using a quite clean replyts2-core fork (with Riak storage) plus some custom plugin (mainly for monitoring purpose).
-They forked the message box plugin from the GTAU one and customized it by adding some endpoints (e.g. direct conversation/message creation) and cleanup strategies.
-
-core: https://github.corp.ebay.com/annunci/replyts2-core
-message box plugin: https://github.corp.ebay.com/annunci/replyts2-ebayk-message-center
-
 ### Certificate issues
 
 When encountering `sun.security.validator.ValidatorException: PKIX path building failed` while downloading artifacts from maven, one of the certificates might be expired.

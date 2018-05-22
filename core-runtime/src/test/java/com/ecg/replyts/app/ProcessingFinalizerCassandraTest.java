@@ -30,9 +30,6 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Import(ProcessingFinalizer.class)
-@TestPropertySource(properties = {
-        "persistence.strategy = cassandra"
-})
 public class ProcessingFinalizerCassandraTest {
     @MockBean
     private MutableConversationRepository conversationRepository;

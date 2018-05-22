@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @Import(ProcessingFinalizer.class)
 @TestPropertySource(properties = {
-        "persistence.strategy = cassandra",
         "ship.documents2kafka.enabled=true",
         "indexing.2kafka.enabled=true",
         "region=ams1"

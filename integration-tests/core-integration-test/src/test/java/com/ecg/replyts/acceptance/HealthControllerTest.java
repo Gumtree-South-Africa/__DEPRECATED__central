@@ -85,10 +85,6 @@ public class HealthControllerTest {
 
             setEnv("COMAAS_HTTP_PORT", String.valueOf(OpenPortFinder.findFreePort()));
 
-            // Disabling both will nonetheless make HealthController 'choose' Cassandra
-
-            properties.put("persistence.strategy", "none");
-
             environment.getPropertySources().addLast(new PropertiesPropertySource("test", properties));
         }
 

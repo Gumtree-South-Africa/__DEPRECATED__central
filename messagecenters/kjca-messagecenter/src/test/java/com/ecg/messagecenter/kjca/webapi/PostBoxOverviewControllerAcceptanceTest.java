@@ -24,7 +24,6 @@ public class PostBoxOverviewControllerAcceptanceTest {
 
     private Properties createProperties() {
         Properties properties = propertiesWithTenant(TENANT_KJCA);
-        properties.put("persistence.strategy", "cassandra");
         properties.put("unread.count.cache.queue", "devull");
         properties.put("persistence.cassandra.conversation.class", "com.ecg.messagecenter.kjca.persistence.ConversationThread");
         return properties;

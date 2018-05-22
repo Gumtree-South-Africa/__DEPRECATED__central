@@ -20,7 +20,6 @@ import static org.hamcrest.Matchers.not;
 public class ConversationThreadControllerAcceptanceTest {
     private Properties createProperties() {
         Properties properties = propertiesWithTenant(TENANT_EBAYK);
-        properties.put("persistence.strategy", "cassandra");
         properties.put("persistence.cassandra.conversation.class", "com.ecg.messagecenter.ebayk.persistence.ConversationThread");
         return properties;
     }

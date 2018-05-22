@@ -30,7 +30,6 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @Import(ProcessingFinalizer.class)
 @TestPropertySource(properties = {
-        "persistence.strategy = cassandra",
         "ship.documents2kafka.enabled=true"
 })
 public class ProcessingFinalizerIndexing2ESAndKafka {

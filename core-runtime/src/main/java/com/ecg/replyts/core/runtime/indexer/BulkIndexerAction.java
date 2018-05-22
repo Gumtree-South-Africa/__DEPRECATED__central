@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 @Component
-@ConditionalOnProperty(name = "persistence.strategy", havingValue = "cassandra")
 public class BulkIndexerAction implements IndexerAction {
     private static final Logger LOG = LoggerFactory.getLogger(BulkIndexerAction.class);
 

@@ -61,7 +61,6 @@ import java.util.concurrent.ConcurrentMap;
 import static java.util.stream.Collectors.toList;
 
 @Configuration
-@ConditionalOnProperty(name = "persistence.strategy", havingValue = "cassandra")
 public class CassandraPersistenceConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraPersistenceConfiguration.class);
 

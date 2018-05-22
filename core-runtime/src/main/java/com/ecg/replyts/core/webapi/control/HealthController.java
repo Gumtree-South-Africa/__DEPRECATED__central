@@ -41,9 +41,6 @@ public class HealthController {
     @Value("${replyts.tenant:unknown}")
     private String tenant;
 
-    @Value("${persistence.strategy:unknown}")
-    private String conversationRepositorySource;
-
     @Value("#{'${persistence.cassandra.core.endpoint}'.split(',')}")
     private List<String> cassandraHosts;
 
@@ -92,10 +89,6 @@ public class HealthController {
 
         public String getTenant() {
             return tenant;
-        }
-
-        public String getConversationRepositorySource() {
-            return conversationRepositorySource;
         }
 
         public List<String> getElasticSearchHosts() {

@@ -72,7 +72,7 @@ public class CleanupConfiguration {
     }
 
     /**
-     * @return Actually, this is the page size of index values loaded in the memory. Unfortunately Riak call this 'maxResults'.
+     * @return Actually, this is the page size of index values loaded in the memory.
      */
     public int getMaxResults() {
         return maxResults;

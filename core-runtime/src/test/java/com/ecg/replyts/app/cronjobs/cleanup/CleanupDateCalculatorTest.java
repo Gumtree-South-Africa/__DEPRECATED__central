@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = CleanupDateCalculatorTest.TestContext.class)
 @TestPropertySource(properties = {
-  "persistence.strategy = cassandra",
   "cronjob.cleanup.conversation.enabled = false",
   "region = localhost"
 })

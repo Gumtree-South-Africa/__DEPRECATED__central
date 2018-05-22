@@ -28,7 +28,6 @@ public abstract class SyncTestBase {
     private Properties createProperties() {
         Properties properties = propertiesWithTenant(TENANT_GTAU);
         properties.put("replyts.tenant", TENANT_GTAU);
-        properties.put("persistence.strategy", "cassandra");
         properties.put("webapi.sync.au.enabled", "true");
         properties.put("webapi.sync.v2.enabled", "true");
         properties.put("webapi.diff.au.enabled", "true");

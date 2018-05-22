@@ -51,7 +51,6 @@ import static org.joda.time.DateTime.now;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {PostBoxOverviewControllerIntegrationTest.TestContext.class})
 @TestPropertySource(properties = {
-  "persistence.strategy = cassandra",
   "persistence.cassandra.conversation.class = com.ecg.messagecenter.ebayk.persistence.ConversationThread"
 })
 public class PostBoxOverviewControllerIntegrationTest {

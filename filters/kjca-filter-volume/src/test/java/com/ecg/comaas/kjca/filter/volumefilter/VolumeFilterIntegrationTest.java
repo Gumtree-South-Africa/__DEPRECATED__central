@@ -23,14 +23,8 @@ import static org.junit.Assert.assertEquals;
 @Ignore
 public class VolumeFilterIntegrationTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(VolumeFilterIntegrationTest.class);
-
-    private final Properties testProperties = new Properties() {{
-        put("persistence.strategy", "riak");
-    }};
-
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(testProperties, null, 20, false);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(new Properties(), null, 20, false);
 
     @Test
     public void violatesQuota() throws Exception {
