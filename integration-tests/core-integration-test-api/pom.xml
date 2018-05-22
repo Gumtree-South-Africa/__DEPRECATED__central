@@ -17,16 +17,6 @@
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-runtime</artifactId>
-            <exclusions>
-                <!-- Remove the charset dependency. This dependency is maintained in a local repository.
-                    Plugins, which use this dependency for integration test will break otherwise bacause
-                    The this transitive dependency can't be loaded from global repository.
-                 -->
-                <exclusion>
-                    <groupId>com.ibm.icu</groupId>
-                    <artifactId>icu4j-charset</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.subethamail</groupId>

@@ -1959,18 +1959,6 @@
 
             <!-- tackle encoding problems -->
             <dependency>
-                <groupId>com.ibm.icu</groupId>
-                <artifactId>icu4j</artifactId>
-                <version>${icu4j-version}</version>
-                <scope>runtime</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.ibm.icu</groupId>
-                <artifactId>icu4j-charset</artifactId>
-                <version>${icu4j-version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>com.beetstra.jutf7</groupId>
                 <artifactId>jutf7</artifactId>
                 <version>${jutf7-version}</version>

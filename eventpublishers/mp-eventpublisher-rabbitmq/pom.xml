@@ -22,17 +22,6 @@
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-runtime</artifactId>
-            <exclusions>
-                <!-- We don't need icu4j here and it causes dependency lookup problems. -->
-                <exclusion>
-                    <groupId>com.ibm.icu</groupId>
-                    <artifactId>icu4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.ibm.icu</groupId>
-                    <artifactId>icu4j-charset</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.rabbitmq</groupId>
