@@ -1,50 +1,54 @@
 package com.ecg.replyts.app.search.elasticsearch;
 
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.transport.BindTransportException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.StringUtils;
 
-import javax.annotation.PreDestroy;
+import java.net.URI;
 
 @Configuration
 public class ElasticSearchClientConfiguration {
-    private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchClientConfiguration.class);
 
-    private TransportClient client;
+    @Bean(destroyMethod = "close")
+    public RestClient elasticRestClient(
+            @Value("${search.es.endpoint}") String endpoint,
+            @Value("#{environment['ESAAS_USERNAME'] ?: 'not_used'}") String username,
+            @Value("#{environment['ESAAS_PASSWORD'] ?: 'not_used'}") String password
+    ) {
+        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+
+        URI uri = URI.create(endpoint);
+        return RestClient.builder(new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme()))
+                .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider))
+                .build();
+    }
 
     @Bean
-    public TransportClient esClient(@Value("${search.es.endpoints}") String endpoints, @Value("${search.es.clustername}") String clusterName) {
+    public ElasticSearchService elasticService(
+            @Value("${search.es.indexname}") String indexName,
+            RestClient client,
+            ElasticDeleteClient deleteClient) {
 
-        LOG.info("Productive ES Node configuration. endpoints: {}, clustername: {}", endpoints, clusterName);
-
-        try {
-            this.client = new TransportClient(ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build());
-
-            for (String endpoint : StringUtils.tokenizeToStringArray(endpoints, ",", true, true)) {
-                String[] hostPort = endpoint.split(":");
-
-                if (hostPort.length != 2) {
-                    throw new IllegalArgumentException("Please supply the search.es.endpoints property as a comma-separated list of host:port values");
-                }
-
-                client.addTransportAddress(new InetSocketTransportAddress(hostPort[0], Integer.valueOf(hostPort[1])));
-            }
-
-            return client;
-        } catch (BindTransportException e) {
-            throw new RuntimeException("Could not launch local ES client", e);
-        }
+        return new ElasticSearchService(new RestHighLevelClient(client), deleteClient, indexName);
     }
 
-    @PreDestroy
-    void stopEsNode() {
-        client.close();
+    @Bean(destroyMethod = "close")
+    public ElasticDeleteClient deleteByQueryClient(
+            @Value("${search.es.endpoint}") String endpoint,
+            @Value("#{environment['ESAAS_USERNAME'] ?: 'not_used'}") String username,
+            @Value("#{environment['ESAAS_PASSWORD'] ?: 'not_used'}") String password,
+            @Value("${search.es.indexname}") String indexName) {
+
+        URI uri = URI.create(endpoint);
+        return new ElasticDeleteClient(uri, indexName, username, password);
     }
+
 }

@@ -67,41 +67,4 @@ public class DeDupeFilterTest {
         String expected = "This is a test string with not escaped chars < > _ % $ # @ ± § ; , . \n \t and with escaped chars \\\\ \\+ \\- \\! \\( \\) \\: \\^ \\[ \\] \\\" \\{ \\} \\~ \\* \\? \\| \\& \\/ ";
         assertEquals(expected, escaped);
     }
-
-//    @Rule
-//    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
-//
-//    @Test
-//    @Ignore("Will fix the integration test once we have merged the core changes to main")
-//    public void violatesQuota() throws Exception {
-//        String config = "{"
-//            + "\"rules\":{"
-//              + "\"minimumShouldMatch\":\"80%\","
-//              + "\"lookupInterval\":\"1\","
-//              + "\"lookupIntervalTimeUnit\":\"MINUTES\","
-//              + "\"score\":\"200\","
-//              + "\"matchCount\":3"
-//            + "},"
-//            + "\"runFor\":{"
-//              + "\"exceptCategories\":[],"
-//              + "\"categories\":[]"
-//            + "}"
-//          + "}";
-//
-//        rule.registerConfig(DeDupeFilterFactory.class, (ObjectNode) JsonObjects.parse(config));
-//
-//        String from = "foo" + System.currentTimeMillis() + "@bar.com";
-//
-//        for (int i = 0; i < 3; i++) {
-//            MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("Test Message"));
-//
-//            assertEquals(MessageState.SENT, response.getMessage().getState());
-//        }
-//
-//        rule.flushSearchIndex();
-//
-//        MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("Test Message"));
-//
-//        assertEquals(1, response.getMessage().getProcessingFeedback().size());
-//    }
 }

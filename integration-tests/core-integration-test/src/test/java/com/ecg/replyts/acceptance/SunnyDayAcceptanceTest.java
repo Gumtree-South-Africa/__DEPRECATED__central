@@ -13,8 +13,6 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -29,7 +27,7 @@ public class SunnyDayAcceptanceTest {
     private static final int deliveryTimeoutSeconds = 45;
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(deliveryTimeoutSeconds, ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(deliveryTimeoutSeconds);
 
     @Test
     public void rtsProcessedAnAsqMailAndAReply() throws Exception {

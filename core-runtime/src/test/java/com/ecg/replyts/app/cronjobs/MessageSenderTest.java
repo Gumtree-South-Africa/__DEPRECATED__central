@@ -1,6 +1,5 @@
 package com.ecg.replyts.app.cronjobs;
 
-import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.MessageNotFoundException;
@@ -10,7 +9,7 @@ import com.ecg.replyts.core.api.search.RtsSearchResponse;
 import com.ecg.replyts.core.api.search.RtsSearchResponse.IDHolder;
 import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
-import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -23,11 +22,7 @@ import org.springframework.context.ApplicationContext;
 import java.util.Optional;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageSenderTest {
@@ -44,7 +39,7 @@ public class MessageSenderTest {
     private MutableConversationRepository conversationRepository;
 
     @Mock
-    private SearchIndexer searchIndexer;
+    private DocumentSink documentSink;
 
     @Mock
     private MutableConversation conv1;
@@ -71,7 +66,7 @@ public class MessageSenderTest {
         when(conversationRepository.getById("321b")).thenReturn(conv2);
         when(conversationRepository.getById("321c")).thenReturn(conv3);
 
-        sender = new MessageSender(applicationContext, searchService, conversationRepository, searchIndexer,
+        sender = new MessageSender(applicationContext, searchService, documentSink, conversationRepository,
                 4, 24, 20000);
     }
 
@@ -101,6 +96,6 @@ public class MessageSenderTest {
 
         sender.work();
 
-        verify(searchIndexer, times(1)).updateSearchAsync(anyListOf(Conversation.class));
+        verify(documentSink, times(1)).sink(conv1);
     }
 }

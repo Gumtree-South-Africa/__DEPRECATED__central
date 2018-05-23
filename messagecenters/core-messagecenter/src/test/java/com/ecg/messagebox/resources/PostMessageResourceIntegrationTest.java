@@ -23,7 +23,6 @@ public class PostMessageResourceIntegrationTest {
             createProperties(),
             null,
             20,
-            false,
             new Class[]{Object.class},
             "cassandra_schema.cql",
             "cassandra_messagebox_schema.cql",

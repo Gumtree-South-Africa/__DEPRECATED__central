@@ -12,7 +12,6 @@ public final class OpenPortFinder {
     private static final int RANGE_START = 4096;
     private static final int RANGE_SIZE = 1000;
 
-    private static final String RANGE_CLAIM_TOPLEVEL_CHECK = "integration-tests";
     private static final String RANGE_CLAIM_TOPLEVEL_SUFFIX = "comaas-tests-portlock" + File.separator + "_range_";
 
     private static File lockedFile = null;

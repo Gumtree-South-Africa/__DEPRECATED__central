@@ -11,7 +11,6 @@ import java.util.Properties;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyString;
@@ -25,7 +24,7 @@ public class ConversationThreadControllerAcceptanceTest {
     }
 
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), null, 20, ES_ENABLED, "cassandra_schema.cql", "cassandra_messagecenter_schema.cql");
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), null, 20, "cassandra_schema.cql", "cassandra_messagecenter_schema.cql");
 
 
     @Test

@@ -44,13 +44,13 @@ public class HealthController {
     @Value("#{'${persistence.cassandra.core.endpoint}'.split(',')}")
     private List<String> cassandraHosts;
 
-    @Value("#{'${search.es.endpoints}'.split(',')}")
-    private List<String> elasticSearchHosts;
+    @Value("${search.es.endpoint:http://localhost:9200}")
+    private String elasticSearchHost;
 
     @Value("${persistence.cassandra.core.keyspace:replyts2}")
     private String cassandraKeyspace;
 
-    @Value("${search.es.clustername:unknown}")
+    @Value("${search.es.clustername:elasticsearch}")
     private String searchClusterName;
 
     @Value("${persistence.cassandra.core.dc:#{systemEnvironment['region']}}")
@@ -91,8 +91,8 @@ public class HealthController {
             return tenant;
         }
 
-        public List<String> getElasticSearchHosts() {
-            return elasticSearchHosts;
+        public String getElasticSearchHosts() {
+            return elasticSearchHost;
         }
 
         public List<String> getCassandraHosts() {
@@ -129,7 +129,7 @@ public class HealthController {
             Set<String> versions = new HashSet<>();
 
             // If versions differ between cluster nodes, return a comma separated list instead
-            searchClient.admin().cluster().prepareNodesInfo().execute().get().forEach(info -> versions.add(info.getVersion().toString()));
+            searchClient.admin().cluster().prepareNodesInfo().execute().get().getNodes().forEach(info -> versions.add(info.getVersion().toString()));
 
             return StringUtils.collectionToDelimitedString(versions, ", ");
         } catch (ExecutionException | ElasticsearchException e) {

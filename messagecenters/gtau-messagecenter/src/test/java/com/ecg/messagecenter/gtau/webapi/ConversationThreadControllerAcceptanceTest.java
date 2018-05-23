@@ -12,7 +12,6 @@ import java.util.Properties;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -21,7 +20,7 @@ public class ConversationThreadControllerAcceptanceTest {
     @Rule
     public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(
             createProperties(),
-            null, 20, ES_ENABLED,
+            null, 20,
             new Class[]{ConversationThreadControllerAcceptanceTest.class},
             "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_messagecenter_schema.cql");
 
@@ -29,6 +28,7 @@ public class ConversationThreadControllerAcceptanceTest {
         Properties properties = propertiesWithTenant(TENANT_GTAU);
         properties.put("replyts.tenant", "gtau");
         properties.put("webapi.sync.au.enabled", "true");
+        properties.put("push-mobile.host", "localhost");
         properties.put("persistence.cassandra.conversation.class", "com.ecg.messagecenter.gtau.persistence.ConversationThread");
         return properties;
     }

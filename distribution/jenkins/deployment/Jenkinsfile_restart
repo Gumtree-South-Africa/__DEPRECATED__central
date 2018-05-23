@@ -129,6 +129,14 @@ node("master") {
                                     [$class: 'VaultSecretValue', envVar: 'SWIFT_PASSWORD', vaultKey: 'password']
                             ],
                     ],
+                    [
+                            $class      : 'VaultSecret',
+                            path        : "secret/nomad/${environment}/esaas",
+                            secretValues: [
+                                    [$class: 'VaultSecretValue', envVar: 'ESAAS_USERNAME', vaultKey: 'username'],
+                                    [$class: 'VaultSecretValue', envVar: 'ESAAS_PASSWORD', vaultKey: 'password']
+                            ],
+                    ]
             ]
             wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
                 // Remove after https://jira.corp.ebay.com/browse/COMAAS-950 is fixed
@@ -142,24 +150,23 @@ node("master") {
                     }
                 }
 
-                final String hazelcastGroupName = UUID.randomUUID().toString()
-
-                final String vars = "-var-file=/deployment/environments/${environment}.tf " +
-                        "-var='version=${version}' " +
-                        "-var='urlprefixes=${urlprefixes}' " +
-                        "-var='swift_username=${SWIFT_USERNAME}' " +
+                    final String hazelcastGroupName = UUID.randomUUID().toString()final String vars = "-var-file=/deployment/environments/${environment}.tf " +
+                            "-var='version=${version}' " +
+                            "-var='urlprefixes=${urlprefixes}' " +"-var='swift_username=${SWIFT_USERNAME}' " +
                         "-var='swift_password=${SWIFT_PASSWORD}' " +
-                        "-var='docker_username=${DOCKER_USERNAME}' " +
-                        "-var='docker_password=${DOCKER_PASSWORD}' " +
-                        "-var='tenant=${tenantLong}' " +
-                        "-var='tenant_short=${tenantShort}' " +
-                        "-var='environment=${environment}' " +
-                        "-var='region=${dc}' " +
-                        "-var='api_max_parallel=${maxParallelHttp}' " +
-                        "-var='newmsg_max_parallel=${maxParallelNewMsg}' " +
-                        "-var='restart_jenkins_job_nr=${restartJenkinsJob}' " +
+                            "-var='docker_username=${DOCKER_USERNAME}' " +
+                            "-var='docker_password=${DOCKER_PASSWORD}' " +
+                            "-var='esaas_username=${ESAAS_USERNAME}' " +
+                            "-var='esaas_password=${ESAAS_PASSWORD}' " +
+                            "-var='tenant=${tenantLong}' " +
+                            "-var='tenant_short=${tenantShort}' " +
+                            "-var='environment=${environment}' " +
+                            "-var='region=${dc}' " +
+                            "-var='api_max_parallel=${maxParallelHttp}' " +
+                            "-var='newmsg_max_parallel=${maxParallelNewMsg}' " +
+                            "-var='restart_jenkins_job_nr=${restartJenkinsJob}' "+
                         "-var='hazelcast_group_name=${hazelcastGroupName}'"
-                final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
+                    final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
                 sh "$levantCmd render ${vars} /deployment/comaas.nomad"
                 sh "$levantCmd deploy ${vars} -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/comaas.nomad"

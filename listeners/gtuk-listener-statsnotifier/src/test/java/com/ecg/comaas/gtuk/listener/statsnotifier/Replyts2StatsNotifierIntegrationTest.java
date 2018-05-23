@@ -42,7 +42,7 @@ public class Replyts2StatsNotifierIntegrationTest {
     }};
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(testProperties, null, DEFAULT_TIMEOUT, false);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(testProperties, null, DEFAULT_TIMEOUT);
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(DEFAULT_PORT);

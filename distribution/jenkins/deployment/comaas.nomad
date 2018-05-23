@@ -8,6 +8,8 @@ job "comaas-[[ .tenant_short ]]" {
     docker_image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
     restart_jenkins_job_nr = "[[.restart_jenkins_job_nr]]"
     version = "[[.version]]"
+    esaas_username = "[[ .esaas_username ]]"
+    esaas_password = "[[ .esaas_password ]]"
   }
 
   update {
@@ -54,6 +56,8 @@ job "comaas-[[ .tenant_short ]]" {
         SWIFT_USERNAME = "[[ .swift_username ]]"
         SWIFT_PASSWORD = "[[ .swift_password ]]"
         SWIFT_KEYSTONE = "https://keystone.[[ .region ]].cloud.ecg.so/v2.0"
+        ESAAS_USERNAME = "[[ .esaas_username ]]"
+        ESAAS_PASSWORD = "[[ .esaas_password ]]"
       }
 
       service {
@@ -162,6 +166,8 @@ EOH
         SWIFT_USERNAME = "[[ .swift_username ]]"
         SWIFT_PASSWORD = "[[ .swift_password ]]"
         SWIFT_KEYSTONE = "https://keystone.[[ .region ]].cloud.ecg.so/v2.0"
+        ESAAS_USERNAME = "[[ .esaas_username ]]"
+        ESAAS_PASSWORD = "[[ .esaas_password ]]"
       }
 
       service {

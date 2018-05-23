@@ -3,11 +3,13 @@ package com.ecg.replyts.integration.test;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
+import com.ecg.replyts.core.runtime.indexer.test.DirectESIndexer;
+import com.ecg.replyts.core.runtime.indexer.test.ESClientConfiguration;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.ecg.replyts.integration.test.support.Waiter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.elasticsearch.action.admin.indices.flush.FlushRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -26,6 +28,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.ecg.replyts.core.runtime.indexer.test.ESClientConfiguration.ES_INDEX_NAME;
 
 /**
  * Junit test rule that starts an embedded ReplyTS instance, configured to communicate to a locally running dev
@@ -60,9 +64,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     private static final String DEFAULT_CONFIG_RESOURCE_DIRECTORY = "/integrationtest-conf";
 
-    public static final boolean ES_ENABLED = true;
-
-    private int deliveryTimeoutSeconds;
+    private final int deliveryTimeoutSeconds;
 
     private String[] cqlFilePaths;
 
@@ -70,47 +72,40 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     private ReplyTsConfigClient client;
 
-    private IntegrationTestRunner testRunner;
+    private final IntegrationTestRunner testRunner;
 
-    private CassandraIntegrationTestProvisioner CASDB = CassandraIntegrationTestProvisioner.getInstance();
+    private final CassandraIntegrationTestProvisioner CASDB = CassandraIntegrationTestProvisioner.getInstance();
 
-    private String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
+    private final String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
 
     public ReplyTsIntegrationTestRule() {
-        this(null, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], "cassandra_schema.cql");
+        this(null, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, new Class[0], "cassandra_schema.cql");
     }
 
-    public ReplyTsIntegrationTestRule(boolean esEnabled) {
-        this(null, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, esEnabled, new Class[0], "cassandra_schema.cql");
-    }
-
-    public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, boolean esEnabled) {
-        this(null, null, deliveryTimeoutSeconds, esEnabled, new Class[0], "cassandra_schema.cql");
+    public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds) {
+        this(null, null, deliveryTimeoutSeconds, new Class[0], "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(Properties testProperties) {
-        this(testProperties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], "cassandra_schema.cql");
+        this(testProperties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, new Class[0], "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(String replyTsConfigurationDir, String... cqlFilePaths) {
-        this(null, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], cqlFilePaths);
+        this(null, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, new Class[0], cqlFilePaths);
     }
 
     public ReplyTsIntegrationTestRule(Properties testProperties, String replyTsConfigurationDir, String... cqlFilePaths) {
-        this(testProperties, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], cqlFilePaths);
+        this(testProperties, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, new Class[0], cqlFilePaths);
     }
 
-    public ReplyTsIntegrationTestRule(Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, boolean esEnabled, String... cqlFilePaths) {
-        this(testProperties, configurationResourceDirectory, deliveryTimeoutSeconds, esEnabled, new Class[0], cqlFilePaths);
+    public ReplyTsIntegrationTestRule(Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, String... cqlFilePaths) {
+        this(testProperties, configurationResourceDirectory, deliveryTimeoutSeconds, new Class[0], cqlFilePaths);
     }
 
     public ReplyTsIntegrationTestRule(Properties properties, Class<?>... configuration) {
-        this(properties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, configuration, "cassandra_schema.cql");
+        this(properties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, configuration, "cassandra_schema.cql");
     }
 
-    public ReplyTsIntegrationTestRule(Properties properties, boolean esEnabled) {
-        this(properties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, esEnabled, new Class[0], "cassandra_schema.cql");
-    }
 
     /**
      * instantiate a new rule, delivery timeout can be configured
@@ -119,7 +114,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      *                               be processed.
      */
     public ReplyTsIntegrationTestRule(
-            Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, boolean esEnabled, Class[] configuration, String... cqlFilePaths
+            Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, Class[] configuration, String... cqlFilePaths
     ) {
         System.setProperty("logging.service.structured.logging", "false");
 
@@ -135,12 +130,9 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         testProperties.put("persistence.skip.mail.storage", true);
         testProperties.put("replyts.jetty.instrument", false);
         testProperties.put("mailreceiver.watch.retrydelay.millis", 250);
-        testProperties.put("search.es.enabled", esEnabled);
         testProperties.put("replyts2-messagecenter-plugin.pushmobile.url", "UNSET_PROPERTY");
         testProperties.put("replyts2-messagecenter-plugin.api.host", "UNSET_PROPERTY");
         testProperties.put("kafka.core.servers", "localhost:9092");
-
-        LOG.debug("Running tests with ES enabled: " + esEnabled);
 
         if (!testProperties.containsKey("tenant")) {
             testProperties.put("tenant", "unknown");
@@ -197,8 +189,8 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         return testRunner.getSearchClient();
     }
 
-    public void flushSearchIndex() {
-        testRunner.getSearchClient().admin().indices().flush(new FlushRequest("replyts"));
+    private DirectESIndexer getESIndexer() {
+        return testRunner.getESIndexer();
     }
 
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
@@ -325,10 +317,33 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         }
     }
 
-    public void waitUntilIndexedInEs(MailInterceptor.ProcessedMail mail) {
+    public void waitUntilIndexedInEs(List<MailInterceptor.ProcessedMail> mails) throws Exception {
+
         Client searchClient = getSearchClient();
+        DirectESIndexer directESIndexer = getESIndexer();
+        List<Conversation> conversations = new ArrayList<>();
+        List<String> conversationIds = new ArrayList<>();
+        for (MailInterceptor.ProcessedMail mail : mails) {
+            conversations.add(mail.getConversation());
+            String id = mail.getConversation().getId() + "/" + mail.getMessage().getId();
+            conversationIds.add(id);
+        }
+        directESIndexer.ensureIndexed(conversations, 5, TimeUnit.SECONDS);
+
+        SearchRequestBuilder searchRequestBuilder = searchClient.prepareSearch(ES_INDEX_NAME)
+                .setTypes("message")
+                .setQuery(QueryBuilders.termsQuery("_id", conversationIds));
+        Waiter.await(
+                () -> searchClient.search(searchRequestBuilder.request()).actionGet().getHits().getTotalHits() >= conversationIds.size()).
+                within(10, TimeUnit.SECONDS);
+    }
+
+    public void waitUntilIndexedInEs(MailInterceptor.ProcessedMail mail) throws Exception {
+        Client searchClient = getSearchClient();
+        DirectESIndexer directESIndexer = getESIndexer();
+        directESIndexer.ensureIndexed(mail.getConversation(), 5, TimeUnit.SECONDS);
         String id = mail.getConversation().getId() + "/" + mail.getMessage().getId();
-        SearchRequestBuilder searchRequestBuilder = searchClient.prepareSearch("replyts")
+        SearchRequestBuilder searchRequestBuilder = searchClient.prepareSearch(ES_INDEX_NAME)
                 .setTypes("message")
                 .setQuery(QueryBuilders.termQuery("_id", id));
 

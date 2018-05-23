@@ -1,0 +1,82 @@
+{
+  "message": {
+    "_source": {
+      "enabled": true
+    },
+    "properties": {
+      "messageText": {
+        "type": "text"
+      },
+      "conversationStartDate": {
+        "format": "dateOptionalTime",
+        "type": "date"
+      },
+      "messageState": {
+        "type": "keyword"
+      },
+      "toEmailAnonymous": {
+        "type": "keyword"
+      },
+      "fromEmail": {
+        "type": "keyword"
+      },
+      "feedback": {
+        "dynamic": true,
+        "properties": {
+          "filterName": {
+            "type": "keyword"
+          },
+          "filterInstance": {
+            "type": "keyword"
+          }
+        }
+      },
+      "messageDirection": {
+        "type": "keyword"
+      },
+      "adId": {
+        "type": "keyword"
+      },
+      "humanResultState": {
+        "type": "keyword"
+      },
+      "lastEditor": {
+        "type": "keyword"
+      },
+      "fromEmailAnonymous": {
+        "type": "keyword"
+      },
+      "lastModified": {
+        "format": "dateOptionalTime",
+        "type": "date"
+      },
+      "receivedDate": {
+        "format": "dateOptionalTime",
+        "type": "date"
+      },
+      "toEmail": {
+        "type": "keyword"
+      },
+      "customHeaders": {
+        "dynamic": true,
+        "properties": {
+          "l1-categoryid": {
+            "type": "keyword"
+          },
+          "l2-categoryid": {
+            "type": "keyword"
+          },
+          "customheader": {
+            "type": "keyword"
+          },
+          "from": {
+            "type": "keyword"
+          },
+          "to": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  }
+}
