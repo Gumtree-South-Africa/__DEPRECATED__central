@@ -47,3 +47,19 @@ services:
       MYSQL_ROOT_PASSWORD: mysql_root
       MYSQL_USER: mysql_guest
       MYSQL_PASSWORD: mysql_guest
+  elasticsearch5:
+      image: docker.elastic.co/elasticsearch/elasticsearch:5.6.9
+      ports:
+      - "9250:9200"
+      - "9350:9300"
+      environment:
+        discovery.type: "single-node"
+        xpack.security.enabled: "false"
+        cluster.name: "elasticsearch"
+        SERVICE_9250_NAME: elasticsearch5
+        SERVICE_9250_CHECK_SCRIPT: curl -s http://elasticsearch5:9200/_cat/health?h=status | grep -q green
+      volumes:
+      - "./elasticsearch5/run_with_mapping.sh:/usr/share/elasticsearch/run_with_mapping.sh"
+      - "./elasticsearch5/message_mapping.json:/usr/share/elasticsearch/message_mapping.json"
+      command:
+          - ./run_with_mapping.sh

@@ -1,91 +1,49 @@
 package com.ecg.replyts.app.search.elasticsearch;
 
-import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.search.MutableSearchService;
-import com.ecg.replyts.core.api.search.RtsSearchGroupResponse;
 import com.ecg.replyts.core.api.search.RtsSearchResponse;
 import com.ecg.replyts.core.api.search.SearchService;
-import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessageGroupPayload;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
-import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.MessageDocumentId;
 import com.google.common.base.Preconditions;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import static com.ecg.replyts.app.search.elasticsearch.SearchTransformer.translate;
 import static java.lang.String.format;
-import static org.elasticsearch.index.query.FilterBuilders.notFilter;
-import static org.elasticsearch.index.query.QueryBuilders.filtered;
-import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 
-@Component
 public class ElasticSearchSearchService implements SearchService, MutableSearchService {
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchSearchService.class);
 
-    private static final Timer SEARCH_TIMER = TimingReports.newTimer("es-doSearch");
-    private static final Timer GROUP_SEARCH_TIMER = TimingReports.newTimer("es-doGroupSearch");
+    private final ElasticQueryFactory queryFactory;
+    private final TimeValue searchTimeout;
 
-    public static final String TYPE_NAME = "message";
-
-    @Autowired
-    private Client client;
-
-    @Value("${search.es.indexname:replyts}")
-    private String indexName;
-
-    @Value("${search.es.timeout.ms:20000}")
-    private long timeoutMs;
-
-    @Override
-    public RtsSearchResponse search(SearchMessagePayload searchMessageCommand) {
-        SearchRequestBuilder searchRequestBuilder = translate(searchMessageCommand, client, indexName).intoQuery();
-
-        LOG.trace("\n\nRequest:\n\n {}", searchRequestBuilder);
-
-        SearchResponse searchResponse = executeSearch(searchRequestBuilder, SEARCH_TIMER);
-
-        return createRtsSearchResponse(searchMessageCommand, searchResponse);
+    ElasticSearchSearchService(ElasticQueryFactory queryFactory, TimeValue searchTimeout) {
+        this.queryFactory = queryFactory;
+        this.searchTimeout = searchTimeout;
     }
 
-    @Override
-    public RtsSearchGroupResponse search(SearchMessageGroupPayload searchMessageCommand) {
-        SearchRequestBuilder searchRequestBuilder = translate(searchMessageCommand, client, indexName).intoQuery();
-
-        LOG.trace("\n\nRequest:\n\n {}", searchRequestBuilder);
-
-        SearchResponse searchResponse = executeSearch(searchRequestBuilder, GROUP_SEARCH_TIMER);
-
-        return createRtsSearchResponse(searchMessageCommand, searchResponse);
+    public RtsSearchResponse search(SearchMessagePayload payload) {
+        SearchRequestBuilder request = queryFactory.searchMessage(payload);
+        LOG.trace("\n\nRequest:\n\n {}", request);
+        SearchResponse response = executeSearch(request);
+        return createRtsSearchResponse(payload, response);
     }
 
-    private SearchResponse executeSearch(SearchRequestBuilder searchRequestBuilder, Timer searchTimer) {
-        try (Timer.Context ignore = searchTimer.time()) {
-            SearchResponse response = searchRequestBuilder.execute().actionGet(timeoutMs, TimeUnit.MILLISECONDS);
-
+    private SearchResponse executeSearch(SearchRequestBuilder request) {
+        try {
+            SearchResponse response = request.execute().actionGet(searchTimeout);
             LOG.trace("\n\nResponse:\n\n{}", response);
-
             return response;
         } catch (Exception e) {
-            throw new RuntimeException(format("Couldn't perform search query %s", searchRequestBuilder), e);
+            throw new RuntimeException(format("Couldn't perform search query %s", request), e);
         }
     }
 
@@ -96,26 +54,6 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
         extractMsgDocIdsFromHits(hits, ids);
 
         return new RtsSearchResponse(ids, command.getOffset(), hits.length, (int) response.getHits().getTotalHits());
-    }
-
-    private RtsSearchGroupResponse createRtsSearchResponse(SearchMessageGroupPayload command, SearchResponse response) {
-        Terms topLevelAgg = response.getAggregations().get(SearchTransformer.GROUPING_AGG_NAME);
-        List<Terms.Bucket> buckets = topLevelAgg.getBuckets();
-        Map<String, RtsSearchResponse> messageGroups = new LinkedHashMap<>(buckets.size());
-        for (Terms.Bucket bucket : buckets) {
-            TopHits itemsAgg = bucket.getAggregations().get(SearchTransformer.ITEMS_AGG_NAME);
-
-            SearchHits hits = itemsAgg.getHits();
-            int numHits = hits.getHits().length;
-            List<RtsSearchResponse.IDHolder> ids = new ArrayList<>(numHits);
-
-            extractMsgDocIdsFromHits(hits.getHits(), ids);
-
-            messageGroups.put(bucket.getKey(), new RtsSearchResponse(ids, command.getOffset(), numHits, (int) hits.getTotalHits()));
-        }
-
-        // Grouping searches return only one page of results
-        return new RtsSearchGroupResponse(messageGroups);
     }
 
     private void extractMsgDocIdsFromHits(SearchHit[] hits, List<RtsSearchResponse.IDHolder> storedIds) {
@@ -135,24 +73,7 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
         Preconditions.checkNotNull(from);
         Preconditions.checkNotNull(to);
 
-        client.prepareDeleteByQuery(indexName)
-                .setTypes(TYPE_NAME)
-                .setQuery(
-                        rangeQuery("lastModified")
-                                .from(from)
-                                .to(to))
-                .execute()
-                .actionGet();
-
-        client.prepareDeleteByQuery(indexName)
-                .setTypes(TYPE_NAME)
-                .setQuery(
-                        filtered(
-                                rangeQuery("receivedDate")
-                                        .from(from)
-                                        .to(to),
-                                notFilter(FilterBuilders.existsFilter("lastModified"))))
-                .execute()
-                .actionGet();
+        queryFactory.deleteLastModified(from, to).get();
+        queryFactory.deleteReceivedDate(from, to).get();
     }
 }

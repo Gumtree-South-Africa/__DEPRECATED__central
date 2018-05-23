@@ -4,19 +4,18 @@ import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.elasticsearch.action.search.SearchAction;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Date;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -28,7 +27,7 @@ public class SearchTransformerTest {
 
     @Before
     public void setUp() throws Exception {
-        SearchRequestBuilder builder = new SearchRequestBuilder(elasticsearchClient);
+        SearchRequestBuilder builder = new SearchRequestBuilder(elasticsearchClient, SearchAction.INSTANCE);
         when(elasticsearchClient.prepareSearch("replyts")).thenReturn(builder);
     }
 
@@ -47,17 +46,17 @@ public class SearchTransformerTest {
         payload.setOrdering(SearchMessagePayload.ResultOrdering.NEWEST_FIRST);
         payload.setCount(1);
 
-        SearchTransformer transformer = SearchTransformer.translate(payload, elasticsearchClient, "replyts");
+        SearchTransformer transformer = new SearchTransformer(payload, elasticsearchClient, "replyts");
         SearchRequestBuilder searchRequestBuilder = transformer.intoQuery();
 
         JsonNode jsonNode = new ObjectMapper().readTree(searchRequestBuilder.toString());
-        assertNotNull(jsonNode.get("query").get("filtered").get("query"));
+        assertNotNull(jsonNode.get("query").get("bool").get("must"));
 
         // We want a search of the shape
         /*
             "query": {
-                "filtered": {
-                    "query": {
+                "bool": {
+                    "must": {
                         ... etc
          */
     }

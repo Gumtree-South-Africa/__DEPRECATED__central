@@ -100,6 +100,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         this(testProperties, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], cqlFilePaths);
     }
 
+    public ReplyTsIntegrationTestRule(Properties testProperties, String replyTsConfigurationDir, boolean esEnabled, String... cqlFilePaths) {
+        this(testProperties, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, esEnabled, new Class[0], cqlFilePaths);
+    }
+
     public ReplyTsIntegrationTestRule(Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, boolean esEnabled, String... cqlFilePaths) {
         this(testProperties, configurationResourceDirectory, deliveryTimeoutSeconds, esEnabled, new Class[0], cqlFilePaths);
     }
@@ -130,12 +134,14 @@ public class ReplyTsIntegrationTestRule implements TestRule {
             testProperties = new Properties();
         }
 
+        testProperties.put("search.es.enabled", esEnabled);
+        testProperties.put("search.es.endpoints", "localhost:9350");
+        testProperties.put("search.es.clustername", "elasticsearch");
         testProperties.put("persistence.cassandra.core.keyspace", keyspace);
         testProperties.put("persistence.cassandra.mb.keyspace", keyspace);
         testProperties.put("persistence.skip.mail.storage", true);
         testProperties.put("replyts.jetty.instrument", false);
         testProperties.put("mailreceiver.watch.retrydelay.millis", 250);
-        testProperties.put("search.es.enabled", esEnabled);
         testProperties.put("replyts2-messagecenter-plugin.pushmobile.url", "UNSET_PROPERTY");
         testProperties.put("replyts2-messagecenter-plugin.api.host", "UNSET_PROPERTY");
         testProperties.put("kafka.core.servers", "localhost:9092");

@@ -16,8 +16,6 @@
     <!-- Expose Message and conversation Id in the outbound mail, to make automation testing easier -->
     <bean class="com.ecg.replyts.integration.test.postprocessor.IdLeakingPostProcessor"/>
 
-    <bean class="com.ecg.replyts.integration.elasticsearch.EmbeddedElasticSearchClientConfiguration" primary="true"/>
-
     <bean class="com.ecg.replyts.integration.hazelcast.EmbeddedHazelcastConfiguration" primary="true"/>
 
     <bean class="com.ecg.replyts.integration.AlwaysHappyClusterMonitor" primary="true"/>
