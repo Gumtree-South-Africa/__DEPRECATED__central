@@ -121,7 +121,7 @@ public class SearchIndexer {
                         }
 
                         @Override
-                        public void onFailure(Throwable e) {
+                        public void onFailure(Exception e) {
                             String msg = conversations.stream().map(Conversation::getId)
                                     .collect(joining("Failed Indexing conversations: '", "'", ", "));
                             LOG.error(msg, e);

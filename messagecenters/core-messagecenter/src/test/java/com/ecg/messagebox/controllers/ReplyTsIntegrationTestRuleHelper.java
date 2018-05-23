@@ -12,7 +12,7 @@ import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.prop
 public class ReplyTsIntegrationTestRuleHelper {
 
     @Rule
-    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), "/mb-integration-test-conf", "cassandra_schema.cql", "cassandra_messagebox_schema.cql");
+    public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), "/mb-integration-test-conf", true, "cassandra_schema.cql", "cassandra_messagebox_schema.cql");
 
     private Properties createProperties() {
         Properties properties = propertiesWithTenant(TENANT_MP);

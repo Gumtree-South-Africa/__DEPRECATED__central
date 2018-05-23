@@ -10,8 +10,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.escape.Escaper;
 import com.google.common.hash.*;
 import com.google.common.net.UrlEscapers;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.common.netty.handler.codec.http.HttpResponseStatus;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.api.storage.ObjectStorageObjectService;
@@ -125,7 +125,7 @@ public class SwiftAttachmentRepository {
                 return Optional.empty();
             }
             try (HttpResponse resp = so.download().getHttpResponse()) {
-                if (resp.getStatus() != HttpResponseStatus.OK.getCode()) {
+                if (resp.getStatus() != HttpResponseStatus.OK.code()) {
                     String mess = String.format("Failed to fetch %s/%s attachment from container %s", messageId, attachmentName, containerName);
                     throw new RuntimeException(mess + " Reason: " + resp.getStatusMessage());
                 }

@@ -129,7 +129,7 @@ public class HealthController {
             Set<String> versions = new HashSet<>();
 
             // If versions differ between cluster nodes, return a comma separated list instead
-            searchClient.admin().cluster().prepareNodesInfo().execute().get().forEach(info -> versions.add(info.getVersion().toString()));
+            searchClient.admin().cluster().prepareNodesInfo().execute().get().getNodes().forEach(info -> versions.add(info.getVersion().toString()));
 
             return StringUtils.collectionToDelimitedString(versions, ", ");
         } catch (ExecutionException | ElasticsearchException e) {

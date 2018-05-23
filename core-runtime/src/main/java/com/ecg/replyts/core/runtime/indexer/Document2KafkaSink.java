@@ -72,7 +72,7 @@ public class Document2KafkaSink {
         try {
             Message message = conversation.getMessageById(messageId);
             IndexData indexData = searchIndexer.getIndexDataBuilder().toIndexData(conversation, message);
-            byte[] document = indexData.getDocument().bytes().toBytes();
+            byte[] document = indexData.getDocument().bytes().toBytesRef().bytes;
             String key = tenant + KAFKA_KEY_FIELD_SEPARATOR
                     + conversation.getId() + KAFKA_KEY_FIELD_SEPARATOR
                     + message.getId();
