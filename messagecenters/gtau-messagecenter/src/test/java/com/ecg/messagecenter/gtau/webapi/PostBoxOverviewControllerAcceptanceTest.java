@@ -22,14 +22,14 @@ import static org.hamcrest.Matchers.equalTo;
 public class PostBoxOverviewControllerAcceptanceTest {
     @Rule
     public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(),
-            null, 20, false,
-            new Class[]{PostBoxOverviewControllerAcceptanceTest.class},
+            null, 20, new Class[]{PostBoxOverviewControllerAcceptanceTest.class},
             "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_messagecenter_schema.cql");
 
     private Properties createProperties() {
         Properties properties = propertiesWithTenant(TENANT_GTAU);
         properties.put("replyts.tenant", TENANT_GTAU);
         properties.put("webapi.sync.au.enabled", "true");
+        properties.put("push-mobile.host", "localhost");
         properties.put("messages.conversations.enrichment.on.read", "true");
         properties.put("persistence.cassandra.conversation.class", "com.ecg.messagecenter.gtau.persistence.ConversationThread");
         return properties;

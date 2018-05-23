@@ -83,8 +83,7 @@ public class FilterIntegrationTest {
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(
             propertiesWithTenant(TENANT_GTUK),
-            null, 20, false,
-            new Class[]{FilterIntegrationTest.class},
+            null, 20, new Class[]{FilterIntegrationTest.class},
             "cassandra_schema.cql");
 
     /**

@@ -11,13 +11,12 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.junit.Assert.assertEquals;
 
 public class CloseConversationAcceptanceTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
     @Test
     public void closeConversationAndExpectReplyToBeDiscarded() {

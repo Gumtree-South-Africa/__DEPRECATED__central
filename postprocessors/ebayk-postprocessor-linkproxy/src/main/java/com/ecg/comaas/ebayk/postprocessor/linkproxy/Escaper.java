@@ -1,7 +1,7 @@
 package com.ecg.comaas.ebayk.postprocessor.linkproxy;
 
 import com.google.common.collect.Sets;
-import org.elasticsearch.common.Strings;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -53,7 +53,7 @@ class Escaper {
                 continue;
             }
 
-            escaped = Strings.replace(escaped, link, format(proxyDomain, urlEncode(htmlDecode(link))));
+            escaped = StringUtils.replace(escaped, link, format(proxyDomain, urlEncode(htmlDecode(link))));
 
         }
 
@@ -63,7 +63,7 @@ class Escaper {
     private String fixLinkEnd(String link) {
         // some mail clients will put tees around urls and make a hyperlink out of them. it's very hard to build a regex to fix this.  removing trailing > (or &gt;) is simpler.
         if(link.toLowerCase().endsWith("&gt;")) {
-            return Strings.replace(link, "&gt;", "");
+            return StringUtils.replace(link, "&gt;", "");
         }
         if(link.endsWith(">")) {
             return link.substring(0, link.length()-1);

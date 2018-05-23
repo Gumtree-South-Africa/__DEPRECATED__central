@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -18,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 public class VolumeFilterIntegrationTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
     @Test
     public void violatesQuota() throws Exception {
@@ -66,7 +65,7 @@ public class VolumeFilterIntegrationTest {
     }
 
     @Test
-    public void skipsQuotaViolation() throws InterruptedException {
+    public void skipsQuotaViolation() throws Exception {
         rule.registerConfig(VolumeFilterFactory.IDENTIFIER,  (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 1, \"perTimeUnit\": \"MINUTES\", \"score\": 100},\n" +

@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class MessageControllerAcceptanceTest {
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(createProperties(), true);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(createProperties());
 
     private Properties createProperties() {
         Properties properties = propertiesWithTenant(TENANT_GTAU);

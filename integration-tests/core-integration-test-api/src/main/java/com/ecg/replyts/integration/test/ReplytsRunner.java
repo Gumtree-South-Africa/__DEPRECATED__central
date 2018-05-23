@@ -3,12 +3,20 @@ package com.ecg.replyts.integration.test;
 import com.ecg.replyts.core.ApplicationReadyEvent;
 import com.ecg.replyts.core.LoggingService;
 import com.ecg.replyts.core.Webserver;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
+import com.ecg.replyts.core.runtime.indexer.IndexDataBuilder;
+import com.ecg.replyts.core.runtime.indexer.test.DirectESIndexer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.io.Files;
 import io.prometheus.client.CollectorRegistry;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -19,9 +27,9 @@ import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.setEnv;
@@ -30,21 +38,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class ReplytsRunner {
     private static final Logger LOG = LoggerFactory.getLogger(ReplytsRunner.class);
 
-    private static final String ELASTIC_SEARCH_PREFIX = "comaas_integration_test_";
-
     private final File dropFolder = Files.createTempDir();
 
     private final Integer httpPort = OpenPortFinder.findFreePort();
 
     private final Integer smtpOutPort = OpenPortFinder.findFreePort();
 
-    private Wiser wiser = new Wiser(smtpOutPort);
+    private final Wiser wiser = new Wiser(smtpOutPort);
 
-    private AnnotationConfigApplicationContext context;
+    private final AnnotationConfigApplicationContext context;
 
     private Client searchClient;
 
-    private MailInterceptor mailInterceptor;
+    private DirectESIndexer esIndexer;
+
+    private final MailInterceptor mailInterceptor;
 
     ReplytsRunner(Properties testProperties, String configResourcePrefix, Class<?>[] configurations) {
         wiser.start();
@@ -67,12 +75,11 @@ public final class ReplytsRunner {
             setEnv("COMAAS_HTTP_PORT", httpPort.toString());
             properties.put("delivery.smtp.port", String.valueOf(smtpOutPort));
             properties.put("kafka.core.servers", "localhost:9092");
+            properties.put("doc2kafka.sink.enabled", false);
+            properties.put("search.es.indexname", "comaasidx");
+            properties.put("search.es.endpoint","http://localhost:9200");
 
             properties.put("mailreceiver.filesystem.dropfolder", dropFolder.getAbsolutePath());
-
-            String elasticClusterName = ELASTIC_SEARCH_PREFIX + UUID.randomUUID();
-            properties.put("search.es.clustername", elasticClusterName);
-
             properties.put("node.run.cronjobs", "false");
             properties.put("cluster.jmx.enabled", "false");
 
@@ -107,6 +114,7 @@ public final class ReplytsRunner {
             if (!context.getBean(Webserver.class).isStarted()) {
                 throw new IllegalStateException("COMaaS did not start up in its entirety");
             }
+
         } catch (Exception e) {
             throw new IllegalStateException("COMaaS Abnormal Shutdown", e);
         }
@@ -133,11 +141,21 @@ public final class ReplytsRunner {
             searchClient = context.getBean(Client.class);
 
             if (searchClient == null) {
+                throw new IllegalStateException("COMaaS did not start up in its entirety or ElasticSearch was not enabled");
+            }
+        }
+        return searchClient;
+    }
+
+    DirectESIndexer getESIndexer() {
+        if (esIndexer == null) {
+            esIndexer = context.getBean(DirectESIndexer.class);
+
+            if (esIndexer == null) {
                 throw new IllegalStateException("COMaaS did not start up in its entirety");
             }
         }
-
-        return searchClient;
+        return esIndexer;
     }
 
     File getDropFolder() {

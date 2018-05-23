@@ -1,11 +1,9 @@
 package com.ecg.replyts.app;
 
-import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.processing.Termination;
-import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
-import com.ecg.replyts.core.runtime.listener.MailPublisher;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import org.junit.Before;
@@ -15,15 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,7 +30,7 @@ public class ProcessingFinalizerCassandraTest {
     private MutableConversationRepository conversationRepository;
 
     @MockBean
-    private SearchIndexer searchIndexer;
+    private DocumentSink documentSink;
 
     @MockBean
     private DefaultMutableConversation conv;
@@ -45,9 +40,6 @@ public class ProcessingFinalizerCassandraTest {
 
     @MockBean
     private ConversationEventListeners conversationEventListeners;
-
-    @MockBean
-    private MailPublisher mailProcessedListener;
 
     @Autowired
     private ProcessingFinalizer messagePersister;
@@ -62,13 +54,14 @@ public class ProcessingFinalizerCassandraTest {
 
     @Test
     public void updatingForCassandraEvenIfConversationSizeExceedsConstraint() {
+        String msgId = "1";
         when(conv.getMessages()).thenReturn(Arrays.asList(new Message[ProcessingFinalizer.MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION + 1]));
 
-        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination, Collections.emptySet());
+        messagePersister.persistAndIndex(conv, msgId, Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination, Collections.emptySet());
 
         verify(conv).commit(conversationRepository, conversationEventListeners);
 
-        verify(searchIndexer).updateSearchAsync(Arrays.<Conversation>asList(conv));
+        verify(documentSink).sink(conv, msgId);
     }
 }
 
