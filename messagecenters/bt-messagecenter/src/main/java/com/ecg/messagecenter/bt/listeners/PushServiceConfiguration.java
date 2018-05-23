@@ -60,7 +60,11 @@ public class PushServiceConfiguration {
 
     @Bean
     @ConditionalOnExpression("#{'${push-mobile.enabled:false}' == 'false' && '${mdns.enabled:false}' == 'false' && '${pushservice.enabled:false}' == 'false'}")
-    public PushService infoPoolPushService() {
+    public PushService infoPoolPushService(
+            @Value("${infopool.host:localhost}") String infopoolHost,
+            @Value("${infopool.proxy.host:localhost}") String proxyHost,
+            @Value("${infopool.proxy.port:8080}") Integer proxyPort) {
+
         LOG.info("Info pool push service enabled. Host: {}", infopoolHost);
         return new InfoPoolPushService(infopoolHost, proxyHost, proxyPort);
     }
