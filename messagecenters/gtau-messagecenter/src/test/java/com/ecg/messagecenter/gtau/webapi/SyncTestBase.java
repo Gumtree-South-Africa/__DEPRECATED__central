@@ -31,6 +31,7 @@ public abstract class SyncTestBase {
         properties.put("webapi.sync.au.enabled", "true");
         properties.put("webapi.sync.v2.enabled", "true");
         properties.put("webapi.diff.au.enabled", "true");
+        properties.put("push-mobile.host", "localhost");
         properties.put("messagebox.userid.by_user_id.customValueNameForBuyer", "buyer-user-id");
         properties.put("messagebox.userid.by_user_id.customValueNameForSeller", "seller-user-id");
         properties.put("messagebox.userid.userIdentifierStrategy", "BY_USER_ID");
