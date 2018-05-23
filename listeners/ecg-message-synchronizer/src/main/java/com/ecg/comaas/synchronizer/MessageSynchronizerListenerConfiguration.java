@@ -6,10 +6,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_MDE;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
 
 @ComaasPlugin
-@Profile(TENANT_MDE)
+@Profile(TENANT_EBAYK)
 @Configuration
 @ComponentScan
 @EnableConfigurationProperties
