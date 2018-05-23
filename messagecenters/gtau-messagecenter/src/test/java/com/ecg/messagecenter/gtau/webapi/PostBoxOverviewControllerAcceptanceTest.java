@@ -30,6 +30,7 @@ public class PostBoxOverviewControllerAcceptanceTest {
         Properties properties = propertiesWithTenant(TENANT_GTAU);
         properties.put("replyts.tenant", TENANT_GTAU);
         properties.put("webapi.sync.au.enabled", "true");
+        properties.put("push-mobile.host", "localhost");
         properties.put("messages.conversations.enrichment.on.read", "true");
         properties.put("persistence.cassandra.conversation.class", "com.ecg.messagecenter.gtau.persistence.ConversationThread");
         return properties;
