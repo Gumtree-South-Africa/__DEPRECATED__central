@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 
 public class GumtreeVolumeFilterIntegrationTest {
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_GTUK), true);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_GTUK));
 
     @Test
     public void testMultipleRegistrations() {

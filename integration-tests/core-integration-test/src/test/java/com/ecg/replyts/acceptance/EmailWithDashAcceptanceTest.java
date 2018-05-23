@@ -10,7 +10,6 @@ import java.io.ByteArrayOutputStream;
 
 
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -33,7 +32,7 @@ public class EmailWithDashAcceptanceTest {
             .plainBody("first contact from buyer");
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(deliveryTimeoutSeconds, ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(deliveryTimeoutSeconds);
 
     @Test
     public void rtsSendAndReplyMessagesOnAddressesWithDash() throws Exception {

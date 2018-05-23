@@ -10,14 +10,13 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.api.processing.ModerationService;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
-import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static org.joda.time.DateTime.now;
@@ -46,7 +44,7 @@ public class DirectMessageModerationService implements ModerationService {
     private MutableConversationRepository conversationRepository;
 
     @Autowired
-    private SearchIndexer searchIndexer;
+    private DocumentSink documentSink;
 
     @Autowired(required = false)
     private List<MessageProcessedListener> listeners = emptyList();
@@ -91,7 +89,7 @@ public class DirectMessageModerationService implements ModerationService {
 
         heldMailRepository.remove(messageId);
 
-        searchIndexer.updateSearchAsync(ImmutableList.of(conversation));
+        documentSink.sink(conversation);
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
 

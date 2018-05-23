@@ -11,7 +11,6 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.common.netty.handler.codec.http.HttpResponseStatus;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.api.storage.ObjectStorageObjectService;
@@ -25,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -120,7 +120,7 @@ public class SwiftAttachmentRepository {
                 return Optional.empty();
             }
             try (HttpResponse resp = so.download().getHttpResponse()) {
-                if (resp.getStatus() != HttpResponseStatus.OK.getCode()) {
+                if (resp.getStatus() != Response.Status.OK.getStatusCode()) {
                     String mess = String.format("Failed to fetch %s/%s attachment from container %s", messageId, attachmentName, containerName);
                     throw new RuntimeException(mess + " Reason: " + resp.getStatusMessage());
                 }

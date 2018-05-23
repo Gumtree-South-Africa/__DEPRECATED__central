@@ -1,4 +1,4 @@
-package com.ecg.replyts.core.runtime.indexer.conversation;
+package com.ecg.replyts.core.runtime.indexer;
 
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -43,7 +43,7 @@ public class IndexDataBuilder {
         this.mailCloakingService = mailCloakingService;
     }
 
-    public IndexData toIndexData(Conversation conversation,
+    public XContentBuilder toIndexData(Conversation conversation,
                                  Message message) throws IOException {
 
         List<String> attachmentFilenames = message.getAttachmentFilenames();
@@ -84,7 +84,7 @@ public class IndexDataBuilder {
 
         sourceBuilder.endArray().endObject();
 
-        return new IndexData(conversation, message, sourceBuilder);
+        return sourceBuilder;
     }
 
     private String getFromAnonymousEmail(Conversation conversation, Message message) {

@@ -24,7 +24,7 @@ import static org.junit.Assert.assertEquals;
 public class VolumeFilterIntegrationTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(new Properties(), null, 20, false);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(new Properties(), null, 20);
 
     @Test
     public void violatesQuota() throws Exception {
