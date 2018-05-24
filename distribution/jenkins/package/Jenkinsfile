@@ -3,22 +3,6 @@ import java.text.SimpleDateFormat
 
 library "commonFunctions@${PROVIDED_PIPELINE_BRANCH}"
 
-void loginToDockerRepo() {
-    def secrets = [
-        [
-                $class: 'VaultSecret',
-                path: 'secret/nomad/dock.es.ecg.tools/comaas+robot_upload',
-                secretValues: [
-                        [$class: 'VaultSecretValue', envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
-                        [$class: 'VaultSecretValue', envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
-                ],
-        ],
-    ]
-    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-        sh "docker login -u=\"${DOCKER_USERNAME}\" -p=\"${DOCKER_PASSWORD}\" dock.es.ecg.tools"
-    }
-}
-
 void packageComaas(String tenant, String version) {
     echo "Packaging Comaas for $tenant"
     sh "cd ecg-comaas-central && " +
@@ -35,7 +19,7 @@ void packageComaas(String tenant, String version) {
             "mkdir -p ${tmpDir} && " +
             "tar xf builds/comaas-${tenant}_${version}.tar.gz -C ${tmpDir} && " +
             "docker build --tag ${dockerImageName} --label tenant=${tenant} ."
-    loginToDockerRepo()
+    commonFunctions.loginToDockerRepo()
     sh "docker push $dockerImageName"
     sh "docker image remove $dockerImageName"
 }
