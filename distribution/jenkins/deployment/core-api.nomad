@@ -49,6 +49,7 @@ job "core-api-[[ .tenant ]]" {
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
+        CRONJOBS_DISABLED = true
       }
 
       service {
@@ -152,6 +153,7 @@ EOH
         HEAP_SIZE = "[[ .comaas_heap_size ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
+        CRONJOBS_DISABLED = true
       }
 
       service {
@@ -262,7 +264,6 @@ EOH
       env {
         HEAP_SIZE = "[[ .cronjob_heap_size ]]"
         JAVA_OPTS = ""
-        CRONJOBS_ENABLED = true
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
       }
