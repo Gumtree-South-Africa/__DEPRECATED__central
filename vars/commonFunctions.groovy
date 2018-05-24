@@ -131,7 +131,7 @@ String getTriggerer() {
     // 1. User who triggered the build
     String buildUser
     wrap([$class: 'BuildUser']) {
-        if (env.BUILD_USER_ID != null) {d
+        if (env.BUILD_USER_ID != null) {
             echo "triggered by $env.BUILD_USER_ID from env.BUILD_USER_ID"
             buildUser = env.BUILD_USER_ID
         }
