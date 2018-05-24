@@ -1,6 +1,5 @@
 package com.ecg.comaas.kjca.coremod.shared;
 
-import ca.kijiji.rsc.RemoteServiceException;
 import com.codahale.metrics.Counter;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.apache.commons.codec.binary.Base64;

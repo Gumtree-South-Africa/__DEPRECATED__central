@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.kjca.pushmessage.send.client;
 
-import ca.kijiji.tracing.TraceLogFilter;
-import ca.kijiji.tracing.TraceThreadLocal;
+import com.ecg.comaas.kjca.coremod.shared.TraceLogFilter;
+import com.ecg.comaas.kjca.coremod.shared.TraceThreadLocal;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.google.common.io.Closeables;
 import com.netflix.hystrix.HystrixCommand;

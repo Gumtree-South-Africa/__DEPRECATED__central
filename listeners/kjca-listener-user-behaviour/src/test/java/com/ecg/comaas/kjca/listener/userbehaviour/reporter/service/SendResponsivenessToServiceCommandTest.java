@@ -1,6 +1,6 @@
 package com.ecg.comaas.kjca.listener.userbehaviour.reporter.service;
 
-import ca.kijiji.tracing.TraceLogFilter;
+import com.ecg.comaas.kjca.coremod.shared.TraceLogFilter;
 import com.ecg.comaas.kjca.listener.userbehaviour.model.ResponsivenessRecord;
 import com.ecg.comaas.kjca.listener.userbehaviour.reporter.service.exception.HttpRequestFailedException;
 import com.ecg.comaas.kjca.listener.userbehaviour.reporter.service.exception.IncorrectHttpStatusCodeException;

@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.kjca.pushmessage;
 
-import ca.kijiji.tracing.TraceThreadLocal;
+import com.ecg.comaas.kjca.coremod.shared.TraceThreadLocal;
 import com.ecg.comaas.kjca.coremod.shared.BoxHeaders;
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
 import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
