@@ -2,8 +2,8 @@ variable tenant { default = "unset" }
 variable tenant_short { default = "unset" }
 variable environment { default = "dev" }
 variable region { default = "unset" }
-variable registry_namespace { default = "docker-registry.ecg.so/comaas" }
-variable docker_username { default = "comaas-docker-registry" }
+variable registry_namespace { default = "dock.es.ecg.tools/comaas" }
+variable docker_username { default = "unset" }
 variable docker_password { default = "unset" }
 variable vault_policy { default = "nomad-secret-readonly" }
 

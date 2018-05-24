@@ -97,7 +97,7 @@ job "core-api-[[ .tenant ]]" {
     task "filebeat" {
       driver = "docker"
       config {
-        image = "docker-registry.ecg.so/comaas/filebeat:5.6.3"
+        image = "dock.es.ecg.tools/comaas/filebeat:5.6.3"
         args = [
           "-c", "/local/config/filebeat.yml"
         ]
@@ -209,7 +209,7 @@ EOH
     task "filebeat" {
       driver = "docker"
       config {
-        image = "docker-registry.ecg.so/comaas/filebeat:5.6.3"
+        image = "dock.es.ecg.tools/comaas/filebeat:5.6.3"
         args = [
           "-c", "/local/config/filebeat.yml"
         ]
@@ -299,7 +299,7 @@ EOH
     task "filebeat" {
       driver = "docker"
       config {
-        image = "docker-registry.ecg.so/comaas/filebeat:5.6.3"
+        image = "dock.es.ecg.tools/comaas/filebeat:5.6.3"
         args = [
           "-c", "/local/config/filebeat.yml"
         ]

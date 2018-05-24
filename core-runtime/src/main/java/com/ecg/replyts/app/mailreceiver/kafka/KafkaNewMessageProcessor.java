@@ -31,7 +31,7 @@ import static com.ecg.replyts.core.api.model.conversation.command.AddMessageComm
  * /opt/kafka/bin/kafka-topics.sh --alter --zookeeper zookeeper:2181 --topic mp_messages --partitions 10
  *
  * https://github.corp.ebay.com/ecg-comaas/kafka-message-producer
- * docker run --rm --net=host docker-registry.ecg.so/comaas/kafka-message-producer:0.0.1 --tenant mp --delay 100 10
+ * docker run --rm --net=host dock.es.ecg.tools/comaas/kafka-message-producer:0.0.1 --tenant mp --delay 100 10
  */
 public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaNewMessageProcessor.class);
