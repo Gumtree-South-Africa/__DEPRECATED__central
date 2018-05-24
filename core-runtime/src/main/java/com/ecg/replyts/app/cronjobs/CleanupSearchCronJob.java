@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 
 @Component
-@ConditionalOnProperty(name = "CRONJOBS_ENABLED", havingValue = "true", matchIfMissing = false)
 @ConditionalOnExpression("#{'${cronjob.cleanupSearch.enabled:false}' == 'true'}")
 public class CleanupSearchCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CleanupSearchCronJob.class);

@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -45,7 +46,6 @@ import static com.ecg.replyts.core.runtime.TimingReports.newGauge;
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnProperty(name = "CRONJOBS_ENABLED", havingValue = "true", matchIfMissing = false)
 @ConditionalOnExpression("#{'${cronjob.cleanup.conversation.enabled:false}' == 'true' && '${active.dc}' != '${region}'}")
 public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraCleanupConversationCronJob.class);
@@ -81,6 +81,15 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
     private RateLimiter rateLimiter;
 
+    @Value("#{systemEnvironment['region']}")
+    private String sysRegion;
+
+    @Value("${region}")
+    private String region;
+
+    @Value("${active.dc}")
+    private String activeDc;
+
     private static final byte[] EMPTY = new byte[]{};
 
     @PostConstruct
@@ -92,6 +101,7 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
         this.rateLimiter = RateLimiter.create(config.getConversationCleanupRateLimit());
         LOG.info("messageidSink is enabled {}", msgidKafkaSink != null);
+        LOG.info("Running in region {}, sysRegion {}, activeDC {}", region, sysRegion, activeDc);
     }
 
     @Override
