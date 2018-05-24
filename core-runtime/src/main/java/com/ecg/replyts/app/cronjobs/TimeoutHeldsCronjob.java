@@ -7,14 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
 @Component
 // This cron job should run in the _active_ DC
-@ConditionalOnProperty(name = "CRONJOBS_ENABLED", havingValue = "true", matchIfMissing = false)
 @ConditionalOnExpression("#{'${cronjob.sendHeld.timeout.enabled:false}' == 'true' && '${active.dc}' == '${region}'}")
 public class TimeoutHeldsCronjob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(TimeoutHeldsCronjob.class);
