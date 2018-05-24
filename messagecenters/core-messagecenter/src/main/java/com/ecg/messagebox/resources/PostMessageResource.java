@@ -161,9 +161,13 @@ public class PostMessageResource {
 
         MessageProcessingContext context = processingContextFactory.newContext(null, Guids.next());
         context.setConversation(conversation);
-        if (userId.equals(conversation.getSellerId())) {
+        String sellerId = userIdentifierService.getSellerUserId(conversation)
+                .orElseThrow(() -> new ClientException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to infer a seller id"));
+        String buyerId = userIdentifierService.getBuyerUserId(conversation)
+                .orElseThrow(() -> new ClientException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to infer a buyer id"));
+        if (userId.equals(sellerId)) {
             context.setMessageDirection(MessageDirection.SELLER_TO_BUYER);
-        } else if (userId.equals(conversation.getBuyerId())) {
+        } else if (userId.equals(buyerId)) {
             context.setMessageDirection(MessageDirection.BUYER_TO_SELLER);
         } else {
             throw new ClientException(HttpStatus.BAD_REQUEST, "User is not a participant");
