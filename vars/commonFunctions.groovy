@@ -131,7 +131,7 @@ String getTriggerer() {
     // 1. User who triggered the build
     String buildUser
     wrap([$class: 'BuildUser']) {
-        if (env.BUILD_USER_ID != null) {
+        if (env.BUILD_USER_ID != null) {d
             echo "triggered by $env.BUILD_USER_ID from env.BUILD_USER_ID"
             buildUser = env.BUILD_USER_ID
         }
@@ -213,6 +213,20 @@ def loginToDocker() {
     withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
                       usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
         sh "docker login -u $DOCKER_USER -p $DOCKER_PASS docker-registry.ecg.so"
+    }
+
+    def secrets = [
+            [
+                    $class: 'VaultSecret',
+                    path: 'secret/nomad/dock.es.ecg.tools/comaas+robot_upload',
+                    secretValues: [
+                            [$class: 'VaultSecretValue', envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+                            [$class: 'VaultSecretValue', envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
+                    ],
+            ],
+    ]
+    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
+        sh "docker login -u='${DOCKER_USERNAME}' -p='${DOCKER_PASSWORD}' dock.es.ecg.tools"
     }
 }
 
