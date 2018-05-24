@@ -221,7 +221,7 @@ def loginToDocker() {
             ],
     ]
     wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-        sh "docker login -u=${DOCKER_USERNAME} -p=${DOCKER_PASSWORD} dock.es.ecg.tools"
+        sh "docker login -u=\"${DOCKER_USERNAME}\" -p=\"${DOCKER_PASSWORD}\" dock.es.ecg.tools"
     }
 }
 
