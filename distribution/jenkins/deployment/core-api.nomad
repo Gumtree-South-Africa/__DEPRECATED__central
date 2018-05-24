@@ -239,7 +239,8 @@ EOH
   },
   group "cronjob" {
 
-    count = 1
+    # temporarily disabling cronjob nodes for avoiding OOM errors
+    count = 0
 
     constraint {
       attribute = "${node.class}"
@@ -262,7 +263,6 @@ EOH
       env {
         HEAP_SIZE = "[[ .cronjob_heap_size ]]"
         JAVA_OPTS = ""
-        CRONJOBS_ENABLED = true
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
       }

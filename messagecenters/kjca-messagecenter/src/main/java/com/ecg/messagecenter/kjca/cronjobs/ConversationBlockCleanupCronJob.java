@@ -16,7 +16,6 @@ import static com.ecg.replyts.core.runtime.cron.CronExpressionBuilder.everyNMinu
 import static org.joda.time.DateTime.now;
 
 @Component
-@ConditionalOnProperty(name = "CRONJOBS_ENABLED", havingValue = "true", matchIfMissing = false)
 @ConditionalOnExpression("#{'${replyts2.cleanup.conversationblock.enabled:false}' == 'true' && '${active.dc}' != '${region}'}")
 public class ConversationBlockCleanupCronJob implements CronJobExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationBlockCleanupCronJob.class);

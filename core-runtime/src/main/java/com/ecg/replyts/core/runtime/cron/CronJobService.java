@@ -52,7 +52,10 @@ public class CronJobService implements CheckProvider {
 
     @PostConstruct
     private void initialize() {
-        LOG.info("Initializing cronjobs: {}", executors);
+
+        if (executors.isEmpty()) {
+            LOG.info("No active cronjobs for this COMaaS instance.");
+        }
 
         try {
             scheduler = new StdSchedulerFactory().getScheduler();
