@@ -1,11 +1,11 @@
 package com.ecg.gumtree.comaas.common.gumshield;
 
+import com.google.gson.JsonObject;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-//import javax.json.JsonObject;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.client.WebTarget;
@@ -26,16 +26,7 @@ public class GumshieldClient implements AutoCloseable {
         this.target = client.target(baseUri);
     }
 
-    /*
-        ChecklistApi checklistApi();
-        UserApi userApi();
-    */
-
-    public boolean existsEntryByValue(
-            @PathParam("type") ApiChecklistType type,
-            @PathParam("attribute") ApiChecklistAttribute attribute,
-            @PathParam("value") String value) {
-
+    public boolean existsEntryByValue(ApiChecklistType type, ApiChecklistAttribute attribute, String value) {
         Response response = target.path("/checklists/{type}/{attribute}/{value}")
                 .resolveTemplate("type", type)
                 .resolveTemplate("attribute", attribute)
@@ -45,19 +36,26 @@ public class GumshieldClient implements AutoCloseable {
 
         boolean result = response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL;
         if (!result) {
-            LOG.info("Could not find watchlist entry for " + attribute + ", Status code: " + response.getStatus());
+            LOG.info("Could not find checklist entry for " + attribute + ", Status code: " + response.getStatus());
         }
 
         return result;
     }
 
-    public boolean knownGood(@PathParam("id") Long id) {
-//        JsonObject id1 = target.path("/users/{id}/known-good")
-//                .resolveTemplate("id", id)
-//                .request(MediaType.APPLICATION_JSON)
-//                .get(JsonObject.class);
+    public boolean knownGood(long id) {
+        Response response = target.path("/users/{id}/known-good")
+                .resolveTemplate("id", id)
+                .request(MediaType.APPLICATION_JSON)
+                .get();
 
-        return true;
+        boolean result = response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL;
+        if (!result) {
+            LOG.info("Could not find knownGood entry for '" + id + "', Status code: " + response.getStatus());
+            return false;
+        }
+
+        KnownGoodResponse knownGoodResponse = response.readEntity(KnownGoodResponse.class);
+        return knownGoodResponse.getStatus() == KnownGoodStatus.GOOD;
     }
 
     @Override
