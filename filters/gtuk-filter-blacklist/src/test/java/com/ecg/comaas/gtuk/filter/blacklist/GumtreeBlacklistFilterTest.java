@@ -1,5 +1,11 @@
 package com.ecg.comaas.gtuk.filter.blacklist;
 
+import com.ecg.gumtree.comaas.common.domain.BlacklistFilterConfig;
+import com.ecg.gumtree.comaas.common.domain.State;
+import com.ecg.gumtree.comaas.common.filter.Filter;
+import com.ecg.gumtree.comaas.common.gumshield.ApiChecklistAttribute;
+import com.ecg.gumtree.comaas.common.gumshield.ApiChecklistType;
+import com.ecg.gumtree.comaas.common.gumshield.GumshieldClient;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -13,14 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.gumtree.common.util.http.NotFoundHttpStatusException;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.BlacklistFilterConfig;
-import com.gumtree.filters.comaas.config.State;
-import com.gumtree.gumshield.api.client.GumshieldApi;
-import com.gumtree.gumshield.api.client.spec.ChecklistApi;
-import com.gumtree.gumshield.api.domain.checklist.ApiChecklistAttribute;
-import com.gumtree.gumshield.api.domain.checklist.ApiChecklistEntry;
-import com.gumtree.gumshield.api.domain.checklist.ApiChecklistType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,10 +57,7 @@ public class GumtreeBlacklistFilterTest {
     private GumtreeBlacklistFilter filter;
 
     @Autowired
-    private GumshieldApi gumshieldApi;
-
-    @MockBean
-    private ChecklistApi checklistApi;
+    private GumshieldClient gumshieldClient;
 
     @Before
     public void init() {
@@ -240,8 +235,8 @@ public class GumtreeBlacklistFilterTest {
 
     @Test
     public void testSenderEmailDomainIsBlacklisted() throws Exception {
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
-                eq("hotmail.com"))).thenReturn(new ApiChecklistEntry());
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+                eq("hotmail.com"))).thenReturn(true);
 
 
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER, null, true);
@@ -257,10 +252,10 @@ public class GumtreeBlacklistFilterTest {
 
     @Test
     public void testSenderIpAddressIsBlacklisted() throws Exception {
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
                 eq("hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.HOST),
-                eq("1.1.1.1"))).thenReturn(new ApiChecklistEntry());
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.HOST),
+                eq("1.1.1.1"))).thenReturn(true);
 
 
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER, null, true);
@@ -311,34 +306,32 @@ public class GumtreeBlacklistFilterTest {
     }
 
     private void initialiseChecklistApiTestConditions() {
-        when(gumshieldApi.checklistApi()).thenReturn(checklistApi);
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
+                eq("goodguy@hotmail.com"))).thenReturn(false);
 
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
-                eq("goodguy@hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
+                eq("goodguy@yahoo.com"))).thenReturn(false);
 
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
-                eq("goodguy@yahoo.com"))).thenThrow(new NotFoundHttpStatusException());
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
+                eq(null))).thenReturn(false);
 
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
-                eq(null))).thenThrow(new NotFoundHttpStatusException());
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+                eq("hotmail.com"))).thenReturn(false);
 
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
-                eq("hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+                eq("yahoo.com"))).thenReturn(false);
 
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
-                eq("yahoo.com"))).thenThrow(new NotFoundHttpStatusException());
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+                eq(null))).thenReturn(false);
 
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
-                eq(null))).thenThrow(new NotFoundHttpStatusException());
-
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.HOST),
-                eq("1.1.1.1"))).thenThrow(new NotFoundHttpStatusException());
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.HOST),
+                eq("1.1.1.1"))).thenReturn(false);
     }
 
     @Configuration
     static class TestContext {
         @MockBean
-        GumshieldApi gumshieldApi;
+        GumshieldClient gumshieldApi;
 
         @Bean
         public BlacklistFilterConfig filterConfig() throws Exception {
