@@ -4,9 +4,12 @@ import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierServiceByUserId;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
@@ -26,6 +29,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,6 +67,9 @@ public class KafkaNewMessageProcessorTest {
     private ProcessingContextFactory processingContextFactory;
 
     @Mock
+    private UserIdentifierService userIdentifierService;
+
+    @Mock
     private MutableConversationRepository mutableConversationRepository;
 
     @Mock
@@ -95,7 +102,7 @@ public class KafkaNewMessageProcessorTest {
 
         kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
                 kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, MAX_RETRIES, SHORT_TENANT, true,
-                mutableConversationRepository, processingContextFactory);
+                mutableConversationRepository, processingContextFactory, userIdentifierService);
 
         when(mutableConversationRepository.getById(any())).thenReturn(mutableConversation);
         when(mutableConversation.getId()).thenReturn("conversationId");
@@ -104,6 +111,8 @@ public class KafkaNewMessageProcessorTest {
         when(processingContextFactory.newContext(any(), any())).thenReturn(messageProcessingContext);
         when(messageProcessingContext.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
+        when(userIdentifierService.getBuyerUserId(any(Conversation.class))).thenReturn(Optional.of("userId"));
+        when(userIdentifierService.getSellerUserId(any(Conversation.class))).thenReturn(Optional.of("userId"));
     }
 
     private void sendIncomingMessage(final byte[] rawMessage) {
