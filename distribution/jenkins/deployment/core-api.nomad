@@ -31,7 +31,7 @@ job "core-api-[[ .tenant ]]" {
       value = "services"
     }
 
-    task "api" {
+    task "smtp" {
       driver = "docker"
 
       config {
@@ -126,7 +126,7 @@ EOH
     }
   },
 
-  group "http" {
+  group "api" {
 
     count = [[.api_count]]
 
@@ -135,7 +135,7 @@ EOH
       value = "services"
     }
 
-    task "api" {
+    task "http" {
       driver = "docker"
 
       config {
