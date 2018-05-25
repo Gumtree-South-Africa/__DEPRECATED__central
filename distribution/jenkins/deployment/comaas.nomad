@@ -103,10 +103,6 @@ job "comaas-[[ .tenant ]]" {
         ]
 
         network_mode = "host"
-        auth {
-          username = "[[.docker_username]]"
-          password = "[[.docker_password]]"
-        }
       }
 
       template {
@@ -215,10 +211,6 @@ EOH
         ]
 
         network_mode = "host"
-        auth {
-            username = "[[.docker_username]]"
-            password = "[[.docker_password]]"
-        }
       }
 
       template {
@@ -305,10 +297,6 @@ EOH
         ]
 
         network_mode = "host"
-        auth {
-          username = "[[.docker_username]]"
-          password = "[[.docker_password]]"
-        }
       }
 
       template {
