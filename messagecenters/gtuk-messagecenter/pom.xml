@@ -35,11 +35,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.gumtree.gumshield.api</groupId>
-            <artifactId>client</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
         </dependency>
