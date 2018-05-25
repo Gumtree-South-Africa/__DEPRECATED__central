@@ -160,8 +160,8 @@ node("master") {
                             "-var='restart_jenkins_job_nr=${restartJenkinsJob}' "
                     final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
-                    sh "$levantCmd render ${vars} /deployment/core-api.nomad"
-                    sh "$levantCmd deploy ${vars} -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/core-api.nomad"
+                    sh "$levantCmd render ${vars} /deployment/comaas.nomad"
+                    sh "$levantCmd deploy ${vars} -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/comaas.nomad"
                 }
             }
         }

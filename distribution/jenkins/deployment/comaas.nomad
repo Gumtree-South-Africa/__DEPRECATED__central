@@ -1,4 +1,4 @@
-job "core-api-[[ .tenant ]]" {
+job "comaas-[[ .tenant ]]" {
   region = "[[ .region ]]"
   datacenters = ["zone1", "zone2", "zone3", "zone4"]
 
@@ -52,7 +52,7 @@ job "core-api-[[ .tenant ]]" {
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         tags = [
           "version-[[.version]]",
           "newmsg"
@@ -60,7 +60,7 @@ job "core-api-[[ .tenant ]]" {
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "hazelcast"
         tags = [
           "hazelcast"
@@ -74,7 +74,7 @@ job "core-api-[[ .tenant ]]" {
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "prometheus"
         tags = [
           "prometheus"
@@ -155,7 +155,7 @@ EOH
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "http"
         tags = [
           "version-[[.version]]",
@@ -173,7 +173,7 @@ EOH
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "hazelcast"
         tags = [
           "hazelcast"
@@ -187,7 +187,7 @@ EOH
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "prometheus"
         tags = [
           "prometheus"
@@ -268,7 +268,7 @@ EOH
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         tags = [
           "version-[[.version]]",
           "cronjob"
@@ -276,7 +276,7 @@ EOH
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "prometheus"
         tags = [
           "prometheus"
