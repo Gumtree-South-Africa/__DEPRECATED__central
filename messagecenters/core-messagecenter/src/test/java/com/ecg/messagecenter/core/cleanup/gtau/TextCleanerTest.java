@@ -5,9 +5,9 @@ import com.ecg.replyts.app.Mails;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -18,7 +18,6 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
 public class TextCleanerTest {
     private File[] retryingFileLister(File mailFolder, String extension) {
         for (int tries = 0; tries < 10; tries++) {
@@ -32,7 +31,7 @@ public class TextCleanerTest {
 
     @Test
     public void cleanupText() throws Exception {
-        File mailFolder = new File(getClass().getResource("mailReceived").getFile());
+        File mailFolder = FileUtils.toFile(getClass().getResource("mailReceived"));
         Map<String, String> expected = Maps.newHashMap();
         FileInputStream fin;
         long start, end, duration;
