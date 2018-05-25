@@ -19,10 +19,6 @@
             <groupId>ecg.comaas</groupId>
             <artifactId>core-runtime</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.gumtree.gumshield.api</groupId>
-            <artifactId>client</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -48,6 +44,11 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-processing</artifactId>
         </dependency>
 
         <dependency>

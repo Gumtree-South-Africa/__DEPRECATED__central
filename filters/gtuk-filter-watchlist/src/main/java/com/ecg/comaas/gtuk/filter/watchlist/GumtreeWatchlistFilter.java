@@ -1,19 +1,17 @@
 package com.ecg.comaas.gtuk.filter.watchlist;
 
 import com.codahale.metrics.Timer;
+import com.ecg.gumtree.comaas.common.domain.WatchlistFilterConfig;
+import com.ecg.gumtree.comaas.common.filter.Filter;
+import com.ecg.gumtree.comaas.common.gumshield.GumshieldClient;
+import com.ecg.gumtree.comaas.common.gumshield.ApiChecklistAttribute;
+import com.ecg.gumtree.comaas.common.gumshield.ApiChecklistType;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.WatchlistFilterConfig;
-import com.gumtree.gumshield.api.client.spec.ChecklistApi;
-import com.gumtree.gumshield.api.domain.checklist.ApiChecklistAttribute;
-import com.gumtree.gumshield.api.domain.checklist.ApiChecklistType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,13 +20,11 @@ import java.util.List;
 import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
 
 public class GumtreeWatchlistFilter implements com.ecg.replyts.core.api.pluginconfiguration.filter.Filter {
-    private static final Logger LOG = LoggerFactory.getLogger(GumtreeWatchlistFilter.class);
-
     private static final Timer TIMER = TimingReports.newTimer("watchlist-filter-process-time");
 
     private Filter pluginConfig;
     private WatchlistFilterConfig watchListFilterConfig;
-    private ChecklistApi checklistApi;
+    private GumshieldClient gumshieldClient;
 
     private static final String SHORT_DESCRIPTION = "Sender on watchlist";
 
@@ -63,13 +59,7 @@ public class GumtreeWatchlistFilter implements com.ecg.replyts.core.api.pluginco
     }
 
     private boolean isWatchlisted(String attribute, ApiChecklistAttribute checklistAttribute) {
-        try {
-            checklistApi.findEntryByValue(ApiChecklistType.WATCH, checklistAttribute, attribute);
-            return true;
-        } catch (Exception e) {
-            LOG.debug("Could not find watchlist entry for " + attribute + ": " + e.getMessage());
-            return false;
-        }
+        return gumshieldClient.existsEntryByValue(ApiChecklistType.WATCH, checklistAttribute, attribute);
     }
 
     GumtreeWatchlistFilter withPluginConfig(Filter pluginConfig) {
@@ -82,8 +72,8 @@ public class GumtreeWatchlistFilter implements com.ecg.replyts.core.api.pluginco
         return this;
     }
 
-    GumtreeWatchlistFilter withChecklistApi(ChecklistApi checklistApi) {
-        this.checklistApi = checklistApi;
+    GumtreeWatchlistFilter withClient(GumshieldClient gumshieldClient) {
+        this.gumshieldClient = gumshieldClient;
         return this;
     }
 }

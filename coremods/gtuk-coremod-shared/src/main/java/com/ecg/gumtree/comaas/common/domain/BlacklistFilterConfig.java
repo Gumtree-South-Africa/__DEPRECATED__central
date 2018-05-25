@@ -1,9 +1,5 @@
 package com.ecg.gumtree.comaas.common.domain;
 
-import com.gumtree.filters.comaas.config.ConfigWithExemptedCategories;
-import com.gumtree.filters.comaas.config.Result;
-import com.gumtree.filters.comaas.config.State;
-
 import java.util.ArrayList;
 import java.util.List;
 

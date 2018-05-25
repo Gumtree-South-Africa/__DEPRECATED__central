@@ -130,7 +130,7 @@ public class GumtreeKnownGoodFilterTest {
             return new GumtreeKnownGoodFilter()
                     .withPluginConfig(mock(Filter.class))
                     .withFilterConfig(filterConfig)
-                    .withUserApi(userApi);
+                    .withClient(userApi);
         }
     }
 }

@@ -4,6 +4,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.gumtree.comaas.common.domain.KnownGoodFilterConfig;
 import com.ecg.gumtree.comaas.common.filter.Filter;
+import com.ecg.gumtree.comaas.common.gumshield.GumshieldClient;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -11,9 +12,6 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.gumtree.gumshield.api.client.spec.UserApi;
-import com.gumtree.gumshield.api.domain.known_good.KnownGoodResponse;
-import com.gumtree.gumshield.api.domain.known_good.KnownGoodStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +30,7 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
     private final Timer processTimer = TimingReports.newTimer("known-good-filter-process-time");
     private final Counter errorCounter = TimingReports.newCounter("known-good-failed-gumshield-calls");
 
-    private UserApi userApi;
+    private GumshieldClient gumshieldClient;
     private Filter pluginConfig;
     private KnownGoodFilterConfig filterConfig;
 
@@ -65,8 +63,7 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
         Long senderId = getSenderId(message.getHeaders(), message.getMessageDirection());
         if (senderId != null) {
             try {
-                KnownGoodResponse knownGoodResponse = userApi.knownGood(senderId);
-                knownGood = knownGoodResponse != null && knownGoodResponse.getStatus() == KnownGoodStatus.GOOD;
+                knownGood = gumshieldClient.knownGood(senderId);
             } catch (RuntimeException e) {
                 errorCounter.inc();
                 LOG.info("Could not get known good status", e);
@@ -106,8 +103,8 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
         return this;
     }
 
-    GumtreeKnownGoodFilter withUserApi(UserApi userApi) {
-        this.userApi = userApi;
+    GumtreeKnownGoodFilter withClient(GumshieldClient gumshieldClient) {
+        this.gumshieldClient = gumshieldClient;
         return this;
     }
 }

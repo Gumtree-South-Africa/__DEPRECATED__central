@@ -1,6 +1,11 @@
 package com.ecg.comaas.gtuk.filter.blacklist;
 
 import com.codahale.metrics.Timer;
+import com.ecg.gumtree.comaas.common.domain.BlacklistFilterConfig;
+import com.ecg.gumtree.comaas.common.filter.Filter;
+import com.ecg.gumtree.comaas.common.gumshield.ApiChecklistAttribute;
+import com.ecg.gumtree.comaas.common.gumshield.ApiChecklistType;
+import com.ecg.gumtree.comaas.common.gumshield.GumshieldClient;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
@@ -10,11 +15,6 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.BlacklistFilterConfig;
-import com.gumtree.gumshield.api.client.GumshieldApi;
-import com.gumtree.gumshield.api.domain.checklist.ApiChecklistAttribute;
-import com.gumtree.gumshield.api.domain.checklist.ApiChecklistType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
 
     private Filter pluginConfig;
     private BlacklistFilterConfig filterConfig;
-    private GumshieldApi gumshieldApi;
+    private GumshieldClient gumshieldClient;
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
@@ -102,17 +102,12 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
     }
 
     private boolean isBlacklistedAttribute(String attribute, ApiChecklistAttribute checklistAttribute) {
-        if (gumshieldApi == null) {
+        if (gumshieldClient == null) {
             LOG.error("Gumshield API was null");
             return false;
         }
-        try {
-            gumshieldApi.checklistApi().findEntryByValue(ApiChecklistType.BLACK, checklistAttribute, attribute);
-            return true;
-        } catch (Exception e) {
-            LOG.debug("Could not find blacklist entry for " + attribute + ": " + e.getMessage());
-            return false;
-        }
+
+        return gumshieldClient.existsEntryByValue(ApiChecklistType.BLACK, checklistAttribute, attribute);
     }
 
     private boolean isRecipientBlacklisted(Message message, String recipientEmail) {
@@ -168,8 +163,8 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
         return this;
     }
 
-    public GumtreeBlacklistFilter withGumshieldApi(GumshieldApi gumshieldApi) {
-        this.gumshieldApi = gumshieldApi;
+    public GumtreeBlacklistFilter withGumshieldApi(GumshieldClient gumshieldClient) {
+        this.gumshieldClient = gumshieldClient;
         return this;
     }
 }

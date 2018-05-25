@@ -1,9 +1,9 @@
 package com.ecg.comaas.gtuk.filter.knowngood;
 
+import com.ecg.gumtree.comaas.common.domain.KnownGoodFilterConfig;
 import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
+import com.ecg.gumtree.comaas.common.gumshield.GumshieldClient;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
-import com.gumtree.filters.comaas.config.KnownGoodFilterConfig;
-import com.gumtree.gumshield.api.client.GumshieldApi;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -16,12 +16,12 @@ public class GumtreeKnownGoodFilterFactory extends GumtreeFilterFactory<KnownGoo
 
     public static final String IDENTIFIER = "com.ecg.gumtree.comaas.filter.knowngood.GumtreeKnownGoodFilterConfiguration$KnownGoodFilterFactory";
 
-    public GumtreeKnownGoodFilterFactory(GumshieldApi gumshieldApi) {
+    public GumtreeKnownGoodFilterFactory(GumshieldClient gumshieldClient) {
         super(KnownGoodFilterConfig.class,
                 (a, b) -> new GumtreeKnownGoodFilter()
                         .withPluginConfig(a)
                         .withFilterConfig(b)
-                        .withUserApi(gumshieldApi.userApi()));
+                        .withClient(gumshieldClient));
     }
 
     @Override

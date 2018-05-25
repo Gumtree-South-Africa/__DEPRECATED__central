@@ -19,8 +19,6 @@ import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
-import com.gumtree.gumshield.api.client.GumshieldApi;
-import com.gumtree.gumshield.api.domain.user_message_report.ApiFlaggedConversation;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +40,6 @@ public class ConversationService {
     private final MutableConversationRepository conversationRepository;
     private final SearchIndexer searchIndexer;
     private final DomainObjectConverter converter;
-    private final GumshieldApi gumshieldApi;
     private final ConversationEventListeners conversationEventListeners;
 
     @Autowired
@@ -51,14 +48,12 @@ public class ConversationService {
             MutableConversationRepository conversationRepository,
             SearchIndexer searchIndexer,
             MailCloakingService mailCloakingService,
-            GumshieldApi gumshieldApi,
             ConversationEventListeners conversationEventListeners) {
 
         this.conversationRepository = conversationRepository;
         this.postBoxRepository = postBoxRepository;
         this.searchIndexer = searchIndexer;
         this.converter = new DomainObjectConverter(conversationRepository, mailCloakingService);
-        this.gumshieldApi = gumshieldApi;
         this.conversationEventListeners = conversationEventListeners;
     }
 
@@ -105,15 +100,8 @@ public class ConversationService {
         PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
         markConversationAsRead(conversationId, postBox);
 
-        ConversationRts conversationRts = converter.convertConversation(conversation);
+        /* REPORTING IS NO LOGER USED */
 
-        ApiFlaggedConversation flaggedConversation = new ApiFlaggedConversation();
-        flaggedConversation.setAdvertId(Long.valueOf(conversationRts.getAdId()));
-        flaggedConversation.setConversationId(conversationRts.getId());
-        flaggedConversation.setReportedByEmail(email);
-        flaggedConversation.setReportedDate(DateTime.parse(getFlaggedTime(conversationRts, email)));
-        flaggedConversation.setReportedForEmail(getOtherEmail(conversationRts, email));
-        gumshieldApi.conversationApi().flagConversation(flaggedConversation);
         return Optional.of(SUCCESS);
     }
 
