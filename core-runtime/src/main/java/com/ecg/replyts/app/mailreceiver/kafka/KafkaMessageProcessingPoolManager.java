@@ -29,7 +29,7 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
     @Value("${replyts.tenant.short:${replyts.tenant}}")
     private String shortTenant;
 
-    @Value("${kafka.message.processing.enabled:false}")
+    @Value("${kafka.message.processing.enabled:true}")
     private boolean messageProcessingEnabled;
 
     @Autowired
