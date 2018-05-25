@@ -356,7 +356,7 @@ public class GumtreeBlacklistFilterTest {
             return new GumtreeBlacklistFilter()
                     .withPluginConfig(mock(Filter.class))
                     .withFilterConfig(filterConfig)
-                    .withGumshieldApi(gumshieldApi);
+                    .withClient(gumshieldApi);
         }
     }
 }
