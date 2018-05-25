@@ -1,14 +1,14 @@
 package com.ecg.comaas.gtuk.filter.geoiplookup;
 
 import com.codahale.metrics.Timer;
+import com.ecg.gumtree.comaas.common.domain.GeoIpLookupFilterConfig;
+import com.ecg.gumtree.comaas.common.filter.Filter;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.common.geoip.GeoIpService;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.GeoIpLookupFilterConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

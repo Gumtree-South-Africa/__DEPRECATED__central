@@ -881,25 +881,6 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>com.gumtree.comaas</groupId>
-                <artifactId>comaas-domain</artifactId>
-                <version>${gt.comaas.models.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.json</groupId>
-                        <artifactId>json</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.code.gson</groupId>
-                        <artifactId>gson</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
                 <groupId>com.gumtree.replies</groupId>
                 <artifactId>json-mapping</artifactId>
                 <version>${gt.replies.models.version}</version>

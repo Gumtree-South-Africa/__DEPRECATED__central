@@ -1,10 +1,10 @@
 package com.ecg.gumtree.comaas.common.filter;
 
+import com.ecg.gumtree.comaas.common.domain.ConfigWithExemptedCategories;
+import com.ecg.gumtree.comaas.common.domain.Result;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableBiMap;
-import com.gumtree.filters.comaas.config.ConfigWithExemptedCategories;
-import com.gumtree.filters.comaas.config.Result;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;

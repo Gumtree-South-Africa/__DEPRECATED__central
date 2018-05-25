@@ -1,8 +1,8 @@
 package com.ecg.comaas.gtuk.filter.flagged;
 
+import com.ecg.gumtree.comaas.common.domain.UserFlaggedFilterConfig;
 import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
-import com.gumtree.filters.comaas.config.UserFlaggedFilterConfig;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +16,7 @@ public class GumtreeUserFlaggedFilterFactory extends GumtreeFilterFactory<UserFl
     private static final String IDENTIFIER = "com.ecg.gumtree.comaas.filter.flagged.GumtreeUserFlaggedFilterConfiguration$UserFlaggedFilterFactory";
 
     public GumtreeUserFlaggedFilterFactory() {
-        super(com.gumtree.filters.comaas.config.UserFlaggedFilterConfig.class,
+        super(UserFlaggedFilterConfig.class,
                 (a, b) -> new GumtreeUserFlaggedFilter()
                         .withPluginConfig(a)
                         .withFilterConfig(b));

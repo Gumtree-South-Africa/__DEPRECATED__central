@@ -1,9 +1,9 @@
 package com.ecg.comaas.gtuk.filter.geoiplookup;
 
+import com.ecg.gumtree.comaas.common.domain.GeoIpLookupFilterConfig;
 import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.gumtree.common.geoip.GeoIpService;
-import com.gumtree.filters.comaas.config.GeoIpLookupFilterConfig;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;

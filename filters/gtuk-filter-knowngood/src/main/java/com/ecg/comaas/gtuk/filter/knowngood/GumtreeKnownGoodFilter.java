@@ -2,6 +2,8 @@ package com.ecg.comaas.gtuk.filter.knowngood;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
+import com.ecg.gumtree.comaas.common.domain.KnownGoodFilterConfig;
+import com.ecg.gumtree.comaas.common.filter.Filter;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -9,8 +11,6 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.KnownGoodFilterConfig;
 import com.gumtree.gumshield.api.client.spec.UserApi;
 import com.gumtree.gumshield.api.domain.known_good.KnownGoodResponse;
 import com.gumtree.gumshield.api.domain.known_good.KnownGoodStatus;

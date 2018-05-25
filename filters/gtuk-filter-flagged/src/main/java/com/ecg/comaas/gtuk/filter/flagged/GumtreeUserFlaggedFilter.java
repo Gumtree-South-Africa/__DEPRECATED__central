@@ -1,13 +1,13 @@
 package com.ecg.comaas.gtuk.filter.flagged;
 
 import com.codahale.metrics.Timer;
+import com.ecg.gumtree.comaas.common.domain.UserFlaggedFilterConfig;
+import com.ecg.gumtree.comaas.common.filter.Filter;
 import com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.UserFlaggedFilterConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

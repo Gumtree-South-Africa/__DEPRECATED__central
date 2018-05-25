@@ -1,8 +1,8 @@
 package com.ecg.comaas.gtuk.filter.word;
 
+import com.ecg.gumtree.comaas.common.domain.WordFilterConfig;
 import com.ecg.gumtree.comaas.common.filter.GumtreeFilterFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
-import com.gumtree.filters.comaas.config.WordFilterConfig;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 

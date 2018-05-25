@@ -1,5 +1,7 @@
 package com.ecg.comaas.gtuk.filter.url;
 
+import com.ecg.gumtree.comaas.common.domain.UrlFilterConfig;
+import com.ecg.gumtree.comaas.common.filter.Filter;
 import com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -8,8 +10,6 @@ import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.UrlFilterConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

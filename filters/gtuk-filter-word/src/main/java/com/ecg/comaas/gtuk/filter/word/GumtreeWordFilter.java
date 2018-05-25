@@ -1,11 +1,11 @@
 package com.ecg.comaas.gtuk.filter.word;
 
+import com.ecg.gumtree.comaas.common.domain.Rule;
+import com.ecg.gumtree.comaas.common.domain.WordFilterConfig;
+import com.ecg.gumtree.comaas.common.filter.Filter;
 import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.Rule;
-import com.gumtree.filters.comaas.config.WordFilterConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,7 +46,7 @@ public class GumtreeWordFilter implements com.ecg.replyts.core.api.pluginconfigu
     private List<FilterFeedback> checkTexts(List<String> textsToCheck) {
         List<FilterFeedback> reasons = new ArrayList<>();
 
-        com.ecg.comaas.gtuk.filter.word.PatternBuilder patternBuilder = new com.ecg.comaas.gtuk.filter.word.PatternBuilder(filterConfig);
+        PatternBuilder patternBuilder = new PatternBuilder(filterConfig);
         Map<Rule, Pattern> compiledPatterns = patternBuilder.buildAndPrecompileFromWordFilterRules();
 
         compiledPatterns.forEach((rule, pattern) -> textsToCheck.stream()

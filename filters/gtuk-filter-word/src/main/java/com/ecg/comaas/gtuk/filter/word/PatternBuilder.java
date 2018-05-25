@@ -1,7 +1,7 @@
 package com.ecg.comaas.gtuk.filter.word;
 
-import com.gumtree.filters.comaas.config.Rule;
-import com.gumtree.filters.comaas.config.WordFilterConfig;
+import com.ecg.gumtree.comaas.common.domain.Rule;
+import com.ecg.gumtree.comaas.common.domain.WordFilterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
