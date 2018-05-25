@@ -78,8 +78,11 @@ node('lp') {
 
     buildSteps = ["failFast": false]
     buildSteps += tenants.collectEntries { tenant ->
-        version = PROVIDED_VERSION != "" ? PROVIDED_VERSION: configFile.smokeTest.version[PROVIDED_ENV]['default']
-        echo "Smoke test version to run: $version"
+        version = PROVIDED_VERSION != "" ? PROVIDED_VERSION: configFile.smokeTest.version[PROVIDED_ENV][tenant]
+        if (version == null) {
+            version = configFile.smokeTest.version[PROVIDED_ENV]['default']
+        }
+        echo "version: $version"
         [((String) "$tenant-smoke-test"): wrapWithStepDefinition(tenant, PROVIDED_ENV as String,
                 PROVIDED_DC as String, "smoke test $tenant", "$version")]
     }
