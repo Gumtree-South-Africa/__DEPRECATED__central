@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.gumtree.common.util.http.NotFoundHttpStatusException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -253,7 +252,7 @@ public class GumtreeBlacklistFilterTest {
     @Test
     public void testSenderIpAddressIsBlacklisted() throws Exception {
         when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
-                eq("hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
+                eq("hotmail.com"))).thenReturn(false);
         when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.HOST),
                 eq("1.1.1.1"))).thenReturn(true);
 

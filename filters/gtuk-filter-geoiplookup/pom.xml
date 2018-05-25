@@ -20,8 +20,8 @@
             <artifactId>gtuk-coremod-shared</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gumtree.libs</groupId>
-            <artifactId>geoip-lib</artifactId>
+            <groupId>net.sf.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
         </dependency>
 
         <dependency>

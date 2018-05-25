@@ -1,10 +1,10 @@
 package com.ecg.comaas.gtuk.filter.volume;
 
 import com.ecg.gumtree.comaas.common.domain.VelocityFilterConfig;
+import com.ecg.gumtree.comaas.common.time.Clock;
+import com.ecg.gumtree.comaas.common.time.StoppedClock;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
-import com.gumtree.common.util.time.Clock;
-import com.gumtree.common.util.time.StoppedClock;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

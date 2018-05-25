@@ -20,10 +20,6 @@
             <artifactId>gtuk-coremod-shared</artifactId>
         </dependency>
         <dependency>
-            <groupId>gumtree-common</groupId>
-            <artifactId>util</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.espertech</groupId>
             <artifactId>esper</artifactId>
         </dependency>

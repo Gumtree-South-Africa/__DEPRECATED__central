@@ -21,10 +21,6 @@
         </dependency>
 
         <dependency>
-            <groupId>gumtree-common</groupId>
-            <artifactId>util</artifactId>
-        </dependency>
-        <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-coremod-shared</artifactId>
         </dependency>

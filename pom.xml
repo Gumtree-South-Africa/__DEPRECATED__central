@@ -654,6 +654,7 @@
         <yammer.metrics.version>2.2.0</yammer.metrics.version>
         <protobuf-version>3.5.1</protobuf-version>
         <json-version>20180130</json-version>
+        <opencsv.version>4.0</opencsv.version>
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
@@ -662,15 +663,7 @@
         <gumtree-au-lbs2-client-version>0.3</gumtree-au-lbs2-client-version>
 
         <!-- gtuk artifact dependencies -->
-        <gt.version>3.0-SNAPSHOT</gt.version>
-        <gt.google.analytics.version>${gt.version}</gt.google.analytics.version>
-        <gt.category.api.client.version>${gt.version}</gt.category.api.client.version>
-        <gumtree.dependencies.version>4.30712</gumtree.dependencies.version>
-        <gt.replies.models.version>${gumtree.dependencies.version}</gt.replies.models.version>
-        <gt.gumshield.api.version>4.30712</gt.gumshield.api.version>
-        <gt.gumtree.common.version>${gumtree.dependencies.version}</gt.gumtree.common.version>
-        <gt.comaas.models.version>1.8</gt.comaas.models.version>
-        <gt.geoip.lib.version>1.0.0</gt.geoip.lib.version>
+        <gt.category.api.client.version>3.0-SNAPSHOT</gt.category.api.client.version>
 
         <!-- mde artifact versions -->
         <mde-demand-reporting-client.version>1.17</mde-demand-reporting-client.version>
@@ -780,122 +773,6 @@
                 <version>${jsoup.version}</version>
             </dependency>
             <dependency>
-                <groupId>gumtree-common</groupId>
-                <artifactId>util</artifactId>
-                <version>${gt.gumtree.common.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-aop</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>commons-codec</groupId>
-                        <artifactId>commons-codec</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>commons-beanutils</groupId>
-                        <artifactId>commons-beanutils</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.gumtree.google-analytics</groupId>
-                <artifactId>core</artifactId>
-                <version>${gt.google.analytics.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.codehaus.jackson</groupId>
-                        <artifactId>jackson-core-asl</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.codehaus.jackson</groupId>
-                        <artifactId>jackson-mapper-asl</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.commons</groupId>
-                        <artifactId>commons-lang3</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.codahale.metrics</groupId>
-                        <artifactId>metrics-core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.gumtree.gumshield.api</groupId>
-                <artifactId>client</artifactId>
-                <version>${gt.gumshield.api.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>gumtree-common</groupId>
-                        <artifactId>util</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>javax.activation</groupId>
-                        <artifactId>activation</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>javassist</groupId>
-                        <artifactId>javassist</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.codehaus.jackson</groupId>
-                        <artifactId>jackson-core-asl</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.codehaus.jackson</groupId>
-                        <artifactId>jackson-mapper-asl</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>jcl-over-slf4j</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>commons-codec</groupId>
-                        <artifactId>commons-codec</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.hibernate.javax.persistence</groupId>
-                        <artifactId>hibernate-jpa-2.0-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>cglib</groupId>
-                        <artifactId>cglib</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-web</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>jackson-databind</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-aop</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.gumtree.replies</groupId>
-                <artifactId>json-mapping</artifactId>
-                <version>${gt.replies.models.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>ch.qos.logback</groupId>
-                        <artifactId>logback-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
                 <groupId>com.gumtree.api.category</groupId>
                 <artifactId>read-api</artifactId>
                 <version>${gt.category.api.client.version}</version>
@@ -914,17 +791,6 @@
                 <groupId>com.gumtree.api.category</groupId>
                 <artifactId>read-client</artifactId>
                 <version>${gt.category.api.client.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.gumtree.libs</groupId>
-                <artifactId>geoip-lib</artifactId>
-                <version>${gt.geoip.lib.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-beans</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.grizzly</groupId>
@@ -2351,6 +2217,12 @@
                 <groupId>org.thymeleaf</groupId>
                 <artifactId>thymeleaf</artifactId>
                 <version>${thymeleaf.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.sf.opencsv</groupId>
+                <artifactId>opencsv</artifactId>
+                <version>${opencsv.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
