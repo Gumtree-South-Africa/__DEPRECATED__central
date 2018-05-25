@@ -1,4 +1,4 @@
-job "comaas-[[ .tenant ]]" {
+job "comaas-[[ .tenant_short ]]" {
   region = "[[ .region ]]"
   datacenters = ["zone1", "zone2", "zone3", "zone4"]
 
