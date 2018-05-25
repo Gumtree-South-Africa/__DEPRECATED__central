@@ -1,8 +1,6 @@
 package com.ecg.comaas.gtuk.listener.statsnotifier;
 
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
-import com.gumtree.analytics.GoogleAnalyticsService;
-import com.gumtree.analytics.config.GoogleAnalyticsServiceFactory;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.providers.grizzly.GrizzlyAsyncHttpProvider;

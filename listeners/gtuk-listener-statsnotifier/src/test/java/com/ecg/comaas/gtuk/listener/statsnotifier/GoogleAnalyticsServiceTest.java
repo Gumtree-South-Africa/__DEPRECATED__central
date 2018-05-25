@@ -1,8 +1,7 @@
 package com.ecg.comaas.gtuk.listener.statsnotifier;
 
 import com.codahale.metrics.Timer;
-import com.gumtree.analytics.GoogleAnalyticsService;
-import com.gumtree.analytics.event.GAEvent;
+import com.ecg.comaas.gtuk.listener.statsnotifier.event.GAEvent;
 import com.ning.http.client.AsyncHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Request;
@@ -14,11 +13,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
@@ -40,19 +37,19 @@ public class GoogleAnalyticsServiceTest {
     public void itShouldPostTheRightPayLoadToGAEndpoint() throws Exception {
         //Given
         GAEvent testGAEvent = TestGA.create()
-                                    .withEventCategory("TestEvent")
-                                    .withClientId("aaaaa-bbbbb-ccccc-ddddd")
-                                    .withCustomDimension(1, "customDimension")
-                                    .build();
+                .withEventCategory("TestEvent")
+                .withClientId("aaaaa-bbbbb-ccccc-ddddd")
+                .withCustomDimension(1, "customDimension")
+                .build();
         //When
         googleAnalyticsService.sendAsyncEvent(testGAEvent, Optional.<Timer>empty());
         //Then
         ArgumentCaptor<Request> requestArgument = ArgumentCaptor.forClass(Request.class);
         ArgumentCaptor<AsyncHandler> handlerArgument = ArgumentCaptor.forClass(AsyncHandler.class);
         verify(asyncHttpClient).executeRequest(requestArgument.capture(), handlerArgument.capture());
-        assertThat(requestArgument.getValue().getQueryParams()).isEqualTo(aRequest().getQueryParams());
-        assertThat((Iterable<Map.Entry<String, List<String>>>) requestArgument.getValue().getHeaders())
-                .isEqualTo(aRequest().getHeaders());
+
+        assertEquals(aRequest().getQueryParams(), requestArgument.getValue().getQueryParams());
+        assertEquals(aRequest().getHeaders(), requestArgument.getValue().getHeaders());
     }
 
     @Test

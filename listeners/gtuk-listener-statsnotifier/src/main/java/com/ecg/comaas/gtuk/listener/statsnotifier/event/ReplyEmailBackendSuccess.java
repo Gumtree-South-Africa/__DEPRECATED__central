@@ -1,7 +1,5 @@
 package com.ecg.comaas.gtuk.listener.statsnotifier.event;
 
-import com.gumtree.analytics.event.GAEvent;
-
 public final class ReplyEmailBackendSuccess extends GAEvent {
 
     private ReplyEmailBackendSuccess(ReplyEmailBackendSuccess.Builder builder) {

@@ -647,7 +647,7 @@
         <gson-version>2.4</gson-version>
         <tika-version>1.12</tika-version>
         <apache-activemq.version>5.7.0</apache-activemq.version>
-        <glassfish-jersey.version>2.25.1</glassfish-jersey.version>
+        <glassfish-jersey.version>2.22.1</glassfish-jersey.version>
         <glassfish.grizzly.version>2.3.21</glassfish.grizzly.version>
         <hystrix-version>1.5.2</hystrix-version>
         <asynchttpclient.version>1.9.38</asynchttpclient.version>

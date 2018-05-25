@@ -1,6 +1,6 @@
 package com.ecg.comaas.gtuk.listener.statsnotifier.event;
 
-import com.gumtree.analytics.AnalyticsEvent;
+import com.ecg.comaas.gtuk.listener.statsnotifier.AnalyticsEvent;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -33,7 +33,7 @@ public class GAEvent implements AnalyticsEvent {
         return this.getClass().getSimpleName();
     }
 
-    public abstract static class GAEventBuilder<T extends com.gumtree.analytics.event.GAEvent> {
+    public abstract static class GAEventBuilder<T extends GAEvent> {
         protected String clientId;
         protected String eventCategory;
         protected HashMap<Integer, String> customDimension = new HashMap<>();
@@ -61,11 +61,11 @@ public class GAEvent implements AnalyticsEvent {
         if(this == o){
             return true;
         }
-        if(!(o instanceof com.gumtree.analytics.event.GAEvent)){
+        if(!(o instanceof GAEvent)){
             return false;
         }
 
-        com.gumtree.analytics.event.GAEvent gaEvent = (com.gumtree.analytics.event.GAEvent) o;
+        GAEvent gaEvent = (GAEvent) o;
 
         if(clientId != null ? !clientId.equals(gaEvent.clientId) : gaEvent.clientId != null){
             return false;

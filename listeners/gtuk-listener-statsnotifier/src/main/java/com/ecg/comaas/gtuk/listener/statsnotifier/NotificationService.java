@@ -1,10 +1,9 @@
 package com.ecg.comaas.gtuk.listener.statsnotifier;
 
 import com.codahale.metrics.Timer;
+import com.ecg.comaas.gtuk.listener.statsnotifier.event.GAEvent;
 import com.ecg.comaas.gtuk.listener.statsnotifier.event.ReplyEmailBackendSuccess;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.gumtree.analytics.GoogleAnalyticsService;
-import com.gumtree.analytics.event.GAEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

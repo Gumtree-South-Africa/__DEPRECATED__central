@@ -17,7 +17,7 @@ import static java.net.URLEncoder.encode;
 
 public class GoogleAnalyticsService implements AnalyticsService<GAEvent> {
 
-    private static Logger logger = LoggerFactory.getLogger(com.gumtree.analytics.GoogleAnalyticsService.class);
+    private static Logger logger = LoggerFactory.getLogger(GoogleAnalyticsService.class);
 
     private final AsyncHttpClient asyncHttpClient;
     private final String trackingId;
