@@ -19,7 +19,7 @@ void packageComaas(String tenant, String version) {
             "mkdir -p ${tmpDir} && " +
             "tar xf builds/comaas-${tenant}_${version}.tar.gz -C ${tmpDir} && " +
             "docker build --tag ${dockerImageName} --label tenant=${tenant} ."
-    commonFunctions.loginToDockerRepo()
+    commonFunctions.loginToDocker()
     sh "docker push $dockerImageName"
     sh "docker image remove $dockerImageName"
 }
