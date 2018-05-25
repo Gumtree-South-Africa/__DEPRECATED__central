@@ -3,10 +3,12 @@ package com.ecg.replyts.app.search.elasticsearch;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
 import com.google.common.base.Strings;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.*;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
@@ -20,24 +22,18 @@ class SearchTransformer {
             ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
 
     private final SearchMessagePayload payload;
-    private final Client client;
     private final String indexName;
 
     private BoolQueryBuilder rootBoolQuery = QueryBuilders.boolQuery();
 
-    SearchTransformer(SearchMessagePayload payload, Client client, String indexName) {
+    SearchTransformer(SearchMessagePayload payload, String indexName) {
         this.payload = payload;
-        this.client = client;
         this.indexName = indexName;
     }
 
-    SearchRequestBuilder intoQuery() {
-        SearchRequestBuilder request = client
-                .prepareSearch(indexName)
-                .setTypes("message")
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
-
-        setupOrdering(request);
+    SearchRequest intoQuery() {
+        SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
+        setupOrdering(requestBuilder);
         setupTimeRangeFilter();
         setupQueryForFilterRuleHitsFilter();
         setupMessageStateFilters();
@@ -47,15 +43,19 @@ class SearchTransformer {
         setupEditorFilter();
         setupCustomValuesQuery();
         setupAttachmentsFilter();
-        setupPaging(request);
+        setupPaging(requestBuilder);
+        requestBuilder.query(rootBoolQuery);
 
-        request.setQuery(rootBoolQuery);
-        return request;
+        return new SearchRequest()
+                .indices(indexName)
+                .types("message")
+                .searchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .source(requestBuilder);
     }
 
-    private void setupOrdering(SearchRequestBuilder request) {
+    private void setupOrdering(SearchSourceBuilder request) {
         SortOrder so = payload.getOrdering().equals(SearchMessagePayload.ResultOrdering.NEWEST_FIRST) ? SortOrder.DESC : SortOrder.ASC;
-        request.addSort("receivedDate", so);
+        request.sort("receivedDate", so);
     }
 
     private void setupAttachmentsFilter() {
@@ -164,13 +164,13 @@ class SearchTransformer {
         }
     }
 
-    private void setupPaging(SearchRequestBuilder request) {
+    private void setupPaging(SearchSourceBuilder request) {
         if (payload.getCount() > 0) {
-            request.setSize(payload.getCount());
+            request.size(payload.getCount());
         }
 
         if (payload.getOffset() > 0) {
-            request.setFrom(payload.getOffset());
+            request.from(payload.getOffset());
         }
     }
 

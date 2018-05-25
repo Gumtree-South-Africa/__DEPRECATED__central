@@ -6,10 +6,20 @@ import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.runtime.indexer.MessageDocumentId;
 import com.google.common.base.Preconditions;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.reindex.DeleteByQueryAction;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
+import org.elasticsearch.index.reindex.DeleteByQueryRequestBuilder;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,28 +28,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.String.format;
+import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 
 public class ElasticSearchSearchService implements SearchService, MutableSearchService {
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchSearchService.class);
 
-    private final ElasticQueryFactory queryFactory;
-    private final TimeValue searchTimeout;
+    private final RestHighLevelClient client;
+    private final String indexName;
 
-    ElasticSearchSearchService(ElasticQueryFactory queryFactory, TimeValue searchTimeout) {
-        this.queryFactory = queryFactory;
-        this.searchTimeout = searchTimeout;
+    ElasticSearchSearchService(RestHighLevelClient client, String indexName) {
+        this.client = client;
+        this.indexName = indexName;
     }
 
     public RtsSearchResponse search(SearchMessagePayload payload) {
-        SearchRequestBuilder request = queryFactory.searchMessage(payload);
+        SearchRequest request = new SearchTransformer(payload, indexName).intoQuery();
         LOG.trace("\n\nRequest:\n\n {}", request);
         SearchResponse response = executeSearch(request);
         return createRtsSearchResponse(payload, response);
     }
 
-    private SearchResponse executeSearch(SearchRequestBuilder request) {
+    private SearchResponse executeSearch(SearchRequest request) {
         try {
-            SearchResponse response = request.execute().actionGet(searchTimeout);
+            SearchResponse response = client.search(request);
             LOG.trace("\n\nResponse:\n\n{}", response);
             return response;
         } catch (Exception e) {
@@ -73,7 +84,43 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
         Preconditions.checkNotNull(from);
         Preconditions.checkNotNull(to);
 
-        queryFactory.deleteLastModified(from, to).get();
-        queryFactory.deleteReceivedDate(from, to).get();
+        deleteLastModified(from, to).get();
+        deleteReceivedDate(from, to).get();
+    }
+
+    DeleteByQueryRequestBuilder deleteLastModified(LocalDate from, LocalDate to) {
+        RangeQueryBuilder lastModified = rangeQuery("lastModified")
+                .from(from)
+                .to(to);
+
+        SearchSourceBuilder requestBuilder = new SearchSourceBuilder()
+                .query(lastModified);
+
+        SearchRequest searchRequest = new SearchRequest()
+                .indices(indexName)
+                .source(requestBuilder);
+
+        DeleteByQueryRequest deleteRequest = new DeleteByQueryRequest(searchRequest);
+
+
+
+        client.delete(deleteRequest);
+        return DeleteByQueryAction.INSTANCE.newRequestBuilder(client)
+                .source(indexName)
+                .filter(lastModified);
+    }
+
+    DeleteByQueryRequestBuilder deleteReceivedDate(LocalDate from, LocalDate to) {
+        RangeQueryBuilder receivedDateQuery = rangeQuery("receivedDate")
+                .from(from)
+                .to(to);
+
+        BoolQueryBuilder lastModified = QueryBuilders.boolQuery()
+                .filter(receivedDateQuery)
+                .mustNot(QueryBuilders.existsQuery("lastModified"));
+
+        return DeleteByQueryAction.INSTANCE.newRequestBuilder(client)
+                .source(indexName)
+                .filter(lastModified);
     }
 }
