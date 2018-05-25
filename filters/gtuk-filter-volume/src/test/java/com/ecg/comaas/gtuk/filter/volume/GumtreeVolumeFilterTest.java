@@ -1,5 +1,9 @@
 package com.ecg.comaas.gtuk.filter.volume;
 
+import com.ecg.gumtree.comaas.common.domain.Result;
+import com.ecg.gumtree.comaas.common.domain.State;
+import com.ecg.gumtree.comaas.common.domain.VelocityFilterConfig;
+import com.ecg.gumtree.comaas.common.filter.Filter;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder;
@@ -17,10 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.Result;
-import com.gumtree.filters.comaas.config.State;
-import com.gumtree.filters.comaas.config.VelocityFilterConfig;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

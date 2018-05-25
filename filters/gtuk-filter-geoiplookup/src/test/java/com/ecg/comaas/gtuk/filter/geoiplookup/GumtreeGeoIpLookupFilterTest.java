@@ -1,5 +1,8 @@
 package com.ecg.comaas.gtuk.filter.geoiplookup;
 
+import com.ecg.gumtree.comaas.common.domain.GeoIpLookupFilterConfig;
+import com.ecg.gumtree.comaas.common.domain.State;
+import com.ecg.gumtree.comaas.common.filter.Filter;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -11,9 +14,6 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.google.common.collect.ImmutableMap;
 import com.gumtree.common.geoip.GeoIpService;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.GeoIpLookupFilterConfig;
-import com.gumtree.filters.comaas.config.State;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ import java.util.Map;
 
 import static com.ecg.gumtree.MockFactory.mockConversation;
 import static com.ecg.gumtree.MockFactory.mockMessage;
-import static com.gumtree.filters.comaas.config.Result.HOLD;
+import static com.ecg.gumtree.comaas.common.domain.Result.HOLD;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

@@ -1,9 +1,9 @@
 package com.ecg.comaas.gtuk.filter.volume;
 
+import com.ecg.gumtree.comaas.common.domain.Result;
+import com.ecg.gumtree.comaas.common.domain.State;
+import com.ecg.gumtree.comaas.common.domain.VelocityFilterConfig;
 import com.google.common.collect.ImmutableList;
-import com.gumtree.filters.comaas.config.Result;
-import com.gumtree.filters.comaas.config.State;
-import com.gumtree.filters.comaas.config.VelocityFilterConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

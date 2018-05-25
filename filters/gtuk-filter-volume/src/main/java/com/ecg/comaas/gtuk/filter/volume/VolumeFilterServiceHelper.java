@@ -1,9 +1,9 @@
 package com.ecg.comaas.gtuk.filter.volume;
 
+import com.ecg.gumtree.comaas.common.domain.VelocityFilterConfig;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.gumtree.common.util.time.Clock;
-import com.gumtree.filters.comaas.config.VelocityFilterConfig;
 import org.joda.time.DateTime;
 
 import java.util.HashMap;

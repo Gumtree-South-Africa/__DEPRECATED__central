@@ -1,5 +1,10 @@
 package com.ecg.comaas.gtuk.filter.word;
 
+import com.ecg.gumtree.comaas.common.domain.Result;
+import com.ecg.gumtree.comaas.common.domain.Rule;
+import com.ecg.gumtree.comaas.common.domain.State;
+import com.ecg.gumtree.comaas.common.domain.WordFilterConfig;
+import com.ecg.gumtree.comaas.common.filter.Filter;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -13,11 +18,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
 import com.google.gson.Gson;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.Result;
-import com.gumtree.filters.comaas.config.Rule;
-import com.gumtree.filters.comaas.config.State;
-import com.gumtree.filters.comaas.config.WordFilterConfig;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -1,9 +1,9 @@
 package com.ecg.comaas.gtuk.filter.volume.monitoring;
 
 import com.ecg.comaas.gtuk.filter.volume.EventStreamProcessor;
+import com.ecg.gumtree.comaas.common.domain.VelocityFilterConfig;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.gumtree.filters.comaas.config.VelocityFilterConfig;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

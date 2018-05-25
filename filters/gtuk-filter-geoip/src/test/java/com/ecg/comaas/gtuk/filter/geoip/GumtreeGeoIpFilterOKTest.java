@@ -1,5 +1,9 @@
 package com.ecg.comaas.gtuk.filter.geoip;
 
+import com.ecg.gumtree.comaas.common.domain.GeoIpFilterConfig;
+import com.ecg.gumtree.comaas.common.domain.Result;
+import com.ecg.gumtree.comaas.common.domain.State;
+import com.ecg.gumtree.comaas.common.filter.Filter;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
@@ -8,10 +12,6 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.google.common.collect.ImmutableList;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.GeoIpFilterConfig;
-import com.gumtree.filters.comaas.config.Result;
-import com.gumtree.filters.comaas.config.State;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

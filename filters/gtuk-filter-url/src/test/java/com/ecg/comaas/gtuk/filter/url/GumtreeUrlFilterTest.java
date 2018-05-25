@@ -1,6 +1,10 @@
 package com.ecg.comaas.gtuk.filter.url;
 
 import com.ecg.gumtree.MockFactory;
+import com.ecg.gumtree.comaas.common.domain.Result;
+import com.ecg.gumtree.comaas.common.domain.State;
+import com.ecg.gumtree.comaas.common.domain.UrlFilterConfig;
+import com.ecg.gumtree.comaas.common.filter.Filter;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
@@ -13,10 +17,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.MediaType;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.Result;
-import com.gumtree.filters.comaas.config.State;
-import com.gumtree.filters.comaas.config.UrlFilterConfig;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;

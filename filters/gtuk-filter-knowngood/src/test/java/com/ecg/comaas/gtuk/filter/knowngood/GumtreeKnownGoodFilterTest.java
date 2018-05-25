@@ -1,5 +1,10 @@
 package com.ecg.comaas.gtuk.filter.knowngood;
 
+import com.ecg.gumtree.comaas.common.domain.KnownGoodFilterConfig;
+import com.ecg.gumtree.comaas.common.domain.Result;
+import com.ecg.gumtree.comaas.common.domain.State;
+import com.ecg.gumtree.comaas.common.filter.Filter;
+import com.ecg.gumtree.comaas.common.gumshield.GumshieldClient;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -11,13 +16,6 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.KnownGoodFilterConfig;
-import com.gumtree.filters.comaas.config.Result;
-import com.gumtree.filters.comaas.config.State;
-import com.gumtree.gumshield.api.client.spec.UserApi;
-import com.gumtree.gumshield.api.domain.known_good.KnownGoodResponse;
-import com.gumtree.gumshield.api.domain.known_good.KnownGoodStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,9 +122,9 @@ public class GumtreeKnownGoodFilterTest {
 
         @Bean
         public GumtreeKnownGoodFilter filter(KnownGoodFilterConfig filterConfig) {
-            UserApi userApi = mock(UserApi.class);
-            when(userApi.knownGood(eq(42L))).thenReturn(new KnownGoodResponse(42L, KnownGoodStatus.GOOD));
-            when(userApi.knownGood(eq(23L))).thenReturn(new KnownGoodResponse(23L, KnownGoodStatus.GOOD));
+            GumshieldClient userApi = mock(GumshieldClient.class);
+            when(userApi.knownGood(eq(42L))).thenReturn(true);
+            when(userApi.knownGood(eq(23L))).thenReturn(true);
             return new GumtreeKnownGoodFilter()
                     .withPluginConfig(mock(Filter.class))
                     .withFilterConfig(filterConfig)

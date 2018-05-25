@@ -1,5 +1,6 @@
 package com.ecg.comaas.gtuk.filter.volume;
 
+import com.ecg.gumtree.comaas.common.domain.VelocityFilterConfig;
 import com.ecg.replyts.core.runtime.configadmin.ConfigurationRefreshEventListener;
 import com.espertech.esper.client.Configuration;
 import com.espertech.esper.client.EPOnDemandQueryResult;
@@ -8,7 +9,6 @@ import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.core.service.EPServiceProviderImpl;
-import com.gumtree.filters.comaas.config.VelocityFilterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

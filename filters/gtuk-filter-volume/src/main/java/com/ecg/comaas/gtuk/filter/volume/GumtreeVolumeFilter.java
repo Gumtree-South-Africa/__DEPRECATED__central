@@ -1,6 +1,8 @@
 package com.ecg.comaas.gtuk.filter.volume;
 
 import com.codahale.metrics.Timer;
+import com.ecg.gumtree.comaas.common.domain.VelocityFilterConfig;
+import com.ecg.gumtree.comaas.common.filter.Filter;
 import com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -12,8 +14,6 @@ import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.persistence.PersistenceException;
-import com.gumtree.filters.comaas.Filter;
-import com.gumtree.filters.comaas.config.VelocityFilterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
