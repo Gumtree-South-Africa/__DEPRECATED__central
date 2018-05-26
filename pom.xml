@@ -131,19 +131,6 @@
         <profile>
             <id>gtuk</id>
 
-            <repositories>
-                <repository>
-                    <id>gtukNexus</id>
-                    <url>http://central.maven.org/maven2</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-
             <modules>
                 <module>coremods/gtuk-coremod-shared</module>
 
@@ -654,7 +641,7 @@
         <yammer.metrics.version>2.2.0</yammer.metrics.version>
         <protobuf-version>3.5.1</protobuf-version>
         <json-version>20180130</json-version>
-        <opencsv.version>4.0</opencsv.version>
+        <opencsv.version>2.4</opencsv.version>
         <jodah-failsafe.version>1.1.0</jodah-failsafe.version>
 
         <!-- gtau artifact dependencies -->
@@ -2203,7 +2190,7 @@
             </dependency>
 
             <dependency>
-                <groupId>net.sf.opencsv</groupId>
+                <groupId>au.com.bytecode</groupId>
                 <artifactId>opencsv</artifactId>
                 <version>${opencsv.version}</version>
             </dependency>
