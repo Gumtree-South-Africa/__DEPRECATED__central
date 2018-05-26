@@ -5,8 +5,6 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.gumtree.api.category.CategoryModel;
-import com.gumtree.api.category.domain.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -27,15 +25,19 @@ public class GumtreeCategoryFilter implements Filter {
 
     private static final String CATEGORYID = "categoryid";
 
-    private CategoryModel categoryModel;
+    private final CategoryService categoryService;
+
+    public GumtreeCategoryFilter(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
-        com.ecg.comaas.gtuk.filter.category.CategoryPreProcessor.addCategoriesToConversation(categoryModel, context);
+        com.ecg.comaas.gtuk.filter.category.CategoryPreProcessor.addCategoriesToConversation(categoryService, context);
 
         try (Timer.Context ignore = timer.time()) {
             Long categoryId = Long.valueOf(context.getConversation().getCustomValues().get(CATEGORYID));
-            List<Category> fullPath = categoryModel.getFullPath(categoryId);
+            List<Category> fullPath = categoryService.getFullPath(categoryId);
             Set<Long> collect = fullPath.stream().map(Category::getId).collect(Collectors.toSet());
             Set<Long> categoryBreadCrumb = (Set<Long>) context.getFilterContext().computeIfAbsent("categoryBreadCrumb", ignored -> new HashSet<>());
             categoryBreadCrumb.addAll(collect);
@@ -44,10 +46,5 @@ public class GumtreeCategoryFilter implements Filter {
         }
 
         return Collections.emptyList();
-    }
-
-    GumtreeCategoryFilter withCategoryModel(CategoryModel categoryModel) {
-        this.categoryModel = categoryModel;
-        return this;
     }
 }

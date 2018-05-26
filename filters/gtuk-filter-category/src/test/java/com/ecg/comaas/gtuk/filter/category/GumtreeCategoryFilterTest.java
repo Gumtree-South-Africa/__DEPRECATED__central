@@ -1,6 +1,5 @@
 package com.ecg.comaas.gtuk.filter.category;
 
-import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
@@ -9,10 +8,6 @@ import com.ecg.replyts.core.api.model.conversation.command.ConversationCommand;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.gumtree.api.category.CategoryModel;
-import com.gumtree.api.category.domain.Category;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,10 +35,7 @@ public class GumtreeCategoryFilterTest {
     private MessageProcessingContext messageProcessingContext;
 
     @Mock
-    private CategoryModel categoryModel;
-
-    @Mock
-    private Timer timer;
+    private CategoryService categoryService;
 
     @Captor
     private
@@ -53,14 +45,14 @@ public class GumtreeCategoryFilterTest {
     public void setup() {
         ImmutableConversation conversation = newImmutableConversation();
         when(messageProcessingContext.getConversation()).thenReturn(conversation);
-        when(categoryModel.getHierarchy(eq(1234L))).thenReturn(ImmutableList.of());
+        when(categoryService.getHierarchy(eq(1234L))).thenReturn(Collections.emptyList());
     }
 
     @Test
     public void testCategory() {
         Map<String, Object> filterContext = new HashMap<>();
         when(messageProcessingContext.getFilterContext()).thenReturn(filterContext);
-        when(categoryModel.getFullPath(eq(1234L))).thenReturn(ImmutableList.of(newCategory(1L, "a", 1), newCategory(2L, "b", 2)));
+        when(categoryService.getFullPath(eq(1234L))).thenReturn(Arrays.asList(newCategory(1L, "a", 1), newCategory(2L, "b", 2)));
 
         filter.filter(messageProcessingContext);
 
@@ -71,8 +63,8 @@ public class GumtreeCategoryFilterTest {
 
     @Test
     public void testAddCategoriesToConversation() throws Exception {
-        List<Category> categoryHierarchy = ImmutableList.of(newCategory(200L, "for sale", 1), newCategory(100L, "cars", 2));
-        when(categoryModel.getHierarchy(1234L)).thenReturn(categoryHierarchy);
+        List<Category> categoryHierarchy = Arrays.asList(newCategory(200L, "for sale", 1), newCategory(100L, "cars", 2));
+        when(categoryService.getHierarchy(1234L)).thenReturn(categoryHierarchy);
 
         filter.filter(messageProcessingContext);
 
@@ -90,15 +82,19 @@ public class GumtreeCategoryFilterTest {
     }
 
     private Category newCategory(long id, String name, int depth) {
-        Category category = new Category(id, name, name);
+        Category category = new Category();
+        category.setId(id);
         category.setDepth(depth);
         return category;
     }
 
     private ImmutableConversation newImmutableConversation() {
+        Map<String, String> customValues = new HashMap<>();
+        customValues.put("categoryid", "1234");
+
         return ImmutableConversation.Builder.aConversation()
                 .withId("2:vfbtp0:idr5s3l1")
-                .withCustomValues(ImmutableMap.of("categoryid", "1234"))
+                .withCustomValues(customValues)
                 .withCreatedAt(new DateTime())
                 .withLastModifiedAt(new DateTime())
                 .withState(ConversationState.ACTIVE)

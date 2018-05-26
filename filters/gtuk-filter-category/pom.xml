@@ -25,14 +25,6 @@
             <artifactId>gtuk-coremod-shared</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gumtree.api.category</groupId>
-            <artifactId>read-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.gumtree.api.category</groupId>
-            <artifactId>read-client</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
         </dependency>
@@ -40,7 +32,10 @@
             <groupId>com.yammer.metrics</groupId>
             <artifactId>metrics-httpclient</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>net.jodah</groupId>
+            <artifactId>failsafe</artifactId>
+        </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-integration-test-api</artifactId>

@@ -3,8 +3,6 @@ package com.ecg.comaas.gtuk.filter.category;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddCustomValueCommand;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.gumtree.api.category.CategoryModel;
-import com.gumtree.api.category.domain.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +19,7 @@ class CategoryPreProcessor {
 
     private static final String CATEGORYID_KEY = "categoryid";
 
-    static void addCategoriesToConversation(CategoryModel categoryModel, MessageProcessingContext context) {
+    static void addCategoriesToConversation(CategoryService categoryService, MessageProcessingContext context) {
         Conversation conversation = context.getConversation();
         String categoryId = conversation.getCustomValues().get(CATEGORYID_KEY);
         if (categoryId == null) {
@@ -29,7 +27,7 @@ class CategoryPreProcessor {
             return;
         }
 
-        List<Category> hierarchy = categoryModel.getHierarchy(Long.valueOf(categoryId));
+        List<Category> hierarchy = categoryService.getHierarchy(Long.valueOf(categoryId));
 
         hierarchy.forEach(category -> {
             String categoryDepthKey = String.format("l%d-categoryid", category.getDepth());
