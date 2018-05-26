@@ -1,7 +1,5 @@
 package com.ecg.comaas.gtuk.filter.geoiplookup;
 
-
-import com.gumtree.common.geoip.GeoIpService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
