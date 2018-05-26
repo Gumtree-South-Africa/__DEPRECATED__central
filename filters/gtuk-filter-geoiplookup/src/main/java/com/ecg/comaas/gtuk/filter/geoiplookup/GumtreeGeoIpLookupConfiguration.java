@@ -1,7 +1,5 @@
 package com.ecg.comaas.gtuk.filter.geoiplookup;
 
-import com.gumtree.common.geoip.GeoIpService;
-import com.gumtree.common.geoip.MaxMindGeoIpService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

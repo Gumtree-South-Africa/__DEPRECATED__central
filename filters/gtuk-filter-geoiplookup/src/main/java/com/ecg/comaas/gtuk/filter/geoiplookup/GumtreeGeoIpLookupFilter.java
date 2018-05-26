@@ -8,7 +8,6 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.gumtree.common.geoip.GeoIpService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +17,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.*;
+import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.longDescription;
+import static com.ecg.gumtree.comaas.common.filter.GumtreeFilterUtil.resultFilterResultMap;
 
 @Component
 public class GumtreeGeoIpLookupFilter implements com.ecg.replyts.core.api.pluginconfiguration.filter.Filter {
