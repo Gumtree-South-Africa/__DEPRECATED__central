@@ -156,7 +156,7 @@ public class GumtreeUrlFilterTest {
     @Test
     public void verifyUrlsInBatch() throws Exception {
         try {
-            File testCaseFile = new File(getClass().getResource("/urls.txt").getFile());
+            File testCaseFile = FileUtils.toFile(getClass().getResource("/urls.txt"));
             Scanner testCaseFilein = new Scanner(testCaseFile);
             while (testCaseFilein.hasNext()) {
                 String emailBody = testCaseFilein.nextLine();
@@ -175,7 +175,7 @@ public class GumtreeUrlFilterTest {
     @Test
     public void verifyNoUrlsInBatch() throws Exception {
         try {
-            File testCaseFile = new File(getClass().getResource("/not-urls.txt").getFile());
+            File testCaseFile = FileUtils.toFile(getClass().getResource("/not-urls.txt"));
             Scanner testCaseFilein = new Scanner(testCaseFile);
             while (testCaseFilein.hasNext()) {
                 String emailBody = testCaseFilein.nextLine();

@@ -1,4 +1,4 @@
-job "core-api-[[ .tenant ]]" {
+job "comaas-[[ .tenant_short ]]" {
   region = "[[ .region ]]"
   datacenters = ["zone1", "zone2", "zone3", "zone4"]
 
@@ -52,7 +52,7 @@ job "core-api-[[ .tenant ]]" {
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         tags = [
           "version-[[.version]]",
           "newmsg"
@@ -60,7 +60,7 @@ job "core-api-[[ .tenant ]]" {
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "hazelcast"
         tags = [
           "hazelcast"
@@ -74,7 +74,7 @@ job "core-api-[[ .tenant ]]" {
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "prometheus"
         tags = [
           "prometheus"
@@ -97,16 +97,12 @@ job "core-api-[[ .tenant ]]" {
     task "filebeat" {
       driver = "docker"
       config {
-        image = "dock.es.ecg.tools/comaas/filebeat:5.6.3"
+        image = "ebayclassifiedsgroup/filebeat:5.6.4"
         args = [
           "-c", "/local/config/filebeat.yml"
         ]
 
         network_mode = "host"
-        auth {
-          username = "[[.docker_username]]"
-          password = "[[.docker_password]]"
-        }
       }
 
       template {
@@ -155,7 +151,7 @@ EOH
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "http"
         tags = [
           "version-[[.version]]",
@@ -173,7 +169,7 @@ EOH
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "hazelcast"
         tags = [
           "hazelcast"
@@ -187,7 +183,7 @@ EOH
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "prometheus"
         tags = [
           "prometheus"
@@ -209,16 +205,12 @@ EOH
     task "filebeat" {
       driver = "docker"
       config {
-        image = "dock.es.ecg.tools/comaas/filebeat:5.6.3"
+        image = "ebayclassifiedsgroup/filebeat:5.6.4"
         args = [
           "-c", "/local/config/filebeat.yml"
         ]
 
         network_mode = "host"
-        auth {
-            username = "[[.docker_username]]"
-            password = "[[.docker_password]]"
-        }
       }
 
       template {
@@ -268,7 +260,7 @@ EOH
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         tags = [
           "version-[[.version]]",
           "cronjob"
@@ -276,7 +268,7 @@ EOH
       }
 
       service {
-        name = "comaas-core-[[ .tenant ]]"
+        name = "${JOB}"
         port = "prometheus"
         tags = [
           "prometheus"
@@ -299,16 +291,12 @@ EOH
     task "filebeat" {
       driver = "docker"
       config {
-        image = "dock.es.ecg.tools/comaas/filebeat:5.6.3"
+        image = "ebayclassifiedsgroup/filebeat:5.6.4"
         args = [
           "-c", "/local/config/filebeat.yml"
         ]
 
         network_mode = "host"
-        auth {
-          username = "[[.docker_username]]"
-          password = "[[.docker_password]]"
-        }
       }
 
       template {

@@ -5,7 +5,9 @@ import com.ecg.messagebox.model.Participant;
 import javax.validation.constraints.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CreateConversationRequest {
 
@@ -14,4 +16,6 @@ public class CreateConversationRequest {
 
     @NotNull(message = "List of participants cannot be empty")
     public List<Participant> participants = new ArrayList<>();
+
+    public Map<String, String> metadata = new HashMap<>();
 }

@@ -4,6 +4,7 @@ import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.app.mailreceiver.MessageProcessingPoolManager;
 import com.ecg.replyts.app.mailreceiver.MessageProcessor;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
     @Value("${replyts.tenant.short:${replyts.tenant}}")
     private String shortTenant;
 
-    @Value("${kafka.message.processing.enabled:false}")
+    @Value("${kafka.message.processing.enabled:true}")
     private boolean messageProcessingEnabled;
 
     @Autowired
@@ -45,6 +46,9 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
 
     @Autowired
     private MutableConversationRepository mutableConversationRepository;
+
+    @Autowired
+    private UserIdentifierService userIdentifierService;
 
     @Autowired
     public KafkaMessageProcessingPoolManager(@Value("${replyts.threadpool.kafka.new.mail.size:2}") int newMailProcessingThreads,
@@ -66,7 +70,7 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
     private KafkaNewMessageProcessor createNewMessageConsumer() {
         return new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService, kafkaMessageConsumerFactory,
                 retryOnFailedMessagePeriodMinutes, maxRetries, shortTenant, messageProcessingEnabled,
-                mutableConversationRepository, processingContextFactory);
+                mutableConversationRepository, processingContextFactory, userIdentifierService);
     }
 
     private KafkaRetryMessageProcessor createRetryMessageConsumer() {

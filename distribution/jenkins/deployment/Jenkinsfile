@@ -176,8 +176,8 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
                 "-var='deploy_jenkins_job_nr=${deployJenkinsJob}' "
         final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
-        sh "$levantCmd render ${vars} /deployment/core-api.nomad"
-        sh "$levantCmd deploy ${vars} -force-count=true -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/core-api.nomad"
+        sh "$levantCmd render ${vars} /deployment/comaas.nomad"
+        sh "$levantCmd deploy ${vars} -force-count=true -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/comaas.nomad"
     }
 }
 
