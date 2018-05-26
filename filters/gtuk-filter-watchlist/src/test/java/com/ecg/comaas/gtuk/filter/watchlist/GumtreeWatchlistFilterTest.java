@@ -58,6 +58,10 @@ public class GumtreeWatchlistFilterTest {
     public void testWatchlistedSender() {
         Mail mail = mock(Mail.class);
         when(mail.getFrom()).thenReturn("badguy@hotmail.com");
+
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL),
+                eq("badguy@hotmail.com"))).thenReturn(true);
+
         MessageProcessingContext messageProcessingContext = getMessageProcessingContext(mail);
 
         List<FilterFeedback> feedbacks = gumtreeWatchlistFilter.filter(messageProcessingContext);
