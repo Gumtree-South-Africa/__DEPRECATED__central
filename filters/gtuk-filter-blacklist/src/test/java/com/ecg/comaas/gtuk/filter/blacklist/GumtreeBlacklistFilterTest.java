@@ -306,6 +306,12 @@ public class GumtreeBlacklistFilterTest {
 
     private void initialiseChecklistApiTestConditions() {
         when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
+                eq("badguy@yahoo.com"))).thenReturn(true);
+
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
+                eq("badguy@hotmail.com"))).thenReturn(true);
+
+        when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
                 eq("goodguy@hotmail.com"))).thenReturn(false);
 
         when(gumshieldClient.existsEntryByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),

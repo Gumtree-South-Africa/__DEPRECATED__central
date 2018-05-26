@@ -103,7 +103,7 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
 
     private boolean isBlacklistedAttribute(String attribute, ApiChecklistAttribute checklistAttribute) {
         if (gumshieldClient == null) {
-            LOG.error("Gumshield API was null");
+            LOG.error("Gumshield Client was null");
             return false;
         }
 
