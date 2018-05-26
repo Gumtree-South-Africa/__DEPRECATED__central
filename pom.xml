@@ -131,6 +131,19 @@
         <profile>
             <id>gtuk</id>
 
+            <repositories>
+                <repository>
+                    <id>gtukNexus</id>
+                    <url>https://gtuk-nexus.es.dus1.cloud/nexus/content/repositories/public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+
             <modules>
                 <module>coremods/gtuk-coremod-shared</module>
 
