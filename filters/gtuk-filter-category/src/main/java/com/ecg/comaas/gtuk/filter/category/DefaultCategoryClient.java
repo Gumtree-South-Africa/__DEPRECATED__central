@@ -26,7 +26,7 @@ public class DefaultCategoryClient implements CategoryClient {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultCategoryClient.class);
 
     private static final Predicate<Response> SUCCESSFULL_INVOCATION = response ->
-            response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL;
+            response != null && response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL;
 
     private static final CategoryComparator CATEGORY_COMPARATOR = new CategoryComparator();
 

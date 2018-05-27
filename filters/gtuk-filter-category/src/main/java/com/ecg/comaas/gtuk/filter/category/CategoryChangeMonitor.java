@@ -31,6 +31,9 @@ public class CategoryChangeMonitor implements ApplicationListener<ContextRefresh
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
+        // Load changes at the start of an application
+        checkForChanges();
+        // Start a recurrent update of an internal state
         startMonitor();
     }
 
