@@ -73,9 +73,8 @@ public class DefaultCategoryService implements CategoryService {
         }
     }
 
-    public static DefaultCategoryService createNewService(Category initialCategory) {
-        State state = initialCategory == null ? EMPTY_STATE : createNewState(initialCategory);
-        return new DefaultCategoryService(state);
+    public static DefaultCategoryService createNewService() {
+        return new DefaultCategoryService(EMPTY_STATE);
     }
 
     private static State createNewState(Category category) {

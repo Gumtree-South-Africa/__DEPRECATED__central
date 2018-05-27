@@ -15,14 +15,13 @@ public class CategoryChangeMonitor implements ApplicationListener<ContextRefresh
 
     private static final Logger LOG = LoggerFactory.getLogger(CategoryChangeMonitor.class);
 
-    private String currentVersion;
+    private String currentVersion = null;
     private final CategoryClient categoryClient;
     private final int checkInterval;
     private final Reloadable<Category> reloadable;
     private final ScheduledExecutorService scheduler;
 
-    public CategoryChangeMonitor(String version, CategoryClient categoryClient, int checkInterval, Reloadable<Category> reloadable) {
-        this.currentVersion = version;
+    public CategoryChangeMonitor(CategoryClient categoryClient, int checkInterval, Reloadable<Category> reloadable) {
         this.categoryClient = categoryClient;
         this.checkInterval = checkInterval;
         this.reloadable = reloadable;

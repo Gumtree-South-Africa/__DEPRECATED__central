@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.function.Predicate;
+import net.jodah.failsafe.function.BiPredicate;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
@@ -25,8 +25,19 @@ public class DefaultCategoryClient implements CategoryClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultCategoryClient.class);
 
-    private static final Predicate<Response> SUCCESSFULL_INVOCATION = response ->
-            response != null && response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL;
+    private static final BiPredicate<Response, Exception> FAILED_INVOCATION = (response, ex) -> {
+       if (ex != null) {
+           LOG.warn("CategoryClient invocation failed with an exception.", ex.getMessage());
+           return false;
+       }
+
+       if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+           LOG.warn("CategoryClient invocation failed with a wrong status code: " + response.getStatus());
+           return false;
+       }
+
+       return true;
+    };
 
     private static final CategoryComparator CATEGORY_COMPARATOR = new CategoryComparator();
 
@@ -39,7 +50,7 @@ public class DefaultCategoryClient implements CategoryClient {
         this.retryPolicy = new RetryPolicy()
                 .withDelay(500, TimeUnit.MILLISECONDS)
                 .withMaxRetries(retries)
-                .retryIf(SUCCESSFULL_INVOCATION);
+                .retryIf(FAILED_INVOCATION);
 
         this.client = JerseyClientBuilder.createClient();
         this.client.property(ClientProperties.CONNECT_TIMEOUT, connectionTimeout);
@@ -54,7 +65,7 @@ public class DefaultCategoryClient implements CategoryClient {
     public Optional<Category> categoryTree() {
         Response response = Failsafe.with(retryPolicy).get(() -> categoryTarget.request().get());
 
-        if (SUCCESSFULL_INVOCATION.test(response)) {
+        if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
             Category category = response.readEntity(Category.class);
             return Optional.of(sortCategoryTree(category));
         } else {
@@ -66,9 +77,8 @@ public class DefaultCategoryClient implements CategoryClient {
     public Optional<String> version() {
         Response response = Failsafe.with(retryPolicy).get(() -> versionTarget.request().get());
 
-        if (SUCCESSFULL_INVOCATION.test(response)) {
-            List<String> versions = response.readEntity(new GenericType<List<String>>() {
-            });
+        if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
+            List<String> versions = response.readEntity(new GenericType<List<String>>() {});
             return Optional.of(versions.get(0));
         } else {
             LOG.warn("Could not get current CATEGORY VERSION");

@@ -19,9 +19,8 @@ public class GumtreeCategoryConfiguration {
     }
 
     @Bean
-    public CategoryService defaultCategoryClient(CategoryClient categoryClient) {
-        Category initialCategory = categoryClient.categoryTree().orElse(null);
-        return DefaultCategoryService.createNewService(initialCategory);
+    public CategoryService defaultCategoryClient() {
+        return DefaultCategoryService.createNewService();
     }
 
     @Bean(destroyMethod = "close")
@@ -30,7 +29,6 @@ public class GumtreeCategoryConfiguration {
             CategoryClient categoryClient,
             CategoryService categoryService) {
 
-        String initialVersion = categoryClient.version().orElse(null);
-        return new CategoryChangeMonitor(initialVersion, categoryClient, checkInterval, categoryService);
+        return new CategoryChangeMonitor(categoryClient, checkInterval, categoryService);
     }
 }
