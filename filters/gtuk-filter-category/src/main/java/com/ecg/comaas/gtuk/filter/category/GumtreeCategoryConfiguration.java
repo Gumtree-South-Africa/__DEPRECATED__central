@@ -19,16 +19,16 @@ public class GumtreeCategoryConfiguration {
     }
 
     @Bean
-    public CategoryService categoryModel(CategoryClient categoryClient) {
+    public DefaultCategoryService categoryModel(CategoryClient categoryClient) {
         Category initialCategory = categoryClient.categoryTree().orElse(null);
-        return CategoryService.createNewService(initialCategory);
+        return DefaultCategoryService.createNewService(initialCategory);
     }
 
     @Bean(destroyMethod = "close")
     public CategoryChangeMonitor categoryChangeMonitor(
             @Value("${gumtree.category.api.cache.reload.interval:5000}") int checkInterval,
             CategoryClient categoryClient,
-            CategoryService categoryService) {
+            DefaultCategoryService categoryService) {
 
         String initialVersion = categoryClient.version().orElse(null);
         return new CategoryChangeMonitor(initialVersion, categoryClient, checkInterval, categoryService);

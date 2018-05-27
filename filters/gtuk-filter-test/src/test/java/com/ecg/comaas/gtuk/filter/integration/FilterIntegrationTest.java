@@ -1,5 +1,6 @@
 package com.ecg.comaas.gtuk.filter.integration;
 
+import com.ecg.comaas.gtuk.filter.category.CategoryService;
 import com.ecg.comaas.gtuk.filter.knowngood.GumtreeKnownGoodFilterFactory;
 import com.ecg.comaas.gtuk.filter.word.GumtreeWordFilterFactory;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -9,8 +10,6 @@ import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.gumtree.api.category.CategoryModel;
-import com.gumtree.api.category.stub.StubCategoryModel;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
@@ -23,9 +22,7 @@ import java.util.List;
 import static com.ecg.comaas.gtuk.filter.integration.Utils.readFileContent;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 @Configuration
 public class FilterIntegrationTest {
@@ -76,8 +73,8 @@ public class FilterIntegrationTest {
     }
 
     @Bean
-    public CategoryModel unfilteredCategoryModel() {
-        return new StubCategoryModel();
+    public CategoryService unfilteredCategoryModel() {
+        return new StubCategoryService();
     }
 
     @Rule

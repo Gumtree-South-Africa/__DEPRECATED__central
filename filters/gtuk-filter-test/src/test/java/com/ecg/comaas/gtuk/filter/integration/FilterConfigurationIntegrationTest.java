@@ -1,8 +1,7 @@
 package com.ecg.comaas.gtuk.filter.integration;
 
+import com.ecg.comaas.gtuk.filter.category.CategoryService;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
-import com.gumtree.api.category.CategoryModel;
-import com.gumtree.api.category.stub.StubCategoryModel;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
@@ -29,8 +28,8 @@ import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.prop
 public class FilterConfigurationIntegrationTest {
 
     @Bean
-    public CategoryModel unfilteredCategoryModel() {
-        return new StubCategoryModel();
+    public CategoryService unfilteredCategoryModel() {
+        return new StubCategoryService();
     }
 
     @Rule
@@ -55,8 +54,7 @@ public class FilterConfigurationIntegrationTest {
                 Response response = RestAssured.given().when().request().port(rule.getHttpPort()).body(body)
                         .contentType(ContentType.JSON).put("/configv2/").then().statusCode(200).extract().response();
                 new JSONObject(response.asString());
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

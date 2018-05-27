@@ -75,7 +75,6 @@ public class Category {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(id, parentId, children, depth, name, seoName);
     }
 }
