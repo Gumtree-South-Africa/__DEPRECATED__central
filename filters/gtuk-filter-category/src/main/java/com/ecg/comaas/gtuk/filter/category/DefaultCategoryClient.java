@@ -46,7 +46,7 @@ public class DefaultCategoryClient implements CategoryClient {
         this.client.property(ClientProperties.READ_TIMEOUT, socketTimeout);
         this.client.register(new JacksonFeature());
 
-        UriBuilder finalUri = UriBuilder.fromPath(baseUri).port(port);
+        UriBuilder finalUri = UriBuilder.fromPath(baseUri).port(port).scheme("http");
         this.versionTarget = client.target(finalUri).path("_version");
         this.categoryTarget = client.target(finalUri).path("api/categories");
     }
