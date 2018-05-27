@@ -3,7 +3,9 @@ package com.ecg.comaas.gtuk.filter.category;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class DefaultCategoryService implements CategoryService, Reloadable<Category> {
+public class DefaultCategoryService implements CategoryService {
+
+    private static final State EMPTY_STATE = new State(new Category(), Collections.emptyMap());
 
     private State internal;
 
@@ -72,7 +74,8 @@ public class DefaultCategoryService implements CategoryService, Reloadable<Categ
     }
 
     public static DefaultCategoryService createNewService(Category initialCategory) {
-        return new DefaultCategoryService(createNewState(initialCategory));
+        State state = initialCategory == null ? EMPTY_STATE : createNewState(initialCategory);
+        return new DefaultCategoryService(state);
     }
 
     private static State createNewState(Category category) {

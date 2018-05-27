@@ -1,5 +1,6 @@
 package com.ecg.comaas.gtuk.filter.integration;
 
+import com.ecg.comaas.gtuk.filter.category.CategoryClient;
 import com.ecg.comaas.gtuk.filter.category.CategoryService;
 import com.ecg.comaas.gtuk.filter.knowngood.GumtreeKnownGoodFilterFactory;
 import com.ecg.comaas.gtuk.filter.word.GumtreeWordFilterFactory;
@@ -14,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -73,8 +75,15 @@ public class FilterIntegrationTest {
     }
 
     @Bean
-    public CategoryService unfilteredCategoryModel() {
+    @Primary
+    public CategoryService categoryService() {
         return new StubCategoryService();
+    }
+
+    @Bean
+    @Primary
+    public CategoryClient categoryClient() {
+        return new StubCategoryClient();
     }
 
     @Rule

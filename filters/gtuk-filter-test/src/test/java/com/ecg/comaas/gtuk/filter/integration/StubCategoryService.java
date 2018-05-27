@@ -37,4 +37,8 @@ public class StubCategoryService implements CategoryService {
         category.setName("Category " + id);
         return category;
     }
+
+    @Override
+    public void reload(Category newState) {
+    }
 }

@@ -15,11 +15,11 @@ public class GumtreeCategoryConfiguration {
             @Value("${gumtree.category.api.connection.timeout:15000}") int connectionTimeout,
             @Value("${gumtree.category.api.retry.count:3}") int retryCount) {
 
-        return new CategoryClient(hostname, port, connectionTimeout, socketTimeout, retryCount);
+        return new DefaultCategoryClient(hostname, port, connectionTimeout, socketTimeout, retryCount);
     }
 
     @Bean
-    public DefaultCategoryService categoryModel(CategoryClient categoryClient) {
+    public CategoryService defaultCategoryClient(CategoryClient categoryClient) {
         Category initialCategory = categoryClient.categoryTree().orElse(null);
         return DefaultCategoryService.createNewService(initialCategory);
     }
@@ -28,7 +28,7 @@ public class GumtreeCategoryConfiguration {
     public CategoryChangeMonitor categoryChangeMonitor(
             @Value("${gumtree.category.api.cache.reload.interval:5000}") int checkInterval,
             CategoryClient categoryClient,
-            DefaultCategoryService categoryService) {
+            CategoryService categoryService) {
 
         String initialVersion = categoryClient.version().orElse(null);
         return new CategoryChangeMonitor(initialVersion, categoryClient, checkInterval, categoryService);

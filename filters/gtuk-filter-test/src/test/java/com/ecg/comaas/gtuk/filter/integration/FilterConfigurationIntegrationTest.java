@@ -1,5 +1,6 @@
 package com.ecg.comaas.gtuk.filter.integration;
 
+import com.ecg.comaas.gtuk.filter.category.CategoryClient;
 import com.ecg.comaas.gtuk.filter.category.CategoryService;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
@@ -11,6 +12,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -28,8 +30,15 @@ import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.prop
 public class FilterConfigurationIntegrationTest {
 
     @Bean
-    public CategoryService unfilteredCategoryModel() {
+    @Primary
+    public CategoryService categoryService() {
         return new StubCategoryService();
+    }
+
+    @Bean
+    @Primary
+    public CategoryClient categoryClient() {
+        return new StubCategoryClient();
     }
 
     @Rule
