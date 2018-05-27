@@ -42,13 +42,18 @@ public class CategoryChangeMonitor implements ApplicationListener<ApplicationRea
     }
 
     private void checkForChanges() {
-        Optional<String> optVersion = categoryClient.version();
+        try {
+            Optional<String> optVersion = categoryClient.version();
 
-        if (optVersion.isPresent()) {
-            String obtainedVersion = optVersion.get();
-            if (currentVersion == null || currentVersion.equals(obtainedVersion)) {
-                handleNewVersion(obtainedVersion);
+            if (optVersion.isPresent()) {
+                String obtainedVersion = optVersion.get();
+                if (currentVersion == null || currentVersion.equals(obtainedVersion)) {
+                    handleNewVersion(obtainedVersion);
+                }
             }
+        } catch (Exception ex) {
+            // Don't kill the thread in case of any problems with category problems or category service
+            LOG.error("Check for category changes failed: " + ex.getMessage());
         }
     }
 
