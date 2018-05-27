@@ -33,8 +33,6 @@ public class StubCategoryService implements CategoryService {
     private static Category newCategory(long id) {
         Category category = new Category();
         category.setId(id);
-        category.setSeoName("category-" + id);
-        category.setName("Category " + id);
         return category;
     }
 
