@@ -28,18 +28,16 @@ public class DefaultCategoryClient implements CategoryClient {
     private static final BiPredicate<Response, Exception> FAILED_INVOCATION = (response, ex) -> {
        if (ex != null) {
            LOG.warn("CategoryClient invocation failed with an exception.", ex.getMessage());
-           return false;
+           return true;
        }
 
        if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
            LOG.warn("CategoryClient invocation failed with a wrong status code: " + response.getStatus());
-           return false;
+           return true;
        }
 
-       return true;
+       return false;
     };
-
-    private static final CategoryComparator CATEGORY_COMPARATOR = new CategoryComparator();
 
     private final JerseyClient client;
     private final RetryPolicy retryPolicy;
@@ -57,7 +55,7 @@ public class DefaultCategoryClient implements CategoryClient {
         this.client.property(ClientProperties.READ_TIMEOUT, socketTimeout);
         this.client.register(new JacksonFeature());
 
-        UriBuilder finalUri = UriBuilder.fromPath(baseUri).port(port).scheme("http");
+        UriBuilder finalUri = UriBuilder.fromUri("http://" + baseUri).port(port);
         this.versionTarget = client.target(finalUri).path("_version");
         this.categoryTarget = client.target(finalUri).path("api/categories");
     }
@@ -67,7 +65,7 @@ public class DefaultCategoryClient implements CategoryClient {
 
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
             Category category = response.readEntity(Category.class);
-            return Optional.of(sortCategoryTree(category));
+            return Optional.of(category);
         } else {
             LOG.warn("Could not get current CATEGORY TREE");
             return Optional.empty();
@@ -84,24 +82,6 @@ public class DefaultCategoryClient implements CategoryClient {
             LOG.warn("Could not get current CATEGORY VERSION");
             return Optional.empty();
         }
-    }
-
-    private static Category sortCategoryTree(Category category) {
-        if (!category.getChildren().isEmpty()) {
-            sortCategoryChildren(category);
-            for (Category c : category.getChildren()) {
-                sortCategoryTree(c);
-            }
-        }
-
-        return category;
-    }
-
-    private static Category sortCategoryChildren(Category category) {
-        List<Category> unsorted = category.getChildren();
-        ImmutableList<Category> categories = Ordering.from(CATEGORY_COMPARATOR).immutableSortedCopy(unsorted);
-        category.setChildren(categories);
-        return category;
     }
 
     @Override

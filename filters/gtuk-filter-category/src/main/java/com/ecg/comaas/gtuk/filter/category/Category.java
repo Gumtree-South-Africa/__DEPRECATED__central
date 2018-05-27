@@ -1,16 +1,19 @@
 package com.ecg.comaas.gtuk.filter.category;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 import java.util.Objects;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Category {
 
     private Long id;
+    @JsonProperty("parent_id")
     private Long parentId;
     private List<Category> children;
     private Integer depth;
-    private String name;
-    private String seoName;
 
     public Long getId() {
         return id;
@@ -44,22 +47,6 @@ public class Category {
         this.depth = depth;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSeoName() {
-        return seoName;
-    }
-
-    public void setSeoName(String seoName) {
-        this.seoName = seoName;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -68,13 +55,11 @@ public class Category {
         return Objects.equals(id, category.id) &&
                 Objects.equals(parentId, category.parentId) &&
                 Objects.equals(children, category.children) &&
-                Objects.equals(depth, category.depth) &&
-                Objects.equals(name, category.name) &&
-                Objects.equals(seoName, category.seoName);
+                Objects.equals(depth, category.depth);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, parentId, children, depth, name, seoName);
+        return Objects.hash(id, parentId, children, depth);
     }
 }

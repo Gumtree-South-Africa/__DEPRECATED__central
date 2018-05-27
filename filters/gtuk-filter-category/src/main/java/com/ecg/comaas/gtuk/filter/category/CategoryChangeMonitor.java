@@ -1,6 +1,7 @@
 package com.ecg.comaas.gtuk.filter.category;
 
 
+import com.ecg.replyts.core.ApplicationReadyEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
@@ -11,7 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class CategoryChangeMonitor implements ApplicationListener<ContextRefreshedEvent>, AutoCloseable {
+public class CategoryChangeMonitor implements ApplicationListener<ApplicationReadyEvent>, AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(CategoryChangeMonitor.class);
 
@@ -29,15 +30,15 @@ public class CategoryChangeMonitor implements ApplicationListener<ContextRefresh
     }
 
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
+    public void onApplicationEvent(ApplicationReadyEvent event) {
         // Load changes at the start of an application
-        checkForChanges();
+         checkForChanges();
         // Start a recurrent update of an internal state
         startMonitor();
     }
 
     private void startMonitor() {
-        scheduler.schedule(this::checkForChanges, checkInterval, TimeUnit.MILLISECONDS);
+        scheduler.scheduleWithFixedDelay(this::checkForChanges, 0, checkInterval, TimeUnit.MILLISECONDS);
     }
 
     private void checkForChanges() {
