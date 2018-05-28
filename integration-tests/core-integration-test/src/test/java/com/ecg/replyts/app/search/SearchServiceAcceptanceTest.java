@@ -49,13 +49,7 @@ public class SearchServiceAcceptanceTest {
     private final String uuid = UUID.randomUUID().toString();
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(createProperties(), ES_ENABLED);
-
-    private static Properties createProperties() {
-        Properties properties = new Properties();
-        properties.setProperty("search.es.api.endpoint", "http://localhost:9250");
-        return properties;
-    }
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
 
     @Before
     public void setup() {
