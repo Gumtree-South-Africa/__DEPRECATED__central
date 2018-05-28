@@ -12,17 +12,11 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.transport.BindTransportException;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
-import org.glassfish.jersey.client.JerseyClient;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.client.JerseyWebTarget;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.StringUtils;
 
-import javax.annotation.PreDestroy;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.function.Consumer;
@@ -64,20 +58,14 @@ public class ElasticSearchClientConfiguration {
         return new ElasticDeleteClient(endpoint, indexName);
     }
 
-    private TransportClient client;
-
     @Bean(destroyMethod = "close")
-    public TransportClient client(String endpoints, String clusterName) {
-        TransportClient client = this.client;
-        if (client == null) {
-            Settings settings = Settings.builder()
-                    .put("cluster.name", clusterName).build();
+    public TransportClient client(@Value("${search.es.endpoints:localhost}") String endpoints) {
+        Settings settings = Settings.builder()
+                .put("cluster.name", "elasticsearch").build();
 
-            List<TransportAddress> esAddresses = transformEndpoints(endpoints);
-            client = new PreBuiltTransportClient(settings);
-            esAddresses.forEach(client::addTransportAddress);
-            this.client = client;
-        }
+        List<TransportAddress> esAddresses = transformEndpoints(endpoints);
+        TransportClient client = new PreBuiltTransportClient(settings);
+        esAddresses.forEach(client::addTransportAddress);
         return client;
     }
 
