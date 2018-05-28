@@ -46,7 +46,7 @@ public class DefaultCategoryClient implements CategoryClient {
 
     public DefaultCategoryClient(String baseUri, int port, int socketTimeout, int connectionTimeout, int retries) {
         this.retryPolicy = new RetryPolicy()
-                .withDelay(500, TimeUnit.MILLISECONDS)
+                .withDelay(1000, TimeUnit.MILLISECONDS)
                 .withMaxRetries(retries)
                 .retryIf(FAILED_INVOCATION);
 

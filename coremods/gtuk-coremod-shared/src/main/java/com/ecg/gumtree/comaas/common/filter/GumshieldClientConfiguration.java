@@ -15,7 +15,11 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
 public class GumshieldClientConfiguration {
 
     @Bean
-    public GumshieldClient gumshieldClient(@Value("${gumshield.api.base_uri:localhost}") String apiBaseUri) {
-        return new GumshieldClient(apiBaseUri);
+    public GumshieldClient gumshieldClient(
+            @Value("${gumshield.api.base_uri:localhost}") String apiBaseUri,
+            @Value("${gumshield.api.socket.timeout:10000}") int socketTimeout,
+            @Value("${gumshield.api.connection.timeout:10000}") int connectionTimeout) {
+
+        return new GumshieldClient(apiBaseUri, socketTimeout, connectionTimeout, 3);
     }
 }
