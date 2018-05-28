@@ -6,12 +6,9 @@ import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.runtime.indexer.MessageDocumentId;
 import com.google.common.base.Preconditions;
-import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
@@ -34,10 +31,12 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchSearchService.class);
 
     private final RestHighLevelClient client;
+    private final ElasticDeleteClient deleteClient;
     private final String indexName;
 
-    ElasticSearchSearchService(RestHighLevelClient client, String indexName) {
+    ElasticSearchSearchService(RestHighLevelClient client, ElasticDeleteClient deleteClient, String indexName) {
         this.client = client;
+        this.deleteClient = deleteClient;
         this.indexName = indexName;
     }
 
@@ -84,33 +83,23 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
         Preconditions.checkNotNull(from);
         Preconditions.checkNotNull(to);
 
-        deleteLastModified(from, to).get();
-        deleteReceivedDate(from, to).get();
+        deleteLastModified(from, to);
+        deleteReceivedDate(from, to);
     }
 
-    DeleteByQueryRequestBuilder deleteLastModified(LocalDate from, LocalDate to) {
+    void deleteLastModified(LocalDate from, LocalDate to) {
         RangeQueryBuilder lastModified = rangeQuery("lastModified")
                 .from(from)
                 .to(to);
 
-        SearchSourceBuilder requestBuilder = new SearchSourceBuilder()
-                .query(lastModified);
+        String query = new SearchSourceBuilder()
+                .query(lastModified)
+                .toString();
 
-        SearchRequest searchRequest = new SearchRequest()
-                .indices(indexName)
-                .source(requestBuilder);
-
-        DeleteByQueryRequest deleteRequest = new DeleteByQueryRequest(searchRequest);
-
-
-
-        client.delete(deleteRequest);
-        return DeleteByQueryAction.INSTANCE.newRequestBuilder(client)
-                .source(indexName)
-                .filter(lastModified);
+        deleteClient.delete(query);
     }
 
-    DeleteByQueryRequestBuilder deleteReceivedDate(LocalDate from, LocalDate to) {
+    void deleteReceivedDate(LocalDate from, LocalDate to) {
         RangeQueryBuilder receivedDateQuery = rangeQuery("receivedDate")
                 .from(from)
                 .to(to);
@@ -119,8 +108,10 @@ public class ElasticSearchSearchService implements SearchService, MutableSearchS
                 .filter(receivedDateQuery)
                 .mustNot(QueryBuilders.existsQuery("lastModified"));
 
-        return DeleteByQueryAction.INSTANCE.newRequestBuilder(client)
-                .source(indexName)
-                .filter(lastModified);
+        String query = new SearchSourceBuilder()
+                .query(lastModified)
+                .toString();
+
+        deleteClient.delete(query);
     }
 }
