@@ -59,9 +59,13 @@ public class ElasticSearchClientConfiguration {
     }
 
     @Bean(destroyMethod = "close")
-    public TransportClient client(@Value("${search.es.endpoints:localhost}") String endpoints) {
+    public TransportClient client(
+            @Value("${search.es.endpoints:localhost}") String endpoints,
+            @Value("${search.es.clustername}") String clusterName) {
+
+        System.setProperty("es.set.netty.runtime.available.processors", "false");
         Settings settings = Settings.builder()
-                .put("cluster.name", "elasticsearch").build();
+                .put("cluster.name", clusterName).build();
 
         List<TransportAddress> esAddresses = transformEndpoints(endpoints);
         TransportClient client = new PreBuiltTransportClient(settings);
