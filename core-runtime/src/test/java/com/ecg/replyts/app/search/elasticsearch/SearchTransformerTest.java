@@ -4,33 +4,18 @@ import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.elasticsearch.action.search.SearchAction;
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.client.Client;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Date;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SearchTransformerTest {
     private static final long FIXED_DATE = 1420070400000L; // Fixed date for testing purposes. 1st Jan 2015
-
-    @Mock
-    private Client elasticsearchClient;
-
-    @Before
-    public void setUp() throws Exception {
-        SearchRequestBuilder builder = new SearchRequestBuilder(elasticsearchClient, SearchAction.INSTANCE);
-        when(elasticsearchClient.prepareSearch("replyts")).thenReturn(builder);
-    }
 
     @Test
     public void testSearchIsAFilteredQuery() throws Exception {
@@ -48,9 +33,8 @@ public class SearchTransformerTest {
         payload.setCount(1);
 
         SearchTransformer transformer = new SearchTransformer(payload, "replyts");
-        SearchRequest searchRequestBuilder = transformer.intoQuery();
-
-        JsonNode jsonNode = new ObjectMapper().readTree(searchRequestBuilder.toString());
+        SearchRequest requestBuilder = transformer.intoQuery();
+        JsonNode jsonNode = new ObjectMapper().readTree(requestBuilder.source().toString());
         assertNotNull(jsonNode.get("query").get("bool").get("must"));
 
         // We want a search of the shape
