@@ -25,8 +25,12 @@ public final class TimingReports {
 
     static {
         try {
-            hostName = System.getenv("NOMAD_ALLOC_NAME");
-            if (hostName == null) {
+            if (System.getenv().containsKey("NOMAD_JOB_NAME")) {
+                hostName = String.format("%s_%s_%s",
+                        System.getenv("NOMAD_JOB_NAME"),
+                        System.getenv("NOMAD_GROUP_NAME"),
+                        System.getenv("NOMAD_ALLOC_INDEX"));
+            } else {
                 hostName = InetAddress.getLocalHost().getCanonicalHostName().replaceAll("\\.", "_");
             }
         } catch (UnknownHostException e) {
