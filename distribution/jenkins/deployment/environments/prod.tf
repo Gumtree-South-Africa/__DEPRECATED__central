@@ -12,7 +12,7 @@ variable api_resources_cpu { default = 1500 }
 variable api_resources_mem { default = 4096 }
 
 variable newmsg_count { default = 3 }
-variable newmsg_resources_cpu { default = 1500 }
+variable newmsg_resources_cpu { default = 2000 }
 variable newmsg_resources_mem { default = 3096 }
 
 variable cronjob_resources_cpu { default = 100 }
