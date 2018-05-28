@@ -61,6 +61,9 @@ public class ElasticSearchClientConfiguration {
         return new ElasticDeleteClient(endpoint, indexName);
     }
 
+    /**
+     * ONLY FOR COMAAS INDEXER - DELETE WITH WHOLE FUNCTIONALITY
+     */
     @Bean(destroyMethod = "close")
     public TransportClient client(
             @Value("${search.es.endpoints:localhost}") String endpoints,

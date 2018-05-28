@@ -73,11 +73,15 @@ public class Document2KafkaSink {
             Message message = conversation.getMessageById(messageId);
             IndexData indexData = searchIndexer.getIndexDataBuilder().toIndexData(conversation, message);
             byte[] document = indexData.getDocument().bytes().toBytesRef().bytes;
+
+            // TODO: PB: Elastic Json builder generates weird bytes at the end of the message, replace by something else (better)
+            String response = new String(document).trim();
+
             String key = tenant + KAFKA_KEY_FIELD_SEPARATOR
                     + conversation.getId() + KAFKA_KEY_FIELD_SEPARATOR
                     + message.getId();
             DOC_COUNT.inc();
-            documentSink.storeAsync(key, document);
+            documentSink.storeAsync(key, response.getBytes());
 
         } catch (IOException e) {
             LOG.error("Failed to store document data in Kafka due to {}", e.getMessage(), e);
