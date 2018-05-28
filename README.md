@@ -12,7 +12,7 @@ Install [Docker](https://docs.docker.com/engine/installation/mac/) to be able to
 
 One time setup:
 
-`docker login docker-registry.ecg.so`
+`docker login dock.es.ecg.tools`
 
 Start all Comaas supporting services by checking out https://github.corp.ebay.com/ecg-comaas/ecg-comaas-docker:
 ```

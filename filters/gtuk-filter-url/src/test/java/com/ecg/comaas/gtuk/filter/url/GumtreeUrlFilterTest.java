@@ -17,6 +17,7 @@ import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.Result;
 import com.gumtree.filters.comaas.config.State;
 import com.gumtree.filters.comaas.config.UrlFilterConfig;
+import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -156,7 +157,7 @@ public class GumtreeUrlFilterTest {
     @Test
     public void verifyUrlsInBatch() throws Exception {
         try {
-            File testCaseFile = new File(getClass().getResource("/urls.txt").getFile());
+            File testCaseFile = FileUtils.toFile(getClass().getResource("/urls.txt"));
             Scanner testCaseFilein = new Scanner(testCaseFile);
             while (testCaseFilein.hasNext()) {
                 String emailBody = testCaseFilein.nextLine();
@@ -175,7 +176,7 @@ public class GumtreeUrlFilterTest {
     @Test
     public void verifyNoUrlsInBatch() throws Exception {
         try {
-            File testCaseFile = new File(getClass().getResource("/not-urls.txt").getFile());
+            File testCaseFile = FileUtils.toFile(getClass().getResource("/not-urls.txt"));
             Scanner testCaseFilein = new Scanner(testCaseFile);
             while (testCaseFilein.hasNext()) {
                 String emailBody = testCaseFilein.nextLine();

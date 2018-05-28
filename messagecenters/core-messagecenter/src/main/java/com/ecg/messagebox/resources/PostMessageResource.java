@@ -12,12 +12,10 @@ import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.resources.responses.PostMessageResponse;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
-import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.cluster.XidFactory;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
@@ -111,6 +109,9 @@ public class PostMessageResource {
         }
 
         Map<String, String> customValues = new HashMap<>();
+        if (createConversationRequest.metadata != null) {
+            customValues.putAll(createConversationRequest.metadata);
+        }
         customValues.put(userIdentifierService.getBuyerUserIdName(), buyer.getUserId());
         customValues.put(userIdentifierService.getSellerUserIdName(), seller.getUserId());
 
@@ -143,7 +144,6 @@ public class PostMessageResource {
             tags = "Conversations")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Success"),
-            @ApiResponse(code = 404, message = "Conversation Not Found", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Internal Error", response = ErrorResponse.class)
     })
     @PostMapping("/users/{userId}/conversations/{conversationId}")
@@ -152,43 +152,24 @@ public class PostMessageResource {
             @ApiParam(value = "Conversation ID", required = true) @PathVariable("conversationId") String conversationId,
             @ApiParam(value = "Message payload", required = true) @RequestBody PostMessageRequest postMessageRequest,
             @RequestHeader("X-Correlation-ID") Optional<String> correlationId) {
-
-        MutableConversation conversation = conversationRepository.getById(conversationId);
-
-        if (conversation == null) {
-            throw new ClientException(HttpStatus.NOT_FOUND, String.format("Conversation not found for ID: %s", conversationId));
-        }
-
-        MessageProcessingContext context = processingContextFactory.newContext(null, Guids.next());
-        context.setConversation(conversation);
-        if (userId.equals(conversation.getSellerId())) {
-            context.setMessageDirection(MessageDirection.SELLER_TO_BUYER);
-        } else if (userId.equals(conversation.getBuyerId())) {
-            context.setMessageDirection(MessageDirection.BUYER_TO_SELLER);
-        } else {
-            throw new ClientException(HttpStatus.BAD_REQUEST, "User is not a participant");
-        }
-
-        Instant time = Instant.now();
-        Timestamp timestamp = Timestamp
-                .newBuilder()
-                .setSeconds(time.getEpochSecond())
-                .setNanos(time.getNano())
-                .build();
-        Payload payload = Payload.newBuilder().setConversationId(conversationId)
-                .setUserId(userId).setMessage(postMessageRequest.message).build();
+        Instant now = Instant.now();
         Message retryableMessage = Message
                 .newBuilder()
-                .setReceivedTime(timestamp)
+                .setReceivedTime(Timestamp
+                        .newBuilder()
+                        .setSeconds(now.getEpochSecond())
+                        .setNanos(now.getNano())
+                        .build())
                 .setCorrelationId(correlationId.orElseGet(XidFactory::nextXid))
-                .setPayload(payload)
+                .setPayload(Payload.newBuilder()
+                        .setConversationId(conversationId)
+                        .setUserId(userId)
+                        .setMessage(postMessageRequest.message)
+                        .build())
+                .putAllMetadata(postMessageRequest.metadata == null ? Collections.emptyMap() : postMessageRequest.metadata)
                 .build();
 
-        LOG.info("Proto serialized size: {}", retryableMessage.getSerializedSize());
-
         queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
-
-        // TODO is this neccesary? It's already in a header.
         return new PostMessageResponse(retryableMessage.getCorrelationId());
     }
 }

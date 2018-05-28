@@ -296,13 +296,6 @@
         <profile>
             <id>kjca</id>
 
-            <repositories>
-                <repository>
-                    <id>kjca-nexus</id>
-                    <url>http://nexus.kjdev.ca/content/repositories/public/</url>
-                </repository>
-            </repositories>
-
             <modules>
                 <module>coremods/kjca-coremod-shared</module>
                 <module>coremods/kjca-coremod-overrides</module>
@@ -690,9 +683,6 @@
         <mde-visitor-info-domain.version>3.0.1</mde-visitor-info-domain.version>
 
         <!-- kjca artifact versions -->
-        <kjca-service-discovery.version>11</kjca-service-discovery.version>
-        <kjca-tracing.version>8</kjca-tracing.version>
-        <kjca-remote-service-command-version>1.2.1</kjca-remote-service-command-version>
         <sentry-version>7.1.0</sentry-version>
         <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
         <!-- it artifact versions -->
@@ -1264,17 +1254,6 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>ca.kijiji</groupId>
-                <artifactId>service-discovery</artifactId>
-                <version>${kjca-service-discovery.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>ca.kijiji</groupId>
-                <artifactId>kijiji-tracing</artifactId>
-                <version>${kjca-tracing.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
@@ -2155,33 +2134,6 @@
                 <version>${hystrix-version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>ca.kijiji</groupId>
-                <artifactId>remote-service-command</artifactId>
-                <version>${kjca-remote-service-command-version}</version>
-
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>jackson-annotations</artifactId>
-                    </exclusion>
-
-                    <exclusion>
-                        <groupId>com.netflix.hystrix</groupId>
-                        <artifactId>hystrix-core</artifactId>
-                    </exclusion>
-
-                    <exclusion>
-                        <groupId>org.codehaus.jackson</groupId>
-                        <artifactId>jackson-core-asl</artifactId>
-                    </exclusion>
-
-                    <exclusion>
-                        <groupId>org.codehaus.jackson</groupId>
-                        <artifactId>jackson-mapper-asl</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
             <dependency>
                 <groupId>io.springfox</groupId>
                 <artifactId>springfox-swagger2</artifactId>

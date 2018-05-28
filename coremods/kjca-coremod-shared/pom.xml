@@ -16,6 +16,11 @@
 
     <description>Shared constants and utilities. This module contains no RTS2 plugins, so can be included from multiple modules.</description>
 
+    <properties>
+        <guava-retrying.version>2.0.0</guava-retrying.version>
+        <servlet-api.version>2.5</servlet-api.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>ecg.comaas</groupId>
@@ -63,9 +68,25 @@
         </dependency>
 
         <dependency>
-            <groupId>ca.kijiji</groupId>
-            <artifactId>remote-service-command</artifactId>
-            <version>${kjca-remote-service-command-version}</version>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>${servlet-api.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.rholder</groupId>
+            <artifactId>guava-retrying</artifactId>
+            <version>${guava-retrying.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
 
         <!-- Testing -->

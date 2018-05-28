@@ -3,8 +3,7 @@ tenants:
 smokeTest:
   version:
       lp:
-        default: 0.1.24
-        mp: 0.1.25
+        default: 0.1.25
       prod:
-        default: 0.1.24
         mp: 0.1.23
+        default: 0.1.24

@@ -210,9 +210,18 @@ private void sendToSlack(String colour, String channel, String message) {
 
 def loginToDocker() {
     echo "Logging in to Docker repository"
-    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
-                      usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
-        sh "docker login -u $DOCKER_USER -p $DOCKER_PASS docker-registry.ecg.so"
+    def secrets = [
+            [
+                    $class: 'VaultSecret',
+                    path: 'secret/nomad/dock.es.ecg.tools/comaas+robot_upload',
+                    secretValues: [
+                            [$class: 'VaultSecretValue', envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+                            [$class: 'VaultSecretValue', envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
+                    ],
+            ],
+    ]
+    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
+        sh "docker login -u=\"${DOCKER_USERNAME}\" -p=\"${DOCKER_PASSWORD}\" dock.es.ecg.tools"
     }
 }
 

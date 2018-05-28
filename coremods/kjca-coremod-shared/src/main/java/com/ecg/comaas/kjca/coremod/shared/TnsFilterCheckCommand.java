@@ -1,6 +1,5 @@
 package com.ecg.comaas.kjca.coremod.shared;
 
-import ca.kijiji.rsc.RemoteServiceCommand;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.HttpClient;

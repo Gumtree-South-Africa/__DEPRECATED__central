@@ -34,7 +34,7 @@ function startEnv() {
     if [ $success -ne 0 ]; then
         echo
         echo "Did you try logging in?"
-        echo "docker login docker-registry.ecg.so"
+        echo "docker login dock.es.ecg.tools"
         echo
         exit $success
     fi

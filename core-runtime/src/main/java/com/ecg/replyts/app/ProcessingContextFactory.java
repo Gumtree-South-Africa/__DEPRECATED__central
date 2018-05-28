@@ -88,6 +88,6 @@ public class ProcessingContextFactory {
     }
 
     private Map<String, String> findHeaders(Optional<Mail> mail) {
-        return mail.isPresent() ? mail.get().getUniqueHeaders() : Collections.<String, String>emptyMap();
+        return mail.isPresent() ? mail.get().getUniqueHeaders() : Collections.emptyMap();
     }
 }

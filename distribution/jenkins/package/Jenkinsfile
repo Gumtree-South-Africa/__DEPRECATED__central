@@ -12,14 +12,16 @@ void packageComaas(String tenant, String version) {
             "mv -v distribution/target/*.tar.gz builds/comaas-${tenant}_${version}.tar.gz"
 
     echo "Creating Docker image for $tenant"
-    final String dockerImageName = "docker-registry.ecg.so/comaas/comaas-${tenant}:${version}"
+    final String dockerImageName = "dock.es.ecg.tools/comaas/comaas-${tenant}:${version}"
     final String tmpDir = "docker_image_src"
     sh "cd ecg-comaas-central && " +
             "rm -rf ${tmpDir} && " +
             "mkdir -p ${tmpDir} && " +
             "tar xf builds/comaas-${tenant}_${version}.tar.gz -C ${tmpDir} && " +
             "docker build --tag ${dockerImageName} --label tenant=${tenant} ."
-    sh "docker push $dockerImageName && docker image remove $dockerImageName"
+    commonFunctions.loginToDocker()
+    sh "docker push $dockerImageName"
+    sh "docker image remove $dockerImageName"
 }
 
 def uploadToSwift(String tenant, String version, String pwd, String retentionDays) {
