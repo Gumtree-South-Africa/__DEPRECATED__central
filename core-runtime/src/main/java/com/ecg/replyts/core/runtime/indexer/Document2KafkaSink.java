@@ -78,7 +78,7 @@ public class Document2KafkaSink {
             String response = new String(document).trim();
             LOG.info(response);
             byte[] trimmedBytes = response.getBytes();
-            LOG.info("BYTES BEFORE TRIM: " + trimmedBytes.length);
+            LOG.info("BYTES AFTER TRIM: " + trimmedBytes.length);
             String key = tenant + KAFKA_KEY_FIELD_SEPARATOR
                     + conversation.getId() + KAFKA_KEY_FIELD_SEPARATOR
                     + message.getId();
