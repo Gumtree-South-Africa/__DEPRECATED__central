@@ -7,6 +7,9 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.glassfish.jersey.client.JerseyClient;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.client.JerseyWebTarget;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +28,19 @@ public class ElasticSearchClientConfiguration {
     }
 
     @Bean
-    public ElasticSearchSearchService elasticService(RestClient client, @Value("${search.es.indexname:replyts}") String indexName) {
-        return new ElasticSearchSearchService(new RestHighLevelClient(client), indexName);
+    public ElasticSearchSearchService elasticService(
+            @Value("${search.es.indexname:replyts}") String indexName,
+            RestClient client,
+            ElasticDeleteClient deleteClient) {
+
+        return new ElasticSearchSearchService(new RestHighLevelClient(client), deleteClient, indexName);
+    }
+
+    @Bean(destroyMethod = "close")
+    public ElasticDeleteClient deleteByQueryClient(
+            @Value("${search.es.endpoints:localhost}") String endpoint,
+            @Value("${search.es.indexname:replyts}") String indexName) {
+
+        return new ElasticDeleteClient(endpoint, indexName);
     }
 }
