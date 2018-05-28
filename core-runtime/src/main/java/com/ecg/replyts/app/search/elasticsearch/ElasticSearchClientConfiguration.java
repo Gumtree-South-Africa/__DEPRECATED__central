@@ -1,5 +1,6 @@
 package com.ecg.replyts.app.search.elasticsearch;
 
+import com.datastax.driver.core.Host;
 import com.google.common.base.Splitter;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -32,11 +34,12 @@ public class ElasticSearchClientConfiguration {
     };
 
     @Bean(destroyMethod = "close")
-    public RestClient elasticRestClient(@Value("${search.es.endpoints:localhost}") String endpoint) {
+    public RestClient elasticRestClient(@Value("${search.es.api.endpoint}") String endpoint) {
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("comaas", "DAWjeY46AAR48wEK"));
 
-        return RestClient.builder(new HttpHost(endpoint, 443, "https"))
+        URI uri = URI.create(endpoint);
+        return RestClient.builder(new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme()))
                 .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider))
                 .build();
     }

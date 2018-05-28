@@ -275,7 +275,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
         LOG.info("Sending Mail with unique identifier '{}' at '{}'", mailIdentifier, DateTime.now());
         mail.uniqueIdentifier(mailIdentifier);
-        File f = new File(testRunner.getDropFolder(), "tmp_pre_" + Math.random());
+        File f = new File(testRunner.getDropFolder(), "pre_" + Math.random());
 
         try (FileOutputStream fout = new FileOutputStream(f)) {
             mail.write(fout);
