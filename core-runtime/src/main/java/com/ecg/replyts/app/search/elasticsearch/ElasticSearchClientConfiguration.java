@@ -34,7 +34,7 @@ public class ElasticSearchClientConfiguration {
     };
 
     @Bean(destroyMethod = "close")
-    public RestClient elasticRestClient(@Value("${search.es.api.endpoint:'http://localhost:9250'}") String endpoint) {
+    public RestClient elasticRestClient(@Value("${search.es.api.endpoint:http://localhost:9250}") String endpoint) {
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("comaas", "DAWjeY46AAR48wEK"));
 
