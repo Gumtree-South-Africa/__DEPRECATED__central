@@ -52,7 +52,7 @@ String getActiveDC(String tenantLongName, String env) {
 
 String getMetaInformation(final String what, final String tenantLongName) {
     return sh(
-            script: "curl -sL http://http.nomad.service.consul:4646/v1/job/core-api-${tenantLongName} | jq -r .Meta.${what}",
+            script: "curl -sL http://http.nomad.service.consul:4646/v1/job/comaas-${tenantLongName} | jq -r .Meta.${what}",
             returnStdout: true
     ).trim()
 }
