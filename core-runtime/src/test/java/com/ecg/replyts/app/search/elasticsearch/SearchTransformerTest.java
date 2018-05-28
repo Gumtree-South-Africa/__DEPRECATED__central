@@ -5,6 +5,7 @@ import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.action.search.SearchAction;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.junit.Before;
@@ -46,8 +47,8 @@ public class SearchTransformerTest {
         payload.setOrdering(SearchMessagePayload.ResultOrdering.NEWEST_FIRST);
         payload.setCount(1);
 
-        SearchTransformer transformer = new SearchTransformer(payload, elasticsearchClient, "replyts");
-        SearchRequestBuilder searchRequestBuilder = transformer.intoQuery();
+        SearchTransformer transformer = new SearchTransformer(payload, "replyts");
+        SearchRequest searchRequestBuilder = transformer.intoQuery();
 
         JsonNode jsonNode = new ObjectMapper().readTree(searchRequestBuilder.toString());
         assertNotNull(jsonNode.get("query").get("bool").get("must"));
