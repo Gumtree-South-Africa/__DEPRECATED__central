@@ -10,6 +10,8 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * REMOVE THIS CLIENT ONCE ELASTIC SUPPORTS DELETE BY QUERY IN HIGH LEVEL REST CLIENT!
@@ -21,10 +23,16 @@ public class ElasticDeleteClient implements AutoCloseable {
     private final JerseyClient client;
     private final JerseyWebTarget target;
 
-    public ElasticDeleteClient(String baseUri, String indexName) {
+    public ElasticDeleteClient(String elasticsearchUri, String indexName) {
         this.client = JerseyClientBuilder.createClient();
-        UriBuilder deleteUri = UriBuilder.fromUri("https://" + baseUri).port(443).path(indexName).path("_delete_by_query");
-        this.target = client.target(deleteUri);
+
+        URI uri;
+        try {
+            uri = new URI(elasticsearchUri + "/" + indexName + "/_delete_by_query");
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Incorrect parsing of Elasticsearch URI", e);
+        }
+        this.target = client.target(uri);
     }
 
     public void delete(String query) {
