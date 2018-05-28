@@ -25,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 
 import static com.ecg.replyts.core.api.util.JsonObjects.builder;
@@ -48,7 +49,13 @@ public class SearchServiceAcceptanceTest {
     private final String uuid = UUID.randomUUID().toString();
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(createProperties(), ES_ENABLED);
+
+    private static Properties createProperties() {
+        Properties properties = new Properties();
+        properties.setProperty("search.es.api.endpoint", "http://localhost:9250");
+        return properties;
+    }
 
     @Before
     public void setup() {
