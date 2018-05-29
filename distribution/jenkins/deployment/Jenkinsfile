@@ -117,11 +117,14 @@ void downloadFileFromGithub(final String version, final String tenant, final Str
 void loadPropsIntoConsul(final String tenant, final String version, final String environmentShort) {
     downloadFileFromGithub(version, tenant, environmentShort)
 
-    commonFunctions.loginToDocker()
+    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
+                      usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
+        sh "docker login -u $DOCKER_USER -p $DOCKER_PASS docker-registry.ecg.so"
+    }
 
     final String status = sh(
             script: "docker run --network host --rm --volume \$(pwd)/props.properties:/props.properties " +
-                    "dock.es.ecg.tools/comaas/properties-to-consul:0.0.7 -tenant ${tenant}",
+                    "docker-registry.ecg.so/comaas/properties-to-consul:0.0.7 -tenant ${tenant}",
             returnStatus: true
     )
     if (status != "0") {
@@ -139,17 +142,9 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
     tagToCheckout = "refs/tags/$version"
     checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[credentialsId: 'GITHUB', url: 'git@github.corp.ebay.com:ecg-comaas/central.git']], branches: [[name: tagToCheckout]]], poll: false
 
-    def secrets = [
-            [
-                    $class: 'VaultSecret',
-                    path: 'secret/nomad/dock.es.ecg.tools/comaas+robot_upload',
-                    secretValues: [
-                            [$class: 'VaultSecretValue', envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
-                            [$class: 'VaultSecretValue', envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
-                    ],
-            ],
-    ]
-    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
+    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'docker-registry',
+                      usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS']]) {
+
         // Remove after https://jira.corp.ebay.com/browse/COMAAS-950 is fixed
         urlprefixes = ""
         if (tenantShort == 'au') {
@@ -165,8 +160,7 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
         final String vars = "-var-file=/deployment/environments/${environment}.tf " +
                 "-var='version=${version}' " +
                 "-var='urlprefixes=${urlprefixes}' " +
-                "-var='docker_username=${DOCKER_USERNAME}' " +
-                "-var='docker_password=${DOCKER_PASSWORD}' " +
+                "-var='docker_password=${DOCKER_PASS}' " +
                 "-var='tenant=${tenant}' " +
                 "-var='tenant_short=${tenantShort}' " +
                 "-var='environment=${environment}' " +
@@ -176,8 +170,8 @@ void deployToEnv(final String tenant, final String artifact, final String enviro
                 "-var='deploy_jenkins_job_nr=${deployJenkinsJob}' "
         final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
-        sh "$levantCmd render ${vars} /deployment/comaas.nomad"
-        sh "$levantCmd deploy ${vars} -force-count=true -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/comaas.nomad"
+        sh "$levantCmd render ${vars} /deployment/core-api.nomad"
+        sh "$levantCmd deploy ${vars} -force-count=true -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/core-api.nomad"
     }
 }
 
