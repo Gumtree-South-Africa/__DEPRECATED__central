@@ -25,19 +25,8 @@ public class DefaultCategoryClient implements CategoryClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultCategoryClient.class);
 
-    private static final BiPredicate<Response, Exception> FAILED_INVOCATION = (response, ex) -> {
-       if (ex != null) {
-           LOG.warn("CategoryClient invocation failed with an exception.", ex.getMessage());
-           return true;
-       }
-
-       if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-           LOG.warn("CategoryClient invocation failed with a wrong status code: " + response.getStatus());
-           return true;
-       }
-
-       return false;
-    };
+    private static final BiPredicate<Response, Exception> FAILED_INVOCATION = (response, ex) ->
+       ex != null || response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL;
 
     private final JerseyClient client;
     private final RetryPolicy retryPolicy;

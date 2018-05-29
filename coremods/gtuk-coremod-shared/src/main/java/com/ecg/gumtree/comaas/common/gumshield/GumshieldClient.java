@@ -18,19 +18,8 @@ public class GumshieldClient implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(GumshieldClient.class);
 
-    private static final BiPredicate<Response, Exception> FAILED_INVOCATION = (response, ex) -> {
-        if (ex != null) {
-            LOG.warn("GumshieldClient invocation failed with an exception.", ex.getMessage());
-            return true;
-        }
-
-        if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-            LOG.warn("GumshieldClient invocation failed with a wrong status code: " + response.getStatus());
-            return true;
-        }
-
-        return false;
-    };
+    private static final BiPredicate<Response, Exception> FAILED_INVOCATION = (response, ex) ->
+        ex != null || response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL;
 
     private final JerseyClient client;
     private final RetryPolicy retryPolicy;
@@ -58,7 +47,7 @@ public class GumshieldClient implements AutoCloseable {
 
         boolean result = response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL;
         if (!result) {
-            LOG.info("Could not find checklist entry: URL: " + target.getUri().toString() + ", Status code: " + response.getStatus());
+            LOG.warn("Could not find checklist entry: URL: " + target.getUri().toString() + ", Status code: " + response.getStatus());
         }
 
         return result;
@@ -72,7 +61,7 @@ public class GumshieldClient implements AutoCloseable {
 
         boolean result = response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL;
         if (!result) {
-            LOG.info("Could not find knownGood entry: URL: " + target.getUri().toString() + ", Status code: " + response.getStatus());
+            LOG.warn("Could not find knownGood entry: URL: " + target.getUri().toString() + ", Status code: " + response.getStatus());
             return false;
         }
 
