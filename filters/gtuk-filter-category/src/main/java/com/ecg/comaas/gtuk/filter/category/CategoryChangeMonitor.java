@@ -47,7 +47,7 @@ public class CategoryChangeMonitor implements ApplicationListener<ApplicationRea
 
             if (optVersion.isPresent()) {
                 String obtainedVersion = optVersion.get();
-                if (currentVersion == null || currentVersion.equals(obtainedVersion)) {
+                if (currentVersion == null || !currentVersion.equals(obtainedVersion)) {
                     handleNewVersion(obtainedVersion);
                 }
             }
@@ -62,6 +62,7 @@ public class CategoryChangeMonitor implements ApplicationListener<ApplicationRea
         Optional<Category> optCategory = categoryClient.categoryTree();
 
         if (optCategory.isPresent()) {
+            LOG.info("Category version was upgraded to: " + newVersion);
             this.currentVersion = newVersion;
             this.reloadable.reload(optCategory.get());
         }
