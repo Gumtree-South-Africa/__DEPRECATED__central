@@ -25,7 +25,14 @@ public final class TimingReports {
 
     static {
         try {
-            hostName = InetAddress.getLocalHost().getCanonicalHostName().replaceAll("\\.", "_");
+            if (System.getenv().containsKey("NOMAD_JOB_NAME")) {
+                hostName = String.format("%s_%s_%s",
+                        System.getenv("NOMAD_JOB_NAME"),
+                        System.getenv("NOMAD_GROUP_NAME"),
+                        System.getenv("NOMAD_ALLOC_INDEX"));
+            } else {
+                hostName = InetAddress.getLocalHost().getCanonicalHostName().replaceAll("\\.", "_");
+            }
         } catch (UnknownHostException e) {
             LOG.error("can not get local host name ", e);
         } finally {
