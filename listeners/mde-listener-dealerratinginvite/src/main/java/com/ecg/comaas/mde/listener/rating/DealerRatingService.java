@@ -4,7 +4,6 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.google.common.collect.Lists;
 import com.google.gson.GsonBuilder;
-import de.mobile.dealer.rating.invite.EmailInviteEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.ErrorHandler;

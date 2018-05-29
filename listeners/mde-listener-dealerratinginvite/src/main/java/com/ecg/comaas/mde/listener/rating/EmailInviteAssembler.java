@@ -1,9 +1,8 @@
 package com.ecg.comaas.mde.listener.rating;
 
+import com.ecg.comaas.mde.listener.rating.model.EmailInviteTriggerType;
 import com.ecg.replyts.core.api.model.conversation.Message;
 
-import de.mobile.dealer.rating.invite.EmailInviteEntity;
-import de.mobile.dealer.rating.invite.EmailInviteTriggerType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -37,7 +36,7 @@ public final class EmailInviteAssembler {
 
     static EmailInviteEntity assemble(final Message message, final String conversationId) {
         final EmailInviteEntity emailInviteEntity = new EmailInviteEntity();
-        emailInviteEntity.setTriggerType(EmailInviteTriggerType.BY_CONTACT_MESSAGE);
+        emailInviteEntity.setTriggerType("BY_CONTACT_MESSAGE");
 
         final Map<String, String> headers = message.getHeaders();
         getLongHeader(HEADER_AD_ID, headers).ifPresent(emailInviteEntity::setAdId);

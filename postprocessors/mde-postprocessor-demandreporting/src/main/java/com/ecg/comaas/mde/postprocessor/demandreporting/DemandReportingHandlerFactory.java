@@ -1,6 +1,7 @@
 package com.ecg.comaas.mde.postprocessor.demandreporting;
 
-import de.mobile.reporting.demand.client.WritingDemandReportingClient;
+
+import com.ecg.comaas.mde.postprocessor.demandreporting.client.WritingDemandReportingClient;
 
 public class DemandReportingHandlerFactory {
     private WritingDemandReportingClient writingDemandReportingClient;

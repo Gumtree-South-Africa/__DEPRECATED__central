@@ -553,7 +553,6 @@
         <!-- Make sure that the exec plugin by default does not run in the 'verify' phase, unless this variable is overridden (by for example, a task runner (see ../README)) -->
 
         <maven.exec.skip>true</maven.exec.skip>
-        <cs-filter-shared.version>1.5</cs-filter-shared.version>
         <mongo-java-driver-version>2.14.3</mongo-java-driver-version>
         <openstack4j.version>3.0.4</openstack4j.version>
         <amqp-client-version>3.4.2</amqp-client-version>
@@ -671,16 +670,6 @@
         <gt.gumtree.common.version>${gumtree.dependencies.version}</gt.gumtree.common.version>
         <gt.comaas.models.version>1.8</gt.comaas.models.version>
         <gt.geoip.lib.version>1.0.0</gt.geoip.lib.version>
-
-        <!-- mde artifact versions -->
-        <mde-demand-reporting-client.version>1.17</mde-demand-reporting-client.version>
-        <mde-event-collector-domain.version>2.1</mde-event-collector-domain.version>
-
-        <mde-utils.version>0.16</mde-utils.version>
-        <mde-translations.version>LATEST-SNAPSHOT</mde-translations.version>
-
-        <mde-dealer-rating-domain.version>0.140</mde-dealer-rating-domain.version>
-        <mde-visitor-info-domain.version>3.0.1</mde-visitor-info-domain.version>
 
         <!-- kjca artifact versions -->
         <sentry-version>7.1.0</sentry-version>
@@ -2231,32 +2220,6 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>de.mobile.cs.filter</groupId>
-                <artifactId>cs-filter-shared</artifactId>
-                <version>${cs-filter-shared.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>de.mobile.analytics</groupId>
-                <artifactId>event-collector-domain</artifactId>
-                <version>${mde-event-collector-domain.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>de.mobile.dealer.rating</groupId>
-                <artifactId>dealer-rating-domain</artifactId>
-                <version>${mde-dealer-rating-domain.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.mongodb</groupId>
-                        <artifactId>mongo-java-driver</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>de.mobile</groupId>
-                <artifactId>visitor-info-domain</artifactId>
-                <version>${mde-visitor-info-domain.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.googlecode.junit-toolbox</groupId>
                 <artifactId>junit-toolbox</artifactId>
                 <version>${junit-toolbox.version}</version>
@@ -2275,31 +2238,6 @@
                         <artifactId>okhttp</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>de.mobile</groupId>
-                <artifactId>mobile-utils</artifactId>
-                <version>${mde-utils.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>de.mobile.translations</groupId>
-                <artifactId>mobile-translations</artifactId>
-                <version>${mde-translations.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.apache.maven</groupId>
-                        <artifactId>maven-project</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.freemarker</groupId>
-                        <artifactId>freemarker</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>de.mobile.translations</groupId>
-                <artifactId>mobile-pregenerated-resourcebundles</artifactId>
-                <version>${mde-translations.version}</version>
             </dependency>
 
             <!-- JRest -->

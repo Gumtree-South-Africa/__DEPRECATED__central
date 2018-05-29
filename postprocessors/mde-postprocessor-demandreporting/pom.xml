@@ -25,14 +25,6 @@
         </dependency>
 
         <dependency>
-            <groupId>de.mobile.reporting.demand</groupId>
-            <artifactId>demand-reporting-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.mobile.analytics</groupId>
-            <artifactId>event-collector-domain</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>

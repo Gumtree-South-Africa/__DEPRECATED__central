@@ -32,19 +32,6 @@
             <groupId>com.squareup.retrofit</groupId>
             <artifactId>retrofit</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>de.mobile.dealer.rating</groupId>
-            <artifactId>dealer-rating-domain</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.mobile</groupId>
-            <artifactId>visitor-info-domain</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>ecg.comaas</groupId>

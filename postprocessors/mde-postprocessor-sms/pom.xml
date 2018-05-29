@@ -21,19 +21,6 @@
         </dependency>
 
         <dependency>
-            <groupId>de.mobile</groupId>
-            <artifactId>mobile-utils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.mobile.translations</groupId>
-            <artifactId>mobile-translations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.mobile.translations</groupId>
-            <artifactId>mobile-pregenerated-resourcebundles</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.squareup.retrofit</groupId>
             <artifactId>retrofit</artifactId>
         </dependency>

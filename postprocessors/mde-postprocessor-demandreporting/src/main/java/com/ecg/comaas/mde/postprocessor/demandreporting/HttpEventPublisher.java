@@ -1,6 +1,6 @@
 package com.ecg.comaas.mde.postprocessor.demandreporting;
 
-import de.mobile.analytics.domain.Event;
+import com.ecg.comaas.mde.postprocessor.demandreporting.domain.Event;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;

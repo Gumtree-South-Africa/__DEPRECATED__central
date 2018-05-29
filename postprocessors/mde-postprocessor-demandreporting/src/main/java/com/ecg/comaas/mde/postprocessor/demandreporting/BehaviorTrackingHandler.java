@@ -1,11 +1,11 @@
 package com.ecg.comaas.mde.postprocessor.demandreporting;
 
+import com.ecg.comaas.mde.postprocessor.demandreporting.domain.CommonEventData;
+import com.ecg.comaas.mde.postprocessor.demandreporting.domain.EmailContactEvent;
+import com.ecg.comaas.mde.postprocessor.demandreporting.domain.Event;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import de.mobile.analytics.domain.CommonEventData;
-import de.mobile.analytics.domain.Event;
-import de.mobile.analytics.domain.contact.EmailContactEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -113,8 +113,8 @@ public class BehaviorTrackingHandler {
     private void sendEvent(Event eventEntry) {
         if (!eventQueue.offer(eventEntry)) {
             logger.warn("Sending queue full - Skip event with type {} and txId {}",
-                        eventEntry.getEventType(),
-                        eventEntry.getCommonEventData().getTxId()
+                    eventEntry.getEventType(),
+                    eventEntry.getCommonEventData().getTxId()
             );
         }
     }

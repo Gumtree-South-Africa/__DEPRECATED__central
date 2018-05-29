@@ -1,8 +1,8 @@
 package com.ecg.comaas.mde.postprocessor.demandreporting;
 
+import com.ecg.comaas.mde.postprocessor.demandreporting.client.Event;
+import com.ecg.comaas.mde.postprocessor.demandreporting.client.WritingDemandReportingClient;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import de.mobile.reporting.demand.client.Event;
-import de.mobile.reporting.demand.client.WritingDemandReportingClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;

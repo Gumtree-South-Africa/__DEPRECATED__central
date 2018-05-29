@@ -1,6 +1,5 @@
 package com.ecg.comaas.mde.listener.rating;
 
-import com.ecg.comaas.mde.listener.rating.DealerRatingService;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import de.mobile.dealer.rating.invite.EmailInviteEntity;
 import org.junit.Test;
