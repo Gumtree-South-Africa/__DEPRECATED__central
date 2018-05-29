@@ -19,6 +19,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -128,8 +130,8 @@ public class MailInterceptor implements BeanPostProcessor {
             }
 
             @Override
-            public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context) {
-                return realCoordinator.handleContext(bytes, context);
+            public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context, @Nullable String tenantId) {
+                return realCoordinator.handleContext(bytes, context, tenantId);
             }
 
             private void markMessageAsProcessed(String messageId) {

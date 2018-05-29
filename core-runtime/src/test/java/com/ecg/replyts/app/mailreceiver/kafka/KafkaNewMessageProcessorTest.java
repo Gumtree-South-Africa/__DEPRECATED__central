@@ -131,7 +131,7 @@ public class KafkaNewMessageProcessorTest {
     @Test
     @SuppressWarnings("unchecked")
     public void unparseableMessageWritesToUnparseableTopic() throws Exception {
-        when(messageProcessingCoordinator.handleContext(any(), any())).thenThrow(ParsingException.class);
+        when(messageProcessingCoordinator.handleContext(any(), any(), any())).thenThrow(ParsingException.class);
         final Message wanted = setUpTest(0);
 
         kafkaNewMessageProcessor.processNext();
@@ -147,7 +147,7 @@ public class KafkaNewMessageProcessorTest {
     @Test
     @SuppressWarnings("unchecked")
     public void failedMessageWritesToAbandonedTopicIfTooManyRetries() throws Exception {
-        when(messageProcessingCoordinator.handleContext(any(), any())).thenThrow(IOException.class);
+        when(messageProcessingCoordinator.handleContext(any(), any(), any())).thenThrow(IOException.class);
         final Message wanted = setUpTest(MAX_RETRIES);
 
         kafkaNewMessageProcessor.processNext();
@@ -163,7 +163,7 @@ public class KafkaNewMessageProcessorTest {
     @Test
     @SuppressWarnings("unchecked")
     public void failedMessageWritesToRetryTopicIfRetryCountAllows() throws Exception {
-        when(messageProcessingCoordinator.handleContext(any(), any())).thenThrow(IOException.class);
+        when(messageProcessingCoordinator.handleContext(any(), any(), any())).thenThrow(IOException.class);
         when(mutableConversationRepository.getById(any())).thenReturn(mutableConversation);
 
         final Message wanted = setUpTest(2);
