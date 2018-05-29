@@ -51,7 +51,6 @@ job "comaas-[[ .tenant_short ]]" {
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
-        ES_ENABLED = false
       }
 
       service {
@@ -151,7 +150,6 @@ EOH
         HEAP_SIZE = "[[ .comaas_heap_size ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
-        ES_ENABLED = true
         ESAAS_USERNAME = "[[ .esaas_username ]]"
         ESAAS_PASSWORD = "[[ .esaas_password ]]"
       }
@@ -264,7 +262,6 @@ EOH
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
-        ES_ENABLED = false
       }
 
       service {

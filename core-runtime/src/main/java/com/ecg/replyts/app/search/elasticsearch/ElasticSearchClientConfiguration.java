@@ -14,7 +14,6 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,7 +24,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Configuration
-@ConditionalOnExpression(value = "#{systemEnvironment['ES_ENABLED'] == 'true'}")
 public class ElasticSearchClientConfiguration {
 
     private static final Consumer<String[]> ENDPOINT_CHECK = endpoint -> {
@@ -37,8 +35,8 @@ public class ElasticSearchClientConfiguration {
     @Bean(destroyMethod = "close")
     public RestClient elasticRestClient(
             @Value("${search.es.api.endpoint:http://localhost:9250}") String endpoint,
-            @Value("${search.es.api.username:#{systemEnvironment['ESAAS_USERNAME']}}") String username,
-            @Value("${search.es.api.password:#{systemEnvironment['ESAAS_PASSWORD']}}") String password
+            @Value("#{systemEnvironment['ESAAS_USERNAME'] ?: 'not_used'}") String username,
+            @Value("#{systemEnvironment['ESAAS_PASSWORD'] ?: 'not_used'}") String password
     ) {
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
