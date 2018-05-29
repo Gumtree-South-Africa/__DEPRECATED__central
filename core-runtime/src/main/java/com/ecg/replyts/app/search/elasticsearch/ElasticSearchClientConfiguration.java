@@ -1,6 +1,5 @@
 package com.ecg.replyts.app.search.elasticsearch;
 
-import com.datastax.driver.core.Host;
 import com.google.common.base.Splitter;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -34,9 +33,13 @@ public class ElasticSearchClientConfiguration {
     };
 
     @Bean(destroyMethod = "close")
-    public RestClient elasticRestClient(@Value("${search.es.api.endpoint:http://localhost:9250}") String endpoint) {
+    public RestClient elasticRestClient(
+            @Value("${search.es.api.endpoint:http://localhost:9250}") String endpoint,
+            @Value("${search.es.api.username:#{systemEnvironment['ESAAS_USERNAME']}}") String username,
+            @Value("${search.es.api.password:#{systemEnvironment['ESAAS_PASSWORD']}}") String password
+    ) {
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("comaas", "DAWjeY46AAR48wEK"));
+        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
 
         URI uri = URI.create(endpoint);
         return RestClient.builder(new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme()))
@@ -45,12 +48,12 @@ public class ElasticSearchClientConfiguration {
     }
 
     @Bean
-    public ElasticSearchSearchService elasticService(
+    public ElasticSearchService elasticService(
             @Value("${search.es.indexname:replyts}") String indexName,
             RestClient client,
             ElasticDeleteClient deleteClient) {
 
-        return new ElasticSearchSearchService(new RestHighLevelClient(client), deleteClient, indexName);
+        return new ElasticSearchService(new RestHighLevelClient(client), deleteClient, indexName);
     }
 
     @Bean(destroyMethod = "close")

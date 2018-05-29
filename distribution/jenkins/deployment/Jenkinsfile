@@ -149,6 +149,14 @@ void deployNomad(final String tenant, final String environment, final String ver
                             [$class: 'VaultSecretValue', envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
                     ],
             ],
+            [
+                    $class      : 'VaultSecret',
+                    path        : "secret/nomad/${environment}/esaas",
+                    secretValues: [
+                            [$class: 'VaultSecretValue', envVar: 'ESAAS_USERNAME', vaultKey: 'username'],
+                            [$class: 'VaultSecretValue', envVar: 'ESAAS_PASSWORD', vaultKey: 'password']
+                    ],
+            ]
     ]
     wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
         // Remove after https://jira.corp.ebay.com/browse/COMAAS-950 is fixed
@@ -174,6 +182,8 @@ void deployNomad(final String tenant, final String environment, final String ver
                 "-var='urlprefixes=${urlprefixes}' " +
                 "-var='docker_username=${DOCKER_USERNAME}' " +
                 "-var='docker_password=${DOCKER_PASSWORD}' " +
+                "-var='esaas_username=${ESAAS_USERNAME}' " +
+                "-var='esaas_password=${ESAAS_PASSWORD}' " +
                 "-var='tenant=${tenant}' " +
                 "-var='tenant_short=${tenantShort}' " +
                 "-var='environment=${environment}' " +
