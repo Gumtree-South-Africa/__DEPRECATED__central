@@ -49,32 +49,30 @@ public class GumshieldClient implements AutoCloseable {
     }
 
     public boolean existsEntryByValue(ApiChecklistType type, ApiChecklistAttribute attribute, String value) {
-        Response response = Failsafe.with(retryPolicy).get(() ->
-                target.path("/checklists/{type}/{attribute}/{value}")
-                        .resolveTemplate("type", type)
-                        .resolveTemplate("attribute", attribute)
-                        .resolveTemplate("value", value)
-                        .request()
-                        .get());
+        WebTarget target = this.target.path("/checklists/{type}/{attribute}/{value}")
+                .resolveTemplate("type", type)
+                .resolveTemplate("attribute", attribute)
+                .resolveTemplate("value", value);
+
+        Response response = Failsafe.with(retryPolicy).get(() -> target.request().get());
 
         boolean result = response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL;
         if (!result) {
-            LOG.info("Could not find checklist entry for " + attribute + ", Status code: " + response.getStatus());
+            LOG.info("Could not find checklist entry: URL: " + target.getUri().toString() + ", Status code: " + response.getStatus());
         }
 
         return result;
     }
 
     public boolean knownGood(long id) {
-        Response response = Failsafe.with(retryPolicy).get(() ->
-                target.path("/users/{id}/known-good")
-                        .resolveTemplate("id", id)
-                        .request(MediaType.APPLICATION_JSON)
-                        .get());
+        WebTarget target = this.target.path("/users/{id}/known-good")
+                .resolveTemplate("id", id);
+
+        Response response = Failsafe.with(retryPolicy).get(() -> target.request(MediaType.APPLICATION_JSON).get());
 
         boolean result = response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL;
         if (!result) {
-            LOG.info("Could not find knownGood entry for '" + id + "', Status code: " + response.getStatus());
+            LOG.info("Could not find knownGood entry: URL: " + target.getUri().toString() + ", Status code: " + response.getStatus());
             return false;
         }
 
