@@ -11,6 +11,8 @@ job "comaas-[[ .tenant_short ]]" {
     deploy_jenkins_job_nr = "[[.deploy_jenkins_job_nr]]"
     restart_jenkins_job_nr = "[[.restart_jenkins_job_nr]]"
     version = "[[.version]]"
+    esaas_username = "[[ .esaas_username ]]"
+    esaas_password = "[[ .esaas_password ]]"
   }
 
   update {
@@ -148,6 +150,8 @@ EOH
         HEAP_SIZE = "[[ .comaas_heap_size ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
+        ESAAS_USERNAME = "[[ .esaas_username ]]"
+        ESAAS_PASSWORD = "[[ .esaas_password ]]"
       }
 
       service {
@@ -229,6 +233,7 @@ EOH
       }
     }
   },
+
   group "cronjob" {
 
     # temporarily disabling cronjob nodes for avoiding OOM errors

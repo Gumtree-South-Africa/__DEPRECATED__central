@@ -12,9 +12,6 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.index.reindex.DeleteByQueryAction;
-import org.elasticsearch.index.reindex.DeleteByQueryRequest;
-import org.elasticsearch.index.reindex.DeleteByQueryRequestBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
@@ -27,14 +24,14 @@ import java.util.List;
 import static java.lang.String.format;
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 
-public class ElasticSearchSearchService implements SearchService, MutableSearchService {
-    private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchSearchService.class);
+public class ElasticSearchService implements SearchService, MutableSearchService {
+    private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchService.class);
 
     private final RestHighLevelClient client;
     private final ElasticDeleteClient deleteClient;
     private final String indexName;
 
-    ElasticSearchSearchService(RestHighLevelClient client, ElasticDeleteClient deleteClient, String indexName) {
+    ElasticSearchService(RestHighLevelClient client, ElasticDeleteClient deleteClient, String indexName) {
         this.client = client;
         this.deleteClient = deleteClient;
         this.indexName = indexName;
