@@ -14,6 +14,7 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,6 +25,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Configuration
+@ConditionalOnExpression(value = "#{systemEnvironment['ES_ENABLED'] == 'true'}")
 public class ElasticSearchClientConfiguration {
 
     private static final Consumer<String[]> ENDPOINT_CHECK = endpoint -> {
