@@ -1,18 +1,23 @@
 package com.ecg.comaas.mde.postprocessor.demandreporting.client.internal;
 
-import com.ecg.comaas.mde.postprocessor.demandreporting.client.DemandReport;
-import com.mongodb.*;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.MongoOptions;
+import com.mongodb.ServerAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 
 public class MongoSupport {
 
-    final static Logger logger = LoggerFactory.getLogger(MongoReadingDemandReportingClient.class);
+    final static Logger logger = LoggerFactory.getLogger(MongoSupport.class);
 
     final static String FIELD_CUSTOMER_ID = "customer_id";
 
@@ -41,83 +46,6 @@ public class MongoSupport {
 
     static boolean isNullOrEmpty(String arg) {
         return arg == null || arg.trim().length() == 0;
-    }
-
-    static Map<Long, DemandReport> findDemandByQuery(DBCollection collection, DBObject query, String period) {
-        DBObject keys = BasicDBObjectBuilder.start(period, 1).add(ReportedEventField.AD_ID, 1).get();
-        logger.debug("Query: {} - Keys: {}", query, keys);
-        final DBCursor cursor = collection.find(query, keys);
-        final Map<Long, DemandReport> reports = new HashMap<Long, DemandReport>();
-        while (cursor.hasNext()) {
-            DBObject dbObject = cursor.next();
-            DemandReport demandReport = convert(dbObject, period);
-            if (demandReport != null) {
-                Number adId = (Number) dbObject.get(ReportedEventField.AD_ID);
-                reports.put(adId.longValue(), demandReport);
-            }
-        }
-        return reports;
-    }
-
-    static DemandReport findCustomerDemandByQuery(DBCollection collection, DBObject query, String period) {
-        DBObject keys = BasicDBObjectBuilder.start(period, 1).get();
-        logger.debug("Query: {} - Keys: {}", query, keys);
-        final DBCursor cursor = collection.find(query, keys);
-        if (cursor.hasNext()) {
-            DBObject dbObject = cursor.next();
-            return convert(dbObject, period);
-        }
-        return null;
-    }
-
-    static Map<String, DemandReport> findDemandByQuery(DBCollection collection, DBObject query,
-                                                       Collection<String> periods) {
-        logger.debug("Query: {}", query);
-        final DBCursor cursor = collection.find(query);
-        final Map<String, DemandReport> reports = new HashMap<String, DemandReport>();
-        if (cursor.hasNext()) {
-            DBObject dbObject = cursor.next();
-            for (String period : periods) {
-                reports.put(period, convert(dbObject, period));
-            }
-        }
-        return reports;
-    }
-
-    static DemandReport convert(DBObject dbObject, String period) {
-        DBObject subDocument = (DBObject) dbObject.get(period);
-        if (subDocument == null) {
-            // logger.debug("Missing field '{}' in mongo object", subDocumentName);
-            return null;
-        }
-        DemandReport.Builder builder = new DemandReport.Builder();
-
-        DBObject publishers = (DBObject) subDocument.get(ReportedEventField.PUBLISHER);
-        if (publishers != null) {
-            builder.perPublisher(convert2Map(publishers));
-        }
-        DBObject referrers = (DBObject) subDocument.get(ReportedEventField.REFERRER);
-        if (referrers != null) {
-            builder.perReferrer(convert2Map(referrers));
-        }
-
-        Number total = (Number) subDocument.get("total");
-        builder.total(total.longValue());
-        return builder.build();
-    }
-
-    static Map<String, Long> convert2Map(DBObject dbObject) {
-        Map<String, Long> map = new HashMap<String, Long>();
-        for (String key : dbObject.keySet()) {
-            Object o = dbObject.get(key);
-            if (o instanceof Number) {
-                Number amount = (Number) dbObject.get(key);
-                map.put(key, amount.longValue());
-            } else {
-                logger.warn("Document contains unexpected sub documents. {}", dbObject);
-            }
-        }
-        return map;
     }
 
     static DBCollection getCollection(DB db, String eventType) {

@@ -26,8 +26,12 @@ class DemandReportingHandler {
                 long adId = Utils.adIdStringToAdId(adIdString);
                 long customerId = customerId(messageProcessingContext);
                 String publisher = publisher(messageProcessingContext);
-                Event.Builder eventBuilder = new Event.Builder().adId(adId)
-                        .customerId(customerId).publisher(publisher).eventType(EVENT_TYPE);
+                Event.Builder eventBuilder = new Event.Builder()
+                        .adId(adId)
+                        .customerId(customerId)
+                        .publisher(publisher)
+                        .eventType(EVENT_TYPE);
+
                 writingDemandReportingClient.report(eventBuilder.get());
             }
         } catch (Exception e) {

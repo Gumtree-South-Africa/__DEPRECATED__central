@@ -32,30 +32,15 @@ public class MongoDBWritingReportingClient implements WritingDemandReportingClie
 
     private volatile String today = getFormattedDate();
 
-    public MongoDBWritingReportingClient(String mongoHostUrls, int concurrentConnections) throws UnknownHostException,
-            MongoException {
-        this(mongoHostUrls, defaultMongoOptions(concurrentConnections));
-    }
-
-    public MongoDBWritingReportingClient(String mongoHostUrls, int concurrentConnections, String dbName)
-            throws UnknownHostException, MongoException {
-        this(mongoHostUrls, defaultMongoOptions(concurrentConnections), dbName);
-    }
-
-    public MongoDBWritingReportingClient(String mongoHostUrls, MongoOptions options) throws UnknownHostException,
-            MongoException {
-        this(mongoHostUrls, options, "demand_reporting");
-    }
-
-    public MongoDBWritingReportingClient(String mongoHostUrls, MongoOptions options, String dbName)
-            throws UnknownHostException, MongoException {
+    public MongoDBWritingReportingClient(String mongoHostUrls, int concurrentConnections, String dbName) throws UnknownHostException, MongoException {
         final List<ServerAddress> mongoHosts = parseMongoHosts(mongoHostUrls);
         active = !mongoHosts.isEmpty();
 
+        MongoOptions options = defaultMongoOptions(concurrentConnections);
         if (active) {
             maxPoolSize = options.connectionsPerHost * 100;
 
-            final LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>(maxPoolSize);
+            final LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(maxPoolSize);
             executorService = new ThreadPoolExecutor(1, options.connectionsPerHost, 5, TimeUnit.MINUTES, queue);
 
             final Mongo writeMongo = new Mongo(mongoHosts, options);
@@ -70,7 +55,6 @@ public class MongoDBWritingReportingClient implements WritingDemandReportingClie
             dateUpdater = null;
             maxPoolSize = 0;
         }
-
     }
 
     @Override
@@ -78,13 +62,11 @@ public class MongoDBWritingReportingClient implements WritingDemandReportingClie
         report(event.getAdId(), event.getCustomerId(), event.getPublisher(), event.getReferrer(), event.getEventType());
     }
 
-    @Override
-    @Deprecated
     public void report(long adId, long customerId, String publisher, String referrer, String eventType)
             throws StorageTooSlowException {
         if (!active) return;
 
-        final Map<String, String> eventProperties = new HashMap<String, String>();
+        final Map<String, String> eventProperties = new HashMap<>();
         if (isValidJsonKey(publisher)) {
             eventProperties.put(ReportedEventField.PUBLISHER, publisher);
         }
@@ -92,7 +74,7 @@ public class MongoDBWritingReportingClient implements WritingDemandReportingClie
             eventProperties.put(ReportedEventField.REFERRER, referrer);
         }
 
-        final Map<String, Map<String, String>> combinedEventProperties = new HashMap<String, Map<String, String>>();
+        final Map<String, Map<String, String>> combinedEventProperties = new HashMap<>();
         if (isValidJsonKey(referrer)) {
             Map<String, String> featureDetails = new HashMap<String, String>();
             featureDetails.put(referrer, isValidJsonKey(publisher) ? publisher : null);
@@ -107,60 +89,6 @@ public class MongoDBWritingReportingClient implements WritingDemandReportingClie
         } catch (RejectedExecutionException e) {
             throw new StorageTooSlowException("More than " + maxPoolSize + " store request in queue.");
         }
-    }
-
-    /**
-     * increase counter by one which is the normal way to add an event
-     */
-    @Override
-    public void reportCustomerEvent(long customerId, String publisher, String referrer, String eventType)
-            throws StorageTooSlowException {
-        if (!active) return;
-
-        final Map<String, String> eventProperties = new HashMap<String, String>();
-        if (isValidJsonKey(publisher)) {
-            eventProperties.put(ReportedEventField.PUBLISHER, publisher);
-        }
-        if (isValidJsonKey(referrer)) {
-            eventProperties.put(ReportedEventField.REFERRER, referrer);
-        }
-
-        try {
-            MongoDBCustomerEntryUpdater updater = new MongoDBCustomerEntryUpdater(customerId, eventProperties,
-                    currentMonth, today, getCollection(db, eventType));
-            executorService.execute(updater);
-        } catch (RejectedExecutionException e) {
-            throw new StorageTooSlowException("More than " + maxPoolSize + " store request in queue.");
-        }
-    }
-
-    /**
-     * increase counter by more than one event which is a special case used by migration jobs for bulk updates
-     */
-    @Override
-    public void reportCustomerEvents(long customerId, String publisher, String referrer, String eventType,
-                                     int numVisits, String date) throws StorageTooSlowException {
-        if (!active) return;
-
-        final Map<String, String> eventProperties = new HashMap<String, String>();
-        if (isValidJsonKey(publisher)) {
-            eventProperties.put(ReportedEventField.PUBLISHER, publisher);
-        }
-        if (isValidJsonKey(referrer)) {
-            eventProperties.put(ReportedEventField.REFERRER, referrer);
-        }
-
-        try {
-            MongoDBCustomerEntryBulkUpdater updater = new MongoDBCustomerEntryBulkUpdater(customerId, eventProperties,
-                    currentMonth, date, getCollection(db, eventType), numVisits);
-            executorService.execute(updater);
-        } catch (RejectedExecutionException e) {
-            throw new StorageTooSlowException("More than " + maxPoolSize + " store request in queue.");
-        }
-    }
-
-    void assertActive() {
-        if (!active) throw new IllegalStateException("not active");
     }
 
     public void shutdown() {
@@ -189,7 +117,5 @@ public class MongoDBWritingReportingClient implements WritingDemandReportingClie
             client.today = getFormattedDate();
             client.currentMonth = getFormattedMonth();
         }
-
     }
-
 }

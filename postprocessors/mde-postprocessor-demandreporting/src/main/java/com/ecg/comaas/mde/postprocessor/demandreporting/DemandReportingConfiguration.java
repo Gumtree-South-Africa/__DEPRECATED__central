@@ -30,7 +30,7 @@ public class DemandReportingConfiguration {
 
     @Bean(destroyMethod = "shutdown")
     public MongoDBWritingReportingClient mongoDBWritingReportingClient() throws UnknownHostException {
-        return new MongoDBWritingReportingClient(mongoDbHosts, mongoDbConcurrency);
+        return new MongoDBWritingReportingClient(mongoDbHosts, mongoDbConcurrency, "demand_reporting");
     }
 
     @Bean(destroyMethod = "shutdownClient")
