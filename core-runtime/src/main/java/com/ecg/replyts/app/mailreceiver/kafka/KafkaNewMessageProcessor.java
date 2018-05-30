@@ -102,7 +102,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             context.addCommand(
                     createAddMessageCommand(kafkaMessage.getPayload().getMessage(), conversation.getId(), context,
                             kafkaMessage.getMetadataMap()));
-            messageProcessingCoordinator.handleContext(Optional.empty(), context, null);
+            messageProcessingCoordinator.handleContext(Optional.empty(), context);
         }
     }
 

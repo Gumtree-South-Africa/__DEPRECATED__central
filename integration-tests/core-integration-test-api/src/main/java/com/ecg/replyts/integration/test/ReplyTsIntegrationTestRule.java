@@ -150,6 +150,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
             testProperties.put("replyts.tenant", "unknown");
         }
 
+        if (!testProperties.containsKey("replyts.tenant.short")) {
+            testProperties.put("replyts.tenant.short", "unknown");
+        }
+
         String configResourceDirectory = configurationResourceDirectory != null ? configurationResourceDirectory : DEFAULT_CONFIG_RESOURCE_DIRECTORY;
         this.testRunner = new IntegrationTestRunner(testProperties, configResourceDirectory, configuration);
     }

@@ -130,8 +130,8 @@ public class MailInterceptor implements BeanPostProcessor {
             }
 
             @Override
-            public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context, @Nullable String tenantId) {
-                return realCoordinator.handleContext(bytes, context, tenantId);
+            public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context) {
+                return realCoordinator.handleContext(bytes, context);
             }
 
             private void markMessageAsProcessed(String messageId) {
