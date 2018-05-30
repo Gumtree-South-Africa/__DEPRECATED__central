@@ -8,19 +8,20 @@ variable docker_password { default = "unset" }
 variable vault_policy { default = "nomad-secret-readonly" }
 
 variable api_count { default = 2 }
-variable api_resources_cpu { default = 1100 }
-variable api_resources_mem { default = 3096 }
+variable api_resources_cpu { default = 1500 }
+variable api_resources_mem { default = 4096 }
 
 variable newmsg_count { default = 2 }
-variable newmsg_resources_cpu { default = 1100 }
-variable newmsg_resources_mem { default = 3096 }
+variable newmsg_resources_cpu { default = 6000 }
+variable newmsg_resources_mem { default = 4096 }
 
 variable cronjob_resources_cpu { default = 100 }
-variable cronjob_resources_mem { default = 1280 }
+variable cronjob_resources_mem { default = 1024 }
 
 variable restart_jenkins_job_nr { default = "none" }
 
-variable comaas_heap_size { default = "2G" }
+variable api_heap_size { default = "2G" }
+variable newmsg_heap_size { default = "3G" }
 variable cronjob_heap_size { default = "768M" }
 
 variable filebeat_config {

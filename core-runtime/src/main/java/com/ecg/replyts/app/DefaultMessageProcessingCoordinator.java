@@ -20,6 +20,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
 import javax.annotation.WillNotClose;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +41,8 @@ import static net.logstash.logback.argument.StructuredArguments.keyValue;
 @Component
 public class DefaultMessageProcessingCoordinator implements MessageProcessingCoordinator {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultMessageProcessingCoordinator.class);
+
+    private static final String TENANT_ID_EMAIL_HEADER = "X-Comaas-Tenant";
 
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("processing-total");
     private static final io.prometheus.client.Counter X_COMAAS_TENANT_COUNTER = io.prometheus.client.Counter.build("ingest_tenant_header_total",
@@ -87,12 +90,16 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 return Optional.empty();
             }
 
-            boolean containsTenantCode = mail.get().containsHeader("X-Comaas-Tenant");
+            // TODO akobiakov: the purpose of the two lines below is to monitor the fact whether the tenants have
+            // started providing an extra headers in the emails originating from their backend (see COMAAS-1046).
+            // As soon as COMAAS-1046 is closed, either this code or this to-do can be removed.
+            boolean containsTenantCode = mail.get().containsHeader(TENANT_ID_EMAIL_HEADER);
             X_COMAAS_TENANT_COUNTER.labels(String.valueOf(containsTenantCode)).inc();
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), messageId);
             setMDC(context);
             contentLengthCounter.inc(bytes.length);
-            return Optional.of(handleContext(Optional.of(bytes), context));
+
+            return Optional.of(handleContext(Optional.of(bytes), context, mail.get().getUniqueHeader(TENANT_ID_EMAIL_HEADER)));
         } catch (ParsingException e) {
             LOG.warn("Could not parse mail with id {}", messageId, e);
             handleTermination(Termination.unparseable(e), messageId, Optional.empty(), Optional.empty(), Optional.of(bytes));
@@ -111,7 +118,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     }
 
     @Override
-    public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context) {
+    public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context, @Nullable String tenantId) {
         setMDC(context);
 
         processingFlow.inputForPreProcessor(context);
@@ -124,7 +131,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                     Optional.ofNullable(((DefaultMutableConversation) context.mutableConversation())),
                     bytes);
         } else {
-            handleSuccess(context, bytes);
+            handleSuccess(context, bytes, tenantId);
         }
         return context.getMessageId();
     }
@@ -138,7 +145,10 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         }
     }
 
-    private void handleSuccess(MessageProcessingContext context, Optional<byte[]> messageBytes) {
+    private void handleSuccess(MessageProcessingContext context, Optional<byte[]> messageBytes, String tenantId) {
+        if (tenantId != null) {
+            context.getOutgoingMail().addHeader(TENANT_ID_EMAIL_HEADER, tenantId);
+        }
         byte[] outgoing = context.getOutgoingMail() != null ? Mails.writeToBuffer(context.getOutgoingMail()) : null;
 
         persister.persistAndIndex(

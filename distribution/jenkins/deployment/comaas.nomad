@@ -45,7 +45,7 @@ job "comaas-[[ .tenant_short ]]" {
       }
 
       env {
-        HEAP_SIZE = "[[ .comaas_heap_size ]]"
+        HEAP_SIZE = "[[ .newmsg_heap_size ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
@@ -145,7 +145,7 @@ EOH
       }
 
       env {
-        HEAP_SIZE = "[[ .comaas_heap_size ]]"
+        HEAP_SIZE = "[[ .api_heap_size ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
       }

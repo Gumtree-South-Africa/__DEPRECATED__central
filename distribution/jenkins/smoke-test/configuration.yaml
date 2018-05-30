@@ -5,5 +5,4 @@ smokeTest:
       lp:
         default: 0.1.25
       prod:
-        mp: 0.1.23
         default: 0.1.24

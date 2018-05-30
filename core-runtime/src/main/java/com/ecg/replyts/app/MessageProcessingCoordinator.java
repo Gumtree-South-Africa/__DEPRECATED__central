@@ -3,6 +3,7 @@ package com.ecg.replyts.app;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 
+import javax.annotation.Nullable;
 import javax.annotation.WillNotClose;
 
 import java.io.IOException;
@@ -19,5 +20,5 @@ public interface MessageProcessingCoordinator {
      */
     Optional<String> accept(@WillNotClose InputStream input) throws IOException, ParsingException;
 
-    String handleContext(Optional<byte[]> bytes, MessageProcessingContext context);
+    String handleContext(Optional<byte[]> bytes, MessageProcessingContext context, @Nullable String tenantId);
 }
