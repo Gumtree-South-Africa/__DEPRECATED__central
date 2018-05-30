@@ -1,16 +1,12 @@
 package com.ecg.comaas.mde.listener.rating;
 
-import com.ecg.comaas.mde.listener.rating.model.EmailInviteTriggerType;
 import com.ecg.replyts.core.api.model.conversation.Message;
-
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,13 +26,15 @@ public final class EmailInviteAssembler {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailInviteAssembler.class);
 
+    public static final String BY_CONTACT_MESSAGE = "BY_CONTACT_MESSAGE";
+
     private EmailInviteAssembler() {
         throw new RuntimeException("use static methods");
     }
 
     static EmailInviteEntity assemble(final Message message, final String conversationId) {
         final EmailInviteEntity emailInviteEntity = new EmailInviteEntity();
-        emailInviteEntity.setTriggerType("BY_CONTACT_MESSAGE");
+        emailInviteEntity.setTriggerType(BY_CONTACT_MESSAGE);
 
         final Map<String, String> headers = message.getHeaders();
         getLongHeader(HEADER_AD_ID, headers).ifPresent(emailInviteEntity::setAdId);
