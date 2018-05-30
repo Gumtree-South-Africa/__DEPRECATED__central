@@ -1,9 +1,17 @@
 package com.ecg.comaas.mde.postprocessor.demandreporting;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.ecg.comaas.mde.postprocessor.demandreporting.domain.CommonEventData;
+import com.ecg.comaas.mde.postprocessor.demandreporting.domain.EmailContactEvent;
+import com.ecg.comaas.mde.postprocessor.demandreporting.domain.Event;
+import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
+import de.bechte.junit.runners.context.HierarchicalContextRunner;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,20 +19,10 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MutableConversation;
-import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
-
-import de.mobile.analytics.domain.CommonEventData;
-import de.mobile.analytics.domain.Event;
-import de.mobile.analytics.domain.contact.EmailContactEvent;
-import de.bechte.junit.runners.context.HierarchicalContextRunner;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(HierarchicalContextRunner.class)
 public class BehaviorTrackingHandlerTest {
