@@ -24,14 +24,13 @@ def checkInputParameters(providedDc, providedTenant) {
     }
 }
 
-String getActiveDC(String tenantLongName, String env) {
+String getActiveDC(String tenantShort, String env) {
     if (env == 'lp') {
         return 'ams1'
     }
 
-    final String tenant = tenantAliases().get(tenantLongName)
     String ip = sh(
-            script: "dig +short ${tenant}.prod.comaas.cloud",
+            script: "dig +short ${tenantShort}.prod.comaas.cloud",
             returnStdout: true
     ).trim()
 
@@ -50,31 +49,31 @@ String getActiveDC(String tenantLongName, String env) {
     return dc
 }
 
-String getMetaInformation(final String what, final String tenantLongName) {
+String getMetaInformation(final String what, final String tenantShort) {
     return sh(
-            script: "curl -sL http://http.nomad.service.consul:4646/v1/job/core-api-${tenantLongName} | jq -r .Meta.${what}",
+            script: "curl -sL http://http.nomad.service.consul:4646/v1/job/comaas-${tenantShort} | jq -r .Meta.${what}",
             returnStdout: true
     ).trim()
 }
 
-String getOriginalDeployNr(final String tenantLongName) {
-    return getMetaInformation("deploy_jenkins_job_nr", tenantLongName)
+String getOriginalDeployNr(final String tenantShort) {
+    return getMetaInformation("deploy_jenkins_job_nr", tenantShort)
 }
 
-String getOriginalVersion(final String tenantLongName) {
-    return getMetaInformation("version", tenantLongName)
+String getOriginalVersion(final String tenantShort) {
+    return getMetaInformation("version", tenantShort)
 }
 
-String getOriginalWantedInstancesHttp(final String tenantLongName) {
-    return getMetaInformation("wanted_instances_api", tenantLongName)
+String getOriginalWantedInstancesHttp(final String tenantShort) {
+    return getMetaInformation("wanted_instances_api", tenantShort)
 }
 
-String getOriginalWantedInstancesNewMsg(final String tenantLongName) {
-    return getMetaInformation("wanted_instances_newmsg", tenantLongName)
+String getOriginalWantedInstancesNewMsg(final String tenantShort) {
+    return getMetaInformation("wanted_instances_newmsg", tenantShort)
 }
 
-String getOriginalRestartJenkinsJobNr(final String tenantLongName) {
-    return getMetaInformation("restart_jenkins_job_nr", tenantLongName)
+String getOriginalRestartJenkinsJobNr(final String tenantShort) {
+    return getMetaInformation("restart_jenkins_job_nr", tenantShort)
 }
 
 node("master") {
@@ -82,11 +81,12 @@ node("master") {
 
     final String environment = PROVIDED_ENV
     String dc = PROVIDED_DC
-    final String tenant = PROVIDED_TENANT
-    final String activeDC = getActiveDC(tenant, environment)
+    final String tenantLong = PROVIDED_TENANT
+    final String tenantShort = tenantAliases().get(tenantLong)
+    final String activeDC = getActiveDC(tenantShort, environment)
     boolean isActiveDC = activeDC == dc
 
-    String description = "$tenant/$dc/$environment/"
+    String description = "$tenantLong/$dc/$environment/"
 
     if (environment == "prod") {
         switch (dc) {
@@ -110,25 +110,24 @@ node("master") {
 
     currentBuild.description = description
 
-    echo "Restarting Comaas for tenant: ${tenant} in " + (isActiveDC ? "ACTIVE" : "") + " dc: ${dc} on env: ${environment}."
+    echo "Restarting Comaas for tenant: ${tenantLong} in " + (isActiveDC ? "ACTIVE" : "") + " dc: ${dc} on env: ${environment}."
 
     stage("Restarting Comaas") {
         node("$environment && $dc") {
-            final String originalDeployJenkinsJobNr = getOriginalDeployNr(tenant)
-            final String version = getOriginalVersion(tenant)
-            final String wantedInstancesHttp = getOriginalWantedInstancesHttp(tenant)
-            final String wantedInstancesNewMsg = getOriginalWantedInstancesNewMsg(tenant)
-            final String originalJenkinsRestartJobNr = getOriginalRestartJenkinsJobNr(tenant)
+
+            final String originalDeployJenkinsJobNr = getOriginalDeployNr(tenantShort)
+            final String version = getOriginalVersion(tenantShort)
+            final String wantedInstancesHttp = getOriginalWantedInstancesHttp(tenantShort)
+            final String wantedInstancesNewMsg = getOriginalWantedInstancesNewMsg(tenantShort)
+            final String originalJenkinsRestartJobNr = getOriginalRestartJenkinsJobNr(tenantShort)
             final String restartJenkinsJob = originalJenkinsRestartJobNr == "none" ? env.BUILD_NUMBER : originalJenkinsRestartJobNr + "," + env.BUILD_NUMBER
 
             parallel core: {
                 ansiColor('xterm') {
-                    sh "PYTHONWARNINGS='ignore' servicecontrol.py --logdir ~ --config /etc/comaas/comaas-${tenant}.yaml --restartservice comaas-${tenant}"
+                    sh "PYTHONWARNINGS='ignore' servicecontrol.py --logdir ~ --config /etc/comaas/comaas-${tenantLong}.yaml --restartservice comaas-${tenantLong}"
                 }
             },
             nomad: {
-                final String tenantShort = tenantAliases().get(tenant)
-
                 // Is this really necessary? Can we pass the files to the builder instead?
                 checkout scm
 
@@ -159,12 +158,12 @@ node("master") {
                             "-var='urlprefixes=${urlprefixes}' " +
                             "-var='docker_username=${DOCKER_USERNAME}' " +
                             "-var='docker_password=${DOCKER_PASSWORD}' " +
-                            "-var='tenant=${tenant}' " +
+                            "-var='tenant=${tenantLong}' " +
                             "-var='tenant_short=${tenantShort}' " +
                             "-var='environment=${environment}' " +
                             "-var='region=${dc}' " +
                             "-var='api_count=${wantedInstancesHttp}' " +
-                            "-var='api_count=${wantedInstancesNewMsg}' " +
+                            "-var='newmsg_count=${wantedInstancesNewMsg}' " +
                             "-var='deploy_jenkins_job_nr=${originalDeployJenkinsJobNr}' " +
                             "-var='restart_jenkins_job_nr=${restartJenkinsJob}' "
                     final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
