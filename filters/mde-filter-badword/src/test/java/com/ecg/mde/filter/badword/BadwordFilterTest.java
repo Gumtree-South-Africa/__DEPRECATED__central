@@ -3,8 +3,6 @@ package com.ecg.mde.filter.badword;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import de.mobile.cs.filter.domain.BadwordDTO;
-import de.mobile.cs.filter.domain.BadwordType;
 import org.junit.Before;
 import org.junit.Test;
 
