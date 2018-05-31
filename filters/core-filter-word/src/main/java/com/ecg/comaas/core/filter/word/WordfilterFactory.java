@@ -9,13 +9,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_IT;
+import static com.ecg.replyts.core.api.model.Tenants.*;
 
 /** Factory that generates wordfilters form a json config that basically contains an array of pattern/score pairs. */
 @ComaasPlugin
-@Profile({TENANT_GTAU, TENANT_EBAYK, TENANT_IT})
+@Profile({TENANT_GTAU, TENANT_EBAYK, TENANT_IT, TENANT_MP})
 @Component
 class WordfilterFactory implements FilterFactory {
 

@@ -149,7 +149,9 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     }
 
     private void handleSuccess(MessageProcessingContext context, Optional<byte[]> messageBytes) {
-        context.getOutgoingMail().addHeader(TENANT_ID_EMAIL_HEADER, shortTenantName);
+        if (context.getOutgoingMail() != null) {
+            context.getOutgoingMail().addHeader(TENANT_ID_EMAIL_HEADER, shortTenantName);
+        }
         byte[] outgoing = context.getOutgoingMail() != null ? Mails.writeToBuffer(context.getOutgoingMail()) : null;
 
         persister.persistAndIndex(

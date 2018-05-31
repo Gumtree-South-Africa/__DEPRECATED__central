@@ -50,8 +50,13 @@ class Wordfilter implements Filter {
     }
 
     private String getProcessText(MessageProcessingContext messageProcessingContext) {
-        return messageProcessingContext.getMail().get().getSubject()
+        if (messageProcessingContext.getMail().isPresent()) {
+            return messageProcessingContext.getMail().get().getSubject()
                 + " " + messageProcessingContext.getMessage().getPlainTextBody();
+        }
+        else {
+            return messageProcessingContext.getMessage().getPlainTextBody();
+        }
     }
 
     private List<FilterFeedback> filterByPatterns(String processText, MessageProcessingContext context, String conversationCategoryId) {
