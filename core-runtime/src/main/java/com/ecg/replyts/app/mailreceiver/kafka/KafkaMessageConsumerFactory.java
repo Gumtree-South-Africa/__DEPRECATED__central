@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.Properties;
 
+import static java.lang.String.format;
+
 @Service
 class KafkaMessageConsumerFactory {
     @Value("${kafka.core.servers}")
@@ -20,6 +22,11 @@ class KafkaMessageConsumerFactory {
         final Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "MailProcessingGroup_" + topicName);
+        String allocId = System.getenv("NOMAD_ALLOC_ID");
+        if (allocId != null) {
+            long threadId = Thread.currentThread().getId();
+            props.put(ConsumerConfig.CLIENT_ID_CONFIG, format("%s-%d", allocId, threadId));
+        }
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
         // Note that the value of max poll records should not change. When we read more messages than 1 off the topic,

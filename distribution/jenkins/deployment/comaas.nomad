@@ -31,7 +31,7 @@ job "comaas-[[ .tenant_short ]]" {
       value = "services"
     }
 
-    task "api" {
+    task "newmsg" {
       driver = "docker"
 
       config {
@@ -131,7 +131,7 @@ EOH
       value = "services"
     }
 
-    task "api" {
+    task "http" {
       driver = "docker"
 
       config {
@@ -256,7 +256,6 @@ EOH
         HEAP_SIZE = "[[ .cronjob_heap_size ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
-        MAIL_PROVIDER_STRATEGY = "kafka"
       }
 
       service {
