@@ -76,6 +76,7 @@ public class ReceiverTestsSetup {
         properties.put("confDir", createConfDir());
         properties.put("persistence.cassandra.core.keyspace", KEYSPACE);
         properties.put("persistence.cassandra.mb.keyspace", KEYSPACE);
+        properties.put("replyts.tenant.short", "unknown");
 
         return properties;
     }

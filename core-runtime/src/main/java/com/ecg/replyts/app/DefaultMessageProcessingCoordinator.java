@@ -18,9 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nullable;
 import javax.annotation.WillNotClose;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,6 +53,9 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     private final ProcessingFinalizer persister;
     private final ProcessingContextFactory processingContextFactory;
     private final Counter contentLengthCounter;
+
+    @Value("${replyts.tenant.short}")
+    private String shortTenantName;
 
     @Autowired
     public DefaultMessageProcessingCoordinator(
@@ -99,7 +102,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             setMDC(context);
             contentLengthCounter.inc(bytes.length);
 
-            return Optional.of(handleContext(Optional.of(bytes), context, mail.get().getUniqueHeader(TENANT_ID_EMAIL_HEADER)));
+            return Optional.of(handleContext(Optional.of(bytes), context));
         } catch (ParsingException e) {
             LOG.warn("Could not parse mail with id {}", messageId, e);
             handleTermination(Termination.unparseable(e), messageId, Optional.empty(), Optional.empty(), Optional.of(bytes));
@@ -118,7 +121,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     }
 
     @Override
-    public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context, @Nullable String tenantId) {
+    public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context) {
         setMDC(context);
 
         processingFlow.inputForPreProcessor(context);
@@ -131,7 +134,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                     Optional.ofNullable(((DefaultMutableConversation) context.mutableConversation())),
                     bytes);
         } else {
-            handleSuccess(context, bytes, tenantId);
+            handleSuccess(context, bytes);
         }
         return context.getMessageId();
     }
@@ -145,10 +148,8 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         }
     }
 
-    private void handleSuccess(MessageProcessingContext context, Optional<byte[]> messageBytes, String tenantId) {
-        if (tenantId != null) {
-            context.getOutgoingMail().addHeader(TENANT_ID_EMAIL_HEADER, tenantId);
-        }
+    private void handleSuccess(MessageProcessingContext context, Optional<byte[]> messageBytes) {
+        context.getOutgoingMail().addHeader(TENANT_ID_EMAIL_HEADER, shortTenantName);
         byte[] outgoing = context.getOutgoingMail() != null ? Mails.writeToBuffer(context.getOutgoingMail()) : null;
 
         persister.persistAndIndex(

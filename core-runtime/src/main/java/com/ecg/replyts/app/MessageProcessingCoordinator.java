@@ -20,5 +20,5 @@ public interface MessageProcessingCoordinator {
      */
     Optional<String> accept(@WillNotClose InputStream input) throws IOException, ParsingException;
 
-    String handleContext(Optional<byte[]> bytes, MessageProcessingContext context, @Nullable String tenantId);
+    String handleContext(Optional<byte[]> bytes, MessageProcessingContext context);
 }
