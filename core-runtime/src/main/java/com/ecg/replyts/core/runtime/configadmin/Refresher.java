@@ -82,10 +82,6 @@ public class Refresher {
           .filter(c -> admin.handlesConfiguration(c.getId()))
                 .collect(Collectors.toMap(PluginConfiguration::getId, c -> c, (a, b) -> b));
 
-        repository.getConfigurations().stream()
-                .filter(c -> !admin.handlesConfiguration(c.getId()))
-                .forEach(c -> LOG.error("Plugin Configurations '{}' not found", c.getId()));
-
         Set<ConfigurationId> configsToBeRemoved = runningConfigs.keySet().stream()
           .filter((c) -> !newConfigs.containsKey(c))
           .collect(Collectors.toSet());
