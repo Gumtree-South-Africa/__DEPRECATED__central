@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserBlockedConversationFilterFactory implements FilterFactory {
 
-    public static final String IDENTIFIER = "com.ecg.messagecenter.kjca.filters.UserBlockedConversationFilterFactory";
+    public static final String IDENTIFIER = "com.ecg.messagecenter.filters.UserBlockedConversationFilterFactory";
 
     private static final String SCORE_JSON_KEY = "score";
 
