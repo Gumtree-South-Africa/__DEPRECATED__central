@@ -76,7 +76,8 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             if (messageProcessingEnabled) {
                 processMessage(retryableMessage);
             } else {
-                // Remove when we are done testing
+                // Remove this "else" branch when we are done testing
+                LOG.info("Dropping mail with correlationId {} due to kafka.message.processing.enabled=false", retryableMessage.getCorrelationId());
                 ShadowTestingFramework9000.maybeDoAThing();
             }
         } catch (ParsingException e) {
