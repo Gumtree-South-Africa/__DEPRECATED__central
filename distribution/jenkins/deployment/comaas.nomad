@@ -5,10 +5,7 @@ job "comaas-[[ .tenant_short ]]" {
   type = "service"
 
   meta {
-    wanted_instances_api = [[.api_count]]
-    wanted_instances_newmsg  = [[.newmsg_count]]
     docker_image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
-    deploy_jenkins_job_nr = "[[.deploy_jenkins_job_nr]]"
     restart_jenkins_job_nr = "[[.restart_jenkins_job_nr]]"
     version = "[[.version]]"
   }
@@ -29,6 +26,10 @@ job "comaas-[[ .tenant_short ]]" {
     constraint {
       attribute = "${node.class}"
       value = "services"
+    }
+
+    update {
+      max_parallel = [[.newmsg_max_parallel]]
     }
 
     task "newmsg" {
@@ -131,6 +132,10 @@ EOH
       value = "services"
     }
 
+    update {
+      max_parallel = [[.api_max_parallel]]
+    }
+
     task "http" {
       driver = "docker"
 
@@ -231,8 +236,7 @@ EOH
   },
   group "cronjob" {
 
-    # temporarily disabling cronjob nodes for avoiding OOM errors
-    count = 0
+    count = [[.cronjob_count]]
 
     constraint {
       attribute = "${node.class}"

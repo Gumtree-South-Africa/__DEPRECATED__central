@@ -49,31 +49,19 @@ String getActiveDC(String tenantShort, String env) {
     return dc
 }
 
-String getMetaInformation(final String what, final String tenantShort) {
+String getOriginalVersion(final String tenantShort, final String env, final String dc) {
     return sh(
-            script: "curl -sL http://http.nomad.service.consul:4646/v1/job/comaas-${tenantShort} | jq -r .Meta.${what}",
+            script: "curl -s ${dc}.${tenantShort}.${env}.comaas.cloud/health | jq -r .version",
             returnStdout: true
     ).trim()
 }
 
-String getOriginalDeployNr(final String tenantShort) {
-    return getMetaInformation("deploy_jenkins_job_nr", tenantShort)
-}
-
-String getOriginalVersion(final String tenantShort) {
-    return getMetaInformation("version", tenantShort)
-}
-
-String getOriginalWantedInstancesHttp(final String tenantShort) {
-    return getMetaInformation("wanted_instances_api", tenantShort)
-}
-
-String getOriginalWantedInstancesNewMsg(final String tenantShort) {
-    return getMetaInformation("wanted_instances_newmsg", tenantShort)
-}
-
-String getOriginalRestartJenkinsJobNr(final String tenantShort) {
-    return getMetaInformation("restart_jenkins_job_nr", tenantShort)
+Integer getMaxParallel(final String tenantShort, final String taskGroup) {
+    final Integer count = sh(
+            script: "curl -s nomad001:4646/v1/job/comaas-${tenantShort} | jq -r '.TaskGroups[] | select(.Name == \"${taskGroup}\") | .Count'",
+            returnStdout: true
+    ).trim()
+    return count.intdiv(4) <= 1 ? 1 : count.intdiv(4)
 }
 
 node("master") {
@@ -115,12 +103,8 @@ node("master") {
     stage("Restarting Comaas") {
         node("$environment && $dc") {
 
-            final String originalDeployJenkinsJobNr = getOriginalDeployNr(tenantShort)
-            final String version = getOriginalVersion(tenantShort)
-            final String wantedInstancesHttp = getOriginalWantedInstancesHttp(tenantShort)
-            final String wantedInstancesNewMsg = getOriginalWantedInstancesNewMsg(tenantShort)
-            final String originalJenkinsRestartJobNr = getOriginalRestartJenkinsJobNr(tenantShort)
-            final String restartJenkinsJob = originalJenkinsRestartJobNr == "none" ? env.BUILD_NUMBER : originalJenkinsRestartJobNr + "," + env.BUILD_NUMBER
+            final String version = getOriginalVersion(tenantShort, environment, dc)
+            final String restartJenkinsJob = env.BUILD_NUMBER
 
             parallel core: {
                 ansiColor('xterm') {
@@ -128,6 +112,9 @@ node("master") {
                 }
             },
             nomad: {
+                final Integer maxParallelNewMsg = getMaxParallel(tenantShort, "newmsg")
+                final Integer maxParallelHttp = getMaxParallel(tenantShort, "http")
+
                 // Is this really necessary? Can we pass the files to the builder instead?
                 checkout scm
 
@@ -162,9 +149,8 @@ node("master") {
                             "-var='tenant_short=${tenantShort}' " +
                             "-var='environment=${environment}' " +
                             "-var='region=${dc}' " +
-                            "-var='api_count=${wantedInstancesHttp}' " +
-                            "-var='newmsg_count=${wantedInstancesNewMsg}' " +
-                            "-var='deploy_jenkins_job_nr=${originalDeployJenkinsJobNr}' " +
+                            "-var='api_max_parallel=${maxParallelHttp}' " +
+                            "-var='newmsg_max_parallel=${maxParallelNewMsg}' " +
                             "-var='restart_jenkins_job_nr=${restartJenkinsJob}' "
                     final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
