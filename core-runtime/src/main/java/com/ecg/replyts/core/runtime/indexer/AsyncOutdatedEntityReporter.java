@@ -5,7 +5,6 @@ import com.ecg.replyts.core.api.indexer.OutdatedEntityReporter;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,7 @@ public class AsyncOutdatedEntityReporter implements OutdatedEntityReporter {
     private ConversationRepository conversationRepository;
 
     @Autowired
-    private SearchIndexer searchIndexer;
+    private Conversation2Kafka conversation2Kafka;
 
     @Override
     public void reportOutdated(Collection<String> conversationIds) {
@@ -41,6 +40,6 @@ public class AsyncOutdatedEntityReporter implements OutdatedEntityReporter {
             }
         }
 
-        searchIndexer.updateSearchAsync(reloadedConversations);
+        conversation2Kafka.updateSearchSync(reloadedConversations);
     }
 }

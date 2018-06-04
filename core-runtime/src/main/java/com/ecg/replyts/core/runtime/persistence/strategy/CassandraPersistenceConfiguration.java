@@ -1,35 +1,14 @@
 package com.ecg.replyts.core.runtime.persistence.strategy;
 
 import com.codahale.metrics.MetricRegistry;
-import com.datastax.driver.core.AtomicMonotonicTimestampGenerator;
-import com.datastax.driver.core.CloseFuture;
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.HostDistance;
-import com.datastax.driver.core.LatencyTracker;
-import com.datastax.driver.core.PercentileTracker;
-import com.datastax.driver.core.PlainTextAuthProvider;
-import com.datastax.driver.core.PoolingOptions;
-import com.datastax.driver.core.QueryLogger;
-import com.datastax.driver.core.ServerSideTimestampGenerator;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.SocketOptions;
-import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
-import com.datastax.driver.core.policies.DefaultRetryPolicy;
-import com.datastax.driver.core.policies.ExponentialReconnectionPolicy;
-import com.datastax.driver.core.policies.FallthroughRetryPolicy;
-import com.datastax.driver.core.policies.PercentileSpeculativeExecutionPolicy;
-import com.datastax.driver.core.policies.Policies;
-import com.datastax.driver.core.policies.SpeculativeExecutionPolicy;
-import com.datastax.driver.core.policies.TokenAwarePolicy;
+import com.datastax.driver.core.*;
+import com.datastax.driver.core.policies.*;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.runtime.MetricsService;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
-import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
@@ -45,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
@@ -94,11 +72,6 @@ public class CassandraPersistenceConfiguration {
     @Bean
     public ConfigurationRepository configurationRepository(Session cassandraSessionForCore) {
         return new CassandraConfigurationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency);
-    }
-
-    @Bean
-    public IndexerClockRepository indexerClockRepository(Session cassandraSessionForJobs) {
-        return new CassandraIndexerClockRepository(cassandraDataCenterForCore, cassandraSessionForJobs);
     }
 
     @Bean

@@ -11,8 +11,7 @@ import com.ecg.replyts.core.api.search.RtsSearchResponse.IDHolder;
 import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
-import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
-import com.google.common.collect.ImmutableList;
+import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,27 +27,29 @@ public class MessageSender {
     private static final Logger LOG = LoggerFactory.getLogger(MessageSender.class);
 
     private final ApplicationContext applicationContext;
+    private final Document2KafkaSink document2KafkaSink;
 
-    private final SearchService searchService;
     private final ConversationRepository conversationRepository;
-    private final SearchIndexer searchIndexer;
+    private final SearchService searchService;
 
     private final int retentionTimeHours;
     private final int retentionTimeStartHours;
     private final int processingMaximum;
 
     @Autowired
-    public MessageSender(ApplicationContext applicationContext, SearchService searchService,
-                         ConversationRepository conversationRepository, SearchIndexer searchIndexer,
+    public MessageSender(ApplicationContext applicationContext,
+                         SearchService searchService,
+                         Document2KafkaSink document2KafkaSink,
+                         ConversationRepository conversationRepository,
                          @Value("${cronjob.sendHeld.retentionTimeHours:12}") int retentionTimeHours,
                          // 24 hours is the default to guard against stuck mails
                          @Value("${cronjob.sendHeld.retentionTimeStartHours:24}") int retentionTimeStartHours,
                          @Value("${cronjob.sendHeld.processingMaximum:20000}") int processingMaximum) {
         this.applicationContext = applicationContext;
-        this.searchService = searchService;
         this.conversationRepository = conversationRepository;
-        this.searchIndexer = searchIndexer;
+        this.document2KafkaSink = document2KafkaSink;
         this.retentionTimeHours = retentionTimeHours;
+        this.searchService = searchService;
         this.retentionTimeStartHours = retentionTimeStartHours;
         this.processingMaximum = processingMaximum;
     }
@@ -70,7 +71,7 @@ public class MessageSender {
 
         RtsSearchResponse searchResponse = searchService.search(smp);
 
-        LOG.info("About to change state for {} documents " , searchResponse.getCount());
+        LOG.info("About to change state for {} documents ", searchResponse.getCount());
 
         for (IDHolder idHolder : searchResponse.getResult()) {
             MutableConversation conversation = conversationRepository.getById(idHolder.getConversationId());
@@ -83,7 +84,7 @@ public class MessageSender {
             } catch (MessageNotFoundException e) {
                 LOG.warn("Message with id {} was not found - conversation persistence and index likely out of sync - will reindex the conversation", messageId);
 
-                searchIndexer.updateSearchAsync(ImmutableList.of(conversation));
+                document2KafkaSink.pushToKafka(conversation);
             }
         }
     }

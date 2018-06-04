@@ -15,7 +15,7 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddCustomValueCommand;
 import com.ecg.replyts.core.api.webapi.model.ConversationRts;
-import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
+import com.ecg.replyts.core.runtime.indexer.Conversation2Kafka;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
@@ -40,7 +40,7 @@ public class ConversationService {
 
     private final SimplePostBoxRepository postBoxRepository;
     private final MutableConversationRepository conversationRepository;
-    private final SearchIndexer searchIndexer;
+    private final Conversation2Kafka searchIndexer;
     private final DomainObjectConverter converter;
     private final GumshieldApi gumshieldApi;
     private final ConversationEventListeners conversationEventListeners;
@@ -49,7 +49,7 @@ public class ConversationService {
     public ConversationService(
             SimplePostBoxRepository postBoxRepository,
             MutableConversationRepository conversationRepository,
-            SearchIndexer searchIndexer,
+            Conversation2Kafka searchIndexer,
             MailCloakingService mailCloakingService,
             GumshieldApi gumshieldApi,
             ConversationEventListeners conversationEventListeners) {

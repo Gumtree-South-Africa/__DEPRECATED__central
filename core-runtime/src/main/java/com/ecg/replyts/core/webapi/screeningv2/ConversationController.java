@@ -19,7 +19,7 @@ import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.ConversationRts;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
-import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
+import com.ecg.replyts.core.runtime.indexer.Conversation2Kafka;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
@@ -28,11 +28,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -50,7 +46,7 @@ class ConversationController {
     private final MutableConversationRepository conversationRepository;
     private final DomainObjectConverter converter;
     private final MailCloakingService mailCloakingService;
-    private final SearchIndexer searchIndexer;
+    private final Conversation2Kafka searchIndexer;
     private final ConversationEventListeners conversationEventListeners;
     private final UserIdentifierService userIdentifierService;
     private final Timer loadConversationTimer = TimingReports.newTimer("core-conversationController.loadConversation");
@@ -59,7 +55,7 @@ class ConversationController {
     ConversationController(MutableConversationRepository conversationRepository,
                            DomainObjectConverter converter,
                            MailCloakingService mailCloakingService,
-                           SearchIndexer searchIndexer,
+                           Conversation2Kafka searchIndexer,
                            ConversationEventListeners conversationEventListeners,
                            UserIdentifierService userIdentifierService) {
         this.conversationRepository = conversationRepository;

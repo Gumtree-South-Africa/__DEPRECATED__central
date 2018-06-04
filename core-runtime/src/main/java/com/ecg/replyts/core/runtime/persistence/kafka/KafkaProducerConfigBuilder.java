@@ -53,6 +53,12 @@ public class KafkaProducerConfigBuilder<K, V> {
     @Value("${kafka.core.request.timeout.ms:10000}")
     private int storeTimeoutMs;
 
+    // This setting gives the upper bound on the delay for batching: once we get batch.size worth of records for a partition it will be
+    // sent immediately regardless of this setting, however if we have fewer than this many bytes accumulated for this partition we will 'linger'
+    // for the specified time waiting for more records to show up. This setting defaults to 0 (i.e. no delay).
+    @Value("${kafka.core.linger.ms:100}")
+    private int lingerMs;
+
     private String topic;
 
     private final KafkaProducerConfig pconfig = new KafkaProducerConfig();
@@ -72,7 +78,9 @@ public class KafkaProducerConfigBuilder<K, V> {
         @PreDestroy
         public void close() {
             try {
-                if (producer != null) producer.close(4000, TimeUnit.MILLISECONDS);
+                if (producer != null) {
+                    producer.close(4000, TimeUnit.MILLISECONDS);
+                }
             } catch (Exception e) {
                 LOG.error("Failed to close Kafka producer", e);
             }
@@ -117,6 +125,11 @@ public class KafkaProducerConfigBuilder<K, V> {
             return this;
         }
 
+        public KafkaProducerConfig withLingerMs(int lingerValMs) {
+            lingerMs = lingerValMs;
+            return this;
+        }
+
         public KafkaProducerConfig withBatchSize(int batchSizeVal) {
             batchSize = batchSizeVal;
             return this;
@@ -154,6 +167,7 @@ public class KafkaProducerConfigBuilder<K, V> {
             configProperties.put(BATCH_SIZE_CONFIG, batchSize);
             configProperties.put(ACKS_CONFIG, ack);
             configProperties.put(MAX_REQUEST_SIZE_CONFIG, maxRequestSize);
+            configProperties.put(LINGER_MS_CONFIG, lingerMs);
             configProperties.put(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, maxInFlightPerConnection);
             LOG.info("Kafka producer configuration: {} Topic: {}, Timeout: {} ms", configProperties, topic, storeTimeoutMs);
             producer = new KafkaProducer<>(configProperties);
@@ -194,6 +208,10 @@ public class KafkaProducerConfigBuilder<K, V> {
 
         public String getServers() {
             return servers;
+        }
+
+        public int getLingerMs() {
+            return lingerMs;
         }
     }
 

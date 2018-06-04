@@ -1,10 +1,9 @@
 package com.ecg.replyts.app;
 
-import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedCommand;
 import com.ecg.replyts.core.api.processing.Termination;
-import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
+import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import org.junit.Before;
@@ -14,10 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -33,7 +30,7 @@ public class ProcessingFinalizerTest {
     private MutableConversationRepository conversationRepository;
 
     @MockBean
-    private SearchIndexer searchIndexer;
+    private Document2KafkaSink document2KafkaSink;
 
     @MockBean
     private DefaultMutableConversation conv;
@@ -63,11 +60,12 @@ public class ProcessingFinalizerTest {
 
     @Test
     public void persistsData() {
-        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination);
+        String msgId = "1";
+        messagePersister.persistAndIndex(conv, msgId, Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination);
 
         verify(conv).commit(conversationRepository, conversationEventListeners);
 
-        verify(searchIndexer).updateSearchAsync(Arrays.<Conversation>asList(conv));
+        verify(document2KafkaSink).pushToKafka(conv, msgId);
     }
 }
 
