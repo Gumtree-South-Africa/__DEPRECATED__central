@@ -43,7 +43,8 @@ filebeat.prospectors:
   json.message_key: message
   json.overwrite_keys: true
   paths:
-  - ${NOMAD_ALLOC_DIR}/logs/api.stderr.*
+  - ${NOMAD_ALLOC_DIR}/logs/newmsg.stderr.*
+  - ${NOMAD_ALLOC_DIR}/logs/http.stderr.*
   - ${NOMAD_ALLOC_DIR}/logs/cronjob.stderr.*
   type: log
 - fields.kafka_topic: access_logs
@@ -51,8 +52,7 @@ filebeat.prospectors:
   json.keys_under_root: true
   json.overwrite_keys: true
   paths:
-  - ${NOMAD_ALLOC_DIR}/logs/api.stdout.*
-  - ${NOMAD_ALLOC_DIR}/logs/cronjob.stdout.*
+  - ${NOMAD_ALLOC_DIR}/logs/http.stdout.*
   type: log
 logging.to_files: false
 output.kafka:
