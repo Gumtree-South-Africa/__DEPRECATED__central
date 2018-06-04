@@ -8,6 +8,7 @@ import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.kjca.persistence.ConversationThread;
 import com.ecg.messagecenter.kjca.persistence.UnreadCountCachePopulater;
+import com.ecg.messagecenter.kjca.sync.ConversationService;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.google.common.collect.ImmutableList;
@@ -43,7 +44,8 @@ public class ConversationThreadControllerTest {
         final DateTime now = DateTime.now();
         DateTimeUtils.setCurrentMillisFixed(now.getMillis()); // Freeze what Joda reports as "now".
 
-        controller = new ConversationThreadController(postBoxRepository, conversationRepository, conversationBlockRepository, mailCloakingService, textAnonymizer, unreadCountCachePopulater);
+        ConversationService conversationService = new ConversationService(postBoxRepository, conversationRepository, conversationBlockRepository, mailCloakingService, textAnonymizer, unreadCountCachePopulater);
+        controller = new ConversationThreadController(conversationService, false);
 
         List<AbstractConversationThread> unreadConversationThreads = ImmutableList.of(new ConversationThread("ad", CONVERSATION_ID, now, now, now, true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(EMAIL), Optional.empty()));
         List<AbstractConversationThread> readConversationThreads = ImmutableList.of(new ConversationThread("ad", CONVERSATION_ID, now, now, now, true, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(EMAIL), Optional.empty()));
@@ -63,7 +65,7 @@ public class ConversationThreadControllerTest {
 
     @Test
     public void deleteSingleConversation_triggersUnreadCountCacher() throws Exception {
-        controller.deleteSingleConversation(EMAIL, CONVERSATION_ID, new MockHttpServletResponse());
+        controller.deleteSingleConversation(EMAIL, CONVERSATION_ID);
 
         Mockito.verify(unreadCountCachePopulater).populateCache(postBox);
     }
