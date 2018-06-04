@@ -10,7 +10,9 @@ public final class EmailContactEvent implements Event {
     private final Long adId;
     private final String content;
     private final CommonEventData commonEventData;
-    private final String eventType = getClass().getName(); //Just for GSON deserialization...
+    // Just for GSON deserialization...
+    // Previous package before copying dependencies from tenants to comaas
+    private final String eventType = "de.mobile.analytics.domain.contact.EmailContactEvent";
 
     private EmailContactEvent(Builder builder) {
         adId = builder.adId;
