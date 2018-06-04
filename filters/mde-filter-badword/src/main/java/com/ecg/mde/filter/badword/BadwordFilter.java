@@ -5,7 +5,6 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
-import de.mobile.cs.filter.domain.BadwordDTO;
 
 import java.util.Collections;
 import java.util.List;

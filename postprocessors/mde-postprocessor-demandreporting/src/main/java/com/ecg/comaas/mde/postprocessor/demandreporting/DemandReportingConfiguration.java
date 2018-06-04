@@ -1,9 +1,9 @@
 package com.ecg.comaas.mde.postprocessor.demandreporting;
 
+import com.ecg.comaas.mde.postprocessor.demandreporting.client.internal.MongoDBWritingReportingClient;
 import com.ecg.comaas.mde.postprocessor.demandreporting.usertracking.TrackingEventPublisherFactory;
 import com.ecg.comaas.mde.postprocessor.demandreporting.usertracking.UserTrackingHandler;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
-import de.mobile.reporting.demand.client.internal.MongoDBWritingReportingClient;
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -30,7 +30,7 @@ public class DemandReportingConfiguration {
 
     @Bean(destroyMethod = "shutdown")
     public MongoDBWritingReportingClient mongoDBWritingReportingClient() throws UnknownHostException {
-        return new MongoDBWritingReportingClient(mongoDbHosts, mongoDbConcurrency);
+        return new MongoDBWritingReportingClient(mongoDbHosts, mongoDbConcurrency, "demand_reporting");
     }
 
     @Bean(destroyMethod = "shutdownClient")

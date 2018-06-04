@@ -30,11 +30,6 @@
         </dependency>
 
         <dependency>
-            <groupId>de.mobile.cs.filter</groupId>
-            <artifactId>cs-filter-shared</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.scarabsoft</groupId>
             <artifactId>jrest</artifactId>
         </dependency>

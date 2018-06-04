@@ -1,12 +1,13 @@
 package com.ecg.comaas.mde.postprocessor.demandreporting;
 
 
-import de.mobile.analytics.domain.Event;
+import com.ecg.comaas.mde.postprocessor.demandreporting.domain.Event;
 import org.apache.http.client.HttpClient;
 
 import java.util.concurrent.BlockingQueue;
 
 public class HttpEventPublisherFactory implements EventPublisherFactory {
+
     private final BehaviorTrackingHandler.Config config;
     private HttpClient httpClient;
 
