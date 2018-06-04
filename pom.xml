@@ -540,7 +540,6 @@
 
         <!-- Make sure that the exec plugin by default does not run in the 'verify' phase, unless this variable is overridden (by for example, a task runner (see ../README)) -->
 
-        <maven.exec.skip>true</maven.exec.skip>
         <cs-filter-shared.version>1.5</cs-filter-shared.version>
         <mongo-java-driver-version>2.14.3</mongo-java-driver-version>
         <openstack4j.version>3.0.4</openstack4j.version>
@@ -565,10 +564,8 @@
         <bouncycastle-jdk>jdk15on</bouncycastle-jdk>
         <cassandra-client-version>2.1.10</cassandra-client-version>
         <HdrHistogram.version>2.1.9</HdrHistogram.version>
-        <cobertura-maven-version>2.5.2</cobertura-maven-version>
         <cglib-version>3.1</cglib-version>
         <elasticsearch-version>1.7.5</elasticsearch-version>
-        <exec-maven-plugin-version>1.4.0</exec-maven-plugin-version>
         <guava-version>18.0</guava-version>
         <commons-collections-version>3.2.1</commons-collections-version>
         <hamcrest-version>1.3</hamcrest-version>
@@ -594,17 +591,6 @@
         <retrofit2-version>2.1.0</retrofit2-version>
         <springfox-swagger.version>2.8.0</springfox-swagger.version>
 
-        <appassembler-maven-plugin.version>1.10</appassembler-maven-plugin.version>
-        <maven-assembly-plugin.version>2.6</maven-assembly-plugin.version>
-        <maven-compiler-plugin-version>3.3</maven-compiler-plugin-version>
-        <maven-dependency-plugin-version>2.8</maven-dependency-plugin-version>
-        <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
-        <maven-jar-plugin.version>2.6</maven-jar-plugin.version>
-        <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
-        <git-commit-id-plugin.version>2.2.0</git-commit-id-plugin.version>
-        <maven-release-plugin-version>2.4.2</maven-release-plugin-version>
-        <maven-source-plugin-version>3.0.1</maven-source-plugin-version>
-        <maven-surefire-version>2.19.1</maven-surefire-version>
         <junit-toolbox.version>2.2</junit-toolbox.version>
         <metrics.version>3.1.2</metrics.version>
         <io-prometheus.version>0.3.0</io-prometheus.version>
@@ -621,11 +607,6 @@
         <commons-lang.version>2.6</commons-lang.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
         <commons-io.version>2.5</commons-io.version>
-        <java-lang.source>1.8</java-lang.source>
-        <java-lang.target>1.8</java-lang.target>
-        <java-lang.encoding>UTF-8</java-lang.encoding>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.javadoc.skip>true</maven.javadoc.skip>
         <mysql-connector-version>5.1.40</mysql-connector-version>
         <c3p0-version>0.9.1.2</c3p0-version>
         <hikari-cp-version>2.7.8</hikari-cp-version>
@@ -670,14 +651,27 @@
         <mde-dealer-rating-domain.version>0.140</mde-dealer-rating-domain.version>
         <mde-visitor-info-domain.version>3.0.1</mde-visitor-info-domain.version>
 
-        <!-- kjca artifact versions -->
-        <sentry-version>7.1.0</sentry-version>
-        <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
         <!-- it artifact versions -->
         <statsd.client.version>3.0.1</statsd.client.version>
         <thymeleaf.version>2.1.4.RELEASE</thymeleaf.version>
         <javassist.version>3.22.0-CR1</javassist.version>
 
+        <maven-appassembler-plugin.version>1.10</maven-appassembler-plugin.version>
+        <maven-exec-plugin-version>1.4.0</maven-exec-plugin-version>
+        <maven-assembly-plugin.version>2.6</maven-assembly-plugin.version>
+        <maven-dependency-plugin-version>2.8</maven-dependency-plugin-version>
+        <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
+        <maven-jar-plugin.version>2.6</maven-jar-plugin.version>
+        <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
+        <maven-surefire-version>2.19.1</maven-surefire-version>
+        <maven-git-commit-id-plugin.version>2.2.0</maven-git-commit-id-plugin.version>
+
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <maven.exec.skip>true</maven.exec.skip>
+        <maven.source.skip>true</maven.source.skip>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
 
@@ -1040,30 +1034,6 @@
                     <exclusion>
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-log4j12</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <dependency>
-                <groupId>com.getsentry.raven</groupId>
-                <artifactId>raven-logback</artifactId>
-                <version>${sentry-version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>jackson-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>ch.qos.logback</groupId>
-                        <artifactId>logback-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>ch.qos.logback</groupId>
-                        <artifactId>logback-classic</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -2366,19 +2336,9 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <inherited>true</inherited>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven-compiler-plugin-version}</version>
-                    <configuration>
-                        <source>${java-lang.source}</source>
-                        <target>${java-lang.target}</target>
-                        <encoding>${java-lang.encoding}</encoding>
-                    </configuration>
-                </plugin>
-                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
-                    <version>${exec-maven-plugin-version}</version>
+                    <version>${maven-exec-plugin-version}</version>
 
                     <!-- We keep this in pluginManagement to defer execution of exec:java to the 'verify' phase in the distribution
                          module if maven.exec.skip = 'false' (for example, to start from a task runner (see ../README)) -->
@@ -2427,14 +2387,9 @@
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>${build-helper-maven-plugin.version}</version>
-                </plugin>
-                <plugin>
                     <groupId>pl.project13.maven</groupId>
                     <artifactId>git-commit-id-plugin</artifactId>
-                    <version>${git-commit-id-plugin.version}</version>
+                    <version>${maven-git-commit-id-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -2444,7 +2399,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>appassembler-maven-plugin</artifactId>
-                    <version>${appassembler-maven-plugin.version}</version>
+                    <version>${maven-appassembler-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -2455,45 +2410,6 @@
         </pluginManagement>
 
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <compilerArgs>
-                        <arg>-J-Djava.awt.headless=true</arg>
-                    </compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>${cobertura-maven-version}</version>
-                <configuration>
-                    <check>
-                    </check>
-                    <aggregate>true</aggregate>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${maven-source-plugin-version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>${maven-release-plugin-version}</version>
-                <configuration>
-                    <tagNameFormat>REL-@{project.version}</tagNameFormat>
-                    <goals/>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
