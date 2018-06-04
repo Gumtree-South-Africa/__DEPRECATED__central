@@ -156,12 +156,12 @@ function main() {
         MVN_ARGS="$MVN_ARGS -am -DfailIfNoTests=false -P core,core-tests,!distribution "
         MVN_TASKS="clean package"
     else
-        log "Building all tenant modules (skipping distribution and benchmarks)"
+        log "Building all tenant modules (skipping distribution)"
 
         # Extract all tenant profile IDs from the POM, as build profile selection is limited (MNG-3328 etc.)
         TENANT=`
           sed -n '/<profile>/{n;s/.*<id>\(.*\)<\/id>/\1/;p;}' ${DIR}/../pom.xml | \
-          grep -v 'default\|distribution\|deploy\|benchmarks' | \
+          grep -v 'default\|distribution\|deploy' | \
           tr $'\n' ','`
 
         MVN_ARGS="$MVN_ARGS -P${PROFILES}${TENANT}!distribution"
