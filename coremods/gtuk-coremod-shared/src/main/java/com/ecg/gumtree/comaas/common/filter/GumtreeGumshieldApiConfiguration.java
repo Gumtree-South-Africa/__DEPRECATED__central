@@ -25,8 +25,8 @@ public class GumtreeGumshieldApiConfiguration {
     private int apiSocketTimeout;
 
     @Bean
-    public RemoteGumshieldApiFactoryBean remoteGumshieldApiFactoryBean() {
-        RemoteGumshieldApiFactoryBean factoryBean = new RemoteGumshieldApiFactoryBean();
+    public InstrumentedRemoteGumshieldApiFactoryBean remoteGumshieldApiFactoryBean() {
+        InstrumentedRemoteGumshieldApiFactoryBean factoryBean = new InstrumentedRemoteGumshieldApiFactoryBean();
         factoryBean.setBaseUri(apiBaseUri);
         factoryBean.setConnectionTimeout(apiConnectionTimeout);
         factoryBean.setSocketTimeout(apiSocketTimeout);
@@ -34,12 +34,12 @@ public class GumtreeGumshieldApiConfiguration {
     }
 
     @Bean
-    public GumshieldApi gumshieldApi(RemoteGumshieldApiFactoryBean remoteGumshieldApiFactoryBean) throws Exception {
+    public GumshieldApi gumshieldApi(InstrumentedRemoteGumshieldApiFactoryBean remoteGumshieldApiFactoryBean) throws Exception {
         return remoteGumshieldApiFactoryBean.getObject();
     }
 
     @Bean
-    public UserApi userApi(RemoteGumshieldApiFactoryBean remoteGumshieldApiFactoryBean) throws Exception {
+    public UserApi userApi(InstrumentedRemoteGumshieldApiFactoryBean remoteGumshieldApiFactoryBean) throws Exception {
         return remoteGumshieldApiFactoryBean.getObject().userApi();
     }
 }
