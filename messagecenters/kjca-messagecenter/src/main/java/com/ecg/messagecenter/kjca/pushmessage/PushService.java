@@ -1,28 +1,27 @@
 package com.ecg.messagecenter.kjca.pushmessage;
 
 import com.codahale.metrics.Counter;
+import com.ecg.replyts.core.runtime.TimingReports;
 
 public abstract class PushService {
 
-    protected abstract Counter getPushFailedCounter();
-
-    protected abstract Counter getPushNoDeviceCounter();
-
-    protected abstract Counter getPushSentCounter();
+    private static final Counter SEND_COUNTER_PUSH_SENT = TimingReports.newCounter("message-box.send.push-message-sent");
+    private static final Counter SEND_COUNTER_PUSH_NO_DEVICE = TimingReports.newCounter("message-box.send.push-message-no-device");
+    private static final Counter SEND_COUNTER_PUSH_FAILED = TimingReports.newCounter("message-box.send.push-message-failed");
 
     public abstract Result sendPushMessage(final PushMessagePayload payload);
 
     public void incrementCounter(Result.Status status) {
         if (PushService.Result.Status.OK == status) {
-            getPushSentCounter().inc();
+            SEND_COUNTER_PUSH_SENT.inc();
         }
 
         if (PushService.Result.Status.NOT_FOUND == status) {
-            getPushNoDeviceCounter().inc();
+            SEND_COUNTER_PUSH_NO_DEVICE.inc();
         }
 
         if (PushService.Result.Status.ERROR == status) {
-            getPushFailedCounter().inc();
+            SEND_COUNTER_PUSH_FAILED.inc();
         }
     }
 
