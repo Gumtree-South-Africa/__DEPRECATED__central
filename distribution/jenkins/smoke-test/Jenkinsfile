@@ -10,17 +10,22 @@ static String getApiHost(final String dc, final String tenant, final String envS
     return "${dc}.${tenant}.${envShort}.comaas.cloud:80"
 }
 
-def runSmokeTests(final String dc, final String tenant, final String envShort, final String smokeTestVersion) {
+def runSmokeTests(final String dc, final String tenant, final String envShort, final String smokeTestVersion, final String runPostMessageTests) {
     commonFunctions.loginToDocker()
 
     final String apiHost = getApiHost(dc, tenant, envShort)
     final String smtpAddress = getSmtpAddress(dc, tenant, envShort)
+    final String postMsgParameter = ""
+    if ( runPostMessageTests == "true" ) {
+        postMsgParameter="-run_post_message_tests"
+    }
     sh "docker pull dock.es.ecg.tools/comaas/smoke-tests:${smokeTestVersion}"
-    sh "docker run --rm --network=host dock.es.ecg.tools/comaas/smoke-tests:${smokeTestVersion} -api_host=${apiHost} -smtp_host=${smtpAddress} -tenant ${tenant}"
+    sh "docker run --rm --network=host dock.es.ecg.tools/comaas/smoke-tests:${smokeTestVersion} -api_host=${apiHost} -smtp_host=${smtpAddress} -tenant ${tenant} ${postMsgParameter}"
 }
 
 Closure wrapWithStepDefinition(final String tenantLong, final String environmentShort,
-                               final String dc, final String stageName, final String smokeTestVersion) {
+                               final String dc, final String stageName, final String smokeTestVersion,
+                               final String runPostMessageTests) {
     return {
         stage(stageName) {
             node('qa') {
@@ -28,17 +33,17 @@ Closure wrapWithStepDefinition(final String tenantLong, final String environment
                     final String tenantShort = commonFunctions.getAlias(tenantLong)
                     switch (dc) {
                         case 'both':
-                            runSmokeTests("ams1", tenantShort, environmentShort, smokeTestVersion)
-                            runSmokeTests("dus1", tenantShort, environmentShort, smokeTestVersion)
+                            runSmokeTests("ams1", tenantShort, environmentShort, smokeTestVersion, runPostMessageTests)
+                            runSmokeTests("dus1", tenantShort, environmentShort, smokeTestVersion, runPostMessageTests)
                             break
                         case 'active':
-                            runSmokeTests(commonFunctions.getActiveDC(tenantLong, environmentShort), tenantShort, environmentShort, smokeTestVersion)
+                            runSmokeTests(commonFunctions.getActiveDC(tenantLong, environmentShort), tenantShort, environmentShort, smokeTestVersion, runPostMessageTests)
                             break
                         case 'passive':
-                            runSmokeTests(commonFunctions.getPassiveDcProd(tenantLong), tenantShort, environmentShort, smokeTestVersion)
+                            runSmokeTests(commonFunctions.getPassiveDcProd(tenantLong), tenantShort, environmentShort, smokeTestVersion, runPostMessageTests)
                             break
                         default:
-                            runSmokeTests(dc, tenantShort, environmentShort, smokeTestVersion)
+                            runSmokeTests(dc, tenantShort, environmentShort, smokeTestVersion, runPostMessageTests)
                             break
                     }
                 } catch (ex) {
@@ -83,8 +88,14 @@ node('lp') {
             version = configFile.smokeTest.version[PROVIDED_ENV]['default']
         }
         echo "version: $version"
+        runPostMessageTests = configFile.smokeTest.runPostMessageTests[PROVIDED_ENV][tenant]
+        if (runPostMessageTests == null) {
+            runPostMessageTests = configFile.smokeTest.runPostMessageTests[PROVIDED_ENV]['default']
+        }
+        echo "runPostMessageTests: $runPostMessageTests"
+
         [((String) "$tenant-smoke-test"): wrapWithStepDefinition(tenant, PROVIDED_ENV as String,
-                PROVIDED_DC as String, "smoke test $tenant", "$version")]
+                PROVIDED_DC as String, "smoke test $tenant", "$version", "$runPostMessageTests")]
     }
     parallel buildSteps
 }
