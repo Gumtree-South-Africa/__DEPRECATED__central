@@ -17,5 +17,9 @@ public class CreateConversationRequest {
     @NotNull(message = "List of participants cannot be empty")
     public List<Participant> participants = new ArrayList<>();
 
+    public String title;
+
+    public String imageUrl;
+
     public Map<String, String> metadata = new HashMap<>();
 }

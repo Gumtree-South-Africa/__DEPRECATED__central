@@ -108,6 +108,9 @@ public class PostMessageResource {
             return new CreateConversationResponse(true, existingConversation.get().getId());
         }
 
+        String title = createConversationRequest.title;
+        String imageUrl = createConversationRequest.imageUrl;
+
         Map<String, String> customValues = new HashMap<>();
         if (createConversationRequest.metadata != null) {
             customValues.putAll(createConversationRequest.metadata);
@@ -127,7 +130,7 @@ public class PostMessageResource {
         String conversationId = newConversationBuilderCommand.getConversationId();
         conversationRepository.commit(conversationId, Collections.singletonList(conversationCreatedEvent));
 
-        ConversationMetadata conversationMetadata = new ConversationMetadata(now(), subject, null, null);
+        ConversationMetadata conversationMetadata = new ConversationMetadata(now(), subject, title, imageUrl);
         ConversationThread conversationThread = new ConversationThread(conversationId, adId, userId, Visibility.ACTIVE,
                 MessageNotification.RECEIVE, participants, null, conversationMetadata);
 
