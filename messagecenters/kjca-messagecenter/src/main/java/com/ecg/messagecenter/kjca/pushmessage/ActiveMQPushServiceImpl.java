@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
 
+// Not used in production
+@Deprecated
 public class ActiveMQPushServiceImpl extends PushService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ActiveMQPushServiceImpl.class);

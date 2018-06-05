@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.kjca.util;
 
 import com.codahale.metrics.Timer;
-import com.ecg.messagecenter.kjca.cleanup.TextCleaner;
+import com.ecg.messagecenter.core.cleanup.kjca.TextCleaner;
 import com.ecg.replyts.core.runtime.TimingReports;
 
 /**
