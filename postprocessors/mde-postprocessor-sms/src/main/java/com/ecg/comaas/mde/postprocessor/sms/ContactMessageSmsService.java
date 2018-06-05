@@ -12,8 +12,6 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -25,6 +23,9 @@ import java.util.Map.Entry;
 public class ContactMessageSmsService {
     private static final Logger LOG = LoggerFactory.getLogger(ContactMessageSmsService.class);
     private static Map<String, String> ABBREVIATIONS = new HashMap<>();
+    private static Map<String, String> SENDER_LOCALE = new HashMap<>();
+
+    static final String SENDER = "Sender";
 
     static {
         ABBREVIATIONS.put(quote("autohaus"), "AH");
@@ -33,6 +34,17 @@ public class ContactMessageSmsService {
         ABBREVIATIONS.put(quote("mercedes-benz"), "MB");
         ABBREVIATIONS.put(quote("niederlassung"), "Ndl.");
         ABBREVIATIONS.put(quote("volkswagen"), "VW");
+
+        SENDER_LOCALE.put("cs", SENDER);
+        SENDER_LOCALE.put("cz", SENDER);
+        SENDER_LOCALE.put("en", SENDER);
+        SENDER_LOCALE.put("ru", SENDER);
+        SENDER_LOCALE.put("de", "Abs.");
+        SENDER_LOCALE.put("es", "Remitente");
+        SENDER_LOCALE.put("fr", "Expéditeur");
+        SENDER_LOCALE.put("it", "Mittente");
+        SENDER_LOCALE.put("pl", "Wysyłający");
+        SENDER_LOCALE.put("ro", "Expeditor");
     }
 
     private static String quote(String word) {
@@ -120,7 +132,7 @@ public class ContactMessageSmsService {
         Locale sellerLocale = parse(contactMessage.getSellerLocale());
 
         StringBuilder sms = new StringBuilder();
-        sms.append(ResourceBundle.getBundle("MYDATA", sellerLocale).getString("I18N.MYDATA.Sender")).append(": ");
+        sms.append(parseSender(contactMessage.getSellerLocale())).append(": ");
         sms.append(cutBuyerDisplayName(contactMessage.getDisplayName()));
         sms.append(" - ");
         if (hasBuyerPhoneNumber(contactMessage.getBuyerPhoneNumber())) {
@@ -143,7 +155,7 @@ public class ContactMessageSmsService {
         String strSms = sms.toString();
         /*
          * last character is a "
-		 */
+         */
         if (strSms.length() > SMS_MAX_LENGTH - 1) {
             strSms = strSms.substring(0, SMS_MAX_LENGTH - 5) + "...";
         }
@@ -211,5 +223,15 @@ public class ContactMessageSmsService {
         }
 
         return new Locale(parts[0], parts[1]);
+    }
+
+    static String parseSender(String string) {
+        return Optional.ofNullable(string)
+                .map(s -> s.split("_"))
+                .filter(parts -> parts.length > 0)
+                .map(parts -> parts[0])
+                .map(String::toLowerCase)
+                .map(SENDER_LOCALE::get)
+                .orElse(SENDER);
     }
 }
