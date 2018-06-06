@@ -14,7 +14,7 @@ import org.springframework.context.annotation.*;
 public class KjcaMessageBoxConfiguration {
 
     @Configuration
-    @ConditionalOnProperty(name = "webapi.sync.ca.enabled", havingValue = "true")
+    @ConditionalOnProperty(name = "webapi.v2.ca.enabled", havingValue = "true")
     @ComponentScan(value = {"com.ecg.messagebox", "com.ecg.sync"}, excludeFilters =
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.ecg.messagebox.resources.*", "com.ecg.messagebox.controllers.*"}))
     public static class MessageBoxConfiguration {
