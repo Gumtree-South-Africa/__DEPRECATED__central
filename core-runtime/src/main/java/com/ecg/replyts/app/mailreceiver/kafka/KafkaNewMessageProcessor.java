@@ -39,7 +39,6 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaNewMessageProcessor.class);
 
     private final int maxRetries;
-    private final boolean messageProcessingEnabled;
     private final MessageProcessingCoordinator messageProcessingCoordinator;
     private final MutableConversationRepository conversationRepository;
     private final ProcessingContextFactory processingContextFactory;
@@ -47,13 +46,12 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
 
     KafkaNewMessageProcessor(MessageProcessingCoordinator messageProcessingCoordinator, QueueService queueService,
                              KafkaMessageConsumerFactory kafkaMessageConsumerFactory, int retryOnFailedMessagePeriodMinutes,
-                             int maxRetries, String shortTenant, boolean messageProcessingEnabled,
+                             int maxRetries, String shortTenant,
                              MutableConversationRepository conversationRepository,
                              ProcessingContextFactory processingContextFactory, UserIdentifierService userIdentifierService) {
         super(queueService, kafkaMessageConsumerFactory, retryOnFailedMessagePeriodMinutes, shortTenant);
         this.maxRetries = maxRetries;
         this.messageProcessingCoordinator = messageProcessingCoordinator;
-        this.messageProcessingEnabled = messageProcessingEnabled;
         this.conversationRepository = conversationRepository;
         this.processingContextFactory = processingContextFactory;
         this.userIdentifierService = userIdentifierService;
@@ -73,13 +71,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
         LOG.debug("Found a message in the incoming topic {}, tried so far: {} times", retryableMessage.getCorrelationId(), retryableMessage.getRetryCount());
 
         try {
-            if (messageProcessingEnabled) {
-                processMessage(retryableMessage);
-            } else {
-                // Remove this "else" branch when we are done testing
-                LOG.info("Dropping mail with correlationId {} due to kafka.message.processing.enabled=false", retryableMessage.getCorrelationId());
-                ShadowTestingFramework9000.maybeDoAThing();
-            }
+            processMessage(retryableMessage);
         } catch (ParsingException e) {
             unparseableMessage(retryableMessage);
         } catch (Exception e) {

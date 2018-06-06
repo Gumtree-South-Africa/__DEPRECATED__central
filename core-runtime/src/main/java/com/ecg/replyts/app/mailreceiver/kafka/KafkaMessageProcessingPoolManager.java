@@ -69,7 +69,7 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
 
     private KafkaNewMessageProcessor createNewMessageConsumer() {
         return new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService, kafkaMessageConsumerFactory,
-                retryOnFailedMessagePeriodMinutes, maxRetries, shortTenant, messageProcessingEnabled,
+                retryOnFailedMessagePeriodMinutes, maxRetries, shortTenant,
                 mutableConversationRepository, processingContextFactory, userIdentifierService);
     }
 
