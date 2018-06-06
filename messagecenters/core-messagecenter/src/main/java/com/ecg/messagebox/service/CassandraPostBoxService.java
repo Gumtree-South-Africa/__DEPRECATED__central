@@ -66,7 +66,7 @@ public class CassandraPostBoxService implements PostBoxService {
         String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
         String messageIdStr = rtsMessage.getHeaders().get("X-Message-ID");
         UUID messageId = messageIdStr != null ? UUID.fromString(messageIdStr) : UUIDs.timeBased();
-        Message newMessage = new Message(messageId, cleanMessageText, senderUserId, messageType, customData);
+        Message newMessage = new Message(messageId, cleanMessageText, senderUserId, messageType, customData, rtsMessage.getHeaders());
         Optional<MessageNotification> messageNotificationOpt = postBoxRepository.getConversationMessageNotification(userId, rtsConversation.getId());
 
         if (messageNotificationOpt.isPresent()) {

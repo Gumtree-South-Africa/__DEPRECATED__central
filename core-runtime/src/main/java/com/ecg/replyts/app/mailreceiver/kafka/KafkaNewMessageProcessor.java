@@ -138,7 +138,6 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
                 .withMessageDirection(context.getMessageDirection())
                 .withSenderMessageIdHeader(context.getMessageId())
                 //.withInResponseToMessageId() TODO akobiakov: find out what this is used for
-                .withHeaders(Collections.emptyMap())
                 .withTextParts(Collections.singletonList(message))
                 .withAttachmentFilenames(Collections.emptyList())
                 .withHeaders(metadata)

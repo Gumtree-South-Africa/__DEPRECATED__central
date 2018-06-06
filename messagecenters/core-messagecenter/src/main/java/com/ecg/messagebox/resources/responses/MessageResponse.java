@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModelProperty;
 import org.joda.time.DateTime;
 
+import java.util.Map;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -26,14 +27,16 @@ public class MessageResponse {
     @ApiModelProperty(required = true)
     private boolean isRead = true;
     private final String customData;
+    private final Map<String,String> metaData;
 
-    public MessageResponse(String id, MessageType type, String text, String senderUserId, DateTime receivedDate, String customData) {
+    public MessageResponse(String id, MessageType type, String text, String senderUserId, DateTime receivedDate, String customData, Map<String,String> metaData) {
         this.id = id;
         this.type = type;
         this.text = text;
         this.senderUserId = senderUserId;
         this.receivedDate = receivedDate;
         this.customData = customData;
+        this.metaData = metaData;
     }
 
     public String getId() {
@@ -68,6 +71,8 @@ public class MessageResponse {
         this.isRead = isRead;
     }
 
+    public Map<String,String> getMetaData() { return metaData;}
+
     public MessageResponse withIsRead(boolean isRead) {
         this.isRead = isRead;
         return this;
@@ -84,11 +89,12 @@ public class MessageResponse {
                 && Objects.equals(senderUserId, that.senderUserId)
                 && Objects.equals(receivedDate, that.receivedDate)
                 && Objects.equals(isRead, that.isRead)
-                && Objects.equals(customData, that.customData);
+                && Objects.equals(customData, that.customData)
+                && Objects.equals(metaData, that.metaData);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, type, text, senderUserId, receivedDate, isRead, customData);
+        return Objects.hash(id, type, text, senderUserId, receivedDate, isRead, customData, metaData);
     }
 }
