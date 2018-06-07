@@ -151,7 +151,7 @@ public final class ReplytsRunner {
         Settings settings = Settings.builder().put("cluster.name", clusterName).build();
 
         TransportClient client = new PreBuiltTransportClient(settings);
-        client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress("localhost", 9350)));
+        client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress("localhost", 9300)));
         return client;
     }
 
