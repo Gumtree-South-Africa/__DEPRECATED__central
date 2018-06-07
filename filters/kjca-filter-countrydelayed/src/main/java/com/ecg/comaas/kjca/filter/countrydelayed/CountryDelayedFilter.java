@@ -33,7 +33,7 @@ public class CountryDelayedFilter implements Filter {
         String ipAddress = context.getMail().get().getUniqueHeader(BoxHeaders.SENDER_IP_ADDRESS.getHeaderName());
 
         if (StringUtils.isBlank(ipAddress)) {
-            LOG.debug("IP Address is empty -- not scoring");
+            LOG.trace("IP Address is empty -- not scoring");
         } else if (StringUtils.isNotBlank(ipAddress) && checkIfCountryDelayedInLeGrid(ipAddress)) {
             return ImmutableList.of(new FilterFeedback("country is delayed", "IP country is delayed", countryDelayedScore, FilterResultState.HELD));
         }
