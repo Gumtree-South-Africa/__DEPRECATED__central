@@ -20,7 +20,7 @@ import java.util.Map;
 import static java.lang.String.format;
 
 @Component
-@ConditionalOnProperty(value = "node.run.cronjobs", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "node.run.cronjobs", havingValue = "true")
 public class MonitoringSupport {
     @Autowired(required = false)
     private List<CronJobExecutor> executors = Collections.emptyList();
