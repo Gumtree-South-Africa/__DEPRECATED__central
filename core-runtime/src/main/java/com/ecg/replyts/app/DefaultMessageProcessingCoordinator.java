@@ -42,7 +42,7 @@ import static net.logstash.logback.argument.StructuredArguments.keyValue;
 public class DefaultMessageProcessingCoordinator implements MessageProcessingCoordinator {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultMessageProcessingCoordinator.class);
 
-    private static final String TENANT_ID_EMAIL_HEADER = "X-Comaas-Tenant";
+    public static final String TENANT_ID_EMAIL_HEADER = "X-Comaas-Tenant";
 
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("processing-total");
     private static final io.prometheus.client.Counter X_COMAAS_TENANT_COUNTER = io.prometheus.client.Counter.build("ingest_tenant_header_total",
@@ -124,6 +124,9 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context) {
         setMDC(context);
 
+        if (context.getOutgoingMail() != null) {
+            context.getOutgoingMail().addHeader(TENANT_ID_EMAIL_HEADER, shortTenantName);
+        }
         processingFlow.inputForPreProcessor(context);
 
         if (context.isTerminated()) {
@@ -149,9 +152,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     }
 
     private void handleSuccess(MessageProcessingContext context, Optional<byte[]> messageBytes) {
-        if (context.getOutgoingMail() != null) {
-            context.getOutgoingMail().addHeader(TENANT_ID_EMAIL_HEADER, shortTenantName);
-        }
+
         byte[] outgoing = context.getOutgoingMail() != null ? Mails.writeToBuffer(context.getOutgoingMail()) : null;
 
         persister.persistAndIndex(

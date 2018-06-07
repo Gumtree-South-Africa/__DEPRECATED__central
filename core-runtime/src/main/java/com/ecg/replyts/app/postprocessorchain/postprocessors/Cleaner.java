@@ -1,5 +1,6 @@
 package com.ecg.replyts.app.postprocessorchain.postprocessors;
 
+import com.ecg.replyts.app.DefaultMessageProcessingCoordinator;
 import com.ecg.replyts.app.postprocessorchain.EmailPostProcessor;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -16,7 +17,7 @@ public class Cleaner implements EmailPostProcessor {
             "Subject", "Date", "Content-Type", "Content-ID",
             "Content-Disposition", "Content-Transfer-Encoding", "MIME-Version",
             // The following headers are retained to prevent mail loops https://en.wikipedia.org/wiki/Email_loop
-            "Precedence", "X-Precedence", "X-Auto-Response-Suppress", "Auto-Submitted"));
+            "Precedence", "X-Precedence", "X-Auto-Response-Suppress", "Auto-Submitted", DefaultMessageProcessingCoordinator.TENANT_ID_EMAIL_HEADER));
 
     @Override
     public int getOrder() {
